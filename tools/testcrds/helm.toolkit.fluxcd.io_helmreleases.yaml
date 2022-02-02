@@ -429,10 +429,10 @@ spec:
                       minLength: 1
                       type: string
                     optional:
-                      description: Optional marks this ValuesReference as optional. When set, a not found error for the values reference is ignored, but any ValuesKey, dirPath or transient error will still result in a reconciliation failure.
+                      description: Optional marks this ValuesReference as optional. When set, a not found error for the values reference is ignored, but any ValuesKey, targetPath or transient error will still result in a reconciliation failure.
                       type: boolean
-                    dirPath:
-                      description: dirPath is the YAML dot notation path the value should be merged at. When set, the ValuesKey is expected to be a single flat value. Defaults to 'None', which results in the values getting merged at the root.
+                    targetPath:
+                      description: targetPath is the YAML dot notation path the value should be merged at. When set, the ValuesKey is expected to be a single flat value. Defaults to 'None', which results in the values getting merged at the root.
                       type: string
                     valuesKey:
                       description: ValuesKey is the data key where the values.yaml or a specific value can be found at. Defaults to 'values.yaml'.

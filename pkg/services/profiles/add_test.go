@@ -51,7 +51,7 @@ var _ = Describe("Add", func() {
 	})
 
 	When("the config repository exists", func() {
-		When("it discovers the version and the HelmRepository name and namespace", func() {
+		When("the version and HelmRepository name and namespace were discovered", func() {
 			JustBeforeEach(func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
 				gitProviders.GetDefaultBranchReturns("main", nil)
@@ -273,13 +273,12 @@ func makeTestFiles() []*gitprovider.CommitFile {
 
 	commitFiles := make([]*gitprovider.CommitFile, 0)
 	for _, file := range files {
-		path := file.Path
-		content := file.Content
 		commitFiles = append(commitFiles, &gitprovider.CommitFile{
-			Path:    path,
-			Content: content,
+			Path:    file.Path,
+			Content: file.Content,
 		})
 	}
+
 	return commitFiles
 }
 

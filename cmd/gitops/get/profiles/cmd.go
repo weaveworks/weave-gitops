@@ -53,8 +53,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	profilesService := profiles.NewService(clientSet, internal.NewCLILogger(os.Stdout))
-	return profilesService.Get(context.Background(), profiles.GetOptions{
+	return profiles.NewService(clientSet, internal.NewCLILogger(os.Stdout)).Get(context.Background(), profiles.GetOptions{
 		Namespace: ns,
 		Writer:    os.Stdout,
 		Port:      port,

@@ -46,6 +46,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	} else if !repoExists {
 		return fmt.Errorf("repository '%v' could not be found", configRepoUrl.String())
 	}
+
 	defaultBranch, err := gitProvider.GetDefaultBranch(ctx, configRepoUrl)
 	if err != nil {
 		return fmt.Errorf("failed to get default branch: %w", err)
@@ -61,6 +62,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	if err != nil {
 		return fmt.Errorf("failed to get profiles from cluster: %w", err)
 	}
+
 	if availableProfile.GetHelmRepository().GetName() == "" || availableProfile.GetHelmRepository().GetNamespace() == "" {
 		return fmt.Errorf("failed to discover HelmRepository's name and namespace")
 	}
@@ -93,16 +95,19 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
+
 	s.Logger.Actionf("Pull Request created: %s", pr.Get().WebURL)
 
 	if opts.AutoMerge {
 		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
+
 		if err := gitProvider.MergePullRequest(ctx, configRepoUrl, pr.Get().Number, AddCommitMessage); err != nil {
 			return fmt.Errorf("error auto-merging PR: %w", err)
 		}
 	}
 
 	s.printAddSummary(opts)
+
 	return nil
 }
 
@@ -117,6 +122,7 @@ func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
 // AppendProfileToFile appends a HelmRelease to profiles.yaml if file does not contain other HelmRelease with the same name and namespace.
 func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.HelmRelease, path string) (gitprovider.CommitFile, error) {
 	var content string
+
 	for _, f := range files {
 		if f.Path != nil && *f.Path == path {
 			if f.Content == nil || *f.Content == "" {
@@ -133,17 +139,21 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 				if err := yaml.Unmarshal(manifestBytes, &r); err != nil {
 					return gitprovider.CommitFile{}, fmt.Errorf("error unmarshaling %s: %w", models.WegoProfilesPath, err)
 				}
+
 				if profileIsInstalled(r, *newRelease) {
 					return gitprovider.CommitFile{}, fmt.Errorf("version %s of profile '%s' already exists in namespace %s", r.Spec.Chart.Spec.Version, r.Name, r.Namespace)
 				}
 			}
+
 			content = *f.Content
 		}
 	}
+
 	helmReleaseManifest, err := yaml.Marshal(newRelease)
 	if err != nil {
 		return gitprovider.CommitFile{}, fmt.Errorf("failed to marshal new HelmRelease: %w", err)
 	}
+
 	content += "\n---\n" + string(helmReleaseManifest)
 
 	return gitprovider.CommitFile{
@@ -155,22 +165,28 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 // splitYAML splits a manifest file that may contain multiple YAML resources separated by '---'
 // and validates that each element is YAML.
 func splitYAML(resources []byte) ([][]byte, error) {
-	decoder := goyaml.NewDecoder(bytes.NewReader(resources))
 	var splitResources [][]byte
+
+	decoder := goyaml.NewDecoder(bytes.NewReader(resources))
+
 	for {
 		var value interface{}
 		if err := decoder.Decode(&value); err != nil {
 			if err == io.EOF {
 				break
 			}
+
 			return nil, err
 		}
+
 		valueBytes, err := goyaml.Marshal(value)
 		if err != nil {
 			return nil, err
 		}
+
 		splitResources = append(splitResources, valueBytes)
 	}
+
 	return splitResources, nil
 }
 

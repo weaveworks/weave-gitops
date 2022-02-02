@@ -48,40 +48,48 @@ func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
+
 	return profiles, nil
 }
 
 // GetProfile returns a single available profile.
 func (s *ProfilesSvc) GetProfile(ctx context.Context, opts GetOptions) (*pb.Profile, string, error) {
 	s.Logger.Actionf("getting available profiles in %s/%s", opts.Cluster, opts.Namespace)
+
 	profilesList, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return nil, "", err
 	}
 
 	var version string
+
 	for _, p := range profilesList.Profiles {
 		if p.Name == opts.Name {
 			if len(p.AvailableVersions) == 0 {
 				return nil, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
 			}
+
 			switch {
 			case opts.Version == "latest":
 				versions, err := controller.ConvertStringListToSemanticVersionList(p.AvailableVersions)
 				if err != nil {
 					return nil, "", err
 				}
+
 				controller.SortVersions(versions)
 				version = versions[0].String()
 			default:
 				if !foundVersion(p.AvailableVersions, opts.Version) {
 					return nil, "", fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
 				}
+
 				version = opts.Version
 			}
+
 			return p, version, nil
 		}
 	}
+
 	return nil, "", fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
 }
 
@@ -91,6 +99,7 @@ func foundVersion(availableVersions []string, version string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

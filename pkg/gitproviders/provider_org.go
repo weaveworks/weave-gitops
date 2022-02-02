@@ -133,10 +133,12 @@ func (p orgGitProvider) GetRepoDirFiles(ctx context.Context, repoUrl RepoURL, di
 	if err != nil {
 		return nil, err
 	}
+
 	files, err := repo.Files().Get(ctx, dirPath, targetBranch)
 	if err != nil {
 		return nil, err
 	}
+
 	return files, nil
 }
 
@@ -146,5 +148,6 @@ func (p orgGitProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, p
 	if err != nil {
 		return err
 	}
+
 	return repo.PullRequests().Merge(ctx, pullRequestNumber, gitprovider.MergeMethodMerge, commitMesage)
 }

@@ -414,10 +414,12 @@ func GenerateResourceName(url gitproviders.RepoURL) string {
 // GetRandomString generates a random unique string and appends it to a given string.
 func GetRandomString(s string) string {
 	data := "abcdefghijklmnopqrstuvwyz1234567890"
+
 	b := make([]byte, 5)
 	for i := range b {
 		b[i] = data[rand.Intn(len(data))]
 	}
+
 	return s + string(b)
 }
 

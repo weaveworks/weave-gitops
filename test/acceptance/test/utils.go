@@ -242,6 +242,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		if clusterName == "" {
 			kindCluster = RandString(6)
 		}
+
 		clusterName = provider + "-" + kindCluster
 
 		log.Infof("Creating a kind cluster %s", kindCluster)

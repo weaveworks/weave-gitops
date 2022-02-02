@@ -54,7 +54,6 @@ func AddCommand() *cobra.Command {
 		if err := cobra.MarkFlagRequired(cmd.Flags(), f); err != nil {
 			panic(fmt.Errorf("unexpected error: %w", err))
 		}
-
 	}
 
 	return cmd
@@ -63,6 +62,7 @@ func AddCommand() *cobra.Command {
 func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		rand.Seed(time.Now().UnixNano())
+
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
@@ -72,11 +72,10 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 			return err
 		}
 
-		ns, err := cmd.Flags().GetString("namespace")
-		if err != nil {
+		var err error
+		if opts.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
 			return err
 		}
-		opts.Namespace = ns
 
 		config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 		if err != nil {
@@ -93,8 +92,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
 
-		ctx := context.Background()
-		_, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
+		_, gitProvider, err := factory.GetGitClients(context.Background(), kubeClient, providerClient, services.GitConfigParams{
 			ConfigRepo:       opts.ConfigRepo,
 			Namespace:        opts.Namespace,
 			IsHelmRepository: true,
@@ -104,7 +102,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed to get git clients: %w", err)
 		}
 
-		return profiles.NewService(clientSet, log).Add(ctx, gitProvider, opts)
+		return profiles.NewService(clientSet, log).Add(context.Background(), gitProvider, opts)
 	}
 }
 
@@ -119,5 +117,6 @@ func validateAddOptions(opts profiles.AddOptions) error {
 			return fmt.Errorf("error parsing --version=%s: %w", opts.Version, err)
 		}
 	}
+
 	return nil
 }
