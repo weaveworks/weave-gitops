@@ -262,12 +262,13 @@ jobs:
           echo "::set-output name=sha::$sha"
       - id: commit-subject
         name: Escape the first line of the commit message
+        if: ${{ github.event_name == 'push' }}
         run: |
           subject=$(jq -r '.head_commit.message | split("\n")[0]|@json' <${{ github.event_path }})
           echo "::set-output name=subject::$subject"
       - name: Send team Slack notification
         uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
           channel: team-bluetonium
