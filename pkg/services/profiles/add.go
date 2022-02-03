@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/google/uuid"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -35,19 +35,19 @@ type AddOptions struct {
 // Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
 // provided that such a HelmRelease does not exist with the same profile name and version in the same namespace and cluster.
 func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts AddOptions) error {
-	configRepoUrl, err := gitproviders.NewRepoURL(opts.ConfigRepo)
+	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
 	}
 
-	repoExists, err := gitProvider.RepositoryExists(ctx, configRepoUrl)
+	repoExists, err := gitProvider.RepositoryExists(ctx, configRepoURL)
 	if err != nil {
 		return fmt.Errorf("failed to check whether repository exists: %w", err)
 	} else if !repoExists {
-		return fmt.Errorf("repository '%v' could not be found", configRepoUrl.String())
+		return fmt.Errorf("repository %q could not be found", configRepoURL)
 	}
 
-	defaultBranch, err := gitProvider.GetDefaultBranch(ctx, configRepoUrl)
+	defaultBranch, err := gitProvider.GetDefaultBranch(ctx, configRepoURL)
 	if err != nil {
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
@@ -74,9 +74,9 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 
 	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
 
-	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoUrl, git.GetSystemPath(opts.Cluster), defaultBranch)
+	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
 	if err != nil {
-		return fmt.Errorf("failed to get files in '%s' for config repository '%s': %s", git.GetSystemPath(opts.Cluster), configRepoUrl.String(), err)
+		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
 	file, err := AppendProfileToFile(files, newRelease, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
@@ -84,12 +84,12 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to append HelmRelease to profiles file: %w", err)
 	}
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoUrl, gitproviders.PullRequestInfo{
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
 		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
 		Description:   fmt.Sprintf("Add manifest for %s profile", opts.Name),
 		CommitMessage: AddCommitMessage,
 		TargetBranch:  defaultBranch,
-		NewBranch:     automation.GetRandomString("wego-"),
+		NewBranch:     uuid.New().String(),
 		Files:         []gitprovider.CommitFile{file},
 	})
 	if err != nil {
@@ -101,7 +101,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	if opts.AutoMerge {
 		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
 
-		if err := gitProvider.MergePullRequest(ctx, configRepoUrl, pr.Get().Number, AddCommitMessage); err != nil {
+		if err := gitProvider.MergePullRequest(ctx, configRepoURL, pr.Get().Number, AddCommitMessage); err != nil {
 			return fmt.Errorf("error auto-merging PR: %w", err)
 		}
 	}
@@ -146,6 +146,8 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 			}
 
 			content = *f.Content
+
+			break
 		}
 	}
 

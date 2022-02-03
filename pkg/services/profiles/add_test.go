@@ -178,7 +178,7 @@ var _ = Describe("Add", func() {
 		It("fails if the config repo does not exist", func() {
 			gitProviders.RepositoryExistsReturns(false, nil)
 			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-			Expect(err).To(MatchError("repository 'ssh://git@github.com/owner/config-repo.git' could not be found"))
+			Expect(err).To(MatchError("repository \"ssh://git@github.com/owner/config-repo.git\" could not be found"))
 			Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 		})
 	})
