@@ -2,6 +2,7 @@ package gitproviders
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
@@ -29,6 +30,9 @@ type Config struct {
 	// Token contains the token used to authenticate with the
 	// Provider.
 	Token string
+
+	// RoundTripper allows for the internal http transport to customized
+	RoundTripper http.RoundTripper
 }
 
 func buildGitProvider(config Config) (gitprovider.Client, string, error) {
@@ -36,12 +40,17 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		return nil, "", fmt.Errorf("no git provider token present")
 	}
 
+	opts := []gitprovider.ClientOption{
+		gitprovider.WithOAuth2Token(config.Token),
+	}
+	if config.RoundTripper != nil {
+		opts = append(opts, gitprovider.WithPreChainTransportHook(func(in http.RoundTripper) (out http.RoundTripper) {
+			return config.RoundTripper
+		}))
+	}
+
 	switch config.Provider {
 	case GitProviderGitHub:
-		opts := []gitprovider.ClientOption{
-			gitprovider.WithOAuth2Token(config.Token),
-		}
-
 		// Quirk of ggp, if using github.com or gitlab.com and you prepend
 		// that with https:// you end up with https://https//github.com !!!
 		hostname := github.DefaultDomain
@@ -57,10 +66,7 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 			return client, hostname, nil
 		}
 	case GitProviderGitLab:
-		opts := []gitprovider.ClientOption{
-			gitprovider.WithOAuth2Token(config.Token),
-			gitprovider.WithConditionalRequests(true),
-		}
+		opts = append(opts, gitprovider.WithConditionalRequests(true))
 
 		// Quirk, see above
 		hostname := gitlab.DefaultDomain
