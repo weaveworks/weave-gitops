@@ -192,24 +192,18 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 		return "", err
 	}
 
-	newVersions, err := r.convertStringListToSemanticVersionList(chart.AvailableVersions)
+	newVersions, err := ConvertStringListToSemanticVersionList(chart.AvailableVersions)
 	if err != nil {
 		return "", err
 	}
 
-	oldVersions, err := r.convertStringListToSemanticVersionList(versions)
+	oldVersions, err := ConvertStringListToSemanticVersionList(versions)
 	if err != nil {
 		return "", err
 	}
 
-	sortVersions := func(versions []*semver.Version) {
-		sort.SliceStable(versions, func(i, j int) bool {
-			return versions[i].GreaterThan(versions[j])
-		})
-	}
-
-	sortVersions(newVersions)
-	sortVersions(oldVersions)
+	SortVersions(newVersions)
+	SortVersions(oldVersions)
 
 	// If there are no old versions stored, it's likely that the profile didn't exist before. So we don't notify.
 	// Same in case there are no new versions ( which is unlikely to happen, but we ward against it nevertheless ).
@@ -225,7 +219,8 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 	return "", nil
 }
 
-func (r *HelmWatcherReconciler) convertStringListToSemanticVersionList(versions []string) ([]*semver.Version, error) {
+// ConvertStringListToSemanticVersionList converts a slice of strings into a slice of semantic version.
+func ConvertStringListToSemanticVersionList(versions []string) ([]*semver.Version, error) {
 	var result []*semver.Version
 
 	for _, v := range versions {
@@ -238,4 +233,11 @@ func (r *HelmWatcherReconciler) convertStringListToSemanticVersionList(versions 
 	}
 
 	return result, nil
+}
+
+// SortVersions sorts semver versions in decreasing order.
+func SortVersions(versions []*semver.Version) {
+	sort.SliceStable(versions, func(i, j int) bool {
+		return versions[i].GreaterThan(versions[j])
+	})
 }

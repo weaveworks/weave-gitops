@@ -238,18 +238,20 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	}
 
 	if provider == "kind" {
+		var kindCluster string
 		if clusterName == "" {
-			clusterName = provider + "-" + RandString(6)
+			kindCluster = RandString(6)
 		}
 
-		log.Infof("Creating a kind cluster %s", clusterName)
+		clusterName = provider + "-" + kindCluster
+
+		log.Infof("Creating a kind cluster %s", kindCluster)
 
 		var err error
-
 		if keepExistingClusters {
-			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		} else {
-			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		}
 
 		if err != nil {

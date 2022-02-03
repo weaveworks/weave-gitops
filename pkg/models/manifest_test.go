@@ -170,7 +170,7 @@ var _ = Describe("Installer", func() {
 
 		Context("success case", func() {
 			It("should pass successfully", func() {
-				systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+				systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath, WegoProfilesPath)
 
 				systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 				Expect(err).ShouldNot(HaveOccurred())

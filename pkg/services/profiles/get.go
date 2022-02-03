@@ -12,36 +12,95 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-)
-
-const (
-	wegoServiceName = "wego-app"
-	getProfilesPath = "/v1/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller"
 )
 
 type GetOptions struct {
+	Name      string
+	Version   string
+	Cluster   string
 	Namespace string
-	ClientSet kubernetes.Interface
 	Writer    io.Writer
 	Port      string
 }
 
-func GetProfiles(ctx context.Context, opts GetOptions) error {
-	resp, err := kubernetesDoRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, opts.ClientSet)
+// Get returns a list of available profiles.
+func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
+	profiles, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return err
+	}
+
+	printProfiles(profiles, opts.Writer)
+
+	return nil
+}
+
+func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
+	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, servicePort, getProfilesPath, clientset)
+	if err != nil {
+		return nil, err
 	}
 
 	profiles := &pb.GetProfilesResponse{}
 	err = jsonpb.UnmarshalString(string(resp), profiles)
 
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	printProfiles(profiles, opts.Writer)
+	return profiles, nil
+}
 
-	return nil
+// GetProfile returns a single available profile.
+func (s *ProfilesSvc) GetProfile(ctx context.Context, opts GetOptions) (*pb.Profile, string, error) {
+	s.Logger.Actionf("getting available profiles in %s/%s", opts.Cluster, opts.Namespace)
+
+	profilesList, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+	if err != nil {
+		return nil, "", err
+	}
+
+	var version string
+
+	for _, p := range profilesList.Profiles {
+		if p.Name == opts.Name {
+			if len(p.AvailableVersions) == 0 {
+				return nil, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
+			}
+
+			switch {
+			case opts.Version == "latest":
+				versions, err := controller.ConvertStringListToSemanticVersionList(p.AvailableVersions)
+				if err != nil {
+					return nil, "", err
+				}
+
+				controller.SortVersions(versions)
+				version = versions[0].String()
+			default:
+				if !foundVersion(p.AvailableVersions, opts.Version) {
+					return nil, "", fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
+				}
+
+				version = opts.Version
+			}
+
+			return p, version, nil
+		}
+	}
+
+	return nil, "", fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+}
+
+func foundVersion(availableVersions []string, version string) bool {
+	for _, v := range availableVersions {
+		if v == version {
+			return true
+		}
+	}
+
+	return false
 }
 
 func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {

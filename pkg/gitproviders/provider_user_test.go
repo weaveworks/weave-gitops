@@ -1,7 +1,9 @@
 package gitproviders
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
@@ -20,6 +22,7 @@ var _ = Describe("User Provider", func() {
 		commitClient       *fakegitprovider.CommitClient
 		branchesClient     *fakegitprovider.BranchClient
 		pullRequestsClient *fakegitprovider.PullRequestClient
+		fileClient         *fakegitprovider.FileClient
 
 		repoUrl RepoURL
 	)
@@ -28,11 +31,13 @@ var _ = Describe("User Provider", func() {
 		commitClient = &fakegitprovider.CommitClient{}
 		branchesClient = &fakegitprovider.BranchClient{}
 		pullRequestsClient = &fakegitprovider.PullRequestClient{}
+		fileClient = &fakegitprovider.FileClient{}
 
 		userRepo = &fakegitprovider.UserRepository{}
 		userRepo.CommitsReturns(commitClient)
 		userRepo.BranchesReturns(branchesClient)
 		userRepo.PullRequestsReturns(pullRequestsClient)
+		userRepo.FilesReturns(fileClient)
 
 		userRepoClient = &fakegitprovider.UserRepositoriesClient{}
 		userRepoClient.GetReturns(userRepo, nil)
@@ -305,6 +310,52 @@ var _ = Describe("User Provider", func() {
 			gitProviderClient.ProviderIDReturns("github")
 
 			Expect(userProvider.GetProviderDomain()).To(Equal("github.com"))
+		})
+	})
+
+	Describe("GetRepoDirFiles", func() {
+		It("returns a list of files", func() {
+			file := &gitprovider.CommitFile{}
+			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
+			c, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
+			Expect(fileClient.GetCallCount()).To(Equal(1))
+			_, dirPath, targetBranch := fileClient.GetArgsForCall(0)
+			Expect(dirPath).To(Equal("path"))
+			Expect(targetBranch).To(Equal("main"))
+		})
+
+		When("it fails to get the requested directory from the repo", func() {
+			It("returns an error", func() {
+				file := &gitprovider.CommitFile{}
+				fileClient.GetReturns([]*gitprovider.CommitFile{file}, fmt.Errorf("err"))
+				_, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
+				Expect(err).To(MatchError("err"))
+				Expect(fileClient.GetCallCount()).To(Equal(1))
+			})
+		})
+	})
+
+	Describe("MergePullRequest", func() {
+		It("merges a given pull request", func() {
+			pullRequestsClient.MergeReturns(nil)
+			err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
+			_, prNumber, mergeMethod, message := pullRequestsClient.MergeArgsForCall(0)
+			Expect(prNumber).To(Equal(1))
+			Expect(mergeMethod).To(Equal(gitprovider.MergeMethodMerge))
+			Expect(message).To(Equal("message"))
+		})
+
+		When("merge the PR fails", func() {
+			It("returns an error", func() {
+				pullRequestsClient.MergeReturns(fmt.Errorf("err"))
+				err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
+				Expect(err).To(MatchError("err"))
+				Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
+			})
 		})
 	})
 })

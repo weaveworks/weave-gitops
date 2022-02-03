@@ -10,6 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,39 +25,40 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
-var _ = PDescribe("Weave GitOps Profiles API", func() {
+var _ = Describe("Weave GitOps Profiles API", func() {
 	var (
 		namespace        = "test-namespace"
+		clusterName      string
 		appRepoRemoteURL string
 		tip              TestInputs
 		wegoService      = "wego-app"
 		wegoPort         = "9001"
 		clientSet        *kubernetes.Clientset
 		kClient          client.Client
+		profileName      = "podinfo"
+		resp             []byte
+		statusCode       int
 	)
 
 	BeforeEach(func() {
 		Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		Expect(githubOrg).NotTo(BeEmpty())
 
-		_, _, err := ResetOrCreateCluster(namespace, true)
+		var err error
+		clusterName, _, err = ResetOrCreateCluster(namespace, true)
 		Expect(err).NotTo(HaveOccurred())
 
-		private := true
 		tip = generateTestInputs()
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 
 		clientSet, kClient = buildKubernetesClients()
 	})
 
 	AfterEach(func() {
 		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		deleteWorkload(profileName, namespace)
 	})
 
 	It("gets deployed and is accessible via the service", func() {
@@ -61,12 +66,13 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 		deployProfilesHelmRepository(kClient, namespace)
-		time.Sleep(time.Second * 20)
 
 		By("Getting a list of profiles")
-		resp, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+		Eventually(func() int {
+			resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+			return statusCode
+		}, "60s", "1s").Should(Equal(http.StatusOK))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(statusCode).To(Equal(http.StatusOK))
 
 		profiles := pb.GetProfilesResponse{}
 		Expect(json.Unmarshal(resp, &profiles)).To(Succeed())
@@ -102,7 +108,25 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		values, err := base64.StdEncoding.DecodeString(profileValues.Values)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
+
+		By("Adding a profile to a cluster")
+		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
+		Expect(stdErr).To(BeEmpty())
+		Expect(stdOut).To(ContainSubstring(
+			fmt.Sprintf(`Adding profile:
+
+Name: podinfo
+Version: 6.0.1
+Cluster: %s
+Namespace: %s`, clusterName, namespace)))
+
+		By("Verifying that the profile has been installed on the cluster")
+		Eventually(func() int {
+			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "9898", "/healthz", clientSet)
+			return statusCode
+		}, "120s", "1s").Should(Equal(http.StatusOK))
 	})
+
 	It("profiles are installed into a different namespace", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"

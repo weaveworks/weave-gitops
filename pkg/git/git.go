@@ -74,6 +74,12 @@ func GetSystemQualifiedPath(clusterName string, relativePath string) string {
 	return filepath.Join(GetSystemPath(clusterName), relativePath)
 }
 
+// GetProfilesPath returns the path of the file containing the manifests of installed Profiles
+// joined with the cluster's system directory
+func GetProfilesPath(clusterName, profilesManifestPath string) string {
+	return filepath.Join(GetSystemPath(clusterName), profilesManifestPath)
+}
+
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.
 //counterfeiter:generate . Git

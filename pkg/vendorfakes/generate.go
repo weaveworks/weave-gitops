@@ -12,6 +12,8 @@ package vendorfakes
 //counterfeiter:generate -o fakegitprovider -fake-name CommitClient github.com/fluxcd/go-git-providers/gitprovider.CommitClient
 //counterfeiter:generate -o fakegitprovider -fake-name PullRequestClient github.com/fluxcd/go-git-providers/gitprovider.PullRequestClient
 //counterfeiter:generate -o fakegitprovider -fake-name Commit github.com/fluxcd/go-git-providers/gitprovider.Commit
+//counterfeiter:generate -o fakegitprovider -fake-name FileClient github.com/fluxcd/go-git-providers/gitprovider.FileClient
+//counterfeiter:generate -o fakegitprovider -fake-name PullRequest github.com/fluxcd/go-git-providers/gitprovider.PullRequest
 
 //counterfeiter:generate -o fakelogr -fake-name Logger github.com/go-logr/logr.Logger
 

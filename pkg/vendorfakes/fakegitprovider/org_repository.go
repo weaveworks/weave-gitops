@@ -60,6 +60,16 @@ type OrgRepository struct {
 	deployKeysReturnsOnCall map[int]struct {
 		result1 gitprovider.DeployKeyClient
 	}
+	FilesStub        func() gitprovider.FileClient
+	filesMutex       sync.RWMutex
+	filesArgsForCall []struct {
+	}
+	filesReturns struct {
+		result1 gitprovider.FileClient
+	}
+	filesReturnsOnCall map[int]struct {
+		result1 gitprovider.FileClient
+	}
 	GetStub        func() gitprovider.RepositoryInfo
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
@@ -409,6 +419,59 @@ func (fake *OrgRepository) DeployKeysReturnsOnCall(i int, result1 gitprovider.De
 	}
 	fake.deployKeysReturnsOnCall[i] = struct {
 		result1 gitprovider.DeployKeyClient
+	}{result1}
+}
+
+func (fake *OrgRepository) Files() gitprovider.FileClient {
+	fake.filesMutex.Lock()
+	ret, specificReturn := fake.filesReturnsOnCall[len(fake.filesArgsForCall)]
+	fake.filesArgsForCall = append(fake.filesArgsForCall, struct {
+	}{})
+	stub := fake.FilesStub
+	fakeReturns := fake.filesReturns
+	fake.recordInvocation("Files", []interface{}{})
+	fake.filesMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *OrgRepository) FilesCallCount() int {
+	fake.filesMutex.RLock()
+	defer fake.filesMutex.RUnlock()
+	return len(fake.filesArgsForCall)
+}
+
+func (fake *OrgRepository) FilesCalls(stub func() gitprovider.FileClient) {
+	fake.filesMutex.Lock()
+	defer fake.filesMutex.Unlock()
+	fake.FilesStub = stub
+}
+
+func (fake *OrgRepository) FilesReturns(result1 gitprovider.FileClient) {
+	fake.filesMutex.Lock()
+	defer fake.filesMutex.Unlock()
+	fake.FilesStub = nil
+	fake.filesReturns = struct {
+		result1 gitprovider.FileClient
+	}{result1}
+}
+
+func (fake *OrgRepository) FilesReturnsOnCall(i int, result1 gitprovider.FileClient) {
+	fake.filesMutex.Lock()
+	defer fake.filesMutex.Unlock()
+	fake.FilesStub = nil
+	if fake.filesReturnsOnCall == nil {
+		fake.filesReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.FileClient
+		})
+	}
+	fake.filesReturnsOnCall[i] = struct {
+		result1 gitprovider.FileClient
 	}{result1}
 }
 
@@ -823,6 +886,8 @@ func (fake *OrgRepository) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.deployKeysMutex.RLock()
 	defer fake.deployKeysMutex.RUnlock()
+	fake.filesMutex.RLock()
+	defer fake.filesMutex.RUnlock()
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	fake.pullRequestsMutex.RLock()

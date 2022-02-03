@@ -15,6 +15,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/testing"
 
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 )
 
@@ -38,7 +39,10 @@ const getProfilesResp = `{
       "icon": "",
       "annotations": {},
       "kubeVersion": ">=1.19.0-0",
-      "helmRepository": null,
+      "helmRepository": {
+		  "name": "podinfo",
+		  "namespace": "weave-system"
+	  },
       "availableVersions": [
         "6.0.0",
         "6.0.1"
@@ -48,79 +52,148 @@ const getProfilesResp = `{
 }
 `
 
-var _ = Describe("GetProfiles", func() {
+var _ = Describe("Get Profile(s)", func() {
 	var (
-		buffer    *gbytes.Buffer
-		clientSet *fake.Clientset
+		buffer      *gbytes.Buffer
+		clientSet   *fake.Clientset
+		profilesSvc *profiles.ProfilesSvc
+		fakeLogger  *loggerfakes.FakeLogger
 	)
 
 	BeforeEach(func() {
 		buffer = gbytes.NewBuffer()
 		clientSet = fake.NewSimpleClientset()
+		fakeLogger = &loggerfakes.FakeLogger{}
+		profilesSvc = profiles.NewService(clientSet, fakeLogger)
 	})
 
-	It("prints the available profiles", func() {
-		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-			return true, newFakeResponseWrapper(getProfilesResp), nil
-		})
-
-		Expect(profiles.GetProfiles(context.TODO(), profiles.GetOptions{
-			Namespace: "test-namespace",
-			ClientSet: clientSet,
-			Writer:    buffer,
-			Port:      "9001",
-		})).To(Succeed())
-
-		Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
-podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
-`))
-	})
-
-	When("the response isn't valid", func() {
-		It("errors", func() {
+	Context("Get", func() {
+		It("prints the available profiles", func() {
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-				return true, newFakeResponseWrapper("not=json"), nil
+				return true, newFakeResponseWrapper(getProfilesResp), nil
 			})
 
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
+			Expect(profilesSvc.Get(context.TODO(), profiles.GetOptions{
 				Namespace: "test-namespace",
-				ClientSet: clientSet,
 				Writer:    buffer,
 				Port:      "9001",
+			})).To(Succeed())
+
+			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
+podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
+`))
+		})
+
+		When("the response isn't valid", func() {
+			It("errors", func() {
+				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+					return true, newFakeResponseWrapper("not=json"), nil
+				})
+
+				err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
+					Namespace: "test-namespace",
+					Writer:    buffer,
+					Port:      "9001",
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to unmarshal response")))
 			})
-			Expect(err).To(MatchError(ContainSubstring("failed to unmarshal response")))
+		})
+
+		When("making the request fails", func() {
+			It("errors", func() {
+				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+					return true, newFakeResponseWrapperWithErr("nope"), nil
+				})
+
+				err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
+					Namespace: "test-namespace",
+					Writer:    buffer,
+					Port:      "9001",
+				})
+				Expect(err).To(MatchError("failed to make GET request to service test-namespace/wego-app path \"/v1/profiles\": nope"))
+			})
+		})
+
+		When("the request returns non-200", func() {
+			It("errors", func() {
+				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+					return true, newFakeResponseWrapperWithStatusCode(http.StatusNotFound), nil
+				})
+
+				err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
+					Namespace: "test-namespace",
+					Writer:    buffer,
+					Port:      "9001",
+				})
+				Expect(err).To(MatchError("failed to make GET request to service test-namespace/wego-app path \"/v1/profiles\" status code: 404"))
+			})
 		})
 	})
 
-	When("making the request fails", func() {
-		It("errors", func() {
+	Context("GetProfile", func() {
+		var (
+			opts profiles.GetOptions
+		)
+
+		BeforeEach(func() {
+			opts = profiles.GetOptions{
+				Name:      "podinfo",
+				Version:   "latest",
+				Cluster:   "prod",
+				Namespace: "test-namespace",
+			}
+		})
+
+		It("returns an available profile", func() {
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(getProfilesResp), nil
+			})
+			profile, version, err := profilesSvc.GetProfile(context.TODO(), opts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
+			Expect(version).To(Equal("6.0.1"))
+		})
+
+		It("it fails to return a list of available profiles from the cluster", func() {
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapperWithErr("nope"), nil
 			})
-
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
-				Namespace: "test-namespace",
-				ClientSet: clientSet,
-				Writer:    buffer,
-				Port:      "9001",
-			})
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).To(MatchError("failed to make GET request to service test-namespace/wego-app path \"/v1/profiles\": nope"))
 		})
-	})
 
-	When("the request returns non-200", func() {
-		It("errors", func() {
+		It("fails if no available profile was found that matches the name for the profile being added", func() {
+			badProfileResp := `{
+				"profiles": [
+				  {
+					"name": "foo"
+				  }
+				]
+			  }
+			  `
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-				return true, newFakeResponseWrapperWithStatusCode(http.StatusNotFound), nil
+				return true, newFakeResponseWrapper(badProfileResp), nil
 			})
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
+			Expect(err).To(MatchError("no available profile 'podinfo' found in prod/test-namespace"))
+		})
 
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
-				Namespace: "test-namespace",
-				ClientSet: clientSet,
-				Writer:    buffer,
-				Port:      "9001",
+		It("fails if no available profile was found that matches the name for the profile being added", func() {
+			badProfileResp := `{
+				"profiles": [
+				  {
+					"name": "podinfo",
+					"availableVersions": [
+					]
+				  }
+				]
+			  }
+			  `
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(badProfileResp), nil
 			})
-			Expect(err).To(MatchError("failed to make GET request to service test-namespace/wego-app path \"/v1/profiles\" status code: 404"))
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
+			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
 		})
 	})
 })

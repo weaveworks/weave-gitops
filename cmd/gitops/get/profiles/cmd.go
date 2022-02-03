@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"k8s.io/client-go/kubernetes"
@@ -33,7 +34,7 @@ gitops get profiles
 }
 
 func init() {
-	Cmd.Flags().StringVar(&port, "port", server.DefaultPort, "port the profiles API is running on")
+	Cmd.Flags().StringVar(&port, "port", server.DefaultPort, "Port the profiles API is running on")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -52,9 +53,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return profiles.GetProfiles(context.Background(), profiles.GetOptions{
+	return profiles.NewService(clientSet, internal.NewCLILogger(os.Stdout)).Get(context.Background(), profiles.GetOptions{
 		Namespace: ns,
-		ClientSet: clientSet,
 		Writer:    os.Stdout,
 		Port:      port,
 	})

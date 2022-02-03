@@ -114,3 +114,29 @@ func (p userGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, target
 func (p userGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
+
+// GetRepoDirFiles returns the files found in a directory. The dirPath must point to a directory, not a file.
+// Note that the current implementation only gets an end subdirectory. It does not get multiple directories recursively. See https://github.com/fluxcd/go-git-providers/issues/143.
+func (p userGitProvider) GetRepoDirFiles(ctx context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+	repo, err := p.getUserRepo(ctx, repoUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	files, err := repo.Files().Get(ctx, dirPath, targetBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+// MergePullRequest merges a pull request given the repository's URL and the PR's number with a commit message.
+func (p userGitProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error {
+	repo, err := p.getUserRepo(ctx, repoUrl)
+	if err != nil {
+		return err
+	}
+
+	return repo.PullRequests().Merge(ctx, pullRequestNumber, gitprovider.MergeMethodMerge, commitMesage)
+}

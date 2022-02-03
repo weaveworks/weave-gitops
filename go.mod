@@ -7,7 +7,7 @@ require (
 	github.com/benbjohnson/clock v1.3.0
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
-	github.com/fluxcd/go-git-providers v0.5.2
+	github.com/fluxcd/go-git-providers v0.5.3
 	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/kustomize-controller/api v0.18.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1
@@ -69,6 +69,7 @@ require (
 
 require (
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gofrs/flock v0.8.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	gopkg.in/square/go-jose.v2 v2.5.1

@@ -57,3 +57,11 @@ func (p *dryrunProvider) GetCommits(_ context.Context, repoUrl RepoURL, targetBr
 func (p *dryrunProvider) GetProviderDomain() string {
 	return p.provider.GetProviderDomain()
 }
+
+func (p *dryrunProvider) GetRepoDirFiles(_ context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+	return nil, nil
+}
+
+func (p *dryrunProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error {
+	return nil
+}

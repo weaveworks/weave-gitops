@@ -44,6 +44,7 @@ const (
 	SystemKustomizationPath = "kustomization.yaml"
 	WegoAppPath             = "wego-app.yaml"
 	WegoConfigPath          = "wego-config.yaml"
+	WegoProfilesPath        = "profiles.yaml"
 
 	WegoConfigMapName = "weave-gitops-config"
 )
@@ -154,7 +155,7 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 
 // NoClusterApplicableManifests generates all yaml files that are going to be written in the config repo and cannot be applied to the cluster directly
 func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
-	systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+	systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath, WegoProfilesPath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 	if err != nil {

@@ -80,6 +80,22 @@ type FakeGitProvider struct {
 	getProviderDomainReturnsOnCall map[int]struct {
 		result1 string
 	}
+	GetRepoDirFilesStub        func(context.Context, gitproviders.RepoURL, string, string) ([]*gitprovider.CommitFile, error)
+	getRepoDirFilesMutex       sync.RWMutex
+	getRepoDirFilesArgsForCall []struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 string
+		arg4 string
+	}
+	getRepoDirFilesReturns struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}
+	getRepoDirFilesReturnsOnCall map[int]struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}
 	GetRepoVisibilityStub        func(context.Context, gitproviders.RepoURL) (*gitprovider.RepositoryVisibility, error)
 	getRepoVisibilityMutex       sync.RWMutex
 	getRepoVisibilityArgsForCall []struct {
@@ -93,6 +109,20 @@ type FakeGitProvider struct {
 	getRepoVisibilityReturnsOnCall map[int]struct {
 		result1 *gitprovider.RepositoryVisibility
 		result2 error
+	}
+	MergePullRequestStub        func(context.Context, gitproviders.RepoURL, int, string) error
+	mergePullRequestMutex       sync.RWMutex
+	mergePullRequestArgsForCall []struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 int
+		arg4 string
+	}
+	mergePullRequestReturns struct {
+		result1 error
+	}
+	mergePullRequestReturnsOnCall map[int]struct {
+		result1 error
 	}
 	RepositoryExistsStub        func(context.Context, gitproviders.RepoURL) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
@@ -442,6 +472,73 @@ func (fake *FakeGitProvider) GetProviderDomainReturnsOnCall(i int, result1 strin
 	}{result1}
 }
 
+func (fake *FakeGitProvider) GetRepoDirFiles(arg1 context.Context, arg2 gitproviders.RepoURL, arg3 string, arg4 string) ([]*gitprovider.CommitFile, error) {
+	fake.getRepoDirFilesMutex.Lock()
+	ret, specificReturn := fake.getRepoDirFilesReturnsOnCall[len(fake.getRepoDirFilesArgsForCall)]
+	fake.getRepoDirFilesArgsForCall = append(fake.getRepoDirFilesArgsForCall, struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 string
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.GetRepoDirFilesStub
+	fakeReturns := fake.getRepoDirFilesReturns
+	fake.recordInvocation("GetRepoDirFiles", []interface{}{arg1, arg2, arg3, arg4})
+	fake.getRepoDirFilesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetRepoDirFilesCallCount() int {
+	fake.getRepoDirFilesMutex.RLock()
+	defer fake.getRepoDirFilesMutex.RUnlock()
+	return len(fake.getRepoDirFilesArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetRepoDirFilesCalls(stub func(context.Context, gitproviders.RepoURL, string, string) ([]*gitprovider.CommitFile, error)) {
+	fake.getRepoDirFilesMutex.Lock()
+	defer fake.getRepoDirFilesMutex.Unlock()
+	fake.GetRepoDirFilesStub = stub
+}
+
+func (fake *FakeGitProvider) GetRepoDirFilesArgsForCall(i int) (context.Context, gitproviders.RepoURL, string, string) {
+	fake.getRepoDirFilesMutex.RLock()
+	defer fake.getRepoDirFilesMutex.RUnlock()
+	argsForCall := fake.getRepoDirFilesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeGitProvider) GetRepoDirFilesReturns(result1 []*gitprovider.CommitFile, result2 error) {
+	fake.getRepoDirFilesMutex.Lock()
+	defer fake.getRepoDirFilesMutex.Unlock()
+	fake.GetRepoDirFilesStub = nil
+	fake.getRepoDirFilesReturns = struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoDirFilesReturnsOnCall(i int, result1 []*gitprovider.CommitFile, result2 error) {
+	fake.getRepoDirFilesMutex.Lock()
+	defer fake.getRepoDirFilesMutex.Unlock()
+	fake.GetRepoDirFilesStub = nil
+	if fake.getRepoDirFilesReturnsOnCall == nil {
+		fake.getRepoDirFilesReturnsOnCall = make(map[int]struct {
+			result1 []*gitprovider.CommitFile
+			result2 error
+		})
+	}
+	fake.getRepoDirFilesReturnsOnCall[i] = struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGitProvider) GetRepoVisibility(arg1 context.Context, arg2 gitproviders.RepoURL) (*gitprovider.RepositoryVisibility, error) {
 	fake.getRepoVisibilityMutex.Lock()
 	ret, specificReturn := fake.getRepoVisibilityReturnsOnCall[len(fake.getRepoVisibilityArgsForCall)]
@@ -505,6 +602,70 @@ func (fake *FakeGitProvider) GetRepoVisibilityReturnsOnCall(i int, result1 *gitp
 		result1 *gitprovider.RepositoryVisibility
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) MergePullRequest(arg1 context.Context, arg2 gitproviders.RepoURL, arg3 int, arg4 string) error {
+	fake.mergePullRequestMutex.Lock()
+	ret, specificReturn := fake.mergePullRequestReturnsOnCall[len(fake.mergePullRequestArgsForCall)]
+	fake.mergePullRequestArgsForCall = append(fake.mergePullRequestArgsForCall, struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 int
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.MergePullRequestStub
+	fakeReturns := fake.mergePullRequestReturns
+	fake.recordInvocation("MergePullRequest", []interface{}{arg1, arg2, arg3, arg4})
+	fake.mergePullRequestMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGitProvider) MergePullRequestCallCount() int {
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
+	return len(fake.mergePullRequestArgsForCall)
+}
+
+func (fake *FakeGitProvider) MergePullRequestCalls(stub func(context.Context, gitproviders.RepoURL, int, string) error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = stub
+}
+
+func (fake *FakeGitProvider) MergePullRequestArgsForCall(i int) (context.Context, gitproviders.RepoURL, int, string) {
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
+	argsForCall := fake.mergePullRequestArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeGitProvider) MergePullRequestReturns(result1 error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = nil
+	fake.mergePullRequestReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGitProvider) MergePullRequestReturnsOnCall(i int, result1 error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = nil
+	if fake.mergePullRequestReturnsOnCall == nil {
+		fake.mergePullRequestReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.mergePullRequestReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeGitProvider) RepositoryExists(arg1 context.Context, arg2 gitproviders.RepoURL) (bool, error) {
@@ -653,8 +814,12 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.getDefaultBranchMutex.RUnlock()
 	fake.getProviderDomainMutex.RLock()
 	defer fake.getProviderDomainMutex.RUnlock()
+	fake.getRepoDirFilesMutex.RLock()
+	defer fake.getRepoDirFilesMutex.RUnlock()
 	fake.getRepoVisibilityMutex.RLock()
 	defer fake.getRepoVisibilityMutex.RUnlock()
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()
