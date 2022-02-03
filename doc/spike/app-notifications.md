@@ -119,7 +119,7 @@ The flux sources and appliers are configured with an --events-addr which is the 
 
 To implement matching, we will likely need to update the [Alert CRD](https://fluxcd.io/docs/components/notification/alert/) to add support for label matching and modify the notification controller to use these labels. 
 
-
+In talking with the Flux floks, they are interested in having the Alert object support label selectors for indicating which object events to notify on. Therefore, this work should land there.
 #### Pros
 - Application-aware
 - leverages existing flux providers
