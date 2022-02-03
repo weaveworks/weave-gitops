@@ -258,7 +258,7 @@ jobs:
       - id: short-sha
         name: Get short commit SHA
         run: |
-          sha=$(echo ${{ github.event.head_commit.id }} | cut -b -7)
+          sha=$(echo ${{ github.sha }} | cut -b -7)
           echo "::set-output name=sha::$sha"
       - id: commit-subject
         name: Escape the first line of the commit message
