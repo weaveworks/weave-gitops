@@ -102,6 +102,7 @@ function GithubDeviceAuthModal({
       .then((res) => {
         setCodeRes(res);
       })
+      .catch((err) => setError(err))
       .finally(() => setCodeLoading(false));
   }, [open]);
   return (
@@ -121,9 +122,8 @@ function GithubDeviceAuthModal({
         <Alert severity="error" title="Error" message={error.message} center />
       )}
       <Flex wide center height="150px">
-        {codeLoading || !codeRes ? (
-          <CircularProgress />
-        ) : (
+        {codeLoading && <CircularProgress />}
+        {codeRes && (
           <ModalContent
             onSuccess={(token) => {
               storeProviderToken(GitProvider.GitHub, token);

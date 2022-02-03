@@ -1,10 +1,13 @@
-import { MenuItem } from "@material-ui/core";
+import { FormHelperText, MenuItem } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { GithubAuthContext } from "../contexts/GithubAuthContext";
+import { useCreateDeployKey } from "../hooks/apps";
+import { useIsAuthenticated } from "../hooks/auth";
 import { GitProvider } from "../lib/api/applications/applications.pb";
 import { WeGONamespace } from "../lib/types";
-import Button from "./Button";
+import Button, { Props as ButtonProps } from "./Button";
 import Flex from "./Flex";
 import Form from "./Form";
 import FormCheckbox from "./FormCheckbox";
@@ -38,14 +41,67 @@ const IntervalInput = styled(FormInput)`
   }
 `;
 
+const OAuthButton = ({ provider, ...props }) => (
+  <Button {...props}>
+    {props.disabled
+      ? "Select a Git Provider above to use OAuth"
+      : `${provider} OAuth`}
+  </Button>
+);
+
+type DeployButtonProps = { state: GitRepoFormState } & ButtonProps;
+
+const DeployKeyButton = ({ state, ...props }: DeployButtonProps) => (
+  <>
+    <Button disabled={!state?.url} {...props}>
+      Create Deploy Key Secret
+    </Button>
+    {!state?.url && (
+      <FormHelperText error>
+        Populate the Repo URL field above to create a deploy key
+      </FormHelperText>
+    )}
+  </>
+);
+
 function AddGitRepoForm({ className, onSubmit }: Props) {
-  const [formState, setFormState] = React.useState<GitRepoFormState>(null);
+  const { setDialogState, dialogState } = React.useContext(GithubAuthContext);
+  const [formState, setFormState] = React.useState<GitRepoFormState>(
+    initialState()
+  );
+  const { isAuthenticated, req } = useIsAuthenticated();
+  const mutation = useCreateDeployKey();
 
   const handleChange = (state: { values: GitRepoFormState }) => {
     if (state.values) {
       setFormState(state.values);
     }
   };
+
+  const handleAuthClick = (provider: GitProvider) => {
+    if (provider === GitProvider.GitHub) {
+      setDialogState(true, formState.name);
+    }
+  };
+
+  const handleDeployKeyClick = () => {
+    mutation.mutate({
+      secretName: formState.name,
+      namespace: formState.namespace,
+      provider: formState.provider as GitProvider,
+      repoUrl: formState.url,
+    });
+  };
+
+  React.useEffect(() => {
+    if (!formState) {
+      return;
+    }
+
+    if (formState?.provider) {
+      req(formState.provider as GitProvider);
+    }
+  }, [formState.provider, dialogState]);
 
   const noGitProvider =
     !formState?.provider || formState?.provider === GitProvider.Unknown;
@@ -135,17 +191,25 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
       </Flex>
       {!formState?.publicRepo && (
         <Spacer m={["medium"]}>
-          <Button disabled={noGitProvider} type="button">
-            {noGitProvider
-              ? "Select a Git Provider above to use OAuth"
-              : `${formState?.provider} OAuth`}
-          </Button>
+          {isAuthenticated ? (
+            <DeployKeyButton
+              state={formState}
+              loading={mutation.isLoading}
+              onClick={handleDeployKeyClick}
+            />
+          ) : (
+            <OAuthButton
+              disabled={noGitProvider}
+              provider={formState?.provider}
+              onClick={() => handleAuthClick(formState.provider as GitProvider)}
+              type="button"
+            />
+          )}
 
           <Spacer m={["medium"]}>
             <FormInput
               name="secretRef"
               label="Secret Ref"
-              required
               helperText="Reference a secret already on the cluster instead of using OAuth"
             />
           </Spacer>
@@ -163,4 +227,8 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
 
 export default styled(AddGitRepoForm).attrs({
   className: AddGitRepoForm.name,
-})``;
+})`
+  #url {
+    min-width: 360px;
+  }
+`;

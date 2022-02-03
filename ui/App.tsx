@@ -12,8 +12,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { GlobalGithubAuthDialog } from "./components/GithubDeviceAuthModal";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
+import GithubAuthContextProvider from "./contexts/GithubAuthContext";
 import { Apps } from "./lib/api/app/apps.pb";
 import {
   Applications as appsClient,
@@ -24,6 +26,7 @@ import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute, V2Routes } from "./lib/types";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
+import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -60,113 +63,118 @@ export default function App() {
               applicationsClient={appsClient}
               appsClient={Apps}
             >
-              <Layout>
-                <ErrorBoundary>
-                  <Switch>
-                    <Route
-                      exact
-                      path={PageRoute.Applications}
-                      component={Applications}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationDetail}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+              <GithubAuthContextProvider>
+                <Layout>
+                  <ErrorBoundary>
+                    <Switch>
+                      <Route
+                        exact
+                        path={PageRoute.Applications}
+                        component={Applications}
+                      />
+                      <Route
+                        exact
+                        path={PageRoute.ApplicationDetail}
+                        component={({ location }) => {
+                          const params = qs.parse(location.search);
 
-                        return (
-                          <ApplicationDetail name={params.name as string} />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationAdd}
-                      component={ApplicationAdd}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.GitlabOAuthCallback}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+                          return (
+                            <ApplicationDetail name={params.name as string} />
+                          );
+                        }}
+                      />
+                      <Route
+                        exact
+                        path={PageRoute.ApplicationAdd}
+                        component={ApplicationAdd}
+                      />
+                      <Route
+                        exact
+                        path={PageRoute.GitlabOAuthCallback}
+                        component={({ location }) => {
+                          const params = qs.parse(location.search);
 
-                        return (
-                          <OAuthCallback
-                            provider={GitProvider.GitLab}
-                            code={params.code as string}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.ApplicationList}
-                      component={ApplicationList}
-                    />
-                    <Route exact path={V2Routes.NewApp} component={NewApp} />
-                    <Route
-                      exact
-                      path={V2Routes.Application}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+                          return (
+                            <OAuthCallback
+                              provider={GitProvider.GitLab}
+                              code={params.code as string}
+                            />
+                          );
+                        }}
+                      />
+                      <Route
+                        exact
+                        path={PageRoute.ApplicationRemove}
+                        component={({ location }) => {
+                          const params = qs.parse(location.search);
 
-                        return (
-                          <Application
-                            name={params.name as string}
-                            namespace={params.namespace as string}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddKustomization}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+                          return (
+                            <ApplicationRemove name={params.name as string} />
+                          );
+                        }}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.ApplicationList}
+                        component={ApplicationList}
+                      />
+                      <Route exact path={V2Routes.NewApp} component={NewApp} />
+                      <Route
+                        exact
+                        path={V2Routes.Application}
+                        component={({ location }) => {
+                          const params = qs.parse(location.search);
 
-                        return (
-                          <AddKustomization
-                            appName={params.appName as string}
-                            query={params}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddSource}
-                      component={AddSource}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddGitRepo}
-                      component={withAppName(AddGitRepo)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddAutomation}
-                      component={withAppName(AddAutomation)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.KustomizationList}
-                      component={KustomizationList}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.SourcesList}
-                      component={SourcesList}
-                    />
-                    <Redirect exact from="/" to={V2Routes.ApplicationList} />
-                    <Route exact path="*" component={Error} />
-                  </Switch>
-                </ErrorBoundary>
-                <ToastContainer
-                  position="top-center"
-                  autoClose={5000}
-                  newestOnTop={false}
-                />
-              </Layout>
+                          return (
+                            <Application
+                              name={params.name as string}
+                              namespace={params.namespace as string}
+                            />
+                          );
+                        }}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.AddKustomization}
+                        component={withAppName(AddKustomization)}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.AddSource}
+                        component={withAppName(AddSource)}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.AddGitRepo}
+                        component={withAppName(AddGitRepo)}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.AddAutomation}
+                        component={withAppName(AddAutomation)}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.KustomizationList}
+                        component={KustomizationList}
+                      />
+                      <Route
+                        exact
+                        path={V2Routes.SourcesList}
+                        component={SourcesList}
+                      />
+                      <Redirect exact from="/" to={V2Routes.ApplicationList} />
+                      <Route exact path="*" component={Error} />
+                    </Switch>
+                  </ErrorBoundary>
+                  <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    newestOnTop={false}
+                  />
+                  <GlobalGithubAuthDialog />
+                </Layout>
+              </GithubAuthContextProvider>
             </AppContextProvider>
           </Router>
         </QueryClientProvider>

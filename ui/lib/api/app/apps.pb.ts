@@ -7,6 +7,13 @@
 import * as fm from "../applications/fetch.pb"
 import * as Gitops_serverV1Flux from "./flux.pb"
 import * as Gitops_serverV1Source from "./source.pb"
+
+export enum GitProvider {
+  Unknown = "Unknown",
+  GitHub = "GitHub",
+  GitLab = "GitLab",
+}
+
 export type App = {
   namespace?: string
   name?: string
@@ -53,6 +60,17 @@ export type RemoveAppResponse = {
   success?: boolean
 }
 
+export type CreateDeployKeyRequest = {
+  secretName?: string
+  namespace?: string
+  provider?: GitProvider
+  repoUrl?: string
+}
+
+export type CreateDeployKeyResponse = {
+  secretName?: string
+}
+
 export class Apps {
   static AddApp(req: AddAppRequest, initReq?: fm.InitReq): Promise<AddAppResponse> {
     return fm.fetchReq<AddAppRequest, AddAppResponse>(`/v1/namespace/${req["namespace"]}/app`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -65,6 +83,9 @@ export class Apps {
   }
   static RemoveApp(req: RemoveAppRequest, initReq?: fm.InitReq): Promise<RemoveAppResponse> {
     return fm.fetchReq<RemoveAppRequest, RemoveAppResponse>(`/v1/namespace/${req["namespace"]}/app/${req["name"]}`, {...initReq, method: "DELETE"})
+  }
+  static CreateDeployKey(req: CreateDeployKeyRequest, initReq?: fm.InitReq): Promise<CreateDeployKeyResponse> {
+    return fm.fetchReq<CreateDeployKeyRequest, CreateDeployKeyResponse>(`/v1/namespace/${req["namespace"]}/deploy_key`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static AddKustomization(req: Gitops_serverV1Flux.AddKustomizationReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Flux.AddKustomizationRes> {
     return fm.fetchReq<Gitops_serverV1Flux.AddKustomizationReq, Gitops_serverV1Flux.AddKustomizationRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/kustomization`, {...initReq, method: "POST", body: JSON.stringify(req)})
