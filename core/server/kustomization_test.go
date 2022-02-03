@@ -24,8 +24,9 @@ func TestCreateKustomization(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ctx := context.Background()
+	h, _ := mockHttpClient()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, h, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -103,7 +104,9 @@ func TestListKustomizations(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	h, _ := mockHttpClient()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, h, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -161,7 +164,9 @@ func TestRemoveKustomization(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	h, _ := mockHttpClient()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, h, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")

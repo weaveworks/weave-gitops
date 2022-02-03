@@ -166,7 +166,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, name SecretName, repo 
 		return nil, fmt.Errorf("error generating deploy key: %w", err)
 	}
 
-	publicKeyBytes := extractPublicKey(secret)
+	publicKeyBytes := ExtractPublicKey(secret)
 
 	if err := a.gitProvider.UploadDeployKey(ctx, repo, publicKeyBytes); err != nil {
 		return nil, fmt.Errorf("error uploading deploy key: %w", err)
@@ -259,6 +259,6 @@ func extractPrivateKey(secret *corev1.Secret) []byte {
 	return extractSecretPart(secret, "identity")
 }
 
-func extractPublicKey(secret *corev1.Secret) []byte {
+func ExtractPublicKey(secret *corev1.Secret) []byte {
 	return extractSecretPart(secret, "identity.pub")
 }

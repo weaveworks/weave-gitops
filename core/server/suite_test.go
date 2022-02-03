@@ -3,11 +3,13 @@ package server
 import (
 	"context"
 	"net"
+	"net/http"
 	"os"
 	"testing"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
+	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"k8s.io/client-go/rest"
@@ -27,6 +29,7 @@ var diffIgnoredFields = []string{
 
 func TestMain(m *testing.M) {
 	os.Setenv("KUBEBUILDER_ASSETS", "../../tools/bin/envtest")
+	os.Setenv("IS_TEST_ENV", "true")
 
 	var err error
 	k8sEnv, err = testutils.StartK8sTestEnvironment([]string{
@@ -45,10 +48,13 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.AppsClient, func()) {
+func makeGRPCServer(cfg *rest.Config, h *http.Client, t *testing.T) (pb.AppsClient, func()) {
 	s := grpc.NewServer()
 
-	apps := NewAppServer(cfg)
+	apps := &appServer{
+		k8s:  placeholderClientGetter{cfg},
+		http: h,
+	}
 
 	lis := bufconn.Listen(1024 * 1024)
 
@@ -75,4 +81,11 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.AppsClient, func()) {
 	}
 
 	return pb.NewAppsClient(conn), cleanup
+}
+
+func mockHttpClient() (*http.Client, *fakehttp.FakeRoundTripper) {
+	rt := &fakehttp.FakeRoundTripper{}
+	c := &http.Client{Transport: rt}
+
+	return c, rt
 }

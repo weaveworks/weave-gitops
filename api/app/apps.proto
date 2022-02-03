@@ -66,6 +66,23 @@ message RemoveAppResponse {
   bool success = 1;
 }
 
+enum GitProvider {
+  Unknown = 0;
+  GitHub  = 1;
+  GitLab  = 2;
+}
+
+message CreateDeployKeyRequest {
+  string      secretName = 1;
+  string      namespace  = 2;
+  GitProvider provider   = 3;
+  string      repoUrl    = 4;
+}
+
+message CreateDeployKeyResponse {
+  string secretName = 1;
+}
+
 service Apps {
   /*
     * AddApplication adds an Application to a cluster via GitOps.
@@ -101,6 +118,17 @@ service Apps {
   rpc RemoveApp(RemoveAppRequest) returns (RemoveAppResponse) {
     option (google.api.http) = {
       delete : "/v1/namespace/{namespace}/app/{name}"
+    };
+  }
+
+  /*
+  * CreateDeployKey adds a deploy key to the cluster for a given Source.
+  * Deploy keys are stored as secrets on the cluster.
+  */
+  rpc CreateDeployKey(CreateDeployKeyRequest) returns (CreateDeployKeyResponse) {
+    option (google.api.http) = {
+      post : "/v1/namespace/{namespace}/deploy_key"
+      body: "*"
     };
   }
 

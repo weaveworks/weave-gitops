@@ -2,11 +2,16 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/core/services/deploykey"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,7 +28,8 @@ var scheme = kube.CreateScheme()
 type appServer struct {
 	pb.UnimplementedAppsServer
 
-	k8s placeholderClientGetter
+	k8s  placeholderClientGetter
+	http *http.Client
 }
 
 // This struct is only here to avoid a circular import with the `server` package.
@@ -41,7 +47,8 @@ func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, err
 
 func NewAppServer(cfg *rest.Config) pb.AppsServer {
 	return &appServer{
-		k8s: placeholderClientGetter{cfg: cfg},
+		k8s:  placeholderClientGetter{cfg: cfg},
+		http: http.DefaultClient,
 	}
 }
 
@@ -113,6 +120,40 @@ func (as *appServer) ListApps(ctx context.Context, msg *pb.ListAppRequest) (*pb.
 
 func (as *appServer) RemoveApp(_ context.Context, msg *pb.RemoveAppRequest) (*pb.RemoveAppResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "")
+}
+
+func (as *appServer) CreateDeployKey(ctx context.Context, msg *pb.CreateDeployKeyRequest) (*pb.CreateDeployKeyResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "extracting token: %s", err)
+	}
+
+	if msg.SecretName == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "secretName is a required field")
+	}
+
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	repoURL, err := gitproviders.NewRepoURL(msg.RepoUrl)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "creating repo url: %s", err)
+	}
+
+	name := types.NamespacedName{Name: msg.SecretName, Namespace: msg.Namespace}
+
+	mgr := deploykey.NewManager(k8s, as.http.Transport)
+
+	generatedName, err := mgr.Create(ctx, name, repoURL, token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("creating deploy key: %s", err)
+	}
+
+	return &pb.CreateDeployKeyResponse{
+		SecretName: string(generatedName),
+	}, nil
 }
 
 func doClientError(err error) error {

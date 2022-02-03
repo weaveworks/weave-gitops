@@ -31,6 +31,10 @@ type AppsClient interface {
 	// RemoveApplication removes an Application from a cluster via GitOps.
 	RemoveApp(ctx context.Context, in *RemoveAppRequest, opts ...grpc.CallOption) (*RemoveAppResponse, error)
 	//
+	// CreateDeployKey adds a deploy key to the cluster for a given Source.
+	// Deploy keys are stored as secrets on the cluster.
+	CreateDeployKey(ctx context.Context, in *CreateDeployKeyRequest, opts ...grpc.CallOption) (*CreateDeployKeyResponse, error)
+	//
 	// AddKustomization adds a Kustomization to a cluster via GitOps.
 	AddKustomization(ctx context.Context, in *AddKustomizationReq, opts ...grpc.CallOption) (*AddKustomizationRes, error)
 	//
@@ -109,6 +113,15 @@ func (c *appsClient) ListApps(ctx context.Context, in *ListAppRequest, opts ...g
 func (c *appsClient) RemoveApp(ctx context.Context, in *RemoveAppRequest, opts ...grpc.CallOption) (*RemoveAppResponse, error) {
 	out := new(RemoveAppResponse)
 	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/RemoveApp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appsClient) CreateDeployKey(ctx context.Context, in *CreateDeployKeyRequest, opts ...grpc.CallOption) (*CreateDeployKeyResponse, error) {
+	out := new(CreateDeployKeyResponse)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/CreateDeployKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -249,6 +262,10 @@ type AppsServer interface {
 	// RemoveApplication removes an Application from a cluster via GitOps.
 	RemoveApp(context.Context, *RemoveAppRequest) (*RemoveAppResponse, error)
 	//
+	// CreateDeployKey adds a deploy key to the cluster for a given Source.
+	// Deploy keys are stored as secrets on the cluster.
+	CreateDeployKey(context.Context, *CreateDeployKeyRequest) (*CreateDeployKeyResponse, error)
+	//
 	// AddKustomization adds a Kustomization to a cluster via GitOps.
 	AddKustomization(context.Context, *AddKustomizationReq) (*AddKustomizationRes, error)
 	//
@@ -305,6 +322,9 @@ func (UnimplementedAppsServer) ListApps(context.Context, *ListAppRequest) (*List
 }
 func (UnimplementedAppsServer) RemoveApp(context.Context, *RemoveAppRequest) (*RemoveAppResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveApp not implemented")
+}
+func (UnimplementedAppsServer) CreateDeployKey(context.Context, *CreateDeployKeyRequest) (*CreateDeployKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDeployKey not implemented")
 }
 func (UnimplementedAppsServer) AddKustomization(context.Context, *AddKustomizationReq) (*AddKustomizationRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddKustomization not implemented")
@@ -426,6 +446,24 @@ func _Apps_RemoveApp_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AppsServer).RemoveApp(ctx, req.(*RemoveAppRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Apps_CreateDeployKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeployKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).CreateDeployKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/CreateDeployKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).CreateDeployKey(ctx, req.(*CreateDeployKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -686,6 +724,10 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveApp",
 			Handler:    _Apps_RemoveApp_Handler,
+		},
+		{
+			MethodName: "CreateDeployKey",
+			Handler:    _Apps_CreateDeployKey_Handler,
 		},
 		{
 			MethodName: "AddKustomization",
