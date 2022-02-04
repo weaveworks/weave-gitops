@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = Describe("Weave GitOps Profiles API", func() {
+var _ = PDescribe("Weave GitOps Profiles API", func() {
 	var (
 		namespace        = "test-namespace"
 		clusterName      string
