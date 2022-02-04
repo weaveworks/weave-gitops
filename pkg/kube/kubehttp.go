@@ -80,8 +80,12 @@ var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) 
 
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
-func NewKubeHTTPClientWithConfig(config *rest.Config, contextName string) (Kube, client.Client, error) {
+func NewKubeHTTPClientWithConfig(config *rest.Config, contextName string, additionalSchemes ...func(*apiruntime.Scheme) error) (Kube, client.Client, error) {
 	scheme := CreateScheme()
+
+	for _, add := range additionalSchemes {
+		_ = add(scheme)
+	}
 
 	rawClient, err := client.New(config, client.Options{
 		Scheme: scheme,

@@ -84,6 +84,11 @@ func (c *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		scopes = append(scopes, scopeEmail)
 	}
 
+	// Request "groups" scope to get user's groups.
+	if !contains(scopes, scopeGroups) {
+		scopes = append(scopes, scopeGroups)
+	}
+
 	return &oauth2.Config{
 		ClientID:     c.config.ClientID,
 		ClientSecret: c.config.ClientSecret,

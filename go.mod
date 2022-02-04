@@ -71,6 +71,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gofrs/flock v0.8.1
+	github.com/google/uuid v1.3.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	gopkg.in/square/go-jose.v2 v2.5.1
 )
@@ -137,7 +138,6 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect

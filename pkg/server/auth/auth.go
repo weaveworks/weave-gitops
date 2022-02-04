@@ -22,6 +22,8 @@ const (
 	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
 	scopeEmail = "email"
+	// ScopeGroups is the "groups" scope
+	scopeGroups = "groups"
 )
 
 // RegisterAuthServer registers the /callback route under a specified prefix.
@@ -123,7 +125,7 @@ func startAuthFlow(rw http.ResponseWriter, r *http.Request, srv *AuthServer) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	var scopes []string
-	// "openid", "offline_access" and "email" scopes added by default
+	// "openid", "offline_access", "email" and "groups" scopes added by default
 	scopes = append(scopes, scopeProfile)
 	authCodeUrl := srv.oauth2Config(scopes).AuthCodeURL(state)
 
