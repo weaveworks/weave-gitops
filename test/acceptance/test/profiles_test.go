@@ -18,6 +18,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -57,8 +58,12 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 	})
 
 	AfterEach(func() {
-		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		session := runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete kustomizations --all", namespace))
+		Eventually(session, "20s", "1s").Should(gexec.Exit(0))
+		session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete gitrepositories --all", namespace))
+		Eventually(session, "20s", "1s").Should(gexec.Exit(0))
 		deleteWorkload(profileName, namespace)
+		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 	})
 
 	It("gets deployed and is accessible via the service", func() {

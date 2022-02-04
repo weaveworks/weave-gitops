@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 
 	"github.com/pkg/errors"
@@ -71,13 +69,10 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			return nil, fmt.Errorf("could not apply App CRD: %w", err)
 		}
 
-		version := version.Version
-		if os.Getenv("IS_TEST_ENV") != "" {
-			version = "latest"
-		}
-
+		image, version := models.WegoImageAndVersion()
 		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{
 			AppVersion: version,
+			AppImage:   image,
 			Namespace:  params.Namespace,
 		})
 		if err != nil {
