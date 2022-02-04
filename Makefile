@@ -39,6 +39,9 @@ integration-tests: dependencies
 acceptance-tests: local-registry local-docker-image
 	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
 
+local-kind-cluster-with-registry:
+	./tools/kind-with-registry.sh
+
 local-registry:
 	./tools/deploy-local-registry.sh
 

@@ -54,12 +54,11 @@ runs:
        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
   - name: Setup Kubernetes Tools
-    uses: engineerd/setup-kind@v0.5.0
-    with:
-      name: "${{ format('katc-{0}', github.run_id) }}"
-      version: "v0.11.0"
-      image: kindest/node:v1.21.1
-      config: "./test/acceptance/test/configs/kind-config.yaml"
+    env:
+      KIND_CLUSTER_NAME: ${{ format('katc-{0}', github.run_id) }}
+      KIND_CLUSTER_IMAGE: kindest/node:v1.21.1
+    run: |
+      make local-kind-cluster-with-registry
   - name: Kind-check
     shell: bash
     run: |
