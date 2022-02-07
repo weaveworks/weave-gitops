@@ -112,8 +112,9 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
 
-		By("Adding a profile to a cluster")
-		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
+		cmd := fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL)
+		By(fmt.Sprintf("Adding a profile to a cluster: %s", cmd))
+		stdOut, stdErr := runCommandAndReturnStringOutput(cmd)
 		Expect(stdErr).To(BeEmpty())
 		Expect(stdOut).To(ContainSubstring(
 			fmt.Sprintf(`Adding profile:
