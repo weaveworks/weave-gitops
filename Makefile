@@ -36,8 +36,18 @@ unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
 integration-tests: dependencies
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
 
-acceptance-tests:
-	go test -v ./test/acceptance/...
+acceptance-tests: local-registry local-docker-image
+	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
+
+local-kind-cluster-with-registry:
+	./tools/kind-with-registry.sh
+
+local-registry:
+	./tools/deploy-local-registry.sh
+
+local-docker-image:
+	docker build -t localhost:5000/wego-app:latest .
+	docker push localhost:5000/wego-app:latest
 
 fakes: ## Generate testing fakes
 	go generate ./...

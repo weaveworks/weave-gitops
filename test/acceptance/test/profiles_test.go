@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -18,6 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,9 +29,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = PDescribe("Weave GitOps Profiles API", func() {
+var _ = Describe("Weave GitOps Profiles API", func() {
 	var (
-		namespace        = "test-namespace"
+		namespace        = wego.DefaultNamespace
 		clusterName      string
 		appRepoRemoteURL string
 		tip              TestInputs
@@ -57,8 +59,9 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 	})
 
 	AfterEach(func() {
+		cleanupFinalizers(clusterName, namespace)
 		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
-		deleteWorkload(profileName, namespace)
+		deleteNamespace(namespace)
 	})
 
 	It("gets deployed and is accessible via the service", func() {
@@ -109,8 +112,9 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
 
-		By("Adding a profile to a cluster")
-		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
+		cmd := fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL)
+		By(fmt.Sprintf("Adding a profile to a cluster: %s", cmd))
+		stdOut, stdErr := runCommandAndReturnStringOutput(cmd)
 		Expect(stdErr).To(BeEmpty())
 		Expect(stdOut).To(ContainSubstring(
 			fmt.Sprintf(`Adding profile:
@@ -148,6 +152,19 @@ Namespace: %s`, clusterName, namespace)))
 		Eventually(log).ShouldNot(gbytes.Say("\\\"other\\\" is forbidden"))
 	})
 })
+
+func cleanupFinalizers(clusterName, namespace string) {
+	session := runCommandAndReturnSessionOutput(fmt.Sprintf("%s flux suspend kustomization -n %s %s-system", gitopsBinaryPath, namespace, clusterName))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete helmreleases --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete helmrepositories --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete kustomizations --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete gitrepositories --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+}
 
 func buildKubernetesClients() (*kubernetes.Clientset, client.Client) {
 	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))

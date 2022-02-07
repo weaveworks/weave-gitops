@@ -179,7 +179,7 @@ var _ = Describe("Installer", func() {
 			runtimeManifests = []byte("runtime-manifests")
 			fakeFluxClient.InstallReturns(runtimeManifests, nil)
 
-			wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
+			wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppImage: models.WegoImage, AppVersion: "v0.0.0", Namespace: testNamespace})
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoAppManifest = bytes.Join(wegoAppManifests, []byte("---\n"))

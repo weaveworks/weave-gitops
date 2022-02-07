@@ -69,11 +69,11 @@ require (
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gofrs/flock v0.8.1
 	github.com/google/uuid v1.3.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	gopkg.in/square/go-jose.v2 v2.5.1
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -228,7 +228,6 @@ require (
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/component-base v0.22.2 // indirect
@@ -263,3 +262,6 @@ replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers
 // Fix for CVE-2020-29652: https://github.com/golang/crypto/commit/8b5274cf687fd9316b4108863654cc57385531e8
 // Fix for CVE-2021-43565: https://github.com/golang/crypto/commit/5770296d904e90f15f38f77dfc2e43fdf5efc083
 replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+
+// Fix for CVE-2020-26160: https://github.com/advisories/GHSA-w73w-5m7g-f7qc
+replace github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.1.0
