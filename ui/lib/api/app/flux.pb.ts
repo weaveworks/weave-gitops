@@ -12,6 +12,10 @@ export type Kustomization = {
   path?: string
   sourceRef?: Gitops_serverV1Source.SourceRef
   interval?: Gitops_serverV1Source.Interval
+  conditions?: Gitops_serverV1Source.Condition[]
+  lastAppliedRevision?: string
+  lastAttemptedRevision?: string
+  lastHandledReconciledAt?: string
 }
 
 export type AddKustomizationReq = {

@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Source, V2Routes } from "../lib/types";
-import { formatURL } from "../lib/utils";
+import { computeMessage, computeReady, formatURL } from "../lib/utils";
 import DataTable from "./DataTable";
 import Link from "./Link";
 
@@ -31,8 +31,13 @@ function SourcesTable({ className, sources }: Props) {
               </Link>
             ),
           },
-          { label: "Type", value: "type" },
           { label: "Namespace", value: "namespace" },
+          { label: "Type", value: "type" },
+          { label: "Ready", value: (s: Source) => computeReady(s.conditions) },
+          {
+            label: "Message",
+            value: (s: Source) => computeMessage(s.conditions),
+          },
         ]}
       />
     </div>

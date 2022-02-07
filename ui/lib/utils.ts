@@ -1,5 +1,7 @@
+import _ from "lodash";
 import qs from "query-string";
 import { toast } from "react-toastify";
+import { Condition } from "./api/app/source.pb";
 import { PageRoute, V2Routes } from "./types";
 
 export const formatURL = (page: string, query: any = {}) => {
@@ -88,4 +90,17 @@ export function convertGitURLToGitProvider(uri: string) {
 
 export function pageTitleWithAppName(title: string, appName?: string) {
   return `${title}${appName ? ` for ${appName}` : ""}`;
+}
+
+export function computeReady(conditions: Condition[]) {
+  const ready = _.find(conditions, { type: "Ready" });
+  return ready?.status;
+}
+
+export function computeMessage(conditions: Condition[]) {
+  const readyCondition = _.find(conditions, (c) => c.type === "Ready");
+
+  if (readyCondition?.status === "False") {
+    return readyCondition.message;
+  }
 }

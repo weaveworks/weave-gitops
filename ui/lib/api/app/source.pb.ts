@@ -80,6 +80,7 @@ export type GitRepository = {
   reference?: GitRepositoryRef
   secretRef?: string
   interval?: Interval
+  conditions?: Condition[]
 }
 
 export type AddGitRepositoryReq = {
@@ -111,6 +112,7 @@ export type HelmRepository = {
   name?: string
   url?: string
   interval?: Interval
+  conditions?: Condition[]
 }
 
 export type AddHelmRepositoryReq = {
@@ -142,6 +144,7 @@ export type HelmChart = {
   chart?: string
   version?: string
   interval?: Interval
+  conditions?: Condition[]
 }
 
 export type AddHelmChartReq = {
@@ -174,6 +177,7 @@ export type Bucket = {
   region?: string
   secretRefName?: string
   timeout?: number
+  conditions?: Condition[]
 }
 
 export type AddBucketReq = {
@@ -202,6 +206,7 @@ export type HelmRelease = {
   name?: string
   interval?: Interval
   helmChart?: HelmChart
+  conditions?: Condition[]
 }
 
 export type AddHelmReleaseReq = {

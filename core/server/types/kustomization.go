@@ -52,6 +52,10 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization) *pb.Kustomizatio
 			Kind: kind,
 			Name: kustomization.Spec.SourceRef.Name,
 		},
-		Interval: nil,
+		Interval:                nil,
+		Conditions:              mapConditions(kustomization.Status.Conditions),
+		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
+		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
+		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
 	}
 }

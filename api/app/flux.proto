@@ -20,11 +20,15 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 message Kustomization {
-  string namespace = 1;
-  string name = 2;
-  string path = 3;
-  SourceRef sourceRef = 4;
-  Interval interval = 5;
+  string    namespace               = 1;
+  string    name                    = 2;
+  string    path                    = 3;
+  SourceRef sourceRef               = 4;
+  Interval  interval                = 5;
+  repeated  Condition conditions    = 6;
+  string    lastAppliedRevision     = 7;
+  string    lastAttemptedRevision   = 8;
+  string    lastHandledReconciledAt = 9;
 }
 
 message AddKustomizationReq {
