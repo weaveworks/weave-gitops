@@ -60,5 +60,6 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease) *pb.HelmRelease {
 				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
+		Conditions: mapConditions(helmrelease.Status.Conditions),
 	}
 }

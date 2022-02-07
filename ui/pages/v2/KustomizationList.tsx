@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Button } from "../..";
-import DataTable from "../../components/DataTable";
+import KustomizationTable from "../../components/KustomizationTable";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
 import { useGetKustomizations } from "../../hooks/kustomizations";
@@ -26,11 +26,7 @@ function KustomizationList({ className }: Props) {
       }
       className={className}
     >
-      <DataTable
-        sortFields={["name"]}
-        fields={[{ value: "name", label: "Name" }]}
-        rows={automations?.kustomizations}
-      />
+      <KustomizationTable kustomizations={automations?.kustomizations} />
     </Page>
   );
 }

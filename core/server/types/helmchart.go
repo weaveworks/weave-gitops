@@ -45,5 +45,6 @@ func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
 		Interval: &pb.Interval{
 			Minutes: 1,
 		},
+		Conditions: mapConditions(helmchart.Status.Conditions),
 	}
 }
