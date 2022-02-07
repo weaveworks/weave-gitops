@@ -20,7 +20,7 @@
 set -o errexit
 
 reg_name='kind-registry'
-reg_port='5001'
+reg_port='5000'
 
 # create registry container unless it already exists
 running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"

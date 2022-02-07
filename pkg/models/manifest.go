@@ -48,7 +48,7 @@ const (
 
 	WegoConfigMapName = "weave-gitops-config"
 	WegoImage         = "ghcr.io/weaveworks/wego-app"
-	localWegoImage    = "localhost:5001/wego-app"
+	localWegoImage    = "localhost:5000/wego-app"
 )
 
 type ManifestsParams struct {

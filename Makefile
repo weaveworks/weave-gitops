@@ -46,8 +46,8 @@ local-registry:
 	./tools/deploy-local-registry.sh
 
 local-docker-image:
-	docker build -t localhost:5001/wego-app:latest .
-	docker push localhost:5001/wego-app:latest
+	docker build -t localhost:5000/wego-app:latest .
+	docker push localhost:5000/wego-app:latest
 
 fakes: ## Generate testing fakes
 	go generate ./...
