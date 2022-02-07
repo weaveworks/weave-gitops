@@ -263,3 +263,6 @@ replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers
 // Fix for CVE-2020-29652: https://github.com/golang/crypto/commit/8b5274cf687fd9316b4108863654cc57385531e8
 // Fix for CVE-2021-43565: https://github.com/golang/crypto/commit/5770296d904e90f15f38f77dfc2e43fdf5efc083
 replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+
+// Fix for CVE-2020-26160: https://github.com/advisories/GHSA-w73w-5m7g-f7qc
+replace github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.1.0
