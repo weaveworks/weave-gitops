@@ -525,38 +525,46 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 	pollInterval := time.Second * 5
 	timeoutInSeconds := int(timeout.Seconds())
 
-	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
+	errOut := utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		log.Infof("Waiting for replicas to be created under namespace: %s || timeout: %d second(s)", namespace, timeoutInSeconds)
 
 		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
 		out = strings.TrimSpace(out)
 		if out == replica {
-			return nil
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", namespace))
+			log.Infof("Replicas created successfully")
+			return nil			
+		} else {
+			return fmt.Errorf(": Replica(s) not created, waiting...")
 		}
-		return fmt.Errorf(": Replica(s) not created, waiting...")
 	})
 
-	return fmt.Errorf("Timeout reached, failed to create replicas")
+	if errOut != nil {
+		return fmt.Errorf("Timeout reached, failed to create replicas")
+	} else {
+		return nil
+	}
 }
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
 	timeoutInSeconds := int(timeout.Seconds())
 
-	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", gitopsBinaryPath))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-
-		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
-			return fmt.Errorf(": Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
+	errOut := utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
+		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("%s get apps", gitopsBinaryPath))
+		if strings.Contains(out, appName) {
+			return fmt.Errorf("Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
+		} else {
+			log.Infof("App %s successfully deleted", appName)
+			return nil
 		}
-		log.Infof("App %s successfully deleted", appName)
-		return nil
 	})
 
-	return fmt.Errorf("Failed to delete app %s", appName)
+	if errOut != nil {
+		return fmt.Errorf("Failed to delete app %s", appName)
+	} else {
+		return nil
+	}
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
