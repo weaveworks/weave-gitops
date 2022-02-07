@@ -89,9 +89,7 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			}
 		}
 
-		systemManifests[models.WegoAppPath] = bytes.Join(wegoAppManifests, []byte("---\n"))
-		// Empty file until we add some profiles, kustomize.yaml will reference this and fail if its missing.
-		systemManifests[models.WegoProfilesPath] = []byte("")
+		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
 
 	wegoConfigCM, err := g.saveWegoConfig(ctx, params)

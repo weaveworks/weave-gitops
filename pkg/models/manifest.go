@@ -168,6 +168,10 @@ func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
 			Content: systemKustomizationManifest,
 		},
 		{
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoProfilesPath),
+			Content: []byte(""),
+		},
+		{
 			Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),
 			Content: strconv.AppendQuote(nil, "# keep"),
 		},
