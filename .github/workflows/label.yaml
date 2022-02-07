@@ -1,6 +1,8 @@
-on: 
+on:
   pull_request:
     types: [opened, labeled, unlabeled, synchronize]
+    branches:
+      - main
 name: label
 jobs:
   labelCheck:
