@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -30,7 +31,7 @@ import (
 
 var _ = Describe("Weave GitOps Profiles API", func() {
 	var (
-		namespace        = "test-namespace"
+		namespace        = wego.DefaultNamespace
 		clusterName      string
 		appRepoRemoteURL string
 		tip              TestInputs
