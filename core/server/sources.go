@@ -25,7 +25,7 @@ func (as *appServer) AddGitRepository(ctx context.Context, msg *pb.AddGitReposit
 		return nil, status.Error(codes.InvalidArgument, "missing 'reference' field")
 	}
 
-	u, err := gitproviders.NewRepoURL(msg.Url, false)
+	u, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid url: %s", err.Error())
 	}
