@@ -33,6 +33,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -424,6 +425,16 @@ func VerifyControllersInCluster(namespace string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	})
+}
+
+func VerifyKustomizations(clusterName, namespace string) {
+	userResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
+	systemResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
+
+	for _, kustomizationName := range []string{userResourceName, systemResourceName} {
+		cmd := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=120s kustomization -n %s %s", namespace, kustomizationName)
+		Expect(runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", cmd)).To(Succeed())
+	}
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {

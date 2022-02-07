@@ -1807,6 +1807,10 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
+		By("And the kustomizations should not have any errors", func() {
+			VerifyKustomizations(clusterName, WEGO_DEFAULT_NAMESPACE)
+		})
+
 		By("And I run gitops add app command for app: "+appName, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
