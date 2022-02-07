@@ -15,8 +15,8 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	goyaml "github.com/go-yaml/yaml"
-	"sigs.k8s.io/yaml"
+	"gopkg.in/yaml.v2"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 const AddCommitMessage = "Add Profile manifests"
@@ -136,7 +136,7 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 
 			for _, manifestBytes := range manifestByteSlice {
 				var r v2beta1.HelmRelease
-				if err := yaml.Unmarshal(manifestBytes, &r); err != nil {
+				if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
 					return gitprovider.CommitFile{}, fmt.Errorf("error unmarshaling %s: %w", models.WegoProfilesPath, err)
 				}
 
@@ -151,7 +151,7 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 		}
 	}
 
-	helmReleaseManifest, err := yaml.Marshal(newRelease)
+	helmReleaseManifest, err := kyaml.Marshal(newRelease)
 	if err != nil {
 		return gitprovider.CommitFile{}, fmt.Errorf("failed to marshal new HelmRelease: %w", err)
 	}
@@ -169,7 +169,7 @@ func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.He
 func splitYAML(resources []byte) ([][]byte, error) {
 	var splitResources [][]byte
 
-	decoder := goyaml.NewDecoder(bytes.NewReader(resources))
+	decoder := yaml.NewDecoder(bytes.NewReader(resources))
 
 	for {
 		var value interface{}
@@ -181,7 +181,7 @@ func splitYAML(resources []byte) ([][]byte, error) {
 			return nil, err
 		}
 
-		valueBytes, err := goyaml.Marshal(value)
+		valueBytes, err := yaml.Marshal(value)
 		if err != nil {
 			return nil, err
 		}
