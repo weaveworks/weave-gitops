@@ -103,7 +103,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 		appName := tip.appRepoName
 
-		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --delpoyment-type=kustomize --dry-run" + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -213,7 +213,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
 		})
 
-		By("When removing the app", func() {
+		By("When I remove the app with auto-merge disabled", func() {
 			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName)
 
 			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
@@ -834,7 +834,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the list of commits for app1", func() {
 			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9].*Weave Gitops\s*Add application manifests`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]`))
 			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]`))
 			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]`))
 		})
@@ -1234,7 +1234,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
 		})
 
-		By("When I remove an app", func() {
+		By("When I remove an app with auto-merge disabled", func() {
 			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName + " --auto-merge")
 		})
 
