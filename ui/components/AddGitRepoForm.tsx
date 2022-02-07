@@ -1,4 +1,4 @@
-import { FormHelperText, MenuItem } from "@material-ui/core";
+import { FormControl, FormHelperText, MenuItem } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -7,12 +7,14 @@ import { useCreateDeployKey } from "../hooks/apps";
 import { useIsAuthenticated } from "../hooks/auth";
 import { GitProvider } from "../lib/api/applications/applications.pb";
 import { WeGONamespace } from "../lib/types";
+import { notifyError, notifySuccess } from "../lib/utils";
 import Button, { Props as ButtonProps } from "./Button";
 import Flex from "./Flex";
 import Form from "./Form";
 import FormCheckbox from "./FormCheckbox";
 import FormInput, { Label } from "./FormInput";
 import FormSelect from "./FormSelect";
+import Input from "./Input";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -30,7 +32,6 @@ const initialState = () => ({
   intervalSeconds: 0,
   branch: "main",
   url: "",
-  secretRef: "",
 });
 
 export type GitRepoFormState = ReturnType<typeof initialState>;
@@ -69,6 +70,7 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
   const [formState, setFormState] = React.useState<GitRepoFormState>(
     initialState()
   );
+  const [secretRef, setSecretRef] = React.useState<string>("");
   const { isAuthenticated, req } = useIsAuthenticated();
   const mutation = useCreateDeployKey();
 
@@ -85,12 +87,18 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
   };
 
   const handleDeployKeyClick = () => {
-    mutation.mutate({
-      secretName: formState.name,
-      namespace: formState.namespace,
-      provider: formState.provider as GitProvider,
-      repoUrl: formState.url,
-    });
+    mutation
+      .mutateAsync({
+        secretName: formState.name,
+        namespace: formState.namespace,
+        provider: formState.provider as GitProvider,
+        repoUrl: formState.url,
+      })
+      .then((res) => {
+        notifySuccess("Deploy key secret added succesfully!");
+        setSecretRef(res.secretName);
+      })
+      .catch((err) => notifyError(err.message));
   };
 
   React.useEffect(() => {
@@ -207,11 +215,20 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
           )}
 
           <Spacer m={["medium"]}>
-            <FormInput
-              name="secretRef"
-              label="Secret Ref"
-              helperText="Reference a secret already on the cluster instead of using OAuth"
-            />
+            <FormControl>
+              {/* Escape the <Form /> component here to set our own value on the secret ref */}
+              {/* We do this to populate the field with the secret we just created via the oauth button. */}
+              <Label>Secret Ref</Label>
+              <Input
+                onChange={(ev) => setSecretRef(ev.target.value)}
+                variant="outlined"
+                value={secretRef}
+              />
+              <FormHelperText>
+                Reference a secret already on the cluster or populate a secret
+                via OAuth
+              </FormHelperText>
+            </FormControl>
           </Spacer>
         </Spacer>
       )}
