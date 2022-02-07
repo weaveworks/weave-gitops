@@ -81,7 +81,7 @@ if [ "${kind_network}" != "bridge" ]; then
       needs_connect="false"
     fi
   done
-  if [ "${needs_connect}" = "true" ]; then               
+  if [ "${needs_connect}" = "true" ]; then
     docker network connect "${kind_network}" "${reg_name}" || true
   fi
 fi

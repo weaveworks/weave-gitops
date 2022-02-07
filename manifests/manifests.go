@@ -23,6 +23,7 @@ var (
 type Params struct {
 	AppVersion string
 	Namespace  string
+	AppImage   string
 }
 
 // GenerateWegoAppManifests generates weave-gitops manifests from a template

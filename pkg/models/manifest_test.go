@@ -91,7 +91,7 @@ var _ = Describe("Installer", func() {
 				userKustomizationResourceManifest := []byte("user kustomization resource")
 				fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResourceManifest, nil)
 
-				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: params.WegoNamespace})
+				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppImage: WegoImage, AppVersion: "v0.0.0", Namespace: params.WegoNamespace})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
