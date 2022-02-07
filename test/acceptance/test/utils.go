@@ -238,12 +238,12 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	}
 
 	if provider == "kind" {
-		var kindCluster string
-		if clusterName == "" {
-			kindCluster = RandString(6)
+		var kindCluster = RandString(6)
+		if clusterName != "" {
+			kindCluster = clusterName
 		}
 
-		clusterName = provider + "-" + kindCluster
+		kindCluster = provider + "-" + kindCluster
 
 		log.Infof("Creating a kind cluster %s", kindCluster)
 
@@ -258,7 +258,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
 
-			return clusterName, "", err
+			return kindCluster, "", err
 		}
 	}
 

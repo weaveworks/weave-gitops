@@ -22,10 +22,10 @@ set -o errexit
 echo "Delete existing kind clusters"
 kind delete clusters --all
 
-echo "Create a new kind cluster with name "$1
+echo "Create a new kind cluster with name $1"
 
 # desired cluster name; default is "kind"
-KIND_CLUSTER_NAME=$1
+KIND_CLUSTER_NAME="$1"
 KIND_CLUSTER_OPTS="--name ${KIND_CLUSTER_NAME}"
 
 if [ -n "${2}" ]; then
