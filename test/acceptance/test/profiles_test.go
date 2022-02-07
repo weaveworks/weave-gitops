@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = PDescribe("Weave GitOps Profiles API", func() {
+var _ = Describe("Weave GitOps Profiles API", func() {
 	var (
 		namespace        = "test-namespace"
 		clusterName      string
@@ -58,12 +58,9 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 	})
 
 	AfterEach(func() {
-		session := runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete kustomizations --all", namespace))
-		Eventually(session, "20s", "1s").Should(gexec.Exit(0))
-		session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete gitrepositories --all", namespace))
-		Eventually(session, "20s", "1s").Should(gexec.Exit(0))
-		deleteWorkload(profileName, namespace)
+		cleanupFinalizers(clusterName, namespace)
 		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		deleteNamespace(namespace)
 	})
 
 	It("gets deployed and is accessible via the service", func() {
@@ -153,6 +150,19 @@ Namespace: %s`, clusterName, namespace)))
 		Eventually(log).ShouldNot(gbytes.Say("\\\"other\\\" is forbidden"))
 	})
 })
+
+func cleanupFinalizers(clusterName, namespace string) {
+	session := runCommandAndReturnSessionOutput(fmt.Sprintf("%s flux suspend kustomization -n %s %s-system", gitopsBinaryPath, namespace, clusterName))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete helmreleases --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete helmrepositories --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete kustomizations --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+	session = runCommandAndReturnSessionOutput(fmt.Sprintf("kubectl -n %s delete gitrepositories --all --wait", namespace))
+	Eventually(session, "60s", "1s").Should(gexec.Exit(0))
+}
 
 func buildKubernetesClients() (*kubernetes.Clientset, client.Client) {
 	config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
