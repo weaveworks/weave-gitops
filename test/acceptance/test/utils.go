@@ -533,9 +533,9 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 		if out == replica {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", namespace))
 			log.Infof("Replicas created successfully")
-			return nil			
+			return nil
 		} else {
-			return fmt.Errorf(": Replica(s) not created, waiting...")
+			return fmt.Errorf(": Replica(s) not created, waiting")
 		}
 	})
 
