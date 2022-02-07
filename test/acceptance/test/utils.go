@@ -433,7 +433,8 @@ func VerifyKustomizations(clusterName, namespace string) {
 
 	for _, kustomizationName := range []string{userResourceName, systemResourceName} {
 		cmd := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=120s kustomization -n %s %s", namespace, kustomizationName)
-		Expect(runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", cmd)).To(Succeed())
+		out, err := runCommandAndReturnStringOutput(cmd)
+		Expect(err).Should(BeEmpty(), fmt.Sprintf("Failed to wait for kustomizations, out: %s, err: %s", out, err))
 	}
 }
 
