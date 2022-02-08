@@ -1,0 +1,56 @@
+# to run define K3S_TOKEN, K3S_VERSION is optional, eg:
+#   K3S_TOKEN=${RANDOM}${RANDOM}${RANDOM} docker-compose up
+
+version: '3'
+services:
+  k3s:
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    command: server --no-deploy traefik --tls-san k3s
+    networks:
+      cluster:
+        ipv4_address: 172.10.0.150
+    tmpfs:
+    - /run
+    - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    restart: always
+    environment:
+    - K3S_TOKEN=foo
+    - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+    - K3S_KUBECONFIG_MODE=666
+    volumes:
+    - k3s-server:/var/lib/rancher/k3s
+    # This is just so that we get the kubeconfig file out
+    - .:/output
+    ports:
+    - 6443:6443  # Kubernetes API Server
+    - 80:80    # Ingress controller port 80
+    - 443:443   # Ingress controller port 443
+
+  test:
+    build:
+      context: .
+      dockerfile: test.dockerfile
+    command: go test github.com/weaveworks/weave-gitops/test/acceptance/vcluster
+    environment:
+    - KUBECONFIG=/app/kubeconfig.yaml
+    volumes:
+    - .:/app
+    working_dir: /app
+    depends_on:
+    - k3s
+    networks:
+      - cluster
+volumes:
+  k3s-server: {}
+
+networks:
+  cluster:
+    ipam:
+      config:
+        - subnet: 172.10.0.0/24
