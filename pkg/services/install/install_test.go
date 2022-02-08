@@ -240,6 +240,10 @@ var _ = Describe("Installer", func() {
 					Content: systemKustomizationManifest,
 				},
 				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoProfilesPath),
+					Content: []byte(""),
+				},
+				{
 					Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
 					Content: strconv.AppendQuote(nil, "# keep"),
 				},
@@ -312,6 +316,10 @@ var _ = Describe("Installer", func() {
 				{
 					Path:    git.GetSystemQualifiedPath(clusterName, models.SystemKustomizationPath),
 					Content: systemKustomizationManifest,
+				},
+				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoProfilesPath),
+					Content: []byte(""),
 				},
 				{
 					Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),

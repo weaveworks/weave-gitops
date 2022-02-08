@@ -33,25 +33,27 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const (
-	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
-	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
-	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
-	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
-	INSTALL_PODS_READY_TIMEOUT  time.Duration = 3 * time.Minute
-	WEGO_DEFAULT_NAMESPACE                    = wego.DefaultNamespace
-	WEGO_UI_URL                               = "http://localhost:9001"
-	SELENIUM_SERVICE_URL                      = "http://localhost:4444/wd/hub"
-	SCREENSHOTS_DIR             string        = "screenshots/"
-	DEFAULT_BRANCH_NAME                       = "main"
-	WEGO_DASHBOARD_TITLE        string        = "Weave GitOps"
-	APP_PAGE_HEADER             string        = "Applications"
-	charset                                   = "abcdefghijklmnopqrstuvwxyz0123456789"
-	DEFAULT_K8S_VERSION         string        = "1.21.1"
+	THIRTY_SECOND_TIMEOUT        time.Duration = 30 * time.Second
+	EVENTUALLY_DEFAULT_TIMEOUT   time.Duration = 60 * time.Second
+	INSTALL_RESET_TIMEOUT        time.Duration = 300 * time.Second
+	NAMESPACE_TERMINATE_TIMEOUT  time.Duration = 600 * time.Second
+	INSTALL_SUCCESSFUL_TIMEOUT   time.Duration = 3 * time.Minute
+	INSTALL_PODS_READY_TIMEOUT   time.Duration = 3 * time.Minute
+	KUSTOMIZATIONS_READY_TIMEOUT time.Duration = 2 * time.Minute
+	WEGO_DEFAULT_NAMESPACE                     = wego.DefaultNamespace
+	WEGO_UI_URL                                = "http://localhost:9001"
+	SELENIUM_SERVICE_URL                       = "http://localhost:4444/wd/hub"
+	SCREENSHOTS_DIR              string        = "screenshots/"
+	DEFAULT_BRANCH_NAME                        = "main"
+	WEGO_DASHBOARD_TITLE         string        = "Weave GitOps"
+	APP_PAGE_HEADER              string        = "Applications"
+	charset                                    = "abcdefghijklmnopqrstuvwxyz0123456789"
+	DEFAULT_K8S_VERSION          string        = "1.21.1"
 )
 
 var (
@@ -427,6 +429,17 @@ func VerifyControllersInCluster(namespace string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	})
+}
+
+func VerifyKustomizations(clusterName, namespace string) {
+	userResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
+	systemResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
+
+	for _, kustomizationName := range []string{userResourceName, systemResourceName} {
+		cmd := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=110s kustomization -n %s %s", namespace, kustomizationName)
+		out, err := runCommandAndReturnStringOutput(cmd)
+		Expect(err).Should(BeEmpty(), fmt.Sprintf("Failed to wait for kustomizations, out: %s, err: %s", out, err))
+	}
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
