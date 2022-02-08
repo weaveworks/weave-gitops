@@ -2,7 +2,7 @@ ARG FLUX_VERSION
 ARG FLUX_CLI=ghcr.io/fluxcd/flux-cli:v$FLUX_VERSION
 
 # UI build
-FROM node:14-buster AS ui
+FROM node:14-bullseye AS ui
 RUN apt-get update -y && apt-get install -y build-essential
 RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
