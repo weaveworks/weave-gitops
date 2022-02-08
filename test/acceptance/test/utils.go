@@ -345,9 +345,7 @@ func waitForResourceToBeReady(resourceType string, resourceName string, namespac
 		if resourceName == "" {
 			kubectlCommand = kubectlCommand + " --all"
 		}
-		command := exec.Command("sh", "-c", kubectlCommand)
-		_, err := command.CombinedOutput()
-		if err != nil {
+		if _, err := exec.Command("sh", "-c", kubectlCommand).CombinedOutput(); err != nil {
 			return err
 		}
 		return nil
