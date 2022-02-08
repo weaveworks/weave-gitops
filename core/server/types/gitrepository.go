@@ -55,7 +55,12 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 			Semver: repository.Spec.Reference.SemVer,
 			Commit: repository.Spec.Reference.Commit,
 		},
-		Interval: nil,
+		Interval: &pb.Interval{
+			Hours:   int64(repository.Spec.Interval.Hours()),
+			Minutes: int64(repository.Spec.Interval.Minutes()),
+			Seconds: int64(repository.Spec.Interval.Seconds()),
+		},
+		Conditions: mapConditions(repository.Status.Conditions),
 	}
 
 	if repository.Spec.SecretRef != nil {

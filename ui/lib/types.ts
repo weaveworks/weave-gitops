@@ -1,4 +1,4 @@
-import { SourceType } from "./api/app/source.pb";
+import { Condition, SourceType } from "./api/app/source.pb";
 import { AutomationKind } from "./api/applications/applications.pb";
 
 export enum PageRoute {
@@ -44,6 +44,7 @@ export interface Source {
   name?: string;
   namespace?: string;
   type?: SourceType;
+  conditions?: Condition[];
 }
 
 export interface Automation {
