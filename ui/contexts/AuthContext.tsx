@@ -42,10 +42,8 @@ export default function AuthContextProvider({ children }) {
   } | null>(null);
 
   React.useEffect(() => {
-    // clear the error state on navigation
-
     getUserInfo();
-  }, [window.location]);
+  }, []);
 
   const submitAuthType = (selection: string) => {
     // POST user selection => user/pass OR OIDC
