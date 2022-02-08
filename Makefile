@@ -61,8 +61,15 @@ install: bin ## Install binaries to GOPATH
 api-dev: ## Server and watch gitops-server, will reload automatically on change
 	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
 
-cluster-dev: ## Start tilt to do development with wego-app running on the cluster
+cluster-dev: check-config-repo bin local-kind-cluster-with-registry local-docker-image ## Start tilt to do development with wego-app running on the cluster
+	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true bin/$(BINARY_NAME) install --config-repo=${TEST_CONFIG_REPO} --auto-merge true
 	tilt up
+
+check-config-repo:
+	@test $${TEST_CONFIG_REPO?Please set TEST_CONFIG_REPO to use a dev cluster.}
+
+clean-dev-cluster:
+	kind delete cluster --name kind && docker rm -f kind-registry
 
 debug: ## Compile binary with optimisations and inlining disabled
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
@@ -179,7 +186,7 @@ unittest.out: dependencies
 integrationtest.out: dependencies
 	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
-	@go mod tidy	
+	@go mod tidy
 
 coverage:
 	@mkdir -p coverage
@@ -190,7 +197,7 @@ coverage/unittest.info: coverage unittest.out
 	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
 
 coverage/integrationtest.info: coverage integrationtest.out
-	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info	
+	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.
