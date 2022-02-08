@@ -1,25 +1,25 @@
 package profiles_test
 
 import (
+	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+
 	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 )
 
-var _ = Describe("Add a Profile", func() {
+var _ = Describe("Update Profile(s)", func() {
 	var cmd *cobra.Command
 
 	BeforeEach(func() {
-		client := resty.New()
-		cmd = root.RootCmd(client)
+		cmd = root.RootCmd(resty.New())
 	})
 
 	When("the flags are valid", func() {
-		It("accepts all known flags for adding a profile", func() {
+		It("accepts all known flags for updating a profile", func() {
 			cmd.SetArgs([]string{
-				"add", "profile",
+				"update", "profile",
 				"--name", "podinfo",
 				"--version", "0.0.1",
 				"--cluster", "prod",
@@ -34,29 +34,18 @@ var _ = Describe("Add a Profile", func() {
 	})
 
 	When("flags are not valid", func() {
-		It("fails if --name, --cluster, or --config-repo are not provided", func() {
+		It("fails if --name, --cluster, --version or --config-repo are not provided", func() {
 			cmd.SetArgs([]string{
-				"add", "profile",
+				"update", "profile",
 			})
 
 			err := cmd.Execute()
-			Expect(err).To(MatchError("required flag(s) \"cluster\", \"config-repo\", \"name\" not set"))
-		})
-
-		It("fails if --name value is <= 63 characters in length", func() {
-			cmd.SetArgs([]string{
-				"add", "profile",
-				"--name", "a234567890123456789012345678901234567890123456789012345678901234",
-				"--cluster", "cluster",
-				"--config-repo", "config-repo",
-			})
-			err := cmd.Execute()
-			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
+			Expect(err).To(MatchError("required flag(s) \"cluster\", \"config-repo\", \"name\", \"version\" not set"))
 		})
 
 		It("fails if given version is not valid semver", func() {
 			cmd.SetArgs([]string{
-				"add", "profile",
+				"update", "profile",
 				"--name", "podinfo",
 				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
 				"--cluster", "prod",
@@ -71,7 +60,7 @@ var _ = Describe("Add a Profile", func() {
 	When("a flag is unknown", func() {
 		It("fails", func() {
 			cmd.SetArgs([]string{
-				"add", "profile",
+				"update", "profile",
 				"--unknown", "param",
 			})
 

@@ -1,22 +1,17 @@
 package profiles
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 
 	"github.com/google/uuid"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"gopkg.in/yaml.v2"
-	kyaml "sigs.k8s.io/yaml"
 )
 
 const AddCommitMessage = "Add Profile manifests"
@@ -52,7 +47,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	availableProfile, version, err := s.GetProfile(ctx, GetOptions{
+	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -60,16 +55,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		Port:      opts.ProfilesPort,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get profiles from cluster: %w", err)
-	}
-
-	if availableProfile.GetHelmRepository().GetName() == "" || availableProfile.GetHelmRepository().GetNamespace() == "" {
-		return fmt.Errorf("failed to discover HelmRepository's name and namespace")
-	}
-
-	helmRepo := types.NamespacedName{
-		Name:      availableProfile.HelmRepository.Name,
-		Namespace: availableProfile.HelmRepository.Namespace,
+		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
 	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
@@ -79,7 +65,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
-	file, err := AppendProfileToFile(files, newRelease, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+	file, err := helm.AppendHelmReleaseToFile(files, newRelease, profileIsInstalled, models.WegoProfilesPath, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
 	if err != nil {
 		return fmt.Errorf("failed to append HelmRelease to profiles file: %w", err)
 	}
@@ -119,79 +105,10 @@ func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
 	s.Logger.Println("Namespace: %s\n", opts.Namespace)
 }
 
-// AppendProfileToFile appends a HelmRelease to profiles.yaml if file does not contain other HelmRelease with the same name and namespace.
-func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.HelmRelease, path string) (gitprovider.CommitFile, error) {
-	var content string
-
-	for _, f := range files {
-		if f.Path != nil && *f.Path == path {
-			if f.Content == nil || *f.Content == "" {
-				break
-			}
-
-			manifestByteSlice, err := splitYAML([]byte(*f.Content))
-			if err != nil {
-				return gitprovider.CommitFile{}, fmt.Errorf("error splitting %s: %w", models.WegoProfilesPath, err)
-			}
-
-			for _, manifestBytes := range manifestByteSlice {
-				var r v2beta1.HelmRelease
-				if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
-					return gitprovider.CommitFile{}, fmt.Errorf("error unmarshaling %s: %w", models.WegoProfilesPath, err)
-				}
-
-				if profileIsInstalled(r, *newRelease) {
-					return gitprovider.CommitFile{}, fmt.Errorf("version %s of profile '%s' already exists in namespace %s", r.Spec.Chart.Spec.Version, r.Name, r.Namespace)
-				}
-			}
-
-			content = *f.Content
-
-			break
-		}
+func profileIsInstalled(r, newRelease v2beta1.HelmRelease) error {
+	if r.Name == newRelease.Name && r.Namespace == newRelease.Namespace {
+		return fmt.Errorf("profile '%s' is already installed in namespace %s; please use 'gitops update profile' if you wish to update it", r.Name, r.Namespace)
 	}
 
-	helmReleaseManifest, err := kyaml.Marshal(newRelease)
-	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("failed to marshal new HelmRelease: %w", err)
-	}
-
-	content += "\n---\n" + string(helmReleaseManifest)
-
-	return gitprovider.CommitFile{
-		Path:    &path,
-		Content: &content,
-	}, nil
-}
-
-// splitYAML splits a manifest file that may contain multiple YAML resources separated by '---'
-// and validates that each element is YAML.
-func splitYAML(resources []byte) ([][]byte, error) {
-	var splitResources [][]byte
-
-	decoder := yaml.NewDecoder(bytes.NewReader(resources))
-
-	for {
-		var value interface{}
-		if err := decoder.Decode(&value); err != nil {
-			if err == io.EOF {
-				break
-			}
-
-			return nil, err
-		}
-
-		valueBytes, err := yaml.Marshal(value)
-		if err != nil {
-			return nil, err
-		}
-
-		splitResources = append(splitResources, valueBytes)
-	}
-
-	return splitResources, nil
-}
-
-func profileIsInstalled(r, newRelease v2beta1.HelmRelease) bool {
-	return r.Name == newRelease.Name && r.Namespace == newRelease.Namespace && r.Spec.Chart.Spec.Version == newRelease.Spec.Chart.Spec.Version
+	return nil
 }
