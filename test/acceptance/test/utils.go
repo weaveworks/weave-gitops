@@ -356,8 +356,7 @@ func waitForResourceToExist(resourceType string, resourceName string, namespace 
 	EventuallyWithOffset(1, func() error {
 		log.Infof("Waiting for %s/%s in namespace: %q to exist: ", resourceType, resourceName, namespace)
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
-		_, err := command.CombinedOutput()
-		if err != nil {
+		if _, err := command.CombinedOutput(); err != nil {
 			return err
 		}
 		return nil
