@@ -566,15 +566,6 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	return cmd.Run()
 }
 
-func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
-	cmd := exec.Command(name, arg...)
-	if len(env) > 0 {
-		cmd.Env = env
-	}
-
-	return cmd.Run()
-}
-
 func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
 	command := exec.Command("sh", "-c", commandToRun)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
