@@ -895,8 +895,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed for app2", func() {
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName2, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName2, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 		By("When I run gitops add app command for app3: "+appName3, func() {
@@ -1216,8 +1216,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 		By("And repo created has private visibility", func() {
@@ -1281,8 +1281,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 	})
