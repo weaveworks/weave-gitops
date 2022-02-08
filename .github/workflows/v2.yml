@@ -9,6 +9,7 @@ on:
       - v2
   workflow_dispatch:
 
+name: ci
 jobs:
   ci:
     name: CI
