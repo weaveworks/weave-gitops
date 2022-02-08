@@ -178,12 +178,16 @@ var _ = Describe("Installer", func() {
 				noClusterApplicableManifests, err := NoClusterApplicableManifests(params)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(len(noClusterApplicableManifests)).Should(Equal(2))
+				Expect(len(noClusterApplicableManifests)).Should(Equal(3))
 
 				expectedManifests := []Manifest{
 					{
 						Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,
+					},
+					{
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoProfilesPath),
+						Content: []byte(""),
 					},
 					{
 						Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),

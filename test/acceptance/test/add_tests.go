@@ -895,8 +895,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed for app2", func() {
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName2, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName2, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 		By("When I run gitops add app command for app3: "+appName3, func() {
@@ -1216,8 +1216,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 		By("And repo created has private visibility", func() {
@@ -1281,8 +1281,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			waitForResourceToExist("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
+			waitForResourceToExist("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)
 		})
 
 	})
@@ -1753,7 +1753,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, _, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
+			_, clusterContext, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -1805,6 +1805,10 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
+		})
+
+		By("And the kustomizations should not have any errors", func() {
+			VerifyKustomizations(clusterContext, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run gitops add app command for app: "+appName, func() {
