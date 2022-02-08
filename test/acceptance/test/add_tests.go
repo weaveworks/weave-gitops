@@ -1509,7 +1509,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I should see workload for app is deployed to the cluster", func() {
+		By("And I should see workload for app is deployed to the clusters", func() {
 			selectCluster(cluster1Context)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 			selectCluster(cluster2Context)
@@ -1608,95 +1608,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
-		By("Then I should see appNames for all apps listed", func() {
-			Eventually(listOutput).Should(ContainSubstring(appName))
-		})
-
-		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
-			pullGitRepo(repoAbsolutePath)
-			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".weave-gitops"))
-		})
-
-		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
-			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
-			Expect(folderOutput).Should(ContainSubstring(".weave-gitops"))
-		})
-	})
-
-	It("SmokeTestShort - Verify that gitops can deploy an app with config-repo set to a gitlab <url>", func() {
-		var repoAbsolutePath string
-		var configRepoRemoteURL string
-		var listOutput string
-		var appStatus string
-		private := true
-		readmeFilePath := "./data/README.md"
-		tip := generateTestInputs()
-		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
-		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
-		appName := appFilesRepoName
-		workloadName := tip.workloadName
-		workloadNamespace := tip.workloadNamespace
-		appManifestFilePath := tip.appManifestFilePath
-
-		addCommand := "add app . --auto-merge=true"
-
-		defer deleteRepo(appFilesRepoName, gitProvider, gitOrg)
-		defer deleteRepo(appConfigRepoName, gitProvider, gitOrg)
-		defer deleteWorkload(workloadName, workloadNamespace)
-
-		By("I have my default ssh key on path "+sshKeyPath, func() {
-			setupGitlabSSHKey(sshKeyPath)
-		})
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, gitProvider, gitOrg)
-			deleteRepo(appConfigRepoName, gitProvider, gitOrg)
-		})
-
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(workloadName, workloadNamespace)
-		})
-
-		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitProvider, private, gitOrg)
-			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
-		})
-
-		By("When I create a private repo with app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitProvider, private, gitOrg)
-			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
-		})
-
-		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
-		})
-
-		By("And I run gitops add app command for app: "+appName, func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see my workload deployed for app", func() {
-			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
-		})
-
-		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName)
-		})
-
-		By("Then I should see the status for "+appName, func() {
-			Eventually(appStatus).Should(ContainSubstring(`Last successful reconciliation:`))
-			Eventually(appStatus).Should(ContainSubstring(`gitrepository/` + appName))
-			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
-		})
-
-		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
-		})
-
-		By("Then I should see appNames for all apps listed", func() {
+		By("Then I should see app list contain appName", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName))
 		})
 
