@@ -1753,7 +1753,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, _, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
+			_, clusterContext, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -1808,7 +1808,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("And the kustomizations should not have any errors", func() {
-			VerifyKustomizations(clusterName, WEGO_DEFAULT_NAMESPACE)
+			VerifyKustomizations(clusterContext, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run gitops add app command for app: "+appName, func() {
