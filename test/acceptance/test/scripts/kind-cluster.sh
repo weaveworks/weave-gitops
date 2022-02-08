@@ -35,7 +35,7 @@ fi
 kind_version=$(kind version)
 kind_network='kind'
 reg_name='kind-registry'
-reg_port='5000'
+reg_port='5001'
 case "${kind_version}" in
   "kind v0.7."* | "kind v0.6."* | "kind v0.5."*)
     kind_network='bridge'
