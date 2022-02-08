@@ -20,13 +20,13 @@
 set -o errexit
 
 reg_name='kind-registry'
-reg_port='5000'
+reg_port='5001'
 
 # create registry container unless it already exists
 running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
+    -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
     registry:2
   echo "registry deployed"
 else
