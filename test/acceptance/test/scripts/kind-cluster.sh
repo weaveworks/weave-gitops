@@ -19,8 +19,10 @@
 
 set -o errexit
 
-echo "Delete existing kind clusters"
-kind delete clusters --all
+if [[ -z "${SKIP_DELETE}" ]]; then
+  echo "Delete existing kind clusters"
+  kind delete clusters --all
+fi
 
 echo "Create a new kind cluster with name "$1
 

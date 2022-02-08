@@ -252,7 +252,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		var err error
 		if keepExistingClusters {
-			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
+			err = runCommandPassThrough([]string{"SKIP_DELETE=true"}, "./scripts/kind-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		} else {
 			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		}
@@ -557,7 +557,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
-		cmd.Env = env
+		cmd.Env = append(os.Environ(), env...)
 	}
 
 	cmd.Stdout = os.Stdout
@@ -620,7 +620,11 @@ func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	waitForResourceToExist("GitRepositories", appRepoName, wegoNamespace, THIRTY_SECOND_TIMEOUT)
+
+	command = exec.Command("sh", "-c", fmt.Sprintf("kubectl get GitRepositories %s -n %s", appRepoName, wegoNamespace))
+	out, err := command.CombinedOutput()
+	Expect(err).To(HaveOccurred())
+	Expect(string(out)).To(ContainSubstring("not found"))
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
