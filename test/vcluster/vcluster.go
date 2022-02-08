@@ -10,12 +10,14 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/clientcmd"
 
 	_ "embed"
@@ -79,9 +81,21 @@ func (c *factory) Create(ctx context.Context, name string) (client.Client, error
 		return nil, fmt.Errorf("failed getting vcluster client config: %w", err)
 	}
 
-	return client.New(kubeClientConfig, client.Options{
-		Scheme: kube.CreateScheme(),
+	kubeClientConfig.Timeout = 500 * time.Millisecond
+
+	var vclusterClient client.Client
+
+	err = wait.Poll(time.Second, 5*time.Second, func() (bool, error) {
+		fmt.Println("creating cluster client...")
+		vclusterClient, err = client.New(kubeClientConfig, client.Options{Scheme: kube.CreateScheme()})
+		if err != nil {
+			return false, nil
+		}
+
+		return true, nil
 	})
+
+	return vclusterClient, err
 }
 
 func (c *factory) Delete(ctx context.Context, name string) error {
@@ -226,8 +240,6 @@ func createClusterIngress(name string) error {
 		return fmt.Errorf("Cannot create temporary file: %w", err)
 	}
 
-	// defer os.Remove(tmpFile.Name())
-
 	values, err := executeTemplate(vclusterIngress, name)
 	if err != nil {
 		return err
@@ -285,6 +297,30 @@ func InstallNginxIngressController() error {
 	output, err = exec.Command("bash", "-c", waitCmd).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error waiting ingress controller to be ready. output=%s error=%s", string(output), err)
+	}
+
+	return nil
+}
+
+func UpdateHostKubeconfig() error {
+	kubeconfig := os.Getenv("KUBECONFIG")
+
+	input, err := ioutil.ReadFile(kubeconfig)
+	if err != nil {
+		return err
+	}
+
+	output := bytes.Replace(input, []byte("127.0.0.1"), []byte("k3s"), -1)
+
+	return ioutil.WriteFile(kubeconfig, output, 0666)
+}
+
+func WaitClusterConnectivity() error {
+	waitCmd := `while ! kubectl version; do echo "waiting for cluster connectivity" && sleep 1; done`
+
+	output, err := exec.Command("bash", "-c", waitCmd).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error waiting cluster to be ready. output=%s error=%s", string(output), err)
 	}
 
 	return nil

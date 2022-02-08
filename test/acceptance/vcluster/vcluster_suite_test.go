@@ -9,6 +9,16 @@ import (
 )
 
 func TestVcluster(t *testing.T) {
+	if err := vcluster.UpdateHostKubeconfig(); err != nil {
+		t.Errorf("failed updating host kubeconfig: %w", err)
+		t.FailNow()
+	}
+
+	if err := vcluster.WaitClusterConnectivity(); err != nil {
+		t.Errorf("failed waiting cluster to be ready: %w", err)
+		t.FailNow()
+	}
+
 	if err := vcluster.InstallNginxIngressController(); err != nil {
 		t.Errorf("failed installing ingress controller: %w", err)
 		t.FailNow()
