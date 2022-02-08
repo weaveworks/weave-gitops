@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
-
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/fluxcd/go-git-providers/gitprovider"
+	"sigs.k8s.io/kustomize/api/types"
+	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -24,8 +24,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"sigs.k8s.io/kustomize/api/types"
-	"sigs.k8s.io/yaml"
 )
 
 type Manifest struct {
@@ -48,7 +46,7 @@ const (
 
 	WegoConfigMapName = "weave-gitops-config"
 	WegoImage         = "ghcr.io/weaveworks/wego-app"
-	localWegoImage    = "localhost:5000/wego-app"
+	localWegoImage    = "localhost:5001/wego-app"
 )
 
 type ManifestsParams struct {
