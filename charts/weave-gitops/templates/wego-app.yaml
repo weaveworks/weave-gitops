@@ -24,24 +24,22 @@ spec:
       app: wego-app
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: read-resources
-  namespace: {{.Values.namespace}}
 subjects:
   - kind: ServiceAccount
     name: wego-app-service-account
     namespace: {{.Values.namespace}}
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: resources-reader
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: resources-reader
-  namespace: {{.Values.namespace}}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
