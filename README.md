@@ -67,13 +67,22 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 To set up a development environment for the CLI
 
+### To use an existing environment
+
 1. Install go v1.17
 2. Install [buf](https://github.com/bufbuild/buf)
 3. Run `make all` to install dependencies and build binaries and assets
 4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
 5. Run `./bin/gitops install --config-repo=<repo url>`
-6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
+6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `tilt up`
 7. make or make unit-tests to ensure everything built correctly.
+
+### To use a bootstrapped, ready made environment
+
+1. Install go v1.17
+2. Install [buf](https://github.com/bufbuild/buf)
+3. Run `make all` to install dependencies and build binaries and assets
+4. Run `make cluster-dev` which should install and bring up everything and then start `tilt` to take over monitoring
 
 ### Cluster Dev Tips
 

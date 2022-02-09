@@ -7,9 +7,9 @@ entries:
       home: https://helm.sh/helm
       name: alpine
       sources:
-      - https://github.com/helm/helm
+        - https://github.com/helm/helm
       urls:
-      - https://technosophos.github.io/tscharts/alpine-0.2.0.tgz
+        - https://technosophos.github.io/tscharts/alpine-0.2.0.tgz
       version: 0.2.0
     - created: 2016-10-06T16:23:20.499543808-06:00
       description: Deploy a basic Alpine Linux pod
@@ -17,9 +17,9 @@ entries:
       home: https://helm.sh/helm
       name: alpine
       sources:
-      - https://github.com/helm/helm
+        - https://github.com/helm/helm
       urls:
-      - https://technosophos.github.io/tscharts/alpine-0.1.0.tgz
+        - https://technosophos.github.io/tscharts/alpine-0.1.0.tgz
       version: 0.1.0
   nginx:
     - created: 2016-10-06T16:23:20.499543808-06:00
@@ -28,9 +28,9 @@ entries:
       home: https://helm.sh/helm
       name: nginx
       sources:
-      - https://github.com/helm/charts
+        - https://github.com/helm/charts
       urls:
-      - https://technosophos.github.io/tscharts/nginx-1.1.0.tgz
+        - https://technosophos.github.io/tscharts/nginx-1.1.0.tgz
       version: 1.1.0
   demo-profile:
     - created: 2016-10-06T16:23:20.499543808-06:00
@@ -43,17 +43,17 @@ entries:
       name: demo-profile-1
       icon: https://helm.sh/icon.png
       keywords:
-      - gitops
-      - demo
+        - gitops
+        - demo
       maintainers:
-      - name: WeaveWorks
-        email: maintainers@weave.works
-      - name: CNCF
-        url: cncf.io
+        - name: WeaveWorks
+          email: maintainers@weave.works
+        - name: CNCF
+          url: cncf.io
       sources:
-      - https://github.com/helm/charts
+        - https://github.com/helm/charts
       urls:
-      - https://technosophos.github.io/tscharts/demo-profile-1.1.0.tgz
+        - https://technosophos.github.io/tscharts/demo-profile-1.1.0.tgz
       version: 1.1.0
     - created: 2016-10-06T16:23:20.499543808-06:00
       description: Simple demo profile
@@ -62,17 +62,17 @@ entries:
       name: demo-profile
       icon: https://helm.sh/icon.png
       keywords:
-      - gitops
-      - demo
+        - gitops
+        - demo
       maintainers:
-      - name: WeaveWorks
-        email: maintainers@weave.works
-      - name: CNCF
-        url: cncf.io
+        - name: WeaveWorks
+          email: maintainers@weave.works
+        - name: CNCF
+          url: cncf.io
       sources:
-      - https://github.com/helm/charts
+        - https://github.com/helm/charts
       urls:
-      - https://technosophos.github.io/tscharts/demo-profile-1.1.0.tgz
+        - https://technosophos.github.io/tscharts/demo-profile-1.1.0.tgz
       version: 1.1.1
     - created: 2016-10-06T16:23:20.499543808-06:00
       annotations:
@@ -84,17 +84,17 @@ entries:
       name: demo-profile-2
       icon: https://helm.sh/icon.png
       keywords:
-      - gitops
-      - demo
+        - gitops
+        - demo
       maintainers:
-      - name: WeaveWorks
-        email: maintainers@weave.works
-      - name: CNCF
-        url: cncf.io
+        - name: WeaveWorks
+          email: maintainers@weave.works
+        - name: CNCF
+          url: cncf.io
       sources:
-      - https://github.com/helm/charts
+        - https://github.com/helm/charts
       urls:
-      - https://technosophos.github.io/tscharts/demo-profile-1.1.2.tgz
+        - https://technosophos.github.io/tscharts/demo-profile-1.1.2.tgz
       version: 1.1.2
 
 generated: 2016-10-06T16:23:20.499029981-06:00

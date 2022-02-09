@@ -91,7 +91,7 @@ var _ = Describe("Installer", func() {
 				userKustomizationResourceManifest := []byte("user kustomization resource")
 				fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResourceManifest, nil)
 
-				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: params.WegoNamespace})
+				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppImage: WegoImage, AppVersion: "v0.0.0", Namespace: params.WegoNamespace})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
@@ -178,12 +178,16 @@ var _ = Describe("Installer", func() {
 				noClusterApplicableManifests, err := NoClusterApplicableManifests(params)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(len(noClusterApplicableManifests)).Should(Equal(2))
+				Expect(len(noClusterApplicableManifests)).Should(Equal(3))
 
 				expectedManifests := []Manifest{
 					{
 						Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,
+					},
+					{
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoProfilesPath),
+						Content: []byte(""),
 					},
 					{
 						Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -17,15 +18,17 @@ var _ ClientGetter = &DefaultClientGetter{}
 // DefaultClientGetter implements the ClientGetter interface and uses a ConfigGetter
 // to get a *rest.Config and create a Kubernetes client.
 type DefaultClientGetter struct {
-	configGetter ConfigGetter
-	clusterName  string
+	configGetter  ConfigGetter
+	clusterName   string
+	schemeBuilder runtime.SchemeBuilder
 }
 
 // NewDefaultClientGetter creates a new DefaultClientGetter
-func NewDefaultClientGetter(configGetter ConfigGetter, clusterName string) ClientGetter {
+func NewDefaultClientGetter(configGetter ConfigGetter, clusterName string, schemeBuilder ...func(*runtime.Scheme) error) ClientGetter {
 	return &DefaultClientGetter{
-		configGetter: configGetter,
-		clusterName:  clusterName,
+		configGetter:  configGetter,
+		clusterName:   clusterName,
+		schemeBuilder: schemeBuilder,
 	}
 }
 
@@ -34,7 +37,7 @@ func NewDefaultClientGetter(configGetter ConfigGetter, clusterName string) Clien
 func (g *DefaultClientGetter) Client(ctx context.Context) (client.Client, error) {
 	config := g.configGetter.Config(ctx)
 
-	_, rawClient, err := NewKubeHTTPClientWithConfig(config, g.clusterName)
+	_, rawClient, err := NewKubeHTTPClientWithConfig(config, g.clusterName, g.schemeBuilder...)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}

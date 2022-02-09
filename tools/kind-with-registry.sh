@@ -30,7 +30,7 @@ fi
 kind_version=$(kind version)
 kind_network='kind'
 reg_name='kind-registry'
-reg_port='5000'
+reg_port='5001'
 case "${kind_version}" in
   "kind v0.7."* | "kind v0.6."* | "kind v0.5."*)
     kind_network='bridge'
@@ -41,7 +41,7 @@ esac
 running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
+    -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
     registry:2
 fi
 
@@ -81,7 +81,7 @@ if [ "${kind_network}" != "bridge" ]; then
       needs_connect="false"
     fi
   done
-  if [ "${needs_connect}" = "true" ]; then               
+  if [ "${needs_connect}" = "true" ]; then
     docker network connect "${kind_network}" "${reg_name}" || true
   fi
 fi

@@ -4,8 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -22,6 +20,8 @@ const (
 	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
 	scopeEmail = "email"
+	// ScopeGroups is the "groups" scope
+	scopeGroups = "groups"
 )
 
 // RegisterAuthServer registers the /callback route under a specified prefix.
@@ -29,6 +29,7 @@ const (
 // the authentication flow completes.
 func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 	mux.Handle(prefix+"/callback", srv)
+	mux.Handle(prefix+"/sign_in", srv.SignIn())
 }
 
 type principalCtxKey struct{}
@@ -96,41 +97,12 @@ func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
 		}
 
 		if principal == nil || err != nil {
-			startAuthFlow(rw, r, srv)
+			srv.startAuthFlow(rw, r)
 			return
 		}
 
 		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
 	})
-}
-
-func startAuthFlow(rw http.ResponseWriter, r *http.Request, srv *AuthServer) {
-	nonce, err := generateNonce()
-	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	b, err := json.Marshal(SessionState{
-		Nonce:     nonce,
-		ReturnURL: r.URL.String(),
-	})
-	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	var scopes []string
-	// "openid", "offline_access" and "email" scopes added by default
-	scopes = append(scopes, scopeProfile)
-	authCodeUrl := srv.oauth2Config(scopes).AuthCodeURL(state)
-
-	// Issue state cookie
-	http.SetCookie(rw, srv.createCookie(StateCookieName, state))
-
-	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
 }
 
 func generateNonce() (string, error) {

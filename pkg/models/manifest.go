@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
-
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/fluxcd/go-git-providers/gitprovider"
+	"sigs.k8s.io/kustomize/api/types"
+	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -24,8 +24,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"sigs.k8s.io/kustomize/api/types"
-	"sigs.k8s.io/yaml"
 )
 
 type Manifest struct {
@@ -47,6 +45,8 @@ const (
 	WegoProfilesPath        = "profiles.yaml"
 
 	WegoConfigMapName = "weave-gitops-config"
+	WegoImage         = "ghcr.io/weaveworks/wego-app"
+	localWegoImage    = "localhost:5001/wego-app"
 )
 
 type ManifestsParams struct {
@@ -62,12 +62,15 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
 	}
 
-	version := version.Version
-	if os.Getenv("IS_TEST_ENV") != "" {
-		version = "latest"
-	}
+	image, version := WegoImageAndVersion()
+	wegoAppManifests, err := manifests.GenerateWegoAppManifests(
+		manifests.Params{
+			AppVersion: version,
+			AppImage:   image,
+			Namespace:  params.WegoNamespace,
+		},
+	)
 
-	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: params.WegoNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("error generating wego-app manifest: %w", err)
 	}
@@ -153,6 +156,20 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 	}, nil
 }
 
+func WegoImageAndVersion() (string, string) {
+	version := version.Version
+	if os.Getenv("IS_TEST_ENV") != "" {
+		version = "latest"
+	}
+
+	image := WegoImage
+	if os.Getenv("IS_LOCAL_REGISTRY") != "" {
+		image = localWegoImage
+	}
+
+	return image, version
+}
+
 // NoClusterApplicableManifests generates all yaml files that are going to be written in the config repo and cannot be applied to the cluster directly
 func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
 	systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath, WegoProfilesPath)
@@ -166,6 +183,10 @@ func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
 		{
 			Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoProfilesPath),
+			Content: []byte(""),
 		},
 		{
 			Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),
