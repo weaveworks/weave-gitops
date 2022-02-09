@@ -78,9 +78,10 @@ export default function AuthContextProvider({ children }) {
 
   const signIn = React.useCallback(
     (type: string, username?: string, password?: string) => {
-      request("POST", "/oauth2/sign_in", {
+      fetch("http://localhost:9001/oauth2/sign_in", {
+        method: "POST",
         body: JSON.stringify({
-          type,
+          authType: type,
           username,
           password,
         }),

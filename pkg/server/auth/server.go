@@ -48,6 +48,13 @@ type AuthServer struct {
 	config   AuthConfig
 }
 
+// 
+type LoginRequest struct {
+	AuthType string `json:"authType"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig) (*AuthServer, error) {
 	provider, err := oidc.NewProvider(ctx, config.IssuerURL)
@@ -201,16 +208,24 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+
 		if r.Method != http.MethodPost {
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 		}
 
-		if r.FormValue("type") == LoginOIDC {
+		var loginRequest LoginRequest;
+
+		err := json.NewDecoder(r.Body).Decode(&loginRequest)
+
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+		return
+		}
+
+		if loginRequest.AuthType == LoginOIDC {
 			s.startAuthFlow(rw, r)
-		} else if r.FormValue("type") == LoginUsername {
-			u := r.FormValue("username")
-			p := r.FormValue("password")
-			if u == "admin" && p == "password" {
+		} else if loginRequest.AuthType == LoginUsername {
+			if loginRequest.Username == "admin" && loginRequest.Password == "password" {
 				rw.WriteHeader(http.StatusOK)
 			} else {
 				rw.WriteHeader(http.StatusForbidden)
