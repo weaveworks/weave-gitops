@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
@@ -50,4 +51,18 @@ func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, opts GetOption
 		Name:      availableProfile.HelmRepository.Name,
 		Namespace: availableProfile.HelmRepository.Namespace,
 	}, version, nil
+}
+
+func getGitCommitFileContent(files []*gitprovider.CommitFile, filePath string) string {
+	for _, f := range files {
+		if f.Path != nil && *f.Path == filePath {
+			if f.Content == nil || *f.Content == "" {
+				return ""
+			}
+
+			return *f.Content
+		}
+	}
+
+	return ""
 }

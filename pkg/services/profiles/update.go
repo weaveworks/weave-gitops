@@ -4,7 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/helm"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type UpdateOptions struct {
@@ -32,7 +37,12 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("repository %q could not be found", configRepoURL)
 	}
 
-	_, _, err = s.GetProfile(ctx, GetOptions{
+	defaultBranch, err := gitProvider.GetDefaultBranch(ctx, configRepoURL)
+	if err != nil {
+		return fmt.Errorf("failed to get default branch: %w", err)
+	}
+
+	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -40,8 +50,36 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		Port:      opts.ProfilesPort,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get profiles from cluster: %w", err)
+		return fmt.Errorf("failed to discover HelmRepository: %w", err)
+	}
+
+	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
+	if err != nil {
+		return fmt.Errorf("failed to get files in '%s' of config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
+	}
+
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+	if fileContent == "" {
+		return fmt.Errorf("failed to find installed profiles in '%s' of config repo %q", git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath), configRepoURL)
+	}
+
+	_, err = updateHelmRelease(helmRepo, fileContent, version, opts)
+	if err != nil {
+		return fmt.Errorf("failed to update HelmRelease for profile '%s' in %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
 
 	return nil
+}
+
+func updateHelmRelease(helmRepo types.NamespacedName, fileContent, version string, opts UpdateOptions) (string, error) {
+	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
+
+	matchingHelmReleases, err := helm.FindHelmReleaseInString(fileContent, newRelease)
+	if len(matchingHelmReleases) == 0 {
+		return "", fmt.Errorf("profile '%s' could not be found in %s/%s", opts.Name, opts.Namespace, opts.Cluster)
+	} else if err != nil {
+		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
+	}
+
+	return helm.AppendHelmReleaseToString(fileContent, newRelease)
 }

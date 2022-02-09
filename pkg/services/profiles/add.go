@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/google/uuid"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const AddCommitMessage = "Add Profile manifests"
@@ -58,17 +58,19 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
-	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
-
 	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
-	file, err := helm.AppendHelmReleaseToFile(files, newRelease, profileIsInstalled, models.WegoProfilesPath, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+
+	content, err := addHelmRelease(helmRepo, fileContent, version, opts)
 	if err != nil {
-		return fmt.Errorf("failed to append HelmRelease to profiles file: %w", err)
+		return fmt.Errorf("failed to add HelmRelease for profile '%s' to %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
+
+	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
 
 	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
 		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
@@ -76,7 +78,10 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		CommitMessage: AddCommitMessage,
 		TargetBranch:  defaultBranch,
 		NewBranch:     uuid.New().String(),
-		Files:         []gitprovider.CommitFile{file},
+		Files: []gitprovider.CommitFile{{
+			Path:    &path,
+			Content: &content,
+		}},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
@@ -105,10 +110,15 @@ func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
 	s.Logger.Println("Namespace: %s\n", opts.Namespace)
 }
 
-func profileIsInstalled(r, newRelease v2beta1.HelmRelease) error {
-	if r.Name == newRelease.Name && r.Namespace == newRelease.Namespace {
-		return fmt.Errorf("profile '%s' is already installed in namespace %s; please use 'gitops update profile' if you wish to update it", r.Name, r.Namespace)
+func addHelmRelease(helmRepo types.NamespacedName, fileContent, version string, opts AddOptions) (string, error) {
+	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
+
+	matchingHelmReleases, err := helm.FindHelmReleaseInString(fileContent, newRelease)
+	if len(matchingHelmReleases) >= 1 {
+		return "", fmt.Errorf("profile '%s' is already installed in %s/%s", opts.Name, opts.Namespace, opts.Cluster)
+	} else if err != nil {
+		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
 	}
 
-	return nil
+	return helm.AppendHelmReleaseToString(fileContent, newRelease)
 }

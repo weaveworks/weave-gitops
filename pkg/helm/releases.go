@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -45,49 +45,44 @@ func MakeHelmRelease(name, version, cluster, namespace string, helmRepository ty
 	}
 }
 
-// AppendHelmReleaseToFile appends a HelmRelease to a gitProvider CommitFile given a condition, file name and file path.
-func AppendHelmReleaseToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.HelmRelease, condition func(r, newRelease v2beta1.HelmRelease) error, fileName, filePath string) (gitprovider.CommitFile, error) {
-	var content string
+// FindHelmReleaseInString finds all HelmRelease(s) in a given string that can be split into YAML.
+func FindHelmReleaseInString(s string, newRelease *v2beta1.HelmRelease) ([]v2beta1.HelmRelease, error) {
+	manifestByteSlice, err := splitYAML([]byte(s))
+	if err != nil {
+		return nil, fmt.Errorf("error splitting into YAML: %w", err)
+	}
 
-	for _, f := range files {
-		if f.Path != nil && *f.Path == filePath {
-			if f.Content == nil || *f.Content == "" {
-				break
-			}
+	found := []v2beta1.HelmRelease{}
 
-			manifestByteSlice, err := splitYAML([]byte(*f.Content))
-			if err != nil {
-				return gitprovider.CommitFile{}, fmt.Errorf("error splitting %s: %w", fileName, err)
-			}
-
-			for _, manifestBytes := range manifestByteSlice {
-				var r v2beta1.HelmRelease
-				if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
-					return gitprovider.CommitFile{}, fmt.Errorf("error unmarshaling %s: %w", fileName, err)
-				}
-
-				if err := condition(r, *newRelease); err != nil {
-					return gitprovider.CommitFile{}, err
-				}
-			}
-
-			content = *f.Content
-
-			break
+	for _, manifestBytes := range manifestByteSlice {
+		var r v2beta1.HelmRelease
+		if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
+			return nil, fmt.Errorf("error unmarshaling: %w", err)
 		}
+
+		if profileIsInstalled(r, *newRelease) {
+			found = append(found, r)
+		}
+	}
+
+	return found, nil
+}
+
+// AppendHelmReleaseToString appends a HelmRelease to a string.
+func AppendHelmReleaseToString(content string, newRelease *v2beta1.HelmRelease) (string, error) {
+	var sb strings.Builder
+	if content != "" {
+		sb.WriteString(content + "\n")
 	}
 
 	helmReleaseManifest, err := kyaml.Marshal(newRelease)
 	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("failed to marshal new HelmRelease: %w", err)
+		return "", fmt.Errorf("failed to marshal HelmRelease: %w", err)
 	}
 
-	content += "\n---\n" + string(helmReleaseManifest)
+	sb.WriteString("---\n" + string(helmReleaseManifest))
 
-	return gitprovider.CommitFile{
-		Path:    &filePath,
-		Content: &content,
-	}, nil
+	return sb.String(), nil
 }
 
 // splitYAML splits a manifest file that may contain multiple YAML resources separated by '---'
@@ -116,4 +111,8 @@ func splitYAML(resources []byte) ([][]byte, error) {
 	}
 
 	return splitResources, nil
+}
+
+func profileIsInstalled(r, newRelease v2beta1.HelmRelease) bool {
+	return r.Name == newRelease.Name && r.Namespace == newRelease.Namespace && r.Spec.Chart.Spec.Version == newRelease.Spec.Chart.Spec.Version
 }

@@ -154,12 +154,12 @@ var _ = Describe("Add", func() {
 					return true, newFakeResponseWrapper(getProfilesResp), nil
 				})
 				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-				Expect(err).To(MatchError("failed to append HelmRelease to profiles file: profile 'prod-podinfo' is already installed in namespace weave-system; please use 'gitops update profile' if you wish to update it"))
+				Expect(err).To(MatchError("failed to add HelmRelease for profile 'podinfo' to profiles.yaml: profile 'podinfo' is already installed in weave-system/prod"))
 			})
 		})
 
-		When("it fails to discover the HelmRepository name and namespace", func() {
-			It("fails if it's unable to get a matching available profile from the cluster", func() {
+		Context("it fails to discover the HelmRepository name and namespace", func() {
+			It("fails if it's unable to list available profiles from the cluster", func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
 				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 					return true, newFakeResponseWrapperWithErr("nope"), nil
@@ -168,10 +168,8 @@ var _ = Describe("Add", func() {
 				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: failed to make GET request to service weave-system/wego-app path \"/v1/profiles\": nope"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 			})
-		})
 
-		When("it fails to find a matching version", func() {
-			It("returns an error", func() {
+			It("fails to find an available profile with the given version", func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
 				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 					return true, newFakeResponseWrapper(getProfilesResp), nil
@@ -231,35 +229,4 @@ func makeTestFiles() []*gitprovider.CommitFile {
 	}
 
 	return commitFiles
-}
-
-func getRespWithoutHelmRepo() string {
-	return `{
-		"profiles": [
-		  {
-			"name": "podinfo",
-			"home": "https://github.com/stefanprodan/podinfo",
-			"sources": [
-			  "https://github.com/stefanprodan/podinfo"
-			],
-			"description": "Podinfo Helm chart for Kubernetes",
-			"keywords": [],
-			"maintainers": [
-			  {
-				"name": "stefanprodan",
-				"email": "stefanprodan@users.noreply.github.com",
-				"url": ""
-			  }
-			],
-			"icon": "",
-			"annotations": {},
-			"kubeVersion": ">=1.19.0-0",
-			"availableVersions": [
-			  "6.0.0",
-			  "6.0.1"
-			]
-		  }
-		]
-	  }
-	  `
 }
