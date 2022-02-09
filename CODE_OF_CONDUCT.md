@@ -6,4 +6,4 @@ Instances of abusive, harassing, or otherwise unacceptable behavior
 may be reported by contacting a Weaveworks project maintainer, or
 Alexis Richardson (alexis@weave.works).
 
-Be good or be gone.
+Be excellent to each other.
