@@ -21,8 +21,9 @@ import (
 )
 
 var (
-	clusterName    string
-	clusterContext string
+	clusterName      string
+	clusterContext   string
+	repoAbsolutePath string
 )
 
 var _ = Describe("Weave GitOps Add App Tests", func() {
@@ -46,7 +47,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
-		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
 		private := true
@@ -94,7 +94,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
-		var repoAbsolutePath string
 		var addCommandOutput string
 		var errOutput string
 		private := true
@@ -164,7 +163,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test1 - Verify that gitops can deploy and delete an app after it is setup with an empty repo initially", func() {
-		var repoAbsolutePath string
 		var appRemoveOutput string
 		prLink := ""
 		private := true
@@ -242,7 +240,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test1 - Verify that gitops can deploy and delete an app with separate config-repo over https protocol", func() {
-		var repoAbsolutePath string
 		var appConfigRepoAbsPath string
 		var appRemoveOutput string
 		prLink := ""
@@ -323,7 +320,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test2 - Verify that gitops can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
-		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -367,7 +363,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
-		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		appRepoName := "test-app-" + RandString(8)
@@ -418,7 +413,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test2 - Verify that gitops can deploy multiple apps to the cluster using the same repo for config and sub-directories for apps", func() {
-		var repoAbsolutePath string
 		private := true
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -469,7 +463,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test3 - Verify that gitops can deploy 3 kinds of apps the cluster", func() {
-		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
 		var appStatus1 string
@@ -841,7 +834,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
-		var repoAbsolutePath string
 		private := true
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
@@ -881,7 +873,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test3 - Verify that gitops can deploy a helm app from a git repo with config-repo set to <url>", func() {
-		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
@@ -941,7 +932,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test3 - Verify that gitops can deploy multiple helm apps from a helm repo with config-repo set to <url>", func() {
-		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
 		var appStatus2 string
@@ -1051,7 +1041,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("@gitlabTests Test2 - Verify that gitops can deploy and delete a public gitlab app with separate config-repo", func() {
-		var repoAbsolutePath string
 		var appRemoveOutput string
 		public := false
 		private := true
@@ -1126,7 +1115,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("@gitlabTests Test2 - Verify that gitops can deploy a public gitlab app", func() {
-		var repoAbsolutePath string
 		public := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -1179,7 +1167,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("@gitlabTests Test3 - Verify that gitops can deploy and delete a gitlab app in a subgroup", func() {
-		var repoAbsolutePath string
 		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
@@ -1251,7 +1238,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test2 - Verify that a PR is raised against a user repo when skipping auto-merge", func() {
-		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
@@ -1299,7 +1285,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test2 - Verify that a PR can be raised against an external repo with config-repo set to <url>", func() {
-		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
 		prLink := ""
@@ -1355,7 +1340,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
-		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
@@ -1419,7 +1403,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	//TODO deleting an app from one cluster should not affect the other cluster
 	It("@skipOnNightly SmokeTestLong - Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
-		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
@@ -1540,8 +1523,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
-		var repoAbsolutePath string
+	FIt("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
 		var configRepoRemoteURL string
 		var listOutput string
 		var appStatus string
