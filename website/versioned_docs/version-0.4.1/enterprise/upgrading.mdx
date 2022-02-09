@@ -1,0 +1,110 @@
+---
+title: Upgrading
+sidebar_position: 0
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+## How to: Upgrade to Weave Gitops Enterprise
+
+Upgrading requires we:
+
+1. Already have Weave GitOps [installed on the cluster](../getting-started.md)
+2. Install Profiles onto the cluster
+3. Apply the entitlements secret
+4. Upgrade
+5. Configure
+6. Check that Weave Gitops Enterprise has been installed
+
+### 2. Install profiles
+
+:::note This step will be removed
+
+This step will be removed when Profiles are included in Weave Gitops
+
+:::
+
+Download the latest `pctl` [release](https://github.com/weaveworks/pctl/releases) and install the Profile custom resources:
+
+```bash
+pctl install --flux-namespace wego-system
+```
+
+### 3. Apply the entitlements secret
+
+Contact sales@weave.works for a valid entitlements secret. Then apply it to the cluster:
+
+```bash
+kubectl apply -f entitlements.yaml
+```
+
+### 4. Upgrade
+
+Run the upgrade command from a local copy of git repo that is sync'd to the cluster:
+
+```bash
+cd my-cluster-repo
+gitops upgrade
+```
+
+A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave Gitops Enterprise.
+
+### 5. Configure Weave Gitops Enterprise
+
+Weave Gitops Enterprise has a number of configration options but two importants aspect to configure are:
+
+#### 5.1. Ingress
+
+An Ingress address is necessary in order to establish connectivity between agents and your WGE instance. The way to determine this depends on your cluster type and provisioning method.
+
+<Tabs
+  groupId="agent-ingress"
+  values={[
+    { label: "kind clusters", value: "kind-clusters" },
+    { label: "Other cloud providers", value: "other-clusters" },
+  ]}
+>
+  <TabItem value="kind-clusters" default>
+
+To determine the public IP address of the worker nodes of your cluster get the local IP for kind:
+
+```bash
+export INGRESS_ADDRESS=$(ipconfig getifaddr en0)
+```
+
+  </TabItem>
+  <TabItem value="other-clusters">
+
+For other cluster providers you'll have to configure the ingress around what they provide.
+
+```bash
+export INGRESS_ADDRESS=wge.example.com
+```
+
+  </TabItem>
+</Tabs>
+
+Update the `agentTemplate.natsURL` value in the Weave Gitops Enterprise `ConfigMap` in your config repo.
+
+#### 5.2. Git repository configuration
+
+WGE will make pull requests against your git config repo when creating new CAPI clusters etc. The `GIT_PROVIDER_TOKEN` in the `git-provider-credentials` secret specified above will be used to authenticate.
+
+Update the `capi.config.repositoryURL` with the correct url to your git config repository in the Weave Gitops Enterprise `ConfigMap` in git config repository itself.
+
+:::note Restart capi-service
+
+After configuring values in the `ConfigMap` you may have to delete the cluster-service pod for the changes to take effect.
+
+:::
+
+### 6. Checking that WGE is installed
+
+You should now be able to load the WGE UI by running the following command:
+
+```bash
+$ kubectl port-forward --namespace wego-system deployments.apps/mccp-nginx-ingress-controller 8000:80
+```
+
+The WGE UI should now be accessible at `http://localhost:8000`.

@@ -1,0 +1,47 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: ClusterBootstrapConfig
+metadata:
+  name: capi-gitops
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      weave.works/capi: bootstrap
+  jobTemplate:
+    generateName: "run-gitops-{{ .ObjectMeta.Name }}"
+    spec:
+      containers:
+        - image: ghcr.io/weaveworks/wego-app:v0.6.2
+          name: gitops-install
+          resources: {}
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/etc/gitops"
+              readOnly: true
+          args:
+            [
+              "install",
+              "--override-in-cluster",
+              "--config-repo",
+              "$(GITOPS_REPO)",
+            ]
+          env:
+            - name: KUBECONFIG
+              value: "/etc/gitops/value"
+            - name: GITOPS_REPO
+              value: "ssh://git@github.com/my-org/my-management-cluster.git"
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: my-pat
+                  key: GITHUB_TOKEN
+          # - name: GITLAB_TOKEN # If your GitOps reop is on GitLab, use this instead of GITHUB_TOKEN
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: pat
+          #       key: GITLAB_TOKEN
+      restartPolicy: Never
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: "{{ .ObjectMeta.Name }}-kubeconfig"
