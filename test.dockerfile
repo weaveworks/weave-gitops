@@ -9,8 +9,7 @@ RUN apt-get install -y apt-transport-https ca-certificates curl openssh-client &
     apt-get update && \
     apt-get install -y kubectl
 
-RUN export ARCH=$(arch)
-RUN curl -s -L "https://github.com/loft-sh/vcluster/releases/latest" | sed -nE 's!.*"([^"]*vcluster-linux-$ARCH)".*!https://github.com\1!p' | xargs -n 1 curl -L -o vcluster && chmod +x vcluster;
+RUN curl -s -L "https://github.com/loft-sh/vcluster/releases/latest" | sed -nE 's!.*"([^"]*vcluster-linux-amd64)".*!https://github.com\1!p' | xargs -n 1 curl -L -o vcluster && chmod +x vcluster;
 RUN mv vcluster /usr/local/bin;
 
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
