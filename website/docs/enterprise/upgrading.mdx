@@ -129,14 +129,14 @@ git push -u origin main
 #### Install Weave Gitops
 
 <Tabs groupId="git-host" default>
-  <TabItem value="hosted" label="github.com / gitlab.com">
+<TabItem value="hosted" label="github.com / gitlab.com">
 
 ```bash
 gitops install --config-repo https://github.com/my-org/my-repo
 ```
 
-  </TabItem>
-  <TabItem value="on-prem" label="GitLab on other domains">
+</TabItem>
+<TabItem value="on-prem" label="GitLab on other domains">
 
 `gitops` doesn't know if other domains are github or gitlab, we can hint it with the `--git-host-types` flag.
 
@@ -146,7 +146,7 @@ gitops install \
   --git-host-types="git.example.com=gitlab"
 ```
 
-  </TabItem>
+</TabItem>
 </Tabs>
 
 ### 2. Install a CAPI provider
@@ -240,14 +240,14 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 ### 5. Upgrade
 
 <Tabs groupId="git-host" default>
-  <TabItem value="hosted" label="github.com / gitlab.com">
+<TabItem value="hosted" label="github.com / gitlab.com">
 
 ```bash
 gitops upgrade --version 0.0.18
 ```
 
-  </TabItem>
-  <TabItem value="on-prem" label="GitLab on other domains">
+</TabItem>
+<TabItem value="on-prem" label="GitLab on other domains">
 
 #### 5.1 Add `known_hosts` for other domains
 
@@ -270,7 +270,7 @@ gitops upgrade \
   --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" \
 ```
 
-  </TabItem>
+</TabItem>
 </Tabs>
 
 A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
