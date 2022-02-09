@@ -17,6 +17,46 @@
     "apps/json"
   ],
   "paths": {
+    "/v1/kustomizations_for_clusters": {
+      "get": {
+        "operationId": "Apps_ListKustomizationsForClusters",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListKustomizationsForClustersRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusters",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app": {
       "get": {
         "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
@@ -1214,6 +1254,17 @@
         }
       }
     },
+    "v1ListKustomizationsForClustersRes": {
+      "type": "object",
+      "properties": {
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RemoteKustomization"
+          }
+        }
+      }
+    },
     "v1ListKustomizationsRes": {
       "type": "object",
       "properties": {
@@ -1222,6 +1273,17 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        }
+      }
+    },
+    "v1RemoteKustomization": {
+      "type": "object",
+      "properties": {
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },

@@ -8,8 +8,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
+	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -18,6 +21,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func TestCreateKustomization(t *testing.T) {
@@ -25,7 +29,7 @@ func TestCreateKustomization(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -103,7 +107,7 @@ func TestListKustomizations(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -161,7 +165,7 @@ func TestRemoveKustomization(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -197,6 +201,88 @@ func TestRemoveKustomization(t *testing.T) {
 
 	err = k.Get(ctx, name, &kustomizev1.Kustomization{})
 	g.Expect(apierrors.IsNotFound(err)).To(BeTrue(), "expected a NotFound error after removal")
+}
+
+func TestListKustomizationsForCluster(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	leafClusterEnv := &envtest.Environment{
+		CRDDirectoryPaths: []string{
+			"../../manifests/crds",
+			"../../tools/testcrds",
+		},
+		CRDInstallOptions: envtest.CRDInstallOptions{
+			CleanUpAfterUse: false,
+		},
+	}
+	defer leafClusterEnv.Stop()
+
+	var err error
+	leafClusterCfg, err := leafClusterEnv.Start()
+
+	if err != nil {
+		t.Fatalf("staring leaf cluster: %s", err)
+	}
+
+	leafManager, err := ctrl.NewManager(leafClusterCfg, ctrl.Options{
+		// ClientDisableCacheFor: []client.Object{
+		// 	&wego.Application{},
+		// 	&corev1.Namespace{},
+		// 	&corev1.Secret{},
+		// 	&appsv1.Deployment{},
+		// 	&corev1.ConfigMap{},
+		// 	&kustomizev2.Kustomization{},
+		// 	&sourcev1.GitRepository{},
+		// 	&v1.CustomResourceDefinition{},
+		// },
+		Scheme:             scheme,
+		MetricsBindAddress: "0",
+	})
+	if err != nil {
+		t.Fatalf("creating manager: %s", err)
+	}
+
+	go func() {
+		err := leafManager.Start(context.Background())
+		if err != nil {
+			t.Error(err.Error())
+		}
+	}()
+
+	leafClusterName := "leaf-cluster"
+
+	cfgs := map[string]*rest.Config{leafClusterName: k8sEnv.Rest}
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, cfgs, t)
+	defer cleanup()
+
+	_, leafK8s, err := kube.NewKubeHTTPClientWithConfig(leafClusterCfg, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	leafNs := newNamespace(ctx, leafK8s, g)
+
+	leafKust := &kustomizev1.Kustomization{Spec: kustomizev1.KustomizationSpec{
+		SourceRef: v1beta2.CrossNamespaceSourceReference{
+			Kind: "GitRepository",
+			Name: "my-source",
+		},
+	}}
+	leafKust.Name = "leaf-kustomization"
+
+	leafKust.Namespace = leafNs.Name
+
+	g.Expect(leafK8s.Create(ctx, leafKust)).To(Succeed())
+
+	res, err := c.ListKustomizationsForClusters(ctx, &pb.ListKustomizationsForClustersReq{
+		Namespace: leafKust.Namespace,
+		Clusters:  []string{leafClusterName},
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Kustomizations).To(HaveLen(1))
+	g.Expect(res.Kustomizations[0].ClusterName).To(Equal(leafClusterName))
 }
 
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {

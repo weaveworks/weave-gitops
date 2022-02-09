@@ -105,4 +105,7 @@ export class Apps {
   static ListHelmReleases(req: Gitops_serverV1Source.ListHelmReleaseReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmReleaseRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListHelmReleaseReq, Gitops_serverV1Source.ListHelmReleaseRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrelease?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
   }
+  static ListKustomizationsForClusters(req: Gitops_serverV1Flux.ListKustomizationsForClustersReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Flux.ListKustomizationsForClustersRes> {
+    return fm.fetchReq<Gitops_serverV1Flux.ListKustomizationsForClustersReq, Gitops_serverV1Flux.ListKustomizationsForClustersRes>(`/v1/kustomizations_for_clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
 }

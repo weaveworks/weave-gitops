@@ -64,6 +64,19 @@ message RemoveKustomizationRes {
   bool success = 1;
 }
 
+message RemoteKustomization {
+  Kustomization kustomization = 1;
+  string clusterName = 2;
+}
+
+message ListKustomizationsForClustersReq {
+  repeated string clusters = 1;
+  string namespace = 2;
+}
+
+message ListKustomizationsForClustersRes {
+  repeated RemoteKustomization kustomizations = 1;
+}
 
 service Flux {
   /*

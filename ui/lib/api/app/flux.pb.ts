@@ -51,6 +51,20 @@ export type RemoveKustomizationRes = {
   success?: boolean
 }
 
+export type RemoteKustomization = {
+  kustomization?: Kustomization
+  clusterName?: string
+}
+
+export type ListKustomizationsForClustersReq = {
+  clusters?: string[]
+  namespace?: string
+}
+
+export type ListKustomizationsForClustersRes = {
+  kustomizations?: RemoteKustomization[]
+}
+
 export class Flux {
   static AddKustomization(req: AddKustomizationReq, initReq?: fm.InitReq): Promise<AddKustomizationRes> {
     return fm.fetchReq<AddKustomizationReq, AddKustomizationRes>(`/v1/namespace/${req["namespace"]}/kustomization`, {...initReq, method: "POST", body: JSON.stringify(req)})

@@ -10,7 +10,7 @@ import (
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) error {
-	appsServer := NewAppServer(config)
+	appsServer := NewAppServer(config, nil)
 	if err := pb.RegisterAppsHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}

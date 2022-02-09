@@ -24,7 +24,7 @@ func TestCreateHelmRepository(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -98,7 +98,7 @@ func TestListHelmRepositories(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -153,7 +153,7 @@ func TestCreateHelmChart(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -243,7 +243,7 @@ func TestListHelmCharts(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -314,7 +314,7 @@ func TestCreateBucket(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -402,7 +402,7 @@ func TestListBuckets(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -471,7 +471,7 @@ func TestCreateHelmRelease(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -573,7 +573,7 @@ func TestListHelmReleases(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
@@ -656,7 +656,7 @@ func TestCreateGitRepo(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, nil, t)
 	defer cleanup()
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")

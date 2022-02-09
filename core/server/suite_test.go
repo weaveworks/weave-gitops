@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/core/services/remotecluster"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
@@ -45,10 +46,10 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.AppsClient, func()) {
+func makeGRPCServer(cfg *rest.Config, vals remotecluster.Configs, t *testing.T) (pb.AppsClient, func()) {
 	s := grpc.NewServer()
 
-	apps := NewAppServer(cfg)
+	apps := NewAppServer(cfg, vals)
 
 	lis := bufconn.Listen(1024 * 1024)
 

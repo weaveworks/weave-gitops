@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,4 +78,50 @@ func (as *appServer) RemoveKustomizations(ctx context.Context, msg *pb.RemoveKus
 	}
 
 	return &pb.RemoveKustomizationRes{Success: true}, nil
+}
+
+func (as *appServer) ListKustomizationsForClusters(ctx context.Context, msg *pb.ListKustomizationsForClustersReq) (*pb.ListKustomizationsForClustersRes, error) {
+	clusters := msg.Clusters
+
+	result := []*pb.RemoteKustomization{}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(len(msg.Clusters))
+
+	for _, c := range clusters {
+		go func(ctx context.Context, cluster string, r []*pb.RemoteKustomization) {
+			defer wg.Done()
+
+			cfg, err := as.remoteK8s.GetByName(ctx, cluster)
+			if err != nil {
+				fmt.Printf("getting cluster config %s: %s\n", cluster, err)
+				return
+			}
+
+			_, c, err := kube.NewKubeHTTPClientWithConfig(cfg, "")
+			if err != nil {
+				fmt.Printf("getting client for %s: %s\n", cluster, err)
+				return
+			}
+
+			list := &kustomizev1.KustomizationList{}
+			if err := c.List(ctx, list, client.InNamespace(msg.Namespace)); err != nil {
+				fmt.Printf("listing kustomizations for %s: %s\n", cluster, err)
+				return
+			}
+
+			for _, k := range list.Items {
+				result = append(result, &pb.RemoteKustomization{
+					ClusterName:   cluster,
+					Kustomization: types.KustomizationToProto(&k),
+				})
+			}
+		}(ctx, c, result)
+	}
+
+	wg.Wait()
+
+	return &pb.ListKustomizationsForClustersRes{
+		Kustomizations: result,
+	}, nil
 }

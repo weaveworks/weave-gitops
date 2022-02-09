@@ -5,6 +5,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/core/services/remotecluster"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
@@ -23,7 +24,8 @@ var scheme = kube.CreateScheme()
 type appServer struct {
 	pb.UnimplementedAppsServer
 
-	k8s placeholderClientGetter
+	k8s       placeholderClientGetter
+	remoteK8s remotecluster.ConfigGetter
 }
 
 // This struct is only here to avoid a circular import with the `server` package.
@@ -39,9 +41,10 @@ func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, err
 	})
 }
 
-func NewAppServer(cfg *rest.Config) pb.AppsServer {
+func NewAppServer(cfg *rest.Config, vals map[string]*rest.Config) pb.AppsServer {
 	return &appServer{
-		k8s: placeholderClientGetter{cfg: cfg},
+		k8s:       placeholderClientGetter{cfg: cfg},
+		remoteK8s: remotecluster.NewConfigGetter(vals),
 	}
 }
 
