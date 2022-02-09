@@ -15,3 +15,6 @@ ginkgo.report
 test/library/wego-library-test
 tilt_modules
 .envrc
+
+# generate by k3s when running acceptance tests
+kubeconfig.yaml

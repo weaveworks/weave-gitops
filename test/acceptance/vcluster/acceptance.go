@@ -11,10 +11,17 @@ import (
 )
 
 var _ = Describe("Acceptance PoC", func() {
+	var (
+		clusterFactory vcluster.Factory
+		clusterName    string
+	)
+
 	BeforeEach(func() {
-		clusterFactory, err := vcluster.NewFactory()
+		var err error
+		clusterName = "test-" + rand.String(10)
+		clusterFactory, err = vcluster.NewFactory()
 		Expect(err).To(BeNil(), "creating new factory")
-		client, err := clusterFactory.Create(context.TODO(), "test-"+rand.String(10))
+		client, err := clusterFactory.Create(context.TODO(), clusterName)
 		Expect(err).To(BeNil(), "creating new cluster")
 
 		namespaceObj := &corev1.Namespace{}
@@ -22,7 +29,11 @@ var _ = Describe("Acceptance PoC", func() {
 		Expect(client.Create(context.TODO(), namespaceObj)).To(Succeed())
 	})
 
-	It("Verify that gitops-flux can print out the version of flux", func() {
+	AfterEach(func() {
+		Expect(clusterFactory.Delete(context.TODO(), clusterName)).To(Succeed())
+	})
+
+	It("Testing creation and deletion of a vcluster", func() {
 
 	})
 })

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -99,6 +100,41 @@ func (c *factory) Create(ctx context.Context, name string) (client.Client, error
 }
 
 func (c *factory) Delete(ctx context.Context, name string) error {
+	args := []string{
+		"delete", name,
+		"--delete-namespace",
+		"-n", name,
+	}
+
+	output, err := exec.Command("vcluster", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error executing vcluster %s: %s", strings.Join(args, " "), string(output))
+	}
+
+	return nil
+}
+
+func UpdateHostKubeconfig() error {
+	kubeconfig := os.Getenv("KUBECONFIG")
+
+	input, err := ioutil.ReadFile(kubeconfig)
+	if err != nil {
+		return err
+	}
+
+	output := bytes.Replace(input, []byte("127.0.0.1"), []byte("k3s"), -1)
+
+	return ioutil.WriteFile(kubeconfig, output, 0666)
+}
+
+func WaitClusterConnectivity() error {
+	waitCmd := `while ! kubectl version; do echo "waiting for cluster connectivity" && sleep 1; done`
+
+	output, err := exec.Command("bash", "-c", waitCmd).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error waiting cluster to be ready. output=%s error=%s", string(output), err)
+	}
+
 	return nil
 }
 
@@ -132,15 +168,12 @@ func createCluster(name string) error {
 }
 
 func connectCluster(name string) (string, error) {
-	vKubeconfigFile, err := ioutil.TempFile(os.TempDir(), "vcluster_e2e_kubeconfig_")
-	if err != nil {
-		return "", fmt.Errorf("could not create a temporary file: %v", err)
-	}
+	vKubeconfigFile := vclusterKubeconfigFile(name)
 
 	args := []string{
 		"connect", name,
 		"-n", name,
-		"--kube-config", vKubeconfigFile.Name(),
+		"--kube-config", vKubeconfigFile,
 		"--server", fmt.Sprintf("https://%s.k3s", name),
 	}
 
@@ -149,7 +182,11 @@ func connectCluster(name string) (string, error) {
 		return "", fmt.Errorf("error executing vcluster %s: %s", strings.Join(args, " "), string(output))
 	}
 
-	return vKubeconfigFile.Name(), nil
+	return vKubeconfigFile, nil
+}
+
+func vclusterKubeconfigFile(name string) string {
+	return filepath.Join(os.TempDir(), "vcluster-kubeconfig-"+name)
 }
 
 func writeVclusterValuesToDisk(name string) (string, error) {
@@ -297,30 +334,6 @@ func InstallNginxIngressController() error {
 	output, err = exec.Command("bash", "-c", waitCmd).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error waiting ingress controller to be ready. output=%s error=%s", string(output), err)
-	}
-
-	return nil
-}
-
-func UpdateHostKubeconfig() error {
-	kubeconfig := os.Getenv("KUBECONFIG")
-
-	input, err := ioutil.ReadFile(kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	output := bytes.Replace(input, []byte("127.0.0.1"), []byte("k3s"), -1)
-
-	return ioutil.WriteFile(kubeconfig, output, 0666)
-}
-
-func WaitClusterConnectivity() error {
-	waitCmd := `while ! kubectl version; do echo "waiting for cluster connectivity" && sleep 1; done`
-
-	output, err := exec.Command("bash", "-c", waitCmd).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error waiting cluster to be ready. output=%s error=%s", string(output), err)
 	}
 
 	return nil
