@@ -13,6 +13,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	LoginOIDC     string = "oidc"
+	LoginUsername string = "username"
+)
+
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
@@ -60,15 +65,15 @@ func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client,
 
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
 // in unit tests only.
-func (c *AuthServer) SetRedirectURL(url string) {
-	c.config.RedirectURL = url
+func (s *AuthServer) SetRedirectURL(url string) {
+	s.config.RedirectURL = url
 }
 
-func (c *AuthServer) verifier() *oidc.IDTokenVerifier {
-	return c.provider.Verifier(&oidc.Config{ClientID: c.config.ClientID})
+func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
+	return s.provider.Verifier(&oidc.Config{ClientID: s.config.ClientID})
 }
 
-func (c *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
+func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	// Ensure "openid" scope is always present.
 	if !contains(scopes, oidc.ScopeOpenID) {
 		scopes = append(scopes, oidc.ScopeOpenID)
@@ -90,27 +95,27 @@ func (c *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	return &oauth2.Config{
-		ClientID:     c.config.ClientID,
-		ClientSecret: c.config.ClientSecret,
-		Endpoint:     c.provider.Endpoint(),
-		RedirectURL:  c.config.RedirectURL,
+		ClientID:     s.config.ClientID,
+		ClientSecret: s.config.ClientSecret,
+		Endpoint:     s.provider.Endpoint(),
+		RedirectURL:  s.config.RedirectURL,
 		Scopes:       scopes,
 	}
 }
 
-func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var (
 		token *oauth2.Token
 		state SessionState
 	)
 
-	ctx := oidc.ClientContext(r.Context(), c.client)
+	ctx := oidc.ClientContext(r.Context(), s.client)
 
 	switch r.Method {
 	case http.MethodGet:
 		// Authorization redirect callback from OAuth2 auth flow.
 		if errMsg := r.FormValue("error"); errMsg != "" {
-			c.logger.Info("authz redirect callback failed", "error", errMsg, "error_description", r.FormValue("error_description"))
+			s.logger.Info("authz redirect callback failed", "error", errMsg, "error_description", r.FormValue("error_description"))
 			http.Error(rw, "", http.StatusBadRequest)
 
 			return
@@ -118,7 +123,7 @@ func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		code := r.FormValue("code")
 		if code == "" {
-			c.logger.Info("code value was empty")
+			s.logger.Info("code value was empty")
 			http.Error(rw, "", http.StatusBadRequest)
 
 			return
@@ -126,14 +131,14 @@ func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		cookie, err := r.Cookie(StateCookieName)
 		if err != nil {
-			c.logger.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
+			s.logger.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
 			http.Error(rw, "", http.StatusBadRequest)
 
 			return
 		}
 
 		if state := r.FormValue("state"); state != cookie.Value {
-			c.logger.Info("cookie value does not match state value")
+			s.logger.Info("cookie value does not match state value")
 			http.Error(rw, "", http.StatusBadRequest)
 
 			return
@@ -141,22 +146,22 @@ func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		b, err := base64.StdEncoding.DecodeString(cookie.Value)
 		if err != nil {
-			c.logger.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
+			s.logger.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
 			http.Error(rw, "", http.StatusInternalServerError)
 
 			return
 		}
 
 		if err := json.Unmarshal(b, &state); err != nil {
-			c.logger.Error(err, "failed to unmarshal state to JSON")
+			s.logger.Error(err, "failed to unmarshal state to JSON")
 			http.Error(rw, "", http.StatusInternalServerError)
 
 			return
 		}
 
-		token, err = c.oauth2Config(nil).Exchange(ctx, code)
+		token, err = s.oauth2Config(nil).Exchange(ctx, code)
 		if err != nil {
-			c.logger.Error(err, "failed to exchange auth code for token")
+			s.logger.Error(err, "failed to exchange auth code for token")
 			http.Error(rw, "", http.StatusInternalServerError)
 
 			return
@@ -173,25 +178,76 @@ func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.verifier().Verify(r.Context(), rawIDToken)
+	_, err := s.verifier().Verify(r.Context(), rawIDToken)
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	// Issue ID token cookie
-	http.SetCookie(rw, c.createCookie(IDTokenCookieName, rawIDToken))
+	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
 
 	// Some OIDC providers may not include a refresh token
 	if token.RefreshToken != "" {
 		// Issue refresh token cookie
-		http.SetCookie(rw, c.createCookie(RefreshTokenCookieName, token.RefreshToken))
+		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 	}
 
 	// Clear state cookie
-	http.SetCookie(rw, c.clearCookie(StateCookieName))
+	http.SetCookie(rw, s.clearCookie(StateCookieName))
 
 	http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
+}
+
+func (s *AuthServer) SignIn() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+		}
+
+		if r.FormValue("type") == LoginOIDC {
+			s.startAuthFlow(rw, r)
+		} else if r.FormValue("type") == LoginUsername {
+			u := r.FormValue("username")
+			p := r.FormValue("password")
+			if u == "admin" && p == "password" {
+				rw.WriteHeader(http.StatusOK)
+			} else {
+				rw.WriteHeader(http.StatusForbidden)
+			}
+		} else {
+			rw.WriteHeader(http.StatusBadRequest)
+		}
+	}
+}
+
+func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
+	nonce, err := generateNonce()
+	if err != nil {
+		http.Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(SessionState{
+		Nonce:     nonce,
+		ReturnURL: r.URL.String(),
+	})
+	if err != nil {
+		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	state := base64.StdEncoding.EncodeToString(b)
+
+	var scopes []string
+	// "openid", "offline_access", "email" and "groups" scopes added by default
+	scopes = append(scopes, scopeProfile)
+	authCodeUrl := c.oauth2Config(scopes).AuthCodeURL(state)
+
+	// Issue state cookie
+	http.SetCookie(rw, c.createCookie(StateCookieName, state))
+
+	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
 }
 
 func (c *AuthServer) createCookie(name, value string) *http.Cookie {
