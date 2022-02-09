@@ -52,15 +52,15 @@ const FormElement = styled(Flex)`
 
 function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
-  const { submitAuthType } = React.useContext(Auth);
+  const { signIn } = React.useContext(Auth);
   const [formState, setFormState] = React.useState<{
     username: string;
     password: string;
   }>({ username: "", password: "" });
 
-  const handleSubmit = (authType: string) => {
-    submitAuthType(authType);
-    // also send data for username and password
+  const handleSubmit = (type: string) => {
+    console.log(type, { ...formState });
+    signIn(type, formState.username, formState.password);
   };
 
   return (
@@ -73,7 +73,7 @@ function SignIn() {
           <Action>
             <Button
               type="submit"
-              onSubmit={(e) => {
+              onClick={(e) => {
                 e.preventDefault();
                 handleSubmit("oidc");
               }}
@@ -90,7 +90,7 @@ function SignIn() {
             ref={formRef}
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit("superuser");
+              handleSubmit("username");
             }}
           >
             <FormElement center align>
@@ -124,7 +124,9 @@ function SignIn() {
               />
             </FormElement>
             <Flex center>
-              <Button type="submit">CONTINUE</Button>
+              <Button type="submit" style={{ marginTop: "24px" }}>
+                CONTINUE
+              </Button>
             </Flex>
           </form>
         </div>
