@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -48,7 +49,8 @@ type AuthServer struct {
 	config   AuthConfig
 }
 
-// 
+// LoginRequest represents a request to login either via OIDC or
+// using the username and password stored in a secret.
 type LoginRequest struct {
 	AuthType string `json:"authType"`
 	Username string `json:"username"`
@@ -208,30 +210,43 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			if os.Getenv("ALLOW_CORS") == "true" {
+				rw.Header().Set("Access-Control-Allow-Origin", "*")
+				rw.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+				rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			}
 
-		if r.Method != http.MethodPost {
+			return
+		} else if r.Method == http.MethodPost {
+
+		} else {
 			rw.WriteHeader(http.StatusMethodNotAllowed)
+			return
 		}
 
-		var loginRequest LoginRequest;
+		var loginRequest LoginRequest
 
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
-
 		if err != nil {
 			http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
-		return
+			return
 		}
 
 		if loginRequest.AuthType == LoginOIDC {
 			s.startAuthFlow(rw, r)
 		} else if loginRequest.AuthType == LoginUsername {
+			// TODO: Replace this with querying a secrets
 			if loginRequest.Username == "admin" && loginRequest.Password == "password" {
 				rw.WriteHeader(http.StatusOK)
+				return
 			} else {
 				rw.WriteHeader(http.StatusForbidden)
+				return
 			}
 		} else {
 			rw.WriteHeader(http.StatusBadRequest)
+			return
 		}
 	}
 }
