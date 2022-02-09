@@ -41,6 +41,7 @@ services:
     - KUBECONFIG=/app/kubeconfig.yaml
     volumes:
     - .:/app
+    - ~/go/pkg/mod:/go/pkg/mod
     working_dir: /app
     depends_on:
     - k3s
