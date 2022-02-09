@@ -38,7 +38,7 @@ RUN go mod download
 COPY --from=flux /usr/local/bin/flux /app/pkg/flux/bin/flux
 COPY --from=ui /home/app/cmd/gitops/ui/run/dist/ /app/cmd/gitops/ui/run/dist/
 COPY . /app
-RUN make bin
+RUN make server-bin
 
 # Distroless
 FROM gcr.io/distroless/base as runtime

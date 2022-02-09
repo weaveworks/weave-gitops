@@ -70,7 +70,10 @@ cluster-dev: ## Start tilt to do development with wego-app running on the cluste
 debug: ## Compile binary with optimisations and inlining disabled
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
 
-bin: ## Build gitops binary
+server-bin: ## Build gitops server binary
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops-server/*.go
+
+bin: ## Build gitops CLI binary
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
 
 docker: ## Build wego-app docker image
