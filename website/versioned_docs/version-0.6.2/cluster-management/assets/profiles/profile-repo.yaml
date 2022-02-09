@@ -1,0 +1,10 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: wego-system
+spec:
+  interval: 1m
+  url: https://my-org.github.io/profiles
+status: {}
