@@ -9,6 +9,7 @@ import SignInBackground from "./../images/SignInBackground.svg";
 import WeaveLogo from "./../images/WeaveLogo.svg";
 import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
+import { TextField, Divider } from "@material-ui/core";
 
 const PageWrapper = styled(Flex)`
   background: url(${SignInBackground});
@@ -19,53 +20,113 @@ const PageWrapper = styled(Flex)`
 const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   width: 500px;
-  min-height: 70%;
-  padding-top: ${(props) => props.theme.spacing.xl};
+  padding-top: ${(props) => props.theme.spacing.medium};
   align-content: space-between;
   border-radius: ${(props) => props.theme.borderRadius.soft};
-`;
-
-const Logo = styled(Flex)`
-  margin-bottom: ${(props) => props.theme.spacing.medium};
-`;
-
-const Action = styled(Flex)`
-  flex-wrap: wrap;
   & button {
     width: 300px;
     margin: ${(props) => props.theme.spacing.xs};
   }
 `;
 
+const Logo = styled(Flex)`
+  margin-bottom: ${(props) => props.theme.spacing.small};
+`;
+
+const Action = styled(Flex)`
+  flex-wrap: wrap;
+`;
+
 const Footer = styled(Flex)`
   & img {
-    max-width: 500px;
+    width: 500px;
+  }
+`;
+
+const FormElement = styled(Flex)`
+  .MuiFormControl-root {
+    min-width: 300px;
+    height: 48px;
   }
 `;
 
 function SignIn() {
+  const formRef = React.useRef<HTMLFormElement>();
   const { submitAuthType } = React.useContext(Auth);
+  const [formState, setFormState] = React.useState<{
+    username: string;
+    password: string;
+  }>({ username: "", password: "" });
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    submitAuthType(event.target.data);
+  const handleSubmit = (authType: string) => {
+    submitAuthType(authType);
+    // also send data for username and password
   };
 
   return (
     <PageWrapper center align>
       <FormWrapper center align wrap>
-        <div style={{ marginBottom: "48px" }}>
+        <div style={{ padding: "16px" }}>
           <Logo>
             <img src={WeaveLogo} />
           </Logo>
           <Action>
-            <Button type="submit" onClick={handleSubmit}>
+            <Button
+              type="submit"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit("oidc");
+              }}
+            >
               LOGIN WITH OIDC PROVIDER
             </Button>
-            <Button type="submit" onClick={handleSubmit}>
-              LOGIN WITH USERNAME AND PASSWORD
-            </Button>
+            <Divider
+              variant="middle"
+              style={{ width: "100%", margin: "16px" }}
+            />
           </Action>
+
+          <form
+            ref={formRef}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit("superuser");
+            }}
+          >
+            <FormElement center align>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    username: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="username"
+                label="Username"
+                variant="standard"
+                value={formState.username}
+              />
+            </FormElement>
+            <FormElement center align>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    password: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="password"
+                label="Password"
+                variant="standard"
+                value={formState.password}
+              />
+            </FormElement>
+            <Flex center>
+              <Button type="submit">CONTINUE</Button>
+            </Flex>
+          </form>
         </div>
         <Footer>
           <img src={SignInWheel} />
