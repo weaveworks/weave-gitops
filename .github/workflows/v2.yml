@@ -6,7 +6,7 @@ on:
       - v2
   pull_request:
     branches:
-      - v3
+      - v2
   workflow_dispatch:
 
 name: V2 CI Workflow
