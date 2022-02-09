@@ -14,7 +14,6 @@ import (
 
 	"github.com/benbjohnson/clock"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
@@ -154,22 +153,6 @@ func CleanCommitCreatedAt(createdAt time.Time) string {
 	return createdAt.Format(time.RFC3339)
 }
 
-func ConvertCommitHashToShort(hash string) string {
-	return hash[:7]
-}
-
-func ConvertCommitURLToShort(url string) string {
-	urlArray := strings.SplitAfter(url, "commit/")
-	path := urlArray[0]
-	hash := urlArray[1][:7]
-
-	return path + hash
-}
-
-func CreateRepoSecretName(targetName string, repoURL string) string {
-	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
-}
-
 func StartK8sTestEnvironment() (client.Client, func(), error) {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
@@ -189,7 +172,6 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		ClientDisableCacheFor: []client.Object{
-			&wego.Application{},
 			&corev1.Namespace{},
 			&corev1.Secret{},
 		},

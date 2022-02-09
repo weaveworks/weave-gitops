@@ -38,7 +38,7 @@ export enum V2Routes {
   SourcesList = "/sources",
 }
 
-export const WeGONamespace = "wego-system";
+export const WeGONamespace = "flux-system";
 
 export interface Source {
   name?: string;

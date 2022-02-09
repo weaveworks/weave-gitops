@@ -10,12 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -44,7 +41,6 @@ func NewAPIServerCommand() *cobra.Command {
 
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
 			appConfig, err := server.DefaultApplicationsConfig()
 			if err != nil {
@@ -90,12 +86,7 @@ func NewAPIServerCommand() *cobra.Command {
 				}
 			}()
 
-			profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
-				DefaultConfig: rest,
-				ClusterName:   clusterName,
-			}, profileCache, "default", "weaveworks-charts")
-
-			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig})
 			if err != nil {
 				return err
 			}

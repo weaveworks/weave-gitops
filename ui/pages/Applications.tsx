@@ -26,7 +26,7 @@ function Applications({ className }: Props) {
   const getApps = () => {
     setLoading(true);
     applicationsClient
-      .ListApplications({ namespace: "wego-system" })
+      .ListApplications({ namespace: "flux-system" })
       .then((res) => setApplications(res.applications))
       .catch((err) => doAsyncError(err.message, err.detail))
       .finally(() => setLoading(false));

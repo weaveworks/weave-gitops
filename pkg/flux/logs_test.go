@@ -2,18 +2,12 @@ package flux
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting EventSource
@@ -47,8 +41,6 @@ var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting
 2021-04-12T21:03:23.646Z info GitRepository/flux-system.flux-system - Reconciliation finished in 907.3404ms, next run in 1m0s`)
 
 // Test Setup
-
-const defaultTestFluxVersion = "0.12.0"
 
 var (
 	fluxClient *FluxClient
@@ -109,89 +101,3 @@ func processStatus() ([]byte, error) {
 		return []byte(strs[0]), nil
 	}
 }
-
-func TestSetup(t *testing.T) {
-	homeDir = "/home/user"
-	binPath, err := fluxClient.GetBinPath()
-	require.NoError(t, err)
-	require.Equal(t, binPath, filepath.Join(homeDir, ".wego", "bin"))
-
-	exePath, err := fluxClient.GetExePath()
-	require.NoError(t, err)
-	require.Equal(t, exePath, filepath.Join(homeDir, ".wego", "bin", "flux-"+version.FluxVersion))
-}
-
-var _ = Describe("Set up flux bin", func() {
-	BeforeEach(func() {
-		dir, err := ioutil.TempDir("", "a-home-dir")
-		Expect(err).ShouldNot(HaveOccurred())
-		homeDir = dir
-	})
-
-	AfterEach(func() {
-		Expect(os.RemoveAll(homeDir)).To(Succeed())
-		version.FluxVersion = defaultTestFluxVersion
-	})
-
-	Context("Set up flux from embedded binary", func() {
-		It("Sets up flux from binary embedded during build", func() {
-			Expect(osysClient.Getenv(fluxBinaryPathEnvVar)).Should(Equal(""))
-
-			version.FluxVersion = "0.11.0"
-			fluxPath := filepath.Join(homeDir, ".wego", "bin")
-			exe11Path := filepath.Join(fluxPath, "flux-"+version.FluxVersion)
-			Expect(exe11Path).ShouldNot(BeAnExistingFile())
-			Expect(fluxPath).ShouldNot(BeADirectory())
-			fluxClient.SetupBin()
-			Expect(fluxPath).Should(BeADirectory())
-			Expect(exe11Path).Should(BeAnExistingFile())
-
-			version.FluxVersion = defaultTestFluxVersion
-			exe12Path := filepath.Join(fluxPath, "flux-"+version.FluxVersion)
-			Expect(exe12Path).ShouldNot(BeAnExistingFile())
-			fluxClient.SetupBin()
-			Expect(exe12Path).Should(BeAnExistingFile())
-		})
-	})
-
-	Context("Set up flux from binary referenced by env var", func() {
-		var envVal string
-
-		BeforeEach(func() {
-			osysClient = &osysfakes.FakeOsys{}
-			osysClient.UserHomeDirStub = func() (string, error) {
-				return homeDir, nil
-			}
-			osysClient.SetenvStub = func(_, val string) error {
-				envVal = val
-				return nil
-			}
-			osysClient.GetenvStub = func(envVar string) string {
-				return envVal
-			}
-			osysClient.ExitStub = func(code int) {}
-			fluxClient = New(osysClient, cliRunner)
-		})
-
-		It("Fails if passed a bad binary path", func() {
-			Expect(osysClient.Setenv(fluxBinaryPathEnvVar, "a-path-pointing-nowhere")).Should(Succeed())
-			fluxClient.SetupBin()
-			Expect(osysClient.ExitCallCount()).Should(Equal(1))
-		})
-
-		It("Copies a referenced binary into the flux executable location", func() {
-			dummyBinary := []byte("dummy")
-			dummyPath := filepath.Join(homeDir, ".dummyBinary")
-			Expect(os.WriteFile(dummyPath, dummyBinary, 0555)).Should(Succeed())
-			Expect(osysClient.Setenv(fluxBinaryPathEnvVar, dummyPath)).Should(Succeed())
-
-			fluxClient.SetupBin()
-			exePath := filepath.Join(homeDir, ".wego", "bin", "flux-"+version.FluxVersion)
-			Expect(osysClient.ExitCallCount()).Should(Equal(0))
-
-			bin, err := os.ReadFile(exePath)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(bin).Should(Equal(dummyBinary))
-		})
-	})
-})

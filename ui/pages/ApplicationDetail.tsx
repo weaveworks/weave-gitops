@@ -56,7 +56,7 @@ function ApplicationDetail({ className, name }: Props) {
     const p = async () => {
       const res = await applicationsClient.GetApplication({
         name,
-        namespace: "wego-system",
+        namespace: "flux-system",
       });
 
       const { provider } = await applicationsClient.ParseRepoURL({

@@ -18,7 +18,7 @@ describe("ApplicationDetail", () => {
       GetApplication: () => ({
         application: {
           name: "pod-info",
-          namespace: "wego-systems",
+          namespace: "flux-systems",
         },
       }),
       ListCommits: (): ListCommitsResponse => ({
@@ -85,7 +85,7 @@ describe("ApplicationDetail", () => {
 
       expect(syncMock).toHaveBeenCalledWith({
         name: "pod-info",
-        namespace: "wego-systems",
+        namespace: "flux-systems",
       });
       await waitFor(() => promise);
     });

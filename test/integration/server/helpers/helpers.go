@@ -9,7 +9,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -18,22 +17,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	ghAPI "github.com/google/go-github/v32/github"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/fluxcd/source-controller/pkg/sourceignore"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -41,12 +33,6 @@ var ErrPathMismatch = errors.New("path mismatch")
 var ErrFileMismatch = errors.New("file mismatch")
 
 type WeGODirectoryFS map[string]interface{}
-
-//go:embed yaml/deployment.yaml
-var deploymentYaml []byte
-
-//go:embed yaml/kustomization.yaml
-var kustomizationYaml []byte
 
 func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprovider.OrgRepository, *gitprovider.OrgRepositoryRef, error) {
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
@@ -95,7 +81,7 @@ func SetWegoConfig(k8sClient client.Client, namespace string, configRepo string)
 			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      models.WegoConfigMapName,
+			Name:      kube.WegoConfigMapName,
 			Namespace: namespace,
 		},
 	}
@@ -121,25 +107,6 @@ ConfigRepo: %s`, namespace, namespace, configRepo),
 	return k8sClient.Update(ctx, cm)
 }
 
-func addFiles(ctx context.Context, message string, repo gitprovider.OrgRepository, files []gitprovider.CommitFile) error {
-	_, err := repo.Commits().Create(ctx, "main", "Initial commit", []gitprovider.CommitFile{
-		{
-			Path:    gitprovider.StringVar("k8s/deployment.yaml"),
-			Content: gitprovider.StringVar(string(deploymentYaml)),
-		},
-		{
-			Path:    gitprovider.StringVar("k8s/kustomization.yaml"),
-			Content: gitprovider.StringVar(string(kustomizationYaml)),
-		},
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return repo.Update(ctx)
-}
-
 func NewGithubClient(ctx context.Context, token string) *ghAPI.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -151,115 +118,6 @@ func NewGithubClient(ctx context.Context, token string) *ghAPI.Client {
 
 const InAppRoot = ".weave-gitops"
 const ExternalConfigRoot = ".weave-gitops"
-
-func wegoPath(root, p string) string {
-	return filepath.Join(root, p)
-}
-
-func appYamlPath(root, name string) string {
-	return appPath(root, name, "app.yaml")
-}
-
-func automationPath(root, appName string) string {
-	return appPath(root, appName, fmt.Sprintf("%s-gitops-deploy.yaml", appName))
-}
-
-func sourcePath(root, appName string) string {
-	return appPath(root, appName, fmt.Sprintf("%s-gitops-source.yaml", appName))
-}
-
-func appKustPath(root, appName string) string {
-	return appPath(root, appName, "kustomization.yaml")
-}
-
-func userKustPath(root, clusterName string) string {
-	return filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml")
-}
-
-func appPath(root, appName, filename string) string {
-	return wegoPath(root, filepath.Join("apps", appName, filename))
-}
-
-func MakeWeGOFS(root, appName, clusterName string) WeGODirectoryFS {
-	return map[string]interface{}{
-		appYamlPath(root, appName): &wego.Application{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       wego.ApplicationKind,
-				APIVersion: wego.GroupVersion.String(),
-			},
-		},
-		appKustPath(root, appName):      &types.Kustomization{},
-		automationPath(root, appName):   &kustomizev2.Kustomization{},
-		sourcePath(root, appName):       &sourcev1.GitRepository{},
-		userKustPath(root, clusterName): &types.Kustomization{},
-	}
-}
-
-func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev2.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
-	expected := map[string]interface{}{
-		appYamlPath(root, req.Name): &wego.Application{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       wego.ApplicationKind,
-				APIVersion: wego.GroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
-			},
-			Spec: app,
-		},
-		automationPath(root, req.Name): &kustomizev2.Kustomization{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       kustomizev2.KustomizationKind,
-				APIVersion: kustomizev2.GroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
-			},
-			Spec: k,
-		},
-		sourcePath(root, req.Name): &sourcev1.GitRepository{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1.GitRepositoryKind,
-				APIVersion: sourcev1.GroupVersion.String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
-			},
-			Spec: s,
-		},
-		appKustPath(root, req.Name): &types.Kustomization{
-			TypeMeta: types.TypeMeta{
-				Kind:       types.KustomizationKind,
-				APIVersion: types.KustomizationVersion,
-			},
-			MetaData: &types.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
-			},
-			Resources: []string{
-				"app.yaml",
-				fmt.Sprintf("%s-gitops-deploy.yaml", req.Name),
-				fmt.Sprintf("%s-gitops-source.yaml", req.Name),
-			},
-		},
-		userKustPath(root, clusterName): &types.Kustomization{
-			TypeMeta: types.TypeMeta{
-				Kind:       types.KustomizationKind,
-				APIVersion: types.KustomizationVersion,
-			},
-			MetaData: &types.ObjectMeta{
-				Name:      clusterName,
-				Namespace: req.Namespace,
-			},
-			Resources: []string{"../../../apps/" + req.Name},
-		},
-	}
-
-	return expected
-}
 
 func Filenames(fs WeGODirectoryFS) []string {
 	keys := []string{}
@@ -334,52 +192,6 @@ func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryF
 	}
 
 	return fs, nil
-}
-
-func CreatePopulatedSourceRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprovider.OrgRepository, *gitprovider.OrgRepositoryRef, error) {
-	sourceRepo, sourceRef, err := CreateRepo(ctx, gp, url)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not create repo: %w", err)
-	}
-
-	if err := addFiles(ctx, "Initial Commit", sourceRepo, []gitprovider.CommitFile{
-		{
-			Path:    gitprovider.StringVar("k8s/deployment.yaml"),
-			Content: gitprovider.StringVar(string(deploymentYaml)),
-		},
-		{
-			Path:    gitprovider.StringVar("k8s/kustomization.yaml"),
-			Content: gitprovider.StringVar(string(kustomizationYaml)),
-		},
-	}); err != nil {
-		return nil, nil, fmt.Errorf("could not add files to source repo: %w", err)
-	}
-
-	return sourceRepo, sourceRef, nil
-}
-
-func DiffFS(actual WeGODirectoryFS, expected WeGODirectoryFS) (string, error) {
-	actualFiles := Filenames(actual)
-	expectedFiles := Filenames(expected)
-
-	pathDiff := cmp.Diff(actualFiles, expectedFiles)
-
-	if pathDiff != "" {
-		return pathDiff, fmt.Errorf("%w: paths mismatch (-actual +expected): %s\n", ErrPathMismatch, pathDiff)
-	}
-
-	opt := cmpopts.IgnoreFields(wego.Application{}, "ObjectMeta.Labels")
-
-	for path, expected := range expected {
-		result := actual[path]
-
-		diff := cmp.Diff(result, expected, opt)
-		if diff != "" {
-			return diff, fmt.Errorf("%w: filename %q (-actual +expected):\n%s", ErrFileMismatch, path, diff)
-		}
-	}
-
-	return "", nil
 }
 
 func GetIgnoreSpec() *string {

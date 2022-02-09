@@ -12,18 +12,14 @@ require (
 	github.com/fluxcd/kustomize-controller/api v0.18.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/runtime v0.12.2
-	github.com/fluxcd/pkg/ssa v0.6.0
 	github.com/fluxcd/source-controller v0.19.2
 	github.com/fluxcd/source-controller/api v0.19.2
 	github.com/go-errors/errors v1.4.0 // indirect
-	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.2
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gobuffalo/flect v0.2.2 // indirect
-	github.com/gogo/protobuf v1.3.2
-	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
@@ -31,7 +27,6 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/olekukonko/tablewriter v0.0.5
@@ -60,20 +55,16 @@ require (
 	k8s.io/apimachinery v0.22.2
 	k8s.io/cli-runtime v0.22.1
 	k8s.io/client-go v0.22.2
-	sigs.k8s.io/cli-utils v0.26.0
 	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/controller-tools v0.5.0
-	sigs.k8s.io/kustomize/api v0.10.1
 	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/gofrs/flock v0.8.1
-	github.com/google/uuid v1.3.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	gopkg.in/square/go-jose.v2 v2.5.1
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -126,10 +117,13 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/getkin/kin-openapi v0.61.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
+	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -138,6 +132,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
@@ -228,6 +223,7 @@ require (
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/component-base v0.22.2 // indirect
@@ -237,7 +233,7 @@ require (
 	k8s.io/kubectl v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
 	oras.land/oras-go v0.4.0 // indirect
-
+	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )

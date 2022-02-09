@@ -17,7 +17,7 @@ import {
 } from "../lib/api/applications/applications.pb";
 import { makeHeaders, RequestStateWithToken, useRequestState } from "./common";
 
-const WeGONamespace = "wego-system";
+const WeGONamespace = "flux-system";
 
 export function useParseRepoURL(url: string) {
   const { applicationsClient } = useContext(AppContext);

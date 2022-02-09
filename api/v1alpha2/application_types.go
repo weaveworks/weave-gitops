@@ -22,8 +22,6 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-const ApplicationKind = "Application"
-
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
 	// Description is a brief description of the application

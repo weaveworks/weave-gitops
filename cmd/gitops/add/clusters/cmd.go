@@ -10,11 +10,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 type clusterCommandFlags struct {
@@ -41,7 +38,7 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Add a new cluster using a CAPI template
 gitops add cluster --from-template <template-name> --set key=val
 
-# View a CAPI template populated with parameter values 
+# View a CAPI template populated with parameter values
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 
@@ -117,28 +114,17 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return cmderrors.ErrNoURL
 		}
 
-		url, err := gitproviders.NewRepoURL(flags.RepositoryURL)
-		if err != nil {
-			return fmt.Errorf("cannot parse url: %w", err)
-		}
-
-		token, err := internal.GetToken(url, os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, internal.NewCLILogger(os.Stdout))
-		if err != nil {
-			return err
-		}
-
 		params := capi.CreatePullRequestFromTemplateParams{
-			GitProviderToken: token,
-			TemplateName:     flags.Template,
-			ParameterValues:  vals,
-			RepositoryURL:    flags.RepositoryURL,
-			HeadBranch:       flags.HeadBranch,
-			BaseBranch:       flags.BaseBranch,
-			Title:            flags.Title,
-			Description:      flags.Description,
-			CommitMessage:    flags.CommitMessage,
-			Credentials:      creds,
-			ProfileValues:    profilesValues,
+			TemplateName:    flags.Template,
+			ParameterValues: vals,
+			RepositoryURL:   flags.RepositoryURL,
+			HeadBranch:      flags.HeadBranch,
+			BaseBranch:      flags.BaseBranch,
+			Title:           flags.Title,
+			Description:     flags.Description,
+			CommitMessage:   flags.CommitMessage,
+			Credentials:     creds,
+			ProfileValues:   profilesValues,
 		}
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)

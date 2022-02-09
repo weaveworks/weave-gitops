@@ -13,6 +13,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	sshKeyPath  string
+	githubOrg   string
+	githubToken string
+	gitlabOrg   string
+	gitlabToken string
+	gitlabKey   string
+	// Make sure the subgroup belongs to the GITLAB_ORG
+	gitlabSubgroup    string
+	gitlabPublicGroup string
+	gitopsBinaryPath  string
+)
+
 const (
 	gitlabTokenEnvVar       = "GITLAB_TOKEN"
 	gitlabOrgEnvVar         = "GITLAB_ORG"
@@ -38,7 +51,7 @@ func TestAcceptance(t *testing.T) {
 			log.Infof("Failed to print the GitRepositories")
 		}
 
-		ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE)
+		ShowWegoControllerLogs("flux-system")
 	}()
 
 	if testing.Short() {
@@ -67,9 +80,6 @@ var _ = BeforeSuite(func() {
 		gitopsBinaryPath = "/usr/local/bin/gitops"
 	}
 	log.Infof("GITOPS Binary Path: %s", gitopsBinaryPath)
-
-	gitProvider, gitOrg, gitProviderName = getGitProviderInfo()
-
 })
 
 func getEnvVar(envVar string) string {

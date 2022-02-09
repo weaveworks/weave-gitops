@@ -149,7 +149,7 @@ function ApplicationRemove({ className, name }: Props) {
       try {
         const { application } = await applicationsClient.GetApplication({
           name,
-          namespace: "wego-system",
+          namespace: "flux-system",
         });
         const { provider, name: repoName } =
           await applicationsClient.ParseRepoURL({ url: application.url });
@@ -164,7 +164,7 @@ function ApplicationRemove({ className, name }: Props) {
     if (!repoRemoveRes || !autoMerge) return;
     const poll = poller(() => {
       applicationsClient
-        .GetApplication({ name, namespace: "wego-system" })
+        .GetApplication({ name, namespace: "flux-system" })
         .catch((e) => {
           clearInterval(poll);
           // Once we get a 404, the app is gone for good
@@ -181,7 +181,7 @@ function ApplicationRemove({ className, name }: Props) {
   const handleRemoveClick = () => {
     remove(repoInfo.provider, {
       name,
-      namespace: "wego-system",
+      namespace: "flux-system",
       autoMerge: autoMerge,
     });
   };

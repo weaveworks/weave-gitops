@@ -108,7 +108,7 @@ function AddApplication({ className }: Props) {
 
   let initialFormState = {
     name: "",
-    namespace: "wego-system",
+    namespace: "flux-system",
     path: "./",
     branch: "main",
     url: "",
