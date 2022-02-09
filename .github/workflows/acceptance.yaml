@@ -17,4 +17,4 @@ jobs:
       - name: Run acceptance
         run: docker-compose run -v $HOME/go/pkg/mod:/go/pkg/mod test
       - name: Give go modules permissions
-        run: chown -R $USER:$USER ~/go/pkg/mod
+        run: sudo chown -R $USER:$USER ~/go/pkg/mod
