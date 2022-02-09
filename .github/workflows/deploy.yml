@@ -78,7 +78,7 @@ jobs:
           name: unit-tests-artefacts
           path: artefacts
           retention-days: 1
-  
+
   acceptance-tests:
     runs-on: ubuntu-latest
     needs: [build, coverage]
