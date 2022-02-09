@@ -1514,7 +1514,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, _, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
+			_, clusterContext, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -1523,7 +1523,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	FIt("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
+	It("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
 		var configRepoRemoteURL string
 		var listOutput string
 		var appStatus string

@@ -2,15 +2,6 @@
 
 This suite contains the user acceptance tests for Weave GitOps. To run these tests you can either use gingko runner or standard go test command.
 
-```
-ginkgo --randomizeSuites -v ./test/acceptance/test/...
-```
-OR
-```
-go test -v ./test/acceptance/test/...
-```
-
-
 By default test harness assumes that GITOPS binary is available on `$PATH` but this can be overriden by exporting the following variable
 
 

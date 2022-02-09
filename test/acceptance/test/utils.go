@@ -412,7 +412,7 @@ func VerifyControllersInCluster(namespace string) {
 	waitForResourceToExist("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
 	waitForResourceToExist("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
 	waitForResourceToExist("deploy", "wego-app", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)
+	waitForResourceToBeReady("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)
 
 	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
