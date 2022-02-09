@@ -15,7 +15,7 @@ var Cmd = &cobra.Command{
 	Use:                "flux [flux commands or flags]",
 	Short:              "Use flux commands",
 	DisableFlagParsing: true,
-	Example:            "wego flux install -h",
+	Example:            "gitops flux install -h",
 	Run:                runCmd,
 }
 
@@ -29,7 +29,7 @@ func init() {
 	Cmd.AddCommand(StatusCmd)
 }
 
-// Example flux command with flags 'wego flux -- install -h'
+// Example flux command with flags 'gitops flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osys.New(), cliRunner)
