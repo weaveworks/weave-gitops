@@ -116,16 +116,6 @@ jobs:
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
-    - name: Setup Kubernetes
-      shell: bash
-      env:
-        KIND_CLUSTER_NAME: ${{ format('katc-{0}', github.run_id) }}
-        KIND_CLUSTER_IMAGE: kindest/node:v1.21.1
-      run: |
-        make local-kind-cluster-with-registry
-    - name: Kind-check
-      run: |
-       kubectl get pods -A
     - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
@@ -153,6 +143,7 @@ jobs:
     - name: Run acceptance tests
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kind
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
         ACCEPTANCE_TEST_ARGS="--randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml" make acceptance-tests
