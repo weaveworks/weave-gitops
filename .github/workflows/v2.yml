@@ -6,13 +6,13 @@ on:
       - v2
   pull_request:
     branches:
-      - v2
+      - v3
   workflow_dispatch:
 
-name: ci
+name: V2 CI Workflow
 jobs:
   ci:
-    name: CI
+    name: V2 CI Check
     runs-on: ubuntu-latest
     strategy:
       matrix:
