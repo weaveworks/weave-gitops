@@ -11,8 +11,8 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-gomod-
       - name: Run acceptance
         run: docker-compose run -v $HOME/go/pkg/mod:/go/pkg/mod test
