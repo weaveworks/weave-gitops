@@ -342,7 +342,7 @@ func getGitRepoVisibility(org string, repo string, providerName gitproviders.Git
 //Assumes resource will eventually contain a status.Conditions where Type=Ready exists
 func waitForResourceToBeReady(resourceType string, resourceName string, namespace string, timeout time.Duration) {
 	EventuallyWithOffset(1, func() error {
-		log.Infof("Waiting for %s/%s in namespace: %q to be ready : ", resourceType, resourceName, namespace)
+		log.Infof("Waiting for %s/%s in namespace: %q to be ready", resourceType, resourceName, namespace)
 		kubectlCommand := fmt.Sprintf("kubectl -n %s wait --for=condition=ready %s %s", namespace, resourceType, resourceName)
 		if resourceName == "" {
 			kubectlCommand = kubectlCommand + " --all"
@@ -356,7 +356,7 @@ func waitForResourceToBeReady(resourceType string, resourceName string, namespac
 
 func waitForResourceToExist(resourceType string, resourceName string, namespace string, timeout time.Duration) {
 	EventuallyWithOffset(1, func() error {
-		log.Infof("Waiting for %s/%s in namespace: %q to exist: ", resourceType, resourceName, namespace)
+		log.Infof("Waiting for %s/%s in namespace: %q to exist", resourceType, resourceName, namespace)
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 		if _, err := command.CombinedOutput(); err != nil {
 			return err
@@ -412,7 +412,7 @@ func VerifyControllersInCluster(namespace string) {
 	waitForResourceToExist("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
 	waitForResourceToExist("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
 	waitForResourceToExist("deploy", "wego-app", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToBeReady("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)
+	waitForResourceToExist("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)
 
 	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
