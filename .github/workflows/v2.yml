@@ -9,10 +9,10 @@ on:
       - v2
   workflow_dispatch:
 
-name: ci
+name: V2 CI Workflow
 jobs:
   ci:
-    name: CI
+    name: V2 CI Check
     runs-on: ubuntu-latest
     strategy:
       matrix:
