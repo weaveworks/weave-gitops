@@ -26,6 +26,8 @@ sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
 
+<!-- BS readme change -->
+
 Alternatively, users can use Homebrew:
 
 ```console
