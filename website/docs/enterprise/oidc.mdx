@@ -32,6 +32,6 @@ gitops upgrade --config-repo https://github.com/my-org/ my-repo --version 0.0.16
   --set config.oidc.redirectURL=<Weave GitOps Enterprise callback URL>
 ```
 
-The Weave GitOps Enterprise callback URL should be set to the URL that the dashboard is hosted at, postfixed with `/oauth2/callback`.
+The `<Weave GitOps Enterprise callback URL>` should be set to the URL that the dashboard is hosted at, postfixed with `/oauth2/callback`. For example: https://gitops.example.com/oauth2/callback.
 
 For more information about the RBAC permissions used take a look at the [dashboard docs](../gitops-dashboard).
