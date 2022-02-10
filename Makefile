@@ -95,7 +95,7 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
-lint: ## Run linters against code
+lint: cmd/gitops/ui/run/dist/index.html ## Run linters against code
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 .deps:
