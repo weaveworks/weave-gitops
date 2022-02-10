@@ -238,8 +238,11 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 			uninstallWegoRuntime(namespace)
 		}
 
-		name, _ := runCommandAndReturnStringOutput("kubectl config current-context")
-		clusterName = strings.TrimSuffix(name, "\n")
+		clusterName = os.Getenv("CLUSTER_NAME")
+		if clusterName == "" {
+			name, _ := runCommandAndReturnStringOutput("kubectl config current-context")
+			clusterName = strings.TrimSuffix(name, "\n")
+		}
 	}
 
 	if provider == "kind" {

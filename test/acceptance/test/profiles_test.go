@@ -131,25 +131,35 @@ Namespace: %s`, clusterName, namespace)))
 		}, "120s", "1s").Should(Equal(http.StatusOK))
 	})
 
-	It("@skipOnNightly profiles are installed into a different namespace", func() {
-		By("Installing the Profiles API and setting up the profile helm repository")
-		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
-		installAndVerifyWego(namespace, appRepoRemoteURL)
-		By("Creating a new namespace")
-		namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns other")
-		Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/other created"))
-		By("And installing a helmrepositroy into that namespace")
-		deployProfilesHelmRepository(kClient, "other")
-		time.Sleep(time.Second * 20)
+	When("profiles are installs into a different namespace", func() {
+		BeforeEach(func() {
+			//encase its left over from a failed run
+			deleteNamespace("other")
+			namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns other")
+			Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/other created"))
+		})
 
-		By("Getting a list of profiles should still work")
-		_, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(statusCode).To(Equal(http.StatusOK))
+		AfterEach(func() {
+			deleteNamespace("other")
+		})
 
-		By("There should be no errors in the wego app log from the helm cache")
-		log := runCommandAndReturnSessionOutput("kubectl logs ")
-		Eventually(log).ShouldNot(gbytes.Say("\\\"other\\\" is forbidden"))
+		It("@skipOnNightly should not error", func() {
+			By("Installing the Profiles API and setting up the profile helm repository")
+			appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
+			installAndVerifyWego(namespace, appRepoRemoteURL)
+			By("And installing a helmrepositroy into that namespace")
+			deployProfilesHelmRepository(kClient, "other")
+			time.Sleep(time.Second * 20)
+
+			By("Getting a list of profiles should still work")
+			_, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(statusCode).To(Equal(http.StatusOK))
+
+			By("There should be no errors in the wego app log from the helm cache")
+			log := runCommandAndReturnSessionOutput("kubectl logs ")
+			Eventually(log).ShouldNot(gbytes.Say("\\\"other\\\" is forbidden"))
+		})
 	})
 })
 
