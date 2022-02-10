@@ -4,6 +4,11 @@ on:
     - cron: '0 0 * * Sun'
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: weaveworks/wego-app
+  USE_NIGHTLY_BUILD_TAG: "true"
+
 name: Nightly
 jobs:
   build:
@@ -29,8 +34,35 @@ jobs:
           path: bin
           retention-days: 1
 
-  test-eks:
+  build-and-push:
     needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Unshallow
+      run: |
+        git fetch --prune --unshallow
+        git fetch --tags -f
+    - name: Log in to the Container registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:nightly-build
+
+
+  test-eks:
+    needs: [build-and-push]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
@@ -165,7 +197,7 @@ jobs:
         retention-days: 1
 
   test-gke:
-    needs: [build]
+    needs: [build-and-push]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
