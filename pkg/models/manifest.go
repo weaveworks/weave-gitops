@@ -63,12 +63,6 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 	}
 
 	image, version := WegoImageAndVersion()
-
-	fmt.Println("!!!image")
-	fmt.Println(image)
-	fmt.Println("!!!version")
-	fmt.Println(version)
-
 	wegoAppManifests, err := manifests.GenerateWegoAppManifests(
 		manifests.Params{
 			AppVersion: version,
@@ -164,15 +158,8 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 
 func WegoImageAndVersion() (string, string) {
 	version := version.Version
-
-	fmt.Println("version")
-	fmt.Println(version)
-	fmt.Println("is test env")
-	fmt.Println(os.Getenv("IS_TEST_ENV"))
-	fmt.Println("use nightly built tag")
-	fmt.Println(os.Getenv("USE_NIGHTLY_BUILD_TAG"))
-
 	if os.Getenv("IS_TEST_ENV") != "" {
+		version = "latest"
 	} else if os.Getenv("USE_NIGHTLY_BUILD_TAG") != "" {
 		version = "nightly-build"
 	}
@@ -181,9 +168,6 @@ func WegoImageAndVersion() (string, string) {
 	if os.Getenv("IS_LOCAL_REGISTRY") != "" {
 		image = localWegoImage
 	}
-
-	fmt.Println("version")
-	fmt.Println(version)
 
 	return image, version
 }
