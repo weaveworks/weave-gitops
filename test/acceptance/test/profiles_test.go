@@ -64,7 +64,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteNamespace(namespace)
 	})
 
-	It("gets deployed and is accessible via the service", func() {
+	It("@skipOnNightly gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
@@ -131,7 +131,7 @@ Namespace: %s`, clusterName, namespace)))
 		}, "120s", "1s").Should(Equal(http.StatusOK))
 	})
 
-	It("profiles are installed into a different namespace", func() {
+	It("@skipOnNightly profiles are installed into a different namespace", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
