@@ -171,7 +171,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --focus=JAKE -v ./test/acceptance/test/...
       if: always()
     - name: User Acceptance Tests for GitLab (${{matrix.os}})
       if: |
@@ -186,7 +186,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
         export GIT_PROVIDER=gitlab
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --focus=JAKE -v ./test/acceptance/test/...
     - name: Store acceptance test results
       if: ${{ always() }}
       continue-on-error: true
@@ -305,7 +305,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --focus=JAKE -v ./test/acceptance/test/...
       if: always()
     - name: User Acceptance Tests for GitLab (${{matrix.os}})
       if: |
@@ -320,7 +320,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
         export GIT_PROVIDER=gitlab
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --focus=JAKE -v ./test/acceptance/test/...
     - name: Store acceptance test results
       if: ${{ always() }}
       continue-on-error: true

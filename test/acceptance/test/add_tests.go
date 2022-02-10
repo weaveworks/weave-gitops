@@ -1523,7 +1523,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
+	It("JAKE SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
 		var configRepoRemoteURL string
 		var listOutput string
 		var appStatus string

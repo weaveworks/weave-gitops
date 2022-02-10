@@ -64,7 +64,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteNamespace(namespace)
 	})
 
-	It("@skipOnNightly gets deployed and is accessible via the service", func() {
+	It("JAKE gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
@@ -143,7 +143,7 @@ Namespace: %s`, clusterName, namespace)))
 			deleteNamespace("other")
 		})
 
-		It("@skipOnNightly should not error", func() {
+		It("JAKE should not error", func() {
 			By("Installing the Profiles API and setting up the profile helm repository")
 			appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 			installAndVerifyWego(namespace, appRepoRemoteURL)

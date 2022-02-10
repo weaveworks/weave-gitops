@@ -437,7 +437,9 @@ func VerifyKustomizations(clusterName, namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s --auto-merge", gitopsBinaryPath, wegoNamespace, repoURL))
+	installCommand := fmt.Sprintf("%s install --namespace=%s --config-repo=%s --auto-merge", gitopsBinaryPath, wegoNamespace, repoURL)
+	fmt.Println(installCommand)
+	command := exec.Command("sh", "-c", installCommand)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
@@ -446,7 +448,9 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 }
 
 func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
+	installCommand := fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL)
+	fmt.Println(installCommand)
+	command := exec.Command("sh", "-c", installCommand)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
