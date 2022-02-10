@@ -7,6 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: weaveworks/wego-app
+  USE_NIGHTLY_BUILD_TAG: "true"
 
 name: Nightly
 jobs:
@@ -179,7 +180,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export USE_NIGHTLY_BUILD_TAG=true
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -314,7 +314,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export USE_NIGHTLY_BUILD_TAG=true
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
