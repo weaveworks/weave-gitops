@@ -33,7 +33,7 @@ const (
 	addr                    = "0.0.0.0:8000"
 	metricsBindAddress      = ":9980"
 	healthzBindAddress      = ":9981"
-	notificationBindAddress = "http://notification-controller./"
+	notificationBindAddress = "http://notification-controller.wego-system.svc.cluster.local./"
 	watcherPort             = 9443
 )
 
