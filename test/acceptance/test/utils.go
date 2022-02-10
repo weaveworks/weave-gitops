@@ -341,19 +341,9 @@ func getGitRepoVisibility(org string, repo string, providerName gitproviders.Git
 
 //Assumes resource will eventually contain a status.Conditions where Type=Ready exists
 func waitForResourceToBeReady(resourceType string, resourceName string, namespace string, timeout time.Duration) {
-	var getResourceOutput []byte
-
 	EventuallyWithOffset(1, func() error {
-		kubectlCommand := fmt.Sprintf(`kubectl get pods -n wego-system -o jsonpath="{.items[*].spec.containers[*].image}"`)
-		var err error
-		if getResourceOutput, err = exec.Command("sh", "-c", kubectlCommand).CombinedOutput(); err != nil {
-			return err
-		}
-
-		fmt.Printf("images: %s\n", string(getResourceOutput))
-
 		log.Infof("Waiting for %s/%s in namespace: %q to be ready : ", resourceType, resourceName, namespace)
-		kubectlCommand = fmt.Sprintf("kubectl -n %s wait --for=condition=ready %s %s", namespace, resourceType, resourceName)
+		kubectlCommand := fmt.Sprintf("kubectl -n %s wait --for=condition=ready %s %s", namespace, resourceType, resourceName)
 		if resourceName == "" {
 			kubectlCommand = kubectlCommand + " --all"
 		}
@@ -361,7 +351,7 @@ func waitForResourceToBeReady(resourceType string, resourceName string, namespac
 			return err
 		}
 		return nil
-	}, timeout, "5s").Should(Succeed(), fmt.Sprintf("Failed to find the resource %s of type %s, timeout reached. Last seen resources: %s", resourceName, resourceType, string(getResourceOutput)))
+	}, timeout, "5s").Should(Succeed(), fmt.Sprintf("Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType))
 }
 
 func waitForResourceToExist(resourceType string, resourceName string, namespace string, timeout time.Duration) {

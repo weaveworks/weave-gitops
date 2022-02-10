@@ -64,7 +64,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteNamespace(namespace)
 	})
 
-	FIt("gets deployed and is accessible via the service", func() {
+	It("gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
