@@ -6,11 +6,9 @@ hide_title: true
 
 import TierLabel from "../_components/TierLabel";
 
-<h1>
-  {frontMatter.title} <TierLabel tiers="enterprise" />
-</h1>
+# Profiles <TierLabel tiers="enterprise" />
 
-:::note BEFORE YOU START 
+:::note BEFORE YOU START
 The following instructions require you to make minor changes to the content of your own hosted Helm repository.
 :::
 
@@ -30,16 +28,16 @@ apiVersion: v1
 appVersion: 1.0.0
 description: Observability Helm chart for Kubernetes
 home: https://github.com/weaveworks/observability-profile
-kubeVersion: '>=1.19.0-0'
+kubeVersion: ">=1.19.0-0"
 name: observability
 sources:
-- https://github.com/weaveworks/observability-profile
+  - https://github.com/weaveworks/observability-profile
 version: 1.0.0
 ```
 
 The annotation value is not important and can be left blank i.e. `""`. Helm charts with the `weave.works/profile` annotation are called _Profiles_.
 
-Annotations can also be used to determine the order in which profiles will be installed. 
+Annotations can also be used to determine the order in which profiles will be installed.
 
 ```
 annotations:
@@ -53,7 +51,7 @@ annotations:
   weave.works/layer: layer-1
 ```
 
-The profiles will be sorted lexicographically by their layer and those at a higher layer will only be installed after lower layers have been successfully installed and started. 
+The profiles will be sorted lexicographically by their layer and those at a higher layer will only be installed after lower layers have been successfully installed and started.
 
 In this example, `observability-profile` will be installed prior to `podinfo-profile`. In the corresponding HelmReleases, the dependencies can be observed under the `dependsOn` field.
 
