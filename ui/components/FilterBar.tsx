@@ -57,6 +57,7 @@ function UnstyledFilterBar({
         <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
       </Button>
       <Popover
+        className="filter-popover"
         open={showFilters}
         anchorEl={anchorEl}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
@@ -79,21 +80,54 @@ function UnstyledFilterBar({
         <Divider />
         <List>
           {Object.keys(filterList).map((header: string, index: number) => {
-            <ListItem key={index}>
-              <Text>{header}</Text>
-              <List>
-                {filterList[header].map((option: string, index: number) => {
-                  return (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <Checkbox />
-                      </ListItemIcon>
-                      <Text>{option}</Text>
-                    </ListItem>
-                  );
-                })}
-              </List>
-            </ListItem>;
+            return (
+              <>
+                <ListItem key={index}>
+                  <Flex column>
+                    <Text size="large">{header}</Text>
+                    <List>
+                      {filterList[header].map(
+                        (option: string, index: number) => {
+                          if (search) {
+                            for (let i = 0; i < search.length; i++) {
+                              if (
+                                search[i].toLowerCase() !==
+                                option[i].toLowerCase()
+                              ) {
+                                return;
+                              }
+                            }
+                          }
+                          return (
+                            <ListItem key={index}>
+                              <ListItemIcon>
+                                <Checkbox
+                                  onChange={(e) => {
+                                    e.target.checked
+                                      ? setActiveFilters([
+                                          ...activeFilters,
+                                          option,
+                                        ])
+                                      : setActiveFilters(
+                                          activeFilters.filter(
+                                            (filterCheck) =>
+                                              filterCheck !== option
+                                          )
+                                        );
+                                  }}
+                                />
+                              </ListItemIcon>
+                              <Text>{option}</Text>
+                            </ListItem>
+                          );
+                        }
+                      )}
+                    </List>
+                  </Flex>
+                </ListItem>
+                <Divider />
+              </>
+            );
           })}
         </List>
       </Popover>

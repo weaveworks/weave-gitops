@@ -15,7 +15,7 @@ export default {
 } as Meta;
 
 const Template: Story<Props> = (args) => {
-  const [storyFilters, setStoryFilters] = React.useState(args.activeFilters);
+  const [storyFilters, setStoryFilters] = React.useState([]);
 
   return (
     <FilterBar
@@ -29,6 +29,9 @@ const Template: Story<Props> = (args) => {
 export const Default = Template.bind({});
 Default.args = {
   className: "",
-  activeFilters: ["Ready", "Helm Release"],
-  filterList: { Name: ["app", "app2", "app3"], Status: ["Ready", "Failed"] },
+  filterList: {
+    Name: ["app", "app2", "app3"],
+    Status: ["Ready", "Failed"],
+    Type: ["Application", "Helm Release"],
+  },
 };
