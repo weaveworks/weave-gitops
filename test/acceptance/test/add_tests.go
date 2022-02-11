@@ -1401,8 +1401,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	//TODO deleting an app from one cluster should not affect the other cluster
 	It("@skipOnNightly SmokeTestLong - Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+		var appRemoveOutput string
 		tip := generateTestInputs()
 		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
@@ -1461,6 +1461,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
+		By("And the kustomizations should not have any errors", func() {
+			selectCluster(cluster1Context)
+			VerifyKustomizations(cluster1Context, WEGO_DEFAULT_NAMESPACE)
+			selectCluster(cluster2Context)
+			VerifyKustomizations(cluster2Context, WEGO_DEFAULT_NAMESPACE)
+		})
+
 		By("And gitops check pre validates kubernetes and flux compatibility for Cluster1", func() {
 			selectCluster(cluster1Context)
 			c := exec.Command(gitopsBinaryPath, "check", "--pre")
@@ -1495,6 +1502,27 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I should see workload for app is deployed to the clusters", func() {
 			selectCluster(cluster1Context)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2Context)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I delete the app on cluster1", func() {
+			selectCluster(cluster1Context)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s delete app %s --auto-merge", gitopsBinaryPath, appName))
+		})
+
+		By("Then I should see app removing message", func() {
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
+		})
+
+		By("And app should deleted from cluster1", func() {
+			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		By("And app in cluster2 should keep running", func() {
 			selectCluster(cluster2Context)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
@@ -1565,10 +1593,6 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
-		})
-
-		By("And the kustomizations should not have any errors", func() {
-			VerifyKustomizations(clusterContext, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run gitops add app command for app: "+appName, func() {
