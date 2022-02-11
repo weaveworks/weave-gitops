@@ -64,7 +64,9 @@ function SignIn() {
   console.log(process.env.PUBLIC_URL);
 
   const handleSubmit = () =>
-    (window.location.href = `${API_URL}/oauth2?return_url=http//:localhost:4567`);
+    (window.location.href = `${API_URL}/oauth2?return_url=${encodeURIComponent(
+      "http://0.0.0.0:4567"
+    )}`);
 
   return (
     <PageWrapper center align>
