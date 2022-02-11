@@ -1517,7 +1517,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
 
-		By("And app should deleted from cluster1", func() {
+		By("And app should get deleted from cluster1", func() {
 			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 			Expect(err).NotTo(HaveOccurred())
 		})
