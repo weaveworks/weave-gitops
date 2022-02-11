@@ -156,18 +156,6 @@ type FakeFlux struct {
 		result1 []string
 		result2 error
 	}
-	GetVersionStub        func() (string, error)
-	getVersionMutex       sync.RWMutex
-	getVersionArgsForCall []struct {
-	}
-	getVersionReturns struct {
-		result1 string
-		result2 error
-	}
-	getVersionReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	InstallStub        func(string, bool) ([]byte, error)
 	installMutex       sync.RWMutex
 	installArgsForCall []struct {
@@ -865,62 +853,6 @@ func (fake *FakeFlux) GetLatestStatusAllNamespacesReturnsOnCall(i int, result1 [
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) GetVersion() (string, error) {
-	fake.getVersionMutex.Lock()
-	ret, specificReturn := fake.getVersionReturnsOnCall[len(fake.getVersionArgsForCall)]
-	fake.getVersionArgsForCall = append(fake.getVersionArgsForCall, struct {
-	}{})
-	stub := fake.GetVersionStub
-	fakeReturns := fake.getVersionReturns
-	fake.recordInvocation("GetVersion", []interface{}{})
-	fake.getVersionMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeFlux) GetVersionCallCount() int {
-	fake.getVersionMutex.RLock()
-	defer fake.getVersionMutex.RUnlock()
-	return len(fake.getVersionArgsForCall)
-}
-
-func (fake *FakeFlux) GetVersionCalls(stub func() (string, error)) {
-	fake.getVersionMutex.Lock()
-	defer fake.getVersionMutex.Unlock()
-	fake.GetVersionStub = stub
-}
-
-func (fake *FakeFlux) GetVersionReturns(result1 string, result2 error) {
-	fake.getVersionMutex.Lock()
-	defer fake.getVersionMutex.Unlock()
-	fake.GetVersionStub = nil
-	fake.getVersionReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeFlux) GetVersionReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getVersionMutex.Lock()
-	defer fake.getVersionMutex.Unlock()
-	fake.GetVersionStub = nil
-	if fake.getVersionReturnsOnCall == nil {
-		fake.getVersionReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getVersionReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeFlux) Install(arg1 string, arg2 bool) ([]byte, error) {
 	fake.installMutex.Lock()
 	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
@@ -1218,8 +1150,6 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.getExePathMutex.RUnlock()
 	fake.getLatestStatusAllNamespacesMutex.RLock()
 	defer fake.getLatestStatusAllNamespacesMutex.RUnlock()
-	fake.getVersionMutex.RLock()
-	defer fake.getVersionMutex.RUnlock()
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	fake.preCheckMutex.RLock()
