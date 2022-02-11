@@ -240,7 +240,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		clusterName = os.Getenv("CLUSTER_NAME")
 		if clusterName == "" {
-			name, _ := runCommandAndReturnStringOutput("kubectl config current-context")
+			name, _ := runCommandAndReturnStringOutput("kubectl config view --minify -o jsonpath='{.clusters[].name}'")
 			clusterName = strings.TrimSuffix(name, "\n")
 		}
 	}

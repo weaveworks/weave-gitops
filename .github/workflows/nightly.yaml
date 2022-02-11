@@ -166,7 +166,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -181,7 +180,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -302,7 +300,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -317,7 +314,6 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
