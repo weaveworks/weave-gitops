@@ -1,10 +1,12 @@
 import * as React from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
+import cookie from "react-cookie";
 import SignIn from "../pages/SignIn";
 
 const AUTH_PATH_SIGNIN = "/sign_in";
 const AUTH_PATH_RESET_PASSWORD = "/reset_password";
 const USER_INFO = "/user_info";
+const API_URL = process.env.REACT_API_URL as string;
 
 export type RequestMethod =
   | "GET"
@@ -46,6 +48,7 @@ export const AuthSwitch: React.FC = () => {
     console.log("getting 404");
     return <Redirect to={AUTH_PATH_SIGNIN} />;
   };
+
   return (
     <Switch>
       <Route component={SignIn} exact={true} path={AUTH_PATH_SIGNIN} />
@@ -60,7 +63,7 @@ export const AuthSwitch: React.FC = () => {
 };
 
 export type AuthContext = {
-  signIn: (type: string, username?: string, password?: string) => void;
+  signIn: (username?: string, password?: string) => void;
   userInfo: {
     email: string;
     groups: string[];
@@ -70,41 +73,54 @@ export type AuthContext = {
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
-  const [cookie, setCookie] = React.useState(null);
   const [userInfo, setUserInfo] = React.useState<{
     email: string;
     groups: string[];
   } | null>(null);
 
-  const signIn = React.useCallback(
-    (type: string, username?: string, password?: string) => {
-      fetch("http://localhost:9001/oauth2/sign_in", {
+  const signIn = React.useCallback((username?: string, password?: string) => {
+    fetch(
+      `${API_URL}/oauth2/sign_in?return_url=${encodeURIComponent(
+        "localhost:4567"
+      )}`,
+      {
         method: "POST",
-        body: JSON.stringify({
-          authType: type,
-          username,
-          password,
-        }),
-      })
-        .then((res) => console.log(res))
-        .catch((err) => console.log(err));
-    },
-    []
-  );
+        body: JSON.stringify({ username, password }),
+      }
+    )
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
+  }, []);
 
-  const getUserInfo = () => {
-    // call API here
+  const getUserInfo = React.useCallback(() => {
+    // get id_token to send in request
+    fetch(`${API_URL}/oauth2/userinfo`, {
+      // headers: new Headers({ "Cookie": `token ${id_token}` }),
+    })
+      .then((res) => {
+        console.log(res);
+        // setUserInfo(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+        if (err.code === "401") {
+          // user is not authenticated
+        }
+      });
     // set state for user Info
     // if 401 => user not authenticated => leave null
-  };
+  }, []);
 
   React.useEffect(() => {
     getUserInfo();
   }, []);
 
+  // @ts-ignore
+  console.log(cookie?.load("id_token"));
+
   return (
     <Auth.Provider value={{ signIn, userInfo }}>
-      {cookie && userInfo ? children : <AuthSwitch />}
+      {document.cookie ? children : <AuthSwitch />}
     </Auth.Provider>
   );
 }

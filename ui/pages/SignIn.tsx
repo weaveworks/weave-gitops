@@ -11,6 +11,9 @@ import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
 import { TextField, Divider } from "@material-ui/core";
 
+const publicUrl = process.env.PUBLIC_URL;
+const API_URL = process.env.REACT_API_URL as string;
+
 const PageWrapper = styled(Flex)`
   background: url(${SignInBackground});
   height: 100%;
@@ -58,10 +61,10 @@ function SignIn() {
     password: string;
   }>({ username: "", password: "" });
 
-  const handleSubmit = (type: string) => {
-    console.log(type, { ...formState });
-    signIn(type, formState.username, formState.password);
-  };
+  console.log(process.env.PUBLIC_URL);
+
+  const handleSubmit = () =>
+    (window.location.href = `${API_URL}/oauth2?return_url=http//:localhost:4567`);
 
   return (
     <PageWrapper center align>
@@ -75,7 +78,7 @@ function SignIn() {
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
-                handleSubmit("oidc");
+                handleSubmit();
               }}
             >
               LOGIN WITH OIDC PROVIDER
@@ -90,7 +93,7 @@ function SignIn() {
             ref={formRef}
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit("username");
+              handleSubmit();
             }}
           >
             <FormElement center align>

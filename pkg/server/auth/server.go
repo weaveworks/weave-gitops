@@ -49,10 +49,8 @@ type AuthServer struct {
 	config   AuthConfig
 }
 
-// LoginRequest represents a request to login either via OIDC or
-// using the username and password stored in a secret.
+// Form data submitted by client
 type LoginRequest struct {
-	AuthType string `json:"authType"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -216,38 +214,57 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 				rw.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 				rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 			}
-
 			return
 		} else if r.Method == http.MethodPost {
+			rw.Header().Set("Access-Control-Allow-Origin", "*")
+			rw.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+			rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
+			var loginRequest LoginRequest
+
+			err := json.NewDecoder(r.Body).Decode(&loginRequest)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+				return
+			}
+
+			if loginRequest.Username == "admin" && loginRequest.Password == "password" {
+				rw.WriteHeader(http.StatusOK)
+			} else {
+				rw.WriteHeader(http.StatusForbidden)
+			}
 		} else {
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
+	}
+}
 
-		var loginRequest LoginRequest
-
-		err := json.NewDecoder(r.Body).Decode(&loginRequest)
+// Call the OIDC User Info endpoint and return information to the client
+// Read the cookie and extract the token to then interogate the OIDC provider for the User Info
+func (s *AuthServer) UserInfo() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie(IDTokenCookieName)
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+			http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		if loginRequest.AuthType == LoginOIDC {
-			s.startAuthFlow(rw, r)
-		} else if loginRequest.AuthType == LoginUsername {
-			// TODO: Replace this with querying a secrets
-			if loginRequest.Username == "admin" && loginRequest.Password == "password" {
-				rw.WriteHeader(http.StatusOK)
-				return
-			} else {
-				rw.WriteHeader(http.StatusForbidden)
-				return
-			}
-		} else {
-			rw.WriteHeader(http.StatusBadRequest)
+		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.Value,
+		}))
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
 			return
 		}
+
+		b, err := json.Marshal(info)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		rw.Write(b)
 	}
 }
 
@@ -258,9 +275,17 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	returnUrl := r.URL.Query().Get("return_url")
+
+	if returnUrl == "" {
+		returnUrl = r.URL.String() 
+	} 
+
+	fmt.Printf("return url:%v\n", returnUrl)
+
 	b, err := json.Marshal(SessionState{
 		Nonce:     nonce,
-		ReturnURL: r.URL.String(),
+		ReturnURL: returnUrl,
 	})
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)

@@ -30,6 +30,7 @@ const (
 func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 	mux.Handle(prefix+"/callback", srv)
 	mux.Handle(prefix+"/sign_in", srv.SignIn())
+	mux.Handle(prefix+"/userinfo", srv.UserInfo())
 }
 
 type principalCtxKey struct{}
