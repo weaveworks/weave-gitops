@@ -27,7 +27,6 @@ type Flux interface {
 	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
 	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
-	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
 	GetLatestStatusAllNamespaces() ([]string, error)
@@ -255,17 +254,6 @@ func (f *FluxClient) GetAllResourcesStatus(name string, namespace string) ([]byt
 	}
 
 	return out, nil
-}
-
-func (f *FluxClient) GetVersion() (string, error) {
-	out, err := f.runFluxCmd("-v")
-	if err != nil {
-		return "", err
-	}
-	// change string format to match our versioning standard
-	version := strings.ReplaceAll(string(out), "flux version ", "v")
-
-	return version, nil
 }
 
 func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
