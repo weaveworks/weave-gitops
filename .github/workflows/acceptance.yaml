@@ -5,16 +5,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-      - uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-gomod-
       - name: Run acceptance
-        run: docker-compose run -v $HOME/go/pkg/mod:/go/pkg/mod test
-      - name: Give go modules permissions
-        run: sudo chown -R $USER:$USER ~/go/pkg/mod
+        run: docker-compose run test

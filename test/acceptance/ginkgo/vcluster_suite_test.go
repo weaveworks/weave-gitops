@@ -1,4 +1,4 @@
-package vcluster_test
+package ginkgo_test
 
 import (
 	"testing"

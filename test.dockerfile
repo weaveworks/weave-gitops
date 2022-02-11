@@ -10,6 +10,6 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 RUN mkdir /app
 WORKDIR /app
-# COPY go.mod .
-# COPY go.sum .
-# RUN go mod download
+COPY go.mod .
+COPY go.sum .
+RUN go mod download

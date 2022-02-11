@@ -1,4 +1,4 @@
-package vcluster
+package ginkgo_test
 
 import (
 	"context"
@@ -21,7 +21,7 @@ var _ = Describe("Acceptance PoC", func() {
 		clusterName = "test-" + rand.String(10)
 		clusterFactory, err = vcluster.NewFactory()
 		Expect(err).To(BeNil(), "creating new factory")
-		client, err := clusterFactory.Create(context.TODO(), clusterName)
+		client, _, err := clusterFactory.Create(context.TODO(), clusterName)
 		Expect(err).To(BeNil(), "creating new cluster")
 
 		namespaceObj := &corev1.Namespace{}

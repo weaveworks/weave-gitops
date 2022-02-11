@@ -24,17 +24,19 @@ import (
 	_ "embed"
 )
 
-//go:embed manifests/vcluster-values.yaml.tpl
-var vclusterValues string
-
-//go:embed manifests/vcluster-ingress.yaml.tpl
-var vclusterIngress string
-
-//go:embed manifests/nginx-ingress-deploy.yaml
-var nginxIngressManifests string
+var (
+	//go:embed manifests/vcluster-values.yaml.tpl
+	vclusterValues string
+	//go:embed manifests/vcluster-ingress.yaml.tpl
+	vclusterIngress string
+	//go:embed manifests/nginx-ingress-deploy.yaml
+	nginxIngressManifests string
+	//go:embed manifests/flux.yaml
+	fluxManifests string
+)
 
 type Factory interface {
-	Create(ctx context.Context, name string) (client.Client, error)
+	Create(ctx context.Context, name string) (client.Client, string, error)
 	Delete(ctx context.Context, name string) error
 }
 
@@ -58,28 +60,28 @@ func NewFactory() (Factory, error) {
 	}, nil
 }
 
-func (c *factory) Create(ctx context.Context, name string) (client.Client, error) {
+func (c *factory) Create(ctx context.Context, name string) (client.Client, string, error) {
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = name
 
 	if err := c.hostClient.Create(ctx, namespaceObj); err != nil {
 		if !strings.Contains(err.Error(), "already exists") {
-			return nil, fmt.Errorf("failed creating namespace %s: %w", name, err)
+			return nil, "", fmt.Errorf("failed creating namespace %s: %w", name, err)
 		}
 	}
 
 	if err := createCluster(name); err != nil {
-		return nil, fmt.Errorf("failed creating cluster: %w", err)
+		return nil, "", fmt.Errorf("failed creating cluster: %w", err)
 	}
 
 	configPath, err := connectCluster(name)
 	if err != nil {
-		return nil, fmt.Errorf("failed connecting cluster: %w", err)
+		return nil, "", fmt.Errorf("failed connecting cluster: %w", err)
 	}
 
 	kubeClientConfig, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(&clientcmd.ClientConfigLoadingRules{ExplicitPath: configPath}, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed getting vcluster client config: %w", err)
+		return nil, "", fmt.Errorf("failed getting vcluster client config: %w", err)
 	}
 
 	kubeClientConfig.Timeout = 500 * time.Millisecond
@@ -96,7 +98,7 @@ func (c *factory) Create(ctx context.Context, name string) (client.Client, error
 		return true, nil
 	})
 
-	return vclusterClient, err
+	return vclusterClient, configPath, err
 }
 
 func (c *factory) Delete(ctx context.Context, name string) error {
@@ -334,6 +336,69 @@ func InstallNginxIngressController() error {
 	output, err = exec.Command("bash", "-c", waitCmd).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error waiting ingress controller to be ready. output=%s error=%s", string(output), err)
+	}
+
+	return nil
+}
+
+func InstallFlux(kubeconfigFile string) error {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "vcluster-flux-")
+	if err != nil {
+		return fmt.Errorf("Cannot create temporary file: %w", err)
+	}
+
+	if _, err = tmpFile.Write([]byte(fluxManifests)); err != nil {
+		return fmt.Errorf("Failed to write to temporary file: %w", err)
+	}
+
+	args := []string{
+		"apply",
+		"-f", tmpFile.Name(),
+		"--kubeconfig", kubeconfigFile,
+	}
+
+	output, err := exec.Command("kubectl", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error applying flux manifests with kubectl %s: %s", strings.Join(args, " "), string(output))
+	}
+
+	// wait controllers to be ready
+	err = wait.Poll(10*time.Second, 5*time.Minute, func() (bool, error) {
+		if err := checkFluxComponentIsReady(kubeconfigFile, "notification-controller"); err != nil {
+			return false, err
+		}
+		if err := checkFluxComponentIsReady(kubeconfigFile, "helm-controller"); err != nil {
+			return false, err
+		}
+		if err := checkFluxComponentIsReady(kubeconfigFile, "source-controller"); err != nil {
+			return false, err
+		}
+		if err := checkFluxComponentIsReady(kubeconfigFile, "kustomize-controller"); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	})
+
+	return err
+}
+
+func checkFluxComponentIsReady(kubeconfig, component string) error {
+	args := []string{
+		"get", "pods",
+		"-n", "flux-system",
+		"-l", "app=" + component,
+		"-o", `jsonpath={..status.conditions[?(@.type=="Ready")].status}`,
+		"--kubeconfig", kubeconfig,
+	}
+
+	output, err := exec.Command("kubectl", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error applying flux manifests with kubectl %s: %s", args, string(output))
+	}
+
+	if string(output) != "True" {
+		return fmt.Errorf("%s component is not ready", component)
 	}
 
 	return nil
