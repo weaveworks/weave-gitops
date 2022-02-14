@@ -4,7 +4,6 @@ package fluxfakes
 import (
 	"sync"
 
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
@@ -197,22 +196,6 @@ type FakeFlux struct {
 	SetupBinStub        func()
 	setupBinMutex       sync.RWMutex
 	setupBinArgsForCall []struct {
-	}
-	SuspendOrResumeAppStub        func(v1alpha1.SuspendActionType, string, string, string) ([]byte, error)
-	suspendOrResumeAppMutex       sync.RWMutex
-	suspendOrResumeAppArgsForCall []struct {
-		arg1 v1alpha1.SuspendActionType
-		arg2 string
-		arg3 string
-		arg4 string
-	}
-	suspendOrResumeAppReturns struct {
-		result1 []byte
-		result2 error
-	}
-	suspendOrResumeAppReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
 	}
 	UninstallStub        func(string, bool) error
 	uninstallMutex       sync.RWMutex
@@ -1066,73 +1049,6 @@ func (fake *FakeFlux) SetupBinCalls(stub func()) {
 	fake.SetupBinStub = stub
 }
 
-func (fake *FakeFlux) SuspendOrResumeApp(arg1 v1alpha1.SuspendActionType, arg2 string, arg3 string, arg4 string) ([]byte, error) {
-	fake.suspendOrResumeAppMutex.Lock()
-	ret, specificReturn := fake.suspendOrResumeAppReturnsOnCall[len(fake.suspendOrResumeAppArgsForCall)]
-	fake.suspendOrResumeAppArgsForCall = append(fake.suspendOrResumeAppArgsForCall, struct {
-		arg1 v1alpha1.SuspendActionType
-		arg2 string
-		arg3 string
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
-	stub := fake.SuspendOrResumeAppStub
-	fakeReturns := fake.suspendOrResumeAppReturns
-	fake.recordInvocation("SuspendOrResumeApp", []interface{}{arg1, arg2, arg3, arg4})
-	fake.suspendOrResumeAppMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeFlux) SuspendOrResumeAppCallCount() int {
-	fake.suspendOrResumeAppMutex.RLock()
-	defer fake.suspendOrResumeAppMutex.RUnlock()
-	return len(fake.suspendOrResumeAppArgsForCall)
-}
-
-func (fake *FakeFlux) SuspendOrResumeAppCalls(stub func(v1alpha1.SuspendActionType, string, string, string) ([]byte, error)) {
-	fake.suspendOrResumeAppMutex.Lock()
-	defer fake.suspendOrResumeAppMutex.Unlock()
-	fake.SuspendOrResumeAppStub = stub
-}
-
-func (fake *FakeFlux) SuspendOrResumeAppArgsForCall(i int) (v1alpha1.SuspendActionType, string, string, string) {
-	fake.suspendOrResumeAppMutex.RLock()
-	defer fake.suspendOrResumeAppMutex.RUnlock()
-	argsForCall := fake.suspendOrResumeAppArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
-}
-
-func (fake *FakeFlux) SuspendOrResumeAppReturns(result1 []byte, result2 error) {
-	fake.suspendOrResumeAppMutex.Lock()
-	defer fake.suspendOrResumeAppMutex.Unlock()
-	fake.SuspendOrResumeAppStub = nil
-	fake.suspendOrResumeAppReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeFlux) SuspendOrResumeAppReturnsOnCall(i int, result1 []byte, result2 error) {
-	fake.suspendOrResumeAppMutex.Lock()
-	defer fake.suspendOrResumeAppMutex.Unlock()
-	fake.SuspendOrResumeAppStub = nil
-	if fake.suspendOrResumeAppReturnsOnCall == nil {
-		fake.suspendOrResumeAppReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
-		})
-	}
-	fake.suspendOrResumeAppReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeFlux) Uninstall(arg1 string, arg2 bool) error {
 	fake.uninstallMutex.Lock()
 	ret, specificReturn := fake.uninstallReturnsOnCall[len(fake.uninstallArgsForCall)]
@@ -1226,8 +1142,6 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.preCheckMutex.RUnlock()
 	fake.setupBinMutex.RLock()
 	defer fake.setupBinMutex.RUnlock()
-	fake.suspendOrResumeAppMutex.RLock()
-	defer fake.suspendOrResumeAppMutex.RUnlock()
 	fake.uninstallMutex.RLock()
 	defer fake.uninstallMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

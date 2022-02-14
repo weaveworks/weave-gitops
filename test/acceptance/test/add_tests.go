@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -982,14 +981,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	It("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
-		var pauseOutput string
-		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
 		var appRemoveOutput string
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
-		var appManifestFile1 string
 		var commitList1 string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -997,7 +993,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName2 := tip2.appRepoName
 		private := true
 		public := false
-		replicaSetValue := 3
 		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip1.appRepoName + ".git"
 
 		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
@@ -1089,74 +1084,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("Then I should see appNames for both apps listed", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName1))
 			Eventually(listOutput).Should(ContainSubstring(appName2))
-		})
-
-		By("When I suspend an app: "+appName1, func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " suspend app " + appName1)
-		})
-
-		By("Then I should see pause message", func() {
-			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName1))
-		})
-
-		By("When I check app status for paused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName1))
-		})
-
-		By("Then I should see pause status as suspended=true", func() {
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*True`))
-		})
-
-		By("And changes to the app files should not be synchronized", func() {
-			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls | grep yaml")
-			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
-			gitUpdateCommitPush(repoAbsolutePath1)
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
-		})
-
-		By("And number of app replicas should remain same", func() {
-			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
-			Expect(replicaOutput).To(ContainSubstring("1"))
-		})
-
-		By("When I re-run suspend app command", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " suspend app " + appName1)
-		})
-
-		By("Then I should see a console message without any errors", func() {
-			Expect(pauseOutput).To(ContainSubstring("app " + appName1 + " is already paused"))
-		})
-
-		By("When I unpause an app: "+appName1, func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " resume app " + appName1)
-		})
-
-		By("Then I should see unpause message", func() {
-			Expect(unpauseOutput).To(ContainSubstring("gitops automation unpaused for " + appName1))
-		})
-
-		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
-			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
-			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
-		})
-
-		By("When I re-run resume app command", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " resume app " + appName1)
-		})
-
-		By("Then I should see unpause message without any errors", func() {
-			Expect(unpauseOutput).To(ContainSubstring("app " + appName1 + " is already reconciling"))
-		})
-
-		By("When I check app status for unpaused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName1))
-		})
-
-		By("Then I should see pause status as suspended=false", func() {
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
 		})
 
 		By("When I delete an app", func() {
