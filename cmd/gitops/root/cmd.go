@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/viper"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
-	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
@@ -131,7 +130,6 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(install.Cmd)
-	rootCmd.AddCommand(beta.Cmd)
 	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
