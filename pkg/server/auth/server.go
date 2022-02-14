@@ -244,27 +244,42 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 // Read the cookie and extract the token to then interogate the OIDC provider for the User Info
 func (s *AuthServer) UserInfo() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie(IDTokenCookieName)
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
+		if r.Method == http.MethodOptions {
+			if os.Getenv("ALLOW_CORS") == "true" {
+				rw.Header().Set("Access-Control-Allow-Origin", "http://0.0.0.0:4567")
+				rw.Header().Set("Access-Control-Allow-Credentials", "true")
+				rw.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+				rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			}
 			return
-		}
+		} else if r.Method == http.MethodGet {
+			rw.Header().Set("Access-Control-Allow-Origin", "http://0.0.0.0:4567")
+			rw.Header().Set("Access-Control-Allow-Credentials", "true")
+			rw.Header().Set("Access-Control-Allow-Methods",  "GET, OPTIONS")
+			rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
-		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: c.Value,
-		}))
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
-			return
-		}
+			c, err := r.Cookie(IDTokenCookieName)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
+				return
+			}
 
-		b, err := json.Marshal(info)
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
-			return
-		}
+			info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
+				AccessToken: c.Value,
+			}))
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
+				return
+			}
 
-		rw.Write(b)
+			b, err := json.Marshal(info)
+			if err != nil {
+				http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			rw.Write(b)
+		}
 	}
 }
 

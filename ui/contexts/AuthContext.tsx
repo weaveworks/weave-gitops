@@ -4,8 +4,7 @@ import cookie from "react-cookie";
 import SignIn from "../pages/SignIn";
 
 const AUTH_PATH_SIGNIN = "/sign_in";
-const AUTH_PATH_RESET_PASSWORD = "/reset_password";
-const USER_INFO = "/user_info";
+const USER_INFO = "oauth2/userinfo";
 const API_URL = process.env.REACT_API_URL as string;
 
 export type RequestMethod =
@@ -81,7 +80,7 @@ export default function AuthContextProvider({ children }) {
   const signIn = React.useCallback((username?: string, password?: string) => {
     fetch(
       `${API_URL}/oauth2/sign_in?return_url=${encodeURIComponent(
-        "localhost:4567"
+        "0.0.0.0:4567"
       )}`,
       {
         method: "POST",
@@ -93,13 +92,12 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   const getUserInfo = React.useCallback(() => {
-    // get id_token to send in request
-    fetch(`${API_URL}/oauth2/userinfo`, {
-      // headers: new Headers({ "Cookie": `token ${id_token}` }),
+    fetch(`${API_URL}/${USER_INFO}`, {
+      credentials: "include",
     })
       .then((res) => {
         console.log(res);
-        // setUserInfo(res.data);
+        setUserInfo(res.body as any);
       })
       .catch((err) => {
         console.log(err);
@@ -111,16 +109,15 @@ export default function AuthContextProvider({ children }) {
     // if 401 => user not authenticated => leave null
   }, []);
 
+  console.log(userInfo);
+
   React.useEffect(() => {
     getUserInfo();
   }, []);
 
-  // @ts-ignore
-  console.log(cookie?.load("id_token"));
-
   return (
     <Auth.Provider value={{ signIn, userInfo }}>
-      {document.cookie ? children : <AuthSwitch />}
+      {userInfo?.email ? children : <AuthSwitch />}
     </Auth.Provider>
   );
 }

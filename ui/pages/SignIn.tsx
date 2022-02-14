@@ -11,7 +11,6 @@ import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
 import { TextField, Divider } from "@material-ui/core";
 
-const publicUrl = process.env.PUBLIC_URL;
 const API_URL = process.env.REACT_API_URL as string;
 
 const PageWrapper = styled(Flex)`
@@ -61,12 +60,12 @@ function SignIn() {
     password: string;
   }>({ username: "", password: "" });
 
-  console.log(process.env.PUBLIC_URL);
-
-  const handleSubmit = () =>
-    (window.location.href = `${API_URL}/oauth2?return_url=${encodeURIComponent(
-      "http://0.0.0.0:4567"
+  const handleSubmit = () => {
+    const CURRENT_URL = window.origin;
+    return (window.location.href = `${API_URL}/oauth2?return_url=${encodeURIComponent(
+      CURRENT_URL
     )}`);
+  };
 
   return (
     <PageWrapper center align>
