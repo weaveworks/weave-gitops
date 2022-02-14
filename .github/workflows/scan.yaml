@@ -57,7 +57,7 @@ jobs:
         run: snyk monitor --all-projects
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        if: github.event.push
+        if: ${{ github.event_name == 'push' }}
 
   snyk-docker:
     name: Snyk Docker
@@ -85,4 +85,4 @@ jobs:
           command: monitor
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        if: github.event.push
+        if: ${{ github.event_name == 'push' }}
