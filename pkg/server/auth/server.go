@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -208,17 +207,6 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			if os.Getenv("ALLOW_CORS") == "true" {
-				rw.Header().Set("Access-Control-Allow-Origin", "*")
-				rw.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-				rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-			}
-			return
-		} else if r.Method == http.MethodPost {
-			rw.Header().Set("Access-Control-Allow-Origin", "*")
-			rw.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-			rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 			var loginRequest LoginRequest
 
@@ -233,31 +221,13 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			} else {
 				rw.WriteHeader(http.StatusForbidden)
 			}
-		} else {
-			rw.WriteHeader(http.StatusMethodNotAllowed)
-			return
 		}
-	}
 }
 
 // Call the OIDC User Info endpoint and return information to the client
 // Read the cookie and extract the token to then interogate the OIDC provider for the User Info
 func (s *AuthServer) UserInfo() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			if os.Getenv("ALLOW_CORS") == "true" {
-				rw.Header().Set("Access-Control-Allow-Origin", "http://0.0.0.0:4567")
-				rw.Header().Set("Access-Control-Allow-Credentials", "true")
-				rw.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-				rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-			}
-			return
-		} else if r.Method == http.MethodGet {
-			rw.Header().Set("Access-Control-Allow-Origin", "http://0.0.0.0:4567")
-			rw.Header().Set("Access-Control-Allow-Credentials", "true")
-			rw.Header().Set("Access-Control-Allow-Methods",  "GET, OPTIONS")
-			rw.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
 			c, err := r.Cookie(IDTokenCookieName)
 			if err != nil {
 				http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
@@ -277,10 +247,8 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 				http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
 				return
 			}
-
 			rw.Write(b)
 		}
-	}
 }
 
 func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {

@@ -11,8 +11,6 @@ import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
 import { TextField, Divider } from "@material-ui/core";
 
-const API_URL = process.env.REACT_API_URL as string;
-
 const PageWrapper = styled(Flex)`
   background: url(${SignInBackground});
   height: 100%;
@@ -62,7 +60,7 @@ function SignIn() {
 
   const handleSubmit = () => {
     const CURRENT_URL = window.origin;
-    return (window.location.href = `${API_URL}/oauth2?return_url=${encodeURIComponent(
+    return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
       CURRENT_URL
     )}`);
   };
