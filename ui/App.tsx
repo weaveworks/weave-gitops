@@ -22,9 +22,7 @@ import {
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute, V2Routes } from "./lib/types";
-import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
-import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -82,11 +80,6 @@ export default function App() {
                     />
                     <Route
                       exact
-                      path={PageRoute.ApplicationAdd}
-                      component={ApplicationAdd}
-                    />
-                    <Route
-                      exact
                       path={PageRoute.GitlabOAuthCallback}
                       component={({ location }) => {
                         const params = qs.parse(location.search);
@@ -96,17 +89,6 @@ export default function App() {
                             provider={GitProvider.GitLab}
                             code={params.code as string}
                           />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationRemove}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <ApplicationRemove name={params.name as string} />
                         );
                       }}
                     />

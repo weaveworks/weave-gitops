@@ -1,7 +1,6 @@
 package osys
 
 import (
-	"errors"
 	"os"
 )
 
@@ -51,18 +50,6 @@ func (o *OsysClient) Unsetenv(envVar string) error {
 
 func (o *OsysClient) ReadDir(dirName string) ([]os.DirEntry, error) {
 	return os.ReadDir(dirName)
-}
-
-var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
-
-func (o *OsysClient) GetGitProviderToken(tokenVarName string) (string, error) {
-	providerToken, found := o.LookupEnv(tokenVarName)
-
-	if !found || providerToken == "" {
-		return "", ErrNoGitProviderTokenSet
-	}
-
-	return providerToken, nil
 }
 
 func (o *OsysClient) Exit(code int) {

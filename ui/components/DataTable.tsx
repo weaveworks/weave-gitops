@@ -87,7 +87,7 @@ function UnstyledDataTable({
             setSort(label.toLowerCase());
           }}
         >
-          <h2 className={sort === label.toLowerCase() && "selected"}>
+          <h2 className={sort === label.toLowerCase() ? "selected" : ""}>
             {label}
           </h2>
         </TableButton>

@@ -46,37 +46,6 @@
         "tags": [
           "Applications"
         ]
-      },
-      "post": {
-        "summary": "AddApplication adds an Application to a cluster via GitOps.",
-        "operationId": "Applications_AddApplication",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1AddApplicationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1AddApplicationRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
       }
     },
     "/v1/applications/auth_providers/github": {
@@ -384,51 +353,6 @@
         "tags": [
           "Applications"
         ]
-      },
-      "delete": {
-        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
-        "operationId": "Applications_RemoveApplication",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RemoveApplicationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "namespace": {
-                  "type": "string"
-                },
-                "autoMerge": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
       }
     },
     "/v1/applications/{name}/commits": {
@@ -600,43 +524,6 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
-        }
-      }
-    },
-    "v1AddApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "branch": {
-          "type": "string"
-        },
-        "autoMerge": {
-          "type": "boolean"
-        },
-        "configRepo": {
-          "type": "string"
-        }
-      }
-    },
-    "v1AddApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
-        },
-        "application": {
-          "$ref": "#/definitions/v1Application"
         }
       }
     },
@@ -990,17 +877,6 @@
           "$ref": "#/definitions/v1GitProvider"
         },
         "owner": {
-          "type": "string"
-        }
-      }
-    },
-    "v1RemoveApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
-        },
-        "repoUrl": {
           "type": "string"
         }
       }
