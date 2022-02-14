@@ -4,7 +4,7 @@ import styled from "styled-components";
 // @ts-ignore
 import logoSrc from "url:../images/logo.svg";
 // @ts-ignore
-import titleSrc from "url:../images/Title.svg";
+import titleSrc from "url:../images/title.svg";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
 
