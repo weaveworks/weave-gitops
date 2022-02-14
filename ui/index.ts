@@ -14,14 +14,12 @@ import {
   getProviderToken,
 } from "./lib/storage";
 import { theme, muiTheme } from "./lib/theme";
-import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 
 export {
   AppContextProvider,
-  ApplicationAdd,
   ApplicationDetail,
   Applications,
   applicationsClient,

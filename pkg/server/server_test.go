@@ -5,13 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -27,17 +24,11 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -533,212 +524,6 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
 			Expect(res).To(BeNil())
 		})
-	})
-
-	Describe("AddApplication", func() {
-		BeforeEach(func() {
-			cm := &corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "ConfigMap",
-					APIVersion: corev1.SchemeGroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "weave-gitops-config",
-					Namespace: namespace.Name,
-				},
-				Data: map[string]string{
-					"config": fmt.Sprintf(`---
-WegoNamespace: %s
-FluxNamespace: %s
-ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/my-config-url.git"),
-				},
-			}
-			Expect(k8sClient.Create(context.Background(), cm)).To(Succeed())
-		})
-
-		It("adds an app with an unspecified config repo", func() {
-			ctx := context.Background()
-			name := "my-app"
-			appRequest := &pb.AddApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-				Url:       "ssh://git@github.com/some-org/somerepo.git",
-				Path:      "./k8s/mydir",
-				Branch:    "main",
-			}
-			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
-
-			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
-
-			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Success).To(BeTrue())
-
-			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
-		})
-		It("adds an app with a config repo url specified", func() {
-			ctx := context.Background()
-			name := "my-app"
-			appRequest := &pb.AddApplicationRequest{
-				Name:       name,
-				Namespace:  namespace.Name,
-				Url:        "ssh://git@github.com/some-org/somerepo.git",
-				Path:       "./k8s/mydir",
-				Branch:     "main",
-				ConfigRepo: "ssh://git@github.com/some-org/my-config-url.git",
-			}
-
-			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
-			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
-
-			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Success).To(BeTrue())
-
-			Expect(configGit.CommitCallCount()).To(Equal(0), "should have committed to config git repo")
-			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
-		})
-		It("adds an app with automerge and no config repo defined", func() {
-			ctx := context.Background()
-			name := "my-app"
-			appRequest := &pb.AddApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-				Url:       "ssh://git@github.com/some-org/somerepo.git",
-				Path:      "./k8s/mydir",
-				Branch:    "main",
-				AutoMerge: true,
-			}
-			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
-			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
-
-			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
-			Expect(err).NotTo((HaveOccurred()))
-			Expect(res.Success).To(BeTrue())
-
-			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to the config git repo")
-			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(0), "should NOT have made a PR")
-		})
-	})
-
-	Context("RemoveApplication Tests", func() {
-		var ctx context.Context
-		var name string
-		var manifestPaths map[string]bool
-		var appDir string
-
-		storeManifestPath := func(path string) {
-			if strings.HasSuffix(path, "user/kustomization.yaml") {
-				return
-			}
-
-			appDir = filepath.Dir(path)
-			manifestPaths[path] = true
-		}
-
-		removeManifestPath := func(basepath string) error {
-			path := filepath.Join(appDir, basepath)
-
-			if !manifestPaths[path] {
-				return fmt.Errorf("manifest path: %s not found in repository", path)
-			}
-
-			delete(manifestPaths, path)
-
-			return nil
-		}
-
-		BeforeEach(func() {
-			ctx = context.Background()
-			name = "my-app"
-			manifestPaths = map[string]bool{}
-
-			fakeOsys := &osysfakes.FakeOsys{}
-			fluxClient := flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
-			log := &loggerfakes.FakeLogger{}
-
-			fakeFactory.GetAppServiceReturns(&app.AppSvc{
-				Context: ctx,
-				Flux:    fluxClient,
-				Kube:    k,
-				Logger:  log,
-				Osys:    fakeOsys,
-			}, nil)
-
-			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
-			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
-
-			configGit.WriteStub = func(path string, manifest []byte) error {
-				storeManifestPath(path)
-				return nil
-			}
-
-			configGit.RemoveStub = func(path string) error {
-				return removeManifestPath(path)
-			}
-
-			fakeOsys.ReadDirStub = func(dirName string) ([]os.DirEntry, error) {
-				return makeDirEntries(manifestPaths), nil
-			}
-		})
-
-		DescribeTable(
-			"Remove applications",
-			func(
-				url,
-				configRepo string,
-				sourceType wego.SourceType,
-				deploymentType wego.DeploymentType,
-				autoMerge bool,
-				commitCount, prCount int,
-			) {
-				application := wego.Application{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: wego.ApplicationSpec{
-						Branch:         "main",
-						Path:           "./k8s",
-						URL:            url,
-						ConfigRepo:     configRepo,
-						SourceType:     sourceType,
-						DeploymentType: deploymentType,
-					},
-				}
-
-				Expect(k8sClient.Create(ctx, &application)).Should(Succeed())
-
-				appRequest := &pb.RemoveApplicationRequest{
-					Name:      name,
-					Namespace: namespace.Name,
-					AutoMerge: autoMerge,
-				}
-				res, err := appsClient.RemoveApplication(contextWithAuth(ctx), appRequest)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(res.Success).To(BeTrue())
-
-				Expect(configGit.CommitCallCount()).To(Equal(commitCount))
-				Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(prCount))
-			},
-			Entry(
-				"kustomize, app repo config, auto merge",
-				"ssh://git@github.com/foo/bar",
-				"ssh://git@github.com/foo/bar",
-				wego.SourceTypeGit,
-				wego.DeploymentTypeKustomize,
-				true,
-				1,
-				0),
-			Entry(
-				"kustomize, external repo config, auto merge",
-				"ssh://git@github.com/foo/bar",
-				"ssh://git@github.com/foo/baz",
-				wego.SourceTypeGit,
-				wego.DeploymentTypeKustomize,
-				true,
-				1,
-				0))
 	})
 
 	Describe("ListCommits", func() {
@@ -1296,36 +1081,4 @@ func contextWithAuth(ctx context.Context) context.Context {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx
-}
-
-// Support for remove tests
-
-type dummyDirEntry struct {
-	name string
-}
-
-func (d dummyDirEntry) Name() string {
-	return d.name
-}
-
-func (d dummyDirEntry) IsDir() bool {
-	return false
-}
-
-func (d dummyDirEntry) Type() fs.FileMode {
-	return fs.ModeDir
-}
-
-func (d dummyDirEntry) Info() (fs.FileInfo, error) {
-	return nil, nil
-}
-
-func makeDirEntries(paths map[string]bool) []os.DirEntry {
-	results := []os.DirEntry{}
-
-	for path := range paths {
-		results = append(results, dummyDirEntry{name: filepath.Base(path)})
-	}
-
-	return results
 }
