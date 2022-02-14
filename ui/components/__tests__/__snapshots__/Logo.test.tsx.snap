@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logo snapshots renders 1`] = `
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c0 {
+  padding: 24px;
+}
+
+.c2 {
+  padding: 4px;
+}
+
+<div
+  className="c0"
+>
+  <div
+    className="c1 "
+  >
+    <img
+      src=""
+    />
+    <div
+      className="c2"
+    />
+    <img
+      src=""
+    />
+  </div>
+</div>
+`;
