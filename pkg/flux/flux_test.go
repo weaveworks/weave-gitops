@@ -25,59 +25,6 @@ var _ = BeforeEach(func() {
 	fluxClient = flux.New(osys.New(), runner)
 })
 
-var _ = Describe("Install", func() {
-	It("installs flux", func() {
-		_, err := fluxClient.Install(wego.DefaultNamespace, false)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
-
-		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
-		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("install --namespace %s --components-extra image-reflector-controller,image-automation-controller", wego.DefaultNamespace)))
-	})
-
-	It("exports the install manifests", func() {
-		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
-			return []byte("out"), nil
-		}
-
-		out, err := fluxClient.Install(wego.DefaultNamespace, true)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(out).To(Equal([]byte("out")))
-
-		Expect(runner.RunCallCount()).To(Equal(1))
-
-		cmd, args := runner.RunArgsForCall(0)
-		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("install --namespace %s --components-extra image-reflector-controller,image-automation-controller --export", wego.DefaultNamespace)))
-	})
-})
-
-var _ = Describe("Uninstall", func() {
-	It("uninstalls flux", func() {
-		err := fluxClient.Uninstall(wego.DefaultNamespace, false)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
-
-		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
-		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("uninstall -s --namespace %s", wego.DefaultNamespace)))
-	})
-
-	It("add dry-run to the call", func() {
-		err := fluxClient.Uninstall(wego.DefaultNamespace, true)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
-
-		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
-		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("uninstall -s --namespace %s --dry-run", wego.DefaultNamespace)))
-	})
-})
-
 var _ = Describe("CreateSourceGit", func() {
 	It("creates a git source", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
