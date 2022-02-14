@@ -7,6 +7,7 @@ import {
   ListItemIcon,
   Popover,
 } from "@material-ui/core";
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { theme } from "..";
@@ -45,6 +46,14 @@ function UnstyledFilterBar({
   const [showFilters, setShowFilters] = React.useState(false);
   const [search, setSearch] = React.useState("");
 
+  const onCheck = (e, option) => {
+    e.target.checked
+      ? setActiveFilters([...activeFilters, option])
+      : setActiveFilters(
+          activeFilters.filter((filterCheck) => filterCheck !== option)
+        );
+  };
+
   return (
     <Flex className={className} align wide start>
       <Button
@@ -81,8 +90,8 @@ function UnstyledFilterBar({
         <List>
           {Object.keys(filterList).map((header: string, index: number) => {
             return (
-              <>
-                <ListItem key={index}>
+              <div key={index}>
+                <ListItem>
                   <Flex column>
                     <Text size="large">{header}</Text>
                     <List>
@@ -102,19 +111,7 @@ function UnstyledFilterBar({
                             <ListItem key={index}>
                               <ListItemIcon>
                                 <Checkbox
-                                  onChange={(e) => {
-                                    e.target.checked
-                                      ? setActiveFilters([
-                                          ...activeFilters,
-                                          option,
-                                        ])
-                                      : setActiveFilters(
-                                          activeFilters.filter(
-                                            (filterCheck) =>
-                                              filterCheck !== option
-                                          )
-                                        );
-                                  }}
+                                  onChange={(e) => onCheck(e, option)}
                                 />
                               </ListItemIcon>
                               <Text>{option}</Text>
@@ -125,13 +122,13 @@ function UnstyledFilterBar({
                     </List>
                   </Flex>
                 </ListItem>
-                <Divider />
-              </>
+                {index < Object.keys(filterList).length - 1 && <Divider />}
+              </div>
             );
           })}
         </List>
       </Popover>
-      {activeFilters.map((filter, index) => {
+      {_.map(activeFilters, (filter, index) => {
         return (
           <Flex key={index}>
             <Chip

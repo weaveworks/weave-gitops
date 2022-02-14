@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
@@ -24,8 +24,21 @@ describe("FilterBar", () => {
     expect(screen.getByText("Clear All")).toBeTruthy();
     expect(screen.queryByText("Name")).toBeNull();
   });
-  it("should reveal/close filter list on icon click", () => {
-    ("");
+  it.only("should reveal/close filter list on icon click", async () => {
+    render(
+      withTheme(
+        <FilterBar
+          filterList={filterList}
+          activeFilters={[]}
+          setActiveFilters={setActiveFilters}
+        />
+      )
+    );
+    const icon = screen.getAllByRole("button")[0];
+    fireEvent.click(icon);
+    expect(screen.queryByText("Name")).toBeTruthy();
+    await fireEvent.click(screen.getByRole("presentation"));
+    expect(screen.queryByText("Name")).toBeNull();
   });
   it("should should add filter to chips on checkbox click", () => {
     ("");
