@@ -58,6 +58,8 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
+	opts.Version = version
+
 	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
@@ -65,7 +67,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 
 	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
 
-	content, err := addHelmRelease(helmRepo, fileContent, version, opts)
+	content, err := addHelmRelease(helmRepo, fileContent, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to add HelmRelease for profile '%s' to %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
@@ -87,7 +89,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
 
-	s.Logger.Actionf("Pull Request created: %s", pr.Get().WebURL)
+	s.Logger.Actionf("created Pull Request: %s", pr.Get().WebURL)
 
 	if opts.AutoMerge {
 		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
@@ -110,12 +112,17 @@ func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
 	s.Logger.Println("Namespace: %s\n", opts.Namespace)
 }
 
-func addHelmRelease(helmRepo types.NamespacedName, fileContent, version string, opts AddOptions) (string, error) {
-	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
+func addHelmRelease(helmRepo types.NamespacedName, fileContent, name, version, cluster, ns string) (string, error) {
+	existingReleases, err := helm.SplitHelmReleaseYAML([]byte(fileContent))
+	if err != nil {
+		return "", fmt.Errorf("error splitting into YAML: %w", err)
+	}
 
-	matchingHelmReleases, err := helm.FindHelmReleaseInString(fileContent, newRelease)
-	if len(matchingHelmReleases) >= 1 {
-		return "", fmt.Errorf("profile '%s' is already installed in %s/%s", opts.Name, opts.Namespace, opts.Cluster)
+	newRelease := helm.MakeHelmRelease(name, version, cluster, ns, helmRepo)
+
+	matchingHelmRelease, _, err := helm.FindReleaseInNamespace(existingReleases, newRelease.Name, ns)
+	if matchingHelmRelease != nil {
+		return "", fmt.Errorf("found another HelmRelease for profile '%s' in namespace %s", name, ns)
 	} else if err != nil {
 		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
 	}

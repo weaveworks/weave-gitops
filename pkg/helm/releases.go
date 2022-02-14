@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	apimachinery "k8s.io/apimachinery/pkg/util/yaml"
 	kyaml "sigs.k8s.io/yaml"
 )
 
@@ -45,31 +44,19 @@ func MakeHelmRelease(name, version, cluster, namespace string, helmRepository ty
 	}
 }
 
-// FindHelmReleaseInString finds all HelmRelease(s) in a given string that can be split into YAML.
-func FindHelmReleaseInString(s string, newRelease *v2beta1.HelmRelease) ([]v2beta1.HelmRelease, error) {
-	manifestByteSlice, err := splitYAML([]byte(s))
-	if err != nil {
-		return nil, fmt.Errorf("error splitting into YAML: %w", err)
-	}
-
-	found := []v2beta1.HelmRelease{}
-
-	for _, manifestBytes := range manifestByteSlice {
-		var r v2beta1.HelmRelease
-		if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
-			return nil, fmt.Errorf("error unmarshaling: %w", err)
-		}
-
-		if profileIsInstalled(r, *newRelease) {
-			found = append(found, r)
+// FindReleaseInNamespace iterates through a slice of HelmReleases to find one with a given name in a given namespace, and returns it with its index.
+func FindReleaseInNamespace(existingReleases []helmv2beta1.HelmRelease, name, ns string) (*helmv2beta1.HelmRelease, int, error) {
+	for i, r := range existingReleases {
+		if r.Name == name && r.Namespace == ns {
+			return &r, i, nil
 		}
 	}
 
-	return found, nil
+	return nil, -1, nil
 }
 
 // AppendHelmReleaseToString appends a HelmRelease to a string.
-func AppendHelmReleaseToString(content string, newRelease *v2beta1.HelmRelease) (string, error) {
+func AppendHelmReleaseToString(content string, newRelease *helmv2beta1.HelmRelease) (string, error) {
 	var sb strings.Builder
 	if content != "" {
 		sb.WriteString(content + "\n")
@@ -85,15 +72,14 @@ func AppendHelmReleaseToString(content string, newRelease *v2beta1.HelmRelease) 
 	return sb.String(), nil
 }
 
-// splitYAML splits a manifest file that may contain multiple YAML resources separated by '---'
-// and validates that each element is YAML.
-func splitYAML(resources []byte) ([][]byte, error) {
-	var splitResources [][]byte
+// SplitHelmReleaseYAML splits a manifest file that contains one or more Helm Releases that may be separated by '---'.
+func SplitHelmReleaseYAML(resources []byte) ([]helmv2beta1.HelmRelease, error) {
+	var helmReleaseList []helmv2beta1.HelmRelease
 
-	decoder := yaml.NewDecoder(bytes.NewReader(resources))
+	decoder := apimachinery.NewYAMLOrJSONDecoder(bytes.NewReader(resources), 100000000)
 
 	for {
-		var value interface{}
+		var value helmv2beta1.HelmRelease
 		if err := decoder.Decode(&value); err != nil {
 			if err == io.EOF {
 				break
@@ -102,17 +88,25 @@ func splitYAML(resources []byte) ([][]byte, error) {
 			return nil, err
 		}
 
-		valueBytes, err := yaml.Marshal(value)
-		if err != nil {
-			return nil, err
-		}
-
-		splitResources = append(splitResources, valueBytes)
+		helmReleaseList = append(helmReleaseList, value)
 	}
 
-	return splitResources, nil
+	return helmReleaseList, nil
 }
 
-func profileIsInstalled(r, newRelease v2beta1.HelmRelease) bool {
-	return r.Name == newRelease.Name && r.Namespace == newRelease.Namespace && r.Spec.Chart.Spec.Version == newRelease.Spec.Chart.Spec.Version
+func PatchHelmRelease(existingReleases []helmv2beta1.HelmRelease, patchedHelmRelease helmv2beta1.HelmRelease, index int) (string, error) {
+	existingReleases[index] = patchedHelmRelease
+
+	var sb strings.Builder
+
+	for _, r := range existingReleases {
+		b, err := kyaml.Marshal(r)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal: %w", err)
+		}
+
+		sb.WriteString("---\n" + string(b))
+	}
+
+	return sb.String(), nil
 }

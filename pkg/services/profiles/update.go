@@ -9,8 +9,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+const UpdateCommitMessage = "Update Profile manifests"
 
 type UpdateOptions struct {
 	Name         string
@@ -53,6 +57,8 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
+	opts.Version = version
+
 	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to get files in '%s' of config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
@@ -63,23 +69,71 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("failed to find installed profiles in '%s' of config repo %q", git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath), configRepoURL)
 	}
 
-	_, err = updateHelmRelease(helmRepo, fileContent, version, opts)
+	content, err := updateHelmRelease(helmRepo, fileContent, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to update HelmRelease for profile '%s' in %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
 
+	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
+
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
+		Title:         fmt.Sprintf("GitOps update %s", opts.Name),
+		Description:   fmt.Sprintf("Update manifest for %s profile", opts.Name),
+		CommitMessage: UpdateCommitMessage,
+		TargetBranch:  defaultBranch,
+		NewBranch:     uuid.New().String(),
+		Files: []gitprovider.CommitFile{{
+			Path:    &path,
+			Content: &content,
+		}},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create pull request: %s", err)
+	}
+
+	s.Logger.Actionf("created Pull Request: %s", pr.Get().WebURL)
+
+	if opts.AutoMerge {
+		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
+
+		if err := gitProvider.MergePullRequest(ctx, configRepoURL, pr.Get().Number, AddCommitMessage); err != nil {
+			return fmt.Errorf("error auto-merging PR: %w", err)
+		}
+	}
+
+	s.printUpdateSummary(opts)
+
 	return nil
 }
 
-func updateHelmRelease(helmRepo types.NamespacedName, fileContent, version string, opts UpdateOptions) (string, error) {
-	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
+func (s *ProfilesSvc) printUpdateSummary(opts UpdateOptions) {
+	s.Logger.Println("Updating profile:\n")
+	s.Logger.Println("Name: %s", opts.Name)
+	s.Logger.Println("Version: %s", opts.Version)
+	s.Logger.Println("Cluster: %s", opts.Cluster)
+	s.Logger.Println("Namespace: %s\n", opts.Namespace)
+}
 
-	matchingHelmReleases, err := helm.FindHelmReleaseInString(fileContent, newRelease)
-	if len(matchingHelmReleases) == 0 {
-		return "", fmt.Errorf("profile '%s' could not be found in %s/%s", opts.Name, opts.Namespace, opts.Cluster)
+func updateHelmRelease(helmRepo types.NamespacedName, fileContent, name, version, cluster, ns string) (string, error) {
+	existingReleases, err := helm.SplitHelmReleaseYAML([]byte(fileContent))
+	if err != nil {
+		return "", fmt.Errorf("error splitting into YAML: %w", err)
+	}
+
+	releaseName := cluster + "-" + name
+
+	matchingHelmRelease, index, err := helm.FindReleaseInNamespace(existingReleases, releaseName, ns)
+	if matchingHelmRelease == nil {
+		return "", fmt.Errorf("failed to find HelmRelease '%s' in namespace %s", releaseName, ns)
 	} else if err != nil {
 		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
 	}
 
-	return helm.AppendHelmReleaseToString(fileContent, newRelease)
+	if matchingHelmRelease.Spec.Chart.Spec.Version == version {
+		return "", fmt.Errorf("version %s of profile '%s' already installed in %s/%s", version, name, ns, cluster)
+	}
+
+	matchingHelmRelease.Spec.Chart.Spec.Version = version
+
+	return helm.PatchHelmRelease(existingReleases, *matchingHelmRelease, index)
 }

@@ -149,12 +149,8 @@ var _ = Describe("Add", func() {
 			})
 
 			It("fails to append the new HelmRelease to profiles.yaml", func() {
-				gitProviders.RepositoryExistsReturns(true, nil)
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
 				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-				Expect(err).To(MatchError("failed to add HelmRelease for profile 'podinfo' to profiles.yaml: profile 'podinfo' is already installed in weave-system/prod"))
+				Expect(err).To(MatchError("failed to add HelmRelease for profile 'podinfo' to profiles.yaml: found another HelmRelease for profile 'podinfo' in namespace weave-system"))
 			})
 		})
 
