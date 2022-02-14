@@ -517,43 +517,7 @@ func deletePersistingHelmApp(namespace string, workloadName string, timeout time
 	}
 }
 
-func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string) string {
-	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
-
-	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
-	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile))
-
-	return changedValue
-}
-
-func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time.Duration) error {
-	replica := strconv.Itoa(replicasSetValue)
-	pollInterval := time.Second * 5
-	timeoutInSeconds := int(timeout.Seconds())
-
-	errOut := utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
-		log.Infof("Waiting for replicas to be created under namespace: %s || timeout: %d second(s)", namespace, timeoutInSeconds)
-
-		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
-		out = strings.TrimSpace(out)
-		if out == replica {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", namespace))
-			log.Infof("Replicas created successfully")
-			return nil
-		} else {
-			return fmt.Errorf(": Replica(s) not created, waiting")
-		}
-	})
-
-	if errOut != nil {
-		return fmt.Errorf("Timeout reached, failed to create replicas")
-	} else {
-		return nil
-	}
-}
-
-func waitForAppRemoval(appName string) error {
+func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
 
 	errOut := utils.WaitUntil(os.Stdout, pollInterval, EVENTUALLY_DEFAULT_TIMEOUT, func() error {
@@ -677,11 +641,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, THIRTY_SECOND_TIMEOUT, 1).Should(gexec.Exit())
-}
-
-func gitUpdateCommitPush(repoAbsolutePath string) {
-	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
 func pullGitRepo(repoAbsolutePath string) {
