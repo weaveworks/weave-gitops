@@ -198,8 +198,9 @@ func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.Hel
 func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference) (*action.ChartPathOptions, error) {
 	// TODO: This should probably use Verify: true
 	co := &action.ChartPathOptions{
-		RepoURL: helmRepo.Spec.URL,
-		Version: c.Version,
+		RepoURL:            helmRepo.Spec.URL,
+		Version:            c.Version,
+		PassCredentialsAll: helmRepo.Spec.PassCredentials,
 	}
 
 	if helmRepo.Spec.SecretRef != nil {
