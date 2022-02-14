@@ -126,26 +126,6 @@ service Applications {
     }
 
     /*
-    * AddApplication adds an Application to a cluster via GitOps.
-    */
-    rpc AddApplication(AddApplicationRequest) returns (AddApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications"
-            body: "*"
-        };
-    }
-
-    /*
-    * RemoveApplication removes an Application from a cluster via GitOps.
-    */
-    rpc RemoveApplication(RemoveApplicationRequest) returns (RemoveApplicationResponse) {
-        option (google.api.http) = {
-            delete : "/v1/applications/{name}"
-            body: "*"
-        };
-    }
-
-    /*
     * SyncApplication triggers the Application reconciliation loop.
     */
     rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
@@ -276,32 +256,6 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
-}
-
-message AddApplicationRequest {
-    string name       = 1;
-    string namespace  = 2;
-    string path       = 3;
-    string url        = 4;
-    string branch     = 5;
-    bool   autoMerge  = 6;
-    string configRepo = 7;
-}
-
-message AddApplicationResponse {
-    bool        success        = 1;
-    Application application    = 2;
-}
-
-message RemoveApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-    bool   autoMerge = 3;
-}
-
-message RemoveApplicationResponse {
-    bool success = 1;
-    string repoUrl = 2;
 }
 
 message SyncApplicationRequest {

@@ -1,17 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CommitsTable snapshots renders 1`] = `
-.c2.MuiButton-root {
-  line-height: 1;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.c2.MuiButton-outlined {
-  padding: 8px 12px;
-  border-color: #d8d8d8;
-}
-
 .c1 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -46,6 +35,17 @@ exports[`CommitsTable snapshots renders 1`] = `
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
+}
+
+.c2.MuiButton-root {
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+  border-color: #d8d8d8;
 }
 
 .c8 {

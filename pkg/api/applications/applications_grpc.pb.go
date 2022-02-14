@@ -62,12 +62,6 @@ type ApplicationsClient interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
-	// AddApplication adds an Application to a cluster via GitOps.
-	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
-	//
-	// RemoveApplication removes an Application from a cluster via GitOps.
-	RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error)
-	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
 	//
@@ -179,24 +173,6 @@ func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeG
 	return out, nil
 }
 
-func (c *applicationsClient) AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error) {
-	out := new(AddApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AddApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error) {
-	out := new(RemoveApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/RemoveApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error) {
 	out := new(SyncApplicationResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/SyncApplication", in, out, opts...)
@@ -281,12 +257,6 @@ type ApplicationsServer interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
-	// AddApplication adds an Application to a cluster via GitOps.
-	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
-	//
-	// RemoveApplication removes an Application from a cluster via GitOps.
-	RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error)
-	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
 	//
@@ -334,12 +304,6 @@ func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGit
 }
 func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
-}
-func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
-}
-func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveApplication not implemented")
 }
 func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
@@ -546,42 +510,6 @@ func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_AddApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).AddApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/AddApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).AddApplication(ctx, req.(*AddApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_RemoveApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).RemoveApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/RemoveApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).RemoveApplication(ctx, req.(*RemoveApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SyncApplicationRequest)
 	if err := dec(in); err != nil {
@@ -700,14 +628,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthorizeGitlab",
 			Handler:    _Applications_AuthorizeGitlab_Handler,
-		},
-		{
-			MethodName: "AddApplication",
-			Handler:    _Applications_AddApplication_Handler,
-		},
-		{
-			MethodName: "RemoveApplication",
-			Handler:    _Applications_RemoveApplication_Handler,
 		},
 		{
 			MethodName: "SyncApplication",

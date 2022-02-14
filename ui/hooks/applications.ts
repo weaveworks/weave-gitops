@@ -3,8 +3,6 @@ import { useContext, useEffect, useState } from "react";
 import { getProviderToken } from "..";
 import { AppContext } from "../contexts/AppContext";
 import {
-  AddApplicationRequest,
-  AddApplicationResponse,
   Application,
   GetApplicationRequest,
   GetApplicationResponse,
@@ -12,8 +10,6 @@ import {
   ListCommitsRequest,
   ListCommitsResponse,
   ParseRepoURLResponse,
-  RemoveApplicationRequest,
-  RemoveApplicationResponse,
 } from "../lib/api/applications/applications.pb";
 import { makeHeaders, RequestStateWithToken, useRequestState } from "./common";
 
@@ -28,44 +24,6 @@ export function useParseRepoURL(url: string) {
   }, [url]);
 
   return [res, loading, error];
-}
-
-type AddApplicationReturnType = RequestStateWithToken<
-  AddApplicationRequest,
-  AddApplicationResponse
->;
-
-export function useAddApplication(): AddApplicationReturnType {
-  const { applicationsClient } = useContext(AppContext);
-  const [res, loading, error, req] = useRequestState<AddApplicationResponse>();
-
-  return [
-    res,
-    loading,
-    error,
-    (provider: GitProvider, body: AddApplicationRequest) => {
-      const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-      req(applicationsClient.AddApplication(body, { headers }));
-    },
-  ];
-}
-
-export function useAppRemove(): RequestStateWithToken<
-  RemoveApplicationRequest,
-  RemoveApplicationResponse
-> {
-  const { applicationsClient } = useContext(AppContext);
-  const [res, loading, error, req] = useRequestState<AddApplicationResponse>();
-
-  return [
-    res,
-    loading,
-    error,
-    (provider: GitProvider, body: AddApplicationRequest) => {
-      const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-      req(applicationsClient.RemoveApplication(body, { headers }));
-    },
-  ];
 }
 
 type ListCommitsReturnType = RequestStateWithToken<

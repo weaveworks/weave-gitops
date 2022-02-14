@@ -13,10 +13,8 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/runtime v0.12.2
 	github.com/fluxcd/pkg/ssa v0.6.0
-	github.com/fluxcd/source-controller v0.19.2
 	github.com/fluxcd/source-controller/api v0.19.2
 	github.com/go-errors/errors v1.4.0 // indirect
-	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.2
@@ -25,20 +23,18 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.6
-	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/ory/go-acc v0.2.6
-	github.com/pelletier/go-toml v1.9.4
+	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
@@ -47,7 +43,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
-	github.com/xanzy/go-gitlab v0.54.3
+	github.com/xanzy/go-gitlab v0.54.3 // indirect
 	go.uber.org/zap v1.19.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20211129164237-f09f9a12af12
@@ -100,6 +96,9 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
+	github.com/bugsnag/bugsnag-go v2.1.2+incompatible // indirect
+	github.com/bugsnag/panicwrap v1.3.4 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/containerd/containerd v1.5.9 // indirect
@@ -116,6 +115,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/evanphx/json-patch v4.11.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
@@ -124,12 +124,15 @@ require (
 	github.com/fluxcd/pkg/apis/kustomize v0.3.0 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/garyburd/redigo v1.6.3 // indirect
 	github.com/getkin/kin-openapi v0.61.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
+	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gofrs/uuid v4.1.0+incompatible // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -153,6 +156,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
 	github.com/labstack/echo/v4 v4.2.1 // indirect
@@ -209,6 +213,9 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca // indirect
+	github.com/yvasiyarov/go-metrics v0.0.0-20150112132944-c25f46c4b940 // indirect
+	github.com/yvasiyarov/gorelic v0.0.7 // indirect
+	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
@@ -238,7 +245,6 @@ require (
 	k8s.io/kubectl v0.22.1 // indirect
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a // indirect
 	oras.land/oras-go v0.4.0 // indirect
-
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )

@@ -15,8 +15,6 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/pelletier/go-toml"
-
 	"strconv"
 	"strings"
 	"time"
@@ -57,19 +55,14 @@ const (
 )
 
 var (
-	sshKeyPath  string
-	githubOrg   string
-	githubToken string
-	gitlabOrg   string
-	gitlabToken string
-	gitlabKey   string
-	// Make sure the subgroup belongs to the GITLAB_ORG
-	gitlabSubgroup    string
-	gitlabPublicGroup string
-	gitopsBinaryPath  string
-	gitProviderName   string
-	gitOrg            string
-	gitProvider       gitproviders.GitProviderName
+	githubOrg        string
+	githubToken      string
+	gitlabOrg        string
+	gitlabToken      string
+	gitopsBinaryPath string
+	gitProviderName  string
+	gitOrg           string
+	gitProvider      gitproviders.GitProviderName
 )
 
 type TestInputs struct {
@@ -171,19 +164,6 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 	return absWorkloadManifestFilePath
 }
 
-func setupGitlabSSHKey(sshKeyPath string) {
-	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
-		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                           echo "%s" >> %s &&
-                           chmod 0600 %s &&
-                           ls -la %s &&
-                           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, gitlabKey, sshKeyPath, sshKeyPath, sshKeyPath))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	}
-}
-
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, string, error) {
 	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
@@ -195,15 +175,6 @@ func getK8sVersion() string {
 	}
 
 	return DEFAULT_K8S_VERSION
-}
-
-func getCurrentFluxSupportedVersion() (string, error) {
-	config, err := toml.LoadFile("../../../tools/dependencies.toml")
-	if err != nil {
-		return "", fmt.Errorf("failed reading toml file: %w", err)
-	}
-
-	return config.Get("flux.version").(string), nil
 }
 
 func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, string, error) {
@@ -308,44 +279,33 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	return repoAbsolutePath
 }
 
-func createSubDir(subDirName string, repoAbsolutePath string) string {
-	subDirAbsolutePath := fmt.Sprintf(`%s/%s`, repoAbsolutePath, subDirName)
-	command := exec.Command("sh", "-c", fmt.Sprintf(`mkdir -p %s`, subDirAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
+	pollInterval := 5
 
-	return subDirAbsolutePath
-}
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
 
-func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	timeoutInSeconds := int(timeout.Seconds())
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
+		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 
-	return string(session.Wait().Out.Contents())
-}
+		if err == nil {
+			log.Infof("%s is available in cluster", resourceType+"/"+resourceName)
+			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 
-func getGitRepoVisibility(org string, repo string, providerName gitproviders.GitProviderName) string {
-	gitProvider, orgRef, err := getGitProvider(org, repo, providerName)
-	Expect(err).ShouldNot(HaveOccurred())
+			noResourcesFoundMessage := fmt.Sprintf("No resources found in %s namespace", namespace)
 
-	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
-	Expect(err).ShouldNot(HaveOccurred())
+			if strings.Contains(string(session.Wait().Out.Contents()), noResourcesFoundMessage) {
+				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
+				continue
+			}
 
-	visibility := string(*orgInfo.Get().Visibility)
-
-	return visibility
-}
-
-//Assumes resource will eventually contain a status.Conditions where Type=Ready exists
-func waitForResourceToBeReady(resourceType string, resourceName string, namespace string, timeout time.Duration) {
-	EventuallyWithOffset(1, func() error {
-		log.Infof("Waiting for %s/%s in namespace: %q to be ready", resourceType, resourceName, namespace)
-		kubectlCommand := fmt.Sprintf("kubectl -n %s wait --for=condition=ready %s %s", namespace, resourceType, resourceName)
-		if resourceName == "" {
-			kubectlCommand = kubectlCommand + " --all"
+			return nil
 		}
 		if _, err := exec.Command("sh", "-c", kubectlCommand).CombinedOutput(); err != nil {
 			return err
@@ -517,26 +477,6 @@ func deletePersistingHelmApp(namespace string, workloadName string, timeout time
 	}
 }
 
-func waitForAppRemoval(appName string, timeout time.Duration) error {
-	pollInterval := time.Second * 5
-
-	errOut := utils.WaitUntil(os.Stdout, pollInterval, EVENTUALLY_DEFAULT_TIMEOUT, func() error {
-		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("%s get apps", gitopsBinaryPath))
-		if strings.Contains(out, appName) {
-			return fmt.Errorf("Waiting to delete app: %s || timeout: %d second(s)", appName, EVENTUALLY_DEFAULT_TIMEOUT)
-		} else {
-			log.Infof("App %s successfully deleted", appName)
-			return nil
-		}
-	})
-
-	if errOut != nil {
-		return fmt.Errorf("Failed to delete app %s", appName)
-	} else {
-		return nil
-	}
-}
-
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
@@ -599,18 +539,6 @@ func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {
 	waitForResourceToExist("HelmRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)
 }
 
-func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=30s -n %s GitRepositories --all", wegoNamespace))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-
-	command = exec.Command("sh", "-c", fmt.Sprintf("kubectl get GitRepositories %s -n %s", appRepoName, wegoNamespace))
-	out, err := command.CombinedOutput()
-	Expect(err).To(HaveOccurred())
-	Expect(string(out)).To(ContainSubstring("not found"))
-}
-
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 	waitForResourceToExist("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)
 	waitForResourceToBeReady("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT)
@@ -641,32 +569,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, THIRTY_SECOND_TIMEOUT, 1).Should(gexec.Exit())
-}
-
-func pullGitRepo(repoAbsolutePath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-}
-
-func verifyPRCreated(repoAbsolutePath, appName string, providerName gitproviders.GitProviderName) {
-	ctx := context.Background()
-
-	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
-	Expect(repoUrlErr).ShouldNot(HaveOccurred())
-
-	org, _ := extractOrgAndRepo(repoUrlString)
-	gitProvider, orgRef, providerErr := getGitProvider(org, filepath.Base(repoAbsolutePath), providerName)
-	Expect(providerErr).ShouldNot(HaveOccurred())
-
-	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
-	Expect(repoErr).ShouldNot(HaveOccurred())
-
-	prs, err := or.PullRequests().List(ctx)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	Expect(len(prs)).To(Equal(1))
 }
 
 func mergePR(repoAbsolutePath, prLink string, providerName gitproviders.GitProviderName) {

@@ -13,6 +13,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	sshKeyPath string
+	gitlabKey  string
+	// Make sure the subgroup belongs to the GITLAB_ORG
+	gitlabSubgroup    string
+	gitlabPublicGroup string
+)
+
 const (
 	gitlabTokenEnvVar       = "GITLAB_TOKEN"
 	gitlabOrgEnvVar         = "GITLAB_ORG"

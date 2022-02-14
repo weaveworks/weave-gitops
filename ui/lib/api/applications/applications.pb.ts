@@ -118,32 +118,6 @@ export type GetApplicationResponse = {
   application?: Application
 }
 
-export type AddApplicationRequest = {
-  name?: string
-  namespace?: string
-  path?: string
-  url?: string
-  branch?: string
-  autoMerge?: boolean
-  configRepo?: string
-}
-
-export type AddApplicationResponse = {
-  success?: boolean
-  application?: Application
-}
-
-export type RemoveApplicationRequest = {
-  name?: string
-  namespace?: string
-  autoMerge?: boolean
-}
-
-export type RemoveApplicationResponse = {
-  success?: boolean
-  repoUrl?: string
-}
-
 export type SyncApplicationRequest = {
   name?: string
   namespace?: string
@@ -301,12 +275,6 @@ export class Applications {
   }
   static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
     return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/applications/auth_providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static AddApplication(req: AddApplicationRequest, initReq?: fm.InitReq): Promise<AddApplicationResponse> {
-    return fm.fetchReq<AddApplicationRequest, AddApplicationResponse>(`/v1/applications`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static RemoveApplication(req: RemoveApplicationRequest, initReq?: fm.InitReq): Promise<RemoveApplicationResponse> {
-    return fm.fetchReq<RemoveApplicationRequest, RemoveApplicationResponse>(`/v1/applications/${req["name"]}`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
   }
   static SyncApplication(req: SyncApplicationRequest, initReq?: fm.InitReq): Promise<SyncApplicationResponse> {
     return fm.fetchReq<SyncApplicationRequest, SyncApplicationResponse>(`/v1/applications/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
