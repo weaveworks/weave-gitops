@@ -206,7 +206,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 					CookieDuration:     options.OIDC.CookieDuration,
 					IssueSecureCookies: oidcIssueSecureCookies,
 				},
-			},
+			}, rawClient,
 		)
 		if err != nil {
 			return fmt.Errorf("could not create auth server: %w", err)

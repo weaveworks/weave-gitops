@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,7 +11,11 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
+	corev1 "k8s.io/api/core/v1"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -42,30 +47,40 @@ type AuthConfig struct {
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	logger   logr.Logger
-	client   *http.Client
-	provider *oidc.Provider
-	config   AuthConfig
+	logger           logr.Logger
+	client           *http.Client
+	provider         *oidc.Provider
+	config           AuthConfig
+	kubernetesClient ctrlclient.Client
+	hmacSecret       []byte
 }
 
 // Form data submitted by client
 type LoginRequest struct {
-	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client) (*AuthServer, error) {
 	provider, err := oidc.NewProvider(ctx, config.IssuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not create provider: %w", err)
 	}
 
+	hmacSecret := make([]byte, 64)
+
+	_, err = rand.Read(hmacSecret)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate random HMAC secret: %w", err)
+	}
+
 	return &AuthServer{
-		logger:   logger,
-		client:   client,
-		provider: provider,
-		config:   config,
+		logger:           logger,
+		client:           client,
+		provider:         provider,
+		config:           config,
+		kubernetesClient: kubernetesClient,
+		hmacSecret:       hmacSecret,
 	}, nil
 }
 
@@ -207,48 +222,82 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			s.logger.Info("Only POST requests allowed")
+			rw.WriteHeader(http.StatusMethodNotAllowed)
 
-			var loginRequest LoginRequest
+			return
+		}
 
-			err := json.NewDecoder(r.Body).Decode(&loginRequest)
+		var loginRequest LoginRequest
+
+		err := json.NewDecoder(r.Body).Decode(&loginRequest)
+		if err != nil {
+			s.logger.Error(err, "Failed to decode from JSON")
+			http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+
+			return
+		}
+
+		var hashedSecret corev1.Secret
+
+		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
+			Namespace: "wego-system",
+			Name:      "admin-password-hash",
+		}, &hashedSecret); err != nil {
+			s.logger.Error(err, "Failed to query for the secret")
+			http.Error(rw, fmt.Sprint("Please ensure that a password has been set."), http.StatusBadRequest)
+
+			return
+		}
+
+		if err := bcrypt.CompareHashAndPassword(hashedSecret.Data["password"], []byte(loginRequest.Password)); err == nil {
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+			})
+
+			signed, err := token.SignedString(s.hmacSecret)
 			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+				s.logger.Error(err, "Failed to create and sign token")
+				rw.WriteHeader(http.StatusInternalServerError)
+
 				return
 			}
 
-			if loginRequest.Username == "admin" && loginRequest.Password == "password" {
-				rw.WriteHeader(http.StatusOK)
-			} else {
-				rw.WriteHeader(http.StatusForbidden)
-			}
+			http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
+			rw.WriteHeader(http.StatusOK)
+		} else {
+			s.logger.Error(err, "Failed to compare hash with password")
+			rw.WriteHeader(http.StatusUnauthorized)
 		}
+	}
 }
 
 // Call the OIDC User Info endpoint and return information to the client
 // Read the cookie and extract the token to then interogate the OIDC provider for the User Info
 func (s *AuthServer) UserInfo() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie(IDTokenCookieName)
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
-				return
-			}
-
-			info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
-				AccessToken: c.Value,
-			}))
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
-				return
-			}
-
-			b, err := json.Marshal(info)
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
-				return
-			}
-			rw.Write(b)
+		c, err := r.Cookie(IDTokenCookieName)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
+			return
 		}
+
+		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.Value,
+		}))
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
+			return
+		}
+
+		b, err := json.Marshal(info)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
+			return
+		}
+		rw.Write(b)
+	}
 }
 
 func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
@@ -261,8 +310,8 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	returnUrl := r.URL.Query().Get("return_url")
 
 	if returnUrl == "" {
-		returnUrl = r.URL.String() 
-	} 
+		returnUrl = r.URL.String()
+	}
 
 	fmt.Printf("return url:%v\n", returnUrl)
 

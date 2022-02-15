@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
@@ -30,6 +31,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	fake := m.Config()
 	mux := http.NewServeMux()
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
 
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
@@ -43,7 +45,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 				CookieDuration:     20 * time.Minute,
 				IssueSecureCookies: false,
 			},
-		})
+		}, fakeKubernetesClient)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
@@ -79,6 +81,7 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 
 	fake := m.Config()
 	mux := http.NewServeMux()
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
 
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
@@ -92,7 +95,7 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 				CookieDuration:     20 * time.Minute,
 				IssueSecureCookies: false,
 			},
-		})
+		}, fakeKubernetesClient)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
