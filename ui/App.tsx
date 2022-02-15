@@ -32,6 +32,7 @@ import AddKustomization from "./pages/v2/AddKustomization";
 import AddSource from "./pages/v2/AddSource";
 import Application from "./pages/v2/Application/Application";
 import ApplicationList from "./pages/v2/ApplicationList/ApplicationList";
+import FluxRuntime from "./pages/v2/FluxRuntime";
 import KustomizationList from "./pages/v2/KustomizationList";
 import NewApp from "./pages/v2/NewApp";
 import SourcesList from "./pages/v2/SourcesList";
@@ -141,6 +142,11 @@ export default function App() {
                       exact
                       path={V2Routes.SourcesList}
                       component={SourcesList}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.FluxRuntime}
+                      component={FluxRuntime}
                     />
                     <Redirect exact from="/" to={V2Routes.ApplicationList} />
                     <Route exact path="*" component={Error} />

@@ -52,7 +52,11 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization) *pb.Kustomizatio
 			Kind: kind,
 			Name: kustomization.Spec.SourceRef.Name,
 		},
-		Interval:                nil,
+		Interval: &pb.Interval{
+			Hours:   int64(kustomization.Spec.Interval.Hours()),
+			Minutes: int64(kustomization.Spec.Interval.Minutes()),
+			Seconds: int64(kustomization.Spec.Interval.Seconds()),
+		},
 		Conditions:              mapConditions(kustomization.Status.Conditions),
 		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
 		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,

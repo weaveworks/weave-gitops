@@ -8,12 +8,7 @@ import {
   Kustomization,
   ListKustomizationsRes,
 } from "../lib/api/app/flux.pb";
-import {
-  Automation,
-  AutomationType,
-  RequestError,
-  WeGONamespace,
-} from "../lib/types";
+import { AutomationType, RequestError, WeGONamespace } from "../lib/types";
 
 export function useCreateKustomization() {
   const { apps } = useContext(AppContext);
@@ -53,7 +48,7 @@ export function useListAutomations(namespace = WeGONamespace) {
         return [
           ..._.map(kustomizations, (k) => ({
             ...k,
-            type: AutomationType.Kustomize,
+            type: AutomationType.Kustomization,
           })),
         ];
       });

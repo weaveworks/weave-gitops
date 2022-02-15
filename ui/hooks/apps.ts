@@ -6,6 +6,7 @@ import {
   AddAppResponse,
   GetAppResponse,
   ListAppResponse,
+  ListFluxRuntimeObjectsRes,
   RemoveAppRequest,
   RemoveAppResponse,
 } from "../lib/api/app/apps.pb";
@@ -55,5 +56,15 @@ export function useRemoveApp() {
 
   return useMutation<RemoveAppResponse, RequestError, RemoveAppRequest>(
     (body: RemoveAppRequest) => apps.RemoveApp({ ...body })
+  );
+}
+
+export function useListFluxRuntimeObjects(namespace = WeGONamespace) {
+  const { apps } = useContext(AppContext);
+
+  return useQuery<ListFluxRuntimeObjectsRes, RequestError>(
+    "runtime_objects",
+    () => apps.ListFluxRuntimeObjects({ namespace }),
+    { retry: false }
   );
 }

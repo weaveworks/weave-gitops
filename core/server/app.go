@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
@@ -10,6 +11,7 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	appsv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -109,6 +111,46 @@ func (as *appServer) ListApps(ctx context.Context, msg *pb.ListAppRequest) (*pb.
 	return &pb.ListAppResponse{
 		Apps: results,
 	}, nil
+}
+
+func (as *appServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsReq) (*pb.ListFluxRuntimeObjectsRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &appsv1.DeploymentList{}
+
+	if err := k8s.List(ctx, list, client.InNamespace(msg.Namespace)); err != nil {
+		return nil, fmt.Errorf("listing deployments: %w", err)
+	}
+
+	result := []*pb.Deployment{}
+
+	for _, d := range list.Items {
+		r := &pb.Deployment{
+			Name:       d.Name,
+			Namespace:  d.Namespace,
+			Conditions: []*pb.Condition{},
+		}
+
+		for _, cond := range d.Status.Conditions {
+			r.Conditions = append(r.Conditions, &pb.Condition{
+				Message: cond.Message,
+				Reason:  cond.Reason,
+				Status:  string(cond.Status),
+				Type:    string(cond.Type),
+			})
+		}
+
+		for _, img := range d.Spec.Template.Spec.Containers {
+			r.Images = append(r.Images, img.Image)
+		}
+
+		result = append(result, r)
+	}
+
+	return &pb.ListFluxRuntimeObjectsRes{Deployments: result}, nil
 }
 
 func (as *appServer) RemoveApp(_ context.Context, msg *pb.RemoveAppRequest) (*pb.RemoveAppResponse, error) {

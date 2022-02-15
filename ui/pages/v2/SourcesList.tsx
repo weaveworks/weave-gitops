@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import AddSourceButton from "../../components/AddSourceButton";
 import Page from "../../components/Page";
 import SourcesTable from "../../components/SourcesTable";
 import { useListSources } from "../../hooks/sources";
@@ -17,7 +16,6 @@ function SourcesList({ className }: Props) {
       error={error}
       loading={isLoading}
       className={className}
-      actions={<AddSourceButton />}
     >
       <SourcesTable sources={sources} />
     </Page>

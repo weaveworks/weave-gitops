@@ -72,25 +72,25 @@ func (SourceRef_Kind) EnumDescriptor() ([]byte, []int) {
 type Source_Type int32
 
 const (
-	Source_Git    Source_Type = 0
-	Source_Bucket Source_Type = 1
-	Source_Helm   Source_Type = 2
-	Source_Chart  Source_Type = 3
+	Source_GitRepository  Source_Type = 0
+	Source_Bucket         Source_Type = 1
+	Source_HelmRepository Source_Type = 2
+	Source_HelmChart      Source_Type = 3
 )
 
 // Enum value maps for Source_Type.
 var (
 	Source_Type_name = map[int32]string{
-		0: "Git",
+		0: "GitRepository",
 		1: "Bucket",
-		2: "Helm",
-		3: "Chart",
+		2: "HelmRepository",
+		3: "HelmChart",
 	}
 	Source_Type_value = map[string]int32{
-		"Git":    0,
-		"Bucket": 1,
-		"Helm":   2,
-		"Chart":  3,
+		"GitRepository":  0,
+		"Bucket":         1,
+		"HelmRepository": 2,
+		"HelmChart":      3,
 	}
 )
 
@@ -535,6 +535,7 @@ type Source struct {
 	SecretRefName     string            `protobuf:"bytes,11,opt,name=secretRefName,proto3" json:"secretRefName,omitempty"`
 	Conditions        []*Condition      `protobuf:"bytes,12,rep,name=conditions,proto3" json:"conditions,omitempty"`
 	Artifact          *Artifact         `protobuf:"bytes,13,opt,name=artifact,proto3" json:"artifact,omitempty"`
+	Interval          *Interval         `protobuf:"bytes,14,opt,name=Interval,proto3" json:"Interval,omitempty"`
 }
 
 func (x *Source) Reset() {
@@ -601,7 +602,7 @@ func (x *Source) GetType() Source_Type {
 	if x != nil {
 		return x.Type
 	}
-	return Source_Git
+	return Source_GitRepository
 }
 
 func (x *Source) GetProvider() string {
@@ -656,6 +657,13 @@ func (x *Source) GetConditions() []*Condition {
 func (x *Source) GetArtifact() *Artifact {
 	if x != nil {
 		return x.Artifact
+	}
+	return nil
+}
+
+func (x *Source) GetInterval() *Interval {
+	if x != nil {
+		return x.Interval
 	}
 	return nil
 }
@@ -2329,7 +2337,7 @@ var file_api_app_source_proto_rawDesc = []byte{
 	0x01, 0x28, 0x09, 0x52, 0x03, 0x74, 0x61, 0x67, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x6d, 0x76,
 	0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6d, 0x76, 0x65, 0x72,
 	0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x22, 0xaa, 0x04, 0x0a, 0x06, 0x53, 0x6f, 0x75,
+	0x52, 0x06, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x22, 0xfa, 0x04, 0x0a, 0x06, 0x53, 0x6f, 0x75,
 	0x72, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65,
@@ -2361,9 +2369,14 @@ var file_api_app_source_proto_rawDesc = []byte{
 	0x72, 0x74, 0x69, 0x66, 0x61, 0x63, 0x74, 0x18, 0x0d, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
 	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
 	0x2e, 0x41, 0x72, 0x74, 0x69, 0x66, 0x61, 0x63, 0x74, 0x52, 0x08, 0x61, 0x72, 0x74, 0x69, 0x66,
-	0x61, 0x63, 0x74, 0x22, 0x30, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x07, 0x0a, 0x03, 0x47,
-	0x69, 0x74, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x10, 0x01,
-	0x12, 0x08, 0x0a, 0x04, 0x48, 0x65, 0x6c, 0x6d, 0x10, 0x02, 0x12, 0x09, 0x0a, 0x05, 0x43, 0x68,
+	0x61, 0x63, 0x74, 0x12, 0x36, 0x0a, 0x08, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18,
+	0x0e, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61,
+	0x6c, 0x52, 0x08, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x22, 0x48, 0x0a, 0x04, 0x54,
+	0x79, 0x70, 0x65, 0x12, 0x11, 0x0a, 0x0d, 0x47, 0x69, 0x74, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69,
+	0x74, 0x6f, 0x72, 0x79, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74,
+	0x10, 0x01, 0x12, 0x12, 0x0a, 0x0e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69,
+	0x74, 0x6f, 0x72, 0x79, 0x10, 0x02, 0x12, 0x0d, 0x0a, 0x09, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68,
 	0x61, 0x72, 0x74, 0x10, 0x03, 0x22, 0xa8, 0x02, 0x0a, 0x0d, 0x47, 0x69, 0x74, 0x52, 0x65, 0x70,
 	0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73,
 	0x70, 0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65,
@@ -2661,41 +2674,42 @@ var file_api_app_source_proto_depIdxs = []int32{
 	1,  // 2: gitops_server.v1.Source.type:type_name -> gitops_server.v1.Source.Type
 	6,  // 3: gitops_server.v1.Source.conditions:type_name -> gitops_server.v1.Condition
 	5,  // 4: gitops_server.v1.Source.artifact:type_name -> gitops_server.v1.Artifact
-	7,  // 5: gitops_server.v1.GitRepository.reference:type_name -> gitops_server.v1.GitRepositoryRef
-	3,  // 6: gitops_server.v1.GitRepository.interval:type_name -> gitops_server.v1.Interval
-	6,  // 7: gitops_server.v1.GitRepository.conditions:type_name -> gitops_server.v1.Condition
-	7,  // 8: gitops_server.v1.AddGitRepositoryReq.reference:type_name -> gitops_server.v1.GitRepositoryRef
-	3,  // 9: gitops_server.v1.AddGitRepositoryReq.interval:type_name -> gitops_server.v1.Interval
-	9,  // 10: gitops_server.v1.AddGitRepositoryRes.git_repository:type_name -> gitops_server.v1.GitRepository
-	9,  // 11: gitops_server.v1.ListGitRepositoryRes.git_repositories:type_name -> gitops_server.v1.GitRepository
-	3,  // 12: gitops_server.v1.HelmRepository.interval:type_name -> gitops_server.v1.Interval
-	6,  // 13: gitops_server.v1.HelmRepository.conditions:type_name -> gitops_server.v1.Condition
-	3,  // 14: gitops_server.v1.AddHelmRepositoryReq.interval:type_name -> gitops_server.v1.Interval
-	14, // 15: gitops_server.v1.AddHelmRepositoryRes.helm_repository:type_name -> gitops_server.v1.HelmRepository
-	14, // 16: gitops_server.v1.ListHelmRepositoryRes.helm_repositories:type_name -> gitops_server.v1.HelmRepository
-	4,  // 17: gitops_server.v1.HelmChart.sourceRef:type_name -> gitops_server.v1.SourceRef
-	3,  // 18: gitops_server.v1.HelmChart.interval:type_name -> gitops_server.v1.Interval
-	6,  // 19: gitops_server.v1.HelmChart.conditions:type_name -> gitops_server.v1.Condition
-	19, // 20: gitops_server.v1.AddHelmChartReq.helm_chart:type_name -> gitops_server.v1.HelmChart
-	19, // 21: gitops_server.v1.AddHelmChartRes.helm_chart:type_name -> gitops_server.v1.HelmChart
-	19, // 22: gitops_server.v1.ListHelmChartRes.helm_charts:type_name -> gitops_server.v1.HelmChart
-	3,  // 23: gitops_server.v1.Bucket.interval:type_name -> gitops_server.v1.Interval
-	2,  // 24: gitops_server.v1.Bucket.provider:type_name -> gitops_server.v1.Bucket.Provider
-	6,  // 25: gitops_server.v1.Bucket.conditions:type_name -> gitops_server.v1.Condition
-	24, // 26: gitops_server.v1.AddBucketReq.bucket:type_name -> gitops_server.v1.Bucket
-	24, // 27: gitops_server.v1.AddBucketRes.bucket:type_name -> gitops_server.v1.Bucket
-	24, // 28: gitops_server.v1.ListBucketRes.buckets:type_name -> gitops_server.v1.Bucket
-	3,  // 29: gitops_server.v1.HelmRelease.interval:type_name -> gitops_server.v1.Interval
-	19, // 30: gitops_server.v1.HelmRelease.helm_chart:type_name -> gitops_server.v1.HelmChart
-	6,  // 31: gitops_server.v1.HelmRelease.conditions:type_name -> gitops_server.v1.Condition
-	29, // 32: gitops_server.v1.AddHelmReleaseReq.helm_release:type_name -> gitops_server.v1.HelmRelease
-	29, // 33: gitops_server.v1.AddHelmReleaseRes.helm_release:type_name -> gitops_server.v1.HelmRelease
-	29, // 34: gitops_server.v1.ListHelmReleaseRes.helm_releases:type_name -> gitops_server.v1.HelmRelease
-	35, // [35:35] is the sub-list for method output_type
-	35, // [35:35] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	3,  // 5: gitops_server.v1.Source.Interval:type_name -> gitops_server.v1.Interval
+	7,  // 6: gitops_server.v1.GitRepository.reference:type_name -> gitops_server.v1.GitRepositoryRef
+	3,  // 7: gitops_server.v1.GitRepository.interval:type_name -> gitops_server.v1.Interval
+	6,  // 8: gitops_server.v1.GitRepository.conditions:type_name -> gitops_server.v1.Condition
+	7,  // 9: gitops_server.v1.AddGitRepositoryReq.reference:type_name -> gitops_server.v1.GitRepositoryRef
+	3,  // 10: gitops_server.v1.AddGitRepositoryReq.interval:type_name -> gitops_server.v1.Interval
+	9,  // 11: gitops_server.v1.AddGitRepositoryRes.git_repository:type_name -> gitops_server.v1.GitRepository
+	9,  // 12: gitops_server.v1.ListGitRepositoryRes.git_repositories:type_name -> gitops_server.v1.GitRepository
+	3,  // 13: gitops_server.v1.HelmRepository.interval:type_name -> gitops_server.v1.Interval
+	6,  // 14: gitops_server.v1.HelmRepository.conditions:type_name -> gitops_server.v1.Condition
+	3,  // 15: gitops_server.v1.AddHelmRepositoryReq.interval:type_name -> gitops_server.v1.Interval
+	14, // 16: gitops_server.v1.AddHelmRepositoryRes.helm_repository:type_name -> gitops_server.v1.HelmRepository
+	14, // 17: gitops_server.v1.ListHelmRepositoryRes.helm_repositories:type_name -> gitops_server.v1.HelmRepository
+	4,  // 18: gitops_server.v1.HelmChart.sourceRef:type_name -> gitops_server.v1.SourceRef
+	3,  // 19: gitops_server.v1.HelmChart.interval:type_name -> gitops_server.v1.Interval
+	6,  // 20: gitops_server.v1.HelmChart.conditions:type_name -> gitops_server.v1.Condition
+	19, // 21: gitops_server.v1.AddHelmChartReq.helm_chart:type_name -> gitops_server.v1.HelmChart
+	19, // 22: gitops_server.v1.AddHelmChartRes.helm_chart:type_name -> gitops_server.v1.HelmChart
+	19, // 23: gitops_server.v1.ListHelmChartRes.helm_charts:type_name -> gitops_server.v1.HelmChart
+	3,  // 24: gitops_server.v1.Bucket.interval:type_name -> gitops_server.v1.Interval
+	2,  // 25: gitops_server.v1.Bucket.provider:type_name -> gitops_server.v1.Bucket.Provider
+	6,  // 26: gitops_server.v1.Bucket.conditions:type_name -> gitops_server.v1.Condition
+	24, // 27: gitops_server.v1.AddBucketReq.bucket:type_name -> gitops_server.v1.Bucket
+	24, // 28: gitops_server.v1.AddBucketRes.bucket:type_name -> gitops_server.v1.Bucket
+	24, // 29: gitops_server.v1.ListBucketRes.buckets:type_name -> gitops_server.v1.Bucket
+	3,  // 30: gitops_server.v1.HelmRelease.interval:type_name -> gitops_server.v1.Interval
+	19, // 31: gitops_server.v1.HelmRelease.helm_chart:type_name -> gitops_server.v1.HelmChart
+	6,  // 32: gitops_server.v1.HelmRelease.conditions:type_name -> gitops_server.v1.Condition
+	29, // 33: gitops_server.v1.AddHelmReleaseReq.helm_release:type_name -> gitops_server.v1.HelmRelease
+	29, // 34: gitops_server.v1.AddHelmReleaseRes.helm_release:type_name -> gitops_server.v1.HelmRelease
+	29, // 35: gitops_server.v1.ListHelmReleaseRes.helm_releases:type_name -> gitops_server.v1.HelmRelease
+	36, // [36:36] is the sub-list for method output_type
+	36, // [36:36] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_api_app_source_proto_init() }

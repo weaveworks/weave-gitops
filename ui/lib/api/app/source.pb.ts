@@ -11,10 +11,10 @@ export enum SourceRefKind {
 }
 
 export enum SourceType {
-  Git = "Git",
+  GitRepository = "GitRepository",
   Bucket = "Bucket",
-  Helm = "Helm",
-  Chart = "Chart",
+  HelmRepository = "HelmRepository",
+  HelmChart = "HelmChart",
 }
 
 export enum BucketProvider {
@@ -71,6 +71,7 @@ export type Source = {
   secretRefName?: string
   conditions?: Condition[]
   artifact?: Artifact
+  interval?: Interval
 }
 
 export type GitRepository = {

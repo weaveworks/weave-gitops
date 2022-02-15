@@ -69,6 +69,7 @@ type AppsClient interface {
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleaseReq, opts ...grpc.CallOption) (*ListHelmReleaseRes, error)
+	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsReq, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsRes, error)
 }
 
 type appsClient struct {
@@ -232,6 +233,15 @@ func (c *appsClient) ListHelmReleases(ctx context.Context, in *ListHelmReleaseRe
 	return out, nil
 }
 
+func (c *appsClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsReq, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsRes, error) {
+	out := new(ListFluxRuntimeObjectsRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/ListFluxRuntimeObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppsServer is the server API for Apps service.
 // All implementations must embed UnimplementedAppsServer
 // for forward compatibility
@@ -287,6 +297,7 @@ type AppsServer interface {
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleaseReq) (*ListHelmReleaseRes, error)
+	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsReq) (*ListFluxRuntimeObjectsRes, error)
 	mustEmbedUnimplementedAppsServer()
 }
 
@@ -344,6 +355,9 @@ func (UnimplementedAppsServer) AddHelmRelease(context.Context, *AddHelmReleaseRe
 }
 func (UnimplementedAppsServer) ListHelmReleases(context.Context, *ListHelmReleaseReq) (*ListHelmReleaseRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
+}
+func (UnimplementedAppsServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsReq) (*ListFluxRuntimeObjectsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
 }
 func (UnimplementedAppsServer) mustEmbedUnimplementedAppsServer() {}
 
@@ -664,6 +678,24 @@ func _Apps_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Apps_ListFluxRuntimeObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFluxRuntimeObjectsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).ListFluxRuntimeObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/ListFluxRuntimeObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).ListFluxRuntimeObjects(ctx, req.(*ListFluxRuntimeObjectsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Apps_ServiceDesc is the grpc.ServiceDesc for Apps service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -738,6 +770,10 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListHelmReleases",
 			Handler:    _Apps_ListHelmReleases_Handler,
+		},
+		{
+			MethodName: "ListFluxRuntimeObjects",
+			Handler:    _Apps_ListFluxRuntimeObjects_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

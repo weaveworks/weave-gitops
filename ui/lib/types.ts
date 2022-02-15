@@ -1,4 +1,4 @@
-import { Condition, SourceType } from "./api/app/source.pb";
+import { Condition, Interval, SourceType } from "./api/app/source.pb";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -46,9 +46,10 @@ export interface Source {
   namespace?: string;
   type?: SourceType;
   conditions?: Condition[];
+  interval?: Interval;
 }
 
 export enum AutomationType {
-  Kustomize = "Kustomize",
+  Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
 }
