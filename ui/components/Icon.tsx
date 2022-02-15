@@ -2,6 +2,7 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
 import FilterIcon from "@material-ui/icons/FilterList";
@@ -38,6 +39,7 @@ export enum IconType {
   RemoveCircleIcon,
   FilterIcon,
   SearchIcon,
+  ClearIcon,
 }
 
 type Props = {
@@ -100,6 +102,10 @@ function getIcon(i: IconType) {
 
     case IconType.SearchIcon:
       return SearchIcon;
+
+    case IconType.ClearIcon:
+      return ClearIcon;
+
     default:
       break;
   }

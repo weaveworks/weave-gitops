@@ -1,6 +1,7 @@
 import { Meta, Story } from "@storybook/react";
 import React from "react";
 import FilterBar, { Props } from "../components/FilterBar";
+import Flex from "../components/Flex";
 
 export default {
   title: "FilterBar",
@@ -18,17 +19,18 @@ const Template: Story<Props> = (args) => {
   const [storyFilters, setStoryFilters] = React.useState([]);
 
   return (
-    <FilterBar
-      {...args}
-      activeFilters={storyFilters}
-      setActiveFilters={setStoryFilters}
-    />
+    <Flex wide align end>
+      <FilterBar
+        {...args}
+        activeFilters={storyFilters}
+        setActiveFilters={setStoryFilters}
+      />
+    </Flex>
   );
 };
 
 export const Default = Template.bind({});
 Default.args = {
-  className: "",
   filterList: {
     Name: ["app", "app2", "app3"],
     Status: ["Ready", "Failed"],

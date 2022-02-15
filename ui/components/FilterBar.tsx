@@ -1,7 +1,5 @@
 import {
   Checkbox,
-  Chip,
-  Divider,
   List,
   ListItem,
   ListItemIcon,
@@ -10,30 +8,22 @@ import {
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { theme } from "..";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import Input from "./Input";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
 /** Filter Bar Properties */
 export interface Props {
   className?: string;
-  /** currently checked filter options mapped to chips next to filter icon. Part of a `useState` with `setActiveFilters` */
+  /** currently checked filter options. Part of a `useState` with `setActiveFilters` */
   activeFilters: string[];
   /** the setState function for `activeFilters` */
   setActiveFilters: (newFilters: string[]) => void;
   /** Object containing column headers + corresponding filter options */
-  filterList: Record<string, string[]>;
+  filterList: { [header: string]: string[] };
 }
-
-const FilterHeader = styled(Flex)`
-  background: ${theme.colors.primary10};
-  color: white;
-  padding: ${theme.spacing.base};
-`;
 
 /** Form Filter Bar */
 function UnstyledFilterBar({
@@ -42,9 +32,9 @@ function UnstyledFilterBar({
   setActiveFilters,
   filterList,
 }: Props) {
+  /** why isn't this a ref? It doesn't work. In The MUI Popover docs they do it with setState too... :( https://mui.com/components/popover/ */
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [showFilters, setShowFilters] = React.useState(false);
-  const [search, setSearch] = React.useState("");
 
   const onCheck = (e, option) => {
     e.target.checked
@@ -55,9 +45,10 @@ function UnstyledFilterBar({
   };
 
   return (
-    <Flex className={className} align wide start>
+    <Flex className={className} align start>
       <Button
         variant="text"
+        color="inherit"
         onClick={(e) => {
           if (!anchorEl) setAnchorEl(e.currentTarget);
           setShowFilters(!showFilters);
@@ -66,89 +57,66 @@ function UnstyledFilterBar({
         <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
       </Button>
       <Popover
-        className="filter-popover"
+        elevation={0}
         open={showFilters}
         anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         onClose={() => setShowFilters(false)}
       >
-        <FilterHeader align start>
-          <Text size="large">Filters</Text>
-        </FilterHeader>
-        <Spacer padding="base">
-          <Flex align start>
-            <Icon type={IconType.SearchIcon} size="medium" />
-            <Spacer padding="xxs" />
-            <Input
-              placeholder="SEARCH"
-              defaultValue={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <Spacer padding="medium">
+          <Flex wide align between>
+            <Text size="extraLarge" color="neutral30">
+              Filters
+            </Text>
+            <Button variant="text" color="inherit">
+              <Icon type={IconType.ClearIcon} size="large" color="neutral30" />
+            </Button>
           </Flex>
-        </Spacer>
-        <Divider />
-        <List>
-          {Object.keys(filterList).map((header: string, index: number) => {
-            return (
-              <div key={index}>
-                <ListItem>
+          <List>
+            {_.map(filterList, (options: string[], header: string) => {
+              return (
+                <ListItem key={header}>
                   <Flex column>
-                    <Text size="large">{header}</Text>
+                    <Text size="large" color="neutral30">
+                      {header}
+                    </Text>
                     <List>
-                      {filterList[header].map(
-                        (option: string, index: number) => {
-                          if (search) {
-                            for (let i = 0; i < search.length; i++) {
-                              if (
-                                search[i].toLowerCase() !==
-                                option[i].toLowerCase()
-                              ) {
-                                return;
-                              }
-                            }
-                          }
-                          return (
-                            <ListItem key={index}>
-                              <ListItemIcon>
-                                <Checkbox
-                                  onChange={(e) => onCheck(e, option)}
-                                />
-                              </ListItemIcon>
-                              <Text>{option}</Text>
-                            </ListItem>
-                          );
-                        }
-                      )}
+                      {options.map((option: string, index: number) => {
+                        return (
+                          <ListItem key={index}>
+                            <ListItemIcon>
+                              <Checkbox onChange={(e) => onCheck(e, option)} />
+                            </ListItemIcon>
+                            <Text color="neutral30">{option}</Text>
+                          </ListItem>
+                        );
+                      })}
                     </List>
                   </Flex>
                 </ListItem>
-                {index < Object.keys(filterList).length - 1 && <Divider />}
-              </div>
-            );
-          })}
-        </List>
+              );
+            })}
+          </List>
+        </Spacer>
       </Popover>
-      {_.map(activeFilters, (filter, index) => {
-        return (
-          <Flex key={index}>
-            <Chip
-              label={filter}
-              onDelete={() =>
-                setActiveFilters(
-                  activeFilters.filter((filterCheck) => filterCheck !== filter)
-                )
-              }
-            />
-            <Spacer padding="xxs" />
-          </Flex>
-        );
-      })}
-      <Chip label="Clear All" onDelete={() => setActiveFilters([])} />
     </Flex>
   );
 }
 
-const FilterBar = styled(UnstyledFilterBar).attrs({
-  className: UnstyledFilterBar.name,
-})``;
+export const FilterBar = styled(UnstyledFilterBar)`
+  .MuiPopover-paper {
+    min-width: 600px;
+    border-left: 2px solid ${(props) => props.theme.colors.neutral30};
+  }
+  .MuiListItem-gutters {
+    padding-left: 0px;
+  }
+  .PrivateSwitchBase-root {
+    padding: 9px 9px 9px 0px;
+  }
+  .MuiIcon-colorSecondary {
+    color: ${(props) => props.theme.colors.primary};
+  }
+`;
+
 export default FilterBar;
