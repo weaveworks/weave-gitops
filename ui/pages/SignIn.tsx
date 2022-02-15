@@ -58,11 +58,15 @@ function SignIn() {
     password: string;
   }>({ username: "", password: "" });
 
-  const handleSubmit = () => {
+  const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
     return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
       CURRENT_URL
     )}`);
+  };
+
+  const handleUserPassSubmit = () => {
+    signIn(formState);
   };
 
   return (
@@ -77,7 +81,7 @@ function SignIn() {
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
-                handleSubmit();
+                handleOIDCSubmit();
               }}
             >
               LOGIN WITH OIDC PROVIDER
@@ -87,12 +91,11 @@ function SignIn() {
               style={{ width: "100%", margin: "16px" }}
             />
           </Action>
-
           <form
             ref={formRef}
             onSubmit={(e) => {
               e.preventDefault();
-              handleSubmit();
+              handleUserPassSubmit();
             }}
           >
             <FormElement center align>

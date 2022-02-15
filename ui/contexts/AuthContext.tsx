@@ -2,10 +2,11 @@ import * as React from "react";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
 
-const USER_INFO = "oauth2/userinfo";
+const USER_INFO = "/oauth2/userinfo";
+const SIGN_IN = "/oauth2/sign_in";
 
 export type AuthContext = {
-  signIn: (username?: string, password?: string) => void;
+  signIn: (data: any) => void;
   userInfo: {
     email: string;
     groups: string[];
@@ -21,19 +22,26 @@ export default function AuthContextProvider({ children }) {
   } | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
-  const signIn = React.useCallback((username?: string, password?: string) => {
-    const CURRENT_URL = window.origin;
-    fetch(`/oauth2/sign_in?return_url=${encodeURIComponent(CURRENT_URL)}`, {
+  const signIn = React.useCallback((data) => {
+    console.log(data);
+    fetch(SIGN_IN, {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify(data),
     })
-      .then((res) => console.log(res))
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        //redirect to "/""
+      })
       .catch((err) => console.log(err));
   }, []);
 
   const getUserInfo = React.useCallback(() => {
-    setLoading(true);
-    fetch(`/${USER_INFO}`)
+    // setLoading(true);
+    fetch(USER_INFO)
       .then((response) => {
         return response.json();
       })
@@ -41,12 +49,10 @@ export default function AuthContextProvider({ children }) {
       .catch((err) => {
         console.log(err);
         if (err.code === "401") {
-          // user is not authenticated
+          setUserInfo(null);
         }
-      })
-      .finally(() => setLoading(false));
-    // set state for user Info
-    // if 401 => user not authenticated => leave null
+      });
+    // .finally(() => setLoading(false));
   }, []);
 
   console.log(userInfo?.email);
