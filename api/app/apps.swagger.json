@@ -17,6 +17,43 @@
     "apps/json"
   ],
   "paths": {
+    "/v1/kustomizations": {
+      "get": {
+        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
+        "operationId": "Apps_ListKustomizations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListKustomizationsRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app": {
       "get": {
         "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
@@ -577,41 +614,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/kustomization": {
-      "get": {
-        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
-        "operationId": "Apps_ListKustomizations",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListKustomizationsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddKustomization adds a Kustomization to a cluster via GitOps.",
         "operationId": "Apps_AddKustomization",

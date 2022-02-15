@@ -119,7 +119,7 @@ service Apps {
     */
   rpc ListKustomizations(ListKustomizationsReq) returns (ListKustomizationsRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/kustomization"
+      get : "/v1/kustomizations"
     };
   }
 

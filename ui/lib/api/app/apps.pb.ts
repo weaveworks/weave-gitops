@@ -70,7 +70,7 @@ export class Apps {
     return fm.fetchReq<Gitops_serverV1Flux.AddKustomizationReq, Gitops_serverV1Flux.AddKustomizationRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/kustomization`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListKustomizations(req: Gitops_serverV1Flux.ListKustomizationsReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Flux.ListKustomizationsRes> {
-    return fm.fetchReq<Gitops_serverV1Flux.ListKustomizationsReq, Gitops_serverV1Flux.ListKustomizationsRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/kustomization?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Flux.ListKustomizationsReq, Gitops_serverV1Flux.ListKustomizationsRes>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static RemoveKustomizations(req: Gitops_serverV1Flux.RemoveKustomizationReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Flux.RemoveKustomizationRes> {
     return fm.fetchReq<Gitops_serverV1Flux.RemoveKustomizationReq, Gitops_serverV1Flux.RemoveKustomizationRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/kustomization/${req["kustomizationName"]}`, {...initReq, method: "DELETE"})
