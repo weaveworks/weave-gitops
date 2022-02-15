@@ -60,10 +60,11 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 //
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
+	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
 	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
+	multi := MultiAuthPrincipal{adminAuth, cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		principal, err := multi.Principal(r)
@@ -86,10 +87,11 @@ func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
 // It is meant to be used with routes that serve HTML content,
 // not API routes.
 func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
+	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
 	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
+	multi := MultiAuthPrincipal{adminAuth, cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		principal, err := multi.Principal(r)
