@@ -131,7 +131,7 @@ Namespace: %s`, clusterName, namespace)))
 		}, "120s", "1s").Should(Equal(http.StatusOK))
 
 		By("Updating the version of the installed profile")
-		time.Sleep(4 * time.Minute)
+		time.Sleep(3 * time.Minute)
 		Eventually(func() string {
 			stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s update profile --name %s --version 6.0.0 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
 			return stdErr

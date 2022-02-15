@@ -147,7 +147,7 @@ var _ = Describe("Update Profile(s)", func() {
 						})
 					})
 
-					When("an existing HelmRelease is the same version as the want to update to", func() {
+					When("an existing HelmRelease is the same version as the one to update to", func() {
 						It("returns an error", func() {
 							existingRelease := helm.MakeHelmRelease(
 								"podinfo", "6.0.1", "prod", "weave-system",
@@ -162,7 +162,7 @@ var _ = Describe("Update Profile(s)", func() {
 							}}, nil)
 
 							err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
-							Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: version 6.0.1 of profile 'podinfo' already installed in weave-system/prod"))
+							Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: version 6.0.1 of HelmRelease 'prod-podinfo' already installed in namespace 'weave-system'"))
 						})
 					})
 				})
@@ -182,7 +182,7 @@ var _ = Describe("Update Profile(s)", func() {
 						}}, nil)
 
 						err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
-						Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: failed to find HelmRelease 'prod-podinfo' in namespace weave-system"))
+						Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: failed to find HelmRelease 'prod-podinfo' in namespace 'weave-system'"))
 					})
 				})
 
@@ -242,7 +242,7 @@ var _ = Describe("Update Profile(s)", func() {
 			}
 
 			err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
-			Expect(err).To(MatchError("failed to parse url: could not get provider name from URL {http:/-*wrong-url-827: could not parse git repo url \"{http:/-*wrong-url-827\": parse \"{http:/-*wrong-url-827\": first path segment in URL cannot contain colon"))
+			Expect(err).To(MatchError(ContainSubstring("failed to parse url: could not get provider name from URL {http:/-*wrong-url-827")))
 		})
 
 		It("fails if the config repo does not exist", func() {

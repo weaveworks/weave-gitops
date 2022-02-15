@@ -53,7 +53,7 @@ var _ = Describe("Update Profile(s)", func() {
 			})
 
 			err := cmd.Execute()
-			Expect(err).To(MatchError("error parsing --version=&%*/v: Invalid Semantic Version"))
+			Expect(err).To(MatchError(ContainSubstring("error parsing --version=&%*/v")))
 		})
 	})
 

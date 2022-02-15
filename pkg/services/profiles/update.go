@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -120,20 +121,26 @@ func updateHelmRelease(helmRepo types.NamespacedName, fileContent, name, version
 		return "", fmt.Errorf("error splitting into YAML: %w", err)
 	}
 
-	releaseName := cluster + "-" + name
-
-	matchingHelmRelease, index, err := helm.FindReleaseInNamespace(existingReleases, releaseName, ns)
-	if matchingHelmRelease == nil {
-		return "", fmt.Errorf("failed to find HelmRelease '%s' in namespace %s", releaseName, ns)
-	} else if err != nil {
-		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
+	updatedReleases, err := patchRelease(existingReleases, cluster+"-"+name, ns, version)
+	if err != nil {
+		return "", err
 	}
 
-	if matchingHelmRelease.Spec.Chart.Spec.Version == version {
-		return "", fmt.Errorf("version %s of profile '%s' already installed in %s/%s", version, name, ns, cluster)
+	return helm.MarshalHelmReleases(updatedReleases)
+}
+
+func patchRelease(existingReleases []*helmv2beta1.HelmRelease, name, ns, version string) ([]*helmv2beta1.HelmRelease, error) {
+	for _, r := range existingReleases {
+		if r.Name == name && r.Namespace == ns {
+			if r.Spec.Chart.Spec.Version == version {
+				return nil, fmt.Errorf("version %s of HelmRelease '%s' already installed in namespace '%s'", version, name, ns)
+			}
+
+			r.Spec.Chart.Spec.Version = version
+
+			return existingReleases, nil
+		}
 	}
 
-	matchingHelmRelease.Spec.Chart.Spec.Version = version
-
-	return helm.PatchHelmRelease(existingReleases, *matchingHelmRelease, index)
+	return nil, fmt.Errorf("failed to find HelmRelease '%s' in namespace '%s'", name, ns)
 }

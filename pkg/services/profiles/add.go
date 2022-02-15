@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/google/uuid"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -120,12 +121,19 @@ func addHelmRelease(helmRepo types.NamespacedName, fileContent, name, version, c
 
 	newRelease := helm.MakeHelmRelease(name, version, cluster, ns, helmRepo)
 
-	matchingHelmRelease, _, err := helm.FindReleaseInNamespace(existingReleases, newRelease.Name, ns)
-	if matchingHelmRelease != nil {
+	if releaseIsInNamespace(existingReleases, newRelease.Name, ns) {
 		return "", fmt.Errorf("found another HelmRelease for profile '%s' in namespace %s", name, ns)
-	} else if err != nil {
-		return "", fmt.Errorf("error reading from %s: %w", models.WegoProfilesPath, err)
 	}
 
 	return helm.AppendHelmReleaseToString(fileContent, newRelease)
+}
+
+func releaseIsInNamespace(existingReleases []*helmv2beta1.HelmRelease, name, ns string) bool {
+	for _, r := range existingReleases {
+		if r.Name == name && r.Namespace == ns {
+			return true
+		}
+	}
+
+	return false
 }

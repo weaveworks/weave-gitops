@@ -5,7 +5,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
@@ -76,8 +75,22 @@ var _ = Describe("AppendHelmReleaseToString", func() {
 	})
 
 	When("the given string is empty", func() {
-		It("appends a helm release to it", func() {
+		It("appends a HelmRelease to it", func() {
 			s, err := helm.AppendHelmReleaseToString("", newRelease)
+			Expect(err).NotTo(HaveOccurred())
+			r, err := yaml.Marshal(newRelease)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(s).To(ContainSubstring(string(r)))
+		})
+	})
+
+	When("the given string is not empty", func() {
+		It("appends a HelmRelease to it", func() {
+			b, _ := kyaml.Marshal(helm.MakeHelmRelease(
+				"another-profile", "7.0.0", "prod", "test-namespace",
+				types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
+			))
+			s, err := helm.AppendHelmReleaseToString(string(b), newRelease)
 			Expect(err).NotTo(HaveOccurred())
 			r, err := yaml.Marshal(newRelease)
 			Expect(err).NotTo(HaveOccurred())
@@ -86,57 +99,51 @@ var _ = Describe("AppendHelmReleaseToString", func() {
 	})
 })
 
-var _ = Describe("FindReleaseInNamespace", func() {
-	var (
-		name = "prod-podinfo"
-		ns   = "weave-system"
-	)
-
-	When("it finds a HelmRelease with a matching name and namespace", func() {
-		It("returns its index in the slice of bytes", func() {
-			newRelease := helm.MakeHelmRelease(
-				"podinfo", "6.0.0", "prod", "weave-system",
-				types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
-			)
-			existingRelease, index, err := helm.FindReleaseInNamespace([]helmv2beta1.HelmRelease{*newRelease}, name, ns)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(index).To(Equal(0))
-			Expect(cmp.Diff(*existingRelease, *newRelease)).To(BeEmpty())
-		})
-	})
-
-	When("it does not find a HelmRelease with a matching name and namespace", func() {
-		It("returns an index of -1", func() {
-			_, index, err := helm.FindReleaseInNamespace([]helmv2beta1.HelmRelease{}, name, ns)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(index).To(Equal(-1))
-		})
-	})
-})
-
-var _ = Describe("PatchHelmReleaseInString", func() {
-	var (
-		r *v2beta1.HelmRelease
-	)
-
-	BeforeEach(func() {
-		r = helm.MakeHelmRelease(
-			"podinfo", "6.0.1", "prod", "weave-system",
+var _ = Describe("MarshalHelmRelease", func() {
+	It("returns a string with an updated list of HelmReleases", func() {
+		release1 := helm.MakeHelmRelease(
+			"random-profile", "7.0.0", "prod", "weave-system",
 			types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
 		)
-	})
+		releaseBytes1, _ := kyaml.Marshal(release1)
 
-	It("returns a string with an updated list of HelmReleases", func() {
-		existingRelease := helm.MakeHelmRelease(
+		release2 := helm.MakeHelmRelease(
 			"podinfo", "6.0.0", "prod", "weave-system",
 			types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
 		)
+		releaseBytes2, _ := kyaml.Marshal(release2)
 
-		expectedContentBytes, _ := kyaml.Marshal(r)
-		expectedContent := "---\n" + string(expectedContentBytes)
-
-		patchedContent, err := helm.PatchHelmRelease([]helmv2beta1.HelmRelease{*existingRelease}, *r, 0)
+		patchedContent, err := helm.MarshalHelmReleases([]*helmv2beta1.HelmRelease{release1, release2})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(cmp.Diff(patchedContent, expectedContent)).To(BeEmpty())
+		Expect(cmp.Diff(patchedContent, "---\n"+string(releaseBytes1)+"---\n"+string(releaseBytes2))).To(BeEmpty())
+	})
+})
+
+var _ = Describe("SplitHelmReleaseYAML", func() {
+	When("the resource contains only HelmRelease", func() {
+		It("returns a slice of HelmReleases", func() {
+			r1 := helm.MakeHelmRelease(
+				"podinfo", "6.0.0", "prod", "weave-system",
+				types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
+			)
+			r2 := helm.MakeHelmRelease(
+				"profile", "6.0.1", "prod", "test-namespace",
+				types.NamespacedName{Name: "helm-repo-name", Namespace: "test-namespace"},
+			)
+			b1, _ := kyaml.Marshal(r1)
+			bytes := append(b1, []byte("\n---\n")...)
+			b2, _ := kyaml.Marshal(r2)
+			list, err := helm.SplitHelmReleaseYAML(append(bytes, b2...))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(list).To(ContainElements(r1, r2))
+		})
+	})
+
+	When("the resource contains any resource other than a HelmRelease", func() {
+		It("returns an error", func() {
+			b, _ := kyaml.Marshal("content")
+			_, err := helm.SplitHelmReleaseYAML(b)
+			Expect(err).To(MatchError(ContainSubstring("error unmarshaling JSON")))
+		})
 	})
 })

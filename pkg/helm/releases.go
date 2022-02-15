@@ -44,17 +44,6 @@ func MakeHelmRelease(name, version, cluster, namespace string, helmRepository ty
 	}
 }
 
-// FindReleaseInNamespace iterates through a slice of HelmReleases to find one with a given name in a given namespace, and returns it with its index.
-func FindReleaseInNamespace(existingReleases []helmv2beta1.HelmRelease, name, ns string) (*helmv2beta1.HelmRelease, int, error) {
-	for i, r := range existingReleases {
-		if r.Name == name && r.Namespace == ns {
-			return &r, i, nil
-		}
-	}
-
-	return nil, -1, nil
-}
-
 // AppendHelmReleaseToString appends a HelmRelease to a string.
 func AppendHelmReleaseToString(content string, newRelease *helmv2beta1.HelmRelease) (string, error) {
 	var sb strings.Builder
@@ -73,8 +62,8 @@ func AppendHelmReleaseToString(content string, newRelease *helmv2beta1.HelmRelea
 }
 
 // SplitHelmReleaseYAML splits a manifest file that contains one or more Helm Releases that may be separated by '---'.
-func SplitHelmReleaseYAML(resources []byte) ([]helmv2beta1.HelmRelease, error) {
-	var helmReleaseList []helmv2beta1.HelmRelease
+func SplitHelmReleaseYAML(resources []byte) ([]*helmv2beta1.HelmRelease, error) {
+	var helmReleaseList []*helmv2beta1.HelmRelease
 
 	decoder := apimachinery.NewYAMLOrJSONDecoder(bytes.NewReader(resources), 100000000)
 
@@ -88,15 +77,14 @@ func SplitHelmReleaseYAML(resources []byte) ([]helmv2beta1.HelmRelease, error) {
 			return nil, err
 		}
 
-		helmReleaseList = append(helmReleaseList, value)
+		helmReleaseList = append(helmReleaseList, &value)
 	}
 
 	return helmReleaseList, nil
 }
 
-func PatchHelmRelease(existingReleases []helmv2beta1.HelmRelease, patchedHelmRelease helmv2beta1.HelmRelease, index int) (string, error) {
-	existingReleases[index] = patchedHelmRelease
-
+// MarshalHelmReleases marshals a list of HelmReleases.
+func MarshalHelmReleases(existingReleases []*helmv2beta1.HelmRelease) (string, error) {
 	var sb strings.Builder
 
 	for _, r := range existingReleases {
