@@ -66,6 +66,7 @@ function KustomizationTable({ className, kustomizations }: Props) {
           label: "Last Applied Revision",
           value: "lastAppliedRevision",
         },
+        { label: "Cluster", value: "cluster" },
       ]}
       rows={kustomizations}
     />

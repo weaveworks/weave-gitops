@@ -41,10 +41,10 @@ func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, err
 	})
 }
 
-func NewAppServer(cfg *rest.Config, vals map[string]*rest.Config) pb.AppsServer {
+func NewAppServer(cfg *rest.Config, rc remotecluster.ConfigGetter) pb.AppsServer {
 	return &appServer{
 		k8s:       placeholderClientGetter{cfg: cfg},
-		remoteK8s: remotecluster.NewConfigGetter(vals),
+		remoteK8s: rc,
 	}
 }
 

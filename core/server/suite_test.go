@@ -49,7 +49,9 @@ func TestMain(m *testing.M) {
 func makeGRPCServer(cfg *rest.Config, vals remotecluster.Configs, t *testing.T) (pb.AppsClient, func()) {
 	s := grpc.NewServer()
 
-	apps := NewAppServer(cfg, vals)
+	rc := remotecluster.NewConfigGetter(vals)
+
+	apps := NewAppServer(cfg, rc)
 
 	lis := bufconn.Listen(1024 * 1024)
 

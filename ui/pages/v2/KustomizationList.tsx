@@ -1,10 +1,11 @@
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Button } from "../..";
 import KustomizationTable from "../../components/KustomizationTable";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
-import { useGetKustomizations } from "../../hooks/kustomizations";
+import { useGetRemoteKustomizations } from "../../hooks/kustomizations";
 import { V2Routes } from "../../lib/types";
 import { formatURL } from "../../lib/utils";
 
@@ -13,7 +14,13 @@ type Props = {
 };
 
 function KustomizationList({ className }: Props) {
-  const { data: automations, error, isLoading } = useGetKustomizations();
+  // const { data: automations, error, isLoading } = useGetKustomizations();
+  const { data, error, isLoading } = useGetRemoteKustomizations([
+    "management-cluster",
+    "leaf-cluster-1",
+  ]);
+
+  console.log(data);
   return (
     <Page
       error={error}
@@ -26,7 +33,12 @@ function KustomizationList({ className }: Props) {
       }
       className={className}
     >
-      <KustomizationTable kustomizations={automations?.kustomizations} />
+      <KustomizationTable
+        kustomizations={_.map(data?.kustomizations, (k) => ({
+          ...k.kustomization,
+          cluster: k.clusterName,
+        }))}
+      />
     </Page>
   );
 }

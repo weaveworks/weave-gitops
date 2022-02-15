@@ -88,25 +88,31 @@ func (as *appServer) ListKustomizationsForClusters(ctx context.Context, msg *pb.
 	wg := &sync.WaitGroup{}
 	wg.Add(len(msg.Clusters))
 
+	errs := make(chan error)
+
 	for _, c := range clusters {
 		go func(ctx context.Context, cluster string, r []*pb.RemoteKustomization) {
 			defer wg.Done()
 
+			shallowCopy := *as.k8s.cfg
+
 			cfg, err := as.remoteK8s.GetByName(ctx, cluster)
 			if err != nil {
-				fmt.Printf("getting cluster config %s: %s\n", cluster, err)
+				errs <- fmt.Errorf("getting cluster config %s: %w\n", cluster, err)
 				return
 			}
 
+			cfg.TLSClientConfig = shallowCopy.TLSClientConfig
+
 			_, c, err := kube.NewKubeHTTPClientWithConfig(cfg, "")
 			if err != nil {
-				fmt.Printf("getting client for %s: %s\n", cluster, err)
+				errs <- fmt.Errorf("getting client for %s: %w\n", cluster, err)
 				return
 			}
 
 			list := &kustomizev1.KustomizationList{}
 			if err := c.List(ctx, list, client.InNamespace(msg.Namespace)); err != nil {
-				fmt.Printf("listing kustomizations for %s: %s\n", cluster, err)
+				errs <- fmt.Errorf("listing kustomizations for %s: %w\n", cluster, err)
 				return
 			}
 
@@ -117,6 +123,10 @@ func (as *appServer) ListKustomizationsForClusters(ctx context.Context, msg *pb.
 				})
 			}
 		}(ctx, c, result)
+	}
+
+	if err := <-errs; err != nil {
+		return nil, err
 	}
 
 	wg.Wait()
