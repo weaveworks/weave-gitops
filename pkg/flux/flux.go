@@ -25,7 +25,6 @@ type Flux interface {
 	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
 	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-	GetLatestStatusAllNamespaces() ([]string, error)
 	PreCheck() (string, error)
 }
 

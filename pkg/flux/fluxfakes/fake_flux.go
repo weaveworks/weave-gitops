@@ -143,18 +143,6 @@ type FakeFlux struct {
 		result1 string
 		result2 error
 	}
-	GetLatestStatusAllNamespacesStub        func() ([]string, error)
-	getLatestStatusAllNamespacesMutex       sync.RWMutex
-	getLatestStatusAllNamespacesArgsForCall []struct {
-	}
-	getLatestStatusAllNamespacesReturns struct {
-		result1 []string
-		result2 error
-	}
-	getLatestStatusAllNamespacesReturnsOnCall map[int]struct {
-		result1 []string
-		result2 error
-	}
 	PreCheckStub        func() (string, error)
 	preCheckMutex       sync.RWMutex
 	preCheckArgsForCall []struct {
@@ -754,62 +742,6 @@ func (fake *FakeFlux) GetExePathReturnsOnCall(i int, result1 string, result2 err
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) GetLatestStatusAllNamespaces() ([]string, error) {
-	fake.getLatestStatusAllNamespacesMutex.Lock()
-	ret, specificReturn := fake.getLatestStatusAllNamespacesReturnsOnCall[len(fake.getLatestStatusAllNamespacesArgsForCall)]
-	fake.getLatestStatusAllNamespacesArgsForCall = append(fake.getLatestStatusAllNamespacesArgsForCall, struct {
-	}{})
-	stub := fake.GetLatestStatusAllNamespacesStub
-	fakeReturns := fake.getLatestStatusAllNamespacesReturns
-	fake.recordInvocation("GetLatestStatusAllNamespaces", []interface{}{})
-	fake.getLatestStatusAllNamespacesMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeFlux) GetLatestStatusAllNamespacesCallCount() int {
-	fake.getLatestStatusAllNamespacesMutex.RLock()
-	defer fake.getLatestStatusAllNamespacesMutex.RUnlock()
-	return len(fake.getLatestStatusAllNamespacesArgsForCall)
-}
-
-func (fake *FakeFlux) GetLatestStatusAllNamespacesCalls(stub func() ([]string, error)) {
-	fake.getLatestStatusAllNamespacesMutex.Lock()
-	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
-	fake.GetLatestStatusAllNamespacesStub = stub
-}
-
-func (fake *FakeFlux) GetLatestStatusAllNamespacesReturns(result1 []string, result2 error) {
-	fake.getLatestStatusAllNamespacesMutex.Lock()
-	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
-	fake.GetLatestStatusAllNamespacesStub = nil
-	fake.getLatestStatusAllNamespacesReturns = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeFlux) GetLatestStatusAllNamespacesReturnsOnCall(i int, result1 []string, result2 error) {
-	fake.getLatestStatusAllNamespacesMutex.Lock()
-	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
-	fake.GetLatestStatusAllNamespacesStub = nil
-	if fake.getLatestStatusAllNamespacesReturnsOnCall == nil {
-		fake.getLatestStatusAllNamespacesReturnsOnCall = make(map[int]struct {
-			result1 []string
-			result2 error
-		})
-	}
-	fake.getLatestStatusAllNamespacesReturnsOnCall[i] = struct {
-		result1 []string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeFlux) PreCheck() (string, error) {
 	fake.preCheckMutex.Lock()
 	ret, specificReturn := fake.preCheckReturnsOnCall[len(fake.preCheckArgsForCall)]
@@ -911,8 +843,6 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.getBinPathMutex.RUnlock()
 	fake.getExePathMutex.RLock()
 	defer fake.getExePathMutex.RUnlock()
-	fake.getLatestStatusAllNamespacesMutex.RLock()
-	defer fake.getLatestStatusAllNamespacesMutex.RUnlock()
 	fake.preCheckMutex.RLock()
 	defer fake.preCheckMutex.RUnlock()
 	fake.setupBinMutex.RLock()
