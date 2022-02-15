@@ -1,4 +1,4 @@
-package run_test
+package ui_test
 
 import (
 	"net/http"
