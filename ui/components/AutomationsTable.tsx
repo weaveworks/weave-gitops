@@ -1,8 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Button } from "..";
+import { Automation } from "../hooks/kustomizations";
 import { AutomationKind } from "../lib/api/applications/applications.pb";
-import { Automation, V2Routes } from "../lib/types";
+import { V2Routes } from "../lib/types";
 import { formatAppScopedURL, formatURL } from "../lib/utils";
 import DataTable from "./DataTable";
 import Flex from "./Flex";

@@ -53,6 +53,21 @@ export type RemoveAppResponse = {
   success?: boolean
 }
 
+export type Deployment = {
+  name?: string
+  namespace?: string
+  conditions?: Gitops_serverV1Source.Condition[]
+  images?: string[]
+}
+
+export type ListFluxRuntimeObjectsReq = {
+  namespace?: string
+}
+
+export type ListFluxRuntimeObjectsRes = {
+  deployments?: Deployment[]
+}
+
 export class Apps {
   static AddApp(req: AddAppRequest, initReq?: fm.InitReq): Promise<AddAppResponse> {
     return fm.fetchReq<AddAppRequest, AddAppResponse>(`/v1/namespace/${req["namespace"]}/app`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -79,30 +94,33 @@ export class Apps {
     return fm.fetchReq<Gitops_serverV1Source.AddGitRepositoryReq, Gitops_serverV1Source.AddGitRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/gitrepository`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListGitRepositories(req: Gitops_serverV1Source.ListGitRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListGitRepositoryRes> {
-    return fm.fetchReq<Gitops_serverV1Source.ListGitRepositoryReq, Gitops_serverV1Source.ListGitRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/gitrepository?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Source.ListGitRepositoryReq, Gitops_serverV1Source.ListGitRepositoryRes>(`/v1/gitrepository?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AddHelmRepository(req: Gitops_serverV1Source.AddHelmRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmRepositoryRes> {
     return fm.fetchReq<Gitops_serverV1Source.AddHelmRepositoryReq, Gitops_serverV1Source.AddHelmRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrepository`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListHelmRepositories(req: Gitops_serverV1Source.ListHelmRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmRepositoryRes> {
-    return fm.fetchReq<Gitops_serverV1Source.ListHelmRepositoryReq, Gitops_serverV1Source.ListHelmRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrepository?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmRepositoryReq, Gitops_serverV1Source.ListHelmRepositoryRes>(`/v1/helmrepository?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AddHelmChart(req: Gitops_serverV1Source.AddHelmChartReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmChartRes> {
     return fm.fetchReq<Gitops_serverV1Source.AddHelmChartReq, Gitops_serverV1Source.AddHelmChartRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmchart`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListHelmCharts(req: Gitops_serverV1Source.ListHelmChartReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmChartRes> {
-    return fm.fetchReq<Gitops_serverV1Source.ListHelmChartReq, Gitops_serverV1Source.ListHelmChartRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmchart?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmChartReq, Gitops_serverV1Source.ListHelmChartRes>(`/v1/helmchart?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AddBucket(req: Gitops_serverV1Source.AddBucketReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddBucketRes> {
     return fm.fetchReq<Gitops_serverV1Source.AddBucketReq, Gitops_serverV1Source.AddBucketRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/bucket`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListBuckets(req: Gitops_serverV1Source.ListBucketReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListBucketRes> {
-    return fm.fetchReq<Gitops_serverV1Source.ListBucketReq, Gitops_serverV1Source.ListBucketRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/bucket?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Source.ListBucketReq, Gitops_serverV1Source.ListBucketRes>(`/v1/bucket?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AddHelmRelease(req: Gitops_serverV1Source.AddHelmReleaseReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmReleaseRes> {
     return fm.fetchReq<Gitops_serverV1Source.AddHelmReleaseReq, Gitops_serverV1Source.AddHelmReleaseRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrelease`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListHelmReleases(req: Gitops_serverV1Source.ListHelmReleaseReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmReleaseRes> {
-    return fm.fetchReq<Gitops_serverV1Source.ListHelmReleaseReq, Gitops_serverV1Source.ListHelmReleaseRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrelease?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmReleaseReq, Gitops_serverV1Source.ListHelmReleaseRes>(`/v1/helmrelease?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsReq, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsRes> {
+    return fm.fetchReq<ListFluxRuntimeObjectsReq, ListFluxRuntimeObjectsRes>(`/v1/flux_runtime?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

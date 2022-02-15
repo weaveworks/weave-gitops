@@ -23,7 +23,14 @@ function ApplicationList({ className }: Props) {
       className={className}
     >
       <DataTable
-        sortFields={["name"]}
+        sortFields={[
+          "name",
+          "namespace",
+          "type",
+          "cluster",
+          "status",
+          "last synced at",
+        ]}
         fields={[
           {
             label: "Name",
@@ -31,7 +38,7 @@ function ApplicationList({ className }: Props) {
               <Link
                 key={name}
                 to={formatURL(
-                  type === AutomationType.Kustomize
+                  type === AutomationType.Kustomization
                     ? V2Routes.Kustomization
                     : V2Routes.HelmRelease,
                   { name }

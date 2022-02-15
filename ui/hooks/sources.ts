@@ -17,15 +17,14 @@ export function useListSources(
 ) {
   const { apps } = useContext(AppContext);
 
-  const p = [
-    apps.ListGitRepositories({ appName, namespace }),
-    apps.ListHelmCharts({ appName, namespace }),
-  ];
-
   return useQuery<Source[], RequestError>(
     "sources",
-    () =>
-      Promise.all(p).then((result) => {
+    () => {
+      const p = [
+        apps.ListGitRepositories({ appName, namespace }),
+        apps.ListHelmCharts({ appName, namespace }),
+      ];
+      return Promise.all(p).then((result) => {
         const [repoRes, chartRes] = result;
         const repos = (repoRes as ListGitRepositoryRes).gitRepositories;
         const charts = (chartRes as ListHelmChartRes).helmCharts;
@@ -33,14 +32,15 @@ export function useListSources(
         return [
           ..._.map(repos, (r) => ({
             ...r,
-            type: SourceType.Git,
+            type: SourceType.GitRepository,
           })),
           ..._.map(charts, (c) => ({
             ...c,
-            type: SourceType.Helm,
+            type: SourceType.HelmChart,
           })),
         ];
-      }),
+      });
+    },
     { retry: false }
   );
 }
