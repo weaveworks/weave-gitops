@@ -41,6 +41,7 @@ export enum IconType {
   LogoutIcon,
   FilterIcon,
   ClearIcon,
+  Circle,
 }
 
 type Props = {
@@ -106,6 +107,14 @@ function getIcon(i: IconType) {
 
     case IconType.ClearIcon:
       return ClearIcon;
+
+    case IconType.Circle:
+      // Our version of material UI icons does not have a plain circle.
+      return () => (
+        <svg viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" />
+        </svg>
+      );
 
     default:
       break;

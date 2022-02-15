@@ -18,9 +18,18 @@ type Props = {
 };
 
 const navItems = [
-  { value: V2Routes.ApplicationList, label: "Applications" },
-  { value: V2Routes.KustomizationList, label: "Kustomizations" },
-  { value: V2Routes.SourcesList, label: "Sources" },
+  {
+    value: V2Routes.ApplicationList,
+    label: "Applications",
+  },
+  {
+    value: V2Routes.SourcesList,
+    label: "Sources",
+  },
+  {
+    value: V2Routes.FluxRuntime,
+    label: "Flux Runtime",
+  },
 ];
 
 const LinkTab = (props) => (
@@ -132,10 +141,10 @@ function Layout({ className, children }: Props) {
               >
                 {_.map(navItems, (n) => (
                   <StyleLinkTab
-                    value={n.value}
                     key={n.value}
                     label={n.label}
                     to={formatURL(n.value)}
+                    value={n.value}
                   />
                 ))}
               </Tabs>
