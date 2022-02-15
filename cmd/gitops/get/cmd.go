@@ -4,7 +4,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/get/commits"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/credentials"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates"
@@ -31,7 +30,6 @@ gitops get credentials
 gitops get clusters`,
 	}
 
-	cmd.AddCommand(commits.Cmd)
 	cmd.AddCommand(templates.TemplateCommand(endpoint, client))
 	cmd.AddCommand(credentials.CredentialCommand(endpoint, client))
 	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
