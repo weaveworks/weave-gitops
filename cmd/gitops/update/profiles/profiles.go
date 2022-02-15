@@ -24,16 +24,16 @@ import (
 
 var opts profiles.UpdateOptions
 
-// UpdateCommand provides support for updating an installed profile's version.
+// UpdateCommand provides support for updating a profile that is installed on a cluster.
 func UpdateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
-		Short:         "Update a profile to a different version",
+		Short:         "Update a profile installation",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Example: `
-		# Update an installed profile to a different version
-		gitops update profile --name=podinfo --cluster=prod --version=1.0.0 --config-repo=ssh://git@github.com/owner/config-repo.git --namespace=test-namespace
+	# Update a profile that is installed on a cluster
+	gitops update profile --name=podinfo --cluster=prod --config-repo=ssh://git@github.com/owner/config-repo.git  --version=1.0.0
 		`,
 		RunE: updateProfileCmdRunE(),
 	}

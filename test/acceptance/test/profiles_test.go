@@ -131,21 +131,27 @@ Namespace: %s`, clusterName, namespace)))
 		}, "120s", "1s").Should(Equal(http.StatusOK))
 
 		By("Updating the version of the installed profile")
-		stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s update profile --name %s --version 6.0.0 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
-		Expect(stdErr).To(BeEmpty())
+		time.Sleep(4 * time.Minute)
+		Eventually(func() string {
+			stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s update profile --name %s --version 6.0.0 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
+			return stdErr
+		}, "120s", "5s").Should(BeEmpty())
+
 		Expect(stdOut).To(ContainSubstring(
-			fmt.Sprintf(`Updating 1 profile:
-	
-	Name: podinfo
-	Version: 6.0.0
-	Cluster: %s
-	Namespace: %s`, clusterName, namespace)))
+			fmt.Sprintf(
+				`Updating profile:
+
+Name: podinfo
+Version: 6.0.0
+Cluster: %s
+Namespace: %s`, clusterName, namespace)))
 
 		By("Verifying that the profile installed in the cluster's namespace was updated to the correct version")
-		Eventually(func() int {
-			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "9898", "/healthz", clientSet)
-			return statusCode
-		}, "120s", "1s").Should(Equal(http.StatusOK))
+		Eventually(func() string {
+			stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --selector=app.kubernetes.io/name=%s-%s -o jsonpath='{.items[*].spec.containers[*].image}'", namespace, clusterName, profileName))
+			Expect(stdErr).Should(BeEmpty())
+			return stdOut
+		}, "240s", "5s").Should(ContainSubstring("ghcr.io/stefanprodan/podinfo:6.0.0"))
 	})
 
 	It("@skipOnNightly profiles are installed into a different namespace", func() {

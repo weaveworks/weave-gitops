@@ -196,7 +196,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
 		})
 
-		It("fails if the available profile's HelmRepository name or namespace if empty", func() {
+		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
 			badProfileResp := `{
 				"profiles": [
 				  {

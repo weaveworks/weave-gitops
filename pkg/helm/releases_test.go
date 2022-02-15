@@ -75,8 +75,8 @@ var _ = Describe("AppendHelmReleaseToString", func() {
 		)
 	})
 
-	When("the file does not exist", func() {
-		It("creates one with the new helm release", func() {
+	When("the given string is empty", func() {
+		It("appends a helm release to it", func() {
 			s, err := helm.AppendHelmReleaseToString("", newRelease)
 			Expect(err).NotTo(HaveOccurred())
 			r, err := yaml.Marshal(newRelease)

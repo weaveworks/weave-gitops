@@ -12,9 +12,9 @@ func UpdateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Use:   "update",
 		Short: "Update a Weave GitOps resource",
 		Example: `
-# Update an installed profile to a certain version
-gitops update profile --name <profile-name> --version <version> --config-repo <config-repo-url> --cluster <cluster-name> --namespace <ns-name>
-`,
+	# Update a profile that is installed on a cluster
+	gitops update profile --name=podinfo --cluster=prod --config-repo=ssh://git@github.com/owner/config-repo.git  --version=1.0.0
+		`,
 	}
 
 	cmd.AddCommand(profiles.UpdateCommand())
