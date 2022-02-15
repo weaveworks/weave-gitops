@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 var (
@@ -19,6 +20,9 @@ var (
 	// Make sure the subgroup belongs to the GITLAB_ORG
 	gitlabSubgroup    string
 	gitlabPublicGroup string
+	gitProviderName   string
+	gitOrg            string
+	gitProvider       gitproviders.GitProviderName
 )
 
 const (

@@ -5,22 +5,20 @@ import (
 	"os"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
-
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
@@ -131,7 +129,6 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(install.Cmd)
-	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.NewCommand())

@@ -12,10 +12,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"regexp"
 
-	"strconv"
 	"strings"
 	"time"
 
@@ -28,8 +26,6 @@ import (
 	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -60,9 +56,6 @@ var (
 	gitlabOrg        string
 	gitlabToken      string
 	gitopsBinaryPath string
-	gitProviderName  string
-	gitOrg           string
-	gitProvider      gitproviders.GitProviderName
 )
 
 type TestInputs struct {
@@ -93,16 +86,6 @@ func FileExists(name string) bool {
 	}
 
 	return true
-}
-
-func selectCluster(context string) {
-	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
-	Expect(err).ShouldNot(HaveOccurred())
-}
-
-func deleteCluster(clusterName string) {
-	_, err := exec.Command("kind", "delete", "cluster", "--name", clusterName).Output()
-	Expect(err).ShouldNot(HaveOccurred())
 }
 
 func getClusterContext() string {
@@ -402,19 +385,6 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 	VerifyControllersInCluster(wegoNamespace)
 }
 
-func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
-	Expect(string(session.Err.Contents())).Should(BeEmpty())
-	out := string(session.Wait().Out.Contents())
-	re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
-	prLink := re.FindAllString(out, -1)[0]
-	mergePR(repoPath, prLink, gitproviders.GitProviderGitHub)
-	VerifyControllersInCluster(wegoNamespace)
-}
-
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", gitopsBinaryPath, namespace))
@@ -569,36 +539,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, THIRTY_SECOND_TIMEOUT, 1).Should(gexec.Exit())
-}
-
-func mergePR(repoAbsolutePath, prLink string, providerName gitproviders.GitProviderName) {
-	ctx := context.Background()
-	prNumberStr := filepath.Base(prLink)
-	prNumber, numErr := strconv.Atoi(prNumberStr)
-	Expect(numErr).ShouldNot(HaveOccurred())
-
-	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
-	Expect(repoUrlErr).ShouldNot(HaveOccurred())
-
-	org, repo := extractOrgAndRepo(repoUrlString)
-	gitProvider, orgRef, providerErr := getGitProvider(org, repo, providerName)
-	Expect(providerErr).ShouldNot(HaveOccurred())
-
-	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
-	Expect(repoErr).ShouldNot(HaveOccurred())
-
-	err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
-	Expect(err).ShouldNot(HaveOccurred())
-}
-
-func extractOrgAndRepo(url string) (string, string) {
-	normalized, normErr := gitproviders.NewRepoURL(url)
-	Expect(normErr).ShouldNot(HaveOccurred())
-
-	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
-	matches := re.FindStringSubmatch(strings.TrimSuffix(normalized.String(), ".git"))
-
-	return matches[1], matches[2]
 }
 
 func setArtifactsDir() string {
