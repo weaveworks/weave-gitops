@@ -53,10 +53,7 @@ const FormElement = styled(Flex)`
 function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
   const { signIn } = React.useContext(Auth);
-  const [formState, setFormState] = React.useState<{
-    username: string;
-    password: string;
-  }>({ username: "", password: "" });
+  const [password, setPassword] = React.useState<string>("");
 
   const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
@@ -66,7 +63,7 @@ function SignIn() {
   };
 
   const handleUserPassSubmit = () => {
-    signIn(formState);
+    signIn({ password });
   };
 
   return (
@@ -100,32 +97,12 @@ function SignIn() {
           >
             <FormElement center align>
               <TextField
-                onChange={(e) => {
-                  setFormState({
-                    ...formState,
-                    username: e.currentTarget.value,
-                  });
-                }}
-                required
-                id="username"
-                label="Username"
-                variant="standard"
-                value={formState.username}
-              />
-            </FormElement>
-            <FormElement center align>
-              <TextField
-                onChange={(e) => {
-                  setFormState({
-                    ...formState,
-                    password: e.currentTarget.value,
-                  });
-                }}
+                onChange={(e) => setPassword(e.currentTarget.value)}
                 required
                 id="password"
                 label="Password"
                 variant="standard"
-                value={formState.password}
+                value={password}
               />
             </FormElement>
             <Flex center>
