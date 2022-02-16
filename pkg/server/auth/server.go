@@ -234,7 +234,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
 			s.logger.Error(err, "Failed to decode from JSON")
-			http.Error(rw, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+			http.Error(rw, fmt.Sprintf("Failed to read request body."), http.StatusBadRequest)
 
 			return
 		}
@@ -251,25 +251,29 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		if err := bcrypt.CompareHashAndPassword(hashedSecret.Data["password"], []byte(loginRequest.Password)); err == nil {
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-			})
-
-			signed, err := token.SignedString(s.hmacSecret)
-			if err != nil {
-				s.logger.Error(err, "Failed to create and sign token")
-				rw.WriteHeader(http.StatusInternalServerError)
-
-				return
-			}
-
-			http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
-			rw.WriteHeader(http.StatusOK)
-		} else {
+		if err := bcrypt.CompareHashAndPassword(hashedSecret.Data["password"], []byte(loginRequest.Password)); err != nil {
 			s.logger.Error(err, "Failed to compare hash with password")
 			rw.WriteHeader(http.StatusUnauthorized)
+
+			return
 		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(time.Hour).Unix(),
+			Issuer:    "test",
+			// IssuedAt: ,
+			Subject: "admin",
+		})
+		signed, err := token.SignedString(s.hmacSecret)
+		if err != nil {
+			s.logger.Error(err, "Failed to create and sign token")
+			rw.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
+		rw.WriteHeader(http.StatusOK)
 	}
 }
 
