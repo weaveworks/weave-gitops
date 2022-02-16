@@ -11,7 +11,7 @@ describe("FilterBar", () => {
     Status: ["Ready", "Failed"],
     Type: ["Application", "Helm Release"],
   };
-  it("should initially render clear all chip with filter list closed", () => {
+  it("should initially render button with filter list closed", () => {
     render(
       withTheme(
         <FilterBar
@@ -21,10 +21,10 @@ describe("FilterBar", () => {
         />
       )
     );
-    expect(screen.getByText("Clear All")).toBeTruthy();
+    expect(screen.getByRole("button")).toBeTruthy();
     expect(screen.queryByText("Name")).toBeNull();
   });
-  it.only("should reveal/close filter list on icon click", async () => {
+  it("should reveal filter list on icon click", () => {
     render(
       withTheme(
         <FilterBar
@@ -37,16 +37,5 @@ describe("FilterBar", () => {
     const icon = screen.getAllByRole("button")[0];
     fireEvent.click(icon);
     expect(screen.queryByText("Name")).toBeTruthy();
-    await fireEvent.click(screen.getByRole("presentation"));
-    expect(screen.queryByText("Name")).toBeNull();
-  });
-  it("should should add filter to chips on checkbox click", () => {
-    ("");
-  });
-  it("should clear all filters on click on clear all chip", () => {
-    ("");
-  });
-  it("should change filter list based on search input", () => {
-    ("");
   });
 });

@@ -14,6 +14,25 @@ import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
+const StyledPopover = styled(Popover)`
+  .MuiPopover-paper {
+    min-width: 450px;
+    border-left: 2px solid ${(props) => props.theme.colors.neutral30};
+    padding-left: ${(props) => props.theme.spacing.medium};
+  }
+  .MuiListItem-gutters {
+    padding-left: 0px;
+  }
+  .MuiCheckbox-root {
+    padding: 0px;
+  }
+  .MuiCheckbox-colorSecondary {
+    &.Mui-checked {
+      color: ${(props) => props.theme.colors.primary};
+    }
+  }
+`;
+
 /** Filter Bar Properties */
 export interface Props {
   className?: string;
@@ -44,8 +63,10 @@ function UnstyledFilterBar({
         );
   };
 
+  const onClose = () => setShowFilters(false);
+
   return (
-    <Flex className={className} align start>
+    <Flex className={className + " filter-bar"} align start>
       <Button
         variant="text"
         color="inherit"
@@ -56,19 +77,20 @@ function UnstyledFilterBar({
       >
         <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
       </Button>
-      <Popover
+      <StyledPopover
+        PaperProps={{ square: true }}
         elevation={0}
         open={showFilters}
         anchorEl={anchorEl}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        onClose={() => setShowFilters(false)}
+        onClose={onClose}
       >
         <Spacer padding="medium">
           <Flex wide align between>
             <Text size="extraLarge" color="neutral30">
               Filters
             </Text>
-            <Button variant="text" color="inherit">
+            <Button variant="text" color="inherit" onClick={onClose}>
               <Icon type={IconType.ClearIcon} size="large" color="neutral30" />
             </Button>
           </Flex>
@@ -98,25 +120,11 @@ function UnstyledFilterBar({
             })}
           </List>
         </Spacer>
-      </Popover>
+      </StyledPopover>
     </Flex>
   );
 }
 
-export const FilterBar = styled(UnstyledFilterBar)`
-  .MuiPopover-paper {
-    min-width: 600px;
-    border-left: 2px solid ${(props) => props.theme.colors.neutral30};
-  }
-  .MuiListItem-gutters {
-    padding-left: 0px;
-  }
-  .PrivateSwitchBase-root {
-    padding: 9px 9px 9px 0px;
-  }
-  .MuiIcon-colorSecondary {
-    color: ${(props) => props.theme.colors.primary};
-  }
-`;
+export const FilterBar = styled(UnstyledFilterBar)``;
 
 export default FilterBar;
