@@ -205,7 +205,7 @@ var _ = Describe("Update Profile(s)", func() {
 						gitProviders.GetRepoDirFilesReturns(makeTestFiles(), nil)
 
 						err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
-						Expect(err).To(MatchError("failed to find installed profiles in '.weave-gitops/clusters/prod/system/profiles.yaml' of config repo \"ssh://git@github.com/owner/config-repo.git\""))
+						Expect(err).To(MatchError(ContainSubstring("failed to find installed profiles in '.weave-gitops/clusters/prod/system/profiles.yaml'")))
 
 						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 					})

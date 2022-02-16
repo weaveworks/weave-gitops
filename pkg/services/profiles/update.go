@@ -12,7 +12,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/google/uuid"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const UpdateCommitMessage = "Update Profile manifests"
@@ -47,7 +46,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
+	_, version, err := s.discoverHelmRepository(ctx, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -65,12 +64,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("failed to get files in '%s' of config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
-	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
-	if fileContent == "" {
-		return fmt.Errorf("failed to find installed profiles in '%s' of config repo %q", git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath), configRepoURL)
-	}
-
-	content, err := updateHelmRelease(helmRepo, fileContent, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
+	content, err := updateHelmRelease(files, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to update HelmRelease for profile '%s' in %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
@@ -115,7 +109,12 @@ func (s *ProfilesSvc) printUpdateSummary(opts UpdateOptions) {
 	s.Logger.Println("Namespace: %s\n", opts.Namespace)
 }
 
-func updateHelmRelease(helmRepo types.NamespacedName, fileContent, name, version, cluster, ns string) (string, error) {
+func updateHelmRelease(files []*gitprovider.CommitFile, name, version, cluster, ns string) (string, error) {
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(cluster, models.WegoProfilesPath))
+	if fileContent == "" {
+		return "", fmt.Errorf("failed to find installed profiles in '%s'", git.GetProfilesPath(cluster, models.WegoProfilesPath))
+	}
+
 	existingReleases, err := helm.SplitHelmReleaseYAML([]byte(fileContent))
 	if err != nil {
 		return "", fmt.Errorf("error splitting into YAML: %w", err)

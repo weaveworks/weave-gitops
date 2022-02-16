@@ -11,9 +11,11 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	apimachinery "k8s.io/apimachinery/pkg/util/yaml"
+	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
 	kyaml "sigs.k8s.io/yaml"
 )
+
+const DefaultBufferSize = 2048
 
 // MakeHelmRelease returns a HelmRelease object given a name, version, cluster, namespace, and HelmRepository's name and namespace.
 func MakeHelmRelease(name, version, cluster, namespace string, helmRepository types.NamespacedName) *helmv2beta1.HelmRelease {
@@ -44,7 +46,8 @@ func MakeHelmRelease(name, version, cluster, namespace string, helmRepository ty
 	}
 }
 
-// AppendHelmReleaseToString appends a HelmRelease to a string.
+// AppendHelmReleaseToString appends "---" and a HelmRelease to string that may or may not be empty.
+// This creates the content of a manifest that contains HelmReleases separated by "---".
 func AppendHelmReleaseToString(content string, newRelease *helmv2beta1.HelmRelease) (string, error) {
 	var sb strings.Builder
 	if content != "" {
@@ -65,7 +68,7 @@ func AppendHelmReleaseToString(content string, newRelease *helmv2beta1.HelmRelea
 func SplitHelmReleaseYAML(resources []byte) ([]*helmv2beta1.HelmRelease, error) {
 	var helmReleaseList []*helmv2beta1.HelmRelease
 
-	decoder := apimachinery.NewYAMLOrJSONDecoder(bytes.NewReader(resources), 100000000)
+	decoder := k8syaml.NewYAMLOrJSONDecoder(bytes.NewReader(resources), DefaultBufferSize)
 
 	for {
 		var value helmv2beta1.HelmRelease
