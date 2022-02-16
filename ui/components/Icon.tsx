@@ -2,8 +2,11 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
+import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
@@ -12,7 +15,6 @@ import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
-import LogoutIcon from "@material-ui/icons/ExitToApp";
 import * as React from "react";
 import styled from "styled-components";
 // eslint-disable-next-line
@@ -37,6 +39,8 @@ export enum IconType {
   SkipPreviousIcon,
   RemoveCircleIcon,
   LogoutIcon,
+  FilterIcon,
+  ClearIcon,
 }
 
 type Props = {
@@ -96,6 +100,12 @@ function getIcon(i: IconType) {
 
     case IconType.LogoutIcon:
       return LogoutIcon;
+
+    case IconType.FilterIcon:
+      return FilterIcon;
+
+    case IconType.ClearIcon:
+      return ClearIcon;
 
     default:
       break;
