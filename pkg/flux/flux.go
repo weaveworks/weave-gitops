@@ -2,7 +2,6 @@ package flux
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -16,16 +15,8 @@ import (
 //counterfeiter:generate . Flux
 type Flux interface {
 	SetupBin()
-	GetBinPath() (string, error)
-	GetExePath() (string, error)
-	CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error)
-	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
-	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
-	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
-	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
 	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-	GetLatestStatusAllNamespaces() ([]string, error)
 	PreCheck() (string, error)
 }
 
@@ -50,135 +41,6 @@ func New(osysClient osys.Osys, cliRunner runner.Runner) *FluxClient {
 }
 
 var _ Flux = &FluxClient{}
-
-func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error) {
-	args := []string{
-		"create", "source", "git", name,
-		"--branch", branch,
-		"--namespace", namespace,
-		"--interval", "30s",
-		"--export",
-	}
-
-	if secretRef != "" {
-		args = append(args, "--secret-ref", secretRef, "--url", repoUrl.String())
-	} else {
-		args = append(args, "--url", makePublicUrl(repoUrl))
-	}
-
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, fmt.Errorf("failed to create source git: %w", err)
-	}
-
-	return out, nil
-}
-
-func makePublicUrl(repoUrl gitproviders.RepoURL) string {
-	trimmed := ""
-
-	url := repoUrl.String()
-	provider := repoUrl.Provider()
-
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
-	}
-
-	gitSshPrefix := fmt.Sprintf("git@%scom:", provider)
-	sshPrefix := fmt.Sprintf("ssh://git@%s.com/", provider)
-
-	if strings.HasPrefix(url, gitSshPrefix) {
-		trimmed = strings.TrimPrefix(url, gitSshPrefix)
-	} else if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	}
-
-	if trimmed != "" {
-		return fmt.Sprintf("https://%s.com/%s", provider, trimmed)
-	}
-
-	return url
-}
-
-func (f *FluxClient) CreateSourceHelm(name string, url string, namespace string) ([]byte, error) {
-	args := []string{
-		"create", "source", "helm", name,
-		"--url", url,
-		"--namespace", namespace,
-		"--interval", "30s",
-		"--export",
-	}
-
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, fmt.Errorf("failed to create source helm: %w", err)
-	}
-
-	return out, nil
-}
-
-func (f *FluxClient) CreateKustomization(name string, source string, path string, namespace string) ([]byte, error) {
-	args := []string{
-		"create", "kustomization", name,
-		"--path", path,
-		"--source", source,
-		"--namespace", namespace,
-		"--prune", "true",
-		"--interval", "1m",
-		"--export",
-	}
-
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, fmt.Errorf("failed to create kustomization: %w", err)
-	}
-
-	return out, nil
-}
-
-func (f *FluxClient) CreateHelmReleaseGitRepository(name, source, chartPath, namespace, targetNamespace string) ([]byte, error) {
-	args := []string{
-		"create", "helmrelease", name,
-		"--source", "GitRepository/" + source,
-		"--chart", chartPath,
-		"--namespace", namespace,
-		"--interval", "5m",
-		"--export",
-	}
-
-	if targetNamespace != "" {
-		args = append(args, "--target-namespace", targetNamespace)
-	}
-
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, fmt.Errorf("failed to create helm release git repo: %w", err)
-	}
-
-	return out, nil
-}
-
-func (f *FluxClient) CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error) {
-	args := []string{
-		"create", "helmrelease", name,
-		"--source", "HelmRepository/" + name,
-		"--chart", chart,
-		"--namespace", namespace,
-		"--interval", "5m",
-		"--export",
-	}
-
-	if targetNamespace != "" {
-		args = append(args, "--target-namespace", targetNamespace)
-	}
-
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, fmt.Errorf("failed to create helm release helm repo: %w", err)
-	}
-
-	return out, nil
-}
 
 // CreatSecretGit Creates a Git secret returns the deploy key
 func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error) {
