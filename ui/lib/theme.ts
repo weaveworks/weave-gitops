@@ -25,7 +25,8 @@ export const theme: DefaultTheme = {
     white: "#fff",
     primary: "#00b3ec",
     primaryLight: "#98E0F7",
-    primaryDark: "#009CCC",
+    primary10: "#009CCC",
+    primary20: "#006B8E",
     success: "#27AE60",
     alert: "#BC381D",
     neutral00: "#ffffff",
@@ -103,7 +104,7 @@ export const muiTheme = createTheme({
   palette: {
     primary: {
       //Main - Primary Color Dark - 10
-      main: theme.colors.primaryDark,
+      main: theme.colors.primary10,
     },
     secondary: {
       //Feedback - Alert - Original
