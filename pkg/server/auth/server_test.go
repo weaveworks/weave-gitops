@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
@@ -199,11 +200,16 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client) *auth.AuthServer {
 		_ = m.Shutdown()
 	})
 
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
 		OIDCConfig: auth.OIDCConfig{
 			IssuerURL: m.Config().Issuer,
 		},
-	}, client)
+	}, client, tokenSignerVerifier)
 	if err != nil {
 		t.Errorf("failed to create a new AuthServer instance: %v", err)
 	}

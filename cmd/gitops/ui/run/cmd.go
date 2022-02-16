@@ -194,6 +194,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			oidcIssueSecureCookies = true
 		}
 
+		tsv, err := auth.NewHMACTokenSignerVerifier(options.OIDC.CookieDuration)
+		if err != nil {
+			return fmt.Errorf("could not create HMAC token signer: %w", err)
+		}
+
 		srv, err := auth.NewAuthServer(cmd.Context(), appConfig.Logger, http.DefaultClient,
 			auth.AuthConfig{
 				OIDCConfig: auth.OIDCConfig{
@@ -206,7 +211,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 					CookieDuration:     options.OIDC.CookieDuration,
 					IssueSecureCookies: oidcIssueSecureCookies,
 				},
-			}, rawClient,
+			}, rawClient, tsv,
 		)
 		if err != nil {
 			return fmt.Errorf("could not create auth server: %w", err)
