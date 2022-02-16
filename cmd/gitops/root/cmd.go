@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
@@ -140,6 +141,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(ui.NewCommand())
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
+	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
 	rootCmd.AddCommand(resume.GetCommand())
 	rootCmd.AddCommand(suspend.GetCommand())

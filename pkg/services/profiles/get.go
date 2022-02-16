@@ -86,6 +86,10 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, opts GetOptions) (*pb.Prof
 				version = opts.Version
 			}
 
+			if p.GetHelmRepository().GetName() == "" || p.GetHelmRepository().GetNamespace() == "" {
+				return nil, "", fmt.Errorf("HelmRepository's name or namespace is empty")
+			}
+
 			return p, version, nil
 		}
 	}
