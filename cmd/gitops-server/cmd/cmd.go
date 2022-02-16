@@ -15,8 +15,6 @@ import (
   "time"
 
   "github.com/go-logr/zapr"
-  "github.com/mattn/go-isatty"
-  "github.com/pkg/browser"
   "github.com/sirupsen/logrus"
   "github.com/spf13/cobra"
   "go.uber.org/zap"
@@ -56,7 +54,6 @@ type OIDCAuthenticationOptions struct {
 
 var options Options
 
-// NewCommand returns the `ui run` command
 func NewCommand() *cobra.Command {
   cmd := &cobra.Command{
     Use:     "run [--log]",
@@ -256,16 +253,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
       os.Exit(1)
     }
   }()
-
-  if isatty.IsTerminal(os.Stdout.Fd()) {
-    url := fmt.Sprintf("http://%s/%s", addr, options.Path)
-
-    log.Printf("Opening browser at %s", url)
-
-    if err := browser.OpenURL(url); err != nil {
-      return fmt.Errorf("failed to open the browser: %w", err)
-    }
-  }
 
   // graceful shutdown
   quit := make(chan os.Signal, 1)
