@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
@@ -129,7 +128,6 @@ func RootCmd(client *resty.Client) *cobra.Command {
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(ui.NewCommand())
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
