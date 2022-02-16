@@ -66,7 +66,8 @@ jobs:
       - run: make dependencies
       - run: go mod download
       - run: make lint
-      - run: make bin
+      - run: make gitops
+      - run: make gitops-server
       - run: make test
       # - run: make lib-test
 
