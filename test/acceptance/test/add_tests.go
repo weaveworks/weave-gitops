@@ -1166,7 +1166,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("@gitlabTests Test3 - Verify that gitops can deploy and delete a gitlab app in a subgroup", func() {
+	PIt("@gitlabTests Test3 - Verify that gitops can deploy and delete a gitlab app in a subgroup", func() {
 		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
