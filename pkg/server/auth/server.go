@@ -11,7 +11,6 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
@@ -47,12 +46,12 @@ type AuthConfig struct {
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	logger           logr.Logger
-	client           *http.Client
-	provider         *oidc.Provider
-	config           AuthConfig
-	kubernetesClient ctrlclient.Client
-	hmacSecret       []byte
+	logger              logr.Logger
+	client              *http.Client
+	provider            *oidc.Provider
+	config              AuthConfig
+	kubernetesClient    ctrlclient.Client
+	tokenSignerVerifier TokenSignerVerifier
 }
 
 // Form data submitted by client
@@ -61,7 +60,7 @@ type LoginRequest struct {
 }
 
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client, tokenSignerVerifier TokenSignerVerifier) (*AuthServer, error) {
 	provider, err := oidc.NewProvider(ctx, config.IssuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not create provider: %w", err)
@@ -75,12 +74,12 @@ func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client,
 	}
 
 	return &AuthServer{
-		logger:           logger,
-		client:           client,
-		provider:         provider,
-		config:           config,
-		kubernetesClient: kubernetesClient,
-		hmacSecret:       hmacSecret,
+		logger:              logger,
+		client:              client,
+		provider:            provider,
+		config:              config,
+		kubernetesClient:    kubernetesClient,
+		tokenSignerVerifier: tokenSignerVerifier,
 	}, nil
 }
 
@@ -258,13 +257,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
-			ExpiresAt: time.Now().UTC().Add(time.Hour).Unix(),
-			Issuer:    "test",
-			// IssuedAt: ,
-			Subject: "admin",
-		})
-		signed, err := token.SignedString(s.hmacSecret)
+		signed, err := s.tokenSignerVerifier.Sign()
 		if err != nil {
 			s.logger.Error(err, "Failed to create and sign token")
 			rw.WriteHeader(http.StatusInternalServerError)

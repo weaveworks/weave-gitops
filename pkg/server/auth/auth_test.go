@@ -33,6 +33,11 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	mux := http.NewServeMux()
 	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
 
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
@@ -45,7 +50,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 				CookieDuration:     20 * time.Minute,
 				IssueSecureCookies: false,
 			},
-		}, fakeKubernetesClient)
+		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
@@ -83,6 +88,11 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 	mux := http.NewServeMux()
 	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
 
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
@@ -95,7 +105,7 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 				CookieDuration:     20 * time.Minute,
 				IssueSecureCookies: false,
 			},
-		}, fakeKubernetesClient)
+		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
