@@ -30,7 +30,12 @@ func TestSignInOnlySupportsPOST(t *testing.T) {
 		http.MethodOptions,
 	}
 
-	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build())
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/signin", nil)
@@ -45,7 +50,12 @@ func TestSignInOnlySupportsPOST(t *testing.T) {
 }
 
 func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
-	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build())
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
 
 	req := httptest.NewRequest(http.MethodPost, "https://example.com/signin", nil)
 	w := httptest.NewRecorder()
@@ -68,7 +78,12 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 }
 
 func TestSignInNoSecret(t *testing.T) {
-	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build())
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
 
 	j, err := json.Marshal(auth.LoginRequest{})
 	if err != nil {
@@ -107,7 +122,13 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	}
 
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
-	s := makeAuthServer(t, fakeKubernetesClient)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
 
 	login := auth.LoginRequest{
 		Password: "wrong",
@@ -150,7 +171,12 @@ func TestSingInCorrectPassword(t *testing.T) {
 
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	s := makeAuthServer(t, fakeKubernetesClient)
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
 
 	login := auth.LoginRequest{
 		Password: password,
@@ -185,10 +211,12 @@ func TestSingInCorrectPassword(t *testing.T) {
 		t.Errorf("expected to find cookie %q but did not", auth.IDTokenCookieName)
 	}
 
-	// ensure that a JWT token is issues in an id_token cookie
+	if _, err := tokenSignerVerifier.Verify(cookie.Value); err != nil {
+		t.Errorf("expected to verify the issued token but got an error instead: %v", err)
+	}
 }
 
-func makeAuthServer(t *testing.T, client ctrlclient.Client) *auth.AuthServer {
+func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier auth.TokenSignerVerifier) *auth.AuthServer {
 	t.Helper()
 
 	m, err := mockoidc.Run()
@@ -199,11 +227,6 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client) *auth.AuthServer {
 	t.Cleanup(func() {
 		_ = m.Shutdown()
 	})
-
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
 
 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
 		OIDCConfig: auth.OIDCConfig{
