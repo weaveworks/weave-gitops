@@ -55,7 +55,7 @@ function UnstyledFilterBar({
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [showFilters, setShowFilters] = React.useState(false);
 
-  const onCheck = (e, option) => {
+  const onCheck = (e: React.ChangeEvent<HTMLInputElement>, option: string) => {
     e.target.checked
       ? setActiveFilters([...activeFilters, option])
       : setActiveFilters(

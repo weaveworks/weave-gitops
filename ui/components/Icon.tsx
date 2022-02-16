@@ -12,7 +12,6 @@ import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
-import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
@@ -38,7 +37,6 @@ export enum IconType {
   SkipPreviousIcon,
   RemoveCircleIcon,
   FilterIcon,
-  SearchIcon,
   ClearIcon,
 }
 
@@ -99,9 +97,6 @@ function getIcon(i: IconType) {
 
     case IconType.FilterIcon:
       return FilterIcon;
-
-    case IconType.SearchIcon:
-      return SearchIcon;
 
     case IconType.ClearIcon:
       return ClearIcon;
