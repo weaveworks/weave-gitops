@@ -623,7 +623,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
+	PIt("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
