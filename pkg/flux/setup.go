@@ -13,9 +13,9 @@ var binFS embed.FS
 
 //SetupFluxBin creates flux binary from embedded file if it doesnt already exist
 func (f *FluxClient) SetupBin() {
-	exePath, err := f.GetExePath()
+	exePath, err := f.getExePath()
 	f.checkError(err)
-	binPath, err := f.GetBinPath()
+	binPath, err := f.getBinPath()
 	f.checkError(err)
 
 	var fluxBinary []byte
@@ -44,7 +44,7 @@ func (f *FluxClient) SetupBin() {
 }
 
 //GetFluxBinPath -
-func (f *FluxClient) GetBinPath() (string, error) {
+func (f *FluxClient) getBinPath() (string, error) {
 	homeDir, err := f.osys.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -54,8 +54,8 @@ func (f *FluxClient) GetBinPath() (string, error) {
 }
 
 //GetFluxExePath -
-func (f *FluxClient) GetExePath() (string, error) {
-	path, err := f.GetBinPath()
+func (f *FluxClient) getExePath() (string, error) {
+	path, err := f.getBinPath()
 	if err != nil {
 		return "", err
 	}
