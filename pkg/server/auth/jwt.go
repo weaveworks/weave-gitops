@@ -102,6 +102,40 @@ func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDTok
 	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
 }
 
+type JWTAdminCookiePrincipalGetter struct {
+	log        logr.Logger
+	verifier   TokenSignerVerifier
+	cookieName string
+}
+
+func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerifier, cookieName string) PrincipalGetter {
+	return &JWTAdminCookiePrincipalGetter{
+		log:        log,
+		verifier:   verifier,
+		cookieName: cookieName,
+	}
+}
+
+func (pg *JWTAdminCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
+	pg.log.Info("attempt to read token from cookie")
+
+	cookie, err := r.Cookie(pg.cookieName)
+	if err == http.ErrNoCookie {
+		return nil, nil
+	}
+
+	return parseJWTAdminToken(pg.verifier, cookie.Value)
+}
+
+func parseJWTAdminToken(verifier TokenSignerVerifier, rawIDToken string) (*UserPrincipal, error) {
+	claims, err := verifier.Verify(rawIDToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
+	}
+
+	return &UserPrincipal{ID: claims.Subject, Groups: []string{}}, nil
+}
+
 // MultiAuthPrincipal looks for a principal in an array of principal getters and
 // if it finds an error or a principal it returns, otherwise it returns (nil,nil).
 type MultiAuthPrincipal []PrincipalGetter
