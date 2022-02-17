@@ -28,7 +28,7 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/mattn/go-isatty v0.0.13
+	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
