@@ -3,10 +3,8 @@ package profiles
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
@@ -43,10 +41,10 @@ func AddCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
 	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
-	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of external repository (if any) which will hold automation manifests")
+	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
 	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster to add the profile to")
 	cmd.Flags().StringVar(&opts.ProfilesPort, "profiles-port", server.DefaultPort, "Port the Profiles API is running on")
-	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's default branch")
+	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's branch")
 	cmd.Flags().StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(homedir.HomeDir(), ".kube", "config"), "Absolute path to the kubeconfig file")
 
 	requiredFlags := []string{"name", "config-repo", "cluster"}
@@ -61,8 +59,6 @@ func AddCommand() *cobra.Command {
 
 func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		rand.Seed(time.Now().UnixNano())
-
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)

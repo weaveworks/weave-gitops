@@ -64,7 +64,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteNamespace(namespace)
 	})
 
-	It("gets deployed and is accessible via the service", func() {
+	It("@skipOnNightly gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
@@ -129,9 +129,31 @@ Namespace: %s`, clusterName, namespace)))
 			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "9898", "/healthz", clientSet)
 			return statusCode
 		}, "120s", "1s").Should(Equal(http.StatusOK))
+
+		By("Updating the version of the installed profile")
+		Eventually(func() string {
+			stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s update profile --name %s --version 6.0.0 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
+			return stdErr
+		}, "240s", "10s").Should(BeEmpty())
+
+		Expect(stdOut).To(ContainSubstring(
+			fmt.Sprintf(
+				`Updating profile:
+
+Name: podinfo
+Version: 6.0.0
+Cluster: %s
+Namespace: %s`, clusterName, namespace)))
+
+		By("Verifying that the profile installed in the cluster's namespace was updated to the correct version")
+		Eventually(func() string {
+			stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --selector=app.kubernetes.io/name=%s-%s -o jsonpath='{.items[*].spec.containers[*].image}'", namespace, clusterName, profileName))
+			Expect(stdErr).Should(BeEmpty())
+			return stdOut
+		}, "240s", "5s").Should(ContainSubstring("ghcr.io/stefanprodan/podinfo:6.0.0"))
 	})
 
-	It("profiles are installed into a different namespace", func() {
+	It("@skipOnNightly profiles are installed into a different namespace", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)

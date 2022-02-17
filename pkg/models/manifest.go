@@ -160,6 +160,8 @@ func WegoImageAndVersion() (string, string) {
 	version := version.Version
 	if os.Getenv("IS_TEST_ENV") != "" {
 		version = "latest"
+	} else if os.Getenv("USE_NIGHTLY_BUILD_TAG") != "" {
+		version = "nightly-build"
 	}
 
 	image := WegoImage

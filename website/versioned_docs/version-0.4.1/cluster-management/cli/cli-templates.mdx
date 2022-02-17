@@ -1,0 +1,152 @@
+---
+title: "Templates"
+hide_title: true
+---
+
+import TierLabel from "../../_components/TierLabel";
+
+## Templates <TierLabel tiers="enterprise" />
+
+### Introduction
+
+The MCCP CLI allows listing and rendering of `CAPITemplate` resources, viewing
+of template parameters, viewing of infrastructure credentials and submission of
+pull requests for creating Kubernetes clusters using the terminal. Currently,
+the CAPA (AWS) and CAPD (Docker) providers are supported.
+
+### Listing templates
+
+To get a list of `CAPITemplate` resources run:
+
+```
+mccp templates list
+```
+
+This command returns a list of all available `CAPITemplate` resources that have
+been added previously to the management cluster. In the following example, only
+a single [template](https://github.com/kubernetes-sigs/cluster-api-provider-aws/blob/b6494f993242d7849cd538177ccd74a7a60de1d9/templates/cluster-template-eks-fargate.yaml) is returned named `cluster-template-eks-fargate`.
+
+```
+NAME				            DESCRIPTION
+cluster-template-eks-fargate	This is an AWS cluster template for EKS Fargate
+```
+
+### Listing template parameters
+
+To get a list of parameters for a given `CAPITemplate` run:
+
+```
+mccp templates render cluster-template-eks-fargate --list-parameters
+```
+
+This command returns a list of all template parameters for a given template.
+These parameters need to be set in order to render a template or create a pull
+request for a new CAPI cluster. In the following example, four template
+parameters are shown.
+
+```
+NAME			    DESCRIPTION
+AWS_REGION		    The AWS region to deploy the cluster to.
+AWS_SSH_KEY_NAME	The AWS SSH key name.
+CLUSTER_NAME		The name of the cluster.
+KUBERNETES_VERSION	The version of Kubernetes to deploy.
+```
+
+### Rendering a template with parameters
+
+To set the parameters for a template and render it run:
+
+```
+mccp templates render cluster-template-eks-fargate \
+    --set=CLUSTER_NAME=dev \
+    --set=AWS_REGION=us-east-1 \
+    --set=AWS_SSH_KEY_NAME=ssh_key \
+    --set=KUBERNETES_VERSION=1.19
+```
+
+This command uses the parameters supplied to output the CAPI manifest to the
+terminal.
+
+```
+apiVersion: cluster.x-k8s.io/v1alpha4
+kind: Cluster
+metadata:
+  name: dev
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedControlPlane
+    name: dev-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: AWSManagedCluster
+    name: dev
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedCluster
+metadata:
+  name: dev
+
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedControlPlane
+metadata:
+  name: dev-control-plane
+spec:
+  region: us-east-1
+  sshKeyName: ssh_key
+  version: "1.19"
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSFargateProfile
+metadata:
+  name: dev-fargate-0
+spec:
+  clusterName: mb-test-1
+  selectors:
+  - namespace: default
+```
+
+### Creating a pull request
+
+To create a pull request for a new Kubernetes cluster using a template run:
+
+```
+mccp templates render cluster-template-eks-fargate \
+    --set=CLUSTER_NAME=dev \
+    --set=AWS_REGION=us-east-1 \
+    --set=AWS_SSH_KEY_NAME=ssh_key \
+    --set=KUBERNETES_VERSION=1.19
+    --create-pr \
+    --pr-branch=new-dev-cluster \
+    --pr-commit-message="Add new template" \
+    --pr-title="New dev cluster" \
+    --pr-description="Create a new dev cluster"
+```
+
+This command returns a message that includes the URL for the new pull request.
+
+```
+Created pull request: https://github.com/weaveworks/mccp-demo/pull/1
+```
+
+### Listing template infrastructure credentials
+
+To get a list of infrastructure credentials for a given `CAPITemplate` run:
+
+```
+mccp templates render cluster-template-eks-fargate --list-credentials
+```
+
+This command returns the list of all infrastructure credentials.
+
+```
+NAME
+default-account
+```

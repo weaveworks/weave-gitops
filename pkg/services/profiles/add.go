@@ -1,22 +1,18 @@
 package profiles
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 
-	"github.com/google/uuid"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"gopkg.in/yaml.v2"
-	kyaml "sigs.k8s.io/yaml"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/google/uuid"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const AddCommitMessage = "Add Profile manifests"
@@ -52,7 +48,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	availableProfile, version, err := s.GetProfile(ctx, GetOptions{
+	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -60,29 +56,24 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		Port:      opts.ProfilesPort,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get profiles from cluster: %w", err)
+		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
-	if availableProfile.GetHelmRepository().GetName() == "" || availableProfile.GetHelmRepository().GetNamespace() == "" {
-		return fmt.Errorf("failed to discover HelmRepository's name and namespace")
-	}
-
-	helmRepo := types.NamespacedName{
-		Name:      availableProfile.HelmRepository.Name,
-		Namespace: availableProfile.HelmRepository.Namespace,
-	}
-
-	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
+	opts.Version = version
 
 	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
-	file, err := AppendProfileToFile(files, newRelease, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+
+	content, err := addHelmRelease(helmRepo, fileContent, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
-		return fmt.Errorf("failed to append HelmRelease to profiles file: %w", err)
+		return fmt.Errorf("failed to add HelmRelease for profile '%s' to %s: %w", opts.Name, models.WegoProfilesPath, err)
 	}
+
+	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
 
 	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
 		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
@@ -90,13 +81,16 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		CommitMessage: AddCommitMessage,
 		TargetBranch:  defaultBranch,
 		NewBranch:     uuid.New().String(),
-		Files:         []gitprovider.CommitFile{file},
+		Files: []gitprovider.CommitFile{{
+			Path:    &path,
+			Content: &content,
+		}},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
 
-	s.Logger.Actionf("Pull Request created: %s", pr.Get().WebURL)
+	s.Logger.Actionf("created Pull Request: %s", pr.Get().WebURL)
 
 	if opts.AutoMerge {
 		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
@@ -119,79 +113,27 @@ func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
 	s.Logger.Println("Namespace: %s\n", opts.Namespace)
 }
 
-// AppendProfileToFile appends a HelmRelease to profiles.yaml if file does not contain other HelmRelease with the same name and namespace.
-func AppendProfileToFile(files []*gitprovider.CommitFile, newRelease *v2beta1.HelmRelease, path string) (gitprovider.CommitFile, error) {
-	var content string
-
-	for _, f := range files {
-		if f.Path != nil && *f.Path == path {
-			if f.Content == nil || *f.Content == "" {
-				break
-			}
-
-			manifestByteSlice, err := splitYAML([]byte(*f.Content))
-			if err != nil {
-				return gitprovider.CommitFile{}, fmt.Errorf("error splitting %s: %w", models.WegoProfilesPath, err)
-			}
-
-			for _, manifestBytes := range manifestByteSlice {
-				var r v2beta1.HelmRelease
-				if err := kyaml.Unmarshal(manifestBytes, &r); err != nil {
-					return gitprovider.CommitFile{}, fmt.Errorf("error unmarshaling %s: %w", models.WegoProfilesPath, err)
-				}
-
-				if profileIsInstalled(r, *newRelease) {
-					return gitprovider.CommitFile{}, fmt.Errorf("version %s of profile '%s' already exists in namespace %s", r.Spec.Chart.Spec.Version, r.Name, r.Namespace)
-				}
-			}
-
-			content = *f.Content
-
-			break
-		}
-	}
-
-	helmReleaseManifest, err := kyaml.Marshal(newRelease)
+func addHelmRelease(helmRepo types.NamespacedName, fileContent, name, version, cluster, ns string) (string, error) {
+	existingReleases, err := helm.SplitHelmReleaseYAML([]byte(fileContent))
 	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("failed to marshal new HelmRelease: %w", err)
+		return "", fmt.Errorf("error splitting into YAML: %w", err)
 	}
 
-	content += "\n---\n" + string(helmReleaseManifest)
+	newRelease := helm.MakeHelmRelease(name, version, cluster, ns, helmRepo)
 
-	return gitprovider.CommitFile{
-		Path:    &path,
-		Content: &content,
-	}, nil
-}
-
-// splitYAML splits a manifest file that may contain multiple YAML resources separated by '---'
-// and validates that each element is YAML.
-func splitYAML(resources []byte) ([][]byte, error) {
-	var splitResources [][]byte
-
-	decoder := yaml.NewDecoder(bytes.NewReader(resources))
-
-	for {
-		var value interface{}
-		if err := decoder.Decode(&value); err != nil {
-			if err == io.EOF {
-				break
-			}
-
-			return nil, err
-		}
-
-		valueBytes, err := yaml.Marshal(value)
-		if err != nil {
-			return nil, err
-		}
-
-		splitResources = append(splitResources, valueBytes)
+	if releaseIsInNamespace(existingReleases, newRelease.Name, ns) {
+		return "", fmt.Errorf("found another HelmRelease for profile '%s' in namespace %s", name, ns)
 	}
 
-	return splitResources, nil
+	return helm.AppendHelmReleaseToString(fileContent, newRelease)
 }
 
-func profileIsInstalled(r, newRelease v2beta1.HelmRelease) bool {
-	return r.Name == newRelease.Name && r.Namespace == newRelease.Namespace && r.Spec.Chart.Spec.Version == newRelease.Spec.Chart.Spec.Version
+func releaseIsInNamespace(existingReleases []*helmv2beta1.HelmRelease, name, ns string) bool {
+	for _, r := range existingReleases {
+		if r.Name == name && r.Namespace == ns {
+			return true
+		}
+	}
+
+	return false
 }

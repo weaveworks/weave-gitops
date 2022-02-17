@@ -1,0 +1,134 @@
+---
+title: Upgrading
+sidebar_position: 0
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+## How to: Install Weave GitOps Enterprise
+
+:::note BEFORE YOU START
+
+Make sure the following software is installed before continuing with these instructions:
+
+- `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
+
+Also `GITHUB_TOKEN` must be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
+:::
+
+Installing requires we:
+
+1. Have a cluster with Weave GitOps installed
+2. Install a CAPI provider
+3. Apply the entitlements secret
+4. Upgrade
+5. Check that Weave GitOps Enterprise has been installed
+6. Connect the management cluster up to itself
+
+### 1. Install `gitops` on a new cluster
+
+We'll use `kind` here as an example.
+
+- The `extraMounts` are for the Docker CAPI provider (CAPD)
+- `extraPortMappings` are for easily accessing NATS and the UI
+
+```yaml title="kind-config.yaml"
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraMounts:
+      - hostPath: /var/run/docker.sock
+        containerPath: /var/run/docker.sock
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 30080
+        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
+        protocol: tcp # Optional, defaults to tcp
+      - containerPort: 31490
+        hostPort: 31490
+        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
+        protocol: tcp # Optional, defaults to tcp
+```
+
+Fire up cluster
+
+```bash
+kind create cluster --config kind-config.yaml
+```
+
+Create a new repo
+
+```bash
+gh repo create my-management-cluster --private --confirm
+cd my-management-cluster
+echo "# my-management-cluster" > README.md
+git add README.md
+git commit --all --message "init commit"
+git push -u origin main
+```
+
+Install Weave Gitops
+
+```bash
+gitops install --app-config-url https://github.com/my-org/my-repo
+```
+
+### 2. Install a CAPI provider
+
+:::note `clusterctl` versions
+
+The example templates provided in this guide have been tested with `clusterctl` version `1.0.1`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
+
+Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
+:::
+
+In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed.
+
+```
+clusterctl init --infrastructure docker
+```
+
+### 3. Apply the entitlements secret
+
+Contact sales@weave.works for a valid entitlements secret. Then apply it to the cluster:
+
+```bash
+kubectl apply -f entitlements.yaml
+```
+
+In addition, you will add your git repository token (in this example, GitHub) as a secret. This is used to update the configurations and manifests in the management repository.
+```bash
+kubectl create secret generic git-provider-credentials --namespace=wego-system --from-literal="GIT_PROVIDER_TOKEN=$GITHUB_TOKEN"
+```
+
+### 4. Upgrade
+
+Run the upgrade command specifying the same `--app-config-repo` used in install and the desired version of Weave GitOps Enterprise.
+
+```bash
+gitops upgrade --app-config-url https://github.com/my-org/my-repo --profile-version 0.0.16
+```
+:::note
+You may need to add the `--base` flag to the above command to indicate your local branch name, if it is not set to `main`.
+:::
+
+
+A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
+
+### 5. Checking that WGE is installed
+
+You should now be able to load the WGE UI:
+
+```bash
+kubectl port-forward --namespace wego-system deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80
+```
+
+The WGE UI should now be accessible at [http://localhost:8000](http://localhost:8000).
+
+### 6. Connect the management cluster up to itself
+
+_Connecting a cluster_ installs the agent which is responsible for detecting new clusters and reporting their status to the UI. We need to install the agent on our newly created management cluster. Check out [How to: Connect a cluster](../cluster-management/managing-existing-clusters.mdx#how-to-connect-a-cluster). The agent should be loaded onto our new management cluster, give it a name like **Management** and leave the Ingress URL blank.
+
+Head over to [Getting started](../cluster-management/getting-started.mdx) to create your first CAPI Cluster.

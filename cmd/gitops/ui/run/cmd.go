@@ -75,7 +75,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
 	cmd.Flags().StringVar(&options.WatcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
-	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
+	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	if server.AuthEnabled() {
@@ -150,6 +150,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	profileCache, err := cache.NewCache(options.ProfileCacheLocation)
 	if err != nil {
 		return fmt.Errorf("failed to create cacher: %w", err)
+	}
+
+	if options.NotificationControllerAddress == "" {
+		namespace, _ := cmd.Flags().GetString("namespace")
+		options.NotificationControllerAddress = fmt.Sprintf("http://notification-controller.%s.svc.cluster.local./", namespace)
 	}
 
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{

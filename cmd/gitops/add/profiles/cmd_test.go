@@ -2,26 +2,18 @@ package profiles_test
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 )
 
-var _ = Describe("Add Profiles", func() {
-	var (
-		cmd *cobra.Command
-	)
+var _ = Describe("Add a Profile", func() {
+	var cmd *cobra.Command
 
 	BeforeEach(func() {
 		client := resty.New()
-		httpmock.ActivateNonDefault(client.GetClient())
 		cmd = root.RootCmd(client)
-	})
-
-	AfterEach(func() {
-		httpmock.DeactivateAndReset()
 	})
 
 	When("the flags are valid", func() {
@@ -42,7 +34,7 @@ var _ = Describe("Add Profiles", func() {
 	})
 
 	When("flags are not valid", func() {
-		It("fails if --name, --cluster, and --config-repo are not provided", func() {
+		It("fails if --name, --cluster, or --config-repo are not provided", func() {
 			cmd.SetArgs([]string{
 				"add", "profile",
 			})
