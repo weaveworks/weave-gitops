@@ -12,6 +12,7 @@ import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
+import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
@@ -39,7 +40,11 @@ export enum IconType {
   RemoveCircleIcon,
   FilterIcon,
   ClearIcon,
+<<<<<<< HEAD
   Circle,
+=======
+  SearchIcon,
+>>>>>>> 2e7250f2 (created collapsed input)
 }
 
 type Props = {
@@ -103,6 +108,7 @@ function getIcon(i: IconType) {
     case IconType.ClearIcon:
       return ClearIcon;
 
+<<<<<<< HEAD
     case IconType.Circle:
       // Our version of material UI icons does not have a plain circle.
       return () => (
@@ -110,6 +116,10 @@ function getIcon(i: IconType) {
           <circle cx="50" cy="50" r="45" />
         </svg>
       );
+=======
+    case IconType.SearchIcon:
+      return SearchIcon;
+>>>>>>> 2e7250f2 (created collapsed input)
 
     default:
       break;
