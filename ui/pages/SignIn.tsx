@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { theme } from "../lib/theme";
 import Flex from "../components/Flex";
 // @ts-ignore
 import SignInWheel from "url:../images/SignInWheel.svg";
@@ -46,7 +47,7 @@ const Footer = styled(Flex)`
 const FormElement = styled(Flex)`
   .MuiFormControl-root {
     min-width: 300px;
-    height: 48px;
+    height: ${(props) => props.theme.spacing.xl};
   }
 `;
 
@@ -62,14 +63,12 @@ function SignIn() {
     )}`);
   };
 
-  const handleUserPassSubmit = () => {
-    signIn({ password });
-  };
+  const handleUserPassSubmit = () => signIn({ password });
 
   return (
     <PageWrapper center align>
       <FormWrapper center align wrap>
-        <div style={{ padding: "16px" }}>
+        <div style={{ padding: theme.spacing.base }}>
           <Logo>
             <img src={WeaveLogo} />
           </Logo>
@@ -85,7 +84,7 @@ function SignIn() {
             </Button>
             <Divider
               variant="middle"
-              style={{ width: "100%", margin: "16px" }}
+              style={{ width: "100%", margin: theme.spacing.base }}
             />
           </Action>
           <form
@@ -102,11 +101,12 @@ function SignIn() {
                 id="password"
                 label="Password"
                 variant="standard"
+                type="password"
                 value={password}
               />
             </FormElement>
             <Flex center>
-              <Button type="submit" style={{ marginTop: "24px" }}>
+              <Button type="submit" style={{ marginTop: theme.spacing.medium }}>
                 CONTINUE
               </Button>
             </Flex>
