@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
@@ -58,7 +57,7 @@ func NewFactory(fluxClient flux.Flux, log logger.Logger) Factory {
 }
 
 func (f *defaultFactory) GetAppService(ctx context.Context, kubeClient kube.Kube) (app.AppService, error) {
-	return app.New(ctx, f.log, f.fluxClient, kubeClient, osys.New()), nil
+	return app.New(ctx, f.log, kubeClient), nil
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {

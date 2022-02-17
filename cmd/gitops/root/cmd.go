@@ -19,10 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
 )
@@ -46,11 +43,6 @@ func init() {
 }
 
 func RootCmd(client *resty.Client) *cobra.Command {
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := fluxBin.New(osysClient, cliRunner)
-	fluxClient.SetupBin()
-
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,

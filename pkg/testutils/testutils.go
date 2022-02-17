@@ -16,7 +16,6 @@ import (
 	"github.com/go-logr/logr"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
@@ -136,16 +135,6 @@ func MakeFakeLogr() *fakelogr.FakeLogger {
 	}
 
 	return log
-}
-
-type LocalFluxRunner struct {
-	runner.Runner
-}
-
-func (r *LocalFluxRunner) Run(command string, args ...string) ([]byte, error) {
-	cmd := "../flux/bin/flux"
-
-	return r.Runner.Run(cmd, args...)
 }
 
 func Setenv(k, v string) func() {

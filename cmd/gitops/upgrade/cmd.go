@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -65,7 +64,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		upgradeCmdFlags.Namespace = namespace
 
 		log := internal.NewCLILogger(os.Stdout)
-		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 
 		wegoConfig, err := kubeClient.GetWegoConfig(ctx, namespace)
