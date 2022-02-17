@@ -36,14 +36,15 @@ WORKDIR /app
 COPY go.* /app/
 RUN go mod download
 COPY --from=flux /usr/local/bin/flux /app/pkg/flux/bin/flux
-COPY --from=ui /home/app/cmd/gitops/ui/run/dist/ /app/cmd/gitops/ui/run/dist/
+COPY --from=ui /home/app/cmd/gitops-server/cmd/dist/ /app/cmd/gitops-server/cmd/dist/
 COPY . /app
-RUN make bin
+# ignore the index.html dependency (which it otherwise would because node_modules is missing)
+RUN make -o cmd/gitops-server/cmd/dist/index.html gitops-server
 
-# Distroless
+#  Distroless
 FROM gcr.io/distroless/base as runtime
-COPY --from=go-build /app/bin/gitops /gitops
+COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 COPY --from=go-build /usr/bin/kubectl /usr/bin/kubectl
 
-ENTRYPOINT ["/gitops"]
+ENTRYPOINT ["/gitops-server"]
