@@ -23,8 +23,8 @@ import {
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
+import { formatURL } from "../lib/nav";
 import { PageRoute } from "../lib/types";
-import { formatURL } from "../lib/utils";
 
 type Props = {
   className?: string;

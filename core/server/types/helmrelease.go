@@ -6,29 +6,29 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 
 	"github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ProtoToHelmRelease(helmReleaseReq *pb.AddHelmReleaseReq) v2beta1.HelmRelease {
+func ProtoToHelmRelease(hr *pb.HelmRelease) v2beta1.HelmRelease {
 	return v2beta1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       v2beta1.HelmReleaseKind,
 			APIVersion: v1beta1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmReleaseReq.HelmRelease.Name,
-			Namespace: helmReleaseReq.Namespace,
-			Labels:    getGitopsLabelMap(helmReleaseReq.AppName),
+			Name:      hr.Name,
+			Namespace: hr.Namespace,
+			Labels:    getGitopsLabelMap(hr.Name),
 		},
 		Spec: v2beta1.HelmReleaseSpec{
 			Chart: v2beta1.HelmChartTemplate{
 				Spec: v2beta1.HelmChartTemplateSpec{
-					Chart:   helmReleaseReq.HelmRelease.HelmChart.Chart,
-					Version: helmReleaseReq.HelmRelease.HelmChart.Version,
+					Chart:   hr.HelmChart.Chart,
+					Version: hr.HelmChart.Version,
 					SourceRef: v2beta1.CrossNamespaceObjectReference{
-						Kind: helmReleaseReq.HelmRelease.HelmChart.SourceRef.Kind.String(),
-						Name: helmReleaseReq.HelmRelease.HelmChart.SourceRef.Name,
+						Kind: hr.HelmChart.SourceRef.Kind.String(),
+						Name: hr.HelmChart.SourceRef.Name,
 					},
 					Interval: &metav1.Duration{Duration: time.Minute * 1},
 				},

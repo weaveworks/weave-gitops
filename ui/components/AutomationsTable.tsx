@@ -1,12 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Button } from "..";
-import { Automation } from "../hooks/kustomizations";
-import { AutomationKind } from "../lib/api/applications/applications.pb";
-import { V2Routes } from "../lib/types";
-import { formatAppScopedURL, formatURL } from "../lib/utils";
+import { Automation } from "../hooks/automations";
+import { formatURL } from "../lib/nav";
+import { AutomationType, V2Routes } from "../lib/types";
 import DataTable from "./DataTable";
-import Flex from "./Flex";
 import Link from "./Link";
 
 type Props = {
@@ -15,55 +12,43 @@ type Props = {
   appName?: string;
 };
 
-function AutomationsTable({ className, appName, automations }: Props) {
+function AutomationsTable({ className, automations }: Props) {
+  console.log(automations);
   return (
-    <div className={className}>
-      <Flex wide between align>
-        <h3>Automations</h3>
-        <Link
-          to={
-            appName
-              ? formatAppScopedURL(appName, V2Routes.AddAutomation)
-              : formatURL(V2Routes.AddAutomation)
-          }
-        >
-          <Button>Add Automation</Button>
-        </Link>
-      </Flex>
-      <DataTable
-        sortFields={["name"]}
-        fields={[
-          {
-            label: "Name",
-            value: (k) => {
-              const route =
-                k.type === AutomationKind.Kustomize
-                  ? V2Routes.Kustomization
-                  : V2Routes.HelmRepo;
-              return (
-                <Link
-                  to={formatURL(route, {
-                    name: k.name,
-                    namespace: k.namespace,
-                  })}
-                >
-                  {k.name}
-                </Link>
-              );
-            },
+    <DataTable
+      className={className}
+      sortFields={["name"]}
+      fields={[
+        {
+          label: "Name",
+          value: (k) => {
+            const route =
+              k.type === AutomationType.Kustomization
+                ? V2Routes.Kustomization
+                : V2Routes.HelmRepo;
+            return (
+              <Link
+                to={formatURL(route, {
+                  name: k.name,
+                  namespace: k.namespace,
+                })}
+              >
+                {k.name}
+              </Link>
+            );
           },
-          {
-            label: "Type",
-            value: "type",
-          },
-          {
-            label: "Namespace",
-            value: "namespace",
-          },
-        ]}
-        rows={automations}
-      />
-    </div>
+        },
+        {
+          label: "Type",
+          value: "type",
+        },
+        {
+          label: "Namespace",
+          value: "namespace",
+        },
+      ]}
+      rows={automations}
+    />
   );
 }
 

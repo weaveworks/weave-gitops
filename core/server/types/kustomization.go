@@ -3,12 +3,12 @@ package types
 import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ProtoToKustomization(kustomization *pb.AddKustomizationReq) v1beta2.Kustomization {
-	labels := getGitopsLabelMap(kustomization.AppName)
+func ProtoToKustomization(kustomization *pb.Kustomization) v1beta2.Kustomization {
+	labels := getGitopsLabelMap(kustomization.Name)
 
 	return v1beta2.Kustomization{
 		TypeMeta: metav1.TypeMeta{
@@ -33,7 +33,7 @@ func ProtoToKustomization(kustomization *pb.AddKustomizationReq) v1beta2.Kustomi
 }
 
 func KustomizationToProto(kustomization *v1beta2.Kustomization) *pb.Kustomization {
-	var kind pb.SourceRef_Kind
+	var kind pb.SourceRef_SourceKind
 
 	switch kustomization.Spec.SourceRef.Kind {
 	case v1beta1.GitRepositoryKind:

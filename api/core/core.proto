@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package gitops_core.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/core/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+import "api/core/types.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Core API",
+      version: "0.1";
+      description: "The API handles operations for Weave GitOps Core";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service Core {
+    // Automations
+
+    /*
+    * ListKustomization lists Kustomizations from a cluster via GitOps.
+    */
+    rpc ListKustomizations(ListKustomizationsRequest) returns (ListKustomizationsResponse) {
+        option (google.api.http) = {
+            get : "/v1/kustomizations"
+        };
+    }
+    /*
+    * ListHelmReleases lists helm releases from a cluster.
+    */
+    rpc ListHelmReleases(ListHelmReleasesRequest) returns (ListHelmReleasesResponse) {
+        option (google.api.http) = {
+          get : "/v1/helmreleases"
+        };
+    }
+
+    // Sources
+
+    /*
+    * ListGitRepository lists git repositories objects from a cluster.
+    */
+    rpc ListGitRepositories(ListGitRepositoriesRequest) returns (ListGitRepositoriesResponse) {
+        option (google.api.http) = {
+            get : "/v1/gitrepositories"
+        };
+    }
+
+    /*
+    * ListHelmCharts lists helm chart objects from a cluster.
+    */
+    rpc ListHelmCharts(ListHelmChartsRequest) returns (ListHelmChartsResponse) {
+        option (google.api.http) = {
+            get : "/v1/helmcharts"
+        };
+    }
+    /*
+    * ListHelmRepository lists helm repository objects from a cluster.
+    */
+    rpc ListHelmRepositories(ListHelmRepositoriesRequest) returns (ListHelmRepositoriesResponse) {
+        option (google.api.http) = {
+            get : "/v1/helmrepositories"
+        };
+    }
+    /*
+    * ListBuckets lists bucket objects from a cluster.
+    */
+    rpc ListBuckets(ListBucketRequest) returns (ListBucketsResponse) {
+        option (google.api.http) = {
+            get : "/v1/buckets"
+        };
+    }
+
+    // Misc
+    /*
+    * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
+    */
+    rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest) returns (ListFluxRuntimeObjectsResponse) {
+        option (google.api.http) = {
+          get : "/v1/flux_runtime_objects"
+        };
+    }
+}
+
+message ListKustomizationsRequest {
+    string namespace = 1;
+}
+
+message ListKustomizationsResponse {
+    repeated Kustomization kustomizations = 1;
+}
+
+message ListHelmReleasesRequest {
+    string namespace = 1;
+}
+
+message ListHelmReleasesResponse {
+    repeated HelmRelease helm_releases = 1;
+}
+
+message ListGitRepositoriesRequest {
+    string namespace = 1;
+}
+
+message ListGitRepositoriesResponse {
+    repeated GitRepository git_repositories = 1;
+}
+
+message ListHelmRepositoriesRequest {
+    string namespace = 1;
+}
+
+message ListHelmRepositoriesResponse {
+    repeated HelmRepository helm_repositories = 1;
+}
+
+message ListBucketRequest {
+    string namespace = 1;
+}
+
+message ListBucketsResponse {
+    repeated Bucket buckets = 1;
+}
+
+message ListFluxRuntimeObjectsRequest {
+    string namespace = 1;
+}
+
+message ListFluxRuntimeObjectsResponse {
+    repeated Deployment deployments = 1;
+}
+
+message ListHelmChartsRequest {
+    string namespace = 1;
+}
+
+message ListHelmChartsResponse {
+    repeated HelmChart helm_charts = 1;
+}

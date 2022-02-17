@@ -1,8 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { GitRepository, HelmChart, SourceType } from "../lib/api/app/source.pb";
-import { Source, V2Routes } from "../lib/types";
-import { convertGitURLToGitProvider, formatURL } from "../lib/utils";
+import {
+  GitRepository,
+  HelmChart,
+  SourceRefSourceKind,
+} from "../lib/api/core/types.pb";
+import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { Source } from "../lib/types";
+import { convertGitURLToGitProvider } from "../lib/utils";
 import DataTable from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -24,7 +29,7 @@ function SourcesTable({ className, sources }: Props) {
             label: "Name",
             value: (s: Source) => (
               <Link
-                to={formatURL(V2Routes.Source, {
+                to={formatURL(sourceTypeToRoute(s.type), {
                   name: s?.name,
                   namespace: s?.namespace,
                 })}
@@ -51,7 +56,7 @@ function SourcesTable({ className, sources }: Props) {
               let text;
               let url;
 
-              if (s.type === SourceType.GitRepository) {
+              if (s.type === SourceRefSourceKind.GitRepository) {
                 text = (s as GitRepository).url;
                 url = convertGitURLToGitProvider((s as GitRepository).url);
               } else {
@@ -69,7 +74,7 @@ function SourcesTable({ className, sources }: Props) {
           {
             label: "Reference",
             value: (s: Source) => {
-              const isGit = s.type === SourceType.GitRepository;
+              const isGit = s.type === SourceRefSourceKind.GitRepository;
               const repo = s as GitRepository;
               const ref =
                 repo.reference.branch ||
