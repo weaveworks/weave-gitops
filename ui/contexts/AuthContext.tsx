@@ -50,25 +50,16 @@ export default function AuthContextProvider({ children }) {
       })
       .then((data) => {
         setUserInfo({ email: data.email, groups: [] });
+        // this should only happen at sign in
         history.push("/");
       })
-      .catch((err) => {
-        console.log(err);
-        // if (err.code === "401") {
-        setUserInfo(null);
-        // }
-      })
+      .catch((err) => setUserInfo(undefined))
       .finally(() => setLoading(false));
   }, []);
 
   React.useEffect(() => {
     getUserInfo();
-  }, [
-    authenticated,
-    getUserInfo,
-    window.location,
-    //
-  ]);
+  }, [authenticated, getUserInfo, window.location]);
 
   console.log(userInfo?.email);
   console.log(window.location.pathname);
