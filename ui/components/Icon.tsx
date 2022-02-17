@@ -40,11 +40,8 @@ export enum IconType {
   RemoveCircleIcon,
   FilterIcon,
   ClearIcon,
-<<<<<<< HEAD
   Circle,
-=======
   SearchIcon,
->>>>>>> 2e7250f2 (created collapsed input)
 }
 
 type Props = {
@@ -108,7 +105,6 @@ function getIcon(i: IconType) {
     case IconType.ClearIcon:
       return ClearIcon;
 
-<<<<<<< HEAD
     case IconType.Circle:
       // Our version of material UI icons does not have a plain circle.
       return () => (
@@ -116,10 +112,8 @@ function getIcon(i: IconType) {
           <circle cx="50" cy="50" r="45" />
         </svg>
       );
-=======
     case IconType.SearchIcon:
       return SearchIcon;
->>>>>>> 2e7250f2 (created collapsed input)
 
     default:
       break;

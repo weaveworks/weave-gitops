@@ -8,7 +8,10 @@ import Spacer from "./Spacer";
 
 export interface Props {
   className?: string;
+  /** function to store input in parent component state */
   setSearch: (value: string) => void;
+  /** customizable text for input placeholder */
+  placeholder?: string;
 }
 
 const CollapsibleInput = styled(Input)`
@@ -20,7 +23,7 @@ const CollapsibleInput = styled(Input)`
   }
 `;
 
-function SearchInput({ className, setSearch }: Props) {
+function SearchInput({ className, setSearch, placeholder = "SEARCH" }: Props) {
   const [show, setShow] = React.useState(false);
   return (
     <Flex className={className} align start>
@@ -29,7 +32,7 @@ function SearchInput({ className, setSearch }: Props) {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           setSearch(e.target.value)
         }
-        placeholder="NAME"
+        placeholder={placeholder}
       />
       <Spacer padding="xxs" />
       <Button onClick={() => setShow(!show)} variant="text" color="inherit">
