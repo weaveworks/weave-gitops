@@ -1,6 +1,7 @@
 import * as React from "react";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
+import { useHistory } from "react-router-dom";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -21,19 +22,18 @@ export default function AuthContextProvider({ children }) {
     groups: string[];
   } | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [auth, setAuth] = React.useState<boolean>(false);
+  const history = useHistory();
 
   const signIn = React.useCallback((data) => {
-    console.log(data);
     fetch(SIGN_IN, {
       method: "POST",
       body: JSON.stringify(data),
     })
       .then((response) => {
-        console.log(response);
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
+        if (response.status === 200) {
+          setAuth(true);
+        }
       })
       .catch((err) => console.log(err));
   }, []);
@@ -54,11 +54,9 @@ export default function AuthContextProvider({ children }) {
     // .finally(() => setLoading(false));
   }, []);
 
-  console.log(userInfo?.email);
-
   React.useEffect(() => {
     getUserInfo();
-  }, [getUserInfo]);
+  }, [auth, getUserInfo]);
 
   return (
     <Auth.Provider value={{ signIn, userInfo }}>

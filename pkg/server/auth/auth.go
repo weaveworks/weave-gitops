@@ -64,7 +64,9 @@ func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
 	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{adminAuth, cookieAuth, headerAuth}
+	multi := MultiAuthPrincipal{
+		adminAuth, 
+		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		principal, err := multi.Principal(r)
@@ -91,7 +93,9 @@ func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
 	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{adminAuth, cookieAuth, headerAuth}
+	multi := MultiAuthPrincipal{
+		adminAuth, 
+		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		principal, err := multi.Principal(r)
