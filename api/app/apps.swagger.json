@@ -17,6 +17,258 @@
     "apps/json"
   ],
   "paths": {
+    "/v1/bucket": {
+      "get": {
+        "summary": "ListBuckets lists buckets from a cluster.",
+        "operationId": "Apps_ListBuckets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListBucketRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/flux_runtime": {
+      "get": {
+        "operationId": "Apps_ListFluxRuntimeObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFluxRuntimeObjectsRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/gitrepository": {
+      "get": {
+        "summary": "ListGitRepository lists git repositories from a cluster.",
+        "operationId": "Apps_ListGitRepositories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListGitRepositoryRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/helmchart": {
+      "get": {
+        "summary": "ListHelmChart lists helm charts from a cluster.",
+        "operationId": "Apps_ListHelmCharts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmChartRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/helmrelease": {
+      "get": {
+        "summary": "ListHelmReleases lists helm releases from a cluster.",
+        "operationId": "Apps_ListHelmReleases",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmReleaseRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/helmrepository": {
+      "get": {
+        "summary": "ListHelmRepository lists helm repositories from a cluster.",
+        "operationId": "Apps_ListHelmRepositories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmRepositoryRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/v1/kustomizations": {
+      "get": {
+        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
+        "operationId": "Apps_ListKustomizations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListKustomizationsRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app": {
       "get": {
         "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
@@ -134,41 +386,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/bucket": {
-      "get": {
-        "summary": "ListBuckets lists buckets from a cluster.",
-        "operationId": "Apps_ListBuckets",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListBucketRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddBucket adds a bucket source to a cluster.",
         "operationId": "Apps_AddBucket",
@@ -219,41 +436,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/gitrepository": {
-      "get": {
-        "summary": "ListGitRepository lists git repositories from a cluster.",
-        "operationId": "Apps_ListGitRepositories",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListGitRepositoryRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddGitRepository adds a git repository source to a cluster.",
         "operationId": "Apps_AddGitRepository",
@@ -316,41 +498,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/helmchart": {
-      "get": {
-        "summary": "ListHelmChart lists helm charts from a cluster.",
-        "operationId": "Apps_ListHelmCharts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmChartRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddHelmChart adds a helm chart source to a cluster.",
         "operationId": "Apps_AddHelmChart",
@@ -401,41 +548,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/helmrelease": {
-      "get": {
-        "summary": "ListHelmReleases lists helm releases from a cluster.",
-        "operationId": "Apps_ListHelmReleases",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmReleaseRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddHelmRelease adds a helm release to a cluster.",
         "operationId": "Apps_AddHelmRelease",
@@ -486,41 +598,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/helmrepository": {
-      "get": {
-        "summary": "ListHelmRepository lists helm repositories from a cluster.",
-        "operationId": "Apps_ListHelmRepositories",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmRepositoryRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddHelmRepository adds a helm repository source to a cluster.",
         "operationId": "Apps_AddHelmRepository",
@@ -577,41 +654,6 @@
       }
     },
     "/v1/namespace/{namespace}/app/{appName}/kustomization": {
-      "get": {
-        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
-        "operationId": "Apps_ListKustomizations",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListKustomizationsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
       "post": {
         "summary": "AddKustomization adds a Kustomization to a cluster via GitOps.",
         "operationId": "Apps_AddKustomization",
@@ -963,6 +1005,29 @@
         }
       }
     },
+    "v1Deployment": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1GetAppResponse": {
       "type": "object",
       "properties": {
@@ -1166,6 +1231,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Bucket"
+          }
+        }
+      }
+    },
+    "v1ListFluxRuntimeObjectsRes": {
+      "type": "object",
+      "properties": {
+        "deployments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Deployment"
           }
         }
       }

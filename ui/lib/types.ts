@@ -1,5 +1,4 @@
-import { Condition, SourceType } from "./api/app/source.pb";
-import { AutomationKind } from "./api/applications/applications.pb";
+import { Condition, Interval, SourceType } from "./api/app/source.pb";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -30,24 +29,27 @@ export enum V2Routes {
   AddHelmRepo = "/add_helm_repo",
   AddBucket = "/add_bucket",
   Kustomization = "/kustomization",
+  HelmRelease = "/helm_release",
   HelmRepo = "/helm_repo",
   Source = "/source",
   AddAutomation = "/add_automation",
   KustomizationList = "/kustomization_list",
   GitRepo = "/git_repo",
   SourcesList = "/sources",
+  FluxRuntime = "/flux_runtime",
 }
 
-export const WeGONamespace = "wego-system";
+export const WeGONamespace = "flux-system";
 
 export interface Source {
   name?: string;
   namespace?: string;
   type?: SourceType;
   conditions?: Condition[];
+  interval?: Interval;
 }
 
-export interface Automation {
-  name: string;
-  type: AutomationKind;
+export enum AutomationType {
+  Kustomization = "Kustomization",
+  HelmRelease = "HelmRelease",
 }

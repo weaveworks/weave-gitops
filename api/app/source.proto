@@ -49,10 +49,10 @@ message Source {
   string url = 3;
   GitRepositoryRef reference = 4;
   enum Type {
-    Git = 0;
+    GitRepository = 0;
     Bucket = 1;
-    Helm = 2;
-    Chart = 3;
+    HelmRepository = 2;
+    HelmChart = 3;
   };
   Type type = 5;
   string provider = 6;

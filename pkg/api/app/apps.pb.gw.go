@@ -401,35 +401,19 @@ func local_request_Apps_AddKustomization_0(ctx context.Context, marshaler runtim
 
 }
 
+var (
+	filter_Apps_ListKustomizations_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListKustomizations_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListKustomizationsReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListKustomizations_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListKustomizations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -441,31 +425,11 @@ func local_request_Apps_ListKustomizations_0(ctx context.Context, marshaler runt
 	var protoReq ListKustomizationsReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListKustomizations_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListKustomizations(ctx, &protoReq)
@@ -653,35 +617,19 @@ func local_request_Apps_AddGitRepository_0(ctx context.Context, marshaler runtim
 
 }
 
+var (
+	filter_Apps_ListGitRepositories_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListGitRepositories_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListGitRepositoryReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListGitRepositories_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListGitRepositories(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -693,31 +641,11 @@ func local_request_Apps_ListGitRepositories_0(ctx context.Context, marshaler run
 	var protoReq ListGitRepositoryReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListGitRepositories_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListGitRepositories(ctx, &protoReq)
@@ -813,35 +741,19 @@ func local_request_Apps_AddHelmRepository_0(ctx context.Context, marshaler runti
 
 }
 
+var (
+	filter_Apps_ListHelmRepositories_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListHelmRepositories_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListHelmRepositoryReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmRepositories_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListHelmRepositories(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -853,31 +765,11 @@ func local_request_Apps_ListHelmRepositories_0(ctx context.Context, marshaler ru
 	var protoReq ListHelmRepositoryReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmRepositories_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListHelmRepositories(ctx, &protoReq)
@@ -973,35 +865,19 @@ func local_request_Apps_AddHelmChart_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
+var (
+	filter_Apps_ListHelmCharts_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListHelmCharts_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListHelmChartReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmCharts_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListHelmCharts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -1013,31 +889,11 @@ func local_request_Apps_ListHelmCharts_0(ctx context.Context, marshaler runtime.
 	var protoReq ListHelmChartReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmCharts_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListHelmCharts(ctx, &protoReq)
@@ -1133,35 +989,19 @@ func local_request_Apps_AddBucket_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
+var (
+	filter_Apps_ListBuckets_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListBuckets_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListBucketReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListBuckets_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListBuckets(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -1173,31 +1013,11 @@ func local_request_Apps_ListBuckets_0(ctx context.Context, marshaler runtime.Mar
 	var protoReq ListBucketReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListBuckets_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListBuckets(ctx, &protoReq)
@@ -1293,35 +1113,19 @@ func local_request_Apps_AddHelmRelease_0(ctx context.Context, marshaler runtime.
 
 }
 
+var (
+	filter_Apps_ListHelmReleases_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Apps_ListHelmReleases_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListHelmReleaseReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmReleases_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.ListHelmReleases(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -1333,34 +1137,50 @@ func local_request_Apps_ListHelmReleases_0(ctx context.Context, marshaler runtim
 	var protoReq ListHelmReleaseReq
 	var metadata runtime.ServerMetadata
 
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-
-	val, ok = pathParams["app_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "app_name")
-	}
-
-	protoReq.AppName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "app_name", err)
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListHelmReleases_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.ListHelmReleases(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_Apps_ListFluxRuntimeObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Apps_ListFluxRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, client AppsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListFluxRuntimeObjectsReq
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListFluxRuntimeObjects_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ListFluxRuntimeObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Apps_ListFluxRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, server AppsServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListFluxRuntimeObjectsReq
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Apps_ListFluxRuntimeObjects_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ListFluxRuntimeObjects(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -1492,7 +1312,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/kustomizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1561,7 +1381,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1607,7 +1427,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmrepository"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmRepositories", runtime.WithHTTPPathPattern("/v1/helmrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1653,7 +1473,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmCharts", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmchart"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmCharts", runtime.WithHTTPPathPattern("/v1/helmchart"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1699,7 +1519,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListBuckets", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/bucket"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListBuckets", runtime.WithHTTPPathPattern("/v1/bucket"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1745,7 +1565,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmReleases", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmrelease"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmReleases", runtime.WithHTTPPathPattern("/v1/helmrelease"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1759,6 +1579,29 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		}
 
 		forward_Apps_ListHelmReleases_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Apps_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Apps_ListFluxRuntimeObjects_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Apps_ListFluxRuntimeObjects_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1907,7 +1750,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/kustomizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1967,7 +1810,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2007,7 +1850,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmrepository"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmRepositories", runtime.WithHTTPPathPattern("/v1/helmrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2047,7 +1890,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmCharts", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmchart"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmCharts", runtime.WithHTTPPathPattern("/v1/helmchart"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2087,7 +1930,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListBuckets", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/bucket"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListBuckets", runtime.WithHTTPPathPattern("/v1/bucket"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2127,7 +1970,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmReleases", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/helmrelease"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListHelmReleases", runtime.WithHTTPPathPattern("/v1/helmrelease"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2140,6 +1983,26 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		}
 
 		forward_Apps_ListHelmReleases_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_Apps_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Apps_ListFluxRuntimeObjects_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Apps_ListFluxRuntimeObjects_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -2157,29 +2020,31 @@ var (
 
 	pattern_Apps_AddKustomization_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "kustomization"}, ""))
 
-	pattern_Apps_ListKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "kustomization"}, ""))
+	pattern_Apps_ListKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "kustomizations"}, ""))
 
 	pattern_Apps_RemoveKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"v1", "namespace", "app", "app_name", "kustomization", "kustomization_name"}, ""))
 
 	pattern_Apps_AddGitRepository_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "gitrepository"}, ""))
 
-	pattern_Apps_ListGitRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "gitrepository"}, ""))
+	pattern_Apps_ListGitRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "gitrepository"}, ""))
 
 	pattern_Apps_AddHelmRepository_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmrepository"}, ""))
 
-	pattern_Apps_ListHelmRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmrepository"}, ""))
+	pattern_Apps_ListHelmRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "helmrepository"}, ""))
 
 	pattern_Apps_AddHelmChart_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmchart"}, ""))
 
-	pattern_Apps_ListHelmCharts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmchart"}, ""))
+	pattern_Apps_ListHelmCharts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "helmchart"}, ""))
 
 	pattern_Apps_AddBucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "bucket"}, ""))
 
-	pattern_Apps_ListBuckets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "bucket"}, ""))
+	pattern_Apps_ListBuckets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "bucket"}, ""))
 
 	pattern_Apps_AddHelmRelease_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmrelease"}, ""))
 
-	pattern_Apps_ListHelmReleases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "helmrelease"}, ""))
+	pattern_Apps_ListHelmReleases_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "helmrelease"}, ""))
+
+	pattern_Apps_ListFluxRuntimeObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux_runtime"}, ""))
 )
 
 var (
@@ -2216,4 +2081,6 @@ var (
 	forward_Apps_AddHelmRelease_0 = runtime.ForwardResponseMessage
 
 	forward_Apps_ListHelmReleases_0 = runtime.ForwardResponseMessage
+
+	forward_Apps_ListFluxRuntimeObjects_0 = runtime.ForwardResponseMessage
 )

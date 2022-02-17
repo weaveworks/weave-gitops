@@ -41,6 +41,9 @@ export const getNavValue = (
     case "add_git_repo":
       return V2Routes.SourcesList;
 
+    case "flux_runtime":
+      return V2Routes.FluxRuntime;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -93,7 +96,11 @@ export function pageTitleWithAppName(title: string, appName?: string) {
 }
 
 export function computeReady(conditions: Condition[]) {
-  const ready = _.find(conditions, { type: "Ready" });
+  const ready =
+    _.find(conditions, { type: "Ready" }) ||
+    // Deployment conditions work slightly differently;
+    // they show "Available" instead of 'Ready'
+    _.find(conditions, { type: "Available" });
   return ready?.status;
 }
 

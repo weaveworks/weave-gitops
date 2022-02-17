@@ -66,6 +66,21 @@ message RemoveAppResponse {
   bool success = 1;
 }
 
+message Deployment {
+  string name = 1;
+  string namespace = 2;
+  repeated Condition conditions = 3;
+  repeated string images = 4;
+}
+
+message ListFluxRuntimeObjectsReq {
+  string namespace = 1;
+}
+
+message ListFluxRuntimeObjectsRes {
+  repeated Deployment deployments = 1;
+}
+
 service Apps {
   /*
     * AddApplication adds an Application to a cluster via GitOps.
@@ -119,7 +134,7 @@ service Apps {
     */
   rpc ListKustomizations(ListKustomizationsReq) returns (ListKustomizationsRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/kustomization"
+      get : "/v1/kustomizations"
     };
   }
 
@@ -147,7 +162,7 @@ service Apps {
     */
   rpc ListGitRepositories(ListGitRepositoryReq) returns (ListGitRepositoryRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/gitrepository"
+      get : "/v1/gitrepository"
     };
   }
 
@@ -166,7 +181,7 @@ service Apps {
     */
   rpc ListHelmRepositories(ListHelmRepositoryReq) returns (ListHelmRepositoryRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/helmrepository"
+      get : "/v1/helmrepository"
     };
   }
 
@@ -185,7 +200,7 @@ service Apps {
     */
   rpc ListHelmCharts(ListHelmChartReq) returns (ListHelmChartRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/helmchart"
+      get : "/v1/helmchart"
     };
   }
 
@@ -204,7 +219,7 @@ service Apps {
     */
   rpc ListBuckets(ListBucketReq) returns (ListBucketRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/bucket"
+      get : "/v1/bucket"
     };
   }
 
@@ -223,7 +238,13 @@ service Apps {
     */
   rpc ListHelmReleases(ListHelmReleaseReq) returns (ListHelmReleaseRes) {
     option (google.api.http) = {
-      get : "/v1/namespace/{namespace}/app/{app_name}/helmrelease"
+      get : "/v1/helmrelease"
+    };
+  }
+
+  rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsReq) returns (ListFluxRuntimeObjectsRes) {
+    option (google.api.http) = {
+      get : "/v1/flux_runtime"
     };
   }
 }
