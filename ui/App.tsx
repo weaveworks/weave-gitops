@@ -6,7 +6,7 @@ import {
   BrowserRouter as Router,
   Redirect,
   Route,
-  Switch
+  Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,13 +17,7 @@ import AppContextProvider from "./contexts/AppContext";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
-<<<<<<< HEAD
 import { V2Routes } from "./lib/types";
-=======
-import { PageRoute, V2Routes } from "./lib/types";
-import ApplicationDetail from "./pages/ApplicationDetail";
-import Applications from "./pages/Applications";
->>>>>>> Revert "Delete GetApplication, ListApplications endpoints (#1455)"
 import Error from "./pages/Error";
 import Automations from "./pages/v2/Automations";
 import FluxRuntime from "./pages/v2/FluxRuntime";
@@ -54,86 +48,8 @@ export default function App() {
                   <Switch>
                     <Route
                       exact
-<<<<<<< HEAD
-<<<<<<< HEAD
                       path={V2Routes.Automations}
                       component={Automations}
-=======
-=======
-                      path={PageRoute.Applications}
-                      component={Applications}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationDetail}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <ApplicationDetail name={params.name as string} />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
->>>>>>> Revert "Delete GetApplication, ListApplications endpoints (#1455)"
-                      path={PageRoute.GitlabOAuthCallback}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <OAuthCallback
-                            provider={GitProvider.GitLab}
-                            code={params.code as string}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.ApplicationList}
-                      component={ApplicationList}
-                    />
-                    <Route exact path={V2Routes.NewApp} component={NewApp} />
-                    <Route
-                      exact
-                      path={V2Routes.Application}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <Application
-                            name={params.name as string}
-                            namespace={params.namespace as string}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddKustomization}
-                      component={withAppName(AddKustomization)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddSource}
-                      component={withAppName(AddSource)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddGitRepo}
-                      component={withAppName(AddGitRepo)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.AddAutomation}
-                      component={withAppName(AddAutomation)}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.KustomizationList}
-                      component={KustomizationList}
->>>>>>> Delete GetApplication, ListApplications endpoints (#1455)
                     />
                     <Route
                       exact

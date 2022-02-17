@@ -1,54 +1,5 @@
-import _ from "lodash";
-import qs from "query-string";
 import { toast } from "react-toastify";
-import { Condition } from "./api/app/source.pb";
-import { PageRoute, V2Routes } from "./types";
-
-export const formatURL = (page: string, query: any = {}) => {
-  return `${page}?${qs.stringify(query)}`;
-};
-
-export function formatAppScopedURL(
-  appName: string,
-  page: string,
-  query: any = {}
-) {
-  return formatURL(page, { ...query, appName });
-}
-
-export const addKustomizationURL = (appName: string) =>
-  `${V2Routes.AddKustomization}?${qs.stringify({ appName })}`;
-
-export const getNavValue = (
-  currentPage: any
-): PageRoute | V2Routes | boolean => {
-  switch (currentPage) {
-    case "applications":
-    case "application_list":
-    case "application":
-    case "application_detail":
-      return V2Routes.ApplicationList;
-    case "add_kustomization":
-    case "kustomization_list":
-    case "kustomization":
-      return V2Routes.KustomizationList;
-
-    case "add_source":
-    case "sources":
-    case "source":
-    case "add_helm_repo":
-    case "add_bucket":
-    case "add_git_repo":
-      return V2Routes.SourcesList;
-
-    case "flux_runtime":
-      return V2Routes.FluxRuntime;
-
-    default:
-      // The "Tabs" component of material-ui wants a bool
-      return false;
-  }
-};
+import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
   toast["success"](message);
@@ -93,21 +44,4 @@ export function convertGitURLToGitProvider(uri: string) {
 
 export function pageTitleWithAppName(title: string, appName?: string) {
   return `${title}${appName ? ` for ${appName}` : ""}`;
-}
-
-export function computeReady(conditions: Condition[]) {
-  const ready =
-    _.find(conditions, { type: "Ready" }) ||
-    // Deployment conditions work slightly differently;
-    // they show "Available" instead of 'Ready'
-    _.find(conditions, { type: "Available" });
-  return ready?.status;
-}
-
-export function computeMessage(conditions: Condition[]) {
-  const readyCondition = _.find(conditions, (c) => c.type === "Ready");
-
-  if (readyCondition?.status === "False") {
-    return readyCondition.message;
-  }
 }

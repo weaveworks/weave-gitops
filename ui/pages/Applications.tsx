@@ -11,8 +11,8 @@ import PollingIndicator from "../components/PollingIndicator";
 import Spacer from "../components/Spacer";
 import { AppContext } from "../contexts/AppContext";
 import { Application } from "../lib/api/applications/applications.pb";
+import { formatURL } from "../lib/nav";
 import { PageRoute } from "../lib/types";
-import { formatURL } from "../lib/utils";
 
 type Props = {
   className?: string;

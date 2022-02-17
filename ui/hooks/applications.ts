@@ -1,6 +1,5 @@
 import _ from "lodash";
 import { useContext, useEffect, useState } from "react";
-import { getProviderToken } from "..";
 import { AppContext } from "../contexts/AppContext";
 import {
   Application,
@@ -11,9 +10,8 @@ import {
   ListCommitsResponse,
   ParseRepoURLResponse,
 } from "../lib/api/applications/applications.pb";
+import { WeGONamespace } from "../lib/types";
 import { makeHeaders, RequestStateWithToken, useRequestState } from "./common";
-
-const WeGONamespace = "wego-system";
 
 export function useParseRepoURL(url: string) {
   const { applicationsClient } = useContext(AppContext);

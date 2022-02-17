@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -19,7 +19,7 @@ func getGitopsLabelMap(appName string) map[string]string {
 	return labels
 }
 
-func getSourceKind(kind string) pb.SourceRef_Kind {
+func getSourceKind(kind string) pb.SourceRef_SourceKind {
 	switch kind {
 	case v1beta1.GitRepositoryKind:
 		return pb.SourceRef_GitRepository

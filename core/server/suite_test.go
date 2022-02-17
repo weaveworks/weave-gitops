@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -14,16 +14,6 @@ import (
 )
 
 var k8sEnv *testutils.K8sTestEnv
-
-var diffIgnoredFields = []string{
-	"ObjectMeta.UID",
-	"ObjectMeta.SelfLink",
-	"ObjectMeta.ResourceVersion",
-	"ObjectMeta.ManagedFields",
-	"ObjectMeta.CreationTimestamp",
-	"ObjectMeta.Generation",
-	"TypeMeta",
-}
 
 func TestMain(m *testing.M) {
 	os.Setenv("KUBEBUILDER_ASSETS", "../../tools/bin/envtest")
@@ -45,14 +35,14 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.AppsClient, func()) {
+func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
 	s := grpc.NewServer()
 
 	apps := NewAppServer(cfg)
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	pb.RegisterAppsServer(s, apps)
+	pb.RegisterCoreServer(s, apps)
 
 	dialer := func(context.Context, string) (net.Conn, error) {
 		return lis.Dial()
@@ -74,5 +64,5 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.AppsClient, func()) {
 		conn.Close()
 	}
 
-	return pb.NewAppsClient(conn), cleanup
+	return pb.NewCoreClient(conn), cleanup
 }
