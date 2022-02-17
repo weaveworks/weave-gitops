@@ -225,7 +225,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should not get deleted until the PR is merged", func() {
-			err = waitForAppRemoval(appName, EVENTUALLY_DEFAULT_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -234,7 +234,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then app should get deleted from the cluster", func() {
-			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -303,7 +303,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should remain in the cluster until PR is approved", func() {
-			err = waitForAppRemoval(appName, EVENTUALLY_DEFAULT_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).To(HaveOccurred())
 			appStatus, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName)
 			Expect(appStatus).To(MatchRegexp(`kustomization/` + appName + `\s*True`))
@@ -314,7 +314,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then app should get deleted from the cluster", func() {
-			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -623,7 +623,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	PIt("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
+	It("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -817,7 +817,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should get deleted from the cluster", func() {
-			err = waitForAppRemoval(appName2, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName2)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -1109,7 +1109,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should get deleted from the cluster", func() {
-			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -1166,7 +1166,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	PIt("@gitlabTests Test3 - Verify that gitops can deploy and delete a gitlab app in a subgroup", func() {
+	It("@gitlabTests Test3 - Verify that gitops can deploy and delete a gitlab app in a subgroup", func() {
 		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
@@ -1232,7 +1232,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should get deleted from the cluster", func() {
-			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
@@ -1518,7 +1518,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app should get deleted from cluster1", func() {
-			err = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+			err = waitForAppRemoval(appName)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -1551,7 +1551,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	PIt("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
+	It("SmokeTestLong - Verify that gitops can deploy an app with long name", func() {
 		var configRepoRemoteURL string
 		var listOutput string
 		var appStatus string
