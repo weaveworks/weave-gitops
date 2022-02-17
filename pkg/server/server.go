@@ -35,7 +35,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
@@ -154,7 +153,7 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		return nil, fmt.Errorf("could not create client config: %w", err)
 	}
 
-	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	fluxClient := flux.New(&runner.CLIRunner{})
 
 	return &ApplicationsConfig{
 		Logger:           logr,

@@ -24,20 +24,6 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	GetAllResourcesStatusStub        func(string, string) ([]byte, error)
-	getAllResourcesStatusMutex       sync.RWMutex
-	getAllResourcesStatusArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	getAllResourcesStatusReturns struct {
-		result1 []byte
-		result2 error
-	}
-	getAllResourcesStatusReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
-	}
 	PreCheckStub        func() (string, error)
 	preCheckMutex       sync.RWMutex
 	preCheckArgsForCall []struct {
@@ -49,10 +35,6 @@ type FakeFlux struct {
 	preCheckReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
-	}
-	SetupBinStub        func()
-	setupBinMutex       sync.RWMutex
-	setupBinArgsForCall []struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -124,71 +106,6 @@ func (fake *FakeFlux) CreateSecretGitReturnsOnCall(i int, result1 []byte, result
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) GetAllResourcesStatus(arg1 string, arg2 string) ([]byte, error) {
-	fake.getAllResourcesStatusMutex.Lock()
-	ret, specificReturn := fake.getAllResourcesStatusReturnsOnCall[len(fake.getAllResourcesStatusArgsForCall)]
-	fake.getAllResourcesStatusArgsForCall = append(fake.getAllResourcesStatusArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.GetAllResourcesStatusStub
-	fakeReturns := fake.getAllResourcesStatusReturns
-	fake.recordInvocation("GetAllResourcesStatus", []interface{}{arg1, arg2})
-	fake.getAllResourcesStatusMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeFlux) GetAllResourcesStatusCallCount() int {
-	fake.getAllResourcesStatusMutex.RLock()
-	defer fake.getAllResourcesStatusMutex.RUnlock()
-	return len(fake.getAllResourcesStatusArgsForCall)
-}
-
-func (fake *FakeFlux) GetAllResourcesStatusCalls(stub func(string, string) ([]byte, error)) {
-	fake.getAllResourcesStatusMutex.Lock()
-	defer fake.getAllResourcesStatusMutex.Unlock()
-	fake.GetAllResourcesStatusStub = stub
-}
-
-func (fake *FakeFlux) GetAllResourcesStatusArgsForCall(i int) (string, string) {
-	fake.getAllResourcesStatusMutex.RLock()
-	defer fake.getAllResourcesStatusMutex.RUnlock()
-	argsForCall := fake.getAllResourcesStatusArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeFlux) GetAllResourcesStatusReturns(result1 []byte, result2 error) {
-	fake.getAllResourcesStatusMutex.Lock()
-	defer fake.getAllResourcesStatusMutex.Unlock()
-	fake.GetAllResourcesStatusStub = nil
-	fake.getAllResourcesStatusReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeFlux) GetAllResourcesStatusReturnsOnCall(i int, result1 []byte, result2 error) {
-	fake.getAllResourcesStatusMutex.Lock()
-	defer fake.getAllResourcesStatusMutex.Unlock()
-	fake.GetAllResourcesStatusStub = nil
-	if fake.getAllResourcesStatusReturnsOnCall == nil {
-		fake.getAllResourcesStatusReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
-		})
-	}
-	fake.getAllResourcesStatusReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeFlux) PreCheck() (string, error) {
 	fake.preCheckMutex.Lock()
 	ret, specificReturn := fake.preCheckReturnsOnCall[len(fake.preCheckArgsForCall)]
@@ -245,41 +162,13 @@ func (fake *FakeFlux) PreCheckReturnsOnCall(i int, result1 string, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) SetupBin() {
-	fake.setupBinMutex.Lock()
-	fake.setupBinArgsForCall = append(fake.setupBinArgsForCall, struct {
-	}{})
-	stub := fake.SetupBinStub
-	fake.recordInvocation("SetupBin", []interface{}{})
-	fake.setupBinMutex.Unlock()
-	if stub != nil {
-		fake.SetupBinStub()
-	}
-}
-
-func (fake *FakeFlux) SetupBinCallCount() int {
-	fake.setupBinMutex.RLock()
-	defer fake.setupBinMutex.RUnlock()
-	return len(fake.setupBinArgsForCall)
-}
-
-func (fake *FakeFlux) SetupBinCalls(stub func()) {
-	fake.setupBinMutex.Lock()
-	defer fake.setupBinMutex.Unlock()
-	fake.SetupBinStub = stub
-}
-
 func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createSecretGitMutex.RLock()
 	defer fake.createSecretGitMutex.RUnlock()
-	fake.getAllResourcesStatusMutex.RLock()
-	defer fake.getAllResourcesStatusMutex.RUnlock()
 	fake.preCheckMutex.RLock()
 	defer fake.preCheckMutex.RUnlock()
-	fake.setupBinMutex.RLock()
-	defer fake.setupBinMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/check"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -37,7 +36,7 @@ func init() {
 func runCmd(_ *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
-	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	fluxClient := flux.New(&runner.CLIRunner{})
 
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {

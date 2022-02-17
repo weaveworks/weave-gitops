@@ -46,7 +46,7 @@ local-registry:
 	./tools/deploy-local-registry.sh
 
 local-docker-image:
-	DOCKER_BUILDKIT=1 docker build -t localhost:5000/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
+	DOCKER_BUILDKIT=1 docker build -t localhost:5000/wego-app:latest .
 	docker push localhost:5000/wego-app:latest
 
 test: dependencies cmd/gitops/ui/run/dist/index.html
@@ -74,7 +74,7 @@ bin: ## Build gitops binary
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
 
 docker: ## Build wego-app docker image
-	DOCKER_BUILDKIT=1 docker build --build-arg FLUX_VERSION=$(FLUX_VERSION) --target=runtime -t ghcr.io/weaveworks/wego-app:latest .
+	DOCKER_BUILDKIT=1 docker build --target=runtime -t ghcr.io/weaveworks/wego-app:latest .
 
 
 # Clean up images and binaries

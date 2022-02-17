@@ -1,6 +1,3 @@
-ARG FLUX_VERSION
-ARG FLUX_CLI=ghcr.io/fluxcd/flux-cli:v$FLUX_VERSION
-
 # UI build
 FROM node:14-buster AS ui
 RUN apt-get update -y && apt-get install -y build-essential
@@ -12,9 +9,6 @@ COPY --chown=node:node Makefile /home/app/
 RUN make node_modules
 COPY --chown=node:node ui /home/app/ui
 RUN make ui
-
-# Alias for flux
-FROM $FLUX_CLI as flux
 
 # Go build
 FROM golang:1.17 AS go-build
@@ -35,7 +29,6 @@ COPY Makefile /app/
 WORKDIR /app
 COPY go.* /app/
 RUN go mod download
-COPY --from=flux /usr/local/bin/flux /app/pkg/flux/bin/flux
 COPY --from=ui /home/app/cmd/gitops/ui/run/dist/ /app/cmd/gitops/ui/run/dist/
 COPY . /app
 RUN make bin

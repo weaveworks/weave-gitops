@@ -18,7 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -85,8 +84,7 @@ var _ = BeforeSuite(func() {
 	Expect(env.Client.Create(ctx, fluxNs)).To(Succeed())
 
 	stop = env.Stop
-	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-	fluxClient.SetupBin()
+	fluxClient := flux.New(&runner.CLIRunner{})
 
 	factory := services.NewFactory(fluxClient, &loggerfakes.FakeLogger{})
 	Expect(err).NotTo(HaveOccurred())
