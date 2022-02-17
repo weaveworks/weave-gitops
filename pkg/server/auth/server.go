@@ -194,6 +194,21 @@ func (c *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
 }
 
+func (s *AuthServer) Logout() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			s.logger.Info("Only POST requests allowed")
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+
+			return
+		}
+
+		http.SetCookie(rw, s.clearCookie(IDTokenCookieName))
+		rw.WriteHeader(http.StatusOK)
+
+	}
+}
+
 func (c *AuthServer) createCookie(name, value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     name,
