@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const UpdateCommitMessage = "Update Profile manifests"
+const UpdateCommitMessage = "Update profile manifests"
 
 type UpdateOptions struct {
 	Name         string
@@ -25,6 +25,7 @@ type UpdateOptions struct {
 	Namespace    string
 	Kubeconfig   string
 	AutoMerge    bool
+	PROptions
 }
 
 // Update updates an installed profile
@@ -71,17 +72,10 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 
 	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
-		Title:         fmt.Sprintf("GitOps update %s", opts.Name),
-		Description:   fmt.Sprintf("Update manifest for %s profile", opts.Name),
-		CommitMessage: UpdateCommitMessage,
-		TargetBranch:  defaultBranch,
-		NewBranch:     uuid.New().String(),
-		Files: []gitprovider.CommitFile{{
-			Path:    &path,
-			Content: &content,
-		}},
-	})
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, updatePRInfo(opts, defaultBranch, gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}))
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
@@ -99,6 +93,42 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 	s.printUpdateSummary(opts)
 
 	return nil
+}
+
+func updatePRInfo(opts UpdateOptions, defaultBranch string, commitFile gitprovider.CommitFile) gitproviders.PullRequestInfo {
+	title := fmt.Sprintf("GitOps update %s", opts.Name)
+	if opts.Title != "" {
+		title = opts.Title
+	}
+
+	description := fmt.Sprintf("Update manifest for %s profile", opts.Name)
+	if opts.Description != "" {
+		description = opts.Description
+	}
+
+	commitMessage := UpdateCommitMessage
+	if opts.Message != "" {
+		commitMessage = opts.Message
+	}
+
+	headBranch := defaultBranch
+	if opts.HeadBranch != "" {
+		headBranch = opts.HeadBranch
+	}
+
+	newBranch := uuid.New().String()
+	if opts.BaseBranch != "" {
+		newBranch = opts.BaseBranch
+	}
+
+	return gitproviders.PullRequestInfo{
+		Title:         title,
+		Description:   description,
+		CommitMessage: commitMessage,
+		TargetBranch:  headBranch,
+		NewBranch:     newBranch,
+		Files:         []gitprovider.CommitFile{commitFile},
+	}
 }
 
 func (s *ProfilesSvc) printUpdateSummary(opts UpdateOptions) {

@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const AddCommitMessage = "Add Profile manifests"
+const AddCommitMessage = "Add profile manifests"
 
 type AddOptions struct {
 	Name         string
@@ -26,6 +26,7 @@ type AddOptions struct {
 	Namespace    string
 	Kubeconfig   string
 	AutoMerge    bool
+	PROptions
 }
 
 // Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
@@ -74,18 +75,11 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	}
 
 	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, addPRInfo(opts, defaultBranch, gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}))
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
-		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
-		Description:   fmt.Sprintf("Add manifest for %s profile", opts.Name),
-		CommitMessage: AddCommitMessage,
-		TargetBranch:  defaultBranch,
-		NewBranch:     uuid.New().String(),
-		Files: []gitprovider.CommitFile{{
-			Path:    &path,
-			Content: &content,
-		}},
-	})
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
@@ -103,6 +97,42 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	s.printAddSummary(opts)
 
 	return nil
+}
+
+func addPRInfo(opts AddOptions, defaultBranch string, commitFile gitprovider.CommitFile) gitproviders.PullRequestInfo {
+	title := fmt.Sprintf("GitOps add %s", opts.Name)
+	if opts.Title != "" {
+		title = opts.Title
+	}
+
+	description := fmt.Sprintf("Add manifest for %s profile", opts.Name)
+	if opts.Description != "" {
+		description = opts.Description
+	}
+
+	commitMessage := AddCommitMessage
+	if opts.Message != "" {
+		commitMessage = opts.Message
+	}
+
+	headBranch := defaultBranch
+	if opts.HeadBranch != "" {
+		headBranch = opts.HeadBranch
+	}
+
+	newBranch := uuid.New().String()
+	if opts.BaseBranch != "" {
+		newBranch = opts.BaseBranch
+	}
+
+	return gitproviders.PullRequestInfo{
+		Title:         title,
+		Description:   description,
+		CommitMessage: commitMessage,
+		TargetBranch:  headBranch,
+		NewBranch:     newBranch,
+		Files:         []gitprovider.CommitFile{commitFile},
+	}
 }
 
 func (s *ProfilesSvc) printAddSummary(opts AddOptions) {

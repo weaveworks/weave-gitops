@@ -29,6 +29,14 @@ type ProfilesService interface {
 	Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts UpdateOptions) error
 }
 
+type PROptions struct {
+	HeadBranch  string
+	BaseBranch  string
+	Message     string
+	Title       string
+	Description string
+}
+
 type ProfilesSvc struct {
 	ClientSet kubernetes.Interface
 	Logger    logger.Logger

@@ -67,10 +67,6 @@ var _ = Describe("Update Profile(s)", func() {
 			})
 
 			When("the file containing the HelmReleases is not empty", func() {
-				AfterEach(func() {
-					Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
-				})
-
 				When("a matching HelmRelease is found", func() {
 					When("the existing HelmRelease is a different version than the want to update to", func() {
 						BeforeEach(func() {
@@ -91,13 +87,48 @@ var _ = Describe("Update Profile(s)", func() {
 							Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
 						})
 
-						When("it opens a PR", func() {
-							It("updates the HelmRelease version", func() {
+						It("opens a PR to update the profiles HelmRelease version", func() {
+							fakePR.GetReturns(gitprovider.PullRequestInfo{
+								WebURL: "url",
+							})
+							gitProviders.CreatePullRequestReturns(fakePR, nil)
+							Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).To(Succeed())
+							Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+							_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+							Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
+							Expect(prInfo.Title).To(Equal("GitOps update podinfo"))
+							Expect(prInfo.Description).To(Equal("Update manifest for podinfo profile"))
+							Expect(prInfo.CommitMessage).To(Equal("Update profile manifests"))
+							Expect(prInfo.TargetBranch).To(Equal("main"))
+							Expect(prInfo.Files).To(HaveLen(1))
+							Expect(*prInfo.Files[0].Path).To(Equal(".weave-gitops/clusters/prod/system/profiles.yaml"))
+						})
+
+						When("PR settings are configured", func() {
+							It("opens a PR with the configuration", func() {
+								updateOptions.PROptions = profiles.PROptions{
+									HeadBranch:  "foo",
+									BaseBranch:  "bar",
+									Message:     "sup",
+									Title:       "cool-title",
+									Description: "so cool",
+								}
+
 								fakePR.GetReturns(gitprovider.PullRequestInfo{
 									WebURL: "url",
 								})
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
-								Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).Should(Succeed())
+								Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).To(Succeed())
+								Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+								_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+								Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
+								Expect(prInfo.Title).To(Equal("cool-title"))
+								Expect(prInfo.Description).To(Equal("so cool"))
+								Expect(prInfo.CommitMessage).To(Equal("sup"))
+								Expect(prInfo.TargetBranch).To(Equal("foo"))
+								Expect(prInfo.NewBranch).To(Equal("bar"))
+								Expect(prInfo.Files).To(HaveLen(1))
+								Expect(*prInfo.Files[0].Path).To(Equal(".weave-gitops/clusters/prod/system/profiles.yaml"))
 							})
 						})
 
@@ -110,6 +141,7 @@ var _ = Describe("Update Profile(s)", func() {
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
 								updateOptions.AutoMerge = true
 								Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).Should(Succeed())
+								Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 							})
 
 							When("the PR fails to be merged", func() {
