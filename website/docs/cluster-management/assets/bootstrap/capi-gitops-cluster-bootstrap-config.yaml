@@ -11,8 +11,8 @@ spec:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     spec:
       containers:
-        - image: ghcr.io/weaveworks/wego-app:v0.6.2
-          name: gitops-install
+        - image: ghcr.io/fluxcd/flux-cli:v0.27.0
+          name: flux-bootstrap
           resources: {}
           volumeMounts:
             - name: kubeconfig
@@ -20,26 +20,31 @@ spec:
               readOnly: true
           args:
             [
-              "install",
-              "--override-in-cluster",
-              "--config-repo",
-              "$(GITOPS_REPO)",
+              "bootstrap",
+              "$(GIT_PROVIDER)",
+              "--hostname=$(GIT_PROVIDER_HOSTNAME)",
+              "--namespace=wego-system",
+              "--owner=$(GITOPS_REPO_OWNER)",
+              "--repository=$(GITOPS_REPO_NAME)",
+              "--path=./.weave-gitops/clusters/{{ .ObjectMeta.Name }}/system",
             ]
+          # Secret should container GITHUB_TOKEN or GITLAB_TOKEN
+          envFrom:
+            - secretRef:
+                name: my-pat
           env:
+            # Update these values
+            - name: GIT_PROVIDER
+              value: github
+            - name: GIT_PROVIDER_HOSTNAME
+              value: github.com
+            - name: GITOPS_REPO_OWNER
+              value: my-org
+            - name: GITOPS_REPO_NAME
+              value: my-management-cluster
+
             - name: KUBECONFIG
               value: "/etc/gitops/value"
-            - name: GITOPS_REPO
-              value: "ssh://git@github.com/my-org/my-management-cluster.git"
-            - name: GITHUB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: my-pat
-                  key: GITHUB_TOKEN
-          # - name: GITLAB_TOKEN # If your GitOps reop is on GitLab, use this instead of GITHUB_TOKEN
-          #   valueFrom:
-          #     secretKeyRef:
-          #       name: pat
-          #       key: GITLAB_TOKEN
       restartPolicy: Never
       volumes:
         - name: kubeconfig

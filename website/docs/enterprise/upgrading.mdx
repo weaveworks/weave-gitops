@@ -49,12 +49,8 @@ nodes:
     extraPortMappings:
       - containerPort: 30080
         hostPort: 30080
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
       - containerPort: 31490
         hostPort: 31490
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
 ```
 
 Fire up cluster
@@ -153,7 +149,7 @@ gitops install \
 
 :::note `clusterctl` versions
 
-The example templates provided in this guide have been tested with `clusterctl` version `1.0.1`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
+The example templates provided in this guide have been tested with `clusterctl` version `1.1.1`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
 
 Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
 :::
