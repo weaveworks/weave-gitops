@@ -59,48 +59,6 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
 	})
 
-	It("Authorize", func() {
-		ctx := context.Background()
-		provider := "github"
-		token := "token"
-
-		jwtClient := auth.NewJwtClient(secretKey)
-		expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
-		Expect(err).NotTo(HaveOccurred())
-
-		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  token,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(res.Token).To(Equal(expectedToken))
-	})
-	It("Authorize fails on wrong provider", func() {
-		ctx := context.Background()
-		provider := "wrong_provider"
-		token := "token"
-
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  token,
-		})
-
-		Expect(err.Error()).To(ContainSubstring(ErrBadProvider.Error()))
-		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
-
-	})
-	It("Authorize fails on empty provider token", func() {
-		ctx := context.Background()
-		provider := "github"
-
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  "",
-		})
-
-		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrEmptyAccessToken))
-	})
 	Describe("GetReconciledObjects", func() {
 		It("gets object with a kustomization + git repo configuration", func() {
 			ctx := context.Background()

@@ -26,15 +26,6 @@ export enum GitProvider {
   GitLab = "GitLab",
 }
 
-export type AuthenticateRequest = {
-  providerName?: string
-  accessToken?: string
-}
-
-export type AuthenticateResponse = {
-  token?: string
-}
-
 export type SyncApplicationRequest = {
   name?: string
   namespace?: string
@@ -156,9 +147,6 @@ export type ValidateProviderTokenResponse = {
 }
 
 export class Applications {
-  static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
-    return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
   static ListCommits(req: ListCommitsRequest, initReq?: fm.InitReq): Promise<ListCommitsResponse> {
     return fm.fetchReq<ListCommitsRequest, ListCommitsResponse>(`/v1/applications/${req["name"]}/commits?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }

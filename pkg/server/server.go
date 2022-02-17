@@ -7,12 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/benbjohnson/clock"
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -416,25 +413,6 @@ func (s *applicationServer) GetGithubAuthStatus(ctx context.Context, msg *pb.Get
 	}
 
 	return &pb.GetGithubAuthStatusResponse{AccessToken: t}, nil
-}
-
-// Authenticate generates and returns a jwt token using git provider name and git provider token
-func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
-		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
-	}
-
-	if msg.AccessToken == "" {
-		return nil, grpcStatus.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
-	}
-
-	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "error generating jwt token. %s", err)
-	}
-
-	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {

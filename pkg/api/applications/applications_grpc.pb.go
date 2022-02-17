@@ -19,9 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApplicationsClient interface {
 	//
-	// Authenticate generates jwt token using git provider name and git provider token arguments
-	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
-	//
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
 	//
@@ -72,15 +69,6 @@ type applicationsClient struct {
 
 func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 	return &applicationsClient{cc}
-}
-
-func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
-	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
@@ -178,9 +166,6 @@ func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *Vali
 // for forward compatibility
 type ApplicationsServer interface {
 	//
-	// Authenticate generates jwt token using git provider name and git provider token arguments
-	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
-	//
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
 	//
@@ -230,9 +215,6 @@ type ApplicationsServer interface {
 type UnimplementedApplicationsServer struct {
 }
 
-func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
-}
 func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
@@ -274,24 +256,6 @@ type UnsafeApplicationsServer interface {
 
 func RegisterApplicationsServer(s grpc.ServiceRegistrar, srv ApplicationsServer) {
 	s.RegisterService(&Applications_ServiceDesc, srv)
-}
-
-func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthenticateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).Authenticate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/Authenticate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -481,10 +445,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "wego_server.v1.Applications",
 	HandlerType: (*ApplicationsServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Authenticate",
-			Handler:    _Applications_Authenticate_Handler,
-		},
 		{
 			MethodName: "ListCommits",
 			Handler:    _Applications_ListCommits_Handler,

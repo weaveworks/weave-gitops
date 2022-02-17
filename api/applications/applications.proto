@@ -20,16 +20,6 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Applications {
     /**
-    * Authenticate generates jwt token using git provider name and git provider token arguments
-    */
-    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
-        option (google.api.http) = {
-            post : "/v1/authenticate/{provider_name}"
-            body: "*"
-        };
-    }
-
-    /**
      * ListCommits returns the list of WeGo commits that the authenticated user has access to.
     */
     rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
@@ -137,15 +127,6 @@ service Applications {
         };
     }
 
-}
-
-message AuthenticateRequest {
-    string provider_name = 1;  // The name of the git provider
-    string access_token  = 2;  // The token of the git provider
-}
-
-message AuthenticateResponse {
-    string token = 1;  // The jwt token that was generated using git provider name and git provider token
 }
 
 message SyncApplicationRequest {

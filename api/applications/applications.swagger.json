@@ -382,50 +382,6 @@
           "Applications"
         ]
       }
-    },
-    "/v1/authenticate/{providerName}": {
-      "post": {
-        "summary": "Authenticate generates jwt token using git provider name and git provider token arguments",
-        "operationId": "Applications_Authenticate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1AuthenticateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "providerName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
     }
   },
   "definitions": {
@@ -453,14 +409,6 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
-        }
-      }
-    },
-    "v1AuthenticateResponse": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string"
         }
       }
     },
