@@ -1,14 +1,9 @@
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: wego-system
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wego-app
-  namespace: wego-system
+  namespace: flux-system
 spec:
   replicas: 1
   template:
