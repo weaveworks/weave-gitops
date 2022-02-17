@@ -2,10 +2,17 @@ import * as React from "react";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
 import { useHistory } from "react-router-dom";
-import SignIn from "../pages/SignIn";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
+
+const Loader: React.FC<{ loading?: boolean }> = ({
+  children,
+  loading = true,
+  ...props
+}) => {
+  return <>{loading ? <LoadingPage /> : children}</>;
+};
 
 export type AuthContext = {
   signIn: (data: any) => void;
@@ -30,6 +37,7 @@ export default function AuthContextProvider({ children }) {
   const history = useHistory();
 
   const signIn = React.useCallback((data) => {
+    setLoading(true);
     fetch(SIGN_IN, {
       method: "POST",
       body: JSON.stringify(data),
@@ -39,7 +47,8 @@ export default function AuthContextProvider({ children }) {
           setAuthenticated(true);
         }
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
   }, []);
 
   const getUserInfo = React.useCallback(() => {
@@ -58,17 +67,25 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   React.useEffect(() => {
+    // useEffect doesn't run once the user is logged in
+    console.log(window.location.pathname);
     getUserInfo();
   }, [authenticated, getUserInfo, window.location]);
 
-  console.log(userInfo?.email);
-  console.log(window.location.pathname);
-  console.log(authenticated);
+  console.log("email", userInfo?.email);
+  console.log("path", window.location.pathname);
+  console.log("authenticated", authenticated);
 
   return (
-    <Auth.Provider value={{ signIn, userInfo }}>
-      {/* {loading ? <LoadingPage /> : null} */}
-      {userInfo?.email !== undefined ? children : <AuthSwitch />}
+    <Auth.Provider
+      value={{
+        signIn,
+        userInfo,
+      }}
+    >
+      <Loader loading={loading}>
+        {userInfo?.email !== undefined ? children : <AuthSwitch />}
+      </Loader>
     </Auth.Provider>
   );
 }

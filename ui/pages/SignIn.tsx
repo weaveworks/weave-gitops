@@ -58,8 +58,9 @@ function SignIn() {
 
   const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
+    console.log(CURRENT_URL);
     return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
-      CURRENT_URL
+      CURRENT_URL + "/sign_in"
     )}`);
   };
 
