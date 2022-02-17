@@ -1,32 +1,11 @@
-import _ from "lodash";
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-  GitProvider,
-  ValidateProviderTokenResponse,
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
 import { poller } from "../lib/utils";
-import { makeHeaders, useRequestState } from "./common";
-
-export function useIsAuthenticated() {
-  const [res, loading, error, req] =
-    useRequestState<ValidateProviderTokenResponse>();
-
-  const { getProviderToken, applicationsClient } = useContext(AppContext);
-
-  return {
-    isAuthenticated: error ? false : res?.valid,
-    loading,
-    error,
-    req: (provider: GitProvider) => {
-      const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-      req(applicationsClient.ValidateProviderToken({ provider }, { headers }));
-    },
-  };
-}
 
 export default function useAuth() {
   const [loading, setLoading] = useState(true);

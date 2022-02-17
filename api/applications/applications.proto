@@ -116,17 +116,6 @@ service Applications {
             get : "/v1/applications/parse_repo_url"
         };
     }
-
-    /**
-    * ValidateProviderToken check to see if the git provider token is still valid
-    */
-    rpc ValidateProviderToken(ValidateProviderTokenRequest) returns (ValidateProviderTokenResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications/validate_token"
-            body: "*"
-        };
-    }
-
 }
 
 message SyncApplicationRequest {
@@ -256,12 +245,4 @@ message AuthorizeGitlabRequest {
 
 message AuthorizeGitlabResponse {
     string token = 1; // A token that can be used to authenticate the GitOps API server.
-}
-
-message ValidateProviderTokenRequest {
-    GitProvider provider = 1;
-}
-
-message ValidateProviderTokenResponse {
-    bool valid = 1;
 }

@@ -530,37 +530,6 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(err.Error()).To(ContainSubstring(e.Error()))
 		})
 	})
-	DescribeTable("ValidateProviderToken", func(provider pb.GitProvider, ctx context.Context, errResponse error, expectedCode codes.Code, valid bool) {
-		glAuthClient.ValidateTokenReturns(errResponse)
-		ghAuthClient.ValidateTokenReturns(errResponse)
-
-		res, err := appsClient.ValidateProviderToken(ctx, &pb.ValidateProviderTokenRequest{
-			Provider: provider,
-		})
-
-		if errResponse != nil {
-			Expect(err).To(HaveOccurred())
-			s, ok := status.FromError(err)
-			Expect(ok).To(BeTrue(), "could not get status from error")
-			Expect(s.Code()).To(Equal(expectedCode))
-			return
-		}
-
-		Expect(err).NotTo(HaveOccurred())
-
-		if valid {
-			// Note that res is nil when there is an error.
-			// Only check a field in `res` when valid, else this will panic
-			Expect(res.Valid).To(BeTrue())
-		}
-	},
-		Entry("bad gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
-		Entry("good gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), nil, codes.OK, true),
-		Entry("bad github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
-		Entry("good github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), nil, codes.OK, true),
-		Entry("no gitops jwt", pb.GitProvider_GitHub, context.Background(), errors.New("unauth error"), codes.Unauthenticated, false),
-	)
-
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger

@@ -1310,100 +1310,6 @@ func (x *AuthorizeGitlabResponse) GetToken() string {
 	return ""
 }
 
-type ValidateProviderTokenRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Provider GitProvider `protobuf:"varint,1,opt,name=provider,proto3,enum=wego_server.v1.GitProvider" json:"provider,omitempty"`
-}
-
-func (x *ValidateProviderTokenRequest) Reset() {
-	*x = ValidateProviderTokenRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_applications_applications_proto_msgTypes[21]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ValidateProviderTokenRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ValidateProviderTokenRequest) ProtoMessage() {}
-
-func (x *ValidateProviderTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_applications_applications_proto_msgTypes[21]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ValidateProviderTokenRequest.ProtoReflect.Descriptor instead.
-func (*ValidateProviderTokenRequest) Descriptor() ([]byte, []int) {
-	return file_api_applications_applications_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *ValidateProviderTokenRequest) GetProvider() GitProvider {
-	if x != nil {
-		return x.Provider
-	}
-	return GitProvider_Unknown
-}
-
-type ValidateProviderTokenResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Valid bool `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
-}
-
-func (x *ValidateProviderTokenResponse) Reset() {
-	*x = ValidateProviderTokenResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_api_applications_applications_proto_msgTypes[22]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ValidateProviderTokenResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ValidateProviderTokenResponse) ProtoMessage() {}
-
-func (x *ValidateProviderTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_applications_applications_proto_msgTypes[22]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ValidateProviderTokenResponse.ProtoReflect.Descriptor instead.
-func (*ValidateProviderTokenResponse) Descriptor() ([]byte, []int) {
-	return file_api_applications_applications_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *ValidateProviderTokenResponse) GetValid() bool {
-	if x != nil {
-		return x.Valid
-	}
-	return false
-}
-
 var File_api_applications_applications_proto protoreflect.FileDescriptor
 
 var file_api_applications_applications_proto_rawDesc = []byte{
@@ -1545,22 +1451,13 @@ var file_api_applications_applications_proto_rawDesc = []byte{
 	0x55, 0x72, 0x69, 0x22, 0x2f, 0x0a, 0x17, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65,
 	0x47, 0x69, 0x74, 0x6c, 0x61, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14,
 	0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74,
-	0x6f, 0x6b, 0x65, 0x6e, 0x22, 0x57, 0x0a, 0x1c, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65,
-	0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x12, 0x37, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1b, 0x2e, 0x77, 0x65, 0x67, 0x6f, 0x5f, 0x73, 0x65,
-	0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x69, 0x74, 0x50, 0x72, 0x6f, 0x76, 0x69,
-	0x64, 0x65, 0x72, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x22, 0x35, 0x0a,
-	0x1d, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65,
-	0x72, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x69, 0x64, 0x2a, 0x29, 0x0a, 0x0e, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69,
+	0x6f, 0x6b, 0x65, 0x6e, 0x2a, 0x29, 0x0a, 0x0e, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69,
 	0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x12, 0x0d, 0x0a, 0x09, 0x4b, 0x75, 0x73, 0x74, 0x6f, 0x6d,
 	0x69, 0x7a, 0x65, 0x10, 0x00, 0x12, 0x08, 0x0a, 0x04, 0x48, 0x65, 0x6c, 0x6d, 0x10, 0x01, 0x2a,
 	0x32, 0x0a, 0x0b, 0x47, 0x69, 0x74, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x12, 0x0b,
 	0x0a, 0x07, 0x55, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x47,
 	0x69, 0x74, 0x48, 0x75, 0x62, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x47, 0x69, 0x74, 0x4c, 0x61,
-	0x62, 0x10, 0x02, 0x32, 0xfe, 0x0b, 0x0a, 0x0c, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
+	0x62, 0x10, 0x02, 0x32, 0xdb, 0x0a, 0x0a, 0x0c, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
 	0x69, 0x6f, 0x6e, 0x73, 0x12, 0x7f, 0x0a, 0x0b, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6f, 0x6d, 0x6d,
 	0x69, 0x74, 0x73, 0x12, 0x22, 0x2e, 0x77, 0x65, 0x67, 0x6f, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65,
 	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x73,
@@ -1646,30 +1543,20 @@ var file_api_applications_applications_proto_rawDesc = []byte{
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x27, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x21,
 	0x12, 0x1f, 0x2f, 0x76, 0x31, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x73, 0x2f, 0x70, 0x61, 0x72, 0x73, 0x65, 0x5f, 0x72, 0x65, 0x70, 0x6f, 0x5f, 0x75, 0x72,
-	0x6c, 0x12, 0xa0, 0x01, 0x0a, 0x15, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x50, 0x72,
-	0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x2c, 0x2e, 0x77, 0x65,
-	0x67, 0x6f, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x61, 0x6c,
-	0x69, 0x64, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x54, 0x6f, 0x6b,
-	0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x77, 0x65, 0x67, 0x6f,
-	0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x61, 0x6c, 0x69, 0x64,
-	0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x54, 0x6f, 0x6b, 0x65, 0x6e,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x24,
-	0x22, 0x1f, 0x2f, 0x76, 0x31, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x73, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65,
-	0x6e, 0x3a, 0x01, 0x2a, 0x42, 0xce, 0x01, 0x5a, 0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77,
-	0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x70, 0x6b, 0x67, 0x2f,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x92, 0x41, 0x8e, 0x01, 0x12, 0x68, 0x0a, 0x15, 0x57, 0x65, 0x47, 0x6f, 0x20,
-	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x20, 0x41, 0x50, 0x49,
-	0x12, 0x4a, 0x54, 0x68, 0x65, 0x20, 0x57, 0x65, 0x47, 0x6f, 0x20, 0x41, 0x70, 0x70, 0x6c, 0x69,
-	0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x20, 0x41, 0x50, 0x49, 0x20, 0x68, 0x61, 0x6e, 0x64,
-	0x6c, 0x65, 0x73, 0x20, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x20, 0x66,
-	0x6f, 0x72, 0x20, 0x57, 0x65, 0x61, 0x76, 0x65, 0x20, 0x47, 0x69, 0x74, 0x4f, 0x70, 0x73, 0x20,
-	0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x03, 0x30, 0x2e,
-	0x31, 0x32, 0x10, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
-	0x73, 0x6f, 0x6e, 0x3a, 0x10, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x2f, 0x6a, 0x73, 0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x42, 0xce, 0x01, 0x5a, 0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76,
+	0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x73, 0x2f, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x92, 0x41, 0x8e, 0x01, 0x12, 0x68, 0x0a, 0x15, 0x57, 0x65, 0x47, 0x6f, 0x20, 0x41, 0x70, 0x70,
+	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x20, 0x41, 0x50, 0x49, 0x12, 0x4a, 0x54,
+	0x68, 0x65, 0x20, 0x57, 0x65, 0x47, 0x6f, 0x20, 0x41, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x73, 0x20, 0x41, 0x50, 0x49, 0x20, 0x68, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x73,
+	0x20, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x20, 0x66, 0x6f, 0x72, 0x20,
+	0x57, 0x65, 0x61, 0x76, 0x65, 0x20, 0x47, 0x69, 0x74, 0x4f, 0x70, 0x73, 0x20, 0x41, 0x70, 0x70,
+	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x32, 0x03, 0x30, 0x2e, 0x31, 0x32, 0x10,
+	0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x73, 0x6f, 0x6e,
+	0x3a, 0x10, 0x61, 0x70, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x73,
+	0x6f, 0x6e, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1685,33 +1572,31 @@ func file_api_applications_applications_proto_rawDescGZIP() []byte {
 }
 
 var file_api_applications_applications_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_applications_applications_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_api_applications_applications_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_api_applications_applications_proto_goTypes = []interface{}{
-	(AutomationKind)(0),                   // 0: wego_server.v1.AutomationKind
-	(GitProvider)(0),                      // 1: wego_server.v1.GitProvider
-	(*SyncApplicationRequest)(nil),        // 2: wego_server.v1.SyncApplicationRequest
-	(*SyncApplicationResponse)(nil),       // 3: wego_server.v1.SyncApplicationResponse
-	(*Commit)(nil),                        // 4: wego_server.v1.Commit
-	(*ListCommitsRequest)(nil),            // 5: wego_server.v1.ListCommitsRequest
-	(*ListCommitsResponse)(nil),           // 6: wego_server.v1.ListCommitsResponse
-	(*GroupVersionKind)(nil),              // 7: wego_server.v1.GroupVersionKind
-	(*UnstructuredObject)(nil),            // 8: wego_server.v1.UnstructuredObject
-	(*GetReconciledObjectsReq)(nil),       // 9: wego_server.v1.GetReconciledObjectsReq
-	(*GetReconciledObjectsRes)(nil),       // 10: wego_server.v1.GetReconciledObjectsRes
-	(*GetChildObjectsReq)(nil),            // 11: wego_server.v1.GetChildObjectsReq
-	(*GetChildObjectsRes)(nil),            // 12: wego_server.v1.GetChildObjectsRes
-	(*GetGithubDeviceCodeRequest)(nil),    // 13: wego_server.v1.GetGithubDeviceCodeRequest
-	(*GetGithubDeviceCodeResponse)(nil),   // 14: wego_server.v1.GetGithubDeviceCodeResponse
-	(*GetGithubAuthStatusRequest)(nil),    // 15: wego_server.v1.GetGithubAuthStatusRequest
-	(*GetGithubAuthStatusResponse)(nil),   // 16: wego_server.v1.GetGithubAuthStatusResponse
-	(*ParseRepoURLRequest)(nil),           // 17: wego_server.v1.ParseRepoURLRequest
-	(*ParseRepoURLResponse)(nil),          // 18: wego_server.v1.ParseRepoURLResponse
-	(*GetGitlabAuthURLRequest)(nil),       // 19: wego_server.v1.GetGitlabAuthURLRequest
-	(*GetGitlabAuthURLResponse)(nil),      // 20: wego_server.v1.GetGitlabAuthURLResponse
-	(*AuthorizeGitlabRequest)(nil),        // 21: wego_server.v1.AuthorizeGitlabRequest
-	(*AuthorizeGitlabResponse)(nil),       // 22: wego_server.v1.AuthorizeGitlabResponse
-	(*ValidateProviderTokenRequest)(nil),  // 23: wego_server.v1.ValidateProviderTokenRequest
-	(*ValidateProviderTokenResponse)(nil), // 24: wego_server.v1.ValidateProviderTokenResponse
+	(AutomationKind)(0),                 // 0: wego_server.v1.AutomationKind
+	(GitProvider)(0),                    // 1: wego_server.v1.GitProvider
+	(*SyncApplicationRequest)(nil),      // 2: wego_server.v1.SyncApplicationRequest
+	(*SyncApplicationResponse)(nil),     // 3: wego_server.v1.SyncApplicationResponse
+	(*Commit)(nil),                      // 4: wego_server.v1.Commit
+	(*ListCommitsRequest)(nil),          // 5: wego_server.v1.ListCommitsRequest
+	(*ListCommitsResponse)(nil),         // 6: wego_server.v1.ListCommitsResponse
+	(*GroupVersionKind)(nil),            // 7: wego_server.v1.GroupVersionKind
+	(*UnstructuredObject)(nil),          // 8: wego_server.v1.UnstructuredObject
+	(*GetReconciledObjectsReq)(nil),     // 9: wego_server.v1.GetReconciledObjectsReq
+	(*GetReconciledObjectsRes)(nil),     // 10: wego_server.v1.GetReconciledObjectsRes
+	(*GetChildObjectsReq)(nil),          // 11: wego_server.v1.GetChildObjectsReq
+	(*GetChildObjectsRes)(nil),          // 12: wego_server.v1.GetChildObjectsRes
+	(*GetGithubDeviceCodeRequest)(nil),  // 13: wego_server.v1.GetGithubDeviceCodeRequest
+	(*GetGithubDeviceCodeResponse)(nil), // 14: wego_server.v1.GetGithubDeviceCodeResponse
+	(*GetGithubAuthStatusRequest)(nil),  // 15: wego_server.v1.GetGithubAuthStatusRequest
+	(*GetGithubAuthStatusResponse)(nil), // 16: wego_server.v1.GetGithubAuthStatusResponse
+	(*ParseRepoURLRequest)(nil),         // 17: wego_server.v1.ParseRepoURLRequest
+	(*ParseRepoURLResponse)(nil),        // 18: wego_server.v1.ParseRepoURLResponse
+	(*GetGitlabAuthURLRequest)(nil),     // 19: wego_server.v1.GetGitlabAuthURLRequest
+	(*GetGitlabAuthURLResponse)(nil),    // 20: wego_server.v1.GetGitlabAuthURLResponse
+	(*AuthorizeGitlabRequest)(nil),      // 21: wego_server.v1.AuthorizeGitlabRequest
+	(*AuthorizeGitlabResponse)(nil),     // 22: wego_server.v1.AuthorizeGitlabResponse
 }
 var file_api_applications_applications_proto_depIdxs = []int32{
 	4,  // 0: wego_server.v1.ListCommitsResponse.commits:type_name -> wego_server.v1.Commit
@@ -1722,32 +1607,29 @@ var file_api_applications_applications_proto_depIdxs = []int32{
 	7,  // 5: wego_server.v1.GetChildObjectsReq.groupVersionKind:type_name -> wego_server.v1.GroupVersionKind
 	8,  // 6: wego_server.v1.GetChildObjectsRes.objects:type_name -> wego_server.v1.UnstructuredObject
 	1,  // 7: wego_server.v1.ParseRepoURLResponse.provider:type_name -> wego_server.v1.GitProvider
-	1,  // 8: wego_server.v1.ValidateProviderTokenRequest.provider:type_name -> wego_server.v1.GitProvider
-	5,  // 9: wego_server.v1.Applications.ListCommits:input_type -> wego_server.v1.ListCommitsRequest
-	9,  // 10: wego_server.v1.Applications.GetReconciledObjects:input_type -> wego_server.v1.GetReconciledObjectsReq
-	11, // 11: wego_server.v1.Applications.GetChildObjects:input_type -> wego_server.v1.GetChildObjectsReq
-	13, // 12: wego_server.v1.Applications.GetGithubDeviceCode:input_type -> wego_server.v1.GetGithubDeviceCodeRequest
-	15, // 13: wego_server.v1.Applications.GetGithubAuthStatus:input_type -> wego_server.v1.GetGithubAuthStatusRequest
-	19, // 14: wego_server.v1.Applications.GetGitlabAuthURL:input_type -> wego_server.v1.GetGitlabAuthURLRequest
-	21, // 15: wego_server.v1.Applications.AuthorizeGitlab:input_type -> wego_server.v1.AuthorizeGitlabRequest
-	2,  // 16: wego_server.v1.Applications.SyncApplication:input_type -> wego_server.v1.SyncApplicationRequest
-	17, // 17: wego_server.v1.Applications.ParseRepoURL:input_type -> wego_server.v1.ParseRepoURLRequest
-	23, // 18: wego_server.v1.Applications.ValidateProviderToken:input_type -> wego_server.v1.ValidateProviderTokenRequest
-	6,  // 19: wego_server.v1.Applications.ListCommits:output_type -> wego_server.v1.ListCommitsResponse
-	10, // 20: wego_server.v1.Applications.GetReconciledObjects:output_type -> wego_server.v1.GetReconciledObjectsRes
-	12, // 21: wego_server.v1.Applications.GetChildObjects:output_type -> wego_server.v1.GetChildObjectsRes
-	14, // 22: wego_server.v1.Applications.GetGithubDeviceCode:output_type -> wego_server.v1.GetGithubDeviceCodeResponse
-	16, // 23: wego_server.v1.Applications.GetGithubAuthStatus:output_type -> wego_server.v1.GetGithubAuthStatusResponse
-	20, // 24: wego_server.v1.Applications.GetGitlabAuthURL:output_type -> wego_server.v1.GetGitlabAuthURLResponse
-	22, // 25: wego_server.v1.Applications.AuthorizeGitlab:output_type -> wego_server.v1.AuthorizeGitlabResponse
-	3,  // 26: wego_server.v1.Applications.SyncApplication:output_type -> wego_server.v1.SyncApplicationResponse
-	18, // 27: wego_server.v1.Applications.ParseRepoURL:output_type -> wego_server.v1.ParseRepoURLResponse
-	24, // 28: wego_server.v1.Applications.ValidateProviderToken:output_type -> wego_server.v1.ValidateProviderTokenResponse
-	19, // [19:29] is the sub-list for method output_type
-	9,  // [9:19] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	5,  // 8: wego_server.v1.Applications.ListCommits:input_type -> wego_server.v1.ListCommitsRequest
+	9,  // 9: wego_server.v1.Applications.GetReconciledObjects:input_type -> wego_server.v1.GetReconciledObjectsReq
+	11, // 10: wego_server.v1.Applications.GetChildObjects:input_type -> wego_server.v1.GetChildObjectsReq
+	13, // 11: wego_server.v1.Applications.GetGithubDeviceCode:input_type -> wego_server.v1.GetGithubDeviceCodeRequest
+	15, // 12: wego_server.v1.Applications.GetGithubAuthStatus:input_type -> wego_server.v1.GetGithubAuthStatusRequest
+	19, // 13: wego_server.v1.Applications.GetGitlabAuthURL:input_type -> wego_server.v1.GetGitlabAuthURLRequest
+	21, // 14: wego_server.v1.Applications.AuthorizeGitlab:input_type -> wego_server.v1.AuthorizeGitlabRequest
+	2,  // 15: wego_server.v1.Applications.SyncApplication:input_type -> wego_server.v1.SyncApplicationRequest
+	17, // 16: wego_server.v1.Applications.ParseRepoURL:input_type -> wego_server.v1.ParseRepoURLRequest
+	6,  // 17: wego_server.v1.Applications.ListCommits:output_type -> wego_server.v1.ListCommitsResponse
+	10, // 18: wego_server.v1.Applications.GetReconciledObjects:output_type -> wego_server.v1.GetReconciledObjectsRes
+	12, // 19: wego_server.v1.Applications.GetChildObjects:output_type -> wego_server.v1.GetChildObjectsRes
+	14, // 20: wego_server.v1.Applications.GetGithubDeviceCode:output_type -> wego_server.v1.GetGithubDeviceCodeResponse
+	16, // 21: wego_server.v1.Applications.GetGithubAuthStatus:output_type -> wego_server.v1.GetGithubAuthStatusResponse
+	20, // 22: wego_server.v1.Applications.GetGitlabAuthURL:output_type -> wego_server.v1.GetGitlabAuthURLResponse
+	22, // 23: wego_server.v1.Applications.AuthorizeGitlab:output_type -> wego_server.v1.AuthorizeGitlabResponse
+	3,  // 24: wego_server.v1.Applications.SyncApplication:output_type -> wego_server.v1.SyncApplicationResponse
+	18, // 25: wego_server.v1.Applications.ParseRepoURL:output_type -> wego_server.v1.ParseRepoURLResponse
+	17, // [17:26] is the sub-list for method output_type
+	8,  // [8:17] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_api_applications_applications_proto_init() }
@@ -2008,30 +1890,6 @@ func file_api_applications_applications_proto_init() {
 				return nil
 			}
 		}
-		file_api_applications_applications_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ValidateProviderTokenRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_api_applications_applications_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ValidateProviderTokenResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
 	}
 	file_api_applications_applications_proto_msgTypes[3].OneofWrappers = []interface{}{}
 	type x struct{}
@@ -2040,7 +1898,7 @@ func file_api_applications_applications_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_applications_applications_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   23,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

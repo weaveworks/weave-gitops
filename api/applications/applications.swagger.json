@@ -201,39 +201,6 @@
         ]
       }
     },
-    "/v1/applications/validate_token": {
-      "post": {
-        "summary": "ValidateProviderToken check to see if the git provider token is still valid",
-        "operationId": "Applications_ValidateProviderToken",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ValidateProviderTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ValidateProviderTokenRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/{automationName}/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result of the Application.\nThis list is derived by looking at the Kustomization that is associated with an Application.\nHelm Releases are not currently supported.",
@@ -620,22 +587,6 @@
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"
-    },
-    "v1ValidateProviderTokenRequest": {
-      "type": "object",
-      "properties": {
-        "provider": {
-          "$ref": "#/definitions/v1GitProvider"
-        }
-      }
-    },
-    "v1ValidateProviderTokenResponse": {
-      "type": "object",
-      "properties": {
-        "valid": {
-          "type": "boolean"
-        }
-      }
     }
   }
 }
