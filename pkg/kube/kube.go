@@ -4,12 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -49,39 +44,10 @@ type WegoConfig struct {
 
 //counterfeiter:generate . Kube
 type Kube interface {
-	Apply(ctx context.Context, manifest []byte, namespace string) error
-	Delete(ctx context.Context, manifest []byte) error
-	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
-	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
-	FluxPresent(ctx context.Context) (bool, error)
-	NamespacePresent(ctx context.Context, namespace string) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
-	GetClusterStatus(ctx context.Context) ClusterStatus
-	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
-	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
-	SetResource(ctx context.Context, resource Resource) error
-	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
 	FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error)
-	SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error)
 	GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error)
 	Raw() client.Client
-}
-
-func IsClusterReady(l logger.Logger, k Kube) error {
-	l.Waitingf("Checking cluster status")
-
-	clusterStatus := k.GetClusterStatus(context.Background())
-
-	switch clusterStatus {
-	case Unmodified:
-		return fmt.Errorf("gitops not installed... exiting")
-	case Unknown:
-		return fmt.Errorf("can not determine cluster status... exiting")
-	}
-
-	l.Successf(clusterStatus.String())
-
-	return nil
 }
 
 // KubeGetter implementations should create a Kube client from a context.

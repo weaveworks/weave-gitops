@@ -96,7 +96,6 @@ var _ = BeforeSuite(func() {
 		Logger:           zapr.NewLogger(zap.NewNop()),
 		JwtClient:        auth.NewJwtClient("somekey"),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
-		FetcherFactory:   server.NewDefaultFetcherFactory(),
 		ClusterConfig: kube.ClusterConfig{
 			DefaultConfig: env.Rest,
 			ClusterName:   clusterName,

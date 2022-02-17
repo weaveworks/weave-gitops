@@ -7,30 +7,17 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import {
   Applications,
-  GetChildObjectsReq,
-  GetChildObjectsRes,
   GetGithubAuthStatusRequest,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeRequest,
   GetGithubDeviceCodeResponse,
-  GetReconciledObjectsReq,
-  GetReconciledObjectsRes,
-  ListCommitsRequest,
-  ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
-  SyncApplicationRequest,
-  SyncApplicationResponse,
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
 
 export type ApplicationOverrides = {
-  ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
-  GetReconciledObjects?: (
-    req: GetReconciledObjectsReq
-  ) => GetReconciledObjectsRes;
-  GetChildObjects?: (req: GetChildObjectsReq) => GetChildObjectsRes;
   GetGithubDeviceCode?: (
     req: GetGithubDeviceCodeRequest
   ) => GetGithubDeviceCodeResponse;
@@ -38,7 +25,6 @@ export type ApplicationOverrides = {
     req: GetGithubAuthStatusRequest
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant

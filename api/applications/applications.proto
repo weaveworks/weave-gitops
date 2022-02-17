@@ -20,37 +20,6 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Applications {
     /**
-     * ListCommits returns the list of WeGo commits that the authenticated user has access to.
-    */
-    rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
-        option (google.api.http) = {
-            get : "/v1/applications/{name}/commits",
-        };
-    }
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result of the Application.
-    * This list is derived by looking at the Kustomization that is associated with an Application.
-    * Helm Releases are not currently supported.
-    */
-    rpc GetReconciledObjects(GetReconciledObjectsReq) returns (GetReconciledObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/{automationName}/reconciled_objects"
-            body: "*"
-        };
-    };
-
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
-    rpc GetChildObjects(GetChildObjectsReq) returns (GetChildObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/child_objects"
-            body: "*"
-        };
-    };
-
-    /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
     * This code is used to start the Github device-flow.
     */
@@ -98,16 +67,6 @@ service Applications {
         };
     }
 
-    /*
-    * SyncApplication triggers the Application reconciliation loop.
-    */
-    rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications/{name}/sync"
-            body: "*"
-        };
-    }
-
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */
@@ -118,81 +77,11 @@ service Applications {
     }
 }
 
-message SyncApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-}
-
-message SyncApplicationResponse {
-    bool success = 1;
-}
-
-message Commit {
-    string   hash    = 1;  // The hash of the commit
-    string   date    = 2;  // The date the commit was made.
-    string   author  = 3;  // The author of the commit
-    string   message = 4;  // The commit message
-    string   url     = 5;  // The commit url
-}
-
-message ListCommitsRequest {
-    string name      = 1;  // The application name
-    string namespace = 2;  // The namespace the application is in
-    int32  page_size = 3;
-    // Optional. A pagination token returned from a previous call
-    // that indicates where this listing should continue from.
-    optional int32 page_token = 4;
-}
-
-message ListCommitsResponse {
-    repeated Commit commits = 1; // A list of commits
-    // A pagination token returned from a previous call
-    // that indicates from where listing should continue.
-    int32 next_page_token = 2;
-}
-
-// GroupVersionKind represents an objects Kubernetes API type data
-message GroupVersionKind {
-    string group   = 1;
-    string kind    = 2;
-    string version = 3;
-}
-
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind = 1;
-    string           name             = 2;
-    string           namespace        = 3;
-    string           uid              = 4;
-    string           status           = 5;
-}
-
-message GetReconciledObjectsReq {
-    string   automationName      = 1;
-    string   automationNamespace = 2;
-    AutomationKind automationKind = 3;
-    repeated GroupVersionKind kinds = 4;
-}
 // AutomationKind represents the deployment method used
 enum AutomationKind {
     Kustomize = 0;
     Helm      = 1;
 }
-
-message GetReconciledObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
-
-message GetChildObjectsReq {
-    GroupVersionKind groupVersionKind = 1;
-    string           parentUid        = 2;
-}
-
-message GetChildObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
 
 message GetGithubDeviceCodeRequest {
 

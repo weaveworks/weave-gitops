@@ -137,39 +137,6 @@
         ]
       }
     },
-    "/v1/applications/child_objects": {
-      "post": {
-        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
-        "operationId": "Applications_GetChildObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsReq"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/parse_repo_url": {
       "get": {
         "summary": "ParseRepoURL returns structured data about a git repository URL",
@@ -194,155 +161,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/{automationName}/reconciled_objects": {
-      "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created as a result of the Application.\nThis list is derived by looking at the Kustomization that is associated with an Application.\nHelm Releases are not currently supported.",
-        "operationId": "Applications_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "automationName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "automationNamespace": {
-                  "type": "string"
-                },
-                "automationKind": {
-                  "$ref": "#/definitions/v1AutomationKind"
-                },
-                "kinds": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1GroupVersionKind"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/{name}/commits": {
-      "get": {
-        "summary": "ListCommits returns the list of WeGo commits that the authenticated user has access to.",
-        "operationId": "Applications_ListCommits",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListCommitsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "pageToken",
-            "description": "Optional. A pagination token returned from a previous call\nthat indicates where this listing should continue from.",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/{name}/sync": {
-      "post": {
-        "summary": "SyncApplication triggers the Application reconciliation loop.",
-        "operationId": "Applications_SyncApplication",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SyncApplicationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "namespace": {
-                  "type": "string"
-                }
-              }
-            }
           }
         ],
         "tags": [
@@ -398,57 +216,6 @@
         }
       }
     },
-    "v1AutomationKind": {
-      "type": "string",
-      "enum": [
-        "Kustomize",
-        "Helm"
-      ],
-      "default": "Kustomize",
-      "title": "AutomationKind represents the deployment method used"
-    },
-    "v1Commit": {
-      "type": "object",
-      "properties": {
-        "hash": {
-          "type": "string"
-        },
-        "date": {
-          "type": "string"
-        },
-        "author": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GetChildObjectsReq": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "parentUid": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GetChildObjectsRes": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
-          }
-        }
-      }
-    },
     "v1GetGithubAuthStatusRequest": {
       "type": "object",
       "properties": {
@@ -494,17 +261,6 @@
         }
       }
     },
-    "v1GetReconciledObjectsRes": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
-          }
-        }
-      }
-    },
     "v1GitProvider": {
       "type": "string",
       "enum": [
@@ -513,37 +269,6 @@
         "GitLab"
       ],
       "default": "Unknown"
-    },
-    "v1GroupVersionKind": {
-      "type": "object",
-      "properties": {
-        "group": {
-          "type": "string"
-        },
-        "kind": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "title": "GroupVersionKind represents an objects Kubernetes API type data"
-    },
-    "v1ListCommitsResponse": {
-      "type": "object",
-      "properties": {
-        "commits": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Commit"
-          }
-        },
-        "nextPageToken": {
-          "type": "integer",
-          "format": "int32",
-          "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
-        }
-      }
     },
     "v1ParseRepoURLResponse": {
       "type": "object",
@@ -558,35 +283,6 @@
           "type": "string"
         }
       }
-    },
-    "v1SyncApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
-        }
-      }
-    },
-    "v1UnstructuredObject": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        }
-      },
-      "title": "UnstructuredObject is a Kubernetes object of an unknown type"
     }
   }
 }
