@@ -46,20 +46,22 @@ func NewHMACTokenSignerVerifier(expireAfter time.Duration) (TokenSignerVerifier,
 }
 
 func (sv *HMACTokenSignerVerifier) Sign() (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &AdminClaims{
+	claims := AdminClaims{
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().UTC().Unix(),
 			ExpiresAt: time.Now().Add(sv.expireAfter).UTC().Unix(),
 			NotBefore: time.Now().UTC().Unix(),
 			Subject:   "admin",
 		},
-	})
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(sv.hmacSecret)
 }
 
 func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, error) {
-	token, err := jwt.Parse(tokenString,
+	token, err := jwt.ParseWithClaims(tokenString, &AdminClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

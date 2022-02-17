@@ -59,6 +59,11 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UserInfo struct {
+	Email  string   `json:"email"`
+	Groups []string `json:"groups"`
+}
+
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client, tokenSignerVerifier TokenSignerVerifier) (*AuthServer, error) {
 	provider, err := oidc.NewProvider(ctx, config.IssuerURL)
@@ -280,6 +285,17 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
+		claims, err := s.tokenSignerVerifier.Verify(c.Value)
+		if err != nil {
+			s.logger.Error(err, "Failed to verify token", "token", c.Value)
+		} else {
+			ui := UserInfo{
+				Email: claims.Subject,
+			}
+			toJson(ui, rw)
+			return
+		}
+
 		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: c.Value,
 		}))
@@ -288,13 +304,22 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
-		b, err := json.Marshal(info)
-		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
-			return
+		ui := UserInfo{
+			Email: info.Email,
 		}
-		rw.Write(b)
+
+		toJson(ui, rw)
 	}
+}
+
+func toJson(ui UserInfo, rw http.ResponseWriter) {
+	b, err := json.Marshal(ui)
+	if err != nil {
+		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	rw.Write(b)
 }
 
 func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {

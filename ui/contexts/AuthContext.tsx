@@ -34,7 +34,6 @@ export default function AuthContextProvider({ children }) {
       })
       .then((data) => {
         console.log(data);
-        //redirect to "/""
       })
       .catch((err) => console.log(err));
   }, []);
