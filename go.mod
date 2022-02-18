@@ -35,6 +35,7 @@ require (
 	github.com/onsi/gomega v1.16.0
 	github.com/ory/go-acc v0.2.6
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
