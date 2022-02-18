@@ -4,8 +4,8 @@ import React, { forwardRef } from "react";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
 import images from "../lib/images";
+import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { formatURL, getNavValue } from "../lib/utils";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
@@ -17,11 +17,11 @@ type Props = {
 
 const navItems = [
   {
-    value: V2Routes.ApplicationList,
+    value: V2Routes.Automations,
     label: "Applications",
   },
   {
-    value: V2Routes.SourcesList,
+    value: V2Routes.Sources,
     label: "Sources",
   },
   {
@@ -125,7 +125,6 @@ const TopToolBar = styled(Flex)`
 
 function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
-
   return (
     <div className={className}>
       <AppContainer>
@@ -139,7 +138,7 @@ function Layout({ className, children }: Props) {
               <Tabs
                 centered={false}
                 orientation="vertical"
-                value={getNavValue(currentPage)}
+                value={getParentNavValue(currentPage)}
               >
                 {_.map(navItems, (n) => (
                   <StyleLinkTab

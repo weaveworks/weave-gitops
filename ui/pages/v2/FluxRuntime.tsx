@@ -5,8 +5,8 @@ import DataTable from "../../components/DataTable";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
-import { useListFluxRuntimeObjects } from "../../hooks/apps";
-import { Deployment } from "../../lib/api/app/apps.pb";
+import { useListFluxRuntimeObjects } from "../../hooks/flux";
+import { Deployment } from "../../lib/api/core/types.pb";
 
 type Props = {
   className?: string;

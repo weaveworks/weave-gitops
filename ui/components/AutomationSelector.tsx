@@ -1,8 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import images from "../lib/images";
+import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { formatURL } from "../lib/utils";
 import FancyCard from "./FancyCard";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
@@ -17,7 +17,7 @@ function AutomationSelector({ className, appName }: Props) {
     <Flex className={className} wide center>
       <Spacer m={["none", "none", "medium", "none"]}>
         <FancyCard
-          to={formatURL(V2Routes.AddKustomization, { appName })}
+          to={formatURL(V2Routes.NotImplemented, { appName })}
           image={images.fancyCardBackgroundBlue}
           title="Flux Kustomization"
         >
@@ -26,7 +26,7 @@ function AutomationSelector({ className, appName }: Props) {
         </FancyCard>
       </Spacer>
       <FancyCard
-        to={formatURL(V2Routes.AddHelmRelease, { appName })}
+        to={formatURL(V2Routes.NotImplemented, { appName })}
         image={images.fancyCardBackgroundOrange}
         title="Flux Helm Release"
       >

@@ -4,7 +4,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,8 +14,8 @@ const (
 	createdBySourceController    = "source-controller"
 )
 
-func ProtoToGitRepository(repositoryReq *pb.AddGitRepositoryReq) *v1beta1.GitRepository {
-	labels := getGitopsLabelMap(repositoryReq.AppName)
+func ProtoToGitRepository(repo *pb.GitRepository) *v1beta1.GitRepository {
+	labels := getGitopsLabelMap(repo.Name)
 
 	return &v1beta1.GitRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -23,21 +23,21 @@ func ProtoToGitRepository(repositoryReq *pb.AddGitRepositoryReq) *v1beta1.GitRep
 			APIVersion: v1beta2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      repositoryReq.Name,
-			Namespace: repositoryReq.Namespace,
+			Name:      repo.Name,
+			Namespace: repo.Namespace,
 			Labels:    labels,
 		},
 		Spec: v1beta1.GitRepositorySpec{
-			URL: repositoryReq.Url,
+			URL: repo.Url,
 			//Interval: intervalDuration(kustomization.Interval),
 			SecretRef: &meta.LocalObjectReference{
-				Name: repositoryReq.SecretRef,
+				Name: repo.SecretRef,
 			},
 			Reference: &v1beta1.GitRepositoryRef{
-				Branch: repositoryReq.Reference.Branch,
-				Tag:    repositoryReq.Reference.Tag,
-				SemVer: repositoryReq.Reference.Semver,
-				Commit: repositoryReq.Reference.Commit,
+				Branch: repo.Reference.Branch,
+				Tag:    repo.Reference.Tag,
+				SemVer: repo.Reference.Semver,
+				Commit: repo.Reference.Commit,
 			},
 		},
 		Status: v1beta1.GitRepositoryStatus{},

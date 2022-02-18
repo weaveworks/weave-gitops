@@ -24,6 +24,6 @@ describe("useNavigation", () => {
 
     render(withContext(TestComponent, `/${myPage}`, {}));
 
-    expect(screen.getByTestId(id).textContent).toEqual(myPage);
+    expect(screen.getByTestId(id).textContent).toEqual(`/${myPage}`);
   });
 });
