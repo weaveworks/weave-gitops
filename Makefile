@@ -1,14 +1,19 @@
-.PHONY: debug bin gitops install clean fmt vet dependencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
+.PHONY: debug bin gitops install clean fmt vet dependencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd tools/bin/envtest bin/flux bin/golangci-lint bin/tilt
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
+
+FLUX_VERSION=0.24.1
+TILT_VERSION=0.23.8
+GOLANGCILINT_VERSION=1.44.2
+ENVTEST_VERSION=1.19.2
 
 BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
 FORMAT_LIST=$(shell gofmt -l .)
-FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+
 LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)"
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
@@ -79,15 +84,12 @@ docker: ## Build wego-app docker image
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-	rm -f bin/gitops
+	rm -rf bin
 	rm -rf cmd/gitops/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
 	rm -rf dist
-	# There is an important (tracked) file in pkg/flux/bin so don't just nuke the whole folder
-	# -x: remove gitignored files too, -d: remove directories too
-	git clean -x -d --force pkg/flux/bin/
 
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -95,14 +97,47 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
-lint: cmd/gitops/ui/run/dist/index.html ## Run linters against code
-	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
+lint: bin/golangci-lint cmd/gitops/ui/run/dist/index.html ## Run linters against code
+	bin/golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
-.deps:
-	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
-	@touch .deps
 
-dependencies: .deps ## Install build dependencies
+bin/golangci-lint: bin/golangci-lint-$(GOLANGCILINT_VERSION)
+	@ln -sf golangci-lint-$(GOLANGCILINT_VERSION) $@ # Always run due to .PHONY
+
+bin/golangci-lint-$(GOLANGCILINT_VERSION):
+	mkdir -p $(@D)
+	url="https://github.com/golangci/golangci-lint/releases/download/v$(GOLANGCILINT_VERSION)/golangci-lint-$(GOLANGCILINT_VERSION)-$$(go env GOOS)-$$(go env GOHOSTARCH).tar.gz"; \
+	curl -sL $$url | tar -xzvO golangci-lint-$(GOLANGCILINT_VERSION)-$$(go env GOOS)-$$(go env GOHOSTARCH)/golangci-lint > $@
+	chmod +x $@
+
+bin/tilt: bin/tilt-$(TILT_VERSION)
+	@ln -sf tilt-$(TILT_VERSION) $@
+
+bin/tilt-$(TILT_VERSION):
+	mkdir -p $(@D)
+	goos=$$(go env GOOS); \
+	url="https://github.com/tilt-dev/tilt/releases/download/v$(TILT_VERSION)/tilt.$(TILT_VERSION).$(subst darwin,mac,$(shell go env GOOS)).$$(uname -m).tar.gz"; \
+	curl -sL $$url | tar -xzvO tilt > $@
+	chmod +x $@
+
+bin/flux: bin/flux-$(FLUX_VERSION)
+	@ln -sf flux-$(FLUX_VERSION) $@
+
+bin/flux-$(FLUX_VERSION):
+	mkdir -p $(@D)
+	url="https://github.com/fluxcd/flux2/releases/download/v$(FLUX_VERSION)/flux_$(FLUX_VERSION)_$$(go env GOOS)_$$(go env GOHOSTARCH).tar.gz"; \
+	curl -sL $$url | tar -xzvO flux > $@
+	chmod +x $@
+
+tools/bin/envtest: tools/bin/envtest-$(ENVTEST_VERSION)
+	@ln -sf tools/bin/envtest-$(ENVTEST_VERSION) $@
+
+tools/bin/envtest-$(ENVTEST_VERSION):
+	mkdir -p $@
+	url="https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-$(ENVTEST_VERSION)-$$(go env GOOS)-$$(go env GOHOSTARCH).tar.gz"; \
+	curl -sL $$url | tar -xzv -C $@ --strip-components=2
+
+dependencies: bin/tilt bin/flux bin/golangci-lint tools/bin/envtest ## Install build dependencies
 
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
