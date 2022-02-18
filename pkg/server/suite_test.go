@@ -19,8 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -120,7 +118,6 @@ var _ = BeforeEach(func() {
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
-	fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient))
 	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
 	fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
@@ -128,7 +125,6 @@ var _ = BeforeEach(func() {
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
-		FetcherFactory:   fakeFetcherFactory,
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    kube.ClusterConfig{},
 	}

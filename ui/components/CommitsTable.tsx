@@ -4,7 +4,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListCommits } from "../hooks/applications";
 import {
-  Application,
   Commit,
   GitProvider,
 } from "../lib/api/applications/applications.pb";
@@ -17,7 +16,7 @@ import Link from "./Link";
 
 type Props = {
   className?: string;
-  app: Application;
+  app: any;
   authSuccess: boolean;
   onAuthClick?: () => void;
   provider: string;

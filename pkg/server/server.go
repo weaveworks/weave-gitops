@@ -15,14 +15,11 @@ import (
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -41,7 +38,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -64,14 +60,13 @@ var (
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	factory        services.Factory
-	jwtClient      auth.JWTClient
-	log            logr.Logger
-	ghAuthClient   auth.GithubAuthClient
-	fetcherFactory applicationv2.FetcherFactory
-	glAuthClient   auth.GitlabAuthClient
-	clientGetter   kube.ClientGetter
-	kubeGetter     kube.KubeGetter
+	factory      services.Factory
+	jwtClient    auth.JWTClient
+	log          logr.Logger
+	ghAuthClient auth.GithubAuthClient
+	glAuthClient auth.GitlabAuthClient
+	clientGetter kube.ClientGetter
+	kubeGetter   kube.KubeGetter
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -81,26 +76,8 @@ type ApplicationsConfig struct {
 	Factory          services.Factory
 	JwtClient        auth.JWTClient
 	GithubAuthClient auth.GithubAuthClient
-	FetcherFactory   applicationv2.FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
 	ClusterConfig    kube.ClusterConfig
-}
-
-var _ applicationv2.FetcherFactory = &DefaultFetcherFactory{}
-
-// DefaultFetcherFactory creates applicationv2.Fetcher objects from a Kubernetes
-// client
-type DefaultFetcherFactory struct {
-}
-
-// NewDefaultFetcherFactory returns a new DefaultFetcherFactory
-func NewDefaultFetcherFactory() applicationv2.FetcherFactory {
-	return &DefaultFetcherFactory{}
-}
-
-// Create uses a Kubernetes client to create an applicationv2.Fetcher object.
-func (f *DefaultFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
-	return applicationv2.NewFetcher(client)
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -119,14 +96,13 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 	}
 
 	return &applicationServer{
-		jwtClient:      cfg.JwtClient,
-		log:            cfg.Logger,
-		factory:        cfg.Factory,
-		ghAuthClient:   cfg.GithubAuthClient,
-		fetcherFactory: cfg.FetcherFactory,
-		glAuthClient:   cfg.GitlabAuthClient,
-		clientGetter:   args.ClientGetter,
-		kubeGetter:     args.KubeGetter,
+		jwtClient:    cfg.JwtClient,
+		log:          cfg.Logger,
+		factory:      cfg.Factory,
+		ghAuthClient: cfg.GithubAuthClient,
+		glAuthClient: cfg.GitlabAuthClient,
+		clientGetter: args.ClientGetter,
+		kubeGetter:   args.KubeGetter,
 	}
 }
 
@@ -160,7 +136,6 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		Logger:           logr,
 		Factory:          services.NewFactory(fluxClient, internal.NewApiLogger(zapLog)),
 		JwtClient:        jwtClient,
-		FetcherFactory:   NewDefaultFetcherFactory(),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
 		ClusterConfig: kube.ClusterConfig{
@@ -168,115 +143,6 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 			ClusterName:   clusterName,
 		},
 	}, nil
-}
-
-func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	rawClient, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	fetcher := s.fetcherFactory.Create(rawClient)
-
-	apps, err := fetcher.List(ctx, msg.Namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	if apps == nil {
-		return &pb.ListApplicationsResponse{
-			Applications: []*pb.Application{},
-		}, nil
-	}
-
-	list := []*pb.Application{}
-	for _, a := range apps {
-		list = append(list, &pb.Application{Name: a.Name})
-	}
-
-	return &pb.ListApplicationsResponse{
-		Applications: list,
-	}, nil
-}
-
-func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	kubeClient, err := s.kubeGetter.Kube(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kube service: %w", err)
-	}
-
-	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil, grpcStatus.Errorf(codes.NotFound, "not found: %s", err.Error())
-		}
-
-		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
-	}
-
-	src, deployment, err := findFluxObjects(app)
-	if err != nil {
-		return nil, fmt.Errorf("could not get flux objects for application %q: %w", app.Name, err)
-	}
-
-	name := types.NamespacedName{Name: app.Name, Namespace: app.Namespace}
-
-	if err := kubeClient.GetResource(ctx, name, src); err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil, nil
-		}
-
-		return nil, fmt.Errorf("could not get source for app %s: %w", app.Name, err)
-	}
-
-	if err := kubeClient.GetResource(ctx, name, deployment); err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil, nil
-		}
-
-		return nil, fmt.Errorf("could not get deployment for app %s: %w", app.Name, err)
-	}
-
-	var (
-		kust            *kustomizev2.Kustomization
-		helmRelease     *helmv2.HelmRelease
-		deploymentType  pb.AutomationKind
-		reconciledKinds []*pb.GroupVersionKind
-	)
-
-	if deployment != nil {
-		// Same as a src. Deployment may not be created at this point.
-		switch at := deployment.(type) {
-		case *kustomizev2.Kustomization:
-			kust = at
-			deploymentType = pb.AutomationKind_Kustomize
-			reconciledKinds, err = getKustomizeInventory(at)
-
-			if err != nil {
-				return nil, err
-			}
-		case *helmv2.HelmRelease:
-			helmRelease = at
-			deploymentType = pb.AutomationKind_Helm
-			reconciledKinds, err = getHelmInventory(at, kubeClient)
-
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return &pb.GetApplicationResponse{Application: &pb.Application{
-		Name:                  app.Name,
-		Namespace:             app.Namespace,
-		Url:                   app.Spec.URL,
-		Path:                  app.Spec.Path,
-		DeploymentType:        deploymentType,
-		Kustomization:         mapKustomizationSpecToResponse(kust),
-		HelmRelease:           mapHelmReleaseSpecToResponse(helmRelease),
-		Source:                mapSourceSpecToReponse(src),
-		ReconciledObjectKinds: reconciledKinds,
-	}}, nil
 }
 
 func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
@@ -611,147 +477,6 @@ func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeat
 			"WEAVE_GITOPS_AUTH_ENABLED": os.Getenv("WEAVE_GITOPS_AUTH_ENABLED"),
 		},
 	}, nil
-}
-
-func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
-	if helm == nil {
-		return nil
-	}
-
-	return &pb.HelmRelease{
-		Name:            helm.Name,
-		Namespace:       helm.Namespace,
-		TargetNamespace: helm.Spec.TargetNamespace,
-		Conditions:      mapConditions(helm.Status.Conditions),
-		Chart: &pb.HelmChart{
-			Chart:       helm.Spec.Chart.Spec.Chart,
-			Version:     helm.Spec.Chart.Spec.Version,
-			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
-		},
-	}
-}
-
-func mapKustomizationSpecToResponse(kust *kustomizev2.Kustomization) *pb.Kustomization {
-	if kust == nil {
-		return nil
-	}
-
-	return &pb.Kustomization{
-		Name:                kust.Name,
-		Namespace:           kust.Namespace,
-		TargetNamespace:     kust.Spec.TargetNamespace,
-		Path:                kust.Spec.Path,
-		Conditions:          mapConditions(kust.Status.Conditions),
-		Interval:            kust.Spec.Interval.Duration.String(),
-		Prune:               kust.Spec.Prune,
-		LastAppliedRevision: kust.Status.LastAppliedRevision,
-	}
-}
-
-func mapSourceSpecToReponse(src client.Object) *pb.Source {
-	// An src might be nil if it is not reconciled yet,
-	// in which case return nil in the response for the source_conditions key.
-	source := &pb.Source{}
-	if src == nil {
-		return source
-	}
-
-	switch st := src.(type) {
-	case *sourcev1.GitRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Git
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		if st.Spec.Reference != nil {
-			source.Reference = st.Spec.Reference.Branch
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	case *sourcev1.HelmRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Helm
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	}
-
-	return source
-}
-
-// Returns k8s objects that can be used to find the cluster objects.
-// The first return argument is the source, the second is the deployment
-func findFluxObjects(app *wego.Application) (client.Object, client.Object, error) {
-	st := app.Spec.SourceType
-	if st == "" {
-		// Apps that were created before the SourceType field exists will not have a SourceType defined.
-		// Assume git, since thats what the CLI defaults to.
-		st = wego.SourceTypeGit
-	}
-
-	var src client.Object
-
-	switch st {
-	case wego.SourceTypeGit:
-		src = &sourcev1.GitRepository{}
-	case wego.SourceTypeHelm:
-		src = &sourcev1.HelmRepository{}
-	}
-
-	if src == nil {
-		return nil, nil, fmt.Errorf("invalid source type %q", st)
-	}
-
-	at := app.Spec.DeploymentType
-	if at == "" {
-		// Same as above, default to kustomize to match CLI default.
-		at = wego.DeploymentTypeKustomize
-	}
-
-	var deployment client.Object
-
-	switch at {
-	case wego.DeploymentTypeHelm:
-		deployment = &helmv2.HelmRelease{}
-	case wego.DeploymentTypeKustomize:
-		deployment = &kustomizev2.Kustomization{}
-	}
-
-	if deployment == nil {
-		return nil, nil, fmt.Errorf("invalid deployment type %q", at)
-	}
-
-	return src, deployment, nil
-}
-
-// Convert k8s conditions to protobuf conditions
-func mapConditions(conditions []metav1.Condition) []*pb.Condition {
-	out := []*pb.Condition{}
-
-	for _, c := range conditions {
-		out = append(out, &pb.Condition{
-			Type:      c.Type,
-			Status:    string(c.Status),
-			Reason:    c.Reason,
-			Message:   c.Message,
-			Timestamp: int32(c.LastTransitionTime.Unix()),
-		})
-	}
-
-	return out
 }
 
 func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {

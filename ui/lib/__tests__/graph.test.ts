@@ -1,12 +1,11 @@
 import _ from "lodash";
-import { Application } from "../api/applications/applications.pb";
 import { Core } from "../api/core/core.pb";
 import { getChildren } from "../graph";
 import { createMockClient } from "../test-utils";
 
 describe("graph lib", () => {
   it("getChildren", async () => {
-    const app: Application = {
+    const app = {
       name: "my-app",
       namespace: "my-namespace",
       reconciledObjectKinds: [
