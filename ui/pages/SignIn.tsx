@@ -102,7 +102,7 @@ function SignIn() {
                 id="password"
                 label="Password"
                 variant="standard"
-                type="password"
+                // type="password"
                 value={password}
               />
             </FormElement>

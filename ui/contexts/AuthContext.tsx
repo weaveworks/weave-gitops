@@ -11,6 +11,7 @@ const Loader: React.FC<{ loading?: boolean }> = ({
   loading = true,
   ...props
 }) => {
+  console.log("loader");
   return <>{loading ? <LoadingPage /> : children}</>;
 };
 
@@ -35,6 +36,9 @@ export default function AuthContextProvider({ children }) {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [authenticated, setAuthenticated] = React.useState<boolean>();
   const history = useHistory();
+  const {
+    location: { pathname },
+  } = history;
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
@@ -59,22 +63,25 @@ export default function AuthContextProvider({ children }) {
       })
       .then((data) => {
         setUserInfo({ email: data.email, groups: [] });
-        // this should only happen at sign in
-        history.push("/");
+
+        console.log(pathname);
+        if (pathname === "/sign_in") {
+          history.push("/");
+        }
       })
       .catch((err) => setUserInfo(undefined))
       .finally(() => setLoading(false));
   }, []);
 
   React.useEffect(() => {
-    // useEffect doesn't run once the user is logged in
-    console.log(window.location.pathname);
     getUserInfo();
-  }, [authenticated, getUserInfo, window.location]);
+    return history.listen(getUserInfo);
+  }, [getUserInfo, history]);
 
   console.log("email", userInfo?.email);
-  console.log("path", window.location.pathname);
+  console.log("path", pathname);
   console.log("authenticated", authenticated);
+  console.log("history", history);
 
   return (
     <Auth.Provider
