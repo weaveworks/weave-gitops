@@ -48,6 +48,39 @@
         ]
       }
     },
+    "/v1/child_objects": {
+      "post": {
+        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
+        "operationId": "Core_GetChildObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster",
@@ -269,6 +302,38 @@
           "Core"
         ]
       }
+    },
+    "/v1/reconciled_objects": {
+      "post": {
+        "operationId": "Core_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
     }
   },
   "definitions": {
@@ -320,6 +385,15 @@
           }
         }
       }
+    },
+    "v1AutomationKind": {
+      "type": "string",
+      "enum": [
+        "KustomizationAutomation",
+        "HelmReleaseAutomation"
+      ],
+      "default": "KustomizationAutomation",
+      "description": " - KustomizationAutomation: enums populate a global namespace, so spell these out.\n`Kustomization` and `HelmRelease` are already taken as names."
     },
     "v1Bucket": {
       "type": "object",
@@ -403,11 +477,64 @@
         }
       }
     },
+    "v1GetChildObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "groupVersionKind": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "parentUid": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetChildObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
     "v1GetKustomizationResponse": {
       "type": "object",
       "properties": {
         "kustomization": {
           "$ref": "#/definitions/v1Kustomization"
+        }
+      }
+    },
+    "v1GetReconciledObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "automationName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "automationKind": {
+          "$ref": "#/definitions/v1AutomationKind"
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
+          }
+        }
+      }
+    },
+    "v1GetReconciledObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1UnstructuredObject"
+          }
         }
       }
     },
@@ -701,6 +828,27 @@
           "type": "string"
         }
       }
+    },
+    "v1UnstructuredObject": {
+      "type": "object",
+      "properties": {
+        "groupVersionKind": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "UnstructuredObject is a Kubernetes object of an unknown type"
     }
   }
 }

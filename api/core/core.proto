@@ -93,6 +93,28 @@ service Core {
           get : "/v1/flux_runtime_objects"
         };
     }
+
+    /**
+    * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+    * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+    */
+    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+        option (google.api.http) = {
+            post : "/v1/reconciled_objects"
+            body: "*"
+        };
+    };
+
+    /**
+    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+    */
+    rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
+        option (google.api.http) = {
+            post : "/v1/child_objects"
+            body: "*"
+        };
+    };
 }
 
 message ListKustomizationsRequest {
@@ -158,4 +180,24 @@ message GetKustomizationRequest {
 
 message GetKustomizationResponse {
     Kustomization kustomization = 1;
+}
+
+message GetReconciledObjectsRequest {
+    string         automationName         = 1;
+    string         namespace              = 2;
+    AutomationKind automationKind         = 3;
+    repeated       GroupVersionKind kinds = 4;
+}
+
+message GetReconciledObjectsResponse {
+    repeated UnstructuredObject objects = 1;
+}
+
+message GetChildObjectsRequest {
+    GroupVersionKind groupVersionKind = 1;
+    string           parentUid        = 2;
+}
+
+message GetChildObjectsResponse {
+    repeated UnstructuredObject objects = 1;
 }

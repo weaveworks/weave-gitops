@@ -119,3 +119,19 @@ message Deployment {
     repeated Condition conditions = 3;
     repeated string images        = 4;
 }
+
+enum AutomationKind {
+    // enums populate a global namespace, so spell these out.
+    // `Kustomization` and `HelmRelease` are already taken as names.
+    KustomizationAutomation = 0;
+    HelmReleaseAutomation   = 1;
+}
+
+// UnstructuredObject is a Kubernetes object of an unknown type
+message UnstructuredObject {
+    GroupVersionKind groupVersionKind = 1;
+    string           name             = 2;
+    string           namespace        = 3;
+    string           uid              = 4;
+    string           status           = 5;
+}

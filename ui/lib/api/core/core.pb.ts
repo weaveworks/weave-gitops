@@ -71,6 +71,26 @@ export type GetKustomizationResponse = {
   kustomization?: Gitops_coreV1Types.Kustomization
 }
 
+export type GetReconciledObjectsRequest = {
+  automationName?: string
+  namespace?: string
+  automationKind?: Gitops_coreV1Types.AutomationKind
+  kinds?: Gitops_coreV1Types.GroupVersionKind[]
+}
+
+export type GetReconciledObjectsResponse = {
+  objects?: Gitops_coreV1Types.UnstructuredObject[]
+}
+
+export type GetChildObjectsRequest = {
+  groupVersionKind?: Gitops_coreV1Types.GroupVersionKind
+  parentUid?: string
+}
+
+export type GetChildObjectsResponse = {
+  objects?: Gitops_coreV1Types.UnstructuredObject[]
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -95,5 +115,11 @@ export class Core {
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
+    return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

@@ -20,6 +20,54 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type AutomationKind int32
+
+const (
+	// enums populate a global namespace, so spell these out.
+	// `Kustomization` and `HelmRelease` are already taken as names.
+	AutomationKind_KustomizationAutomation AutomationKind = 0
+	AutomationKind_HelmReleaseAutomation   AutomationKind = 1
+)
+
+// Enum value maps for AutomationKind.
+var (
+	AutomationKind_name = map[int32]string{
+		0: "KustomizationAutomation",
+		1: "HelmReleaseAutomation",
+	}
+	AutomationKind_value = map[string]int32{
+		"KustomizationAutomation": 0,
+		"HelmReleaseAutomation":   1,
+	}
+)
+
+func (x AutomationKind) Enum() *AutomationKind {
+	p := new(AutomationKind)
+	*p = x
+	return p
+}
+
+func (x AutomationKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AutomationKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_core_types_proto_enumTypes[0].Descriptor()
+}
+
+func (AutomationKind) Type() protoreflect.EnumType {
+	return &file_api_core_types_proto_enumTypes[0]
+}
+
+func (x AutomationKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AutomationKind.Descriptor instead.
+func (AutomationKind) EnumDescriptor() ([]byte, []int) {
+	return file_api_core_types_proto_rawDescGZIP(), []int{0}
+}
+
 type SourceRef_SourceKind int32
 
 const (
@@ -56,11 +104,11 @@ func (x SourceRef_SourceKind) String() string {
 }
 
 func (SourceRef_SourceKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_core_types_proto_enumTypes[0].Descriptor()
+	return file_api_core_types_proto_enumTypes[1].Descriptor()
 }
 
 func (SourceRef_SourceKind) Type() protoreflect.EnumType {
-	return &file_api_core_types_proto_enumTypes[0]
+	return &file_api_core_types_proto_enumTypes[1]
 }
 
 func (x SourceRef_SourceKind) Number() protoreflect.EnumNumber {
@@ -105,11 +153,11 @@ func (x Bucket_Provider) String() string {
 }
 
 func (Bucket_Provider) Descriptor() protoreflect.EnumDescriptor {
-	return file_api_core_types_proto_enumTypes[1].Descriptor()
+	return file_api_core_types_proto_enumTypes[2].Descriptor()
 }
 
 func (Bucket_Provider) Type() protoreflect.EnumType {
-	return &file_api_core_types_proto_enumTypes[1]
+	return &file_api_core_types_proto_enumTypes[2]
 }
 
 func (x Bucket_Provider) Number() protoreflect.EnumNumber {
@@ -1126,6 +1174,86 @@ func (x *Deployment) GetImages() []string {
 	return nil
 }
 
+// UnstructuredObject is a Kubernetes object of an unknown type
+type UnstructuredObject struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	GroupVersionKind *GroupVersionKind `protobuf:"bytes,1,opt,name=groupVersionKind,proto3" json:"groupVersionKind,omitempty"`
+	Name             string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace        string            `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Uid              string            `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	Status           string            `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+}
+
+func (x *UnstructuredObject) Reset() {
+	*x = UnstructuredObject{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_core_types_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnstructuredObject) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnstructuredObject) ProtoMessage() {}
+
+func (x *UnstructuredObject) ProtoReflect() protoreflect.Message {
+	mi := &file_api_core_types_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnstructuredObject.ProtoReflect.Descriptor instead.
+func (*UnstructuredObject) Descriptor() ([]byte, []int) {
+	return file_api_core_types_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UnstructuredObject) GetGroupVersionKind() *GroupVersionKind {
+	if x != nil {
+		return x.GroupVersionKind
+	}
+	return nil
+}
+
+func (x *UnstructuredObject) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UnstructuredObject) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *UnstructuredObject) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *UnstructuredObject) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 var File_api_core_types_proto protoreflect.FileDescriptor
 
 var file_api_core_types_proto_rawDesc = []byte{
@@ -1303,11 +1431,27 @@ var file_api_core_types_proto_rawDesc = []byte{
 	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e,
 	0x43, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x64, 0x69,
 	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x18,
-	0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x42, 0x2d, 0x5a,
-	0x2b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76,
-	0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74,
-	0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x04, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x73, 0x22, 0xbe, 0x01,
+	0x0a, 0x12, 0x55, 0x6e, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x64, 0x4f, 0x62,
+	0x6a, 0x65, 0x63, 0x74, 0x12, 0x4c, 0x0a, 0x10, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x56, 0x65, 0x72,
+	0x73, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20,
+	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64,
+	0x52, 0x10, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4b, 0x69,
+	0x6e, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x03, 0x75, 0x69, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2a, 0x48,
+	0x0a, 0x0e, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64,
+	0x12, 0x1b, 0x0a, 0x17, 0x4b, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x10, 0x00, 0x12, 0x19, 0x0a,
+	0x15, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x41, 0x75, 0x74, 0x6f,
+	0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x10, 0x01, 0x42, 0x2d, 0x5a, 0x2b, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b,
+	0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63,
+	0x6f, 0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1322,51 +1466,54 @@ func file_api_core_types_proto_rawDescGZIP() []byte {
 	return file_api_core_types_proto_rawDescData
 }
 
-var file_api_core_types_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_core_types_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_api_core_types_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_api_core_types_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_api_core_types_proto_goTypes = []interface{}{
-	(SourceRef_SourceKind)(0), // 0: gitops_core.v1.SourceRef.SourceKind
-	(Bucket_Provider)(0),      // 1: gitops_core.v1.Bucket.Provider
-	(*Interval)(nil),          // 2: gitops_core.v1.Interval
-	(*SourceRef)(nil),         // 3: gitops_core.v1.SourceRef
-	(*Condition)(nil),         // 4: gitops_core.v1.Condition
-	(*GitRepositoryRef)(nil),  // 5: gitops_core.v1.GitRepositoryRef
-	(*GroupVersionKind)(nil),  // 6: gitops_core.v1.GroupVersionKind
-	(*Kustomization)(nil),     // 7: gitops_core.v1.Kustomization
-	(*HelmChart)(nil),         // 8: gitops_core.v1.HelmChart
-	(*HelmRelease)(nil),       // 9: gitops_core.v1.HelmRelease
-	(*GitRepository)(nil),     // 10: gitops_core.v1.GitRepository
-	(*HelmRepository)(nil),    // 11: gitops_core.v1.HelmRepository
-	(*Bucket)(nil),            // 12: gitops_core.v1.Bucket
-	(*Deployment)(nil),        // 13: gitops_core.v1.Deployment
+	(AutomationKind)(0),        // 0: gitops_core.v1.AutomationKind
+	(SourceRef_SourceKind)(0),  // 1: gitops_core.v1.SourceRef.SourceKind
+	(Bucket_Provider)(0),       // 2: gitops_core.v1.Bucket.Provider
+	(*Interval)(nil),           // 3: gitops_core.v1.Interval
+	(*SourceRef)(nil),          // 4: gitops_core.v1.SourceRef
+	(*Condition)(nil),          // 5: gitops_core.v1.Condition
+	(*GitRepositoryRef)(nil),   // 6: gitops_core.v1.GitRepositoryRef
+	(*GroupVersionKind)(nil),   // 7: gitops_core.v1.GroupVersionKind
+	(*Kustomization)(nil),      // 8: gitops_core.v1.Kustomization
+	(*HelmChart)(nil),          // 9: gitops_core.v1.HelmChart
+	(*HelmRelease)(nil),        // 10: gitops_core.v1.HelmRelease
+	(*GitRepository)(nil),      // 11: gitops_core.v1.GitRepository
+	(*HelmRepository)(nil),     // 12: gitops_core.v1.HelmRepository
+	(*Bucket)(nil),             // 13: gitops_core.v1.Bucket
+	(*Deployment)(nil),         // 14: gitops_core.v1.Deployment
+	(*UnstructuredObject)(nil), // 15: gitops_core.v1.UnstructuredObject
 }
 var file_api_core_types_proto_depIdxs = []int32{
-	0,  // 0: gitops_core.v1.SourceRef.kind:type_name -> gitops_core.v1.SourceRef.SourceKind
-	3,  // 1: gitops_core.v1.Kustomization.sourceRef:type_name -> gitops_core.v1.SourceRef
-	2,  // 2: gitops_core.v1.Kustomization.interval:type_name -> gitops_core.v1.Interval
-	4,  // 3: gitops_core.v1.Kustomization.conditions:type_name -> gitops_core.v1.Condition
-	6,  // 4: gitops_core.v1.Kustomization.inventory:type_name -> gitops_core.v1.GroupVersionKind
-	3,  // 5: gitops_core.v1.HelmChart.sourceRef:type_name -> gitops_core.v1.SourceRef
-	2,  // 6: gitops_core.v1.HelmChart.interval:type_name -> gitops_core.v1.Interval
-	4,  // 7: gitops_core.v1.HelmChart.conditions:type_name -> gitops_core.v1.Condition
-	2,  // 8: gitops_core.v1.HelmRelease.interval:type_name -> gitops_core.v1.Interval
-	8,  // 9: gitops_core.v1.HelmRelease.helm_chart:type_name -> gitops_core.v1.HelmChart
-	4,  // 10: gitops_core.v1.HelmRelease.conditions:type_name -> gitops_core.v1.Condition
-	6,  // 11: gitops_core.v1.HelmRelease.inventory:type_name -> gitops_core.v1.GroupVersionKind
-	5,  // 12: gitops_core.v1.GitRepository.reference:type_name -> gitops_core.v1.GitRepositoryRef
-	2,  // 13: gitops_core.v1.GitRepository.interval:type_name -> gitops_core.v1.Interval
-	4,  // 14: gitops_core.v1.GitRepository.conditions:type_name -> gitops_core.v1.Condition
-	2,  // 15: gitops_core.v1.HelmRepository.interval:type_name -> gitops_core.v1.Interval
-	4,  // 16: gitops_core.v1.HelmRepository.conditions:type_name -> gitops_core.v1.Condition
-	2,  // 17: gitops_core.v1.Bucket.interval:type_name -> gitops_core.v1.Interval
-	1,  // 18: gitops_core.v1.Bucket.provider:type_name -> gitops_core.v1.Bucket.Provider
-	4,  // 19: gitops_core.v1.Bucket.conditions:type_name -> gitops_core.v1.Condition
-	4,  // 20: gitops_core.v1.Deployment.conditions:type_name -> gitops_core.v1.Condition
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	1,  // 0: gitops_core.v1.SourceRef.kind:type_name -> gitops_core.v1.SourceRef.SourceKind
+	4,  // 1: gitops_core.v1.Kustomization.sourceRef:type_name -> gitops_core.v1.SourceRef
+	3,  // 2: gitops_core.v1.Kustomization.interval:type_name -> gitops_core.v1.Interval
+	5,  // 3: gitops_core.v1.Kustomization.conditions:type_name -> gitops_core.v1.Condition
+	7,  // 4: gitops_core.v1.Kustomization.inventory:type_name -> gitops_core.v1.GroupVersionKind
+	4,  // 5: gitops_core.v1.HelmChart.sourceRef:type_name -> gitops_core.v1.SourceRef
+	3,  // 6: gitops_core.v1.HelmChart.interval:type_name -> gitops_core.v1.Interval
+	5,  // 7: gitops_core.v1.HelmChart.conditions:type_name -> gitops_core.v1.Condition
+	3,  // 8: gitops_core.v1.HelmRelease.interval:type_name -> gitops_core.v1.Interval
+	9,  // 9: gitops_core.v1.HelmRelease.helm_chart:type_name -> gitops_core.v1.HelmChart
+	5,  // 10: gitops_core.v1.HelmRelease.conditions:type_name -> gitops_core.v1.Condition
+	7,  // 11: gitops_core.v1.HelmRelease.inventory:type_name -> gitops_core.v1.GroupVersionKind
+	6,  // 12: gitops_core.v1.GitRepository.reference:type_name -> gitops_core.v1.GitRepositoryRef
+	3,  // 13: gitops_core.v1.GitRepository.interval:type_name -> gitops_core.v1.Interval
+	5,  // 14: gitops_core.v1.GitRepository.conditions:type_name -> gitops_core.v1.Condition
+	3,  // 15: gitops_core.v1.HelmRepository.interval:type_name -> gitops_core.v1.Interval
+	5,  // 16: gitops_core.v1.HelmRepository.conditions:type_name -> gitops_core.v1.Condition
+	3,  // 17: gitops_core.v1.Bucket.interval:type_name -> gitops_core.v1.Interval
+	2,  // 18: gitops_core.v1.Bucket.provider:type_name -> gitops_core.v1.Bucket.Provider
+	5,  // 19: gitops_core.v1.Bucket.conditions:type_name -> gitops_core.v1.Condition
+	5,  // 20: gitops_core.v1.Deployment.conditions:type_name -> gitops_core.v1.Condition
+	7,  // 21: gitops_core.v1.UnstructuredObject.groupVersionKind:type_name -> gitops_core.v1.GroupVersionKind
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_api_core_types_proto_init() }
@@ -1519,14 +1666,26 @@ func file_api_core_types_proto_init() {
 				return nil
 			}
 		}
+		file_api_core_types_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UnstructuredObject); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_core_types_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   12,
+			NumEnums:      3,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
