@@ -1,3 +1,4 @@
+
 syntax = "proto3";
 
 package wego_server.v1;
@@ -29,6 +30,22 @@ service Applications {
         };
     }
 
+    /**
+     * ListApplications returns the list of WeGo applications that the authenticated user has access to.
+    */
+    rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications"
+        };
+    }
+    /**
+    * GetApplication returns a given application
+    */
+    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/{name}"
+        };
+    }
     /**
      * ListCommits returns the list of WeGo commits that the authenticated user has access to.
     */
@@ -117,7 +134,7 @@ service Applications {
             body: "*"
         };
     }
-
+    
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */
@@ -139,6 +156,73 @@ service Applications {
 
 }
 
+// This object represents a single condition for a Kubernetes object.
+// It roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition
+message Condition {
+    string type      = 1;
+    string status    = 2;
+    string reason    = 3;
+    string message   = 4;
+    int32  timestamp = 5;
+}
+
+message Application {
+    string                    name                            = 1;  // The name of the application
+    string                    path                            = 2;  // The file path where the k8s yaml files for this application are stored.
+    string                    url                             = 3;  // The git repository URL for this application
+    repeated                  Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
+    repeated                  Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
+    string                    namespace                       = 6;  // The kubernetes namespace of the application
+    AutomationKind            deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
+    repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
+    Kustomization             kustomization                   = 9;  // Kustomization associated to the application
+    HelmRelease               helm_release                    = 10; // HelmRelease associated to the application
+    Source                    source                          = 11; // Source associated to the application
+}
+
+message Kustomization {
+    string   name                 = 1;  // The name of the Kustomization
+    string   namespace            = 2;  // The namespace of the Kustomization
+    string   targetNamespace      = 3;  // Sets or overrides the namespace in the kustomization.yaml file.
+    string   path                 = 4;  // Path to the directory containing the kustomization.yaml file, or the set of plain YAMLs a kustomization.yaml should be generated for.
+    repeated Condition conditions = 5;  // A list of conditions for this Kustomization
+    string   interval             = 6;  // The interval at which to reconcile the Kustomization.
+    bool     prune                = 7;  // Enables garbage collection.
+    string   lastAppliedRevision  = 8;  // The last successfully applied revision.
+}
+
+message HelmRelease {
+    string    name                 = 1; // The name of the Helm Release
+    string    namespace            = 2; // The namespace of the Helm Release
+    string    targetNamespace      = 3; // Namepsace to target when performing operations for the HelmRelease
+    HelmChart chart                = 4; // Chart defines the template of the Chart that should be created for this HelmRelease.
+    string    interval             = 5; // Interval at which to reconcile the Helm release.
+    string    lastAppliedRevision  = 6; // The last successfully applied revision.
+    repeated  Condition conditions = 7; // A list of conditions for this Helm Release
+}
+
+message HelmChart {
+    string   chart              = 1; // The name or path the Helm chart
+    string   version            = 2; // Version semver expression
+    repeated string valuesFiles = 3; // List of values files to use as the chart values
+}
+
+message Source {
+    string name = 1; // The name of the Source
+    string url  = 2; // Git or Helm repository URL
+    enum Type {
+        Git  = 0;
+        Helm = 1;
+    };
+    Type     type                 = 3; // Source Type
+    string   namespace            = 4; // The namespace of the Source
+    string   interval             = 5; // The interval at which to check the upstream for updates
+    string   reference            = 6; // Git branch or tag
+    bool     suspend              = 7; // This flag tells the controller to suspend the reconciliation of this source
+    string   timeout              = 8; // The timeout of index downloading.
+    repeated Condition conditions = 9; // A list of conditions for this Source
+}
+
 message AuthenticateRequest {
     string provider_name = 1;  // The name of the git provider
     string access_token  = 2;  // The token of the git provider
@@ -146,6 +230,23 @@ message AuthenticateRequest {
 
 message AuthenticateResponse {
     string token = 1;  // The jwt token that was generated using git provider name and git provider token
+}
+
+message ListApplicationsRequest {
+    string namespace = 1;  // The namespace to look for applications
+}
+
+message ListApplicationsResponse {
+   repeated Application applications = 1; // A list of applications
+}
+
+message GetApplicationRequest {
+    string name      = 1;  // The name of an application
+    string namespace = 2;  // The kubernetes namespace of the application.`
+}
+
+message GetApplicationResponse {
+    Application application = 1;
 }
 
 message SyncApplicationRequest {

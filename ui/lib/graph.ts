@@ -1,6 +1,8 @@
 // A collection of helper functions to render a graph of kubernetes objects
 // with in the context of their parent-child relationships.
+import _ from "lodash";
 import {
+  Application,
   Applications,
   GroupVersionKind,
   UnstructuredObject,
@@ -63,4 +65,26 @@ export const getChildrenRecursive = async (
       }
     }
   }
+};
+
+// Gets the "child" objects that result from an Application
+export const getChildren = async (
+  appsClient: typeof Applications,
+  app: Application,
+  kinds: GroupVersionKind[]
+): Promise<UnstructuredObject[]> => {
+  const { objects } = await appsClient.GetReconciledObjects({
+    automationName: app.name,
+    automationNamespace: app.namespace,
+    kinds,
+  });
+
+  const result = [];
+  for (let o = 0; o < objects.length; o++) {
+    const obj = objects[o];
+
+    await getChildrenRecursive(appsClient, result, obj, PARENT_CHILD_LOOKUP);
+  }
+
+  return _.flatten(result);
 };

@@ -151,6 +151,28 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(exists).To(BeTrue())
 	})
 
+	It("GetApplications", func() {
+		ctx := context.Background()
+		name := "my-app"
+		app := &wego.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace.Name,
+			},
+			Spec: wego.ApplicationSpec{
+				DeploymentType: wego.DeploymentTypeKustomize,
+				SourceType:     wego.SourceTypeGit,
+			},
+		}
+
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+		list, err := k.GetApplications(ctx, namespace.Name)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(list).To(HaveLen(1))
+		Expect(list[0].Name).To(Equal(name))
+	})
+
 	Describe("Apply", func() {
 		It("applies a namespaced manifest", func() {
 			ctx := context.Background()
