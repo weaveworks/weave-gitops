@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -56,17 +57,26 @@ func NewCoreServer(cfg *rest.Config) pb.CoreServer {
 
 func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList) error {
 	opts := getMatchingLabels(appName)
-
 	err := k8s.List(ctx, list, &opts, client.InNamespace(namespace))
+	err = wrapK8sAPIError("list resource", err)
 
-	if err != nil {
-		return status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())
-	}
+	return err
+}
 
+func get(ctx context.Context, k8s client.Client, name, namespace string, obj client.Object) error {
+	err := k8s.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, obj)
+	err = wrapK8sAPIError("get resource", err)
+
+	return err
+}
+
+func wrapK8sAPIError(msg string, err error) error {
 	if k8serrors.IsUnauthorized(err) {
 		return status.Errorf(codes.PermissionDenied, err.Error())
 	} else if k8serrors.IsNotFound(err) {
 		return status.Errorf(codes.NotFound, err.Error())
+	} else if err != nil {
+		return fmt.Errorf("%s: %w", msg, err)
 	}
 
 	return nil

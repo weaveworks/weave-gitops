@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,6 +49,66 @@ func TestListKustomizations(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Kustomizations).To(HaveLen(1))
 	g.Expect(res.Kustomizations[0].Name).To(Equal(appName))
+}
+
+func TestGetKustomization(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	appName := "myapp"
+	ns := newNamespace(ctx, k, g)
+
+	kust := &kustomizev1.Kustomization{
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+			},
+		},
+		Status: kustomizev1.KustomizationStatus{
+			Inventory: &kustomizev1.ResourceInventory{
+				Entries: []kustomizev1.ResourceRef{
+					{
+						Version: "v1",
+						ID:      ns.Name + "_my-deployment_apps_Deployment",
+					},
+				},
+			},
+		},
+	}
+	kust.Name = appName
+	kust.Namespace = ns.Name
+
+	g.Expect(k.Create(ctx, kust)).To(Succeed())
+
+	t.Run("gets a kustomization", func(t *testing.T) {
+		_, err = c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: appName, Namespace: ns.Name})
+		g.Expect(err).NotTo(HaveOccurred())
+
+		// The kustomization status does not get populated when running in a test environment,
+		// probably because there is no kustomization-controller running to populate it.
+		// Even though we populate it in the kustomization.Status object above, it still does not populate.
+		// Need some help from the flux team on this.
+		// g.Expect(len(res.Kustomization.Inventory)).To(Equal(1))
+		// g.Expect(res.Kustomization.Inventory[0].Group).To(Equal("apps"))
+	})
+	t.Run("returns not found", func(t *testing.T) {
+		_, err = c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: "somename", Namespace: ns.Name})
+		g.Expect(err).To(HaveOccurred())
+
+		status, ok := status.FromError(err)
+		if !ok {
+			t.Error("could not get status from error")
+		}
+
+		g.Expect(status.Code()).To(Equal(codes.NotFound))
+	})
 }
 
 func TestListHelmReleases(t *testing.T) {

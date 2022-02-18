@@ -43,6 +43,12 @@ export type GitRepositoryRef = {
   commit?: string
 }
 
+export type GroupVersionKind = {
+  group?: string
+  kind?: string
+  version?: string
+}
+
 export type Kustomization = {
   namespace?: string
   name?: string
@@ -53,6 +59,7 @@ export type Kustomization = {
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
   lastHandledReconciledAt?: string
+  inventory?: GroupVersionKind[]
 }
 
 export type HelmChart = {
@@ -72,6 +79,7 @@ export type HelmRelease = {
   interval?: Interval
   helmChart?: HelmChart
   conditions?: Condition[]
+  inventory?: GroupVersionKind[]
 }
 
 export type GitRepository = {

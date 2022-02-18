@@ -30,6 +30,15 @@ service Core {
             get : "/v1/kustomizations"
         };
     }
+
+    /*
+    * GetKustomization gets data about a single Kustomization from a cluster.
+    */
+    rpc GetKustomization(GetKustomizationRequest) returns (GetKustomizationResponse) {
+        option (google.api.http) = {
+            get : "/v1/kustomizations/{name}"
+        };
+    }
     /*
     * ListHelmReleases lists helm releases from a cluster.
     */
@@ -140,4 +149,13 @@ message ListHelmChartsRequest {
 
 message ListHelmChartsResponse {
     repeated HelmChart helm_charts = 1;
+}
+
+message GetKustomizationRequest {
+    string name      = 1;
+    string namespace = 2;
+}
+
+message GetKustomizationResponse {
+    Kustomization kustomization = 1;
 }
