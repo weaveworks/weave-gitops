@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-var opts profiles.UpdateOptions
+var opts profiles.Options
 
 // UpdateCommand provides support for updating a profile that is installed on a cluster.
 func UpdateCommand() *cobra.Command {
@@ -45,6 +45,7 @@ func UpdateCommand() *cobra.Command {
 	cmd.Flags().StringVar(&opts.ProfilesPort, "profiles-port", server.DefaultPort, "Port the Profiles API is running on")
 	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops update profile' will merge automatically into the repository's branch")
 	cmd.Flags().StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(homedir.HomeDir(), ".kube", "config"), "Absolute path to the kubeconfig file")
+	internal.AddPRFlags(cmd, &opts.HeadBranch, &opts.BaseBranch, &opts.Description, &opts.Message, &opts.Title)
 
 	requiredFlags := []string{"name", "config-repo", "cluster", "version"}
 	for _, f := range requiredFlags {

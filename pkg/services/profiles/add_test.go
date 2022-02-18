@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var addOptions profiles.AddOptions
+var addOptions profiles.Options
 
 var _ = Describe("Add", func() {
 	var (
@@ -40,7 +40,7 @@ var _ = Describe("Add", func() {
 		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(clientSet, fakeLogger)
 
-		addOptions = profiles.AddOptions{
+		addOptions = profiles.Options{
 			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 			Name:       "podinfo",
 			Cluster:    "prod",
@@ -61,18 +61,61 @@ var _ = Describe("Add", func() {
 					})
 				})
 
-				AfterEach(func() {
-					Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
-					Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
-					Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
-				})
-
-				It("creates a helm release with the latest available version of the profile", func() {
+				It("creates a helm release with the latest available version of the profile via a PR", func() {
 					fakePR.GetReturns(gitprovider.PullRequestInfo{
 						WebURL: "url",
 					})
 					gitProviders.CreatePullRequestReturns(fakePR, nil)
 					Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+					Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+					Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+					Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
+
+					_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+					Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
+					Expect(prInfo.Title).To(Equal("GitOps add podinfo"))
+					Expect(prInfo.Description).To(Equal("Add manifest for podinfo profile"))
+					Expect(prInfo.CommitMessage).To(Equal("Add profile manifests"))
+					Expect(prInfo.TargetBranch).To(Equal("main"))
+					Expect(prInfo.Files).To(HaveLen(1))
+					Expect(*prInfo.Files[0].Path).To(Equal(".weave-gitops/clusters/prod/system/profiles.yaml"))
+				})
+
+				When("PR settings are configured", func() {
+					It("opens a PR with the configuration", func() {
+						addOptions = profiles.Options{
+							ConfigRepo:  "ssh://git@github.com/owner/config-repo.git",
+							Name:        "podinfo",
+							Cluster:     "prod",
+							Namespace:   "weave-system",
+							Version:     "latest",
+							HeadBranch:  "foo",
+							BaseBranch:  "bar",
+							Message:     "sup",
+							Title:       "cool-title",
+							Description: "so cool",
+						}
+
+						fakePR.GetReturns(gitprovider.PullRequestInfo{
+							WebURL: "url",
+						})
+						gitProviders.CreatePullRequestReturns(fakePR, nil)
+
+						Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
+
+						_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+						Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
+						Expect(prInfo.Title).To(Equal("cool-title"))
+						Expect(prInfo.Description).To(Equal("so cool"))
+						Expect(prInfo.CommitMessage).To(Equal("sup"))
+						Expect(prInfo.TargetBranch).To(Equal("foo"))
+						Expect(prInfo.NewBranch).To(Equal("bar"))
+						Expect(prInfo.Files).To(HaveLen(1))
+						Expect(*prInfo.Files[0].Path).To(Equal(".weave-gitops/clusters/prod/system/profiles.yaml"))
+					})
 				})
 
 				When("auto-merge is enabled", func() {
@@ -84,6 +127,9 @@ var _ = Describe("Add", func() {
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
 						addOptions.AutoMerge = true
 						Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
 					})
 
 					When("the PR fails to be merged", func() {
@@ -108,7 +154,10 @@ var _ = Describe("Add", func() {
 						})
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
 						err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-						Expect(err).To(BeNil())
+						Expect(err).NotTo(HaveOccurred())
+						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
+						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
 					})
 				})
 
@@ -143,14 +192,11 @@ var _ = Describe("Add", func() {
 				})
 			})
 
-			AfterEach(func() {
-				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
-				Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
-			})
-
 			It("fails to append the new HelmRelease to profiles.yaml", func() {
 				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 				Expect(err).To(MatchError("failed to add HelmRelease for profile 'podinfo' to profiles.yaml: found another HelmRelease for profile 'podinfo' in namespace weave-system"))
+				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+				Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 			})
 		})
 
@@ -180,7 +226,7 @@ var _ = Describe("Add", func() {
 
 	When("the config repository does not exist", func() {
 		It("fails if the --config-repo url format is wrong", func() {
-			addOptions = profiles.AddOptions{
+			addOptions = profiles.Options{
 				Name:       "foo",
 				ConfigRepo: "{http:/-*wrong-url-827",
 				Cluster:    "prod",
