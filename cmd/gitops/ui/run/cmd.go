@@ -42,6 +42,10 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
+	Insecure                      bool
+	TlsKey                        string
+	TlsCert                       string
+	NoTLS                         bool
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -77,6 +81,11 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
+
+	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "allow insecure TLS requests")
+	cmd.Flags().StringVar(&options.TlsKey, "tls-key", "/etc/gitops/ssl/tls.key", "filename for the TLS key")
+	cmd.Flags().StringVar(&options.TlsCert, "tls-cert", "/etc/gitops/ssl/tls.crt", "filename for the TLS certficate")
+	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
