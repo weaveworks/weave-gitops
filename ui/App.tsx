@@ -37,67 +37,75 @@ export default function App() {
         <GlobalStyle />
         <Router>
           <AuthContextProvider>
-            <AppContextProvider renderFooter applicationsClient={appsClient}>
-              <Layout>
-                <ErrorBoundary>
-                  <Switch>
-                    <Route
-                      exact
-                      path={PageRoute.Applications}
-                      component={Applications}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationDetail}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+            <Switch>
+              <Route component={SignIn} exact={true} path="/sign_in" />
+              <Route path="*">
+                <AppContextProvider
+                  renderFooter
+                  applicationsClient={appsClient}
+                >
+                  <Layout>
+                    <ErrorBoundary>
+                      <Switch>
+                        <Route
+                          exact
+                          path={PageRoute.Applications}
+                          component={Applications}
+                        />
+                        <Route
+                          exact
+                          path={PageRoute.ApplicationDetail}
+                          component={({ location }) => {
+                            const params = qs.parse(location.search);
 
-                        return (
-                          <ApplicationDetail name={params.name as string} />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationAdd}
-                      component={ApplicationAdd}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.GitlabOAuthCallback}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+                            return (
+                              <ApplicationDetail name={params.name as string} />
+                            );
+                          }}
+                        />
+                        <Route
+                          exact
+                          path={PageRoute.ApplicationAdd}
+                          component={ApplicationAdd}
+                        />
+                        <Route
+                          exact
+                          path={PageRoute.GitlabOAuthCallback}
+                          component={({ location }) => {
+                            const params = qs.parse(location.search);
 
-                        return (
-                          <OAuthCallback
-                            provider={GitProvider.GitLab}
-                            code={params.code as string}
-                          />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationRemove}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
+                            return (
+                              <OAuthCallback
+                                provider={GitProvider.GitLab}
+                                code={params.code as string}
+                              />
+                            );
+                          }}
+                        />
+                        <Route
+                          exact
+                          path={PageRoute.ApplicationRemove}
+                          component={({ location }) => {
+                            const params = qs.parse(location.search);
 
-                        return (
-                          <ApplicationRemove name={params.name as string} />
-                        );
-                      }}
+                            return (
+                              <ApplicationRemove name={params.name as string} />
+                            );
+                          }}
+                        />
+                        <Redirect exact from="/" to={PageRoute.Applications} />
+                        <Route exact path="*" component={Error} />
+                      </Switch>
+                    </ErrorBoundary>
+                    <ToastContainer
+                      position="top-center"
+                      autoClose={5000}
+                      newestOnTop={false}
                     />
-                    <Redirect exact from="/" to={PageRoute.Applications} />
-                    <Route exact path="*" component={Error} />
-                  </Switch>
-                </ErrorBoundary>
-                <ToastContainer
-                  position="top-center"
-                  autoClose={5000}
-                  newestOnTop={false}
-                />
-              </Layout>
-            </AppContextProvider>
+                  </Layout>
+                </AppContextProvider>
+              </Route>
+            </Switch>
           </AuthContextProvider>
         </Router>
       </ThemeProvider>

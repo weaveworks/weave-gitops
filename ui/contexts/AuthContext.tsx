@@ -9,7 +9,6 @@ const SIGN_IN = "/oauth2/sign_in";
 const Loader: React.FC<{ loading?: boolean }> = ({
   children,
   loading = true,
-  ...props
 }) => {
   return <>{loading ? <LoadingPage /> : children}</>;
 };
@@ -32,12 +31,8 @@ export default function AuthContextProvider({ children }) {
       }
     | undefined
   >(undefined);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [authenticated, setAuthenticated] = React.useState<boolean>();
+  const [loading, setLoading] = React.useState<boolean>(true);
   const history = useHistory();
-  const {
-    location: { pathname },
-  } = history;
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
@@ -69,11 +64,7 @@ export default function AuthContextProvider({ children }) {
   React.useEffect(() => {
     getUserInfo();
     return history.listen(getUserInfo);
-  }, [authenticated, getUserInfo, history]);
-
-  console.log("email", userInfo?.email);
-  console.log("path", pathname);
-  console.log("history", history);
+  }, [getUserInfo, history]);
 
   return (
     <Auth.Provider
@@ -82,7 +73,9 @@ export default function AuthContextProvider({ children }) {
         userInfo,
       }}
     >
-      {userInfo?.email !== undefined ? children : <AuthSwitch />}
+      <Loader loading={loading}>
+        {userInfo?.email !== undefined ? children : <AuthSwitch />}
+      </Loader>
     </Auth.Provider>
   );
 }
