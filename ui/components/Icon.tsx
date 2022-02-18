@@ -12,6 +12,7 @@ import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
+import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
@@ -40,6 +41,7 @@ export enum IconType {
   FilterIcon,
   ClearIcon,
   Circle,
+  SearchIcon,
 }
 
 type Props = {
@@ -110,6 +112,8 @@ function getIcon(i: IconType) {
           <circle cx="50" cy="50" r="45" />
         </svg>
       );
+    case IconType.SearchIcon:
+      return SearchIcon;
 
     default:
       break;
