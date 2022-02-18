@@ -77,8 +77,13 @@ endif
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
+DOCKER_REGISTRY?=localhost:5000
+
 _docker:
-	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS) -f $(DOCKERFILE) .
+	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
+										-f $(DOCKERFILE) \
+										-t $(DOCKER_REGISTRY)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										.
 
 docker-gitops: DOCKERFILE:=gitops.dockerfile
 docker-gitops: _docker ## Build a Docker image of the gitops CLI
