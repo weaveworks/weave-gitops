@@ -3,24 +3,27 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import DataTable from "../DataTable";
+import DataTable, { SortType, sortWithType } from "../DataTable";
 
 describe("DataTable", () => {
   const rows = [
     {
       name: "the-cool-app",
       status: "Ready",
-      lastUpdate: "2006-01-02T15:04:05-0700",
+      lastUpdate: "2005-01-02T15:04:05-0700",
+      lastSyncedAt: 1000,
     },
     {
       name: "podinfo",
       status: "Failed",
       lastUpdate: "2006-01-02T15:04:05-0700",
+      lastSyncedAt: 2000,
     },
     {
       name: "nginx",
       status: "Ready",
-      lastUpdate: "2006-01-02T15:04:05-0700",
+      lastUpdate: "2004-01-02T15:04:05-0700",
+      lastSyncedAt: 3000,
     },
   ];
 
@@ -28,25 +31,69 @@ describe("DataTable", () => {
     {
       label: "Name",
       value: ({ name }) => <a href="/some_url">{name}</a>,
+      sortType: SortType.string,
+      altSortValue: ({ name }) => name,
     },
     {
       label: "Status",
-      value: (v) => v.status,
+      value: "status",
+      sortType: SortType.bool,
+      altSortValue: ({ status }) => (status === "Ready" ? true : false),
     },
     {
       label: "Last Updated",
       value: "lastUpdate",
+      sortType: SortType.date,
+    },
+    {
+      label: "Last Synced At",
+      value: "lastSyncedAt",
+      sortType: SortType.number,
     },
   ];
   describe("sorting", () => {
-    it("initially sorts based on sortFields[0]", () => {
+    describe("sortWithType", () => {
+      it("should handle sorting with case SortType.string", () => {
+        const nameSort = sortWithType(rows, {
+          label: "Name",
+          value: ({ name }) => <a href="/some_url">{name}</a>,
+          sortType: SortType.string,
+          altSortValue: ({ name }) => name,
+        });
+        expect(nameSort[0].name).toBe("nginx");
+      });
+      it("should handle sorting with case SortType.bool", () => {
+        const boolSort = sortWithType(rows, {
+          label: "Status",
+          value: "status",
+          sortType: SortType.bool,
+          altSortValue: ({ status }) => (status === "Ready" ? true : false),
+        });
+        expect(boolSort[0].status).toBe("Failed");
+        expect(boolSort[2].status).toBe("Ready");
+      });
+      it("should handle sorting with case SortType.date", () => {
+        const dateSort = sortWithType(rows, {
+          label: "Last Updated",
+          value: "lastUpdate",
+          sortType: SortType.date,
+          altSortValue: ({ lastUpdate }) => lastUpdate,
+        });
+        expect(dateSort[0].lastUpdate).toBe("2004-01-02T15:04:05-0700");
+      });
+      it("should handle sorting with case SortType.number", () => {
+        const numberSort = sortWithType(rows, {
+          label: "Last Synced At",
+          value: "lastSyncedAt",
+          sortType: SortType.number,
+        });
+        expect(numberSort[0].lastSyncedAt).toBe(1000);
+      });
+    });
+    it("initially sorts based on defaultSort", () => {
       render(
         withTheme(
-          <DataTable
-            sortFields={["name", "status"]}
-            fields={fields}
-            rows={rows}
-          />
+          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
         )
       );
       const firstRow = screen.getAllByRole("row")[1];
@@ -55,11 +102,7 @@ describe("DataTable", () => {
     it("reverses sort on thead click", () => {
       render(
         withTheme(
-          <DataTable
-            sortFields={["name", "status"]}
-            fields={fields}
-            rows={rows}
-          />
+          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
         )
       );
 
@@ -71,17 +114,15 @@ describe("DataTable", () => {
     it("resets reverseSort and switches sort column on different thead click", () => {
       render(
         withTheme(
-          <DataTable
-            sortFields={["name", "status"]}
-            fields={fields}
-            rows={rows}
-          />
+          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
         )
       );
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
+      console.log(screen.getAllByRole("row")[1].innerHTML);
       const statusButton = screen.getByText("Status");
       fireEvent.click(statusButton);
+      console.log(screen.getAllByRole("row")[1].innerHTML);
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/podinfo/);
     });
@@ -91,7 +132,7 @@ describe("DataTable", () => {
       const tree = renderer
         .create(
           withTheme(
-            <DataTable sortFields={["name"]} fields={fields} rows={rows} />
+            <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
           )
         )
         .toJSON();
