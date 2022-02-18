@@ -15,7 +15,7 @@ import (
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) error {
-	appsServer := NewAppServer(config)
+	appsServer := NewCoreServer(config)
 	if err := pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
@@ -48,7 +48,7 @@ func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, err
 	})
 }
 
-func NewAppServer(cfg *rest.Config) pb.CoreServer {
+func NewCoreServer(cfg *rest.Config) pb.CoreServer {
 	return &coreServer{
 		k8s: placeholderClientGetter{cfg: cfg},
 	}

@@ -9,8 +9,8 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func (as *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -31,8 +31,8 @@ func (as *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	}, nil
 }
 
-func (as *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}

@@ -38,11 +38,11 @@ func TestMain(m *testing.M) {
 func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
 	s := grpc.NewServer()
 
-	apps := NewAppServer(cfg)
+	core := NewCoreServer(cfg)
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	pb.RegisterCoreServer(s, apps)
+	pb.RegisterCoreServer(s, core)
 
 	dialer := func(context.Context, string) (net.Conn, error) {
 		return lis.Dial()
