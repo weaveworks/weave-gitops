@@ -207,6 +207,7 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 		rw.WriteHeader(http.StatusOK)
 
 	}
+
 }
 
 func (c *AuthServer) createCookie(name, value string) *http.Cookie {
