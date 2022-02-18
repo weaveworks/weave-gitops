@@ -11,7 +11,6 @@ import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
-import useApplications from "./hooks/applications";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import {
   clearCallbackState,
@@ -19,8 +18,6 @@ import {
   getProviderToken,
 } from "./lib/storage";
 import { theme, muiTheme } from "./lib/theme";
-import ApplicationDetail from "./pages/ApplicationDetail";
-import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
@@ -30,15 +27,12 @@ export {
   AuthContextProvider,
   AuthCheck,
   AppContextProvider,
-  ApplicationDetail,
-  Applications,
   applicationsClient,
   getProviderToken,
   GithubDeviceAuthModal,
   LoadingPage,
   theme,
   muiTheme,
-  useApplications,
   Footer,
   RepoInputWithAuth,
   CallbackStateContextProvider,

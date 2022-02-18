@@ -370,16 +370,6 @@ func (k KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*co
 	return &secret, nil
 }
 
-func (k *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
-	result := wego.ApplicationList{}
-
-	if err := k.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
-		return nil, fmt.Errorf("could not list gitops applications: %w", err)
-	}
-
-	return result.Items, nil
-}
-
 func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
 	if err := k.Client.Get(ctx, name, resource); err != nil {
 		if apierrors.IsNotFound(err) {
