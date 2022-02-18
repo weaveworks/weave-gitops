@@ -27,6 +27,7 @@ import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
+import SignIn from "./pages/SignIn";
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
               <Layout>
                 <ErrorBoundary>
                   <Switch>
+                    {/* <Route exact path="/sign_in" component={SignIn} /> */}
                     <Route
                       exact
                       path={PageRoute.Applications}

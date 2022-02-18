@@ -77,8 +77,6 @@ export default function AppContextProvider({
     clearAsyncError();
   }, [window.location]);
 
-  console.log(window.location);
-
   const doAsyncError = (message: string, detail: string) => {
     console.error(message);
     setAppState({
