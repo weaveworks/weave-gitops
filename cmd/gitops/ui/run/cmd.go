@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -263,7 +264,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := srv.ListenAndServe(); err != nil {
+		if err := listenAndServe(srv, options); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
@@ -295,6 +296,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func listenAndServe(srv *http.Server, options Options) error {
+	if options.NoTLS {
+		log.Println("TLS connections disabled")
+		return srv.ListenAndServe()
+	}
+
+	log.Printf("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+
+	return srv.ListenAndServeTLS(options.TlsCert, options.TlsKey)
 }
 
 //go:embed dist/*
