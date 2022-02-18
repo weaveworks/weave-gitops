@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-var opts profiles.UpdateOptions
+var opts profiles.Options
 
 // UpdateCommand provides support for updating a profile that is installed on a cluster.
 func UpdateCommand() *cobra.Command {

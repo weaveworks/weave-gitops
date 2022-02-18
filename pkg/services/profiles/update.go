@@ -11,25 +11,12 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/google/uuid"
 )
 
 const UpdateCommitMessage = "Update profile manifests"
 
-type UpdateOptions struct {
-	Name         string
-	Cluster      string
-	ConfigRepo   string
-	Version      string
-	ProfilesPort string
-	Namespace    string
-	Kubeconfig   string
-	AutoMerge    bool
-	PROptions
-}
-
 // Update updates an installed profile
-func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts UpdateOptions) error {
+func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -72,7 +59,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 
 	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, updatePRInfo(opts, defaultBranch, gitprovider.CommitFile{
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, prInfo(opts, "update", defaultBranch, gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,
 	}))
@@ -95,43 +82,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 	return nil
 }
 
-func updatePRInfo(opts UpdateOptions, defaultBranch string, commitFile gitprovider.CommitFile) gitproviders.PullRequestInfo {
-	title := fmt.Sprintf("GitOps update %s", opts.Name)
-	if opts.Title != "" {
-		title = opts.Title
-	}
-
-	description := fmt.Sprintf("Update manifest for %s profile", opts.Name)
-	if opts.Description != "" {
-		description = opts.Description
-	}
-
-	commitMessage := UpdateCommitMessage
-	if opts.Message != "" {
-		commitMessage = opts.Message
-	}
-
-	headBranch := defaultBranch
-	if opts.HeadBranch != "" {
-		headBranch = opts.HeadBranch
-	}
-
-	newBranch := uuid.New().String()
-	if opts.BaseBranch != "" {
-		newBranch = opts.BaseBranch
-	}
-
-	return gitproviders.PullRequestInfo{
-		Title:         title,
-		Description:   description,
-		CommitMessage: commitMessage,
-		TargetBranch:  headBranch,
-		NewBranch:     newBranch,
-		Files:         []gitprovider.CommitFile{commitFile},
-	}
-}
-
-func (s *ProfilesSvc) printUpdateSummary(opts UpdateOptions) {
+func (s *ProfilesSvc) printUpdateSummary(opts Options) {
 	s.Logger.Println("Updating profile:\n")
 	s.Logger.Println("Name: %s", opts.Name)
 	s.Logger.Println("Version: %s", opts.Version)

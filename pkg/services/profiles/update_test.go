@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/testing"
 )
 
-var updateOptions profiles.UpdateOptions
+var updateOptions profiles.Options
 
 var _ = Describe("Update Profile(s)", func() {
 	var (
@@ -40,7 +40,7 @@ var _ = Describe("Update Profile(s)", func() {
 		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(clientSet, fakeLogger)
 
-		updateOptions = profiles.UpdateOptions{
+		updateOptions = profiles.Options{
 			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 			Name:       "podinfo",
 			Cluster:    "prod",
@@ -106,7 +106,12 @@ var _ = Describe("Update Profile(s)", func() {
 
 						When("PR settings are configured", func() {
 							It("opens a PR with the configuration", func() {
-								updateOptions.PROptions = profiles.PROptions{
+								updateOptions = profiles.Options{
+									ConfigRepo:  "ssh://git@github.com/owner/config-repo.git",
+									Name:        "podinfo",
+									Cluster:     "prod",
+									Namespace:   "weave-system",
+									Version:     "latest",
 									HeadBranch:  "foo",
 									BaseBranch:  "bar",
 									Message:     "sup",
@@ -267,7 +272,7 @@ var _ = Describe("Update Profile(s)", func() {
 
 	When("the config repository does not exist", func() {
 		It("fails if the --config-repo url format is wrong", func() {
-			updateOptions = profiles.UpdateOptions{
+			updateOptions = profiles.Options{
 				Name:       "foo",
 				ConfigRepo: "{http:/-*wrong-url-827",
 				Cluster:    "prod",

@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-var opts profiles.AddOptions
+var opts profiles.Options
 
 // AddCommand provides support for adding a profile to a cluster.
 func AddCommand() *cobra.Command {
@@ -65,7 +65,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		if err := validateAddOptions(opts); err != nil {
+		if err := validateOptions(opts); err != nil {
 			return err
 		}
 
@@ -103,7 +103,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	}
 }
 
-func validateAddOptions(opts profiles.AddOptions) error {
+func validateOptions(opts profiles.Options) error {
 	if models.ApplicationNameTooLong(opts.Name) {
 		return fmt.Errorf("--name value is too long: %s; must be <= %d characters",
 			opts.Name, models.MaxKubernetesResourceNameLength)
