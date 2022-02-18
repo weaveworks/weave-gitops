@@ -1,6 +1,3 @@
-ARG FLUX_VERSION
-ARG FLUX_CLI=ghcr.io/fluxcd/flux-cli:v$FLUX_VERSION
-
 # UI build
 FROM node:14-buster AS ui
 RUN apt-get update -y && apt-get install -y build-essential
@@ -13,19 +10,9 @@ RUN make node_modules
 COPY --chown=node:node ui /home/app/ui
 RUN make ui
 
-# Alias for flux
-FROM $FLUX_CLI as flux
-
 # Go build
 FROM golang:1.17 AS go-build
-# Add a kubectl
-RUN apt-get install -y apt-transport-https ca-certificates curl openssh-client && \
-    curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg \
-    https://packages.cloud.google.com/apt/doc/apt-key.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] \
-    https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list && \
-    apt-get update && \
-    apt-get install -y kubectl
+
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
 RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -35,7 +22,6 @@ COPY Makefile /app/
 WORKDIR /app
 COPY go.* /app/
 RUN go mod download
-COPY --from=flux /usr/local/bin/flux /app/pkg/flux/bin/flux
 COPY --from=ui /home/app/cmd/gitops-server/cmd/dist/ /app/cmd/gitops-server/cmd/dist/
 COPY . /app
 # ignore the index.html dependency (which it otherwise would because node_modules is missing)
@@ -45,6 +31,5 @@ RUN make -o cmd/gitops-server/cmd/dist/index.html gitops-server
 FROM gcr.io/distroless/base as runtime
 COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
-COPY --from=go-build /usr/bin/kubectl /usr/bin/kubectl
 
 ENTRYPOINT ["/gitops-server"]
