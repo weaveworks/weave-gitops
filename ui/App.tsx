@@ -22,8 +22,6 @@ import {
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute, V2Routes } from "./lib/types";
-import ApplicationDetail from "./pages/ApplicationDetail";
-import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
 import AddAutomation from "./pages/v2/AddAutomation";
@@ -63,22 +61,6 @@ export default function App() {
               <Layout>
                 <ErrorBoundary>
                   <Switch>
-                    <Route
-                      exact
-                      path={PageRoute.Applications}
-                      component={Applications}
-                    />
-                    <Route
-                      exact
-                      path={PageRoute.ApplicationDetail}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <ApplicationDetail name={params.name as string} />
-                        );
-                      }}
-                    />
                     <Route
                       exact
                       path={PageRoute.GitlabOAuthCallback}
