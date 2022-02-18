@@ -21,6 +21,7 @@ type CoreClient interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
+	GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
@@ -52,6 +53,15 @@ func NewCoreClient(cc grpc.ClientConnInterface) CoreClient {
 func (c *coreClient) ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error) {
 	out := new(ListKustomizationsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListKustomizations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error) {
+	out := new(GetKustomizationResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetKustomization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +129,7 @@ type CoreServer interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
+	GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
@@ -146,6 +157,9 @@ type UnimplementedCoreServer struct {
 
 func (UnimplementedCoreServer) ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListKustomizations not implemented")
+}
+func (UnimplementedCoreServer) GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKustomization not implemented")
 }
 func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
@@ -192,6 +206,24 @@ func _Core_ListKustomizations_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListKustomizations(ctx, req.(*ListKustomizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetKustomization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKustomizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetKustomization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetKustomization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetKustomization(ctx, req.(*GetKustomizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -314,6 +346,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListKustomizations",
 			Handler:    _Core_ListKustomizations_Handler,
+		},
+		{
+			MethodName: "GetKustomization",
+			Handler:    _Core_GetKustomization_Handler,
 		},
 		{
 			MethodName: "ListHelmReleases",

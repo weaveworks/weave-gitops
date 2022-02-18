@@ -233,6 +233,42 @@
           "Core"
         ]
       }
+    },
+    "/v1/kustomizations/{name}": {
+      "get": {
+        "operationId": "Core_GetKustomization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetKustomizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
     }
   },
   "definitions": {
@@ -367,6 +403,14 @@
         }
       }
     },
+    "v1GetKustomizationResponse": {
+      "type": "object",
+      "properties": {
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        }
+      }
+    },
     "v1GitRepository": {
       "type": "object",
       "properties": {
@@ -412,6 +456,21 @@
           "type": "string"
         }
       }
+    },
+    "v1GroupVersionKind": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
     "v1HelmChart": {
       "type": "object",
@@ -464,6 +523,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
           }
         }
       }
@@ -540,6 +605,12 @@
         },
         "lastHandledReconciledAt": {
           "type": "string"
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
+          }
         }
       }
     },

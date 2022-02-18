@@ -62,9 +62,21 @@ export type ListHelmChartsResponse = {
   helmCharts?: Gitops_coreV1Types.HelmChart[]
 }
 
+export type GetKustomizationRequest = {
+  name?: string
+  namespace?: string
+}
+
+export type GetKustomizationResponse = {
+  kustomization?: Gitops_coreV1Types.Kustomization
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetKustomization(req: GetKustomizationRequest, initReq?: fm.InitReq): Promise<GetKustomizationResponse> {
+    return fm.fetchReq<GetKustomizationRequest, GetKustomizationResponse>(`/v1/kustomizations/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListHelmReleases(req: ListHelmReleasesRequest, initReq?: fm.InitReq): Promise<ListHelmReleasesResponse> {
     return fm.fetchReq<ListHelmReleasesRequest, ListHelmReleasesResponse>(`/v1/helmreleases?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
