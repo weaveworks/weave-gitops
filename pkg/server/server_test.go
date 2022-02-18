@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -43,6 +45,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -57,6 +60,218 @@ var _ = Describe("ApplicationsServer", func() {
 		namespace.Name = "kube-test-" + rand.String(5)
 		err = k8sClient.Create(context.Background(), namespace)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
+	})
+	It("ListApplication", func() {
+		ctx := context.Background()
+		name := "my-app"
+		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace.Name,
+		}}
+
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+		res, err := appsClient.ListApplications(context.Background(), &pb.ListApplicationsRequest{})
+
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(len(res.Applications)).To(Equal(1))
+	})
+
+	Describe("GetApplication", func() {
+		var (
+			ctx  context.Context
+			name string
+			app  *wego.Application
+		)
+
+		BeforeEach(func() {
+			ctx = context.Background()
+			name = "my-app-" + rand.String(5)
+			app = &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					SourceType: wego.SourceTypeGit,
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+		})
+
+		AfterEach(func() {
+			deletePolicy := metav1.DeletePropagationForeground
+			Expect(k8sClient.Delete(ctx, app, &client.DeleteOptions{PropagationPolicy: &deletePolicy})).Should(Succeed())
+		})
+
+		It("fetches an application", func() {
+			resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(resp.Application.Name).To(Equal(name))
+		})
+
+		Describe("fetches the application source", func() {
+			It("fetches a git repository", func() {
+				git := &sourcev1.GitRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: sourcev1.GitRepositorySpec{
+						URL:       "ssh://my-repo",
+						Interval:  metav1.Duration{Duration: 1 * time.Second},
+						Timeout:   &metav1.Duration{Duration: 1 * time.Second},
+						Reference: &sourcev1.GitRepositoryRef{Branch: "master"},
+					},
+				}
+				Expect(k8sClient.Create(ctx, git)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Git))
+				Expect(resp.Application.Source.Url).To(Equal("ssh://my-repo"))
+				Expect(resp.Application.Source.Interval).To(Equal("1s"))
+				Expect(resp.Application.Source.Timeout).To(Equal("1s"))
+				Expect(resp.Application.Source.Reference).To(Equal("master"))
+
+				Expect(k8sClient.Delete(ctx, git)).Should(Succeed())
+			})
+
+			It("fetches a helm repository", func() {
+				name = "my-app-" + rand.String(5)
+				app = &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: wego.ApplicationSpec{
+						SourceType: wego.SourceTypeHelm,
+					},
+				}
+				Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+				helm := &sourcev1.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: sourcev1.HelmRepositorySpec{
+						URL:      "http://my-chart",
+						Interval: metav1.Duration{Duration: 10 * time.Second},
+						Timeout:  &metav1.Duration{Duration: 10 * time.Second},
+					},
+				}
+				Expect(k8sClient.Create(ctx, helm)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.Source.Name).To(Equal(name))
+				Expect(resp.Application.Source.Url).To(Equal("http://my-chart"))
+				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Helm))
+				Expect(resp.Application.Source.Interval).To(Equal("10s"))
+				Expect(resp.Application.Source.Timeout).To(Equal("10s"))
+
+				Expect(k8sClient.Delete(ctx, helm)).Should(Succeed())
+			})
+		})
+
+		Describe("fetches the application deployment", func() {
+			It("fetches a kustomization", func() {
+				kust := &kustomizev2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: kustomizev2.KustomizationSpec{
+						TargetNamespace: "target-namespace",
+						Path:            "/path",
+						Interval:        metav1.Duration{Duration: 1 * time.Second},
+						Prune:           true,
+						SourceRef: kustomizev2.CrossNamespaceSourceReference{
+							Kind: "GitRepository",
+							Name: name,
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.Kustomization.TargetNamespace).To(Equal("target-namespace"))
+				Expect(resp.Application.Kustomization.Path).To(Equal("/path"))
+				Expect(resp.Application.Kustomization.Interval).To(Equal("1s"))
+
+				Expect(k8sClient.Delete(ctx, kust)).Should(Succeed())
+			})
+
+			It("fetches a helm release", func() {
+				name = "my-app-" + rand.String(5)
+				app = &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: wego.ApplicationSpec{
+						DeploymentType: wego.DeploymentTypeHelm,
+					},
+				}
+				Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+				release := &helmv2.HelmRelease{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: helmv2.HelmReleaseSpec{
+						TargetNamespace: "target-namespace",
+						Chart: helmv2.HelmChartTemplate{
+							Spec: helmv2.HelmChartTemplateSpec{
+								Chart:       "https://my-chart",
+								Version:     "v1.2.3",
+								ValuesFiles: []string{"file-1.yaml"},
+								SourceRef: helmv2.CrossNamespaceObjectReference{
+									Kind: "GitRepository",
+									Name: name,
+								},
+							},
+						},
+					},
+				}
+				Expect(k8sClient.Create(ctx, release)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.HelmRelease.TargetNamespace).To(Equal("target-namespace"))
+				Expect(resp.Application.HelmRelease.Chart.Chart).To(Equal("https://my-chart"))
+				Expect(resp.Application.HelmRelease.Chart.Version).To(Equal("v1.2.3"))
+				Expect(resp.Application.HelmRelease.Chart.ValuesFiles).To(Equal([]string{"file-1.yaml"}))
+
+				Expect(k8sClient.Delete(ctx, release)).Should(Succeed())
+			})
+		})
+
 	})
 
 	It("Authorize", func() {
@@ -765,6 +980,65 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 		})
 
+	})
+})
+
+var _ = Describe("Applications handler", func() {
+	It("works as a standalone handler", func() {
+		log := testutils.MakeFakeLogr()
+		ctx := context.Background()
+		k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+		app := &wego.Application{}
+		app.Name = "my-app"
+		app.Namespace = "some-ns"
+
+		Expect(k8s.Create(ctx, app)).To(Succeed())
+
+		app2 := &wego.Application{}
+		app2.Name = "my-app2"
+		app2.Namespace = "some-ns"
+
+		Expect(k8s.Create(ctx, app2)).To(Succeed())
+
+		factory := &servicesfakes.FakeFactory{}
+
+		fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
+
+		cfg := ApplicationsConfig{
+			Logger:         log,
+			FetcherFactory: fakeFetcherFactory,
+			Factory:        factory,
+			ClusterConfig:  kube.ClusterConfig{},
+		}
+		fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+		fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
+
+		handler, err := NewHandlers(context.Background(), &Config{
+			AppConfig:  &cfg,
+			AppOptions: []ApplicationsOption{WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter)},
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		ts := httptest.NewServer(handler)
+		defer ts.Close()
+
+		path := "/v1/applications"
+		url := ts.URL + path
+
+		res, err := http.Get(url)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+		b, err := ioutil.ReadAll(res.Body)
+		Expect(err).NotTo(HaveOccurred())
+
+		r := &pb.ListApplicationsResponse{}
+		err = json.Unmarshal(b, r)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(r.Applications).To(HaveLen(2))
 	})
 })
 
