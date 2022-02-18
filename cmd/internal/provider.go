@@ -1,16 +1,14 @@
 package internal
 
 import (
-	"context"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
-const envVariableWarning = "Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"
+const missingTokenErr = "the %q environment variable needs to be set to a valid token"
 
 type gitProviderClient struct {
 	authHandlerFunc GetAuthHandler
@@ -28,10 +26,9 @@ func NewGitProviderClient(stdout *os.File, lookupEnvFunc func(key string) (strin
 	}
 }
 
-// GetProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
-// or a token retrieved via the CLI auth flow
+// GetProvider returns a GitProvider containing the token stored in the <git provider>_TOKEN
 func (c *gitProviderClient) GetProvider(repoUrl gitproviders.RepoURL, getAccountType gitproviders.AccountTypeGetter) (gitproviders.GitProvider, error) {
-	token, err := GetToken(repoUrl, c.stdout, c.lookupEnvFunc, c.authHandlerFunc, c.log)
+	token, err := GetToken(repoUrl, c.lookupEnvFunc)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +56,8 @@ func getTokenVarName(providerName gitproviders.GitProviderName) (string, error) 
 	}
 }
 
-// GetToken returns either the token stored in the <git provider>_TOKEN env var
-// or a token retrieved via the CLI auth flow
-func GetToken(repoUrl gitproviders.RepoURL, w io.Writer, lookupEnvFunc func(key string) (string, bool), authHandlerFunc GetAuthHandler, log logger.Logger) (string, error) {
+// GetToken returns the token stored in the <git provider>_TOKEN env var
+func GetToken(repoUrl gitproviders.RepoURL, lookupEnvFunc func(key string) (string, bool)) (string, error) {
 	tokenVarName, err := getTokenVarName(repoUrl.Provider())
 	if err != nil {
 		return "", fmt.Errorf("could not determine git provider token name: %w", err)
@@ -69,21 +65,7 @@ func GetToken(repoUrl gitproviders.RepoURL, w io.Writer, lookupEnvFunc func(key 
 
 	token, exists := lookupEnvFunc(tokenVarName)
 	if !exists {
-		log.Warningf(envVariableWarning, tokenVarName)
-
-		authHandler, err := authHandlerFunc(repoUrl.Provider())
-		if err != nil {
-			return "", fmt.Errorf("error initializing cli auth handler: %w", err)
-		}
-
-		ctx := context.Background()
-
-		generatedToken, err := authHandler(ctx, w)
-		if err != nil {
-			return "", fmt.Errorf("could not complete auth flow: %w", err)
-		}
-
-		token = generatedToken
+		return "", fmt.Errorf(missingTokenErr, tokenVarName)
 	} else if err != nil {
 		return "", fmt.Errorf("could not get access token: %w", err)
 	}
