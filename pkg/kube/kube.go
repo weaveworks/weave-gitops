@@ -53,6 +53,7 @@ type Kube interface {
 	Delete(ctx context.Context, manifest []byte) error
 	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
+	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
 	NamespacePresent(ctx context.Context, namespace string) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)

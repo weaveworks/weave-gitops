@@ -22,6 +22,12 @@ type ApplicationsClient interface {
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	//
+	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
+	ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error)
+	//
+	// GetApplication returns a given application
+	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
+	//
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
 	//
@@ -80,6 +86,24 @@ func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error) {
+	out := new(ListApplicationsResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListApplications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error) {
+	out := new(GetApplicationResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetApplication", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +217,12 @@ type ApplicationsServer interface {
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	//
+	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
+	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
+	//
+	// GetApplication returns a given application
+	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
+	//
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
 	//
@@ -247,6 +277,12 @@ type UnimplementedApplicationsServer struct {
 
 func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
+}
+func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListApplications not implemented")
+}
+func (UnimplementedApplicationsServer) GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
 }
 func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
@@ -308,6 +344,42 @@ func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_ListApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListApplicationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).ListApplications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/ListApplications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).ListApplications(ctx, req.(*ListApplicationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetApplication(ctx, req.(*GetApplicationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -520,6 +592,14 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _Applications_Authenticate_Handler,
+		},
+		{
+			MethodName: "ListApplications",
+			Handler:    _Applications_ListApplications_Handler,
+		},
+		{
+			MethodName: "GetApplication",
+			Handler:    _Applications_GetApplication_Handler,
 		},
 		{
 			MethodName: "ListCommits",

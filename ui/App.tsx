@@ -17,7 +17,13 @@ import AppContextProvider from "./contexts/AppContext";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
+<<<<<<< HEAD
 import { V2Routes } from "./lib/types";
+=======
+import { PageRoute, V2Routes } from "./lib/types";
+import ApplicationDetail from "./pages/ApplicationDetail";
+import Applications from "./pages/Applications";
+>>>>>>> Revert "Delete GetApplication, ListApplications endpoints (#1455)"
 import Error from "./pages/Error";
 import Automations from "./pages/v2/Automations";
 import FluxRuntime from "./pages/v2/FluxRuntime";
@@ -49,9 +55,28 @@ export default function App() {
                     <Route
                       exact
 <<<<<<< HEAD
+<<<<<<< HEAD
                       path={V2Routes.Automations}
                       component={Automations}
 =======
+=======
+                      path={PageRoute.Applications}
+                      component={Applications}
+                    />
+                    <Route
+                      exact
+                      path={PageRoute.ApplicationDetail}
+                      component={({ location }) => {
+                        const params = qs.parse(location.search);
+
+                        return (
+                          <ApplicationDetail name={params.name as string} />
+                        );
+                      }}
+                    />
+                    <Route
+                      exact
+>>>>>>> Revert "Delete GetApplication, ListApplications endpoints (#1455)"
                       path={PageRoute.GitlabOAuthCallback}
                       component={({ location }) => {
                         const params = qs.parse(location.search);
