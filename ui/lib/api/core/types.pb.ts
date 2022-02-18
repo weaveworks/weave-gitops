@@ -4,6 +4,11 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+export enum AutomationKind {
+  KustomizationAutomation = "KustomizationAutomation",
+  HelmReleaseAutomation = "HelmReleaseAutomation",
+}
+
 export enum SourceRefSourceKind {
   GitRepository = "GitRepository",
   Bucket = "Bucket",
@@ -118,4 +123,12 @@ export type Deployment = {
   namespace?: string
   conditions?: Condition[]
   images?: string[]
+}
+
+export type UnstructuredObject = {
+  groupVersionKind?: GroupVersionKind
+  name?: string
+  namespace?: string
+  uid?: string
+  status?: string
 }
