@@ -11,7 +11,6 @@ const Loader: React.FC<{ loading?: boolean }> = ({
   loading = true,
   ...props
 }) => {
-  console.log("loader");
   return <>{loading ? <LoadingPage /> : children}</>;
 };
 
@@ -46,41 +45,34 @@ export default function AuthContextProvider({ children }) {
       method: "POST",
       body: JSON.stringify(data),
     })
-      .then((response) => {
-        if (response.status === 200) {
-          setAuthenticated(true);
-        }
-      })
+      .then(() => getUserInfo().then(() => history.push("/")))
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
   }, []);
 
   const getUserInfo = React.useCallback(() => {
     setLoading(true);
-    fetch(USER_INFO)
+    return fetch(USER_INFO)
       .then((response) => {
         return response.json();
       })
-      .then((data) => {
-        setUserInfo({ email: data.email, groups: [] });
-
-        console.log(pathname);
-        if (pathname === "/sign_in") {
-          history.push("/");
+      .then((data) => setUserInfo({ email: data.email, groups: [] }))
+      .catch((err) => {
+        console.log(err);
+        if (err.code === "401") {
+          setUserInfo(undefined);
         }
       })
-      .catch((err) => setUserInfo(undefined))
       .finally(() => setLoading(false));
   }, []);
 
   React.useEffect(() => {
     getUserInfo();
     return history.listen(getUserInfo);
-  }, [getUserInfo, history]);
+  }, [authenticated, getUserInfo, history]);
 
   console.log("email", userInfo?.email);
   console.log("path", pathname);
-  console.log("authenticated", authenticated);
   console.log("history", history);
 
   return (
@@ -90,9 +82,7 @@ export default function AuthContextProvider({ children }) {
         userInfo,
       }}
     >
-      <Loader loading={loading}>
-        {userInfo?.email !== undefined ? children : <AuthSwitch />}
-      </Loader>
+      {userInfo?.email !== undefined ? children : <AuthSwitch />}
     </Auth.Provider>
   );
 }

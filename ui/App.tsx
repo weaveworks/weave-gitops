@@ -41,7 +41,6 @@ export default function App() {
               <Layout>
                 <ErrorBoundary>
                   <Switch>
-                    {/* <Route exact path="/sign_in" component={SignIn} /> */}
                     <Route
                       exact
                       path={PageRoute.Applications}
