@@ -43,7 +43,7 @@ jobs:
         with:
           go-version: "1.17"
       - name: Generate UI file to embed
-        run: make cmd/gitops/ui/run/dist/index.html
+        run: make cmd/gitops-server/cmd/dist/index.html
       - name: Run Snyk to check for vulnerabilities
         run: snyk test --all-projects --sarif-file-output=snyk.code.sarif
         env:
@@ -62,20 +62,23 @@ jobs:
   snyk-docker:
     name: Snyk Docker
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker-target: ["gitops", "gitops-server"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install stoml
-        run: make dependencies
       - name: Build docker image
-        run: make docker
+        env:
+          DOCKER_REGISTRY: ghcr.io/weaveworks
+        run: make docker-${{ matrix.docker-target }}
       - name: Scan docker image
         uses: snyk/actions/docker@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
-          image: ghcr.io/weaveworks/wego-app:latest
-          args: --file=Dockerfile
+          image: ghcr.io/weaveworks/${{ matrix.docker-target }}:latest
+          args: --file=${{ matrix.docker-target }}.dockerfile
         continue-on-error: true
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v1
@@ -85,8 +88,8 @@ jobs:
         uses: snyk/actions/docker@master
         with:
           command: monitor
-          image: ghcr.io/weaveworks/wego-app:latest
-          args: --file=Dockerfile
+          image: ghcr.io/weaveworks/${{ matrix.docker-target }}:latest
+          args: --file=${{ matrix.docker-target }}.dockerfile
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         if: ${{ github.event_name == 'push' }}
