@@ -7,8 +7,6 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import {
   Applications,
-  GetApplicationRequest,
-  GetApplicationResponse,
   GetChildObjectsReq,
   GetChildObjectsRes,
   GetGithubAuthStatusRequest,
@@ -17,8 +15,6 @@ import {
   GetGithubDeviceCodeResponse,
   GetReconciledObjectsReq,
   GetReconciledObjectsRes,
-  ListApplicationsRequest,
-  ListApplicationsResponse,
   ListCommitsRequest,
   ListCommitsResponse,
   ParseRepoURLRequest,
@@ -32,8 +28,6 @@ import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
 
 export type ApplicationOverrides = {
-  ListApplications?: (req: ListApplicationsRequest) => ListApplicationsResponse;
-  GetApplication?: (req: GetApplicationRequest) => GetApplicationResponse;
   ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
   GetReconciledObjects?: (
     req: GetReconciledObjectsReq

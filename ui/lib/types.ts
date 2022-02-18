@@ -1,13 +1,5 @@
 import { Condition, Interval, SourceRefSourceKind } from "./api/core/types.pb";
 
-export enum PageRoute {
-  Applications = "/applications",
-  ApplicationDetail = "/application_detail",
-  ApplicationAdd = "/application_add",
-  ApplicationRemove = "/application_remove",
-  GitlabOAuthCallback = "/oauth/gitlab",
-}
-
 export enum GrpcErrorCodes {
   Unknown = 2,
   Unauthenticated = 16,

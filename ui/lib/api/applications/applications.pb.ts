@@ -26,72 +26,6 @@ export enum GitProvider {
   GitLab = "GitLab",
 }
 
-export enum SourceType {
-  Git = "Git",
-  Helm = "Helm",
-}
-
-export type Condition = {
-  type?: string
-  status?: string
-  reason?: string
-  message?: string
-  timestamp?: number
-}
-
-export type Application = {
-  name?: string
-  path?: string
-  url?: string
-  sourceConditions?: Condition[]
-  deploymentConditions?: Condition[]
-  namespace?: string
-  deploymentType?: AutomationKind
-  reconciledObjectKinds?: GroupVersionKind[]
-  kustomization?: Kustomization
-  helmRelease?: HelmRelease
-  source?: Source
-}
-
-export type Kustomization = {
-  name?: string
-  namespace?: string
-  targetNamespace?: string
-  path?: string
-  conditions?: Condition[]
-  interval?: string
-  prune?: boolean
-  lastAppliedRevision?: string
-}
-
-export type HelmRelease = {
-  name?: string
-  namespace?: string
-  targetNamespace?: string
-  chart?: HelmChart
-  interval?: string
-  lastAppliedRevision?: string
-  conditions?: Condition[]
-}
-
-export type HelmChart = {
-  chart?: string
-  version?: string
-  valuesFiles?: string[]
-}
-
-export type Source = {
-  name?: string
-  url?: string
-  type?: SourceType
-  namespace?: string
-  interval?: string
-  reference?: string
-  suspend?: boolean
-  timeout?: string
-  conditions?: Condition[]
-}
-
 export type AuthenticateRequest = {
   providerName?: string
   accessToken?: string
@@ -99,23 +33,6 @@ export type AuthenticateRequest = {
 
 export type AuthenticateResponse = {
   token?: string
-}
-
-export type ListApplicationsRequest = {
-  namespace?: string
-}
-
-export type ListApplicationsResponse = {
-  applications?: Application[]
-}
-
-export type GetApplicationRequest = {
-  name?: string
-  namespace?: string
-}
-
-export type GetApplicationResponse = {
-  application?: Application
 }
 
 export type SyncApplicationRequest = {
@@ -241,12 +158,6 @@ export type ValidateProviderTokenResponse = {
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static ListApplications(req: ListApplicationsRequest, initReq?: fm.InitReq): Promise<ListApplicationsResponse> {
-    return fm.fetchReq<ListApplicationsRequest, ListApplicationsResponse>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetApplication(req: GetApplicationRequest, initReq?: fm.InitReq): Promise<GetApplicationResponse> {
-    return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListCommits(req: ListCommitsRequest, initReq?: fm.InitReq): Promise<ListCommitsResponse> {
     return fm.fetchReq<ListCommitsRequest, ListCommitsResponse>(`/v1/applications/${req["name"]}/commits?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
