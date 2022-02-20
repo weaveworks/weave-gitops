@@ -60,7 +60,7 @@ function SignIn() {
     const CURRENT_URL = window.origin;
     console.log(CURRENT_URL);
     return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
-      CURRENT_URL + "/sign_in"
+      CURRENT_URL
     )}`);
   };
 
