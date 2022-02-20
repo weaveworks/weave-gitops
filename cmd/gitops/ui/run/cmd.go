@@ -47,11 +47,11 @@ type Options struct {
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
 // `ui run` command.
 type OIDCAuthenticationOptions struct {
-	IssuerURL      string
-	ClientID       string
-	ClientSecret   string
-	RedirectURL    string
-	CookieDuration time.Duration
+	IssuerURL     string
+	ClientID      string
+	ClientSecret  string
+	RedirectURL   string
+	TokenDuration time.Duration
 }
 
 var options Options
@@ -83,7 +83,7 @@ func NewCommand() *cobra.Command {
 		cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 		cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 		cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-		cmd.Flags().DurationVar(&options.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+		cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	}
 
 	return cmd
@@ -189,17 +189,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("invalid issuer URL: %w", err)
 		}
 
-		redirectURL, err := url.Parse(options.OIDC.RedirectURL)
+		_, err = url.Parse(options.OIDC.RedirectURL)
 		if err != nil {
 			return fmt.Errorf("invalid redirect URL: %w", err)
 		}
 
-		var oidcIssueSecureCookies bool
-		if redirectURL.Scheme == "https" {
-			oidcIssueSecureCookies = true
-		}
-
-		tsv, err := auth.NewHMACTokenSignerVerifier(options.OIDC.CookieDuration)
+		tsv, err := auth.NewHMACTokenSignerVerifier(options.OIDC.TokenDuration)
 		if err != nil {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
@@ -207,14 +202,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		srv, err := auth.NewAuthServer(cmd.Context(), appConfig.Logger, http.DefaultClient,
 			auth.AuthConfig{
 				OIDCConfig: auth.OIDCConfig{
-					IssuerURL:    options.OIDC.IssuerURL,
-					ClientID:     options.OIDC.ClientID,
-					ClientSecret: options.OIDC.ClientSecret,
-					RedirectURL:  options.OIDC.RedirectURL,
-				},
-				CookieConfig: auth.CookieConfig{
-					CookieDuration:     options.OIDC.CookieDuration,
-					IssueSecureCookies: oidcIssueSecureCookies,
+					IssuerURL:     options.OIDC.IssuerURL,
+					ClientID:      options.OIDC.ClientID,
+					ClientSecret:  options.OIDC.ClientSecret,
+					RedirectURL:   options.OIDC.RedirectURL,
+					TokenDuration: options.OIDC.TokenDuration,
 				},
 			}, rawClient, tsv,
 		)

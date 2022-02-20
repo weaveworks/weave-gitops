@@ -25,23 +25,16 @@ const (
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
-	IssuerURL    string
-	ClientID     string
-	ClientSecret string
-	RedirectURL  string
-}
-
-// CookieConfig is used to configure the cookies that get issued
-// from the OIDC issuer once the OAuth2 process flow completes.
-type CookieConfig struct {
-	CookieDuration     time.Duration
-	IssueSecureCookies bool
+	IssuerURL     string
+	ClientID      string
+	ClientSecret  string
+	RedirectURL   string
+	TokenDuration time.Duration
 }
 
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
 	OIDCConfig
-	CookieConfig
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -54,11 +47,12 @@ type AuthServer struct {
 	tokenSignerVerifier TokenSignerVerifier
 }
 
-// Form data submitted by client
+// LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
 type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// UserInfo represents the response returned from the user info handler.
 type UserInfo struct {
 	Email  string   `json:"email"`
 	Groups []string `json:"groups"`
@@ -128,20 +122,26 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 }
 
-func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	var (
-		token *oauth2.Token
-		state SessionState
-	)
+func (s *AuthServer) Callback() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		var (
+			token *oauth2.Token
+			state SessionState
+		)
 
-	ctx := oidc.ClientContext(r.Context(), s.client)
+		if r.Method != http.MethodGet {
+			rw.Header().Add("Allow", "GET")
+			rw.WriteHeader(http.StatusMethodNotAllowed)
 
-	switch r.Method {
-	case http.MethodGet:
+			return
+		}
+
+		ctx := oidc.ClientContext(r.Context(), s.client)
+
 		// Authorization redirect callback from OAuth2 auth flow.
-		if errMsg := r.FormValue("error"); errMsg != "" {
-			s.logger.Info("authz redirect callback failed", "error", errMsg, "error_description", r.FormValue("error_description"))
-			http.Error(rw, "", http.StatusBadRequest)
+		if errorCode := r.FormValue("error"); errorCode != "" {
+			s.logger.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
@@ -149,7 +149,7 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		code := r.FormValue("code")
 		if code == "" {
 			s.logger.Info("code value was empty")
-			http.Error(rw, "", http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
@@ -157,14 +157,14 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(StateCookieName)
 		if err != nil {
 			s.logger.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
-			http.Error(rw, "", http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if state := r.FormValue("state"); state != cookie.Value {
-			s.logger.Info("cookie value does not match state value")
-			http.Error(rw, "", http.StatusBadRequest)
+			s.logger.Info("cookie value does not match state form value")
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
@@ -172,62 +172,58 @@ func (s *AuthServer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		b, err := base64.StdEncoding.DecodeString(cookie.Value)
 		if err != nil {
 			s.logger.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
-			http.Error(rw, "", http.StatusInternalServerError)
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if err := json.Unmarshal(b, &state); err != nil {
-			s.logger.Error(err, "failed to unmarshal state to JSON")
-			http.Error(rw, "", http.StatusInternalServerError)
+			s.logger.Error(err, "failed to unmarshal state to JSON", "state", string(b))
+			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		token, err = s.oauth2Config(nil).Exchange(ctx, code)
 		if err != nil {
-			s.logger.Error(err, "failed to exchange auth code for token")
-			http.Error(rw, "", http.StatusInternalServerError)
+			s.logger.Error(err, "failed to exchange auth code for token", "code", code)
+			rw.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
-	default:
-		http.Error(rw, fmt.Sprintf("method not implemented: %s", r.Method), http.StatusBadRequest)
 
-		return
+		rawIDToken, ok := token.Extra("id_token").(string)
+		if !ok {
+			http.Error(rw, "no id_token in token response", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = s.verifier().Verify(r.Context(), rawIDToken)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Issue ID token cookie
+		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
+
+		// Some OIDC providers may not include a refresh token
+		if token.RefreshToken != "" {
+			// Issue refresh token cookie
+			http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
+		}
+
+		// Clear state cookie
+		http.SetCookie(rw, s.clearCookie(StateCookieName))
+
+		http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
 	}
-
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok {
-		http.Error(rw, "no id_token in token response", http.StatusInternalServerError)
-		return
-	}
-
-	_, err := s.verifier().Verify(r.Context(), rawIDToken)
-	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Issue ID token cookie
-	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
-
-	// Some OIDC providers may not include a refresh token
-	if token.RefreshToken != "" {
-		// Issue refresh token cookie
-		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
-	}
-
-	// Clear state cookie
-	http.SetCookie(rw, s.clearCookie(StateCookieName))
-
-	http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
 }
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			s.logger.Info("Only POST requests allowed")
+			rw.Header().Add("Allow", "POST")
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 
 			return
@@ -275,8 +271,10 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 	}
 }
 
-// Call the OIDC User Info endpoint and return information to the client
-// Read the cookie and extract the token to then interogate the OIDC provider for the User Info
+// UserInfo inspects the cookie and attempts to verify it as an admin token. If successful,
+// it returns a UserInfo object with the email set to the admin token subject. Otherwise it
+// uses the token to query the OIDC provider's user info endpoint and return a UserInfo object
+// back or a 401 status in any other case.
 func (s *AuthServer) UserInfo() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie(IDTokenCookieName)
@@ -292,7 +290,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
-			toJson(ui, rw)
+			toJson(rw, ui)
 			return
 		}
 
@@ -300,7 +298,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			AccessToken: c.Value,
 		}))
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to query userinfo endpoint: %v", err), http.StatusUnauthorized)
+			http.Error(rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
 			return
 		}
 
@@ -308,11 +306,11 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			Email: info.Email,
 		}
 
-		toJson(ui, rw)
+		toJson(rw, ui)
 	}
 }
 
-func toJson(ui UserInfo, rw http.ResponseWriter) {
+func toJson(rw http.ResponseWriter, ui UserInfo) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
@@ -364,12 +362,9 @@ func (c *AuthServer) createCookie(name, value string) *http.Cookie {
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(c.config.CookieDuration),
+		Expires:  time.Now().UTC().Add(c.config.TokenDuration),
 		HttpOnly: true,
-	}
-
-	if c.config.IssueSecureCookies {
-		cookie.Secure = true
+		Secure:   true,
 	}
 
 	return cookie

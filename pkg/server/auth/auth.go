@@ -28,7 +28,7 @@ const (
 // This route is called by the OIDC Provider in order to pass back state after
 // the authentication flow completes.
 func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
-	mux.Handle(prefix+"/callback", srv)
+	mux.Handle(prefix+"/callback", srv.Callback())
 	mux.Handle(prefix+"/sign_in", srv.SignIn())
 	mux.Handle(prefix+"/userinfo", srv.UserInfo())
 }
@@ -65,7 +65,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
 	multi := MultiAuthPrincipal{
-		adminAuth, 
+		adminAuth,
 		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -94,7 +94,7 @@ func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
 		srv.verifier(), IDTokenCookieName)
 	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
 	multi := MultiAuthPrincipal{
-		adminAuth, 
+		adminAuth,
 		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
