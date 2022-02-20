@@ -2,6 +2,7 @@ import * as React from "react";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
 import { useHistory } from "react-router-dom";
+import Page, { Content } from "../components/Page";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -10,7 +11,17 @@ const Loader: React.FC<{ loading?: boolean }> = ({
   children,
   loading = true,
 }) => {
-  return <>{loading ? <LoadingPage /> : children}</>;
+  return (
+    <>
+      {loading ? (
+        <Content>
+          <LoadingPage />
+        </Content>
+      ) : (
+        children
+      )}
+    </>
+  );
 };
 
 export type AuthContext = {
@@ -53,7 +64,6 @@ export default function AuthContextProvider({ children }) {
       })
       .then((data) => setUserInfo({ email: data.email, groups: [] }))
       .catch((err) => {
-        console.log(err);
         if (err.code === "401") {
           setUserInfo(undefined);
         }
