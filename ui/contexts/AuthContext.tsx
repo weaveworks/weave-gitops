@@ -2,27 +2,31 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
-import { AuthSwitch } from "./AutoSwitch";
+import { Redirect } from "react-router-dom";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
+const AUTH_PATH_SIGNIN = "/sign_in";
 
-const Loader: React.FC<{ loading?: boolean }> = ({ children, loading }) => {
-  const history = useHistory();
-  const {
-    location: { pathname },
-  } = history;
-  return (
-    <>
-      {loading && pathname !== "/sign_in" ? (
-        <Layout>
-          <LoadingPage />
-        </Layout>
-      ) : (
-        children
-      )}
-    </>
-  );
+export const AuthCheck = ({ children }) => {
+  const { loading, userInfo } = React.useContext(Auth);
+
+  // Wait until userInfo is loaded before showing signin or app content
+  if (loading) {
+    return (
+      <Layout>
+        <LoadingPage />
+      </Layout>
+    );
+  }
+
+  // Signed in! Show app
+  if (userInfo?.email) {
+    return children;
+  }
+
+  // User appears not be logged in, off to signin
+  return <Redirect to={AUTH_PATH_SIGNIN} />;
 };
 
 export type AuthContext = {
@@ -38,10 +42,11 @@ export type AuthContext = {
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
-  const [userInfo, setUserInfo] = React.useState<{
-    email: string;
-    groups: string[];
-  }>(null);
+  const [userInfo, setUserInfo] =
+    React.useState<{
+      email: string;
+      groups: string[];
+    }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
   const history = useHistory();
@@ -91,9 +96,7 @@ export default function AuthContextProvider({ children }) {
         loading,
       }}
     >
-      <Loader loading={loading}>
-        {userInfo?.email ? children : <AuthSwitch />}
-      </Loader>
+      {children}
     </Auth.Provider>
   );
 }
