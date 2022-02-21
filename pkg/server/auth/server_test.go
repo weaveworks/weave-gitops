@@ -580,7 +580,3 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier 
 
 	return s, m
 }
-
-// Add tests for verifying the token on the Userinfo handler
-
-// Create middleware to validate token (whether OIDC or superuser)

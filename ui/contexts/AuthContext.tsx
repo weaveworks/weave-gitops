@@ -5,6 +5,7 @@ import LoadingPage from "../components/LoadingPage";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
+const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
 export const AuthCheck = ({ children }) => {
@@ -77,6 +78,22 @@ export default function AuthContextProvider({ children }) {
       })
       .then((data) => setUserInfo({ email: data?.email, groups: [] }))
       .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const logOut = React.useCallback((data) => {
+    setLoading(true);
+    fetch(LOG_OUT, {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          setError(response);
+          return;
+        }
+        getUserInfo().then(() => history.push("/"));
+      })
       .finally(() => setLoading(false));
   }, []);
 
