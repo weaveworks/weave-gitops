@@ -28,6 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	wego_tls "github.com/weaveworks/weave-gitops/pkg/server/tls"
 )
 
 // Options contains all the options for the `ui run` command.
@@ -84,8 +85,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "allow insecure TLS requests")
-	cmd.Flags().StringVar(&options.TlsKey, "tls-key", "/etc/gitops/ssl/tls.key", "filename for the TLS key")
-	cmd.Flags().StringVar(&options.TlsCert, "tls-cert", "/etc/gitops/ssl/tls.crt", "filename for the TLS certficate")
+	cmd.Flags().StringVar(&options.TlsKey, "tls-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TlsCert, "tls-cert", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if server.AuthEnabled() {
@@ -256,6 +257,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}))
 
 	addr := net.JoinHostPort("0.0.0.0", options.Port)
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
@@ -271,7 +273,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if isatty.IsTerminal(os.Stdout.Fd()) {
-		url := fmt.Sprintf("http://%s/%s", addr, options.Path)
+		scheme := "https"
+		if options.NoTLS {
+			scheme = "http"
+		}
+
+		url := fmt.Sprintf("%s://%s/%s", scheme, addr, options.Path)
 
 		log.Printf("Opening browser at %s", url)
 
@@ -304,8 +311,21 @@ func listenAndServe(srv *http.Server, options Options) error {
 		return srv.ListenAndServe()
 	}
 
-	log.Printf("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+	if options.TlsCert == "" && options.TlsKey == "" {
+		log.Printf("TLS cert and key not specified, generating and using in-memory keys")
 
+		tlsConfig, err := wego_tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+		if err != nil {
+			return fmt.Errorf("failed to generate a TLSConfig: %s", err)
+		}
+
+		srv.TLSConfig = tlsConfig
+	} else {
+		log.Printf("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+	}
+
+	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
+	// and happily use the TLSConfig supplied above
 	return srv.ListenAndServeTLS(options.TlsCert, options.TlsKey)
 }
 
