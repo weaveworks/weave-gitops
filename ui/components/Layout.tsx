@@ -8,6 +8,7 @@ import { formatURL, getNavValue } from "../lib/utils";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import UserSettings from "./UserSettings";
 
 type Props = {
   className?: string;
@@ -94,11 +95,6 @@ const TopToolBar = styled(Flex)`
   }
 `;
 
-//style for account icon - disabled while no account functionality exists
-// const UserAvatar = styled(Icon)`
-//   padding-right: ${(props) => props.theme.spacing.medium};
-// `;
-
 function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
 
@@ -107,7 +103,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar between align>
           <Logo />
-          {/* code for account icon - disabled while no account functionality exists <UserAvatar size="xl" type={IconType.Account} color="white" /> */}
+          <UserSettings />
         </TopToolBar>
         <Main wide>
           <NavContainer>

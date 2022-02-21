@@ -92,7 +92,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        getUserInfo().then(() => history.push("/"));
+        history.push("/sign_in");
       })
       .finally(() => setLoading(false));
   }, []);
