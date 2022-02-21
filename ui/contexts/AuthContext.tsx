@@ -1,8 +1,7 @@
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, Redirect } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
-import { Redirect } from "react-router-dom";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -42,11 +41,10 @@ export type AuthContext = {
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
-  const [userInfo, setUserInfo] =
-    React.useState<{
-      email: string;
-      groups: string[];
-    }>(null);
+  const [userInfo, setUserInfo] = React.useState<{
+    email: string;
+    groups: string[];
+  }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
   const history = useHistory();

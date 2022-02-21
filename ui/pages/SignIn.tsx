@@ -1,13 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import {
-  TextField,
-  Divider,
-  InputLabel,
-  Input,
-  InputAdornment,
-  IconButton,
-} from "@material-ui/core";
+import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -20,7 +14,6 @@ import SignInWheel from "./../images/SignInWheel.svg";
 import SignInBackground from "./../images/SignInBackground.svg";
 // @ts-ignore
 import WeaveLogo from "./../images/WeaveLogo.svg";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});
@@ -33,15 +26,16 @@ export const FormWrapper = styled(Flex)`
   width: 500px;
   padding-top: ${(props) => props.theme.spacing.medium};
   align-content: space-between;
-  border-radius: ${(props) => props.theme.borderRadius.soft};
   .MuiButton-label {
-    width: 300px;
-    // margin: ${(props) => props.theme.spacing.xs};
+    width: 250px;
+  }
+  .MuiInputBase-root {
+    width: 275px;
   }
 `;
 
 const Logo = styled(Flex)`
-  margin-bottom: ${(props) => props.theme.spacing.small};
+  margin-bottom: ${(props) => props.theme.spacing.medium};
 `;
 
 const Action = styled(Flex)`
@@ -51,13 +45,6 @@ const Action = styled(Flex)`
 const Footer = styled(Flex)`
   & img {
     width: 500px;
-  }
-`;
-
-const FormElement = styled(Flex)`
-  .MuiFormControl-root {
-    // min-width: 300px;
-    // height: ${(props) => props.theme.spacing.xl};
   }
 `;
 
@@ -120,10 +107,7 @@ function SignIn() {
               handleUserPassSubmit();
             }}
           >
-            <FormElement center align>
-              {/* <InputLabel htmlFor="standard-adornment-password">
-                Password
-              </InputLabel> */}
+            <Flex center align>
               <Input
                 onChange={(e) => setPassword(e.currentTarget.value)}
                 required
@@ -142,7 +126,7 @@ function SignIn() {
                   </InputAdornment>
                 }
               />
-            </FormElement>
+            </Flex>
             <Flex center>
               {!loading ? (
                 <Button
