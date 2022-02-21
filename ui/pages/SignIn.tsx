@@ -1,6 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { TextField, Divider } from "@material-ui/core";
+import {
+  TextField,
+  Divider,
+  InputLabel,
+  Input,
+  InputAdornment,
+  IconButton,
+} from "@material-ui/core";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -13,6 +20,7 @@ import SignInWheel from "./../images/SignInWheel.svg";
 import SignInBackground from "./../images/SignInBackground.svg";
 // @ts-ignore
 import WeaveLogo from "./../images/WeaveLogo.svg";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});
@@ -26,9 +34,9 @@ export const FormWrapper = styled(Flex)`
   padding-top: ${(props) => props.theme.spacing.medium};
   align-content: space-between;
   border-radius: ${(props) => props.theme.borderRadius.soft};
-  & button {
+  .MuiButton-label {
     width: 300px;
-    margin: ${(props) => props.theme.spacing.xs};
+    // margin: ${(props) => props.theme.spacing.xs};
   }
 `;
 
@@ -48,8 +56,8 @@ const Footer = styled(Flex)`
 
 const FormElement = styled(Flex)`
   .MuiFormControl-root {
-    min-width: 300px;
-    height: ${(props) => props.theme.spacing.xl};
+    // min-width: 300px;
+    // height: ${(props) => props.theme.spacing.xl};
   }
 `;
 
@@ -64,6 +72,7 @@ function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
   const { signIn, error, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
+  const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
@@ -112,14 +121,26 @@ function SignIn() {
             }}
           >
             <FormElement center align>
-              <TextField
+              {/* <InputLabel htmlFor="standard-adornment-password">
+                Password
+              </InputLabel> */}
+              <Input
                 onChange={(e) => setPassword(e.currentTarget.value)}
                 required
                 id="password"
-                label="Password"
-                variant="standard"
-                type="password"
+                placeholder="Password"
+                type={showPassword ? "text" : "password"}
                 value={password}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                }
               />
             </FormElement>
             <Flex center>
