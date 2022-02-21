@@ -3,31 +3,22 @@ import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
 import { useHistory } from "react-router-dom";
 import Layout from "../components/Layout";
-import { SignInPageWrapper } from "../pages/SignIn";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
 
-const Loader: React.FC<{ loading?: boolean }> = ({
-  children,
-  loading = true,
-}) => {
-  const history = useHistory();
-  const {
-    location: { pathname },
-  } = history;
-
-  const loader =
-    pathname === "/sign_in" ? (
-      <SignInPageWrapper>
-        <LoadingPage />
-      </SignInPageWrapper>
-    ) : (
-      <Layout>
-        <LoadingPage />
-      </Layout>
-    );
-  return <>{loading ? loader : children}</>;
+const Loader: React.FC<{ loading?: boolean }> = ({ children, loading }) => {
+  return (
+    <>
+      {loading ? (
+        <Layout>
+          <LoadingPage />
+        </Layout>
+      ) : (
+        children
+      )}
+    </>
+  );
 };
 
 export type AuthContext = {
@@ -37,6 +28,7 @@ export type AuthContext = {
     groups: string[];
   };
   error: { status: number; statusText: string };
+  loading: boolean;
 };
 
 export const Auth = React.createContext<AuthContext | null>(null);
@@ -92,11 +84,14 @@ export default function AuthContextProvider({ children }) {
         signIn,
         userInfo,
         error,
+        loading,
       }}
     >
-      <Loader loading={loading}>
-        {userInfo?.email ? children : <AuthSwitch />}
-      </Loader>
+      {userInfo?.email ? (
+        <Loader loading={loading}>{children}</Loader>
+      ) : (
+        <AuthSwitch />
+      )}
     </Auth.Provider>
   );
 }

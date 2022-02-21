@@ -10,7 +10,7 @@ import SignInBackground from "./../images/SignInBackground.svg";
 import WeaveLogo from "./../images/WeaveLogo.svg";
 import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
-import { TextField, Divider } from "@material-ui/core";
+import { TextField, Divider, CircularProgress } from "@material-ui/core";
 import Alert from "../components/Alert";
 
 export const SignInPageWrapper = styled(Flex)`
@@ -61,7 +61,7 @@ const AlertWrapper = styled(Alert)`
 
 function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error } = React.useContext(Auth);
+  const { signIn, error, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
 
   const handleOIDCSubmit = () => {
@@ -117,14 +117,21 @@ function SignIn() {
                 id="password"
                 label="Password"
                 variant="standard"
-                // type="password"
+                type="password"
                 value={password}
               />
             </FormElement>
             <Flex center>
-              <Button type="submit" style={{ marginTop: theme.spacing.medium }}>
-                CONTINUE
-              </Button>
+              {!loading ? (
+                <Button
+                  type="submit"
+                  style={{ marginTop: theme.spacing.medium }}
+                >
+                  CONTINUE
+                </Button>
+              ) : (
+                <CircularProgress />
+              )}
             </Flex>
           </form>
         </div>
