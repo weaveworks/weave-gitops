@@ -41,14 +41,11 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
-				IssuerURL:    fake.Issuer,
-				ClientID:     fake.ClientID,
-				ClientSecret: fake.ClientSecret,
-				RedirectURL:  "",
-			},
-			auth.CookieConfig{
-				CookieDuration:     20 * time.Minute,
-				IssueSecureCookies: false,
+				IssuerURL:     fake.Issuer,
+				ClientID:      fake.ClientID,
+				ClientSecret:  fake.ClientSecret,
+				RedirectURL:   "",
+				TokenDuration: 20 * time.Minute,
 			},
 		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
@@ -96,14 +93,11 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
-				IssuerURL:    fake.Issuer,
-				ClientID:     fake.ClientID,
-				ClientSecret: fake.ClientSecret,
-				RedirectURL:  "",
-			},
-			auth.CookieConfig{
-				CookieDuration:     20 * time.Minute,
-				IssueSecureCookies: false,
+				IssuerURL:     fake.Issuer,
+				ClientID:      fake.ClientID,
+				ClientSecret:  fake.ClientSecret,
+				RedirectURL:   "",
+				TokenDuration: 20 * time.Minute,
 			},
 		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
