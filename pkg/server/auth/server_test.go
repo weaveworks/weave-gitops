@@ -2,7 +2,6 @@ package auth_test
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,8 +9,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"gotest.tools/v3/assert"
 )
 
 func TestLogoutSuccess(t *testing.T) {
@@ -29,7 +28,7 @@ func TestLogoutSuccess(t *testing.T) {
 		},
 	})
 
-	assert.NilError(t, err)
+	assert.Nil(t, err)
 
 	cookie := &http.Cookie{
 		Name:     "id_token",
@@ -41,8 +40,6 @@ func TestLogoutSuccess(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	http.SetCookie(w, cookie)
-
 	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil)
 	s.Logout().ServeHTTP(w, req)
 
@@ -50,8 +47,6 @@ func TestLogoutSuccess(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
 	}
-
-	fmt.Println(resp.Cookies())
 
 	for _, c := range resp.Cookies() {
 		if c.Name == auth.IDTokenCookieName {
