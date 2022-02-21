@@ -2,7 +2,8 @@ import * as React from "react";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
 import { useHistory } from "react-router-dom";
-import Page, { Content } from "../components/Page";
+import Layout from "../components/Layout";
+import { SignInPageWrapper } from "../pages/SignIn";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -11,17 +12,22 @@ const Loader: React.FC<{ loading?: boolean }> = ({
   children,
   loading = true,
 }) => {
-  return (
-    <>
-      {loading ? (
-        <Content>
-          <LoadingPage />
-        </Content>
-      ) : (
-        children
-      )}
-    </>
-  );
+  const history = useHistory();
+  const {
+    location: { pathname },
+  } = history;
+
+  const loader =
+    pathname === "/sign_in" ? (
+      <SignInPageWrapper>
+        <LoadingPage />
+      </SignInPageWrapper>
+    ) : (
+      <Layout>
+        <LoadingPage />
+      </Layout>
+    );
+  return <>{loading ? loader : children}</>;
 };
 
 export type AuthContext = {
@@ -30,19 +36,18 @@ export type AuthContext = {
     email: string;
     groups: string[];
   };
+  error: { status: number; statusText: string };
 };
 
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
-  const [userInfo, setUserInfo] = React.useState<
-    | {
-        email: string;
-        groups: string[];
-      }
-    | undefined
-  >(undefined);
+  const [userInfo, setUserInfo] = React.useState<{
+    email: string;
+    groups: string[];
+  }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState(null);
   const history = useHistory();
 
   const signIn = React.useCallback((data) => {
@@ -51,8 +56,13 @@ export default function AuthContextProvider({ children }) {
       method: "POST",
       body: JSON.stringify(data),
     })
-      .then(() => getUserInfo().then(() => history.push("/")))
-      .catch((err) => console.log(err))
+      .then((response) => {
+        if (response.status !== 200) {
+          setError(response);
+          return;
+        }
+        getUserInfo().then(() => history.push("/"));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,14 +70,14 @@ export default function AuthContextProvider({ children }) {
     setLoading(true);
     return fetch(USER_INFO)
       .then((response) => {
+        if (response.status === 400 || response.status === 401) {
+          setUserInfo(null);
+          return;
+        }
         return response.json();
       })
-      .then((data) => setUserInfo({ email: data.email, groups: [] }))
-      .catch((err) => {
-        if (err.code === "401") {
-          setUserInfo(undefined);
-        }
-      })
+      .then((data) => setUserInfo({ email: data?.email, groups: [] }))
+      .catch((err) => console.log(err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -81,10 +91,11 @@ export default function AuthContextProvider({ children }) {
       value={{
         signIn,
         userInfo,
+        error,
       }}
     >
       <Loader loading={loading}>
-        {userInfo?.email !== undefined ? children : <AuthSwitch />}
+        {userInfo?.email ? children : <AuthSwitch />}
       </Loader>
     </Auth.Provider>
   );

@@ -11,14 +11,15 @@ import WeaveLogo from "./../images/WeaveLogo.svg";
 import Button from "../components/Button";
 import { Auth } from "../contexts/AuthContext";
 import { TextField, Divider } from "@material-ui/core";
+import Alert from "../components/Alert";
 
-const PageWrapper = styled(Flex)`
+export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});
   height: 100%;
   width: 100%;
 `;
 
-const FormWrapper = styled(Flex)`
+export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   width: 500px;
   padding-top: ${(props) => props.theme.spacing.medium};
@@ -51,14 +52,20 @@ const FormElement = styled(Flex)`
   }
 `;
 
+const AlertWrapper = styled(Alert)`
+  .MuiAlert-root {
+    width: 470px;
+    margin-bottom: ${(props) => props.theme.spacing.small};
+  }
+`;
+
 function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn } = React.useContext(Auth);
+  const { signIn, error } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
 
   const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
-    console.log(CURRENT_URL);
     return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
       CURRENT_URL
     )}`);
@@ -67,7 +74,15 @@ function SignIn() {
   const handleUserPassSubmit = () => signIn({ password });
 
   return (
-    <PageWrapper center align>
+    <SignInPageWrapper center align column>
+      {error && (
+        <AlertWrapper
+          severity="error"
+          title="Error signin in"
+          message={`${String(error.status)} ${error.statusText}`}
+          center
+        />
+      )}
       <FormWrapper center align wrap>
         <div style={{ padding: theme.spacing.base }}>
           <Logo>
@@ -117,7 +132,7 @@ function SignIn() {
           <img src={SignInWheel} />
         </Footer>
       </FormWrapper>
-    </PageWrapper>
+    </SignInPageWrapper>
   );
 }
 
