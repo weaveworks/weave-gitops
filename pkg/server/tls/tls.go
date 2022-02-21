@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// TLSConfig is adapted from http.Server.ServeTLS
 func TLSConfig(hosts []string) (*tls.Config, error) {
 	certPEMBlock, keyPEMBlock, err := generateKeyPair(hosts)
 	if err != nil {
@@ -34,6 +35,7 @@ func TLSConfig(hosts []string) (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
+// Adapted from https://go.dev/src/crypto/tls/generate_cert.go
 func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {

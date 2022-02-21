@@ -5,7 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -266,7 +265,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := listenAndServe(srv, options); err != nil {
+		if err := listenAndServe(srv, options, log); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
@@ -305,14 +304,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func listenAndServe(srv *http.Server, options Options) error {
+func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) error {
 	if options.NoTLS {
-		log.Println("TLS connections disabled")
+		log.Info("TLS connections disabled")
 		return srv.ListenAndServe()
 	}
 
 	if options.TlsCert == "" && options.TlsKey == "" {
-		log.Printf("TLS cert and key not specified, generating and using in-memory keys")
+		log.Info("TLS cert and key not specified, generating and using in-memory keys")
 
 		tlsConfig, err := wego_tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
 		if err != nil {
@@ -320,12 +319,13 @@ func listenAndServe(srv *http.Server, options Options) error {
 		}
 
 		srv.TLSConfig = tlsConfig
-	} else {
-		log.Printf("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+		// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
+		// and happily use the TLSConfig supplied above
+		return srv.ListenAndServeTLS("", "")
 	}
 
-	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
-	// and happily use the TLSConfig supplied above
+	log.Infof("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+
 	return srv.ListenAndServeTLS(options.TlsCert, options.TlsKey)
 }
 
