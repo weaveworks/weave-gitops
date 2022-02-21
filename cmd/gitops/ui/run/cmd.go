@@ -44,8 +44,8 @@ type Options struct {
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
 	Insecure                      bool
-	TlsKey                        string
-	TlsCert                       string
+	TLSCert                       string
+	TLSKey                        string
 	NoTLS                         bool
 }
 
@@ -84,8 +84,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "allow insecure TLS requests")
-	cmd.Flags().StringVar(&options.TlsKey, "tls-key", "", "filename for the TLS key, in-memory generated if omitted")
-	cmd.Flags().StringVar(&options.TlsCert, "tls-cert", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSCert, "tls-cert", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKey, "tls-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if server.AuthEnabled() {
@@ -310,7 +310,7 @@ func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) e
 		return srv.ListenAndServe()
 	}
 
-	if options.TlsCert == "" && options.TlsKey == "" {
+	if options.TLSCert == "" && options.TLSKey == "" {
 		log.Info("TLS cert and key not specified, generating and using in-memory keys")
 
 		tlsConfig, err := wego_tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
@@ -319,14 +319,14 @@ func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) e
 		}
 
 		srv.TLSConfig = tlsConfig
-		// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
+		// if TLSCert and TLSKey are both empty (""), ListenAndServeTLS will ignore
 		// and happily use the TLSConfig supplied above
 		return srv.ListenAndServeTLS("", "")
 	}
 
-	log.Infof("Using TLS from %q and %q", options.TlsCert, options.TlsKey)
+	log.Infof("Using TLS from %q and %q", options.TLSCert, options.TLSKey)
 
-	return srv.ListenAndServeTLS(options.TlsCert, options.TlsKey)
+	return srv.ListenAndServeTLS(options.TLSCert, options.TLSKey)
 }
 
 //go:embed dist/*

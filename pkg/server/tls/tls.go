@@ -65,7 +65,7 @@ func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
-		log.Fatalf("Failed to create certificate: %s", err)
+		return nil, nil, fmt.Errorf("Failed to create certificate: %s", err)
 	}
 
 	certPEMBlock := &bytes.Buffer{}
