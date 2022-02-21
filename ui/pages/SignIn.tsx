@@ -1,6 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
+import { TextField, Divider } from "@material-ui/core";
 import { theme } from "../lib/theme";
+import Button from "../components/Button";
+import { Auth } from "../contexts/AuthContext";
 import Flex from "../components/Flex";
 // @ts-ignore
 import SignInWheel from "url:../images/SignInWheel.svg";
@@ -8,10 +11,9 @@ import SignInWheel from "url:../images/SignInWheel.svg";
 import SignInBackground from "./../images/SignInBackground.svg";
 // @ts-ignore
 import WeaveLogo from "./../images/WeaveLogo.svg";
-import Button from "../components/Button";
-import { Auth } from "../contexts/AuthContext";
-import { TextField, Divider, CircularProgress } from "@material-ui/core";
+
 import Alert from "../components/Alert";
+import LoadingPage from "../components/LoadingPage";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});
@@ -130,7 +132,9 @@ function SignIn() {
                   CONTINUE
                 </Button>
               ) : (
-                <CircularProgress />
+                <div style={{ margin: theme.spacing.medium }}>
+                  <LoadingPage />
+                </div>
               )}
             </Flex>
           </form>

@@ -1,16 +1,21 @@
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
-import { useHistory } from "react-router-dom";
+
 import Layout from "../components/Layout";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
 
 const Loader: React.FC<{ loading?: boolean }> = ({ children, loading }) => {
+  const history = useHistory();
+  const {
+    location: { pathname },
+  } = history;
   return (
     <>
-      {loading ? (
+      {loading && pathname !== "/sign_in" ? (
         <Layout>
           <LoadingPage />
         </Layout>
@@ -87,11 +92,9 @@ export default function AuthContextProvider({ children }) {
         loading,
       }}
     >
-      {userInfo?.email ? (
-        <Loader loading={loading}>{children}</Loader>
-      ) : (
-        <AuthSwitch />
-      )}
+      <Loader loading={loading}>
+        {userInfo?.email ? children : <AuthSwitch />}
+      </Loader>
     </Auth.Provider>
   );
 }
