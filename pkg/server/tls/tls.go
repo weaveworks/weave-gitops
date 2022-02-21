@@ -10,7 +10,6 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	"log"
 	"math/big"
 	"net"
 	"time"
@@ -20,12 +19,12 @@ import (
 func TLSConfig(hosts []string) (*tls.Config, error) {
 	certPEMBlock, keyPEMBlock, err := generateKeyPair(hosts)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate TLS keys %s", err)
+		return nil, fmt.Errorf("Failed to generate TLS keys %w", err)
 	}
 
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate X509 key pair %s", err)
+		return nil, fmt.Errorf("Failed to generate X509 key pair %w", err)
 	}
 
 	tlsConfig := &tls.Config{
@@ -39,13 +38,21 @@ func TLSConfig(hosts []string) (*tls.Config, error) {
 func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, fmt.Errorf("Failing to generate new ecdsa key: %w", err)
+	}
+
+	// A CA is supposed to choose unique serial numbers, that is, unique for the CA.
+	maxSerialNumber := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to generate a random serial number: %w", err)
 	}
 
 	template := x509.Certificate{
-		SerialNumber: big.NewInt(1),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Weave"},
+			Organization: []string{"Weaveworks"},
 		},
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().Add(time.Hour * 24 * 365),
@@ -65,14 +72,14 @@ func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to create certificate: %s", err)
+		return nil, nil, fmt.Errorf("Failed to create certificate: %w", err)
 	}
 
 	certPEMBlock := &bytes.Buffer{}
 
 	err = pem.Encode(certPEMBlock, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to encode cert pem: %s", err)
+		return nil, nil, fmt.Errorf("Failed to encode cert pem: %w", err)
 	}
 
 	keyPEMBlock := &bytes.Buffer{}
@@ -84,7 +91,7 @@ func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 
 	err = pem.Encode(keyPEMBlock, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to encode key pem: %s", err)
+		return nil, nil, fmt.Errorf("Failed to encode key pem: %w", err)
 	}
 
 	return certPEMBlock.Bytes(), keyPEMBlock.Bytes(), nil

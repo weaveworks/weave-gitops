@@ -3,6 +3,7 @@ package run
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net"
@@ -27,7 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	wego_tls "github.com/weaveworks/weave-gitops/pkg/server/tls"
+	"github.com/weaveworks/weave-gitops/pkg/server/tls"
 )
 
 // Options contains all the options for the `ui run` command.
@@ -84,8 +85,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "allow insecure TLS requests")
-	cmd.Flags().StringVar(&options.TLSCert, "tls-cert", "", "filename for the TLS certficate, in-memory generated if omitted")
-	cmd.Flags().StringVar(&options.TLSKey, "tls-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if server.AuthEnabled() {
@@ -135,7 +136,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		_, err := w.Write([]byte("ok"))
 
 		if err != nil {
-			log.Errorf("error writing health check: %s", err)
+			log.Errorf("error writing health check: %w", err)
 		}
 	}))
 
@@ -313,15 +314,19 @@ func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) e
 	if options.TLSCert == "" && options.TLSKey == "" {
 		log.Info("TLS cert and key not specified, generating and using in-memory keys")
 
-		tlsConfig, err := wego_tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+		tlsConfig, err := tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
 		if err != nil {
-			return fmt.Errorf("failed to generate a TLSConfig: %s", err)
+			return fmt.Errorf("failed to generate a TLSConfig: %w", err)
 		}
 
 		srv.TLSConfig = tlsConfig
 		// if TLSCert and TLSKey are both empty (""), ListenAndServeTLS will ignore
 		// and happily use the TLSConfig supplied above
 		return srv.ListenAndServeTLS("", "")
+	}
+
+	if options.TLSCert == "" || options.TLSKey == "" {
+		return errors.New("both tls private key and cert must be specified")
 	}
 
 	log.Infof("Using TLS from %q and %q", options.TLSCert, options.TLSKey)
