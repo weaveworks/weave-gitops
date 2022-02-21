@@ -234,7 +234,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
 			s.logger.Error(err, "Failed to decode from JSON")
-			http.Error(rw, fmt.Sprintf("Failed to read request body."), http.StatusBadRequest)
+			http.Error(rw, "Failed to read request body.", http.StatusBadRequest)
 
 			return
 		}
@@ -246,7 +246,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			Name:      "admin-password-hash",
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")
-			http.Error(rw, fmt.Sprint("Please ensure that a password has been set."), http.StatusBadRequest)
+			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
 
 			return
 		}
@@ -296,7 +296,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
-			toJson(rw, ui)
+			toJson(rw, ui, s.logger)
 
 			return
 		}
@@ -313,18 +313,21 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			Email: info.Email,
 		}
 
-		toJson(rw, ui)
+		toJson(rw, ui, s.logger)
 	}
 }
 
-func toJson(rw http.ResponseWriter, ui UserInfo) {
+func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	rw.Write(b)
+	_, err = rw.Write(b)
+	if err != nil {
+		logger.Error(err, "Failing to write response")
+	}
 }
 
 func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {

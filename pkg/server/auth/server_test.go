@@ -371,6 +371,8 @@ func TestSingInCorrectPassword(t *testing.T) {
 
 	if cookie == nil {
 		t.Errorf("expected to find cookie %q but did not", auth.IDTokenCookieName)
+		// Make linter happy about possible nil deref below
+		return
 	}
 
 	if _, err := tokenSignerVerifier.Verify(cookie.Value); err != nil {
