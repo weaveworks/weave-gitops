@@ -1,9 +1,8 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
+import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
 import { AuthSwitch } from "./AutoSwitch";
-
-import Layout from "../components/Layout";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
