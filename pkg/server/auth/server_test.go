@@ -9,11 +9,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
@@ -22,7 +24,14 @@ import (
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func TestCallbackSupportsGet(t *testing.T) {
+// A custom client that doesn't automatically follow redirects
+var httpClient = &http.Client{
+	CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+		return http.ErrUseLastResponse
+	},
+}
+
+func TestCallbackAllowsGet(t *testing.T) {
 	methods := []string{
 		http.MethodPost,
 		http.MethodPatch,
@@ -169,7 +178,7 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 	}
 }
 
-func TestSignInSupportsPOST(t *testing.T) {
+func TestSignInAllowsPOST(t *testing.T) {
 	methods := []string{
 		http.MethodGet,
 		http.MethodPatch,
@@ -366,6 +375,183 @@ func TestSingInCorrectPassword(t *testing.T) {
 
 	if _, err := tokenSignerVerifier.Verify(cookie.Value); err != nil {
 		t.Errorf("expected to verify the issued token but got an error instead: %v", err)
+	}
+}
+
+func TestUserInfoAllowsGET(t *testing.T) {
+	methods := []string{
+		http.MethodPost,
+		http.MethodPatch,
+		http.MethodDelete,
+		http.MethodConnect,
+		http.MethodHead,
+		http.MethodOptions,
+	}
+
+	s, _ := makeAuthServer(t, nil, nil)
+
+	for _, m := range methods {
+		req := httptest.NewRequest(m, "https://example.com/userinfo", nil)
+		w := httptest.NewRecorder()
+		s.UserInfo().ServeHTTP(w, req)
+
+		resp := w.Result()
+		if resp.StatusCode != http.StatusMethodNotAllowed {
+			t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
+		}
+
+		if resp.Header.Get("Allow") != "GET" {
+			t.Errorf("expected `Allow` header to be set to `GET` but was not")
+		}
+	}
+}
+
+func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
+	s, _ := makeAuthServer(t, nil, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	w := httptest.NewRecorder()
+	s.UserInfo().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
+	}
+}
+
+func TestUserInfoAdminFlow(t *testing.T) {
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s, _ := makeAuthServer(t, nil, tokenSignerVerifier)
+
+	signed, err := tokenSignerVerifier.Sign()
+	if err != nil {
+		t.Errorf("failed to sign token: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: signed,
+	})
+
+	w := httptest.NewRecorder()
+	s.UserInfo().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
+	}
+
+	var info auth.UserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		t.Errorf("expected to decode response body to UserInfo object but got an error: %v", err)
+	}
+
+	if info.Email != "admin" {
+		t.Errorf("expected admin flow to return `admin` as the email but got %q instead", info.Email)
+	}
+}
+
+func TestUserInfoOIDCFlow(t *testing.T) {
+	const (
+		state = "abcdef"
+		nonce = "ghijkl"
+		code  = "mnopqr"
+	)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier)
+
+	authorizeQuery := url.Values{}
+	authorizeQuery.Set("client_id", m.Config().ClientID)
+	authorizeQuery.Set("scope", "openid email profile groups")
+	authorizeQuery.Set("response_type", "code")
+	authorizeQuery.Set("redirect_uri", "https://example.com/oauth2/callback")
+	authorizeQuery.Set("state", state)
+	authorizeQuery.Set("nonce", nonce)
+
+	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
+	if err != nil {
+		t.Errorf("failed to parse authorization endpoint: %v", err)
+	}
+
+	authorizeURL.RawQuery = authorizeQuery.Encode()
+
+	authorizeReq, err := http.NewRequest(http.MethodGet, authorizeURL.String(), nil)
+	if err != nil {
+		t.Errorf("failed to call the authorization endpoint: %v", err)
+	}
+
+	m.QueueCode(code)
+
+	authorizeResp, err := httpClient.Do(authorizeReq)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusFound, authorizeResp.StatusCode)
+
+	appRedirect, err := url.Parse(authorizeResp.Header.Get("Location"))
+	assert.NoError(t, err)
+	assert.Equal(t, code, appRedirect.Query().Get("code"))
+	assert.Equal(t, state, appRedirect.Query().Get("state"))
+
+	tokenForm := url.Values{}
+	tokenForm.Set("client_id", m.Config().ClientID)
+	tokenForm.Set("client_secret", m.Config().ClientSecret)
+	tokenForm.Set("grant_type", "authorization_code")
+	tokenForm.Set("code", code)
+
+	tokenReq, err := http.NewRequest(
+		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
+	assert.NoError(t, err)
+	tokenReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := httpClient.Do(tokenReq)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, tokenResp.StatusCode)
+
+	defer tokenResp.Body.Close()
+	body, err := ioutil.ReadAll(tokenResp.Body)
+	assert.NoError(t, err)
+
+	tokens := make(map[string]interface{})
+	err = json.Unmarshal(body, &tokens)
+	assert.NoError(t, err)
+
+	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string))
+	assert.NoError(t, err)
+	_, err = m.Keypair.VerifyJWT(tokens["refresh_token"].(string))
+	assert.NoError(t, err)
+	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: idToken.Raw,
+	})
+
+	w := httptest.NewRecorder()
+	s.UserInfo().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
+	}
+
+	var info auth.UserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		t.Errorf("expected to decode response body to UserInfo object but got an error: %v", err)
+	}
+
+	if info.Email != "jane.doe@example.com" {
+		t.Errorf("expected admin flow to return `jane.doe@example.com` as the email but got %q instead", info.Email)
 	}
 }
 

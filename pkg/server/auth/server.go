@@ -277,20 +277,27 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 // back or a 401 status in any other case.
 func (s *AuthServer) UserInfo() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			rw.Header().Add("Allow", "GET")
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+
+			return
+		}
+
 		c, err := r.Cookie(IDTokenCookieName)
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to read cookie: %v", err), http.StatusBadRequest)
+			rw.WriteHeader(http.StatusBadRequest)
+
 			return
 		}
 
 		claims, err := s.tokenSignerVerifier.Verify(c.Value)
-		if err != nil {
-			s.logger.Error(err, "Failed to verify token", "token", c.Value)
-		} else {
+		if err == nil {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
 			toJson(rw, ui)
+
 			return
 		}
 
