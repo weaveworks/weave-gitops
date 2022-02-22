@@ -40,10 +40,6 @@ func fakeEnvLookupExists(key string) (string, bool) {
 	}
 }
 
-func fakeEnvLookupDoesNotExist(key string) (string, bool) {
-	return "", false
-}
-
 var _ = Describe("Get git provider", func() {
 	var client gitproviders.Client
 	var repoUrl gitproviders.RepoURL
