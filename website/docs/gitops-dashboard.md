@@ -4,7 +4,7 @@ sidebar_position: 4
 hide_title: true
 ---
 
-import TierLabel from "./_components/TierLabel";
+import TierLabel from "./\_components/TierLabel";
 
 <h1>
   {frontMatter.title} <TierLabel tiers="All tiers" />
@@ -16,8 +16,8 @@ To run the dashboard:
 
 ```shell
 $ gitops ui run
-INFO[0000] Opening browser at http://0.0.0.0:9001/
-INFO[0000] Serving on port 9001
+INFO[0000] Opening browser at https://localhost:9001/
+INFO[0000] Serving on https://127.0.0.1:9001
 Opening in existing browser session.
 ```
 
@@ -28,18 +28,32 @@ Your browser should open to the Weave GitOps UI:
 ## What information can I discover about my Applications?
 
 Applications being managed by Weave GitOps are displayed in a list. Clicking the name of an Application allows you to view more details including:
+
 - It's name, deployment type (Kustomize or Helm), URL for the source repository being synchronized to the cluster and the specific Path within the repository where we are looking for deployment manifests.
 - A reconciliation graph detailing the on-cluster components which have been created as a result of the deployment.
 - Information from Flux regarding the state of the reconciliation
 - A list of the 10 most recent commits to the source git repository helping you to verify which change has been applied to the cluster. This includes a hyperlink back to your git provider for each commit.
 
+## TLS configuration
+
+By default the dashboard will listen on 127.0.0.1:9001 with TLS enabled. A self-signed certificate and key pair are generated when the server starts.
+As the certificate is _self-signed_, Chrome and other browser will show a warning you will have to click through to view the dashboard.
+
+| Parameter           | Type   | Description                                                     | Default |
+| ------------------- | ------ | --------------------------------------------------------------- | ------- |
+| `--no-tls`          | bool   | Disable TLS, access the dashboard on default port via http      | false   |
+| `--tls-private-key` | string | Filename for the TLS certficate, in-memory generated if omitted |         |
+| `--tls-cert-file`   | string | filename for the TLS key, in-memory generated if omitted        |         |
+
 ## Securing the dashboard using OIDC and Kubernetes RBAC
 
-:::note WORK IN PROGRESS 
+:::note WORK IN PROGRESS
 The following instructions describe a feature that is being actively developed and is therefore behind a feature toggle. To enable this feature, set the following OS environment variable:
+
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
 ```
+
 :::
 
 You may decide to host the dashboard centrally to allow for your engineering teams to access it in order to manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
@@ -52,13 +66,13 @@ OIDC extends the OAuth2 authorization protocol by including an additional field 
 
 After enabling the feature, `gitops ui run` will require the following additional parameters:
 
-| Parameter                     | Type | Description                                                           | Default   |
-| ----------------------------- | - |--------------------------------------------------------------------- | --------- |
-| `--oidc-issuer-url`           | string | The URL of the issuer, typically the discovery URL without a path     |           |
-| `--oidc-client-id`     | string | The client ID that has been setup for Weave GitOps in the issuer      |           |
-| `--oidc-client-secret` | string | The client secret that has been setup for Weave GitOps in the issuer  |           |
-| `--oidc-redirect-url`         | string | The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |         |
-| `--oidc-cookie-duration`      | duration | The time duration that the ID Token HTTP cookie will remain valid, after successful authentication | "1h0m0s" |
+| Parameter                | Type     | Description                                                                                                                      | Default  |
+| ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `--oidc-issuer-url`      | string   | The URL of the issuer, typically the discovery URL without a path                                                                |          |
+| `--oidc-client-id`       | string   | The client ID that has been setup for Weave GitOps in the issuer                                                                 |          |
+| `--oidc-client-secret`   | string   | The client secret that has been setup for Weave GitOps in the issuer                                                             |          |
+| `--oidc-redirect-url`    | string   | The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |          |
+| `--oidc-cookie-duration` | duration | The time duration that the ID Token HTTP cookie will remain valid, after successful authentication                               | "1h0m0s" |
 
 Ensure that your OIDC provider has been setup with a client ID/secret and the redirect URL of the dashboard.
 
@@ -71,22 +85,22 @@ metadata:
   name: apps-reader
   namespace: wego-system
 rules:
-- apiGroups: ["wego.weave.works"]
-  resources: ["apps"]
-  verbs: [ "get", "list"]
-- apiGroups: ["source.toolkit.fluxcd.io"]
-  resources: ["gitrepositories"]
-  verbs: ["get"]
-- apiGroups: ["source.toolkit.fluxcd.io"]
-  resources: ["helmrepositories"]
-  verbs: ["get"]
-- apiGroups: ["kustomize.toolkit.fluxcd.io"]
-  resources: ["kustomizations"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get"]
-  resourceNames: ["wego-github-dev-cluster"] # name of secret created by Weave GitOps that contains the deploy key for the git repository
+  - apiGroups: ["wego.weave.works"]
+    resources: ["apps"]
+    verbs: ["get", "list"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["gitrepositories"]
+    verbs: ["get"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["helmrepositories"]
+    verbs: ["get"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+    resourceNames: ["wego-github-dev-cluster"] # name of secret created by Weave GitOps that contains the deploy key for the git repository
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -94,10 +108,10 @@ metadata:
   name: profiles-reader
   namespace: default
 rules:
-- apiGroups: ["source.toolkit.fluxcd.io"]
-  resources: ["helmrepositories"]
-  verbs: ["get"]
-  resourceNames: [ "weaveworks-charts"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["helmrepositories"]
+    verbs: ["get"]
+    resourceNames: ["weaveworks-charts"]
 ```
 
 The following manifest represents the minimal set of permissions needed to add applications from the dashboard:
@@ -108,25 +122,26 @@ kind: ClusterRole
 metadata:
   name: apps-writer
 rules:
-- apiGroups: ["apiextensions.k8s.io"]
-  resources: ["customresourcedefinitions"]
-  verbs: ["get"]
-  resourceNames: ["apps.wego.weave.works"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get"]
+    resourceNames: ["apps.wego.weave.works"]
 ```
 
 The table below contains all the permissions that the dashboard uses:
 
-| Resource | API Group | Action | Description |
-|-|-|-|-|
-| `apps` | `wego.weave.works` | `list` | Required to list all applications |
-| `apps` | `wego.weave.works` | `get` | Required to retrieve a single application |
-| `gitrepositories` | `source.toolkit.fluxcd.io` | `get` | Required to retrieve a single application |
-| `kustomizations` | `kustomize.toolkit.fluxcd.io` | `get` | Required to retrieve a single application |
-| `gitrepositories` | `source.toolkit.fluxcd.io` | `update` | Required to sync an application |
-| `helmrepositories` | `source.toolkit.fluxcd.io` | `update` | Required to sync an application |
-| `kustomizations` | `kustomize.toolkit.fluxcd.io` | `update` | Required to sync an application |
-| `secrets` |  | `get` | Required to read deploy key secret in order to retrieve the list of commits |
-| `customresourcedefinitions` | `apiextensions.k8s.io` | `get` | Required to read custom resources of type `apps.wego.weave.works` when adding an application  |
+| Resource                    | API Group                     | Action   | Description                                                                                  |
+| --------------------------- | ----------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `apps`                      | `wego.weave.works`            | `list`   | Required to list all applications                                                            |
+| `apps`                      | `wego.weave.works`            | `get`    | Required to retrieve a single application                                                    |
+| `gitrepositories`           | `source.toolkit.fluxcd.io`    | `get`    | Required to retrieve a single application                                                    |
+| `kustomizations`            | `kustomize.toolkit.fluxcd.io` | `get`    | Required to retrieve a single application                                                    |
+| `gitrepositories`           | `source.toolkit.fluxcd.io`    | `update` | Required to sync an application                                                              |
+| `helmrepositories`          | `source.toolkit.fluxcd.io`    | `update` | Required to sync an application                                                              |
+| `kustomizations`            | `kustomize.toolkit.fluxcd.io` | `update` | Required to sync an application                                                              |
+| `secrets`                   |                               | `get`    | Required to read deploy key secret in order to retrieve the list of commits                  |
+| `customresourcedefinitions` | `apiextensions.k8s.io`        | `get`    | Required to read custom resources of type `apps.wego.weave.works` when adding an application |
 
 ## Future development
+
 The GitOps Dashboard is under active development, watch this space for exciting new features.

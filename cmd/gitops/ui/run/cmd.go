@@ -33,6 +33,7 @@ import (
 // Options contains all the options for the `ui run` command.
 type Options struct {
 	Port                          string
+	Host                          string
 	HelmRepoNamespace             string
 	HelmRepoName                  string
 	ProfileCacheLocation          string
@@ -43,7 +44,6 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
-	Insecure                      bool
 	TLSCert                       string
 	TLSKey                        string
 	NoTLS                         bool
@@ -73,6 +73,7 @@ func NewCommand() *cobra.Command {
 	options = Options{}
 
 	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
@@ -83,7 +84,6 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
-	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "allow insecure TLS requests")
 	cmd.Flags().StringVar(&options.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
@@ -255,7 +255,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := net.JoinHostPort("0.0.0.0", options.Port)
+	addr := net.JoinHostPort(options.Host, options.Port)
 
 	srv := &http.Server{
 		Addr:    addr,
@@ -263,7 +263,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	go func() {
-		log.Infof("Serving on port %s", options.Port)
+		log.Infof("Serving on %s", addr)
 
 		if err := ListenAndServe(srv, options, log); err != nil {
 			log.Error(err, "server exited")

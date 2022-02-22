@@ -46,6 +46,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const DefaultHost = "127.0.0.1"
 const DefaultPort = "9001"
 
 var (
