@@ -23,16 +23,16 @@ service Core {
     // Automations
 
     /*
-    * ListKustomization lists Kustomizations from a cluster via GitOps.
-    */
+     * ListKustomization lists Kustomizations from a cluster via GitOps.
+     */
     rpc ListKustomizations(ListKustomizationsRequest) returns (ListKustomizationsResponse) {
         option (google.api.http) = {
             get : "/v1/kustomizations"
         };
     }
     /*
-    * ListHelmReleases lists helm releases from a cluster.
-    */
+     * ListHelmReleases lists helm releases from a cluster.
+     */
     rpc ListHelmReleases(ListHelmReleasesRequest) returns (ListHelmReleasesResponse) {
         option (google.api.http) = {
           get : "/v1/helmreleases"
@@ -42,8 +42,8 @@ service Core {
     // Sources
 
     /*
-    * ListGitRepository lists git repositories objects from a cluster.
-    */
+     * ListGitRepository lists git repositories objects from a cluster.
+     */
     rpc ListGitRepositories(ListGitRepositoriesRequest) returns (ListGitRepositoriesResponse) {
         option (google.api.http) = {
             get : "/v1/gitrepositories"
@@ -51,24 +51,24 @@ service Core {
     }
 
     /*
-    * ListHelmCharts lists helm chart objects from a cluster.
-    */
+     * ListHelmCharts lists helm chart objects from a cluster.
+     */
     rpc ListHelmCharts(ListHelmChartsRequest) returns (ListHelmChartsResponse) {
         option (google.api.http) = {
             get : "/v1/helmcharts"
         };
     }
     /*
-    * ListHelmRepository lists helm repository objects from a cluster.
-    */
+     * ListHelmRepository lists helm repository objects from a cluster.
+     */
     rpc ListHelmRepositories(ListHelmRepositoriesRequest) returns (ListHelmRepositoriesResponse) {
         option (google.api.http) = {
             get : "/v1/helmrepositories"
         };
     }
     /*
-    * ListBuckets lists bucket objects from a cluster.
-    */
+     * ListBuckets lists bucket objects from a cluster.
+     */
     rpc ListBuckets(ListBucketRequest) returns (ListBucketsResponse) {
         option (google.api.http) = {
             get : "/v1/buckets"
@@ -77,11 +77,21 @@ service Core {
 
     // Misc
     /*
-    * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
-    */
+     * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
+     */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest) returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
           get : "/v1/flux_runtime_objects"
+        };
+    }
+
+    /*
+     * GetFluxNamespace returns with a namespace with a specific label.
+     */
+    rpc GetFluxNamespace(GetFluxNamespaceRequest) returns (GetFluxNamespaceResponse) {
+        option (google.api.http) = {
+            post: "/v1/namespace/flux"
+            body: "*"
         };
     }
 }
@@ -140,4 +150,10 @@ message ListHelmChartsRequest {
 
 message ListHelmChartsResponse {
     repeated HelmChart helm_charts = 1;
+}
+
+message GetFluxNamespaceRequest {}
+
+message GetFluxNamespaceResponse {
+  string name = 1;
 }

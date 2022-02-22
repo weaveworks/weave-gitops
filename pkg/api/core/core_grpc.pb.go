@@ -37,8 +37,11 @@ type CoreClient interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error)
 	//
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
+	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
+	//
+	// GetFluxNamespace returns with a namespace with a specific label.
+	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
 }
 
 type coreClient struct {
@@ -112,6 +115,15 @@ func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRun
 	return out, nil
 }
 
+func (c *coreClient) GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error) {
+	out := new(GetFluxNamespaceResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetFluxNamespace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -135,8 +147,11 @@ type CoreServer interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error)
 	//
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
+	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
+	//
+	// GetFluxNamespace returns with a namespace with a specific label.
+	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -164,6 +179,9 @@ func (UnimplementedCoreServer) ListBuckets(context.Context, *ListBucketRequest) 
 }
 func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
+}
+func (UnimplementedCoreServer) GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFluxNamespace not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -304,6 +322,24 @@ func _Core_ListFluxRuntimeObjects_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_GetFluxNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFluxNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetFluxNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetFluxNamespace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetFluxNamespace(ctx, req.(*GetFluxNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -338,6 +374,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxRuntimeObjects",
 			Handler:    _Core_ListFluxRuntimeObjects_Handler,
+		},
+		{
+			MethodName: "GetFluxNamespace",
+			Handler:    _Core_GetFluxNamespace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
