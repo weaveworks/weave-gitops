@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { Application, Applications } from "../api/applications/applications.pb";
+import { Application } from "../api/applications/applications.pb";
+import { Core } from "../api/core/core.pb";
 import { getChildren } from "../graph";
 import { createMockClient } from "../test-utils";
 
@@ -15,9 +16,7 @@ describe("graph lib", () => {
     const name = "stringly";
     const rsName = name + "-7d9b7454c7";
     const podName = rsName + "-mvz75";
-    const appsClient: typeof Applications = createMockClient({
-      ListApplications: () => ({ applications: [app] }),
-      GetApplication: () => ({ application: app }),
+    const client = createMockClient({
       GetReconciledObjects: () => {
         return {
           objects: [
@@ -74,9 +73,13 @@ describe("graph lib", () => {
       },
     });
 
-    const objects = await getChildren(appsClient, app, [
-      { group: "apps", version: "v1", kind: "Deployment" },
-    ]);
+    const objects = await getChildren(
+      // @ts-ignore
+      client as typeof Core,
+      app.name,
+      app.namespace,
+      [{ group: "apps", version: "v1", kind: "Deployment" }]
+    );
 
     expect(objects.length).toEqual(3);
     const dep = _.find(
