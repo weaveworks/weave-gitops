@@ -1,0 +1,27 @@
+on:
+  pull_request:
+    branches:
+      # FIXME
+      - pre-commit-hooks
+  push:
+    branches:
+      # FIXME
+      - pre-commit-hooks
+
+
+name: Run pre-commit hooks
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.X
+    # go vet complains if it can't find anything to embed
+    - run: mkdir -p cmd/gitops/ui/run/dist && touch cmd/gitops/ui/run/dist/embedded-things-go-here
+    # Run the pre-commit hooks not run elsewhere (i.e. golanci-lint & eslint)
+    - uses: pre-commit/action@v2.0.3
+      env:
+        SKIP: eslint,golangci-lint
