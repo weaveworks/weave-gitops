@@ -27,16 +27,14 @@ endif
 ##@ Default target
 all: gitops ## Install dependencies and build Gitops binary
 
+
+TEST_TO_RUN?=./...
 ##@ Test
-unit-tests: dependencies  ## Run unit tests
+unit-tests: dependencies ## Run unit tests
+	@go install github.com/onsi/ginkgo/v2/ginkgo
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
 
-integration-tests: dependencies
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
-
-acceptance-tests: local-registry local-docker-image
-	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -49,8 +47,8 @@ local-docker-image: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 local-docker-image: DOCKER_REGISTRY:=localhost:5001
 local-docker-image: _docker
 
-test: dependencies
-	go test -v ./core/...
+test: TEST_TO_RUN=./core/...
+test: unit-tests
 
 fakes: ## Generate testing fakes
 	go generate ./...
