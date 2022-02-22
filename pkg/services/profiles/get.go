@@ -124,7 +124,7 @@ func kubernetesDoRequest(ctx context.Context, namespace, serviceName, servicePor
 		return nil, err
 	}
 
-	data, err := clientset.CoreV1().Services(namespace).ProxyGet("http", serviceName, servicePort, u.String(), nil).DoRaw(ctx)
+	data, err := clientset.CoreV1().Services(namespace).ProxyGet("https", serviceName, servicePort, u.String(), nil).DoRaw(ctx)
 	if err != nil {
 		if se, ok := err.(*errors.StatusError); ok {
 			return nil, fmt.Errorf("failed to make GET request to service %s/%s path %q status code: %d", namespace, serviceName, path, int(se.Status().Code))
