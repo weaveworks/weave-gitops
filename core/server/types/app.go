@@ -6,9 +6,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const PartOfLabel string = "app.kubernetes.io/part-of"
-const ManagedByLabel string = "app.kubernetes.io/managed-by"
-const CreatedByLabel string = "app.kubernetes.io/created-by"
+const (
+	PartOfLabel    string = "app.kubernetes.io/part-of"
+	ManagedByLabel string = "app.kubernetes.io/managed-by"
+	CreatedByLabel string = "app.kubernetes.io/created-by"
+	InstanceLabel  string = "app.kubernetes.io/instance"
+)
 
 func AppCustomResourceToProto(a *v1alpha2.Application) *pb.App {
 	return &pb.App{

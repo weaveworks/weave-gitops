@@ -11,4 +11,3 @@ special_tarpath="https://storage.googleapis.com/kubebuilder-tools/kubebuilder-to
 [tilt]
 version="0.23.8"
 special_tarpath="https://github.com/tilt-dev/tilt/releases/download/v${version}/tilt.${version}.${goos}.${arch}.tar.gz;tilt"
-bindir="/usr/local/bin"

@@ -61,7 +61,7 @@ api-dev: ## Server and watch gitops-server, will reload automatically on change
 	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
 
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
-	tilt up
+	./tools/bin/tilt up
 
 
 ##@ Build
