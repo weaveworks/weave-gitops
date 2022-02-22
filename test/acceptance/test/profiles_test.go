@@ -72,7 +72,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 
 		By("Getting a list of profiles")
 		Eventually(func() int {
-			resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+			resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, "https", wegoPort, "/v1/profiles", clientSet)
 			return statusCode
 		}, "60s", "1s").Should(Equal(http.StatusOK))
 		Expect(err).NotTo(HaveOccurred())
@@ -102,7 +102,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 `))
 
 		By("Getting the values for a profile")
-		resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles/podinfo/6.0.1/values", clientSet)
+		resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, "https", wegoPort, "/v1/profiles/podinfo/6.0.1/values", clientSet)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(statusCode).To(Equal(http.StatusOK))
 
@@ -126,7 +126,7 @@ Namespace: %s`, clusterName, namespace)))
 
 		By("Verifying that the profile has been installed on the cluster")
 		Eventually(func() int {
-			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "9898", "/healthz", clientSet)
+			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "http", "9898", "/healthz", clientSet)
 			return statusCode
 		}, "120s", "1s").Should(Equal(http.StatusOK))
 
@@ -165,7 +165,7 @@ Namespace: %s`, clusterName, namespace)))
 		time.Sleep(time.Second * 20)
 
 		By("Getting a list of profiles should still work")
-		_, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+		_, statusCode, err := kubernetesDoRequest(namespace, wegoService, "https", wegoPort, "/v1/profiles", clientSet)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(statusCode).To(Equal(http.StatusOK))
 
@@ -232,13 +232,13 @@ func deployProfilesHelmRepository(rawClient client.Client, namespace string) {
 	}, "10s", "1s").Should(Succeed())
 }
 
-func kubernetesDoRequest(namespace, serviceName, servicePort, path string, clientset *kubernetes.Clientset) ([]byte, int, error) {
+func kubernetesDoRequest(namespace, serviceName, scheme, servicePort, path string, clientset *kubernetes.Clientset) ([]byte, int, error) {
 	u, err := url.Parse(path)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	responseWrapper := clientset.CoreV1().Services(namespace).ProxyGet("https", serviceName, servicePort, u.String(), nil)
+	responseWrapper := clientset.CoreV1().Services(namespace).ProxyGet(scheme, serviceName, servicePort, u.String(), nil)
 
 	data, err := responseWrapper.DoRaw(context.TODO())
 	if err != nil {

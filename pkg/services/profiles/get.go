@@ -37,7 +37,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
 }
 
 func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
-	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, servicePort, getProfilesPath, clientset)
+	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, "https", servicePort, getProfilesPath, clientset)
 	if err != nil {
 		return nil, err
 	}
@@ -118,13 +118,13 @@ func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {
 	}
 }
 
-func kubernetesDoRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) ([]byte, error) {
+func kubernetesDoRequest(ctx context.Context, namespace, serviceName, scheme, servicePort, path string, clientset kubernetes.Interface) ([]byte, error) {
 	u, err := url.Parse(path)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := clientset.CoreV1().Services(namespace).ProxyGet("https", serviceName, servicePort, u.String(), nil).DoRaw(ctx)
+	data, err := clientset.CoreV1().Services(namespace).ProxyGet(scheme, serviceName, servicePort, u.String(), nil).DoRaw(ctx)
 	if err != nil {
 		if se, ok := err.(*errors.StatusError); ok {
 			return nil, fmt.Errorf("failed to make GET request to service %s/%s path %q status code: %d", namespace, serviceName, path, int(se.Status().Code))
