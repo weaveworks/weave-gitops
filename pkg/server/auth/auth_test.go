@@ -13,6 +13,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -134,4 +135,10 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 	if !strings.HasPrefix(res.Result().Header.Get("Location"), authCodeURL) {
 		t.Errorf("expected Location header URL to include scopes %s but does not: %s", authCodeURL, res.Result().Header.Get("Location"))
 	}
+}
+
+func TestIsPublicRoute(t *testing.T) {
+	assert.True(t, auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "/foob"}, []string{"/foo"}))
 }
