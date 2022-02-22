@@ -289,7 +289,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo, providerName, org)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
+	err = utils.WaitUntil(os.Stdout, time.Second*3, THIRTY_SECOND_TIMEOUT, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
             git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
@@ -553,14 +553,13 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 	}
 }
 
-func waitForAppRemoval(appName string, timeout time.Duration) error {
+func waitForAppRemoval(appName string) error {
 	pollInterval := time.Second * 5
-	timeoutInSeconds := int(timeout.Seconds())
 
-	errOut := utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
+	errOut := utils.WaitUntil(os.Stdout, pollInterval, EVENTUALLY_DEFAULT_TIMEOUT, func() error {
 		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("%s get apps", gitopsBinaryPath))
 		if strings.Contains(out, appName) {
-			return fmt.Errorf("Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
+			return fmt.Errorf("Waiting to delete app: %s || timeout: %d second(s)", appName, EVENTUALLY_DEFAULT_TIMEOUT)
 		} else {
 			log.Infof("App %s successfully deleted", appName)
 			return nil
@@ -677,7 +676,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10, 1).Should(gexec.Exit())
+	Eventually(session, THIRTY_SECOND_TIMEOUT, 1).Should(gexec.Exit())
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
