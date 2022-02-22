@@ -586,3 +586,42 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier 
 // Add tests for verifying the token on the Userinfo handler
 
 // Create middleware to validate token (whether OIDC or superuser)
+
+func TestLogoutSuccess(t *testing.T) {
+	s, _ := makeAuthServer(t, nil, nil)
+
+	w := httptest.NewRecorder()
+
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil)
+	s.Logout().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
+	}
+
+	cookie := &http.Cookie{}
+
+	for _, c := range resp.Cookies() {
+		if c.Name == auth.IDTokenCookieName {
+			cookie = c
+			break
+		}
+	}
+
+	assert.Equal(t, cookie.Value, "")
+}
+
+func TestLogoutWithWrongMethod(t *testing.T) {
+	s, _ := makeAuthServer(t, nil, nil)
+
+	w := httptest.NewRecorder()
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/logout", nil)
+	s.Logout().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
+	}
+}
