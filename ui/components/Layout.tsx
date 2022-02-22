@@ -95,7 +95,7 @@ const NavContent = styled.div`
   }
   ${Link} {
     justify-content: flex-start;
-    &.sub-item: {
+    &.sub-item {
       font-weight: 400;
     }
   }
