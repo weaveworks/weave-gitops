@@ -75,6 +75,36 @@ To set up a development environment for the CLI
 6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
 7. make or make unit-tests to ensure everything built correctly.
 
+### Pre-commit hooks
+
+This repo has [pre-commit hooks](https://pre-commit.com/) configured on it, they are run by github action for every pull request, that being said it is recommend you also install them locally as they'll run as you work. First install the [pre-commit](https://pre-commit.com/#install) tool:
+```bash
+$ pip install pre-commit
+# or
+$ brew install pre-commit
+# or
+$ conda install -c conda-forge pre-commit
+```
+
+Once the tool is installed you need to install this repo's hooks:
+```bash
+$ pre-commit install
+```
+
+Once the hooks are installed they will run on every commit but only against files that are currently staged. If you need to disable checks to make a commit you can set the `SKIP` environment variable to skip a specific check (based on its id) or by using the `-n/--no-verify` flag, e.g.:
+```bash
+$ SKIP=go-vet git commit -m "create an unreachable file, we'll fix later"
+# or
+$ git commit -n -m "I'm copying in code that I'll fix up later"
+```
+
+The hooks can also be run using:
+```bash
+$ make lint
+# or
+$ pre-commit run [--all] [id] # --all will run against every file, not just staged ones
+```
+
 ### Cluster Dev Tips
 
 - You may need to turn off your `kustomize-controller` to prevent it from reconciling your "GitOps RunTime" and over-writing the `wego-app` deployment.
