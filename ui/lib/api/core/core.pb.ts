@@ -84,6 +84,7 @@ export type GetReconciledObjectsResponse = {
 
 export type GetChildObjectsRequest = {
   groupVersionKind?: Gitops_coreV1Types.GroupVersionKind
+  namespace?: string
   parentUid?: string
 }
 

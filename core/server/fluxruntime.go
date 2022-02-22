@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/kustomize/kstatus/status"
 
@@ -126,4 +127,58 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	}
 
 	return &pb.GetReconciledObjectsResponse{Objects: objects}, nil
+}
+
+func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	l := unstructured.UnstructuredList{}
+
+	l.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   msg.GroupVersionKind.Group,
+		Version: msg.GroupVersionKind.Version,
+		Kind:    msg.GroupVersionKind.Kind,
+	})
+
+	if err := list(ctx, k8s, "", msg.Namespace, &l); err != nil {
+		return nil, fmt.Errorf("could not get unstructured object: %s", err)
+	}
+
+	objects := []*pb.UnstructuredObject{}
+
+Items:
+	for _, obj := range l.Items {
+
+		refs := obj.GetOwnerReferences()
+
+		for _, ref := range refs {
+			if ref.UID != types.UID(msg.ParentUid) {
+				// Assuming all owner references have the same parent UID,
+				// this is not the child we are looking for.
+				// Skip the rest of the operations in Items loops.
+				continue Items
+			}
+		}
+
+		statusResult, err := status.Compute(&obj)
+		if err != nil {
+			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
+		}
+		objects = append(objects, &pb.UnstructuredObject{
+			GroupVersionKind: &pb.GroupVersionKind{
+				Group:   obj.GetObjectKind().GroupVersionKind().Group,
+				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
+				Kind:    obj.GetKind(),
+			},
+			Name:      obj.GetName(),
+			Namespace: obj.GetNamespace(),
+			Status:    statusResult.Status.String(),
+			Uid:       string(obj.GetUID()),
+		})
+	}
+
+	return &pb.GetChildObjectsResponse{Objects: objects}, nil
 }
