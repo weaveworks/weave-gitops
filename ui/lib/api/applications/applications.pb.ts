@@ -264,6 +264,13 @@ export type ValidateProviderTokenResponse = {
   valid?: boolean
 }
 
+export type GetConfigRequest = {
+}
+
+export type GetConfigResponse = {
+  flags?: {[key: string]: string}
+}
+
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -309,5 +316,8 @@ export class Applications {
   }
   static ValidateProviderToken(req: ValidateProviderTokenRequest, initReq?: fm.InitReq): Promise<ValidateProviderTokenResponse> {
     return fm.fetchReq<ValidateProviderTokenRequest, ValidateProviderTokenResponse>(`/v1/applications/validate_token`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
+    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

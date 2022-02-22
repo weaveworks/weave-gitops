@@ -570,6 +570,29 @@
           "Applications"
         ]
       }
+    },
+    "/v1/config": {
+      "get": {
+        "summary": "Config returns configuration information about the server",
+        "operationId": "Applications_GetConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Applications"
+        ]
+      }
     }
   },
   "definitions": {
@@ -788,6 +811,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetConfigResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

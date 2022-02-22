@@ -718,6 +718,14 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 	}, nil
 }
 
+func (s *applicationServer) GetConfig(ctx context.Context, msg *pb.GetConfigRequest) (*pb.GetConfigResponse, error) {
+	return &pb.GetConfigResponse{
+		Flags: map[string]string{
+			"WEAVE_GITOPS_AUTH_ENABLED": os.Getenv("WEAVE_GITOPS_AUTH_ENABLED"),
+		},
+	}, nil
+}
+
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	if helm == nil {
 		return nil
