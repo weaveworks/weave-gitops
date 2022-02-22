@@ -31,10 +31,10 @@ require (
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.16.0
+	github.com/onsi/gomega v1.17.0
 	github.com/ory/go-acc v0.2.6
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
@@ -66,6 +66,7 @@ require (
 	github.com/gofrs/flock v0.8.1
 	github.com/google/uuid v1.3.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
+	github.com/onsi/ginkgo/v2 v2.1.3
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -180,7 +181,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
@@ -232,7 +232,6 @@ require (
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.2 // indirect

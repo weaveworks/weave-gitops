@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
 )

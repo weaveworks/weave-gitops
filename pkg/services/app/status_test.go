@@ -7,7 +7,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
