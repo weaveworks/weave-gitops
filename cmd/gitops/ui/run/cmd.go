@@ -90,20 +90,25 @@ func NewCommand() *cobra.Command {
 }
 
 func preRunCmd(cmd *cobra.Command, args []string) error {
-	if server.AuthEnabled() {
-		if options.OIDC.IssuerURL == "" {
+	issuerURL := options.OIDC.IssuerURL
+	clientID := options.OIDC.ClientID
+	clientSecret := options.OIDC.ClientSecret
+	redirectURL := options.OIDC.RedirectURL
+
+	if issuerURL != "" || clientID != "" || clientSecret != "" || redirectURL != "" {
+		if issuerURL == "" {
 			return cmderrors.ErrNoIssuerURL
 		}
 
-		if options.OIDC.ClientID == "" {
+		if clientID == "" {
 			return cmderrors.ErrNoClientID
 		}
 
-		if options.OIDC.ClientSecret == "" {
+		if clientSecret == "" {
 			return cmderrors.ErrNoClientSecret
 		}
 
-		if options.OIDC.RedirectURL == "" {
+		if redirectURL == "" {
 			return cmderrors.ErrNoRedirectURL
 		}
 	}
@@ -234,11 +239,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		// This will return a 404 on normal page requests, ie /some-page.
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
-			if server.AuthEnabled() {
-				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
-			} else {
-				redirector(w, req)
-			}
+			redirector(w, req)
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
