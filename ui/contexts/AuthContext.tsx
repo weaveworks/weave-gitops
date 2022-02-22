@@ -37,6 +37,7 @@ export type AuthContext = {
   };
   error: { status: number; statusText: string };
   loading: boolean;
+  logOut: () => void;
 };
 
 export const Auth = React.createContext<AuthContext | null>(null);
@@ -81,11 +82,10 @@ export default function AuthContextProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const logOut = React.useCallback((data) => {
+  const logOut = React.useCallback(() => {
     setLoading(true);
     fetch(LOG_OUT, {
       method: "POST",
-      body: JSON.stringify(data),
     })
       .then((response) => {
         if (response.status !== 200) {
@@ -109,6 +109,7 @@ export default function AuthContextProvider({ children }) {
         userInfo,
         error,
         loading,
+        logOut,
       }}
     >
       {children}

@@ -1,5 +1,4 @@
 import {
-  Avatar,
   IconButton,
   ListItemIcon,
   Menu,
@@ -15,11 +14,16 @@ const UserAvatar = styled(Icon)`
   padding-right: ${(props) => props.theme.spacing.medium};
 `;
 
-const SettingsMenu = styled(Menu)``;
+const SettingsMenu = styled(Menu)`
+  .MuiListItemIcon-root {
+    min-width: 25px;
+    color: ${(props) => props.theme.colors.black};
+  }
+`;
 
 function UserSettings() {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { userInfo } = React.useContext(Auth);
+  const { userInfo, logOut } = React.useContext(Auth);
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -48,11 +52,12 @@ function UserSettings() {
         onClose={handleClose}
         onClick={handleClose}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem>Hello, {userInfo.email}</MenuItem>
-        <MenuItem>
-          <ListItemIcon>{/* <Logout fontSize="small" /> */}</ListItemIcon>
+        <MenuItem>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem onClick={() => logOut()}>
+          <ListItemIcon>
+            <Icon type={IconType.LogoutIcon} size="base" />
+          </ListItemIcon>
           Logout
         </MenuItem>
       </SettingsMenu>
