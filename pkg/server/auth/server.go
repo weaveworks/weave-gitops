@@ -343,8 +343,6 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 		returnUrl = r.URL.String()
 	}
 
-	fmt.Printf("return url:%v\n", returnUrl)
-
 	b, err := json.Marshal(SessionState{
 		Nonce:     nonce,
 		ReturnURL: returnUrl,
