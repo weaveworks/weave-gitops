@@ -14,6 +14,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -98,8 +99,14 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 		})
 
 		if err := k8s.List(ctx, &l, opts, client.InNamespace(msg.Namespace)); err != nil {
-			// return nil, fmt.Errorf("could not get unstructured list: %s", err)
-			continue
+			if k8serrors.IsForbidden(err) {
+				// Our service account (or impersonated user) may not have the ability to see the resource in question,
+				// in the given namespace.
+				// We pretend it doesn't exist and keep looping.
+				continue
+			}
+
+			return nil, fmt.Errorf("listing unstructured object: %w", err)
 		}
 
 		result = append(result, l.Items...)

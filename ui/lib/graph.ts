@@ -2,11 +2,10 @@
 // with in the context of their parent-child relationships.
 import _ from "lodash";
 import {
-  Application,
-  Applications,
   GroupVersionKind,
   UnstructuredObject,
 } from "./api/applications/applications.pb";
+import { Core } from "./api/core/core.pb";
 
 export type UnstructuredObjectWithParent = UnstructuredObject & {
   parentUid?: string;
@@ -32,7 +31,8 @@ export const PARENT_CHILD_LOOKUP = {
 };
 
 export const getChildrenRecursive = async (
-  appsClient: typeof Applications,
+  client: typeof Core,
+  namespace: string,
   result: UnstructuredObjectWithParent[],
   object: UnstructuredObjectWithParent,
   lookup: any
@@ -45,8 +45,9 @@ export const getChildrenRecursive = async (
     for (let i = 0; i < k.children.length; i++) {
       const child: GroupVersionKind = k.children[i];
 
-      const res = await appsClient.GetChildObjects({
+      const res = await client.GetChildObjects({
         parentUid: object.uid,
+        namespace,
         groupVersionKind: child,
       });
 
@@ -55,7 +56,8 @@ export const getChildrenRecursive = async (
 
         // Dive down one level and update the lookup accordingly.
         await getChildrenRecursive(
-          appsClient,
+          client,
+          namespace,
           result,
           { ...c, parentUid: object.uid },
           {
@@ -69,13 +71,14 @@ export const getChildrenRecursive = async (
 
 // Gets the "child" objects that result from an Application
 export const getChildren = async (
-  appsClient: typeof Applications,
-  app: Application,
+  client: typeof Core,
+  automationName,
+  namespace,
   kinds: GroupVersionKind[]
 ): Promise<UnstructuredObject[]> => {
-  const { objects } = await appsClient.GetReconciledObjects({
-    automationName: app.name,
-    automationNamespace: app.namespace,
+  const { objects } = await client.GetReconciledObjects({
+    automationName,
+    namespace,
     kinds,
   });
 
@@ -83,7 +86,13 @@ export const getChildren = async (
   for (let o = 0; o < objects.length; o++) {
     const obj = objects[o];
 
-    await getChildrenRecursive(appsClient, result, obj, PARENT_CHILD_LOOKUP);
+    await getChildrenRecursive(
+      client,
+      namespace,
+      result,
+      obj,
+      PARENT_CHILD_LOOKUP
+    );
   }
 
   return _.flatten(result);
