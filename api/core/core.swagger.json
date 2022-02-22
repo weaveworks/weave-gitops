@@ -849,6 +849,12 @@
         },
         "status": {
           "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

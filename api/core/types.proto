@@ -129,9 +129,10 @@ enum AutomationKind {
 
 // UnstructuredObject is a Kubernetes object of an unknown type
 message UnstructuredObject {
-    GroupVersionKind groupVersionKind = 1;
-    string           name             = 2;
-    string           namespace        = 3;
-    string           uid              = 4;
-    string           status           = 5;
+    GroupVersionKind groupVersionKind     = 1;
+    string           name                 = 2;
+    string           namespace            = 3;
+    string           uid                  = 4;
+    string           status               = 5;
+    repeated         Condition conditions = 6;
 }
