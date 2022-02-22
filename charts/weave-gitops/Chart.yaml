@@ -1,5 +1,5 @@
 apiVersion: v2
 name: weave-gitops
-description: A Helm chart for Kubernetes
+description: A Helm chart for Weave Gitops
 version: 1.0.0
 appVersion: "v0.6.2"
