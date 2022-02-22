@@ -31,6 +31,7 @@ const (
 // the authentication flow completes.
 func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 	mux.Handle(prefix+"/callback", srv)
+	mux.Handle(prefix+"/logout", srv.Logout())
 }
 
 type principalCtxKey struct{}
