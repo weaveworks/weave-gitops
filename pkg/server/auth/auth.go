@@ -33,8 +33,6 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 	mux.Handle(prefix+"/sign_in", srv.SignIn())
 	mux.Handle(prefix+"/userinfo", srv.UserInfo())
 	mux.Handle(prefix+"/logout", srv.Logout())
-	// mux.Handle(prefix+"/config", srv.GetAuthConfig())
-
 }
 
 type principalCtxKey struct{}

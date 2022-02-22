@@ -30,7 +30,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
 export default function App() {
-  const [authFlag, setAuthFlag] = React.useState<string>(null);
+  const [authFlag, setAuthFlag] = React.useState<boolean>(null);
 
   const App = (
     <AppContextProvider renderFooter applicationsClient={appsClient}>
@@ -93,11 +93,13 @@ export default function App() {
   );
 
   const getAuthFlag = React.useCallback(() => {
-    fetch("./config")
-      .then((response) => {
-        return response.json();
+    fetch("/v1/featureflags")
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true") {
+          setAuthFlag(true);
+        }
       })
-      .then((data) => setAuthFlag(data.flag))
       .catch((err) => console.log(err));
   }, []);
 
@@ -111,7 +113,7 @@ export default function App() {
         <Fonts />
         <GlobalStyle />
         <Router>
-          {!authFlag ? (
+          {authFlag ? (
             <AuthContextProvider>
               <Switch>
                 {/* <Signin> does not use the base page <Layout> so pull it up here */}
