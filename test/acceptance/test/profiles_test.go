@@ -238,7 +238,7 @@ func kubernetesDoRequest(namespace, serviceName, servicePort, path string, clien
 		return nil, 0, err
 	}
 
-	responseWrapper := clientset.CoreV1().Services(namespace).ProxyGet("https", serviceName, servicePort, u.String(), nil)
+	responseWrapper := clientset.CoreV1().Services(namespace).ProxyGet("http", serviceName, servicePort, u.String(), nil)
 
 	data, err := responseWrapper.DoRaw(context.TODO())
 	if err != nil {
