@@ -22,11 +22,27 @@ const (
 
 type ProfilesService interface {
 	// Add installs a profile on a cluster
-	Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts AddOptions) error
+	Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error
 	// Get lists all the available profiles in a cluster
 	Get(ctx context.Context, opts GetOptions) error
 	// Update updates a profile
-	Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts UpdateOptions) error
+	Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error
+}
+
+type Options struct {
+	Name         string
+	Cluster      string
+	ConfigRepo   string
+	Version      string
+	ProfilesPort string
+	Namespace    string
+	Kubeconfig   string
+	AutoMerge    bool
+	HeadBranch   string
+	BaseBranch   string
+	Message      string
+	Title        string
+	Description  string
 }
 
 type ProfilesSvc struct {

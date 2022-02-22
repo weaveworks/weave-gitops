@@ -3,6 +3,7 @@ package profiles
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -15,22 +16,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const AddCommitMessage = "Add Profile manifests"
-
-type AddOptions struct {
-	Name         string
-	Cluster      string
-	ConfigRepo   string
-	Version      string
-	ProfilesPort string
-	Namespace    string
-	Kubeconfig   string
-	AutoMerge    bool
-}
+const AddCommitMessage = "Add profile manifests"
 
 // Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
 // provided that such a HelmRelease does not exist with the same profile name and version in the same namespace and cluster.
-func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts AddOptions) error {
+func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -74,18 +64,11 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	}
 
 	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, prInfo(opts, "add", defaultBranch, gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}))
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
-		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
-		Description:   fmt.Sprintf("Add manifest for %s profile", opts.Name),
-		CommitMessage: AddCommitMessage,
-		TargetBranch:  defaultBranch,
-		NewBranch:     uuid.New().String(),
-		Files: []gitprovider.CommitFile{{
-			Path:    &path,
-			Content: &content,
-		}},
-	})
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
@@ -105,7 +88,44 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	return nil
 }
 
-func (s *ProfilesSvc) printAddSummary(opts AddOptions) {
+func prInfo(opts Options, action, defaultBranch string, commitFile gitprovider.CommitFile) gitproviders.PullRequestInfo {
+	title := fmt.Sprintf("GitOps %s %s", action, opts.Name)
+
+	if opts.Title != "" {
+		title = opts.Title
+	}
+
+	description := fmt.Sprintf("%s manifest for %s profile", strings.Title(action), opts.Name)
+	if opts.Description != "" {
+		description = opts.Description
+	}
+
+	commitMessage := fmt.Sprintf("%s profile manifests", strings.Title(action))
+	if opts.Message != "" {
+		commitMessage = opts.Message
+	}
+
+	headBranch := defaultBranch
+	if opts.HeadBranch != "" {
+		headBranch = opts.HeadBranch
+	}
+
+	newBranch := uuid.New().String()
+	if opts.BaseBranch != "" {
+		newBranch = opts.BaseBranch
+	}
+
+	return gitproviders.PullRequestInfo{
+		Title:         title,
+		Description:   description,
+		CommitMessage: commitMessage,
+		TargetBranch:  headBranch,
+		NewBranch:     newBranch,
+		Files:         []gitprovider.CommitFile{commitFile},
+	}
+}
+
+func (s *ProfilesSvc) printAddSummary(opts Options) {
 	s.Logger.Println("Adding profile:\n")
 	s.Logger.Println("Name: %s", opts.Name)
 	s.Logger.Println("Version: %s", opts.Version)

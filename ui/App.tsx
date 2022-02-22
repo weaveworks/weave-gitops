@@ -30,95 +30,101 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
 export default function App() {
+  const [authFlag, setAuthFlag] = React.useState<string>(null);
+
+  const App = (
+    <AppContextProvider renderFooter applicationsClient={appsClient}>
+      <Layout>
+        <ErrorBoundary>
+          <Switch>
+            <Route
+              exact
+              path={PageRoute.Applications}
+              component={Applications}
+            />
+            <Route
+              exact
+              path={PageRoute.ApplicationDetail}
+              component={({ location }) => {
+                const params = qs.parse(location.search);
+
+                return <ApplicationDetail name={params.name as string} />;
+              }}
+            />
+            <Route
+              exact
+              path={PageRoute.ApplicationAdd}
+              component={ApplicationAdd}
+            />
+            <Route
+              exact
+              path={PageRoute.GitlabOAuthCallback}
+              component={({ location }) => {
+                const params = qs.parse(location.search);
+
+                return (
+                  <OAuthCallback
+                    provider={GitProvider.GitLab}
+                    code={params.code as string}
+                  />
+                );
+              }}
+            />
+            <Route
+              exact
+              path={PageRoute.ApplicationRemove}
+              component={({ location }) => {
+                const params = qs.parse(location.search);
+
+                return <ApplicationRemove name={params.name as string} />;
+              }}
+            />
+            <Redirect exact from="/" to={PageRoute.Applications} />
+            <Route exact path="*" component={Error} />
+          </Switch>
+        </ErrorBoundary>
+        <ToastContainer
+          position="top-center"
+          autoClose={5000}
+          newestOnTop={false}
+        />
+      </Layout>
+    </AppContextProvider>
+  );
+
+  const getAuthFlag = React.useCallback(() => {
+    fetch("./config")
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => setAuthFlag(data.flag))
+      .catch((err) => console.log(err));
+  }, []);
+
+  React.useEffect(() => {
+    getAuthFlag();
+  }, [getAuthFlag]);
+
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
         <Fonts />
         <GlobalStyle />
         <Router>
-          <AuthContextProvider>
-            <Switch>
-              {/* <Signin> does not use the base page <Layout> so pull it up here */}
-              <Route component={SignIn} exact={true} path="/sign_in" />
-              <Route path="*">
-                {/* Check we've got a logged in user otherwise redirect back to signin */}
-                <AuthCheck>
-                  <AppContextProvider
-                    renderFooter
-                    applicationsClient={appsClient}
-                  >
-                    <Layout>
-                      <ErrorBoundary>
-                        <Switch>
-                          <Route
-                            exact
-                            path={PageRoute.Applications}
-                            component={Applications}
-                          />
-                          <Route
-                            exact
-                            path={PageRoute.ApplicationDetail}
-                            component={({ location }) => {
-                              const params = qs.parse(location.search);
-
-                              return (
-                                <ApplicationDetail
-                                  name={params.name as string}
-                                />
-                              );
-                            }}
-                          />
-                          <Route
-                            exact
-                            path={PageRoute.ApplicationAdd}
-                            component={ApplicationAdd}
-                          />
-                          <Route
-                            exact
-                            path={PageRoute.GitlabOAuthCallback}
-                            component={({ location }) => {
-                              const params = qs.parse(location.search);
-
-                              return (
-                                <OAuthCallback
-                                  provider={GitProvider.GitLab}
-                                  code={params.code as string}
-                                />
-                              );
-                            }}
-                          />
-                          <Route
-                            exact
-                            path={PageRoute.ApplicationRemove}
-                            component={({ location }) => {
-                              const params = qs.parse(location.search);
-
-                              return (
-                                <ApplicationRemove
-                                  name={params.name as string}
-                                />
-                              );
-                            }}
-                          />
-                          <Redirect
-                            exact
-                            from="/"
-                            to={PageRoute.Applications}
-                          />
-                          <Route exact path="*" component={Error} />
-                        </Switch>
-                      </ErrorBoundary>
-                      <ToastContainer
-                        position="top-center"
-                        autoClose={5000}
-                        newestOnTop={false}
-                      />
-                    </Layout>
-                  </AppContextProvider>
-                </AuthCheck>
-              </Route>
-            </Switch>
-          </AuthContextProvider>
+          {!authFlag ? (
+            <AuthContextProvider>
+              <Switch>
+                {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                <Route component={SignIn} exact={true} path="/sign_in" />
+                <Route path="*">
+                  {/* Check we've got a logged in user otherwise redirect back to signin */}
+                  <AuthCheck>{App}</AuthCheck>
+                </Route>
+              </Switch>
+            </AuthContextProvider>
+          ) : (
+            App
+          )}
         </Router>
       </ThemeProvider>
     </MuiThemeProvider>

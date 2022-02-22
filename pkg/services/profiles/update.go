@@ -11,24 +11,12 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/google/uuid"
 )
 
-const UpdateCommitMessage = "Update Profile manifests"
-
-type UpdateOptions struct {
-	Name         string
-	Cluster      string
-	ConfigRepo   string
-	Version      string
-	ProfilesPort string
-	Namespace    string
-	Kubeconfig   string
-	AutoMerge    bool
-}
+const UpdateCommitMessage = "Update profile manifests"
 
 // Update updates an installed profile
-func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts UpdateOptions) error {
+func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -71,17 +59,10 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 
 	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
 
-	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, gitproviders.PullRequestInfo{
-		Title:         fmt.Sprintf("GitOps update %s", opts.Name),
-		Description:   fmt.Sprintf("Update manifest for %s profile", opts.Name),
-		CommitMessage: UpdateCommitMessage,
-		TargetBranch:  defaultBranch,
-		NewBranch:     uuid.New().String(),
-		Files: []gitprovider.CommitFile{{
-			Path:    &path,
-			Content: &content,
-		}},
-	})
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, prInfo(opts, "update", defaultBranch, gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}))
 	if err != nil {
 		return fmt.Errorf("failed to create pull request: %s", err)
 	}
@@ -101,7 +82,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 	return nil
 }
 
-func (s *ProfilesSvc) printUpdateSummary(opts UpdateOptions) {
+func (s *ProfilesSvc) printUpdateSummary(opts Options) {
 	s.Logger.Println("Updating profile:\n")
 	s.Logger.Println("Name: %s", opts.Name)
 	s.Logger.Println("Version: %s", opts.Version)
