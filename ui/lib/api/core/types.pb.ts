@@ -131,4 +131,5 @@ export type UnstructuredObject = {
   namespace?: string
   uid?: string
   status?: string
+  conditions?: Condition[]
 }

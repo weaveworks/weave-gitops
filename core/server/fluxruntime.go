@@ -89,19 +89,20 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	result := []unstructured.Unstructured{}
 
 	for _, gvk := range msg.Kinds {
-		list := unstructured.UnstructuredList{}
+		l := unstructured.UnstructuredList{}
 
-		list.SetGroupVersionKind(schema.GroupVersionKind{
+		l.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   gvk.Group,
 			Kind:    gvk.Kind,
 			Version: gvk.Version,
 		})
 
-		if err := k8s.List(ctx, &list, opts, client.InNamespace(msg.Namespace)); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s", err)
+		if err := k8s.List(ctx, &l, opts, client.InNamespace(msg.Namespace)); err != nil {
+			// return nil, fmt.Errorf("could not get unstructured list: %s", err)
+			continue
 		}
 
-		result = append(result, list.Items...)
+		result = append(result, l.Items...)
 	}
 
 	objects := []*pb.UnstructuredObject{}
@@ -119,10 +120,11 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    res.Status.String(),
-			Uid:       string(obj.GetUID()),
+			Name:       obj.GetName(),
+			Namespace:  obj.GetNamespace(),
+			Status:     res.Status.String(),
+			Uid:        string(obj.GetUID()),
+			Conditions: mapUnstructuredConditions(res),
 		})
 	}
 
@@ -173,12 +175,23 @@ Items:
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    statusResult.Status.String(),
-			Uid:       string(obj.GetUID()),
+			Name:       obj.GetName(),
+			Namespace:  obj.GetNamespace(),
+			Status:     statusResult.Status.String(),
+			Uid:        string(obj.GetUID()),
+			Conditions: mapUnstructuredConditions(statusResult),
 		})
 	}
 
 	return &pb.GetChildObjectsResponse{Objects: objects}, nil
+}
+
+func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
+	conds := []*pb.Condition{}
+
+	if result.Status == status.CurrentStatus {
+		conds = append(conds, &pb.Condition{Type: "Ready", Status: "True", Message: result.Message})
+	}
+
+	return conds
 }
