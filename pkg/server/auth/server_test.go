@@ -583,6 +583,71 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier 
 	return s, m
 }
 
-// Add tests for verifying the token on the Userinfo handler
+// func TestLogoutSuccess(t *testing.T) {
+// 	m, err := mockoidc.Run()
+// 	if err != nil {
+// 		t.Errorf("failed to create mock OIDC server: %v", err)
+// 	}
 
-// Create middleware to validate token (whether OIDC or superuser)
+// 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
+// 		OIDCConfig: auth.OIDCConfig{
+// 			ClientID:     m.Config().ClientID,
+// 			ClientSecret: m.Config().ClientSecret,
+// 			IssuerURL:    m.Config().Issuer,
+// 		},
+// 		CookieConfig: auth.CookieConfig{
+// 			CookieDuration: 5,
+// 		},
+// 	}, client, tokenSignerVerifier)
+
+// 	assert.Nil(t, err)
+
+// 	w := httptest.NewRecorder()
+
+// 	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil)
+// 	s.Logout().ServeHTTP(w, req)
+
+// 	resp := w.Result()
+// 	if resp.StatusCode != http.StatusOK {
+// 		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
+// 	}
+
+// 	cookie := &http.Cookie{}
+
+// 	for _, c := range resp.Cookies() {
+// 		if c.Name == auth.IDTokenCookieName {
+// 			cookie = c
+// 			break
+// 		}
+// 	}
+
+// 	assert.Equal(t, cookie.Value, "")
+// }
+
+// func TestLogoutWithWrongMethod(t *testing.T) {
+// 	m, err := mockoidc.Run()
+// 	if err != nil {
+// 		t.Errorf("failed to create mock OIDC server: %v", err)
+// 	}
+
+// 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
+// 		OIDCConfig: auth.OIDCConfig{
+// 			IssuerURL: m.Config().Issuer,
+// 		},
+// 		CookieConfig: auth.CookieConfig{
+// 			CookieDuration: 5,
+// 		},
+// 	})
+
+// 	assert.Nil(t, err)
+
+// 	w := httptest.NewRecorder()
+
+// 	req := httptest.NewRequest(http.MethodGet, "https://example.com/logout", nil)
+// 	s.Logout().ServeHTTP(w, req)
+
+// 	resp := w.Result()
+// 	if resp.StatusCode != http.StatusMethodNotAllowed {
+// 		t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
+// 	}
+// }
