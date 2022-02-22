@@ -9,4 +9,5 @@ var (
 	ErrNoClientID     = errors.New("the OIDC client ID flag (--oidc-client-id) has not been set")
 	ErrNoClientSecret = errors.New("the OIDC client secret flag (--oidc-client-secret) has not been set")
 	ErrNoRedirectURL  = errors.New("the OIDC redirect URL flag (--oidc-redirect-url) has not been set")
+	ErrNoTLSCertOrKey = errors.New("both tls private key and cert must be specified")
 )

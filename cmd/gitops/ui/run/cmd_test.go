@@ -1,13 +1,16 @@
 package run_test
 
 import (
+	"net/http"
 	"os"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/ui/run"
 )
 
 func TestNoClientID(t *testing.T) {
@@ -56,4 +59,13 @@ func TestNoRedirectURL(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.ErrorIs(t, err, cmderrors.ErrNoRedirectURL)
+}
+
+func TestMissingTLSKeyOrCert(t *testing.T) {
+	log := logrus.New()
+	err := run.ListenAndServe(&http.Server{}, run.Options{TLSCert: "foo"}, log)
+	assert.ErrorIs(t, err, cmderrors.ErrNoTLSCertOrKey)
+
+	err = run.ListenAndServe(&http.Server{}, run.Options{TLSKey: "bar"}, log)
+	assert.ErrorIs(t, err, cmderrors.ErrNoTLSCertOrKey)
 }

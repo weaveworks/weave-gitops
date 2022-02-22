@@ -3,7 +3,6 @@ package run
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"io/fs"
 	"net"
@@ -136,7 +135,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		_, err := w.Write([]byte("ok"))
 
 		if err != nil {
-			log.Errorf("error writing health check: %w", err)
+			log.Errorf("error writing health check: %s", err)
 		}
 	}))
 
@@ -266,7 +265,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := listenAndServe(srv, options, log); err != nil {
+		if err := ListenAndServe(srv, options, log); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
@@ -305,7 +304,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) error {
+func ListenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) error {
 	if options.NoTLS {
 		log.Info("TLS connections disabled")
 		return srv.ListenAndServe()
@@ -326,7 +325,7 @@ func listenAndServe(srv *http.Server, options Options, log logrus.FieldLogger) e
 	}
 
 	if options.TLSCert == "" || options.TLSKey == "" {
-		return errors.New("both tls private key and cert must be specified")
+		return cmderrors.ErrNoTLSCertOrKey
 	}
 
 	log.Infof("Using TLS from %q and %q", options.TLSCert, options.TLSKey)
