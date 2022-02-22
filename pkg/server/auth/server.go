@@ -317,12 +317,6 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 	}
 }
 
-
-// func (s *AuthServer) GetAuthConfig() (string) {
-// 	authFlag := os.Getenv("WEAVE_GITOPS_AUTH_ENABLED")
-// 	return authFlag
-// }
-
 func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {

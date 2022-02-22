@@ -18,6 +18,12 @@ const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
 )
 
+var (
+	PublicRoutes = []string{
+		"/v1/featureflags",
+	}
+)
+
 func AuthEnabled() bool {
 	return os.Getenv(AuthEnabledFeatureFlag) == "true"
 }
@@ -35,7 +41,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
 	if AuthEnabled() {
-		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer)
+		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 	}
 
 	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)

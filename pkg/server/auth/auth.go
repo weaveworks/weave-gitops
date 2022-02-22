@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"net/url"
 )
 
 const (
@@ -32,8 +33,6 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 	mux.Handle(prefix+"/sign_in", srv.SignIn())
 	mux.Handle(prefix+"/userinfo", srv.UserInfo())
 	mux.Handle(prefix+"/logout", srv.Logout())
-	// mux.Handle(prefix+"/config", srv.GetAuthConfig())
-
 }
 
 type principalCtxKey struct{}
@@ -62,7 +61,7 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 // WithAPIAuth middleware adds auth validation to API handlers.
 //
 // Unauthorized requests will be denied with a 401 status code.
-func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
+func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
 	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
 	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
 		srv.verifier(), IDTokenCookieName)
@@ -72,6 +71,11 @@ func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
 		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if IsPublicRoute(r.URL, publicRoutes) {
+			next.ServeHTTP(rw, r)
+			return
+		}
+
 		principal, err := multi.Principal(r)
 		if err != nil {
 			srv.logger.Error(err, "failed to get principal")
@@ -124,4 +128,14 @@ func generateNonce() (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+func IsPublicRoute(u *url.URL, publicRoutes []string) bool {
+	for _, pr := range publicRoutes {
+		if u.Path == pr {
+			return true
+		}
+	}
+
+	return false
 }

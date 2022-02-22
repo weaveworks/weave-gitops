@@ -13,6 +13,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -62,9 +63,18 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil).ServeHTTP(res, req)
 
 	if res.Result().StatusCode != http.StatusUnauthorized {
+		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
+	}
+
+	// Test out the publicRoutes
+	res = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
+
+	if res.Result().StatusCode != http.StatusOK {
 		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
 	}
 }
@@ -125,4 +135,10 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 	if !strings.HasPrefix(res.Result().Header.Get("Location"), authCodeURL) {
 		t.Errorf("expected Location header URL to include scopes %s but does not: %s", authCodeURL, res.Result().Header.Get("Location"))
 	}
+}
+
+func TestIsPublicRoute(t *testing.T) {
+	assert.True(t, auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "/foob"}, []string{"/foo"}))
 }
