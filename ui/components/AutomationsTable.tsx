@@ -13,7 +13,6 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations }: Props) {
-  console.log(automations);
   return (
     <DataTable
       className={className}
