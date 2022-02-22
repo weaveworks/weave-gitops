@@ -317,7 +317,6 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 	}
 }
 
-
 // func (s *AuthServer) GetAuthConfig() (string) {
 // 	authFlag := os.Getenv("WEAVE_GITOPS_AUTH_ENABLED")
 // 	return authFlag

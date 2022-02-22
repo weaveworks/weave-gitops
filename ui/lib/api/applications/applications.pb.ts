@@ -264,10 +264,10 @@ export type ValidateProviderTokenResponse = {
   valid?: boolean
 }
 
-export type GetConfigRequest = {
+export type GetFeatureFlagsRequest = {
 }
 
-export type GetConfigResponse = {
+export type GetFeatureFlagsResponse = {
   flags?: {[key: string]: string}
 }
 
@@ -317,7 +317,7 @@ export class Applications {
   static ValidateProviderToken(req: ValidateProviderTokenRequest, initReq?: fm.InitReq): Promise<ValidateProviderTokenResponse> {
     return fm.fetchReq<ValidateProviderTokenRequest, ValidateProviderTokenResponse>(`/v1/applications/validate_token`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
-    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
+    return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

@@ -718,8 +718,8 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 	}, nil
 }
 
-func (s *applicationServer) GetConfig(ctx context.Context, msg *pb.GetConfigRequest) (*pb.GetConfigResponse, error) {
-	return &pb.GetConfigResponse{
+func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFlagsRequest) (*pb.GetFeatureFlagsResponse, error) {
+	return &pb.GetFeatureFlagsResponse{
 		Flags: map[string]string{
 			"WEAVE_GITOPS_AUTH_ENABLED": os.Getenv("WEAVE_GITOPS_AUTH_ENABLED"),
 		},

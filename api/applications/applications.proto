@@ -177,9 +177,9 @@ service Applications {
     /**
     * Config returns configuration information about the server
     */
-    rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
-            get : "/v1/config"
+            get : "/v1/featureflags"
         };
     }
 
@@ -441,8 +441,8 @@ message ValidateProviderTokenResponse {
     bool valid = 1;
 }
 
-message GetConfigRequest {}
+message GetFeatureFlagsRequest {}
 
-message GetConfigResponse {
+message GetFeatureFlagsResponse {
     map<string, string> flags = 1;
 }

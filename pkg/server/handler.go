@@ -35,7 +35,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
 	if AuthEnabled() {
-		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer)
+		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, []string{"/v1/featureflags"})
 	}
 
 	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)

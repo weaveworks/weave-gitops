@@ -62,9 +62,18 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil).ServeHTTP(res, req)
 
 	if res.Result().StatusCode != http.StatusUnauthorized {
+		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
+	}
+
+	// Test out the publicRoutes
+	res = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
+
+	if res.Result().StatusCode != http.StatusOK {
 		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
 	}
 }
