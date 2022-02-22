@@ -27,15 +27,20 @@ endif
 ##@ Default target
 all: gitops ## Install dependencies and build Gitops binary
 
+
+TEST_TO_RUN=./...
 ##@ Test
 unit-tests: dependencies cmd/gitops-server/cmd/dist/index.html ## Run unit tests
+	which ginkgo || go install github.com/onsi/ginkgo/v2/ginkgo
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
 
 integration-tests: dependencies
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
+	which ginkgo || go install github.com/onsi/ginkgo/v2/ginkgo
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v ./test/integration/...
 
 acceptance-tests: local-registry local-docker-image
+	which ginkgo || go install github.com/onsi/ginkgo/v2/ginkgo
 	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
 
 local-kind-cluster-with-registry:
@@ -193,7 +198,7 @@ unittest.out: dependencies
 integrationtest.out: dependencies
 	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
-	@go mod tidy	
+	@go mod tidy
 
 coverage:
 	@mkdir -p coverage
@@ -204,7 +209,7 @@ coverage/unittest.info: coverage unittest.out
 	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
 
 coverage/integrationtest.info: coverage integrationtest.out
-	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info	
+	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.
