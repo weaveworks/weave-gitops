@@ -22,7 +22,6 @@ import {
   SyncApplicationResponse,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
-import { getChildren } from "../lib/graph";
 import { formatURL } from "../lib/nav";
 import { PageRoute } from "../lib/types";
 
@@ -36,9 +35,7 @@ function ApplicationDetail({ className, name }: Props) {
     React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
-  const [reconciledObjects, setReconciledObjects] = React.useState<
-    UnstructuredObject[]
-  >([]);
+  const [reconciledObjects] = React.useState<UnstructuredObject[]>([]);
   const [provider, setProvider] = React.useState("");
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
   const [syncRes, syncLoading, syncError, syncRequest] =
@@ -80,9 +77,9 @@ function ApplicationDetail({ className, name }: Props) {
       return;
     }
 
-    getChildren(applicationsClient, res.application, uniqKinds).then((objs) =>
-      setReconciledObjects(objs)
-    );
+    // getChildren(applicationsClient, res.application, uniqKinds).then((objs) =>
+    //   setReconciledObjects(objs)
+    // );
   }, [res]);
 
   React.useEffect(() => {
