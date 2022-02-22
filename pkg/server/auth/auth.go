@@ -71,7 +71,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if isPublicRoute(r.URL, publicRoutes) {
+		if IsPublicRoute(r.URL, publicRoutes) {
 			next.ServeHTTP(rw, r)
 			return
 		}
@@ -130,11 +130,12 @@ func generateNonce() (string, error) {
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 
-func isPublicRoute(u *url.URL, publicRoutes []string) bool {
+func IsPublicRoute(u *url.URL, publicRoutes []string) bool {
 	for _, pr := range publicRoutes {
 		if u.Path == pr {
 			return true
 		}
 	}
+
 	return false
 }
