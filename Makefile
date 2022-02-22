@@ -89,14 +89,8 @@ clean: ## Clean up images and binaries
 	# -x: remove gitignored files too, -d: remove directories too
 	git clean -x -d --force pkg/flux/bin/
 
-fmt: ## Run go fmt against code
-	go fmt ./...
-
-vet: ## Run go vet against code
-	go vet ./...
-
-lint: cmd/gitops/ui/run/dist/index.html ## Run linters against code
-	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
+lint:
+	pre-commit run --all
 
 .deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml

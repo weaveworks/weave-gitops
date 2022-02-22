@@ -14,7 +14,7 @@ repos:
   hooks:
     - id: go-fmt
     - id: go-vet
-      exclude: '^tools'
+      exclude: '^tools' # vet complains tools contains unreachable code
     - id: golangci-lint
       args:
         - --skip-files=tilt_modules
