@@ -483,6 +483,9 @@
         "groupVersionKind": {
           "$ref": "#/definitions/v1GroupVersionKind"
         },
+        "namespace": {
+          "type": "string"
+        },
         "parentUid": {
           "type": "string"
         }

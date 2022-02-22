@@ -195,7 +195,8 @@ message GetReconciledObjectsResponse {
 
 message GetChildObjectsRequest {
     GroupVersionKind groupVersionKind = 1;
-    string           parentUid        = 2;
+    string           namespace        = 2;
+    string           parentUid        = 3;
 }
 
 message GetChildObjectsResponse {
