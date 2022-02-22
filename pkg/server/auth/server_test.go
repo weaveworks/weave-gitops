@@ -583,71 +583,41 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier 
 	return s, m
 }
 
-// func TestLogoutSuccess(t *testing.T) {
-// 	m, err := mockoidc.Run()
-// 	if err != nil {
-// 		t.Errorf("failed to create mock OIDC server: %v", err)
-// 	}
+func TestLogoutSuccess(t *testing.T) {
+	s, _ := makeAuthServer(t, nil, nil)
 
-// 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
-// 		OIDCConfig: auth.OIDCConfig{
-// 			ClientID:     m.Config().ClientID,
-// 			ClientSecret: m.Config().ClientSecret,
-// 			IssuerURL:    m.Config().Issuer,
-// 		},
-// 		CookieConfig: auth.CookieConfig{
-// 			CookieDuration: 5,
-// 		},
-// 	}, client, tokenSignerVerifier)
+	w := httptest.NewRecorder()
 
-// 	assert.Nil(t, err)
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil)
+	s.Logout().ServeHTTP(w, req)
 
-// 	w := httptest.NewRecorder()
+	resp := w.Result()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
+	}
 
-// 	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil)
-// 	s.Logout().ServeHTTP(w, req)
+	cookie := &http.Cookie{}
 
-// 	resp := w.Result()
-// 	if resp.StatusCode != http.StatusOK {
-// 		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
-// 	}
+	for _, c := range resp.Cookies() {
+		if c.Name == auth.IDTokenCookieName {
+			cookie = c
+			break
+		}
+	}
 
-// 	cookie := &http.Cookie{}
+	assert.Equal(t, cookie.Value, "")
+}
 
-// 	for _, c := range resp.Cookies() {
-// 		if c.Name == auth.IDTokenCookieName {
-// 			cookie = c
-// 			break
-// 		}
-// 	}
+func TestLogoutWithWrongMethod(t *testing.T) {
+	s, _ := makeAuthServer(t, nil, nil)
 
-// 	assert.Equal(t, cookie.Value, "")
-// }
+	w := httptest.NewRecorder()
 
-// func TestLogoutWithWrongMethod(t *testing.T) {
-// 	m, err := mockoidc.Run()
-// 	if err != nil {
-// 		t.Errorf("failed to create mock OIDC server: %v", err)
-// 	}
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/logout", nil)
+	s.Logout().ServeHTTP(w, req)
 
-// 	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
-// 		OIDCConfig: auth.OIDCConfig{
-// 			IssuerURL: m.Config().Issuer,
-// 		},
-// 		CookieConfig: auth.CookieConfig{
-// 			CookieDuration: 5,
-// 		},
-// 	})
-
-// 	assert.Nil(t, err)
-
-// 	w := httptest.NewRecorder()
-
-// 	req := httptest.NewRequest(http.MethodGet, "https://example.com/logout", nil)
-// 	s.Logout().ServeHTTP(w, req)
-
-// 	resp := w.Result()
-// 	if resp.StatusCode != http.StatusMethodNotAllowed {
-// 		t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
-// 	}
-// }
+	resp := w.Result()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
+	}
+}
