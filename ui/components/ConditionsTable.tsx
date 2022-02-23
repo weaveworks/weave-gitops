@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Condition } from "../lib/api/applications/applications.pb";
-import DataTable from "./DataTable";
+import DataTable, { SortType } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -12,7 +12,12 @@ function ConditionsTable({ className, conditions }: Props) {
   return (
     <DataTable
       fields={[
-        { label: "Type", value: "type" },
+        {
+          label: "Type",
+          value: "type",
+          sortType: SortType.string,
+          sortValue: ({ type }) => type,
+        },
         { label: "Status", value: "status" },
         { label: "Reason", value: "reason" },
         { label: "Message", value: "message" },
