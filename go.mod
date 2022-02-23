@@ -46,7 +46,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
-	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
+	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/xanzy/go-gitlab v0.54.3
 	go.uber.org/zap v1.19.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
@@ -72,9 +72,8 @@ require (
 	github.com/gofrs/flock v0.8.1
 	github.com/google/uuid v1.3.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	gopkg.in/square/go-jose.v2 v2.5.1
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -143,7 +142,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosuri/uitable v0.0.4 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -228,6 +227,7 @@ require (
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/component-base v0.22.2 // indirect
