@@ -13,7 +13,9 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
@@ -30,20 +32,23 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	fake := m.Config()
 	mux := http.NewServeMux()
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
 
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
-				IssuerURL:    fake.Issuer,
-				ClientID:     fake.ClientID,
-				ClientSecret: fake.ClientSecret,
-				RedirectURL:  "",
+				IssuerURL:     fake.Issuer,
+				ClientID:      fake.ClientID,
+				ClientSecret:  fake.ClientSecret,
+				RedirectURL:   "",
+				TokenDuration: 20 * time.Minute,
 			},
-			auth.CookieConfig{
-				CookieDuration:     20 * time.Minute,
-				IssueSecureCookies: false,
-			},
-		})
+		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
@@ -58,14 +63,23 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil).ServeHTTP(res, req)
 
 	if res.Result().StatusCode != http.StatusUnauthorized {
 		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
 	}
+
+	// Test out the publicRoutes
+	res = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
+
+	if res.Result().StatusCode != http.StatusOK {
+		t.Errorf("expected status of %d but got %d", http.StatusUnauthorized, res.Result().StatusCode)
+	}
 }
 
-func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
+func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
 	ctx := context.Background()
 
 	m, err := mockoidc.Run()
@@ -79,20 +93,23 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 
 	fake := m.Config()
 	mux := http.NewServeMux()
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
 
 	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
 		auth.AuthConfig{
 			auth.OIDCConfig{
-				IssuerURL:    fake.Issuer,
-				ClientID:     fake.ClientID,
-				ClientSecret: fake.ClientSecret,
-				RedirectURL:  "",
+				IssuerURL:     fake.Issuer,
+				ClientID:      fake.ClientID,
+				ClientSecret:  fake.ClientSecret,
+				RedirectURL:   "",
+				TokenDuration: 20 * time.Minute,
 			},
-			auth.CookieConfig{
-				CookieDuration:     20 * time.Minute,
-				IssueSecureCookies: false,
-			},
-		})
+		}, fakeKubernetesClient, tokenSignerVerifier)
 	if err != nil {
 		t.Error("failed to create auth config")
 	}
@@ -108,7 +125,7 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithWebAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv).ServeHTTP(res, req)
+	srv.OAuth2Flow().ServeHTTP(res, req)
 
 	if res.Result().StatusCode != http.StatusSeeOther {
 		t.Errorf("expected status of %d but got %d", http.StatusSeeOther, res.Result().StatusCode)
@@ -118,4 +135,10 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 	if !strings.HasPrefix(res.Result().Header.Get("Location"), authCodeURL) {
 		t.Errorf("expected Location header URL to include scopes %s but does not: %s", authCodeURL, res.Result().Header.Get("Location"))
 	}
+}
+
+func TestIsPublicRoute(t *testing.T) {
+	assert.True(t, auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"}))
+	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "/foob"}, []string{"/foo"}))
 }

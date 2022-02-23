@@ -5,6 +5,7 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import Icon, { IconType } from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
+import AuthContextProvider from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import useApplications from "./hooks/applications";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
@@ -19,6 +20,7 @@ import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 
 export {
+  AuthContextProvider,
   AppContextProvider,
   ApplicationDetail,
   Applications,

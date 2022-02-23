@@ -494,17 +494,43 @@
           "Applications"
         ]
       }
+    },
+    "/v1/featureflags": {
+      "get": {
+        "summary": "Config returns configuration information about the server",
+        "operationId": "Applications_GetFeatureFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFeatureFlagsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Applications"
+        ]
+      }
     }
   },
   "definitions": {
     "protobufAny": {
       "type": "object",
       "properties": {
-        "@type": {
+        "typeUrl": {
           "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
         }
-      },
-      "additionalProperties": {}
+      }
     },
     "rpcStatus": {
       "type": "object",
@@ -675,6 +701,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetFeatureFlagsResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }
