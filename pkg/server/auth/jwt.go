@@ -130,7 +130,10 @@ func (pg *JWTAdminCookiePrincipalGetter) Principal(r *http.Request) (*UserPrinci
 func parseJWTAdminToken(verifier TokenSignerVerifier, rawIDToken string) (*UserPrincipal, error) {
 	claims, err := verifier.Verify(rawIDToken)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
+		// FIXME: do some better handling here
+		// return nil, fmt.Errorf("failed to verify JWT token: %w", err)
+		// ANYWAY:, its probably not our token? e.g. an OIDC one
+		return nil, nil
 	}
 
 	return &UserPrincipal{ID: claims.Subject, Groups: []string{}}, nil

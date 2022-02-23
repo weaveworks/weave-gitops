@@ -79,7 +79,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	}
 }
 
-func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
+func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
 	ctx := context.Background()
 
 	m, err := mockoidc.Run()
@@ -125,7 +125,7 @@ func TestWithWebAuthRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithWebAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv).ServeHTTP(res, req)
+	srv.OAuth2Flow().ServeHTTP(res, req)
 
 	if res.Result().StatusCode != http.StatusSeeOther {
 		t.Errorf("expected status of %d but got %d", http.StatusSeeOther, res.Result().StatusCode)

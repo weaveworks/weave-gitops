@@ -60,14 +60,20 @@ type UserInfo struct {
 
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client, tokenSignerVerifier TokenSignerVerifier) (*AuthServer, error) {
-	provider, err := oidc.NewProvider(ctx, config.IssuerURL)
-	if err != nil {
-		return nil, fmt.Errorf("could not create provider: %w", err)
+	var provider *oidc.Provider
+
+	if config.IssuerURL != "" {
+		var err error
+
+		provider, err = oidc.NewProvider(ctx, config.IssuerURL)
+		if err != nil {
+			return nil, fmt.Errorf("could not create provider: %w", err)
+		}
 	}
 
 	hmacSecret := make([]byte, 64)
 
-	_, err = rand.Read(hmacSecret)
+	_, err := rand.Read(hmacSecret)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate random HMAC secret: %w", err)
 	}
@@ -86,6 +92,10 @@ func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client,
 // in unit tests only.
 func (s *AuthServer) SetRedirectURL(url string) {
 	s.config.RedirectURL = url
+}
+
+func (s *AuthServer) oidcEnabled() bool {
+	return s.config.IssuerURL != ""
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -119,6 +129,17 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		Endpoint:     s.provider.Endpoint(),
 		RedirectURL:  s.config.RedirectURL,
 		Scopes:       scopes,
+	}
+}
+
+func (s *AuthServer) OAuth2Flow() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if !s.oidcEnabled() {
+			http.Error(rw, "oidc provider not configured", http.StatusBadRequest)
+			return
+		}
+
+		s.startAuthFlow(rw, r)
 	}
 }
 
@@ -386,7 +407,7 @@ func (c *AuthServer) createCookie(name, value string) *http.Cookie {
 		Path:     "/",
 		Expires:  time.Now().UTC().Add(c.config.TokenDuration),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   false,
 	}
 
 	return cookie
