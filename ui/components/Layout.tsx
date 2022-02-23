@@ -13,6 +13,7 @@ import UserSettings from "./UserSettings";
 type Props = {
   className?: string;
   children?: any;
+  authFlag?: boolean;
 };
 
 const navItems = [{ value: PageRoute.Applications, label: "Applications" }];
@@ -95,7 +96,7 @@ const TopToolBar = styled(Flex)`
   }
 `;
 
-function Layout({ className, children }: Props) {
+function Layout({ authFlag, className, children }: Props) {
   const { currentPage } = useNavigation();
 
   return (
@@ -103,7 +104,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar between align>
           <Logo />
-          <UserSettings />
+          {authFlag ? <UserSettings /> : null}
         </TopToolBar>
         <Main wide>
           <NavContainer>

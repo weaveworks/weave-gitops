@@ -29,9 +29,9 @@ import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
-const App = () => (
+const App = (authFlag) => (
   <AppContextProvider renderFooter applicationsClient={appsClient}>
-    <Layout>
+    <Layout authFlag={authFlag}>
       <ErrorBoundary>
         <Switch>
           <Route exact path={PageRoute.Applications} component={Applications} />
