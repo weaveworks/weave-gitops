@@ -10,6 +10,12 @@ const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
 export const AuthCheck = ({ children }) => {
+  const { authFlag } = React.useContext(FeatureFlags);
+
+  if (!authFlag) {
+    return children;
+  }
+
   const { loading, userInfo } = React.useContext(Auth);
 
   // Wait until userInfo is loaded before showing signin or app content
