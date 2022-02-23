@@ -2,6 +2,7 @@ import * as React from "react";
 import { useHistory, Redirect } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -43,6 +44,7 @@ export type AuthContext = {
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
+  const { authFlag } = React.useContext(FeatureFlags);
   const [userInfo, setUserInfo] =
     React.useState<{
       email: string;
@@ -104,16 +106,22 @@ export default function AuthContextProvider({ children }) {
   }, [getUserInfo, history]);
 
   return (
-    <Auth.Provider
-      value={{
-        signIn,
-        userInfo,
-        error,
-        loading,
-        logOut,
-      }}
-    >
-      {children}
-    </Auth.Provider>
+    <>
+      {authFlag ? (
+        <Auth.Provider
+          value={{
+            signIn,
+            userInfo,
+            error,
+            loading,
+            logOut,
+          }}
+        >
+          {children}
+        </Auth.Provider>
+      ) : (
+        children
+      )}
+    </>
   );
 }

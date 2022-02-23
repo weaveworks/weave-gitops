@@ -9,6 +9,7 @@ import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
 import UserSettings from "./UserSettings";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 
 type Props = {
   className?: string;
@@ -96,7 +97,8 @@ const TopToolBar = styled(Flex)`
   }
 `;
 
-function Layout({ authFlag, className, children }: Props) {
+function Layout({ className, children }: Props) {
+  const { authFlag } = React.useContext(FeatureFlags);
   const { currentPage } = useNavigation();
 
   return (
