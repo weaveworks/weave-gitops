@@ -43,6 +43,14 @@ if [ "${running}" != 'true' ]; then
   docker run \
     -d --restart=always -p "127.0.0.1:${reg_port}:5000" --name "${reg_name}" \
     registry:2
+else
+  # Validate the ports used by the running register are the ones we need.
+  right_mapping_ports="5000/tcp -> 127.0.0.1:${reg_port}"
+  registry_port=$(docker port ${reg_name})
+  if [ "${registry_port}" != "${right_mapping_ports}" ]; then
+    echo "It seems the current registry is running on different port configuration than expected:\n\n Current => ($registry_port) \n Expected ($right_mapping_ports). \n\nTry deleting registry manually using 'docker rm -f $reg_name' "
+    exit 1
+  fi
 fi
 
 reg_host="${reg_name}"
