@@ -10,20 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 )
 
-func TestNoIssuerURL(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
-	client := resty.New()
-	cmd := root.RootCmd(client)
-	cmd.SetArgs([]string{
-		"ui", "run",
-	})
-
-	err := cmd.Execute()
-	assert.ErrorIs(t, err, cmderrors.ErrNoIssuerURL)
-}
-
 func TestNoClientID(t *testing.T) {
 	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
 	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
