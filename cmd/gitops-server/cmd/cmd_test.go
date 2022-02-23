@@ -1,21 +1,18 @@
-package ui_test
+package ui
 
 import (
 	"os"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 )
 
 func TestNoIssuerURL(t *testing.T) {
 	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
 	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-	client := resty.New()
-	cmd := root.RootCmd(client)
+	cmd := NewCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 	})
@@ -28,8 +25,7 @@ func TestNoClientID(t *testing.T) {
 	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
 	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-	client := resty.New()
-	cmd := root.RootCmd(client)
+	cmd := NewCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",
@@ -43,8 +39,7 @@ func TestNoClientSecret(t *testing.T) {
 	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
 	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-	client := resty.New()
-	cmd := root.RootCmd(client)
+	cmd := NewCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",
@@ -59,8 +54,7 @@ func TestNoRedirectURL(t *testing.T) {
 	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
 	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
 
-	client := resty.New()
-	cmd := root.RootCmd(client)
+	cmd := NewCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",

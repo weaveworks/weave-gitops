@@ -68,7 +68,7 @@ jobs:
       - run: make lint
       - run: make gitops
       - run: make gitops-server
-      - run: make test
+      - run: make unit-tests
       # - run: make lib-test
 
   full-ci:
