@@ -91,11 +91,9 @@ export default function AppContainer() {
   const getAuthFlag = React.useCallback(() => {
     fetch("/v1/featureflags")
       .then((response) => response.json())
-      .then((data) => {
-        if (data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true") {
-          setAuthFlag(true);
-        }
-      })
+      .then((data) =>
+        setAuthFlag(data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true")
+      )
       .catch((err) => console.log(err));
   }, []);
 
