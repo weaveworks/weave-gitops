@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
-import DataTable from "./DataTable";
+import DataTable, { SortType } from "./DataTable";
 import Link from "./Link";
 
 type Props = {
@@ -16,7 +16,6 @@ function AutomationsTable({ className, automations }: Props) {
   return (
     <DataTable
       className={className}
-      sortFields={["name"]}
       fields={[
         {
           label: "Name",
@@ -36,6 +35,8 @@ function AutomationsTable({ className, automations }: Props) {
               </Link>
             );
           },
+          sortType: SortType.string,
+          sortValue: ({ name }) => name,
         },
         {
           label: "Type",

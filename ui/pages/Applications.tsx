@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import ActionBar from "../components/ActionBar";
 import Button from "../components/Button";
-import DataTable from "../components/DataTable";
+import DataTable, { SortType } from "../components/DataTable";
 import Flex from "../components/Flex";
 import Icon, { IconType } from "../components/Icon";
 import Link from "../components/Link";
@@ -61,7 +61,6 @@ function Applications({ className }: Props) {
         </Link>
       </ActionBar>
       <DataTable
-        sortFields={["name"]}
         fields={[
           {
             label: "Name",
@@ -70,6 +69,8 @@ function Applications({ className }: Props) {
                 {name}
               </Link>
             ),
+            sortType: SortType.string,
+            sortValue: ({ name }: Application) => name,
           },
           // Probably going to need this eventually, but we don't have a status
           // for an app from the backend yet. Keep the code around to avoid
