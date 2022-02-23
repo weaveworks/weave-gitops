@@ -66,8 +66,6 @@ func GetToken(repoUrl gitproviders.RepoURL, lookupEnvFunc func(key string) (stri
 	token, exists := lookupEnvFunc(tokenVarName)
 	if !exists {
 		return "", fmt.Errorf(missingTokenErr, tokenVarName)
-	} else if err != nil {
-		return "", fmt.Errorf("could not get access token: %w", err)
 	}
 
 	return token, nil
