@@ -4,4 +4,3 @@ metadata:
    name: helloworld-configmap
 data:
    myvalue: "Hello World"
-

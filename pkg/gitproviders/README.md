@@ -4,7 +4,7 @@
 
 # How it works
 
-This cache system works through Cassettes. A Cassette is a yaml file that stores all the interactions made towards the github api where that same Cassette was involved. This file is generated the first time the tests using the same cassette are run. If the file exists, that cassette will be used to emulate the previously recorded responses. 
+This cache system works through Cassettes. A Cassette is a yaml file that stores all the interactions made towards the github api where that same Cassette was involved. This file is generated the first time the tests using the same cassette are run. If the file exists, that cassette will be used to emulate the previously recorded responses.
 
 ## How to implement a Cassette recorder
 
@@ -24,14 +24,14 @@ client, recorder, err := getTestClientWithCassette("CASSETTE_NAME", "provider na
 ```
 
 - `client` is the object from `fluxcd/go-git-providers` that was injected with the recorder and makes the api calls.
-- `recorder` is the object from `dnaeon/go-vcr` that helps to save the yaml file which is triggered by using `recorder.Done()`. 
+- `recorder` is the object from `dnaeon/go-vcr` that helps to save the yaml file which is triggered by using `recorder.Done()`.
 - `CASSETTE_NAME` name of the Cassette.
 
 ### Complete implementation example using ginkgo
 
 ```go
 var _ = Describe("create github repo", func() {
-	accounts := getAccounts()  
+	accounts := getAccounts()
 
     var gitProvider defaultGitProvider
 	var recorder *recorder.Recorder

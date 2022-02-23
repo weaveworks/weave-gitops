@@ -10,4 +10,3 @@ gitops->Leaf Cluster: Creates a role binding between the service account and the
 gitops->Management Cluster:Adds the service account kubeconfig to the Management Cluster as a ConfigMap
 gitops->Management Cluster:Adds a Cluster custom resource to the Management Cluster with a pointer to the kubeconfig ConfigMap
 gitops->User:
-

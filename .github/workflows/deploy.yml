@@ -23,7 +23,7 @@ jobs:
     - name: Clean
       run: make clean
     - id: gitsha
-      run: | 
+      run: |
         gitsha=$(git rev-parse --short "$GITHUB_SHA")
         echo "::set-output name=sha::$gitsha"
     - name: build
@@ -78,7 +78,7 @@ jobs:
           name: unit-tests-artefacts
           path: artefacts
           retention-days: 1
-  
+
   acceptance-tests:
     runs-on: ubuntu-latest
     needs: [build, coverage]
@@ -212,4 +212,3 @@ jobs:
     - run: |
         aws s3 cp bin/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/gitops-${{matrix.os}}
-

@@ -4,4 +4,4 @@ During meetings, it isn't unusual to make decisions that impact a product's arch
 
 The ADR is a lightweight process for documenting these decisions. By storing them in the repository with the code, we will have a record and history.
 
-The concept of ADRs originated in [Documenting architecture decisions - Michael Nygard](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions).  
+The concept of ADRs originated in [Documenting architecture decisions - Michael Nygard](http://thinkrelevance.com/blog/2011/11/15/documenting-architecture-decisions).

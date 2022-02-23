@@ -40,7 +40,7 @@ message Maintainer {
   // The name of the Maintainer
   string name = 1;
   // The email of the Maintainer
-  string email = 2; 
+  string email = 2;
   // The URL to a Maintainer's website
   string url = 3;
 }

@@ -18,7 +18,7 @@ As a [User Role] I want to [feature/functionality] so that [business outcome/val
 **Design materials**
 - Screenshots
 - Design diagrams
-- WEP 
+- WEP
 - PR/FAQ
 
 **Work breakdown**
@@ -32,4 +32,3 @@ Consider following the INVEST acronym - Independent, Negotialbe, Valuable, Estim
 
 When defining tests, consider using **Given** **When** **Then** syntax.  These could also be used for defining acceptance criteria.
 -->
-

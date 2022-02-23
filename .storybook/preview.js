@@ -46,7 +46,7 @@ const Style = () => {
         font-family: 'proxima-nova';
         src: url('/fonts/ProximaNovaRegular.otf');
       }
-    
+
       @font-face {
         font-family: 'proxima-nova';
         src: url('/fonts/ProximaNovaBold.otf');

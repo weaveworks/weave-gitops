@@ -2,7 +2,7 @@
 set +e
 
 if [ -z $1 ] || ([ $1 != 'create' ] && [ $1 != 'delete' ])
-then 
+then
     echo "Invalid option, valid values => [ create, delete ]"
     exit 1
 fi

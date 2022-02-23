@@ -134,7 +134,7 @@ service Applications {
             body: "*"
         };
     }
-    
+
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */

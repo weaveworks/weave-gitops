@@ -120,7 +120,7 @@ type FlattenedRequestPayload = Record<string, Primitive | Array<Primitive>>;
 
 /**
  * Checks if given value is a plain object
- * Logic copied and adapted from below source: 
+ * Logic copied and adapted from below source:
  * https://github.com/char0n/ramda-adjunct/blob/master/src/isPlainObj.js
  * @param  {unknown} value
  * @return {boolean}

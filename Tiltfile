@@ -1,17 +1,17 @@
 load('ext://restart_process', 'docker_build_with_restart')
 
 local_resource(
-    'gitops-bin', 
-    'GOOS=linux GOARCH=amd64 make bin', 
+    'gitops-bin',
+    'GOOS=linux GOARCH=amd64 make bin',
     deps=[
-        './cmd', 
+        './cmd',
         './pkg',
         "./core",
     ]
 )
 
 docker_build_with_restart(
-    'localhost:5000/weaveworks/wego-app', 
+    'localhost:5000/weaveworks/wego-app',
     '.',
     only=[
         './bin',

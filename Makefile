@@ -182,7 +182,7 @@ unittest.out: dependencies
 integrationtest.out: dependencies
 	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
-	@go mod tidy	
+	@go mod tidy
 
 coverage:
 	@mkdir -p coverage
@@ -193,7 +193,7 @@ coverage/unittest.info: coverage unittest.out
 	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
 
 coverage/integrationtest.info: coverage integrationtest.out
-	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info	
+	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.

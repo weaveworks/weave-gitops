@@ -13,15 +13,15 @@ Our code, documentation, and Kubernetes object naming has a mixture of wego, wea
 ## Decision
 
 ### Weave GitOps
-Use in all user-facing documentation, except when presenting actual CLI commands the user can execute.  It should be spelled out and follow this capitalization `Weave GitOps`.  
+Use in all user-facing documentation, except when presenting actual CLI commands the user can execute.  It should be spelled out and follow this capitalization `Weave GitOps`.
 
-Including: 
+Including:
 * go docs for functions, packages, and variables
-* Online documentation 
+* Online documentation
 * Blogs
 
 ### wego
-* The name of the CLI binary. 
+* The name of the CLI binary.
 * The API group will be `wego.weave.works`
 * The default Kubernetes namespace will be `wego-system`
 * When naming Weave GitOps objects in Kubernetes, they will have a `wego-` prefix
@@ -38,4 +38,3 @@ Including:
 ## Consequences
 
 Using the shorter version, wego, as a prefix for naming objects, reduces the number of characters required and makes it obvious what the thing is part of Weave GitOps.
-

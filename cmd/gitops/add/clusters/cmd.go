@@ -41,7 +41,7 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Add a new cluster using a CAPI template
 gitops add cluster --from-template <template-name> --set key=val
 
-# View a CAPI template populated with parameter values 
+# View a CAPI template populated with parameter values
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 

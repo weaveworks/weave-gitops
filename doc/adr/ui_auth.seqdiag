@@ -6,6 +6,6 @@ github.com/login/oauth/access_token->WeGO API Server: Returns access_token
 WeGO API Server->WeGO UI (Browser):Returns token data as jwt via `Set-Cookie` header
 WeGO UI (Browser)->WeGO API Server:client.AddApplication()
 WeGO API Server->api.github.com/repos:Pushes a deploy key to the repository
-WeGO API Server->api.github.com/repos:Commits the .wego directory to a branch 
+WeGO API Server->api.github.com/repos:Commits the .wego directory to a branch
 WeGO API Server->api.github.com/repos:Creates a PR or auto-merges the branch
 WeGO API Server->WeGO UI (Browser): Application Created!

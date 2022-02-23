@@ -81,7 +81,7 @@ export const GlobalStyle = createGlobalStyle`
     height: 100%;
     margin: 0;
   }
-  
+
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${(props) => props.theme.fontSizes.normal};
@@ -91,7 +91,7 @@ export const GlobalStyle = createGlobalStyle`
     min-width: fit-content;
     background: right bottom url(${bg}) no-repeat fixed ${
   theme.colors.neutral10
-}; 
+};
     background-size: 100%;
   }
   .auth-modal-size {

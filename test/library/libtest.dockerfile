@@ -6,4 +6,3 @@ RUN apt-get -y install nodejs
 COPY test.sh /test/test.sh
 WORKDIR /test
 CMD ./test.sh
-

@@ -1,6 +1,6 @@
 # 3. CLI using noun verb format
 
-Date: 2021-07-09 
+Date: 2021-07-09
 
 Decision made before this date
 
@@ -18,15 +18,15 @@ We require consistency in the weave-gitops CLI `wego` and the ability to extend 
 
 ## Decision
 
-The CLI commands will be in the noun verb format.  
+The CLI commands will be in the noun verb format.
 
 We debated between verb noun, e.g., `wego add app foo` and noun verb, e.g., `wego app add foo`
 
 ### Pros for noun verb
 * Format for new commands is consistent i.e.,`wego` noun command
-* If we need to extend wego with a new object type, we aren't required to implement a specific set of commands or provide stub implementations 
+* If we need to extend wego with a new object type, we aren't required to implement a specific set of commands or provide stub implementations
 * Extensions can create commands independent of wego primitive commands
-* Supports objects with diverse commands 
+* Supports objects with diverse commands
 
 ### Pros for verb noun
 * Consistent with many other tools in the space, e.g.,  `kubectl`, `git`.  Kubectl is a hybrid as it supports extensibility and is in the verb noun format

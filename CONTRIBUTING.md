@@ -76,4 +76,3 @@ Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolve
 4. Ensure `WEGO_BIN_PATH` is set to the local binary and `IS_TEST_ENV=true`
 
 As a result, when the acceptance tests run `gitops install`, they should deploy your custom-built docker image with the desired code changes.
-

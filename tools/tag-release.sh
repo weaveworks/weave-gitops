@@ -54,7 +54,7 @@ version=${version:1} # Remove the v in the tag v0.37.10 for example
 # Build array from version string.
 a=( ${version//./ } )
 # Get rc number from version string
-rc=${version#*rc} 
+rc=${version#*rc}
 a[2]=${a[2]/-rc*} # Clean up -rc on patch number
 
 # 2) Set version number
@@ -83,13 +83,13 @@ fi
 
 if [ ! -z $candidate ]
 then
-  ((rc++)) 
+  ((rc++))
 fi
 
 if [ ! -z $release ]
-then 
+then
   next_version="${a[0]}.${a[1]}.${a[2]}"
-else 
+else
   next_version="${a[0]}.${a[1]}.${a[2]}-rc${rc}"
 fi
 

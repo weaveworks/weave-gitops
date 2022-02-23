@@ -11,7 +11,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **What is the severity of the bug**
-Please add a label for this ticket indicating the severity of this bug.  
+Please add a label for this ticket indicating the severity of this bug.
 
 | Label | Description |
 | --- | --- |

@@ -1,5 +1,5 @@
 <!-- Use # to add the issue this pull request is related to -->
-Closes: 
+Closes:
 
 <!-- Describe what has changed in this PR -->
 **What changed?**

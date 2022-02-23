@@ -6,5 +6,5 @@ github.com/login/oauth/access_token->WeGO UI Server: Returns access_token and se
 wego add .-->WeGO UI Server:Polls for "ok"
 WeGO UI Server->wego add .:Returns access_token for short-term use (expires in minutes)
 wego add .->api.github.com/repos:Pushes a deploy key to the repository
-wego add .->api.github.com/repos:Commits the .wego directory to a branch 
+wego add .->api.github.com/repos:Commits the .wego directory to a branch
 wego add .->api.github.com/repos:Creates a PR or auto-merges the branch
