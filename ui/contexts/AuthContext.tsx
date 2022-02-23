@@ -108,6 +108,9 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   React.useEffect(() => {
+    if (!authFlag) {
+      return null;
+    }
     getUserInfo();
     return history.listen(getUserInfo);
   }, [getUserInfo, history]);
