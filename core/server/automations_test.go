@@ -4,9 +4,11 @@ import (
 	"context"
 	"testing"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -66,37 +68,53 @@ func TestGetKustomization(t *testing.T) {
 	ns := newNamespace(ctx, k, g)
 
 	kust := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      appName,
+			Namespace: ns.Name,
+		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-			},
-		},
-		Status: kustomizev1.KustomizationStatus{
-			Inventory: &kustomizev1.ResourceInventory{
-				Entries: []kustomizev1.ResourceRef{
-					{
-						Version: "v1",
-						ID:      ns.Name + "_my-deployment_apps_Deployment",
-					},
-				},
+				Kind:       sourcev1.GitRepositoryKind,
+				APIVersion: sourcev1.GroupVersion.String(),
 			},
 		},
 	}
 	kust.Name = appName
 	kust.Namespace = ns.Name
 
-	g.Expect(k.Create(ctx, kust)).To(Succeed())
+	opt := []client.PatchOption{
+		client.ForceOwnership,
+		client.FieldOwner("kustomize-controller"),
+	}
+
+	g.Expect(k.Patch(ctx, kust, client.Apply, opt...)).To(Succeed())
+
+	st := kustomizev1.KustomizationStatus{
+		Inventory: &kustomizev1.ResourceInventory{
+			Entries: []kustomizev1.ResourceRef{
+				{
+					Version: "v1",
+					ID:      ns.Name + "_my-deployment_apps_Deployment",
+				},
+			},
+		},
+	}
+
+	kust.ManagedFields = nil
+	kust.Status = st
+
+	g.Expect(k.Status().Patch(ctx, kust, client.Apply, opt...)).To(Succeed())
 
 	t.Run("gets a kustomization", func(t *testing.T) {
-		_, err = c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: appName, Namespace: ns.Name})
+		res, err := c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: appName, Namespace: ns.Name})
 		g.Expect(err).NotTo(HaveOccurred())
 
-		// The kustomization status does not get populated when running in a test environment,
-		// probably because there is no kustomization-controller running to populate it.
-		// Even though we populate it in the kustomization.Status object above, it still does not populate.
-		// Need some help from the flux team on this.
-		// g.Expect(len(res.Kustomization.Inventory)).To(Equal(1))
-		// g.Expect(res.Kustomization.Inventory[0].Group).To(Equal("apps"))
+		g.Expect(len(res.Kustomization.Inventory)).To(Equal(1))
+		g.Expect(res.Kustomization.Inventory[0].Group).To(Equal("apps"))
 	})
 	t.Run("returns not found", func(t *testing.T) {
 		_, err = c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: "somename", Namespace: ns.Name})
