@@ -14,7 +14,6 @@ import UserSettings from "./UserSettings";
 type Props = {
   className?: string;
   children?: any;
-  authFlag?: boolean;
 };
 
 const navItems = [{ value: PageRoute.Applications, label: "Applications" }];

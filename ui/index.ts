@@ -3,9 +3,11 @@ import Footer from "./components/Footer";
 import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
+import UserSettings from "./components/UserSettings";
 import Icon, { IconType } from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider from "./contexts/AuthContext";
+import FeatureFlagsContextProvider from "./contexts/FeatureFlags";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import useApplications from "./hooks/applications";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
@@ -21,6 +23,7 @@ import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 
 export {
+  FeatureFlagsContextProvider,
   AuthContextProvider,
   AppContextProvider,
   ApplicationAdd,
@@ -42,4 +45,5 @@ export {
   Button,
   Icon,
   IconType,
+  UserSettings,
 };

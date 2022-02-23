@@ -27,6 +27,7 @@ export default function FeatureFlagsContextProvider({ children }) {
   if (authFlag === null) {
     return null;
   }
+
   return (
     <FeatureFlags.Provider
       value={{
