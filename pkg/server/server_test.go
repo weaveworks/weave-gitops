@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -147,46 +144,6 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(k8sClient.Delete(ctx, git)).Should(Succeed())
 			})
 
-			It("fetches a helm repository", func() {
-				name = "my-app-" + rand.String(5)
-				app = &wego.Application{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: wego.ApplicationSpec{
-						SourceType: wego.SourceTypeHelm,
-					},
-				}
-				Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-				helm := &sourcev1.HelmRepository{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: sourcev1.HelmRepositorySpec{
-						URL:      "http://my-chart",
-						Interval: metav1.Duration{Duration: 10 * time.Second},
-						Timeout:  &metav1.Duration{Duration: 10 * time.Second},
-					},
-				}
-				Expect(k8sClient.Create(ctx, helm)).Should(Succeed())
-
-				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-					Name:      name,
-					Namespace: namespace.Name,
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(resp.Application.Source.Name).To(Equal(name))
-				Expect(resp.Application.Source.Url).To(Equal("http://my-chart"))
-				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Helm))
-				Expect(resp.Application.Source.Interval).To(Equal("10s"))
-				Expect(resp.Application.Source.Timeout).To(Equal("10s"))
-
-				Expect(k8sClient.Delete(ctx, helm)).Should(Succeed())
-			})
 		})
 
 		Describe("fetches the application deployment", func() {
@@ -220,55 +177,6 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(resp.Application.Kustomization.Interval).To(Equal("1s"))
 
 				Expect(k8sClient.Delete(ctx, kust)).Should(Succeed())
-			})
-
-			It("fetches a helm release", func() {
-				name = "my-app-" + rand.String(5)
-				app = &wego.Application{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: wego.ApplicationSpec{
-						DeploymentType: wego.DeploymentTypeHelm,
-					},
-				}
-				Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-				release := &helmv2.HelmRelease{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: helmv2.HelmReleaseSpec{
-						TargetNamespace: "target-namespace",
-						Chart: helmv2.HelmChartTemplate{
-							Spec: helmv2.HelmChartTemplateSpec{
-								Chart:       "https://my-chart",
-								Version:     "v1.2.3",
-								ValuesFiles: []string{"file-1.yaml"},
-								SourceRef: helmv2.CrossNamespaceObjectReference{
-									Kind: "GitRepository",
-									Name: name,
-								},
-							},
-						},
-					},
-				}
-				Expect(k8sClient.Create(ctx, release)).Should(Succeed())
-
-				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-					Name:      name,
-					Namespace: namespace.Name,
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(resp.Application.HelmRelease.TargetNamespace).To(Equal("target-namespace"))
-				Expect(resp.Application.HelmRelease.Chart.Chart).To(Equal("https://my-chart"))
-				Expect(resp.Application.HelmRelease.Chart.Version).To(Equal("v1.2.3"))
-				Expect(resp.Application.HelmRelease.Chart.ValuesFiles).To(Equal([]string{"file-1.yaml"}))
-
-				Expect(k8sClient.Delete(ctx, release)).Should(Succeed())
 			})
 		})
 
@@ -526,43 +434,6 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
-	Describe("ListCommits", func() {
-		It("gets commits for an app", func() {
-			testApp := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testapp",
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					Branch: "main",
-					Path:   "./k8s",
-					URL:    "https://github.com/owner/repo1",
-				},
-			}
-			Expect(k8sClient.Create(context.Background(), testApp)).To(Succeed())
-
-			c := newTestcommit(gitprovider.CommitInfo{
-				URL:     "http://github.com/testrepo/commit/2349898",
-				Message: "my message",
-				Sha:     "2349898",
-			})
-			commits := []gitprovider.Commit{c}
-
-			gitProvider.GetCommitsReturns(commits, nil)
-
-			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
-				Name:      testApp.Name,
-				Namespace: testApp.Namespace,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Commits).To(HaveLen(1))
-			desired := c.Get()
-			Expect(res.Commits[0].Url).To(Equal(desired.URL))
-			Expect(res.Commits[0].Message).To(Equal(desired.Message))
-			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
-		})
-	})
-
 	Describe("SyncApplication", func() {
 		var (
 			ctx    context.Context
@@ -662,42 +533,6 @@ var _ = Describe("ApplicationsServer", func() {
 					Fail("SyncApplication test timed out")
 				}
 			}
-		})
-	})
-	Describe("ListCommits", func() {
-		It("gets commits for an app", func() {
-			testApp := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "testapp",
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					Branch: "main",
-					Path:   "./k8s",
-					URL:    "https://github.com/owner/repo1",
-				},
-			}
-			Expect(k8sClient.Create(context.Background(), testApp)).To(Succeed())
-
-			c := newTestcommit(gitprovider.CommitInfo{
-				URL:     "http://github.com/testrepo/commit/2349898",
-				Message: "my message",
-				Sha:     "2349898",
-			})
-			commits := []gitprovider.Commit{c}
-			gitProvider.GetCommitsReturns(commits, nil)
-			gitProvider.GetCommitsReturns(commits, nil)
-
-			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
-				Name:      testApp.Name,
-				Namespace: testApp.Namespace,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Commits).To(HaveLen(1))
-			desired := c.Get()
-			Expect(res.Commits[0].Url).To(Equal(desired.URL))
-			Expect(res.Commits[0].Message).To(Equal(desired.Message))
-			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
 		})
 	})
 
@@ -982,81 +817,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 	})
 })
-
-var _ = Describe("Applications handler", func() {
-	It("works as a standalone handler", func() {
-		log := testutils.MakeFakeLogr()
-		ctx := context.Background()
-		k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-
-		app := &wego.Application{}
-		app.Name = "my-app"
-		app.Namespace = "some-ns"
-
-		Expect(k8s.Create(ctx, app)).To(Succeed())
-
-		app2 := &wego.Application{}
-		app2.Name = "my-app2"
-		app2.Namespace = "some-ns"
-
-		Expect(k8s.Create(ctx, app2)).To(Succeed())
-
-		factory := &servicesfakes.FakeFactory{}
-
-		fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
-
-		cfg := ApplicationsConfig{
-			Logger:         log,
-			FetcherFactory: fakeFetcherFactory,
-			Factory:        factory,
-			ClusterConfig:  kube.ClusterConfig{},
-		}
-		fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-		fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
-
-		handler, err := NewHandlers(context.Background(), &Config{
-			AppConfig:  &cfg,
-			AppOptions: []ApplicationsOption{WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter)},
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		ts := httptest.NewServer(handler)
-		defer ts.Close()
-
-		path := "/v1/applications"
-		url := ts.URL + path
-
-		res, err := http.Get(url)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(res.StatusCode).To(Equal(http.StatusOK))
-
-		b, err := ioutil.ReadAll(res.Body)
-		Expect(err).NotTo(HaveOccurred())
-
-		r := &pb.ListApplicationsResponse{}
-		err = json.Unmarshal(b, r)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(r.Applications).To(HaveLen(2))
-	})
-})
-
-type fakeCommit struct {
-	commitInfo gitprovider.CommitInfo
-}
-
-func (fc *fakeCommit) APIObject() interface{} {
-	return &fc.commitInfo
-}
-
-func (fc *fakeCommit) Get() gitprovider.CommitInfo {
-	return fc.commitInfo
-}
-
-func newTestcommit(c gitprovider.CommitInfo) gitprovider.Commit {
-	return &fakeCommit{commitInfo: c}
-}
 
 func formatLogVals(vals []interface{}) []string {
 	list := []string{}
