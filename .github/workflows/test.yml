@@ -43,7 +43,7 @@ jobs:
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
-      run: make cmd/gitops/ui/run/dist/index.html
+      run: mkdir -p cmd/gitops/ui/run/dist && touch cmd/gitops/ui/run/dist/index.html
     - name: Check Format
       run: make check-format
     - name: Run linters
