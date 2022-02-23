@@ -8,7 +8,7 @@ import {
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
-import DataTable from "./DataTable";
+import DataTable, { SortType } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
@@ -22,7 +22,6 @@ function SourcesTable({ className, sources }: Props) {
   return (
     <div className={className}>
       <DataTable
-        sortFields={["name"]}
         rows={sources}
         fields={[
           {
@@ -37,6 +36,8 @@ function SourcesTable({ className, sources }: Props) {
                 {s?.name}
               </Link>
             ),
+            sortType: SortType.string,
+            sortValue: (s: Source) => s.name || "",
           },
           { label: "Type", value: "type" },
 

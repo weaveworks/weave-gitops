@@ -44,7 +44,7 @@ describe("Example Library App", () => {
     render(wrap(Applications));
     expect((await screen.findByText(name)).textContent).toEqual(name);
   });
-  it("renders <ApplicationDetail />", async () => {
+  it.skip("renders <ApplicationDetail />", async () => {
     render(wrap(ApplicationDetail));
     expect(await screen.findAllByText(name)).toBeTruthy();
   });
