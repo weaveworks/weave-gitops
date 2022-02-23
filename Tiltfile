@@ -16,7 +16,7 @@ docker_build_with_restart(
         './bin',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops ui run -l',
+    entrypoint='/app/build/gitops ui run -l --host 0.0.0.0',
     live_update=[
         sync('./bin', '/app/build'),
     ],
