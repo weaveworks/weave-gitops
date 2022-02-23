@@ -28,24 +28,25 @@ const fields = [
     label: "Name",
     value: ({ name }) => <a href="/some_url">{name}</a>,
     sortType: SortType.string,
-    altSortValue: ({ name }) => name,
+    sortValue: ({ name }) => name,
   },
   {
     label: "Status",
     value: "status",
     sortType: SortType.bool,
-    altSortValue: ({ status }) => (status === "Ready" ? true : false),
+    sortValue: ({ status }) => (status === "Ready" ? true : false),
   },
   {
     label: "Last Updated",
     value: "lastUpdate",
     sortType: SortType.date,
-    altSortValue: ({ lastUpdate }) => lastUpdate,
+    sortValue: ({ lastUpdate }) => lastUpdate,
   },
   {
     label: "Last Synced At",
     value: "lastSyncedAt",
     sortType: SortType.number,
+    sortValue: ({ lastSyncedAt }) => lastSyncedAt,
   },
 ];
 
@@ -67,7 +68,6 @@ export const WithData = Template.bind({});
 WithData.args = {
   fields: fields,
   rows: rows,
-  defaultSort: fields[0],
   className: "",
 };
 export const NoRows = Template.bind({});

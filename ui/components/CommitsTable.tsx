@@ -11,7 +11,7 @@ import {
 import { GrpcErrorCodes } from "../lib/types";
 import Alert from "./Alert";
 import AuthAlert from "./AuthAlert";
-import DataTable from "./DataTable";
+import DataTable, { SortType } from "./DataTable";
 import Flex from "./Flex";
 import Link from "./Link";
 
@@ -80,7 +80,6 @@ function CommitsTable({
   return (
     <div className={className}>
       <DataTable
-        sortFields={["date"]}
         fields={[
           {
             label: "SHA",
@@ -93,10 +92,13 @@ function CommitsTable({
           {
             label: "Date",
             value: (row: Commit) => timestamp(row.date),
+            sortType: SortType.date,
+            sortValue: (row: Commit) => timestamp(row.date),
           },
           { label: "Message", value: "message" },
           { label: "Author", value: "author" },
         ]}
+        defaultSort={1}
         rows={commits.commits}
       />
     </div>

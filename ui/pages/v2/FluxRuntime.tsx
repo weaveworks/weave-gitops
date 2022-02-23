@@ -1,7 +1,7 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import DataTable from "../../components/DataTable";
+import DataTable, { SortType } from "../../components/DataTable";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
@@ -23,7 +23,7 @@ function FluxRuntime({ className }: Props) {
       className={className}
     >
       <DataTable
-        sortFields={["cluster"]}
+        defaultSort={2}
         fields={[
           { value: "name", label: "Name" },
           {
@@ -35,6 +35,8 @@ function FluxRuntime({ className }: Props) {
           {
             label: "Cluster",
             value: "cluster",
+            sortType: SortType.string,
+            sortValue: ({ cluster }) => cluster,
           },
           {
             value: (v: Deployment) => (

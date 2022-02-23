@@ -25,26 +25,23 @@ export enum SortType {
   bool,
 }
 
+type field = {
+  label: string;
+  value: string | ((k: any) => string | JSX.Element);
+  sortType?: SortType;
+  sortValue?: (k: any) => any;
+};
+
 /** DataTable Properties  */
 export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
-  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, sortType, which determines the sorting function to be used, and altSortValue, which customizes your input to the search function */
-  fields: {
-    label: string;
-    value: string | ((k: any) => string | JSX.Element);
-    sortType?: SortType;
-    altSortValue?: (k: any) => any;
-  }[];
+  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
+  fields: field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
-  /** field to initially sort against. */
-  defaultSort: {
-    label: string;
-    value: string | ((k: any) => string | JSX.Element);
-    sortType?: SortType;
-    altSortValue?: (k: any) => any;
-  };
+  /** index of field to initially sort against. */
+  defaultSort?: number;
   /** an optional list of string widths for each field/column. */
   widths?: string[];
   /** for passing pagination */
@@ -74,57 +71,37 @@ const TableButton = styled(Button)`
   }
 `;
 
-export const sortWithType = (rows, sort) => {
-  let altSort;
-  if (sort.altSortValue !== undefined) altSort = true;
-  switch (sort.sortType) {
-    case SortType.number:
-      return rows.sort((a: any, b: any) => {
-        if (altSort) return sort.altSortValue(a) - sort.altSortValue(b);
-        else return a[sort.value] - b[sort.value];
-      });
+export const sortWithType = (rows: any[], sort: field) => {
+  const sortFn = sort.sortValue;
+  return rows.sort((a: field, b: field) => {
+    switch (sort.sortType) {
+      case SortType.number:
+        return sortFn(a) - sortFn(b);
 
-    case SortType.date:
-      return rows.sort((a: any, b: any) => {
-        if (altSort) {
-          return (
-            Date.parse(sort.altSortValue(a)) - Date.parse(sort.altSortValue(b))
-          );
-        } else return a[sort.value] - b[sort.value];
-      });
+      case SortType.date:
+        return Date.parse(sortFn(a)) - Date.parse(sortFn(b));
 
-    case SortType.bool:
-      return rows.sort((a: any, b: any) => {
-        const aVal = altSort ? sort.altSortValue(a) : a[sort.value];
-        const bVal = altSort ? sort.altSortValue(b) : b[sort.value];
-        if (aVal === bVal) return 0;
-        else if (aVal === false && bVal === true) return -1;
+      case SortType.bool:
+        if (sortFn(a) === sortFn(b)) return 0;
+        else if (sortFn(a) === false && sortFn(b) === true) return -1;
         else return 1;
-      });
 
-    case SortType.string:
-      return altSort
-        ? rows.sort((a, b) => {
-            if (sort.altSortValue(a) === sort.altSortValue(b)) return 0;
-            else if (sort.altSortValue(a) < sort.altSortValue(b)) return -1;
-            else return 1;
-          })
-        : _.sortBy(rows, sort.value);
-
-    default:
-      return _.sortBy(rows, sort.value);
-  }
+      default:
+        return sortFn(a).localeCompare(sortFn(b));
+    }
+  });
 };
+
 /** Form DataTable */
 function UnstyledDataTable({
   className,
   fields,
   rows,
-  defaultSort,
+  defaultSort = 0,
   widths,
   children,
 }: Props) {
-  const [sort, setSort] = React.useState(defaultSort);
+  const [sort, setSort] = React.useState(fields[defaultSort]);
   const [reverseSort, setReverseSort] = React.useState(false);
 
   const sorted = sortWithType(rows, sort);
@@ -134,12 +111,7 @@ function UnstyledDataTable({
   }
 
   type labelProps = {
-    field: {
-      label: string;
-      value: string | ((k: any) => string | JSX.Element);
-      sortType?: SortType;
-      altSortValue?: (k: any) => any;
-    };
+    field: field;
   };
   function SortableLabel({ field }: labelProps) {
     return (

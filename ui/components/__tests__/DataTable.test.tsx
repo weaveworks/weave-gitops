@@ -32,25 +32,28 @@ describe("DataTable", () => {
       label: "Name",
       value: ({ name }) => <a href="/some_url">{name}</a>,
       sortType: SortType.string,
-      altSortValue: ({ name }) => name,
+      sortValue: ({ name }) => name,
     },
     {
       label: "Status",
       value: "status",
       sortType: SortType.bool,
-      altSortValue: ({ status }) => (status === "Ready" ? true : false),
+      sortValue: ({ status }) => (status === "Ready" ? true : false),
     },
     {
       label: "Last Updated",
       value: "lastUpdate",
       sortType: SortType.date,
+      sortValue: ({ lastUpdate }) => lastUpdate,
     },
     {
       label: "Last Synced At",
       value: "lastSyncedAt",
       sortType: SortType.number,
+      sortValue: ({ lastSyncedAt }) => lastSyncedAt,
     },
   ];
+
   describe("sorting", () => {
     describe("sortWithType", () => {
       it("should handle sorting with case SortType.string", () => {
@@ -58,7 +61,7 @@ describe("DataTable", () => {
           label: "Name",
           value: ({ name }) => <a href="/some_url">{name}</a>,
           sortType: SortType.string,
-          altSortValue: ({ name }) => name,
+          sortValue: ({ name }) => name,
         });
         expect(nameSort[0].name).toBe("nginx");
       });
@@ -67,7 +70,7 @@ describe("DataTable", () => {
           label: "Status",
           value: "status",
           sortType: SortType.bool,
-          altSortValue: ({ status }) => (status === "Ready" ? true : false),
+          sortValue: ({ status }) => (status === "Ready" ? true : false),
         });
         expect(boolSort[0].status).toBe("Failed");
         expect(boolSort[2].status).toBe("Ready");
@@ -77,7 +80,7 @@ describe("DataTable", () => {
           label: "Last Updated",
           value: "lastUpdate",
           sortType: SortType.date,
-          altSortValue: ({ lastUpdate }) => lastUpdate,
+          sortValue: ({ lastUpdate }) => lastUpdate,
         });
         expect(dateSort[0].lastUpdate).toBe("2004-01-02T15:04:05-0700");
       });
@@ -86,25 +89,18 @@ describe("DataTable", () => {
           label: "Last Synced At",
           value: "lastSyncedAt",
           sortType: SortType.number,
+          sortValue: ({ lastSyncedAt }) => lastSyncedAt,
         });
         expect(numberSort[0].lastSyncedAt).toBe(1000);
       });
     });
     it("initially sorts based on defaultSort", () => {
-      render(
-        withTheme(
-          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
-        )
-      );
+      render(withTheme(<DataTable fields={fields} rows={rows} />));
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/nginx/);
     });
     it("reverses sort on thead click", () => {
-      render(
-        withTheme(
-          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
-        )
-      );
+      render(withTheme(<DataTable fields={fields} rows={rows} />));
 
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
@@ -112,29 +108,24 @@ describe("DataTable", () => {
       expect(firstRow.innerHTML).toMatch(/the-cool-app/);
     });
     it("resets reverseSort and switches sort column on different thead click", () => {
-      render(
-        withTheme(
-          <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
-        )
-      );
+      render(withTheme(<DataTable fields={fields} rows={rows} />));
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
-      console.log(screen.getAllByRole("row")[1].innerHTML);
       const statusButton = screen.getByText("Status");
       fireEvent.click(statusButton);
-      console.log(screen.getAllByRole("row")[1].innerHTML);
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/podinfo/);
+    });
+    it("should render text when rows is empty", () => {
+      render(withTheme(<DataTable fields={fields} rows={[]} />));
+      const firstRow = screen.getAllByRole("row")[1];
+      expect(firstRow.innerHTML).toMatch(/No/);
     });
   });
   describe("snapshots", () => {
     it("renders", () => {
       const tree = renderer
-        .create(
-          withTheme(
-            <DataTable defaultSort={fields[0]} fields={fields} rows={rows} />
-          )
-        )
+        .create(withTheme(<DataTable fields={fields} rows={rows} />))
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

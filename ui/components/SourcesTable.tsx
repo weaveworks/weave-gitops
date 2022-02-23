@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+<<<<<<< HEAD
 import {
   GitRepository,
   HelmChart,
@@ -9,6 +10,12 @@ import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import DataTable from "./DataTable";
+=======
+import { GitRepository, HelmChart, SourceType } from "../lib/api/app/source.pb";
+import { Source, V2Routes } from "../lib/types";
+import { convertGitURLToGitProvider, formatURL } from "../lib/utils";
+import DataTable, { SortType } from "./DataTable";
+>>>>>>> 4a90d245 (sortWithType refactor)
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
@@ -22,7 +29,7 @@ function SourcesTable({ className, sources }: Props) {
   return (
     <div className={className}>
       <DataTable
-        sortFields={["name"]}
+        defaultSort="Name"
         rows={sources}
         fields={[
           {
@@ -37,6 +44,8 @@ function SourcesTable({ className, sources }: Props) {
                 {s?.name}
               </Link>
             ),
+            sortType: SortType.string,
+            sortValue: (s: Source) => s.name || "",
           },
           { label: "Type", value: "type" },
 
