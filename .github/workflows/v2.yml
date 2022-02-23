@@ -65,10 +65,12 @@ jobs:
         uses: fluxcd/pkg/actions/kubebuilder@main
       - run: make dependencies
       - run: go mod download
-      - run: make lint
       - run: make bin
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          skip-go-installation: true
       - run: make test
-      # - run: make lib-test
 
   full-ci:
     name: V2 CI Check (16.13.2, 1.17.5)
