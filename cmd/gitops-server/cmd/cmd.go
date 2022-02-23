@@ -27,7 +27,7 @@ import (
   "github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// Options contains all the options for the `ui run` command.
+// Options contains all the options for the gitops-server command.
 type Options struct {
   Port                          string
   HelmRepoNamespace             string
@@ -43,7 +43,7 @@ type Options struct {
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
-// `ui run` command.
+// gitops-server
 type OIDCAuthenticationOptions struct {
   IssuerURL      string
   ClientID       string
@@ -56,16 +56,15 @@ var options Options
 
 func NewCommand() *cobra.Command {
   cmd := &cobra.Command{
-    Use:     "run [--log]",
-    Short:   "Runs gitops ui",
+    Short:   "Runs the gitops-server",
     PreRunE: preRunCmd,
     RunE:    runCmd,
   }
 
   options = Options{}
 
-  cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
-  cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
+  cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging")
+  cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "Port")
   cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
   cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
   cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
