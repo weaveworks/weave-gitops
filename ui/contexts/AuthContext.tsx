@@ -10,6 +10,7 @@ const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
 export const AuthCheck = ({ children }) => {
+  // If the auth flag is null go straight to rendering the children
   const { authFlag } = React.useContext(FeatureFlags);
 
   if (!authFlag) {
