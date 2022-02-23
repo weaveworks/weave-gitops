@@ -1,4 +1,4 @@
-.PHONY: debug bin gitops install clean fmt vet dependencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
+.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests  proto proto-deps fakes crd
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -24,12 +24,11 @@ ifeq ($(BINARY_NAME),)
 BINARY_NAME := gitops
 endif
 
-.PHONY: bin
-
+##@ Default target
 all: gitops ## Install dependencies and build Gitops binary
 
 ##@ Test
-unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
+unit-tests: dependencies cmd/gitops-server/cmd/dist/index.html ## Run unit tests
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
@@ -49,14 +48,11 @@ local-docker-image:
 	DOCKER_BUILDKIT=1 docker build -t localhost:5000/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
 	docker push localhost:5000/wego-app:latest
 
-test: dependencies cmd/gitops/ui/run/dist/index.html
+test: dependencies cmd/gitops-server/cmd/dist/index.html
 	go test -v ./core/...
 
 fakes: ## Generate testing fakes
 	go generate ./...
-
-##@ Build
-gitops: dependencies ui bin ## Install dependencies and build gitops binary
 
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
@@ -67,20 +63,39 @@ api-dev: ## Server and watch gitops-server, will reload automatically on change
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
 	tilt up
 
-debug: ## Compile binary with optimisations and inlining disabled
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
 
-bin: ## Build gitops binary
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
+##@ Build
+# In addition to the main file depend on all go files and any other files in
+# the cmd directory (e.g. dist, on the assumption that there won't be many)
+bin/%: cmd/%/main.go $(shell find . -name "*.go") $(shell find cmd -type f)
+ifdef DEBUG
+		go build -ldflags $(LDFLAGS) -o $@ $(GO_BUILD_OPTS) $<
+else
+		go build -ldflags $(LDFLAGS) -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+endif
 
-docker: ## Build wego-app docker image
-	DOCKER_BUILDKIT=1 docker build --build-arg FLUX_VERSION=$(FLUX_VERSION) --target=runtime -t ghcr.io/weaveworks/wego-app:latest .
+gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
+gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
+DOCKER_REGISTRY?=localhost:5000
+
+_docker:
+	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
+										-f $(DOCKERFILE) \
+										-t $(DOCKER_REGISTRY)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										.
+
+docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: _docker ## Build a Docker image of the gitops CLI
+
+docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
+docker-gitops-server: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
+docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-	rm -f bin/gitops
-	rm -rf cmd/gitops/ui/run/dist
+	rm -f bin/*
+	rm -rf cmd/gitops-server/cmd/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
@@ -95,7 +110,7 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
-lint: cmd/gitops/ui/run/dist/index.html ## Run linters against code
+lint: cmd/gitops-server/cmd/dist/index.html ## Run linters against code
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 .deps:
@@ -124,7 +139,7 @@ proto: ## Generate protobuf files
 ##@ UI
 
 node_modules: ## Install node modules
-	npm ci
+	npm install-clean
 	npx npm-force-resolutions
 
 ui-lint: ## Run linter against the UI
@@ -136,20 +151,16 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	npm audit --production
 
-ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
+ui: node_modules cmd/gitops-server/cmd/dist/index.html ## Build the UI
 
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
 
-cmd/gitops/ui/run/dist:
-	mkdir -p cmd/gitops/ui/run/dist
-
-cmd/gitops/ui/run/dist/index.html: cmd/gitops/ui/run/dist
-	touch cmd/gitops/ui/run/dist/index.html
-
-cmd/gitops/ui/run/dist/main.js:
+cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
+# use `mkdir -p` so this works in the ui docker stage
+	if [ ! -d "cmd/gitops-server/cmd/dist" ]; then mkdir -p cmd/gitops-server/cmd/dist; fi
 	npm run build
 
 # Runs a test to raise errors if the integration between Gitops Core and EE is

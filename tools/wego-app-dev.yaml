@@ -15,7 +15,7 @@ spec:
       containers:
         - name: wego-app
           image: localhost:5000/weaveworks/wego-app:latest
-          args: ["ui", "run", "-l", "--helm-repo-namespace", "wego-system"]
+          args: ["-l", "--helm-repo-namespace", "wego-system"]
           ports:
             - containerPort: 9001
               protocol: TCP

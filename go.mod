@@ -28,14 +28,13 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/mattn/go-isatty v0.0.13
+	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	github.com/ory/go-acc v0.2.6
-	github.com/pelletier/go-toml v1.9.4
-	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
+	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
