@@ -154,6 +154,15 @@ service Applications {
         };
     }
 
+    /**
+    * Config returns configuration information about the server
+    */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+        option (google.api.http) = {
+            get : "/v1/featureflags"
+        };
+    }
+
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -384,4 +393,10 @@ message ValidateProviderTokenRequest {
 
 message ValidateProviderTokenResponse {
     bool valid = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+    map<string, string> flags = 1;
 }

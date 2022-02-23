@@ -14,11 +14,13 @@ import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
+import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
+import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
 import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
@@ -35,7 +37,58 @@ function withName(Cmp) {
   };
 }
 
-export default function App() {
+const App = () => (
+  <AppContextProvider renderFooter coreClient={Core}>
+    <Layout>
+      <ErrorBoundary>
+        <Switch>
+          <Route exact path={V2Routes.Automations} component={Automations} />
+          <Route
+            exact
+            path={V2Routes.Kustomization}
+            component={withName(KustomizationDetail)}
+          />
+          <Route exact path={V2Routes.Sources} component={Sources} />
+          <Route exact path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          <Route
+            exact
+            path={V2Routes.GitRepo}
+            component={withName(GitRepositoryDetail)}
+          />
+          <Redirect exact from="/" to={V2Routes.Automations} />
+          <Route exact path="*" component={Error} />
+        </Switch>
+      </ErrorBoundary>
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        newestOnTop={false}
+      />
+    </Layout>
+  </AppContextProvider>
+);
+
+export default function AppContainer() {
+  const [authFlag, setAuthFlag] = React.useState<boolean>(null);
+
+  const getAuthFlag = React.useCallback(() => {
+    fetch("/v1/featureflags")
+      .then((response) => response.json())
+      .then((data) =>
+        setAuthFlag(data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true")
+      )
+      .catch((err) => console.log(err));
+  }, []);
+
+  React.useEffect(() => {
+    getAuthFlag();
+  }, [getAuthFlag]);
+
+  // Loading...
+  if (authFlag === null) {
+    return null;
+  }
+
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
@@ -43,42 +96,22 @@ export default function App() {
           <Fonts />
           <GlobalStyle />
           <Router>
-            <AppContextProvider renderFooter coreClient={Core}>
-              <Layout>
-                <ErrorBoundary>
-                  <Switch>
-                    <Route
-                      exact
-                      path={V2Routes.Automations}
-                      component={Automations}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.Kustomization}
-                      component={withName(KustomizationDetail)}
-                    />
-                    <Route exact path={V2Routes.Sources} component={Sources} />
-                    <Route
-                      exact
-                      path={V2Routes.FluxRuntime}
-                      component={FluxRuntime}
-                    />
-                    <Route
-                      exact
-                      path={V2Routes.GitRepo}
-                      component={withName(GitRepositoryDetail)}
-                    />
-                    <Redirect exact from="/" to={V2Routes.Automations} />
-                    <Route exact path="*" component={Error} />
-                  </Switch>
-                </ErrorBoundary>
-                <ToastContainer
-                  position="top-center"
-                  autoClose={5000}
-                  newestOnTop={false}
-                />
-              </Layout>
-            </AppContextProvider>
+            {authFlag ? (
+              <AuthContextProvider>
+                <Switch>
+                  {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                  <Route component={SignIn} exact={true} path="/sign_in" />
+                  <Route path="*">
+                    {/* Check we've got a logged in user otherwise redirect back to signin */}
+                    <AuthCheck>
+                      <App />
+                    </AuthCheck>
+                  </Route>
+                </Switch>
+              </AuthContextProvider>
+            ) : (
+              <App />
+            )}
           </Router>
         </QueryClientProvider>
       </ThemeProvider>

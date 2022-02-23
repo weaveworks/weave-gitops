@@ -70,6 +70,9 @@ type ApplicationsClient interface {
 	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error)
+	//
+	// Config returns configuration information about the server
+	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
 }
 
 type applicationsClient struct {
@@ -197,6 +200,15 @@ func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *Vali
 	return out, nil
 }
 
+func (c *applicationsClient) GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error) {
+	out := new(GetFeatureFlagsResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetFeatureFlags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -253,6 +265,9 @@ type ApplicationsServer interface {
 	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error)
+	//
+	// Config returns configuration information about the server
+	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -298,6 +313,9 @@ func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoU
 }
 func (UnimplementedApplicationsServer) ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderToken not implemented")
+}
+func (UnimplementedApplicationsServer) GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeatureFlags not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -546,6 +564,24 @@ func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetFeatureFlags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeatureFlagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetFeatureFlags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetFeatureFlags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetFeatureFlags(ctx, req.(*GetFeatureFlagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -604,6 +640,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateProviderToken",
 			Handler:    _Applications_ValidateProviderToken_Handler,
+		},
+		{
+			MethodName: "GetFeatureFlags",
+			Handler:    _Applications_GetFeatureFlags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
