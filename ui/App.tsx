@@ -29,7 +29,7 @@ import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
-const App = (authFlag) => (
+const App = ({ authFlag }) => (
   <AppContextProvider renderFooter applicationsClient={appsClient}>
     <Layout authFlag={authFlag}>
       <ErrorBoundary>
@@ -120,13 +120,13 @@ export default function AppContainer() {
                 <Route path="*">
                   {/* Check we've got a logged in user otherwise redirect back to signin */}
                   <AuthCheck>
-                    <App />
+                    <App authFlag={authFlag} />
                   </AuthCheck>
                 </Route>
               </Switch>
             </AuthContextProvider>
           ) : (
-            <App />
+            <App authFlag={authFlag} />
           )}
         </Router>
       </ThemeProvider>
