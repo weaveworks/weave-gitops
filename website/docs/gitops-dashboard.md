@@ -16,8 +16,8 @@ To run the dashboard:
 
 ```shell
 $ gitops ui run
-INFO[0000] Opening browser at https://localhost:9001/
-INFO[0000] Serving on https://127.0.0.1:9001
+INFO[0000] Opening browser at https://0.0.0.0:9001/
+INFO[0000] Serving on 0.0.0.0:9001
 Opening in existing browser session.
 ```
 
