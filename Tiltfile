@@ -11,7 +11,7 @@ local_resource(
 )
 
 docker_build_with_restart(
-    'localhost:5001/weaveworks/wego-app',
+    'localhost:5001/weaveworks/wego-app', 
     '.',
     only=[
         './bin',

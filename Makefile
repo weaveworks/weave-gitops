@@ -45,8 +45,8 @@ local-registry:
 	./tools/deploy-local-registry.sh
 
 local-docker-image:
-	DOCKER_BUILDKIT=1 docker build -t localhost:5000/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
-	docker push localhost:5000/wego-app:latest
+	DOCKER_BUILDKIT=1 docker build -t localhost:5001/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
+	docker push localhost:5001/wego-app:latest
 
 test: dependencies
 	go test -v ./core/...
@@ -86,7 +86,7 @@ endif
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
-DOCKER_REGISTRY?=localhost:5000
+DOCKER_REGISTRY?=localhost:5001
 
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
