@@ -20,7 +20,7 @@ const Text = styled.span<Props>`
     else if (props.semiBold) return "600";
     else return "400";
   }};
-  text-transform: ${(props) => (props.capitalize ? "uppercase" : "none")};
+  text-transform: ${(props) => (props.capitalize ? "capitalize" : "none")};
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
   color: ${(props) => props.theme.colors[props.color as any]};
 `;
