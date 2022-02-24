@@ -37,16 +37,24 @@ message GitRepositoryRef {
     string commit = 4;
 }
 
+// GroupVersionKind represents an objects Kubernetes API type data
+message GroupVersionKind {
+    string group   = 1;
+    string kind    = 2;
+    string version = 3;
+}
+
 message Kustomization {
-    string    namespace               = 1;
-    string    name                    = 2;
-    string    path                    = 3;
-    SourceRef sourceRef               = 4;
-    Interval  interval                = 5;
-    repeated  Condition conditions    = 6;
-    string    lastAppliedRevision     = 7;
-    string    lastAttemptedRevision   = 8;
-    string    lastHandledReconciledAt = 9;
+    string    namespace                  = 1;
+    string    name                       = 2;
+    string    path                       = 3;
+    SourceRef sourceRef                  = 4;
+    Interval  interval                   = 5;
+    repeated  Condition conditions       = 6;
+    string    lastAppliedRevision        = 7;
+    string    lastAttemptedRevision      = 8;
+    string    lastHandledReconciledAt    = 9;
+    repeated  GroupVersionKind inventory = 10;
 }
 
 message HelmChart {
@@ -60,12 +68,13 @@ message HelmChart {
 }
 
 message HelmRelease {
-    string    release_name         = 1;
-    string    namespace            = 2;
-    string    name                 = 3;
-    Interval  interval             = 4;
-    HelmChart helm_chart           = 5;
-    repeated  Condition conditions = 6;
+    string    release_name               = 1;
+    string    namespace                  = 2;
+    string    name                       = 3;
+    Interval  interval                   = 4;
+    HelmChart helm_chart                 = 5;
+    repeated  Condition conditions       = 6;
+    repeated  GroupVersionKind inventory = 10;
 }
 
 message GitRepository {
@@ -109,4 +118,21 @@ message Deployment {
     string   namespace            = 2;
     repeated Condition conditions = 3;
     repeated string images        = 4;
+}
+
+enum AutomationKind {
+    // enums populate a global namespace, so spell these out.
+    // `Kustomization` and `HelmRelease` are already taken as names.
+    KustomizationAutomation = 0;
+    HelmReleaseAutomation   = 1;
+}
+
+// UnstructuredObject is a Kubernetes object of an unknown type
+message UnstructuredObject {
+    GroupVersionKind groupVersionKind     = 1;
+    string           name                 = 2;
+    string           namespace            = 3;
+    string           uid                  = 4;
+    string           status               = 5;
+    repeated         Condition conditions = 6;
 }

@@ -1,4 +1,5 @@
 import { MuiThemeProvider } from "@material-ui/core";
+import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
@@ -20,9 +21,18 @@ import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
 import Automations from "./pages/v2/Automations";
 import FluxRuntime from "./pages/v2/FluxRuntime";
+import KustomizationDetail from "./pages/v2/KustomizationDetail";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
+
+function withName(Cmp) {
+  return ({ location: { search }, ...rest }) => {
+    const params = qs.parse(search);
+
+    return <Cmp {...rest} name={params.name as string} />;
+  };
+}
 
 export default function App() {
   return (
@@ -40,6 +50,11 @@ export default function App() {
                       exact
                       path={V2Routes.Automations}
                       component={Automations}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.Kustomization}
+                      component={withName(KustomizationDetail)}
                     />
                     <Route exact path={V2Routes.Sources} component={Sources} />
                     <Route

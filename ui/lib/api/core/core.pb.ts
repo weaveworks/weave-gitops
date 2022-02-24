@@ -62,9 +62,42 @@ export type ListHelmChartsResponse = {
   helmCharts?: Gitops_coreV1Types.HelmChart[]
 }
 
+export type GetKustomizationRequest = {
+  name?: string
+  namespace?: string
+}
+
+export type GetKustomizationResponse = {
+  kustomization?: Gitops_coreV1Types.Kustomization
+}
+
+export type GetReconciledObjectsRequest = {
+  automationName?: string
+  namespace?: string
+  automationKind?: Gitops_coreV1Types.AutomationKind
+  kinds?: Gitops_coreV1Types.GroupVersionKind[]
+}
+
+export type GetReconciledObjectsResponse = {
+  objects?: Gitops_coreV1Types.UnstructuredObject[]
+}
+
+export type GetChildObjectsRequest = {
+  groupVersionKind?: Gitops_coreV1Types.GroupVersionKind
+  namespace?: string
+  parentUid?: string
+}
+
+export type GetChildObjectsResponse = {
+  objects?: Gitops_coreV1Types.UnstructuredObject[]
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetKustomization(req: GetKustomizationRequest, initReq?: fm.InitReq): Promise<GetKustomizationResponse> {
+    return fm.fetchReq<GetKustomizationRequest, GetKustomizationResponse>(`/v1/kustomizations/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListHelmReleases(req: ListHelmReleasesRequest, initReq?: fm.InitReq): Promise<ListHelmReleasesResponse> {
     return fm.fetchReq<ListHelmReleasesRequest, ListHelmReleasesResponse>(`/v1/helmreleases?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -83,5 +116,11 @@ export class Core {
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
+    return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

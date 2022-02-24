@@ -21,6 +21,7 @@ type CoreClient interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
+	GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
@@ -39,6 +40,11 @@ type CoreClient interface {
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
+	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	//
+	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 }
 
 type coreClient struct {
@@ -52,6 +58,15 @@ func NewCoreClient(cc grpc.ClientConnInterface) CoreClient {
 func (c *coreClient) ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error) {
 	out := new(ListKustomizationsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListKustomizations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error) {
+	out := new(GetKustomizationResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetKustomization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +127,24 @@ func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRun
 	return out, nil
 }
 
+func (c *coreClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error) {
+	out := new(GetReconciledObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetReconciledObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error) {
+	out := new(GetChildObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetChildObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -119,6 +152,7 @@ type CoreServer interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
+	GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
@@ -137,6 +171,11 @@ type CoreServer interface {
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
+	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	//
+	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -146,6 +185,9 @@ type UnimplementedCoreServer struct {
 
 func (UnimplementedCoreServer) ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListKustomizations not implemented")
+}
+func (UnimplementedCoreServer) GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKustomization not implemented")
 }
 func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
@@ -164,6 +206,12 @@ func (UnimplementedCoreServer) ListBuckets(context.Context, *ListBucketRequest) 
 }
 func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
+}
+func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
+}
+func (UnimplementedCoreServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -192,6 +240,24 @@ func _Core_ListKustomizations_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListKustomizations(ctx, req.(*ListKustomizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetKustomization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKustomizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetKustomization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetKustomization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetKustomization(ctx, req.(*GetKustomizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -304,6 +370,42 @@ func _Core_ListFluxRuntimeObjects_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReconciledObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetReconciledObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetReconciledObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetReconciledObjects(ctx, req.(*GetReconciledObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChildObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetChildObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetChildObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetChildObjects(ctx, req.(*GetChildObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -314,6 +416,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListKustomizations",
 			Handler:    _Core_ListKustomizations_Handler,
+		},
+		{
+			MethodName: "GetKustomization",
+			Handler:    _Core_GetKustomization_Handler,
 		},
 		{
 			MethodName: "ListHelmReleases",
@@ -338,6 +444,14 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxRuntimeObjects",
 			Handler:    _Core_ListFluxRuntimeObjects_Handler,
+		},
+		{
+			MethodName: "GetReconciledObjects",
+			Handler:    _Core_GetReconciledObjects_Handler,
+		},
+		{
+			MethodName: "GetChildObjects",
+			Handler:    _Core_GetChildObjects_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

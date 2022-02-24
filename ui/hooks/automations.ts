@@ -2,6 +2,7 @@ import _ from "lodash";
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
+import { GetKustomizationResponse } from "../lib/api/core/core.pb";
 import { Kustomization } from "../lib/api/core/types.pb";
 import { AutomationType, RequestError, WeGONamespace } from "../lib/types";
 
@@ -28,6 +29,16 @@ export function useListAutomations(namespace = WeGONamespace) {
         ];
       });
     },
+    { retry: false }
+  );
+}
+
+export function useGetKustomization(name: string, namespace = WeGONamespace) {
+  const { api } = useContext(AppContext);
+
+  return useQuery<GetKustomizationResponse, RequestError>(
+    ["kustomizations", name],
+    () => api.GetKustomization({ name, namespace }),
     { retry: false }
   );
 }
