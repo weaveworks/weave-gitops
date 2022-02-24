@@ -36,7 +36,7 @@ Applications being managed by Weave GitOps are displayed in a list. Clicking the
 
 ## TLS configuration
 
-By default the dashboard will listen on 127.0.0.1:9001 with TLS enabled. A self-signed certificate and key pair are generated when the server starts.
+By default the dashboard will listen on 0.0.0.0:9001 with TLS enabled. A self-signed certificate and key pair are generated when the server starts.
 As the certificate is _self-signed_, Chrome and other browser will show a warning you will have to click through to view the dashboard.
 
 | Parameter           | Type   | Description                                                     | Default |
@@ -44,6 +44,7 @@ As the certificate is _self-signed_, Chrome and other browser will show a warnin
 | `--no-tls`          | bool   | Disable TLS, access the dashboard on default port via http      | false   |
 | `--tls-private-key` | string | Filename for the TLS certficate, in-memory generated if omitted |         |
 | `--tls-cert-file`   | string | filename for the TLS key, in-memory generated if omitted        |         |
+| `--host`            | string | host to listen on                                               | 0.0.0.0 |
 
 ## Securing the dashboard using OIDC and Kubernetes RBAC
 
