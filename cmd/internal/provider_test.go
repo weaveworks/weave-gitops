@@ -1,11 +1,8 @@
 package internal
 
 import (
-	"bytes"
-	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -20,22 +17,6 @@ const (
 	githubToken = "github-token-123"
 	gitlabToken = "gitlab-token-abc"
 )
-
-func fakeBlockingCLIHandlerSuccess(_ context.Context, _ io.Writer) (string, error) {
-	return githubToken, nil
-}
-
-func fakeBlockingCLIHandlerError(_ context.Context, _ io.Writer) (string, error) {
-	return "", errors.New("blocking cli handler goes ka-boom")
-}
-
-func fakeAuthHandlerFuncGoodCLI(_ gitproviders.GitProviderName) (auth.BlockingCLIAuthHandler, error) {
-	return fakeBlockingCLIHandlerSuccess, nil
-}
-
-func fakeAuthHandlerFuncBadCLI(_ gitproviders.GitProviderName) (auth.BlockingCLIAuthHandler, error) {
-	return fakeBlockingCLIHandlerError, nil
-}
 
 func fakeAuthHandlerFuncError(_ gitproviders.GitProviderName) (auth.BlockingCLIAuthHandler, error) {
 	return nil, errors.New("get auth handler goes ka-boom")
@@ -57,10 +38,6 @@ func fakeEnvLookupExists(key string) (string, bool) {
 	} else {
 		return "", false
 	}
-}
-
-func fakeEnvLookupDoesNotExist(key string) (string, bool) {
-	return "", false
 }
 
 var _ = Describe("Get git provider", func() {
@@ -129,49 +106,4 @@ var _ = Describe("Get git provider", func() {
 			})
 		})
 	})
-
-	Describe("auth flow since token is not in an env variable", func() {
-		BeforeEach(func() {
-			fakeLogger = &loggerfakes.FakeLogger{
-				WarningfStub: func(fmtArg string, restArgs ...interface{}) {},
-			}
-			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
-		})
-
-		AfterEach(func() {
-			fmtArg, restArgs := fakeLogger.WarningfArgsForCall(0)
-			Expect(fmtArg).Should(Equal(envVariableWarning))
-			Expect(restArgs).To(HaveLen(1))
-			Expect(restArgs[0]).Should(Equal("GITHUB_TOKEN"))
-			Expect(fakeLogger.WarningfCallCount()).To(Equal(1))
-		})
-
-		It("cannot generate auth flow handler", func() {
-			client = NewGitProviderClient(os.Stdout, fakeEnvLookupDoesNotExist, fakeAuthHandlerFuncError, fakeLogger)
-			provider, err := client.GetProvider(repoUrl, fakeAccountGetterError)
-
-			Expect(provider).To(BeNil())
-			_, expectedErr := fakeAuthHandlerFuncError(repoUrl.Provider())
-			Expect(err).To(MatchError(fmt.Errorf("error initializing cli auth handler: %w", expectedErr)))
-		})
-
-		It("blocking cli handler returns an error during auth flow", func() {
-			client = NewGitProviderClient(os.Stdout, fakeEnvLookupDoesNotExist, fakeAuthHandlerFuncBadCLI, fakeLogger)
-			provider, err := client.GetProvider(repoUrl, fakeAccountGetterError)
-
-			Expect(provider).To(BeNil())
-			_, expectedErr := fakeBlockingCLIHandlerError(context.Background(), bytes.NewBufferString(""))
-			Expect(err).To(MatchError(fmt.Errorf("could not complete auth flow: %w", expectedErr)))
-		})
-
-		It("success", func() {
-			client = NewGitProviderClient(os.Stdout, fakeEnvLookupDoesNotExist, fakeAuthHandlerFuncGoodCLI, fakeLogger)
-			provider, err := client.GetProvider(repoUrl, fakeAccountGetterSuccess)
-
-			Expect(err).To(BeNil())
-			expectedProvider, _ := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: githubToken}, repoUrl.Owner(), fakeAccountGetterSuccess)
-			Expect(provider).To(Equal(expectedProvider))
-		})
-	})
-
 })
