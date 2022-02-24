@@ -63,6 +63,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Set up kubebuilder
         uses: fluxcd/pkg/actions/kubebuilder@main
+      - run: mkdir -p cmd/gitops-server/cmd/dist && touch cmd/gitops-server/cmd/dist/index.html
       - run: make dependencies
       - run: go mod download
       - run: make lint
