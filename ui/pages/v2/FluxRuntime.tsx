@@ -51,7 +51,7 @@ function FluxRuntime({ className }: Props) {
             label: "Image",
           },
         ]}
-        rows={data?.deployments}
+        rows={data ? data.deployments : []}
       />
     </Page>
   );

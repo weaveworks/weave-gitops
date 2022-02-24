@@ -17,7 +17,7 @@ function SourcesList({ className }: Props) {
       loading={isLoading}
       className={className}
     >
-      <SourcesTable sources={sources} />
+      <SourcesTable sources={sources || []} />
     </Page>
   );
 }

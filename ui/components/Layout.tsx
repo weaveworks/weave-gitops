@@ -18,14 +18,13 @@ const navItems = [
   {
     value: V2Routes.Automations,
     label: "Applications",
-    subs: [
-      {
-        value: V2Routes.Sources,
-        label: "Sources",
-      },
-    ],
   },
 
+  {
+    value: V2Routes.Sources,
+    label: "Sources",
+    sub: true,
+  },
   {
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
@@ -67,20 +66,22 @@ const NavContent = styled.div`
   min-height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
-  .MuiTab-wrapper {
-    font-size: 20px;
-    font-weight: bold;
-    color: ${(props) => props.theme.colors.neutral40};
+  .MuiTab-textColorInherit {
+    opacity: 1;
+    .MuiTab-wrapper {
+      font-size: 20px;
+      font-weight: 600;
+      color: ${(props) => props.theme.colors.neutral40};
+    }
     &.sub-item {
-      color: ${(props) => props.theme.colors.neutral30};
+      opacity: 0.7;
+      font-weight: 400;
     }
   }
-
   .MuiTabs-indicator {
     width: 4px;
     background-color: ${(props) => props.theme.colors.primary};
   }
-
   ${Link} {
     justify-content: flex-start;
   }
@@ -93,7 +94,6 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
-  border-radius: 10px;
 `;
 
 const Main = styled(Flex)`
@@ -142,6 +142,7 @@ function Layout({ className, children }: Props) {
                     label={n.label}
                     to={formatURL(n.value)}
                     value={n.value}
+                    className={n.sub && "sub-item"}
                   />
                 ))}
               </Tabs>
