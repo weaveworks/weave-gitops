@@ -8,6 +8,7 @@ import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -18,13 +19,14 @@ const navItems = [
   {
     value: V2Routes.Automations,
     label: "Applications",
+    subItems: [
+      {
+        value: V2Routes.Sources,
+        label: "Sources",
+      },
+    ],
   },
 
-  {
-    value: V2Routes.Sources,
-    label: "Sources",
-    sub: true,
-  },
   {
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
@@ -69,13 +71,15 @@ const NavContent = styled.div`
   .MuiTab-textColorInherit {
     opacity: 1;
     .MuiTab-wrapper {
-      font-size: 20px;
       font-weight: 600;
+      font-size: 20px;
       color: ${(props) => props.theme.colors.neutral40};
     }
     &.sub-item {
       opacity: 0.7;
-      font-weight: 400;
+      .MuiTab-wrapper {
+        font-weight: 400;
+      }
     }
   }
   .MuiTabs-indicator {
@@ -84,6 +88,9 @@ const NavContent = styled.div`
   }
   ${Link} {
     justify-content: flex-start;
+    &.sub-item: {
+      font-weight: 400;
+    }
   }
 `;
 
@@ -137,13 +144,26 @@ function Layout({ className, children }: Props) {
                 value={getParentNavValue(currentPage)}
               >
                 {_.map(navItems, (n) => (
-                  <StyleLinkTab
-                    key={n.value}
-                    label={n.label}
-                    to={formatURL(n.value)}
-                    value={n.value}
-                    className={n.sub && "sub-item"}
-                  />
+                  <Flex column>
+                    <StyleLinkTab
+                      key={n.value}
+                      label={n.label}
+                      to={formatURL(n.value)}
+                      value={n.value}
+                    />
+                    {_.map(n.subItems, (sub) => {
+                      return (
+                        <StyleLinkTab
+                          key={sub.value}
+                          label={sub.label}
+                          to={formatURL(sub.value)}
+                          value={sub.value}
+                          className={"sub-item"}
+                        />
+                      );
+                    })}
+                    <Spacer padding="small" />
+                  </Flex>
                 ))}
               </Tabs>
             </NavContent>
