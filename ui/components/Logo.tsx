@@ -15,10 +15,10 @@ type Props = {
 function Logo({ className }: Props) {
   return (
     <Spacer padding="medium">
-      <Flex className={className}>
+      <Flex className={className} align>
         <img src={logoSrc} />
         <Spacer padding="xxs" />
-        <img src={titleSrc} />
+        <img src={titleSrc} style={{ height: "90%" }} />
       </Flex>
     </Spacer>
   );

@@ -120,7 +120,7 @@ function Page({
 
 export default styled(Page)`
   min-height: 1216px;
-
+  border-radius: 10px;
   .MuiAlert-root {
     width: 100%;
   }
