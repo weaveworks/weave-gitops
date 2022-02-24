@@ -9,7 +9,12 @@ const SIGN_IN = "/oauth2/sign_in";
 const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
-export const AuthCheck = ({ children }) => {
+interface AuthCheckProps {
+  children: any;
+  ContentWrapper?: React.ElementType;
+}
+
+export const AuthCheck = ({ children, ContentWrapper }: AuthCheckProps) => {
   // If the auth flag is null go straight to rendering the children
   const { authFlag } = React.useContext(FeatureFlags);
 
@@ -21,7 +26,11 @@ export const AuthCheck = ({ children }) => {
 
   // Wait until userInfo is loaded before showing signin or app content
   if (loading) {
-    return (
+    return ContentWrapper ? (
+      <ContentWrapper>
+        <LoadingPage />
+      </ContentWrapper>
+    ) : (
       <Layout>
         <LoadingPage />
       </Layout>
