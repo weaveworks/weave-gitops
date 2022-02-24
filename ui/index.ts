@@ -52,4 +52,5 @@ export {
   IconType,
   UserSettings,
   SignIn,
+  Auth,
 };
