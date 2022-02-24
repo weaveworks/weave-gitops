@@ -6,7 +6,7 @@ import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import Icon, { IconType } from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
-import AuthContextProvider from "./contexts/AuthContext";
+import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
@@ -23,11 +23,13 @@ import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
+import SignIn from "./pages/SignIn";
 
 export {
   FeatureFlagsContextProvider,
   FeatureFlags,
   AuthContextProvider,
+  AuthCheck,
   AppContextProvider,
   ApplicationAdd,
   ApplicationDetail,
@@ -49,4 +51,5 @@ export {
   Icon,
   IconType,
   UserSettings,
+  SignIn,
 };
