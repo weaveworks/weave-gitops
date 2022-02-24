@@ -10,25 +10,23 @@ type Props = {
   conditions: Condition[];
 };
 
-export function computeReady(conditions: Condition[]) {
+export function computeReady(conditions: Condition[]): boolean {
   const ready =
     _.find(conditions, { type: "Ready" }) ||
     // Deployment conditions work slightly differently;
     // they show "Available" instead of 'Ready'
     _.find(conditions, { type: "Available" });
-  return ready?.status;
+  return ready?.status == "True";
 }
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = _.find(conditions, (c) => c.type === "Ready");
 
-  if (readyCondition?.status === "False") {
-    return readyCondition.message;
-  }
+  return readyCondition.message;
 }
 
 function KubeStatusIndicator({ className, conditions }: Props) {
-  const ready = computeReady(conditions) === "True";
+  const ready = computeReady(conditions);
   const readyText = ready ? "Ready" : computeMessage(conditions);
   const color = ready ? "success" : "alert";
 
