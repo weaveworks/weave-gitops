@@ -177,10 +177,4 @@ function Layout({ className, children }: Props) {
 
 export default styled(Layout)`
   display: flex;
-
-  .sub-item {
-    .MuiTab-wrapper {
-      font-weight: 400;
-    }
-  }
 `;
