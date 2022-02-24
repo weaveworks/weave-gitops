@@ -6,7 +6,7 @@ import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import Icon, { IconType } from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
-import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
+import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
@@ -24,6 +24,12 @@ import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+// @ts-ignore
+import SignInWheel from "./images/SignInWheel.svg";
+// @ts-ignore
+import SignInBackground from "./images/SignInBackground.svg";
+// @ts-ignore
+import WeaveLogo from "./images/WeaveLogo.svg";
 
 export {
   FeatureFlagsContextProvider,
@@ -53,4 +59,7 @@ export {
   UserSettings,
   SignIn,
   Auth,
+  WeaveLogo,
+  SignInWheel,
+  SignInBackground,
 };
