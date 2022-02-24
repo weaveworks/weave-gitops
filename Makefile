@@ -28,7 +28,7 @@ endif
 all: gitops ## Install dependencies and build Gitops binary
 
 ##@ Test
-unit-tests: dependencies cmd/gitops-server/cmd/dist/index.html ## Run unit tests
+unit-tests: dependencies  ## Run unit tests
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
@@ -48,7 +48,7 @@ local-docker-image:
 	DOCKER_BUILDKIT=1 docker build -t localhost:5000/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
 	docker push localhost:5000/wego-app:latest
 
-test: dependencies cmd/gitops-server/cmd/dist/index.html
+test: dependencies
 	go test -v ./core/...
 
 fakes: ## Generate testing fakes
@@ -119,7 +119,7 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
-lint: cmd/gitops-server/cmd/dist/index.html ## Run linters against code
+lint: ## Run linters against code
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 .deps:
