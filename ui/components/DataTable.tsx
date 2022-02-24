@@ -73,18 +73,18 @@ const TableButton = styled(Button)`
   }
 `;
 
-type row = any;
+type Row = any;
 
 function defaultSortFunc(sort: Field): Sorter {
-  return (a: row) => {
+  return (a: Row) => {
     return a[sort.value as string];
   };
 }
 
-export const sortWithType = (rows: any[], sort: Field) => {
+export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
 
-  return rows.sort((a: row, b: row) => {
+  return rows.sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);

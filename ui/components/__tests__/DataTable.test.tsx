@@ -125,15 +125,12 @@ describe("DataTable", () => {
       const rows = [
         {
           name: "b",
-          ok: false,
         },
         {
           name: "c",
-          ok: true,
         },
         {
           name: "a",
-          ok: true,
         },
       ];
 
@@ -141,11 +138,6 @@ describe("DataTable", () => {
         {
           label: "Name",
           value: "name",
-        },
-        {
-          label: "OK",
-          value: "ok",
-          sortType: SortType.bool,
         },
       ];
 
