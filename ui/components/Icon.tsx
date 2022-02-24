@@ -5,6 +5,7 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
@@ -42,6 +43,7 @@ export enum IconType {
   ClearIcon,
   Circle,
   SearchIcon,
+  LogoutIcon,
 }
 
 type Props = {
@@ -114,6 +116,9 @@ function getIcon(i: IconType) {
       );
     case IconType.SearchIcon:
       return SearchIcon;
+
+    case IconType.LogoutIcon:
+      return LogoutIcon;
 
     default:
       break;
