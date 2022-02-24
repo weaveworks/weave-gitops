@@ -23,8 +23,6 @@ func TestGetFluxNamespace(t *testing.T) {
 	_, client, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	// k8sClient := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-
 	ns := &corev1.Namespace{}
 	ns.Name = "kube-test-" + rand.String(5)
 	ns.ObjectMeta.Labels = map[string]string{
