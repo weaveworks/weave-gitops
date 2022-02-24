@@ -24,12 +24,6 @@ import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-// @ts-ignore
-import SignInWheel from "./images/SignInWheel.svg";
-// @ts-ignore
-import SignInBackground from "./images/SignInBackground.svg";
-// @ts-ignore
-import WeaveLogo from "./images/WeaveLogo.svg";
 
 export {
   FeatureFlagsContextProvider,
@@ -59,7 +53,4 @@ export {
   UserSettings,
   SignIn,
   Auth,
-  WeaveLogo,
-  SignInWheel,
-  SignInBackground,
 };
