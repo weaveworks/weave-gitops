@@ -12,6 +12,7 @@ import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
 import * as React from "react";
 import styled from "styled-components";
 import { colors, spacing } from "../typedefs/styled";
@@ -34,6 +35,7 @@ export enum IconType {
   SkipNextIcon,
   SkipPreviousIcon,
   RemoveCircleIcon,
+  LogoutIcon,
 }
 
 type Props = {
@@ -90,6 +92,9 @@ function getIcon(i: IconType) {
 
     case IconType.RemoveCircleIcon:
       return RemoveCircleIcon;
+
+    case IconType.LogoutIcon:
+      return LogoutIcon;
 
     default:
       break;

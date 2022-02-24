@@ -2,12 +2,21 @@ import * as React from "react";
 import { useHistory, Redirect } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
+const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
 export const AuthCheck = ({ children }) => {
+  // If the auth flag is null go straight to rendering the children
+  const { authFlag } = React.useContext(FeatureFlags);
+
+  if (!authFlag) {
+    return children;
+  }
+
   const { loading, userInfo } = React.useContext(Auth);
 
   // Wait until userInfo is loaded before showing signin or app content
@@ -36,15 +45,18 @@ export type AuthContext = {
   };
   error: { status: number; statusText: string };
   loading: boolean;
+  logOut: () => void;
 };
 
 export const Auth = React.createContext<AuthContext | null>(null);
 
 export default function AuthContextProvider({ children }) {
-  const [userInfo, setUserInfo] = React.useState<{
-    email: string;
-    groups: string[];
-  }>(null);
+  const { authFlag } = React.useContext(FeatureFlags);
+  const [userInfo, setUserInfo] =
+    React.useState<{
+      email: string;
+      groups: string[];
+    }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
   const history = useHistory();
@@ -80,21 +92,46 @@ export default function AuthContextProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  const logOut = React.useCallback(() => {
+    setLoading(true);
+    fetch(LOG_OUT, {
+      method: "POST",
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          setError(response);
+          return;
+        }
+        history.push("/sign_in");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   React.useEffect(() => {
+    if (!authFlag) {
+      return null;
+    }
     getUserInfo();
     return history.listen(getUserInfo);
   }, [getUserInfo, history]);
 
   return (
-    <Auth.Provider
-      value={{
-        signIn,
-        userInfo,
-        error,
-        loading,
-      }}
-    >
-      {children}
-    </Auth.Provider>
+    <>
+      {authFlag ? (
+        <Auth.Provider
+          value={{
+            signIn,
+            userInfo,
+            error,
+            loading,
+            logOut,
+          }}
+        >
+          {children}
+        </Auth.Provider>
+      ) : (
+        children
+      )}
+    </>
   );
 }
