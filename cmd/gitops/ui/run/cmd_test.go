@@ -63,9 +63,9 @@ func TestNoRedirectURL(t *testing.T) {
 
 func TestMissingTLSKeyOrCert(t *testing.T) {
 	log := logrus.New()
-	err := run.ListenAndServe(&http.Server{}, run.Options{TLSCert: "foo"}, log)
+	err := run.ListenAndServe(&http.Server{}, false, "foo", "", log)
 	assert.ErrorIs(t, err, cmderrors.ErrNoTLSCertOrKey)
 
-	err = run.ListenAndServe(&http.Server{}, run.Options{TLSKey: "bar"}, log)
+	err = run.ListenAndServe(&http.Server{}, false, "", "bar", log)
 	assert.ErrorIs(t, err, cmderrors.ErrNoTLSCertOrKey)
 }
