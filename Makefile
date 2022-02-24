@@ -141,8 +141,6 @@ proto: ## Generate protobuf files
 ui: cmd/gitops-server/cmd/dist/index.html ## Build the UI
 
 cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
-# use `mkdir -p` so this works in the ui docker stage
-	if [ ! -d "cmd/gitops-server/cmd/dist" ]; then mkdir -p cmd/gitops-server/cmd/dist; fi
 	npm run build
 
 node_modules: ## Install node modules
