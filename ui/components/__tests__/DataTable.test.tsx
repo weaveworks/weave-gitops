@@ -121,7 +121,49 @@ describe("DataTable", () => {
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/No/);
     });
+    it("sorts by value when no sortValue property exists", () => {
+      const rows = [
+        {
+          name: "b",
+          ok: false,
+        },
+        {
+          name: "c",
+          ok: true,
+        },
+        {
+          name: "a",
+          ok: true,
+        },
+      ];
+
+      const fields = [
+        {
+          label: "Name",
+          value: "name",
+        },
+        {
+          label: "OK",
+          value: "ok",
+          sortType: SortType.bool,
+        },
+      ];
+
+      render(
+        withTheme(<DataTable defaultSort={0} fields={fields} rows={rows} />)
+      );
+
+      let firstRow = screen.getAllByRole("row")[1];
+      expect(firstRow.innerHTML).toMatch(/a/);
+
+      const nameButton = screen.getByText("Name");
+      fireEvent.click(nameButton);
+
+      firstRow = screen.getAllByRole("row")[1];
+      expect(firstRow.innerHTML).toMatch(/c/);
+    });
   });
+
   describe("snapshots", () => {
     it("renders", () => {
       const tree = renderer
