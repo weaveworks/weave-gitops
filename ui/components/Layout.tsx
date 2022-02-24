@@ -2,12 +2,14 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import UserSettings from "./UserSettings";
 
 type Props = {
   className?: string;
@@ -126,19 +128,15 @@ const TopToolBar = styled(Flex)`
   }
 `;
 
-//style for account icon - disabled while no account functionality exists
-// const UserAvatar = styled(Icon)`
-//   padding-right: ${(props) => props.theme.spacing.medium};
-// `;
-
 function Layout({ className, children }: Props) {
+  const { authFlag } = React.useContext(FeatureFlags);
   const { currentPage } = useNavigation();
   return (
     <div className={className}>
       <AppContainer>
         <TopToolBar between align>
           <Logo />
-          {/* code for account icon - disabled while no account functionality exists <UserAvatar size="xl" type={IconType.Account} color="white" /> */}
+          {authFlag ? <UserSettings /> : null}
         </TopToolBar>
         <Main wide>
           <NavContainer>

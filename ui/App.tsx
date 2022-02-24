@@ -15,6 +15,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
+import FeatureFlagsContextProvider from "./contexts/FeatureFlags";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
@@ -69,34 +70,14 @@ const App = () => (
 );
 
 export default function AppContainer() {
-  const [authFlag, setAuthFlag] = React.useState<boolean>(null);
-
-  const getAuthFlag = React.useCallback(() => {
-    fetch("/v1/featureflags")
-      .then((response) => response.json())
-      .then((data) =>
-        setAuthFlag(data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true")
-      )
-      .catch((err) => console.log(err));
-  }, []);
-
-  React.useEffect(() => {
-    getAuthFlag();
-  }, [getAuthFlag]);
-
-  // Loading...
-  if (authFlag === null) {
-    return null;
-  }
-
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
           <Fonts />
           <GlobalStyle />
           <Router>
-            {authFlag ? (
+            <FeatureFlagsContextProvider>
               <AuthContextProvider>
                 <Switch>
                   {/* <Signin> does not use the base page <Layout> so pull it up here */}
@@ -109,12 +90,10 @@ export default function AppContainer() {
                   </Route>
                 </Switch>
               </AuthContextProvider>
-            ) : (
-              <App />
-            )}
+            </FeatureFlagsContextProvider>
           </Router>
-        </QueryClientProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </MuiThemeProvider>
   );
 }
