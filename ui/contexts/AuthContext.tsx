@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useHistory, Redirect } from "react-router-dom";
-import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 
@@ -11,10 +10,10 @@ const AUTH_PATH_SIGNIN = "/sign_in";
 
 interface AuthCheckProps {
   children: any;
-  ContentWrapper?: React.ElementType;
+  Loader?: React.ElementType;
 }
 
-export const AuthCheck = ({ children, ContentWrapper }: AuthCheckProps) => {
+export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   // If the auth flag is null go straight to rendering the children
   const { authFlag } = React.useContext(FeatureFlags);
 
@@ -26,15 +25,7 @@ export const AuthCheck = ({ children, ContentWrapper }: AuthCheckProps) => {
 
   // Wait until userInfo is loaded before showing signin or app content
   if (loading) {
-    return ContentWrapper ? (
-      <ContentWrapper>
-        <LoadingPage />
-      </ContentWrapper>
-    ) : (
-      <Layout>
-        <LoadingPage />
-      </Layout>
-    );
+    return Loader ? <Loader /> : null;
   }
 
   // Signed in! Show app

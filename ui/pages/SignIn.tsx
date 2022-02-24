@@ -9,11 +9,11 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 // @ts-ignore
-import SignInWheel from "./../images/SignInWheel.svg";
+import SignInWheel from "data-url:./../images/SignInWheel.svg";
 // @ts-ignore
-import SignInBackground from "./../images/SignInBackground.svg";
+import SignInBackground from "data-url:./../images/SignInBackground.svg";
 // @ts-ignore
-import WeaveLogo from "./../images/WeaveLogo.svg";
+import WeaveLogo from "data-url:./../images/WeaveLogo.svg";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});
