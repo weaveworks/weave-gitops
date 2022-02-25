@@ -322,6 +322,11 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
+		if !s.oidcEnabled() {
+			ui := UserInfo{}
+			toJson(rw, ui, s.logger)
+		}
+
 		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: c.Value,
 		}))
