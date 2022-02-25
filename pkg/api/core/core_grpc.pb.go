@@ -21,6 +21,8 @@ type CoreClient interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
+	//
+	// GetKustomization gets data about a single Kustomization from a cluster.
 	GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
@@ -38,13 +40,19 @@ type CoreClient interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error)
 	//
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
+	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
 	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
+	//
+	// GetFluxNamespace returns with a namespace with a specific label.
+	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
 }
 
 type coreClient struct {
@@ -145,6 +153,15 @@ func (c *coreClient) GetChildObjects(ctx context.Context, in *GetChildObjectsReq
 	return out, nil
 }
 
+func (c *coreClient) GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error) {
+	out := new(GetFluxNamespaceResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetFluxNamespace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -152,6 +169,8 @@ type CoreServer interface {
 	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
+	//
+	// GetKustomization gets data about a single Kustomization from a cluster.
 	GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error)
 	//
 	// ListHelmReleases lists helm releases from a cluster.
@@ -169,13 +188,19 @@ type CoreServer interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error)
 	//
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster
+	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
 	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
+	//
+	// GetFluxNamespace returns with a namespace with a specific label.
+	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -212,6 +237,9 @@ func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconci
 }
 func (UnimplementedCoreServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
+}
+func (UnimplementedCoreServer) GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFluxNamespace not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -406,6 +434,24 @@ func _Core_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_GetFluxNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFluxNamespaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetFluxNamespace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetFluxNamespace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetFluxNamespace(ctx, req.(*GetFluxNamespaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -452,6 +498,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChildObjects",
 			Handler:    _Core_GetChildObjects_Handler,
+		},
+		{
+			MethodName: "GetFluxNamespace",
+			Handler:    _Core_GetFluxNamespace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

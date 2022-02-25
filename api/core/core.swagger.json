@@ -83,7 +83,7 @@
     },
     "/v1/flux_runtime_objects": {
       "get": {
-        "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster",
+        "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
         "operationId": "Core_ListFluxRuntimeObjects",
         "responses": {
           "200": {
@@ -269,6 +269,7 @@
     },
     "/v1/kustomizations/{name}": {
       "get": {
+        "summary": "GetKustomization gets data about a single Kustomization from a cluster.",
         "operationId": "Core_GetKustomization",
         "responses": {
           "200": {
@@ -303,8 +304,42 @@
         ]
       }
     },
+    "/v1/namespace/flux": {
+      "post": {
+        "summary": "GetFluxNamespace returns with a namespace with a specific label.",
+        "operationId": "Core_GetFluxNamespace",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFluxNamespaceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetFluxNamespaceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
+        "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
         "operationId": "Core_GetReconciledObjects",
         "responses": {
           "200": {
@@ -359,14 +394,11 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "typeUrl": {
+        "@type": {
           "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
         }
-      }
+      },
+      "additionalProperties": {}
     },
     "rpcStatus": {
       "type": "object",
@@ -499,6 +531,17 @@
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
           }
+        }
+      }
+    },
+    "v1GetFluxNamespaceRequest": {
+      "type": "object"
+    },
+    "v1GetFluxNamespaceResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
         }
       }
     },
