@@ -41,6 +41,9 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
+	Insecure                      bool
+	TLSServerCertificatePath      string
+	TLSServerKeyPath              string
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -74,6 +77,9 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
+	cmd.Flags().BoolVarP(&options.Insecure, "insecure", "i", true, "disable using tls/ssl")
+	cmd.Flags().StringVar(&options.TLSServerCertificatePath, "tls-server-certificate", "", "tls/ssl server certificate path")
+	cmd.Flags().StringVar(&options.TLSServerKeyPath, "tls-server-key", "", "tls/ssl server certificate path")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -114,6 +120,13 @@ func preRunCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+
+	if !options.Insecure {
+		if options.TLSServerCertificatePath == "" || options.TLSServerKeyPath == "" {
+			return fmt.Errorf("flags --tls-server-certificate and --tls-server-key cannot be empty")
+		}
+	}
+
 	var log = logrus.New()
 
 	mux := http.NewServeMux()
@@ -257,9 +270,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := srv.ListenAndServeTLS("localhost.crt", "localhost.key"); err != nil {
-			log.Error(err, "server exited")
-			os.Exit(1)
+		if options.Insecure {
+			if err := srv.ListenAndServe(); err != nil {
+				log.Error(err, "server exited")
+				os.Exit(1)
+			}
+		} else {
+			if err := srv.ListenAndServeTLS(options.TLSServerCertificatePath, options.TLSServerKeyPath); err != nil {
+				log.Error(err, "server exited")
+				os.Exit(1)
+			}
 		}
 	}()
 
