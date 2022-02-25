@@ -2,18 +2,18 @@ import * as React from "react";
 import styled from "styled-components";
 import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
-import Alert from "../components/Alert";
-import Button from "../components/Button";
-import Flex from "../components/Flex";
-import LoadingPage from "../components/LoadingPage";
-import { Auth } from "../contexts/AuthContext";
-import { theme } from "../lib/theme";
 // @ts-ignore
 import SignInWheel from "data-url:./../images/SignInWheel.svg";
 // @ts-ignore
 import SignInBackground from "data-url:./../images/SignInBackground.svg";
 // @ts-ignore
 import WeaveLogo from "data-url:./../images/WeaveLogo.svg";
+import Alert from "../components/Alert";
+import Button from "../components/Button";
+import Flex from "../components/Flex";
+import LoadingPage from "../components/LoadingPage";
+import { Auth } from "../contexts/AuthContext";
+import { theme } from "../lib/theme";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${SignInBackground});

@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useHistory, Redirect } from "react-router-dom";
-import LoadingPage from "../components/LoadingPage";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 
 const USER_INFO = "/oauth2/userinfo";
