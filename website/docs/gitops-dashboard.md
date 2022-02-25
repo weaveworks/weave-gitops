@@ -46,24 +46,33 @@ As the certificate is _self-signed_, Chrome and other browser will show a warnin
 | `--tls-cert-file`   | string | filename for the TLS key, in-memory generated if omitted        |         |
 | `--host`            | string | host to listen on                                               | 0.0.0.0 |
 
-## Securing the dashboard using OIDC and Kubernetes RBAC
+## Dashboard Login
 
-:::note WORK IN PROGRESS
-The following instructions describe a feature that is being actively developed and is therefore behind a feature toggle. To enable this feature, set the following OS environment variable:
+There are 2 supported methods for logging in to the dashboard:
+- Login via an OIDC provider
+- Login via the superuser account
 
+The recommended approach is to integrate with an OIDC provider, as this will let you control permissions for your platform users *and groups* using standard Kubernetes RBAC. However, it is also possible to use a superuser account to login, if an OIDC provider is not available to use. The superuser will assume the Kubernetes RBAC `User` named `admin`.
+
+:::note FEATURE TOGGLE 
+The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
 ```
 
 :::
 
+### Login via an OIDC provider
+
+#### Securing the dashboard using OIDC and Kubernetes RBAC
+
 You may decide to host the dashboard centrally to allow for your engineering teams to access it in order to manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
 
-### Background
+#### Background
 
 OIDC extends the OAuth2 authorization protocol by including an additional field (ID Token) that contains information (claims) about a user's identity. After a user successfully authenticates with the OIDC provider, this information is used by Weave GitOps to impersonate the user in any calls to the Kubernetes API. This allows cluster administrators to use RBAC rules to control access to the cluster and also the dashboard.
 
-### Configuration
+#### Configuration
 
 After enabling the feature, `gitops ui run` will require the following additional parameters:
 
@@ -143,6 +152,40 @@ The table below contains all the permissions that the dashboard uses:
 | `secrets`                   |                               | `get`    | Required to read deploy key secret in order to retrieve the list of commits                  |
 | `customresourcedefinitions` | `apiextensions.k8s.io`        | `get`    | Required to read custom resources of type `apps.wego.weave.works` when adding an application |
 
+### Login via the superuser account
+
+Before you login via the superuser account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
+
+Run an Alpine Docker image interactively and supply the password of your choice as an environment variable:
+
+```sh
+docker run -e CLEAR_PASSWORD="super secret password" -it alpine
+```
+
+Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
+
+```sh
+apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
+pip install bcrypt
+```
+
+Run the following Python script to generate a hash:
+
+```sh
+python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
+b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+```
+
+Now create a Kubernetes secret to store the password hash:
+
+```sh
+kubectl create secret generic admin-password-hash \
+  --namespace wego-system \
+  --from-literal="password=$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim"
+```
+
+You should now be able to login via the superuser account using your chosen password.
+ 
 ## Future development
 
 The GitOps Dashboard is under active development, watch this space for exciting new features.
