@@ -10,6 +10,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type HelmReleaseStorage struct {
+	Name     string `json:"name,omitempty"`
+	Manifest string `json:"manifest,omitempty"`
+}
+
 func ProtoToHelmRelease(hr *pb.HelmRelease) v2beta1.HelmRelease {
 	return v2beta1.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
@@ -40,7 +45,7 @@ func ProtoToHelmRelease(hr *pb.HelmRelease) v2beta1.HelmRelease {
 	}
 }
 
-func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease) *pb.HelmRelease {
+func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, inventory []*pb.GroupVersionKind) *pb.HelmRelease {
 	return &pb.HelmRelease{
 		Name:        helmrelease.Name,
 		ReleaseName: helmrelease.Spec.ReleaseName,
@@ -60,6 +65,7 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease) *pb.HelmRelease {
 				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
+		Inventory:  inventory,
 		Conditions: mapConditions(helmrelease.Status.Conditions),
 	}
 }
