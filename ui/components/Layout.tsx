@@ -84,6 +84,13 @@ const NavContent = styled.div`
     width: 4px;
     background-color: ${(props) => props.theme.colors.primary};
   }
+  .MuiTab-root {
+    padding: 0px 12px;
+    min-height: 24px;
+    &.sub-item {
+      margin-bottom: 24px;
+    }
+  }
   ${Link} {
     justify-content: flex-start;
     &.sub-item: {
