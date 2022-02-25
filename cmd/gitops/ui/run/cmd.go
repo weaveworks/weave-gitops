@@ -30,6 +30,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/tls"
 )
 
+const (
+	// Allowed login requests per second
+	loginRequestRateLimit = 20
+)
+
 // Options contains all the options for the `ui run` command.
 type Options struct {
 	Port                          string
@@ -229,8 +234,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create auth server: %w", err)
 		}
 
-		appConfig.Logger.Info("Registering callback route")
-		auth.RegisterAuthServer(mux, "/oauth2", srv)
+		appConfig.Logger.Info("Registering auth routes")
+
+		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
+			return fmt.Errorf("failed to register auth routes: %w", err)
+		}
 
 		authServer = srv
 	}
