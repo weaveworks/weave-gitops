@@ -9,10 +9,10 @@ exports[`Logo snapshots renders 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
@@ -41,6 +41,11 @@ exports[`Logo snapshots renders 1`] = `
     />
     <img
       src=""
+      style={
+        Object {
+          "height": "90%",
+        }
+      }
     />
   </div>
 </div>

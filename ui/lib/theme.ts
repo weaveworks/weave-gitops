@@ -89,9 +89,8 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
     min-width: fit-content;
-    background: right bottom url(${bg}) no-repeat fixed ${
-  theme.colors.neutral10
-}; 
+    background: right bottom url(${bg}) no-repeat fixed ${(props) =>
+  props.theme.colors.neutral10}; 
     background-size: 100%;
   }
   .auth-modal-size {
