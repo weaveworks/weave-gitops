@@ -8,15 +8,10 @@ import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
-// @ts-ignore
-import SignInWheel from "./../images/SignInWheel.svg";
-// @ts-ignore
-import SignInBackground from "./../images/SignInBackground.svg";
-// @ts-ignore
-import WeaveLogo from "./../images/WeaveLogo.svg";
+import images from "../lib/images";
 
 export const SignInPageWrapper = styled(Flex)`
-  background: url(${SignInBackground});
+  background: url(${images.SignInBackground});
   height: 100%;
   width: 100%;
 `;
@@ -83,7 +78,7 @@ function SignIn() {
       <FormWrapper center align wrap>
         <div style={{ padding: theme.spacing.base }}>
           <Logo>
-            <img src={WeaveLogo} />
+            <img src={images.WeaveLogo} />
           </Logo>
           <Action>
             <Button
@@ -144,7 +139,7 @@ function SignIn() {
           </form>
         </div>
         <Footer>
-          <img src={SignInWheel} />
+          <img src={images.SignInWheel} />
         </Footer>
       </FormWrapper>
     </SignInPageWrapper>

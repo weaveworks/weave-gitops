@@ -1,7 +1,5 @@
 import * as React from "react";
 import { useHistory, Redirect } from "react-router-dom";
-import Layout from "../components/Layout";
-import LoadingPage from "../components/LoadingPage";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 
 const USER_INFO = "/oauth2/userinfo";
@@ -9,7 +7,12 @@ const SIGN_IN = "/oauth2/sign_in";
 const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
-export const AuthCheck = ({ children }) => {
+interface AuthCheckProps {
+  children: any;
+  Loader?: React.ElementType;
+}
+
+export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   // If the auth flag is null go straight to rendering the children
   const { authFlag } = React.useContext(FeatureFlags);
 
@@ -21,11 +24,7 @@ export const AuthCheck = ({ children }) => {
 
   // Wait until userInfo is loaded before showing signin or app content
   if (loading) {
-    return (
-      <Layout>
-        <LoadingPage />
-      </Layout>
-    );
+    return Loader ? <Loader /> : null;
   }
 
   // Signed in! Show app
