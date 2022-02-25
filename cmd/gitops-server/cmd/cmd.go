@@ -120,7 +120,6 @@ func preRunCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-
 	if !options.Insecure {
 		if options.TLSServerCertificatePath == "" || options.TLSServerKeyPath == "" {
 			return fmt.Errorf("flags --tls-server-certificate and --tls-server-key cannot be empty")
