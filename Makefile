@@ -69,9 +69,9 @@ cluster-dev: ## Start tilt to do development with wego-app running on the cluste
 # the cmd directory (e.g. dist, on the assumption that there won't be many)
 bin/%: cmd/%/main.go $(shell find . -name "*.go") $(shell find cmd -type f)
 ifdef DEBUG
-		go build -ldflags $(LDFLAGS) -o $@ $(GO_BUILD_OPTS) $<
+		CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o $@ $(GO_BUILD_OPTS) $<
 else
-		go build -ldflags $(LDFLAGS) -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+		CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 endif
 
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
