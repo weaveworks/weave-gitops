@@ -8,7 +8,6 @@ import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
-import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -19,12 +18,11 @@ const navItems = [
   {
     value: V2Routes.Automations,
     label: "Applications",
-    subItems: [
-      {
-        value: V2Routes.Sources,
-        label: "Sources",
-      },
-    ],
+  },
+  {
+    value: V2Routes.Sources,
+    label: "Sources",
+    sub: true,
   },
 
   {
@@ -143,27 +141,14 @@ function Layout({ className, children }: Props) {
                 orientation="vertical"
                 value={getParentNavValue(currentPage)}
               >
-                {_.map(navItems, (n) => (
-                  <Flex column>
-                    <StyleLinkTab
-                      key={n.value}
-                      label={n.label}
-                      to={formatURL(n.value)}
-                      value={n.value}
-                    />
-                    {_.map(n.subItems, (sub) => {
-                      return (
-                        <StyleLinkTab
-                          key={sub.value}
-                          label={sub.label}
-                          to={formatURL(sub.value)}
-                          value={sub.value}
-                          className={"sub-item"}
-                        />
-                      );
-                    })}
-                    <Spacer padding="small" />
-                  </Flex>
+                {_.map(navItems, (n, i) => (
+                  <StyleLinkTab
+                    key={n.value}
+                    label={n.label}
+                    to={formatURL(n.value)}
+                    value={n.value}
+                    className={n.sub && "sub-item"}
+                  />
                 ))}
               </Tabs>
             </NavContent>
