@@ -27,27 +27,25 @@ import (
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const (
-	THIRTY_SECOND_TIMEOUT        time.Duration = 30 * time.Second
-	EVENTUALLY_DEFAULT_TIMEOUT   time.Duration = 60 * time.Second
-	INSTALL_RESET_TIMEOUT        time.Duration = 300 * time.Second
-	NAMESPACE_TERMINATE_TIMEOUT  time.Duration = 600 * time.Second
-	INSTALL_SUCCESSFUL_TIMEOUT   time.Duration = 3 * time.Minute
-	INSTALL_PODS_READY_TIMEOUT   time.Duration = 3 * time.Minute
-	KUSTOMIZATIONS_READY_TIMEOUT time.Duration = 2 * time.Minute
-	WEGO_DEFAULT_NAMESPACE                     = wego.DefaultNamespace
-	WEGO_UI_URL                                = "http://localhost:9001"
-	SELENIUM_SERVICE_URL                       = "http://localhost:4444/wd/hub"
-	SCREENSHOTS_DIR              string        = "screenshots/"
-	DEFAULT_BRANCH_NAME                        = "main"
-	WEGO_DASHBOARD_TITLE         string        = "Weave GitOps"
-	APP_PAGE_HEADER              string        = "Applications"
-	charset                                    = "abcdefghijklmnopqrstuvwxyz0123456789"
-	DEFAULT_K8S_VERSION          string        = "1.21.1"
+	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
+	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
+	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
+	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
+	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
+	INSTALL_PODS_READY_TIMEOUT  time.Duration = 3 * time.Minute
+	WEGO_DEFAULT_NAMESPACE                    = wego.DefaultNamespace
+	WEGO_UI_URL                               = "http://localhost:9001"
+	SELENIUM_SERVICE_URL                      = "http://localhost:4444/wd/hub"
+	SCREENSHOTS_DIR             string        = "screenshots/"
+	DEFAULT_BRANCH_NAME                       = "main"
+	WEGO_DASHBOARD_TITLE        string        = "Weave GitOps"
+	APP_PAGE_HEADER             string        = "Applications"
+	charset                                   = "abcdefghijklmnopqrstuvwxyz0123456789"
+	DEFAULT_K8S_VERSION         string        = "1.21.1"
 )
 
 var (
@@ -208,7 +206,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		var err error
 		if keepExistingClusters {
-			err = runCommandPassThrough([]string{"SKIP_DELETE=true"}, "./scripts/kind-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
+			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		} else {
 			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", kindCluster, "kindest/node:v"+k8sVersion)
 		}
@@ -243,7 +241,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo, providerName, org)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = utils.WaitUntil(os.Stdout, time.Second*3, THIRTY_SECOND_TIMEOUT, func() error {
+	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
             git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
@@ -290,22 +288,11 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 
 			return nil
 		}
-		if _, err := exec.Command("sh", "-c", kubectlCommand).CombinedOutput(); err != nil {
-			return err
-		}
-		return nil
-	}, timeout, "5s").Should(Succeed(), fmt.Sprintf("Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType))
-}
 
-func waitForResourceToExist(resourceType string, resourceName string, namespace string, timeout time.Duration) {
-	EventuallyWithOffset(1, func() error {
-		log.Infof("Waiting for %s/%s in namespace: %q to exist", resourceType, resourceName, namespace)
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
-		if _, err := command.CombinedOutput(); err != nil {
-			return err
-		}
-		return nil
-	}, timeout, "5s").Should(Succeed(), fmt.Sprintf("Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType))
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+
+	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error {
@@ -348,14 +335,14 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 }
 
 func VerifyControllersInCluster(namespace string) {
-	waitForResourceToExist("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToExist("deploy", "wego-app", namespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToBeReady("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)
+	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "wego-app", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 
 	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
@@ -363,17 +350,6 @@ func VerifyControllersInCluster(namespace string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	})
-}
-
-func VerifyKustomizations(clusterName, namespace string) {
-	userResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
-	systemResourceName := models.ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
-
-	for _, kustomizationName := range []string{userResourceName, systemResourceName} {
-		cmd := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=110s kustomization -n %s %s", namespace, kustomizationName)
-		out, err := runCommandAndReturnStringOutput(cmd)
-		Expect(err).Should(BeEmpty(), fmt.Sprintf("Failed to wait for kustomizations, out: %s, err: %s", out, err))
-	}
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
@@ -451,11 +427,20 @@ func deletePersistingHelmApp(namespace string, workloadName string, timeout time
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	if len(env) > 0 {
-		cmd.Env = append(os.Environ(), env...)
+		cmd.Env = env
 	}
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	if len(env) > 0 {
+		cmd.Env = env
+	}
 
 	return cmd.Run()
 }
@@ -498,7 +483,7 @@ func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	waitForResourceToExist("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)
+	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {
@@ -506,12 +491,12 @@ func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	waitForResourceToExist("HelmRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)
+	Expect(waitForResource("HelmRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
-	waitForResourceToExist("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)
-	waitForResourceToBeReady("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT)
+	Expect(waitForResource("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app!=wego-app'", workloadNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -519,7 +504,7 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 }
 
 func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace string) {
-	waitForResourceToBeReady("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)
+	Expect(waitForResource("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods --selector='app!=wego-app'", workloadNamespace)
 	command := exec.Command("sh", "-c", c)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -538,7 +523,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, THIRTY_SECOND_TIMEOUT, 1).Should(gexec.Exit())
+	Eventually(session, 10, 1).Should(gexec.Exit())
 }
 
 func setArtifactsDir() string {
