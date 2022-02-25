@@ -361,32 +361,6 @@ metadata:
 		})
 	})
 
-	Describe("GetResouce", func() {
-		It("fetches a k8s resource", func() {
-			ctx := context.Background()
-			name := "my-app"
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			resource := &wego.Application{}
-
-			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resource.GetName()).To(Equal(name))
-			Expect(resource.Spec.SourceType).To(Equal(wego.SourceTypeGit))
-		})
-	})
-
 	Describe("SetResouce", func() {
 		It("sets a k8s resource", func() {
 			ctx := context.Background()
