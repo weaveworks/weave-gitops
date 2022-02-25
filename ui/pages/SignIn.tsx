@@ -2,21 +2,16 @@ import * as React from "react";
 import styled from "styled-components";
 import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
-// @ts-ignore
-import SignInWheel from "data-url:./../images/SignInWheel.svg";
-// @ts-ignore
-import SignInBackground from "data-url:./../images/SignInBackground.svg";
-// @ts-ignore
-import WeaveLogo from "data-url:./../images/WeaveLogo.svg";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
+import images from "../lib/images";
 
 export const SignInPageWrapper = styled(Flex)`
-  background: url(${SignInBackground});
+  background: url(${images.SignInBackground});
   height: 100%;
   width: 100%;
 `;
@@ -83,7 +78,7 @@ function SignIn() {
       <FormWrapper center align wrap>
         <div style={{ padding: theme.spacing.base }}>
           <Logo>
-            <img src={WeaveLogo} />
+            <img src={images.WeaveLogo} />
           </Logo>
           <Action>
             <Button
@@ -144,7 +139,7 @@ function SignIn() {
           </form>
         </div>
         <Footer>
-          <img src={SignInWheel} />
+          <img src={images.SignInWheel} />
         </Footer>
       </FormWrapper>
     </SignInPageWrapper>
