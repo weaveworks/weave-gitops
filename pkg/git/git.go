@@ -42,42 +42,22 @@ type Commit struct {
 	Message string
 }
 
-// WegoRoot is the default root directory for the GitOps repo
-const WegoRoot = ".weave-gitops"
-
-// WegoAppDir is where applications information will live in the GitOps repo
-const WegoAppDir = "apps"
-
 // WegoClusterDir is where cluster information and manifests will live in the GitOps repo
-const WegoClusterDir = "clusters"
+const WegoClusterDir = "./clusters"
 
-// WegoClusterOSWorkloadDir is where OS workload manifests will live in the GitOps repo
-const WegoClusterOSWorkloadDir = "system"
-
-// WegoClusterUserWorkloadDir is where user workload manifests will live in the GitOps repo
-const WegoClusterUserWorkloadDir = "user"
-
-func getClusterPath(clusterName string) string {
-	return filepath.Join(WegoRoot, WegoClusterDir, clusterName)
-}
-
-func GetSystemPath(clusterName string) string {
-	return filepath.Join(getClusterPath(clusterName), WegoClusterOSWorkloadDir)
-}
-
-func GetUserPath(clusterName string) string {
-	return filepath.Join(getClusterPath(clusterName), WegoClusterUserWorkloadDir)
+func GetClusterPath(clusterName string) string {
+	return filepath.Join(WegoClusterDir, clusterName)
 }
 
 // GetSystemQualifiedPath returns the path of the relativePath joined with the cluster's system directory
 func GetSystemQualifiedPath(clusterName string, relativePath string) string {
-	return filepath.Join(GetSystemPath(clusterName), relativePath)
+	return filepath.Join(GetClusterPath(clusterName), relativePath)
 }
 
 // GetProfilesPath returns the path of the file containing the manifests of installed Profiles
 // joined with the cluster's system directory
 func GetProfilesPath(clusterName, profilesManifestPath string) string {
-	return filepath.Join(GetSystemPath(clusterName), profilesManifestPath)
+	return filepath.Join(GetClusterPath(clusterName), profilesManifestPath)
 }
 
 // Git is an interface for basic Git operations on a single branch of a

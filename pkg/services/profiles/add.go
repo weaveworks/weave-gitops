@@ -74,9 +74,9 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 
 	newRelease := helm.MakeHelmRelease(opts.Name, version, opts.Cluster, opts.Namespace, helmRepo)
 
-	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetSystemPath(opts.Cluster), defaultBranch)
+	files, err := gitProvider.GetRepoDirFiles(ctx, configRepoURL, git.GetClusterPath(opts.Cluster), defaultBranch)
 	if err != nil {
-		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
+		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetClusterPath(opts.Cluster), configRepoURL, err)
 	}
 
 	file, err := AppendProfileToFile(files, newRelease, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))

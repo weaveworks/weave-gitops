@@ -13,7 +13,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/benbjohnson/clock"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 
 	validation "k8s.io/apimachinery/pkg/api/validation"
 )
@@ -157,24 +156,4 @@ func ConvertCommitURLToShort(url string) string {
 	hash := urlArray[1][:7]
 
 	return path + hash
-}
-
-func MigrateToNewDirStructure(orig string) string {
-	if orig == "" {
-		return orig
-	}
-
-	f := strings.Split(orig, string(os.PathSeparator))
-
-	switch len(f) {
-	case 1:
-		// single file
-		return orig
-	case 2:
-		// handles the case apps/ and clusters/
-		return filepath.Join(git.WegoRoot, orig)
-	default:
-		// used for paths with apps under clusters
-		return filepath.Join(git.WegoRoot, git.WegoAppDir, f[len(f)-2], f[len(f)-1])
-	}
 }

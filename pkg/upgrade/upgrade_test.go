@@ -42,7 +42,7 @@ func TestUpgradeDryRun(t *testing.T) {
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
 		DryRun:        true,
-	}, k, gitClient, kubeClient, gitProvider, logger, &output)
+	}, k, gitClient, kubeClient, logger, &output)
 
 	assert.NoError(t, err)
 	assert.Contains(t, output.String(), "kind: HelmRelease")
@@ -82,7 +82,7 @@ func TestUpgrade(t *testing.T) {
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
-	}, k, gitClient, kubeClient, gitProvider, logger, &output)
+	}, k, gitClient, kubeClient, logger, &output)
 
 	assert.NoError(t, err)
 }

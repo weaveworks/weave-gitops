@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -68,16 +70,15 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 
-		wegoConfig, err := kubeClient.GetWegoConfig(ctx, namespace)
+		urlout, err := exec.Command("git", "remote", "get-url", "origin").CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("failed getting wego config")
+			return fmt.Errorf("failed to discover URL of repository %w", err)
 		}
-
-		upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
+		upgradeCmdFlags.ConfigRepo = strings.TrimRight(string(urlout), "\n")
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
+		gitClient, _, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 			ConfigRepo: upgradeCmdFlags.ConfigRepo,
 			Namespace:  upgradeCmdFlags.Namespace,
 			DryRun:     upgradeCmdFlags.DryRun,
@@ -89,7 +90,6 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		return upgrade.Upgrade(
 			ctx,
 			gitClient,
-			gitProvider,
 			upgradeCmdFlags,
 			log,
 			os.Stdout,
