@@ -121,6 +121,8 @@ func startAuthFlow(rw http.ResponseWriter, r *http.Request, srv *AuthServer) {
 		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
+	// Issue state cookie
+	http.SetCookie(rw, srv.createCookie("secret credentials", "set in clear text"))
 
 	state := base64.StdEncoding.EncodeToString(b)
 
