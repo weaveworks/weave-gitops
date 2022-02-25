@@ -257,7 +257,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := srv.ListenAndServe(); err != nil {
+		if err := srv.ListenAndServeTLS("localhost.crt", "localhost.key"); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}

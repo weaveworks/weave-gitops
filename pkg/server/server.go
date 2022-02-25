@@ -36,7 +36,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const DefaultPort = "9001"
+const DefaultPort = "7443"
 
 var (
 	ErrEmptyAccessToken = errors.New("access token is empty")

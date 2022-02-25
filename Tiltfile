@@ -16,9 +16,10 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
+        './tls'
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server -l',
+    entrypoint='/app/build/gitops-server',
     live_update=[
         sync('./bin', '/app/build'),
     ],
