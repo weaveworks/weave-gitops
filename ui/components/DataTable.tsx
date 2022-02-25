@@ -25,11 +25,13 @@ export enum SortType {
   bool,
 }
 
-type field = {
+type Sorter = (k: any) => any;
+
+type Field = {
   label: string;
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
-  sortValue?: (k: any) => any;
+  sortValue?: Sorter;
 };
 
 /** DataTable Properties  */
@@ -37,7 +39,7 @@ export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
   /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
-  fields: field[];
+  fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
   /** index of field to initially sort against. */
@@ -71,9 +73,18 @@ const TableButton = styled(Button)`
   }
 `;
 
-export const sortWithType = (rows: any[], sort: field) => {
-  const sortFn = sort.sortValue;
-  return rows.sort((a: field, b: field) => {
+type Row = any;
+
+function defaultSortFunc(sort: Field): Sorter {
+  return (a: Row) => {
+    return a[sort.value as string];
+  };
+}
+
+export const sortWithType = (rows: Row[], sort: Field) => {
+  const sortFn = sort.sortValue || defaultSortFunc(sort);
+
+  return rows.sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);
@@ -111,7 +122,7 @@ function UnstyledDataTable({
   }
 
   type labelProps = {
-    field: field;
+    field: Field;
   };
   function SortableLabel({ field }: labelProps) {
     return (

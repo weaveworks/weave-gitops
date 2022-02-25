@@ -7,8 +7,11 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
-import DataTable from "./DataTable";
-import KubeStatusIndicator from "./KubeStatusIndicator";
+import DataTable, { SortType } from "./DataTable";
+import KubeStatusIndicator, {
+  computeMessage,
+  computeReady,
+} from "./KubeStatusIndicator";
 
 type Props = {
   className?: string;
@@ -35,9 +38,11 @@ function ReconciledObjectsTable({
   return (
     <div className={className}>
       <DataTable
-        sortFields={["name", "type", "namespace", "status"]}
         fields={[
-          { value: "name", label: "Name" },
+          {
+            value: "name",
+            label: "Name",
+          },
           {
             label: "Type",
             value: (u: UnstructuredObject) => `${u.groupVersionKind.kind}`,
@@ -52,10 +57,14 @@ function ReconciledObjectsTable({
               u.conditions.length > 0 ? (
                 <KubeStatusIndicator conditions={u.conditions} />
               ) : null,
+            sortType: SortType.bool,
+            sortValue: ({ conditions }) => computeReady(conditions),
           },
           {
             label: "Message",
             value: (u: UnstructuredObject) => _.first(u.conditions)?.message,
+            sortType: SortType.string,
+            sortValue: ({ conditions }) => computeMessage(conditions),
           },
         ]}
         rows={objs}

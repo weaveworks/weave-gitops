@@ -21,6 +21,7 @@ import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
 import Automations from "./pages/v2/Automations";
 import FluxRuntime from "./pages/v2/FluxRuntime";
+import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import KustomizationDetail from "./pages/v2/KustomizationDetail";
 import Sources from "./pages/v2/Sources";
 
@@ -61,6 +62,11 @@ export default function App() {
                       exact
                       path={V2Routes.FluxRuntime}
                       component={FluxRuntime}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.GitRepo}
+                      component={withName(GitRepositoryDetail)}
                     />
                     <Redirect exact from="/" to={V2Routes.Automations} />
                     <Route exact path="*" component={Error} />

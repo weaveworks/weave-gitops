@@ -1,12 +1,12 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "../../components/Flex";
+import InfoList from "../../components/InfoList";
+import Interval from "../../components/Interval";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
-import Text from "../../components/Text";
 import { useGetKustomization } from "../../hooks/automations";
 import { AutomationKind } from "../../lib/api/core/types.pb";
 import { formatURL } from "../../lib/nav";
@@ -19,40 +19,6 @@ type Props = {
 
 const Info = styled.div`
   padding-bottom: 32px;
-`;
-
-const InfoList = styled(
-  ({
-    items,
-    className,
-  }: {
-    className?: string;
-    items: { [key: string]: any };
-  }) => {
-    return (
-      <table className={className}>
-        <tbody>
-          {_.map(items, (v, k) => (
-            <tr key={k}>
-              <td>
-                <Text capitalize bold>
-                  {k}:
-                </Text>
-              </td>
-              <td>{v}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-)`
-  tbody tr td:first-child {
-    min-width: 200px;
-  }
-  tr {
-    height: 16px;
-  }
 `;
 
 function KustomizationDetail({ className, name }: Props) {
@@ -90,7 +56,7 @@ function KustomizationDetail({ className, name }: Props) {
             ),
             Cluster: "",
             Path: kustomization?.path,
-            Interval: `${kustomization?.interval.hours}h ${kustomization?.interval.minutes}m`,
+            Interval: <Interval interval={kustomization?.interval} />,
             "Last Updated At": kustomization?.lastHandledReconciledAt,
           }}
         />
