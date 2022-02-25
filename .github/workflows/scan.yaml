@@ -29,29 +29,6 @@ jobs:
           fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
           github-token: ${{ github.token }}
 
-  snyk-sourcecode:
-    name: Snyk Sourcecode
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Fake Install flux
-        run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-      - name: Remove UI deps from Scan
-        run: rm package-lock.json && rm package.json && make cmd/gitops/ui/run/dist/index.html
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/golang@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk.code.sarif
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.code.sarif
-      - name: Remove fake flux
-        run: rm -rv pkg/flux/bin
-
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
