@@ -30,6 +30,7 @@ Download the template below to your config repository path, then commit and push
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
+      mkdir -p .weave-gitops/apps/capi/templates{"\n"}
       curl -o .weave-gitops/apps/capi/templates/capd-template.yaml{" "}
       {window.location.protocol}//{window.location.host}
       {require("./assets/templates/capd-template.yaml").default}
@@ -121,7 +122,8 @@ Download the profile repositry below to your config repository path then commit 
 Create a cluster bootstrap config as follows:
 
 ```bash
- kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+export GITHUB_TOKEN=<your-github-token>
+kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
 ```
 
 import CapiGitopsCDC from "!!raw-loader!./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml";

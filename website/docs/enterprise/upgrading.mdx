@@ -115,7 +115,7 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 </TabItem>
 </Tabs>
 
-Create a new repo
+Create a new Github repo (optional)
 
 ```bash
 gh repo create my-management-cluster --private --confirm
@@ -132,7 +132,7 @@ git push -u origin main
 <TabItem value="hosted" label="github.com / gitlab.com">
 
 ```bash
-gitops install --config-repo https://github.com/my-org/my-repo
+gitops install --config-repo https://github.com/my-org/my-management-cluster
 ```
 
 </TabItem>
@@ -243,7 +243,7 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 <TabItem value="hosted" label="github.com / gitlab.com">
 
 ```bash
-gitops upgrade --version 0.0.18
+gitops upgrade --config-repo https://github.com/my-org/my-management-cluster --version 0.0.18
 ```
 
 </TabItem>
