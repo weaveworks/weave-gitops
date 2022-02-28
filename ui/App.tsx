@@ -87,7 +87,6 @@ const App = () => (
 );
 
 export default function AppContainer() {
-  console.log(process.env.PROXY_INSECURE);
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
