@@ -61,7 +61,7 @@ func checkAppCRDUninstallFailure() {
 	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
-	Expect(kubeClient.DeleteCallCount()).To(Equal(8))
+	Expect(kubeClient.DeleteCallCount()).To(Equal(9))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal(wego.DefaultNamespace))
