@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: user-read-resources
+  name: admin-read-resources
   namespace: {{.Namespace}}
 subjects:
   - kind: User
