@@ -44,9 +44,10 @@ local-kind-cluster-with-registry:
 local-registry:
 	./tools/deploy-local-registry.sh
 
-local-docker-image:
-	DOCKER_BUILDKIT=1 docker build -t localhost:5001/wego-app:latest . --build-arg FLUX_VERSION=$(FLUX_VERSION)
-	docker push localhost:5001/wego-app:latest
+local-docker-image: DOCKERFILE:=gitops-server.dockerfile
+local-docker-image: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
+local-docker-image: DOCKER_REGISTRY:=localhost:5001
+local-docker-image: _docker
 
 test: dependencies
 	go test -v ./core/...
@@ -77,7 +78,7 @@ endif
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
-DOCKER_REGISTRY?=localhost:5001
+DOCKER_REGISTRY?=ghcr.io/weaveworks/wego-app
 
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
@@ -86,10 +87,10 @@ _docker:
 										.
 
 docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 docker-gitops: _docker ## Build a Docker image of the gitops CLI
 
 docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
-docker-gitops-server: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 # Clean up images and binaries
