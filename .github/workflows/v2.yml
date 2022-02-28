@@ -65,15 +65,38 @@ jobs:
         uses: fluxcd/pkg/actions/kubebuilder@main
       - run: make dependencies
       - run: go mod download
-      - run: make lint
       - run: make gitops
       - run: make gitops-server
       - run: make unit-tests
       # - run: make lib-test
 
+
+  ci-static:
+    name: V2 CI Check Static Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17.5]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - run: make dependencies
+      - run: make check-format
+      - run: make lint
+      - run: make proto
+      - name: Check that proto is updated
+        run: git diff --no-ext-diff --exit-code
+      - run: make fakes
+      - name: Check that fakes are updated
+        run: git diff --no-ext-diff --exit-code
+
+
   full-ci:
     name: V2 CI Check (16.13.2, 1.17.5)
     runs-on: ubuntu-latest
-    needs: [ci-go, ci-js]
+    needs: [ci-go, ci-static, ci-js]
     steps:
       - run: echo "All done"

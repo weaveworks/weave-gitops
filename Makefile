@@ -132,6 +132,12 @@ proto-deps: ## Update protobuf dependencies
 	buf mod update
 
 proto: ## Generate protobuf files
+	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+	  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+	  github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
+	  google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+	  google.golang.org/protobuf/cmd/protoc-gen-go \
+	  github.com/bufbuild/buf/cmd/buf
 	buf generate
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
