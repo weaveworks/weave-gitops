@@ -32,6 +32,7 @@ type Field = {
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
   sortValue?: Sorter;
+  width?: number;
 };
 
 /** DataTable Properties  */
@@ -108,7 +109,6 @@ function UnstyledDataTable({
   fields,
   rows,
   defaultSort = 0,
-  widths,
   children,
 }: Props) {
   const [sort, setSort] = React.useState(fields[defaultSort]);
@@ -154,8 +154,8 @@ function UnstyledDataTable({
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {_.map(fields, (f, i) => (
-        <TableCell style={widths && { width: widths[i] }} key={f.label}>
+      {_.map(fields, (f) => (
+        <TableCell style={f.width && { maxWidth: f.width }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -168,8 +168,11 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f, i) => (
-                <TableCell style={widths && { width: widths[i] }} key={f.label}>
+              {_.map(fields, (f) => (
+                <TableCell
+                  style={f.width && { maxWidth: f.width }}
+                  key={f.label}
+                >
                   {f.sortType ? (
                     <SortableLabel field={f} />
                   ) : (
@@ -223,6 +226,16 @@ export const DataTable = styled(UnstyledDataTable)`
   }
   ${Link} ${Text} {
     font-size: 14px;
+  }
+
+  td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  table {
+    width: 100%;
   }
 `;
 
