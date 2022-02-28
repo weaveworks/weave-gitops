@@ -87,10 +87,10 @@ _docker:
 										.
 
 docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 docker-gitops: _docker ## Build a Docker image of the gitops CLI
 
 docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
-docker-gitops-server: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 # Clean up images and binaries
