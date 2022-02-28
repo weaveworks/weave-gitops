@@ -5,12 +5,6 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/check"
-	"github.com/weaveworks/weave-gitops/pkg/version"
-
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -37,8 +31,6 @@ func init() {
 func runCmd(_ *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
-	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
 		return fmt.Errorf("failed getting rest config: %w", err)
@@ -53,7 +45,7 @@ func runCmd(_ *cobra.Command, _ []string) error {
 		Client: k8sClient,
 	}
 
-	output, err := check.Pre(ctx, kubeClient, fluxClient, version.FluxVersion)
+	output, err := check.Pre(ctx, kubeClient)
 	if err != nil {
 		return err
 	}
