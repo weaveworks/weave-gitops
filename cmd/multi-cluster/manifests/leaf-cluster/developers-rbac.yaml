@@ -1,0 +1,31 @@
+# Defining developers group access
+# How we can impersonate it:
+# grab the service account token and set it to a user
+# kubectl config set-credentials sa-user --token=$(kubectl get secret default-token-p6kj6 -o jsonpath={.data.token} | base64 -d)
+# make the call using --as --as-group and --user to specify the service account and desired user to impersonate
+# kubectl get pods --as luiz.filho@weave.works --as-group=developers -n developers --user sa-user
+# if trying to just use the service account you won't have access to anything but the impersonation:
+# kubectl get pods  --user sa-user
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: developers
+  name: pod-reader
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: developers
+subjects:
+- kind: Group
+  name: developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
