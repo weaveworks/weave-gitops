@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshots renders 1`] = `
+<div
+  className="sc-bdvvtL lacWsj"
+>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/automations"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ klFDZy"
+      color="primary"
+      size="normal"
+    >
+      Applications
+    </span>
+  </a>
+</div>
+`;

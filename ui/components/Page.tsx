@@ -1,14 +1,11 @@
-import { Breadcrumbs } from "@material-ui/core";
 import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
-import { formatURL } from "../lib/nav";
 import { PageRoute, RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Flex from "./Flex";
 import Footer from "./Footer";
-import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 import Spacer from "./Spacer";
 
@@ -79,7 +76,6 @@ function Page({
   className,
   children,
   title,
-  breadcrumbs,
   actions,
   loading,
   error,
@@ -98,15 +94,7 @@ function Page({
     <div className={className}>
       <Content>
         <TitleBar>
-          <Breadcrumbs>
-            {breadcrumbs &&
-              _.map(breadcrumbs, (b) => (
-                <Link key={b.page} to={formatURL(b.page, b.query)}>
-                  <h2>{pageLookup(b.page)}</h2>
-                </Link>
-              ))}
-            <h2>{title}</h2>
-          </Breadcrumbs>
+          <h2>{title}</h2>
           {actions}
         </TitleBar>
         {error && <Errors error={error} />}

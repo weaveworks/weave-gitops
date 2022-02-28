@@ -6,10 +6,15 @@ import { FeatureFlags } from "../contexts/FeatureFlags";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
+import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+<<<<<<< HEAD
 import UserSettings from "./UserSettings";
+=======
+import Spacer from "./Spacer";
+>>>>>>> b0a4020d (breadcrumbs)
 
 type Props = {
   className?: string;
@@ -131,12 +136,19 @@ const TopToolBar = styled(Flex)`
 function Layout({ className, children }: Props) {
   const { authFlag } = React.useContext(FeatureFlags);
   const { currentPage } = useNavigation();
+
   return (
     <div className={className}>
       <AppContainer>
-        <TopToolBar between align>
+        <TopToolBar start align>
           <Logo />
+<<<<<<< HEAD
           {authFlag ? <UserSettings /> : null}
+=======
+          <Spacer padding="xxl" />
+          <Breadcrumbs />
+          {/* code for account icon - disabled while no account functionality exists <UserAvatar size="xl" type={IconType.Account} color="white" /> */}
+>>>>>>> b0a4020d (breadcrumbs)
         </TopToolBar>
         <Main wide>
           <NavContainer>

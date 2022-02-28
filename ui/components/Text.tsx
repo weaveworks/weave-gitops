@@ -2,7 +2,7 @@ import styled from "styled-components";
 // eslint-disable-next-line
 import { colors, fontSizes } from "../typedefs/styled";
 
-type Props = {
+export interface TextProps {
   className?: string;
   size?: keyof typeof fontSizes;
   bold?: boolean;
@@ -10,9 +10,9 @@ type Props = {
   capitalize?: boolean;
   italic?: boolean;
   color?: keyof typeof colors;
-};
+}
 
-const Text = styled.span<Props>`
+const Text = styled.span<TextProps>`
   font-family: ${(props) => props.theme.fontFamilies.regular};
   font-size: ${(props) => props.theme.fontSizes[props.size]};
   font-weight: ${(props) => {
