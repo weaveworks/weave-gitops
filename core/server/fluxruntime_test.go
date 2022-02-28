@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
@@ -33,8 +34,8 @@ func TestGetReconciledObjects(t *testing.T) {
 			Name:      "my-deployment",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				KustomizeNameKey:      automationName,
-				KustomizeNamespaceKey: ns.Name,
+				server.KustomizeNameKey:      automationName,
+				server.KustomizeNamespaceKey: ns.Name,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{

@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
@@ -38,7 +39,7 @@ func TestMain(m *testing.M) {
 func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
 	s := grpc.NewServer()
 
-	core := NewCoreServer(cfg)
+	core := server.NewCoreServer(cfg)
 
 	lis := bufconn.Listen(1024 * 1024)
 
