@@ -27,11 +27,18 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/server/tls"
+)
+
+const (
+	// Allowed login requests per second
+	loginRequestRateLimit = 20
 )
 
 // Options contains all the options for the `ui run` command.
 type Options struct {
 	Port                          string
+	Host                          string
 	HelmRepoNamespace             string
 	HelmRepoName                  string
 	ProfileCacheLocation          string
@@ -42,6 +49,9 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
+	TLSCert                       string
+	TLSKey                        string
+	NoTLS                         bool
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -68,6 +78,7 @@ func NewCommand() *cobra.Command {
 	options = Options{}
 
 	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
@@ -77,6 +88,10 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
+
+	cmd.Flags().StringVar(&options.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -219,8 +234,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create auth server: %w", err)
 		}
 
-		appConfig.Logger.Info("Registering callback route")
-		auth.RegisterAuthServer(mux, "/oauth2", srv)
+		appConfig.Logger.Info("Registering auth routes")
+
+		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
+			return fmt.Errorf("failed to register auth routes: %w", err)
+		}
 
 		authServer = srv
 	}
@@ -245,23 +263,29 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := net.JoinHostPort("0.0.0.0", options.Port)
+	addr := net.JoinHostPort(options.Host, options.Port)
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
 	}
 
 	go func() {
-		log.Infof("Serving on port %s", options.Port)
+		log.Infof("Serving on %s", addr)
 
-		if err := srv.ListenAndServe(); err != nil {
+		if err := ListenAndServe(srv, options.NoTLS, options.TLSCert, options.TLSKey, log); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
 	}()
 
 	if isatty.IsTerminal(os.Stdout.Fd()) {
-		url := fmt.Sprintf("http://%s/%s", addr, options.Path)
+		scheme := "https"
+		if options.NoTLS {
+			scheme = "http"
+		}
+
+		url := fmt.Sprintf("%s://%s/%s", scheme, addr, options.Path)
 
 		log.Printf("Opening browser at %s", url)
 
@@ -286,6 +310,35 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func ListenAndServe(srv *http.Server, noTLS bool, tlsCert, tlsKey string, log logrus.FieldLogger) error {
+	if noTLS {
+		log.Info("TLS connections disabled")
+		return srv.ListenAndServe()
+	}
+
+	if tlsCert == "" && tlsKey == "" {
+		log.Info("TLS cert and key not specified, generating and using in-memory keys")
+
+		tlsConfig, err := tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+		if err != nil {
+			return fmt.Errorf("failed to generate a TLSConfig: %w", err)
+		}
+
+		srv.TLSConfig = tlsConfig
+		// if TLSCert and TLSKey are both empty (""), ListenAndServeTLS will ignore
+		// and happily use the TLSConfig supplied above
+		return srv.ListenAndServeTLS("", "")
+	}
+
+	if tlsCert == "" || tlsKey == "" {
+		return cmderrors.ErrNoTLSCertOrKey
+	}
+
+	log.Infof("Using TLS from %q and %q", tlsCert, tlsKey)
+
+	return srv.ListenAndServeTLS(tlsCert, tlsKey)
 }
 
 //go:embed dist/*
