@@ -36,5 +36,6 @@ func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepos
 		Interval: &pb.Interval{
 			Minutes: 1,
 		},
+		Conditions: mapConditions(helmRepository.Status.Conditions),
 	}
 }

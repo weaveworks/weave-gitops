@@ -87,8 +87,8 @@ func (as *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 	}
 
 	var results []*pb.Bucket
-	for _, repository := range l.Items {
-		results = append(results, types.BucketToProto(&repository))
+	for _, bucket := range l.Items {
+		results = append(results, types.BucketToProto(&bucket))
 	}
 
 	return &pb.ListBucketsResponse{
