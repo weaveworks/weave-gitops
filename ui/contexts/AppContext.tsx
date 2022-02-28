@@ -68,7 +68,6 @@ export default function AppContextProvider({
   const history = useHistory();
   const [appState, setAppState] = React.useState({
     error: null,
-    counts: { main: 0, secondary: 0 },
   });
 
   const clearAsyncError = () => {
