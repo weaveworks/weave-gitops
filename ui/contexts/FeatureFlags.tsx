@@ -23,11 +23,6 @@ export default function FeatureFlagsContextProvider({ children }) {
     getAuthFlag();
   }, [getAuthFlag]);
 
-  // Loading...
-  if (authFlag === null) {
-    return null;
-  }
-
   return (
     <FeatureFlags.Provider
       value={{
