@@ -1,9 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
+import Interval from "../../components/Interval";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import {
-  GitRepository,
+  HelmRepository,
   SourceRefSourceKind,
 } from "../../lib/api/core/types.pb";
 
@@ -13,27 +14,28 @@ type Props = {
   namespace: string;
 };
 
-function GitRepositoryDetail({ className, name, namespace }: Props) {
+function HelmRepositoryDetail({ className, name, namespace }: Props) {
   return (
     <Page error={null} className={className}>
       <SourceDetail
         name={name}
         namespace={namespace}
-        type={SourceRefSourceKind.GitRepository}
-        info={(s: GitRepository) => [
-          ["URL", s.url],
-          ["Ref", s.reference.branch],
+        type={SourceRefSourceKind.HelmRepository}
+        // Guard against an undefined bucket with a default empty object
+        info={(hr: HelmRepository = {}) => [
+          ["URL", hr.url],
           ["Last Updated", ""],
+          ["Interval", <Interval interval={hr.interval} />],
           ["Cluster", ""],
-          ["Namespace", s.namespace],
+          ["Namespace", hr.namespace],
         ]}
-      ></SourceDetail>
+      />
     </Page>
   );
 }
 
-export default styled(GitRepositoryDetail).attrs({
-  className: GitRepositoryDetail.name,
+export default styled(HelmRepositoryDetail).attrs({
+  className: HelmRepositoryDetail.name,
 })`
   ${TitleBar} {
     margin-bottom: 0;

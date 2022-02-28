@@ -26,6 +26,7 @@ export enum V2Routes {
   HelmRelease = "/helm_release",
   HelmRepo = "/helm_repo",
   GitRepo = "/git_repo",
+  Bucket = "/bucket",
 
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.

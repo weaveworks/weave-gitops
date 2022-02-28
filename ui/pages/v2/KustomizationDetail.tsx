@@ -36,29 +36,31 @@ function KustomizationDetail({ className, name }: Props) {
       <Info>
         <h3>{kustomization?.namespace}</h3>
         <InfoList
-          items={{
-            Source: (
+          items={[
+            [
+              "Source",
               <Link
                 to={formatURL(V2Routes.GitRepo, {
                   name: kustomization?.sourceRef.name,
                 })}
               >
-                GitRepository/{kustomization?.sourceRef.name}
-              </Link>
-            ),
-            Status: (
+                {kustomization?.sourceRef.kind}/{kustomization?.sourceRef.name}
+              </Link>,
+            ],
+            [
+              "Status",
               <Flex start>
                 <KubeStatusIndicator conditions={kustomization?.conditions} />
                 <div>
                   &nbsp; Applied revision {kustomization?.lastAppliedRevision}
                 </div>
-              </Flex>
-            ),
-            Cluster: "",
-            Path: kustomization?.path,
-            Interval: <Interval interval={kustomization?.interval} />,
-            "Last Updated At": kustomization?.lastHandledReconciledAt,
-          }}
+              </Flex>,
+            ],
+            ["Cluster", ""],
+            ["Path", kustomization?.path],
+            ["Interval", <Interval interval={kustomization?.interval} />],
+            ["Last Updated At", kustomization?.lastHandledReconciledAt],
+          ]}
         />
       </Info>
       <ReconciledObjectsTable

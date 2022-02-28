@@ -116,6 +116,7 @@ export type Bucket = {
   secretRefName?: string
   timeout?: number
   conditions?: Condition[]
+  bucketName?: string
 }
 
 export type Deployment = {
