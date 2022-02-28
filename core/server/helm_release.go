@@ -129,8 +129,6 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 	found := map[string]bool{}
 
 	for _, entry := range objects {
-		entry.GetAPIVersion()
-
 		idstr := strings.Join([]string{entry.GetAPIVersion(), entry.GetKind()}, "_")
 
 		if !found[idstr] {
