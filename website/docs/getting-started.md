@@ -4,7 +4,7 @@ sidebar_position: 2
 hide_title: true
 ---
 
-import TierLabel from "./_components/TierLabel";
+import TierLabel from "./\_components/TierLabel";
 
 <h1>
   {frontMatter.title} <TierLabel tiers="Core" />
@@ -185,7 +185,7 @@ Weave GitOps provides a web UI to help manage the lifecycle management of your a
 gitops ui run
 ```
 
-Running the above command will open the dashboard in your browser at [http://0.0.0.0:9001/](http://0.0.0.0:9001/).
+Running the above command will open the dashboard in your browser at [https://localhost:9001/](https://localhost:9001/).
 
 You will see an empty Applications view as shown in the image below.
 
