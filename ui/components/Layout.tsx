@@ -151,7 +151,7 @@ function Layout({ className, children }: Props) {
                 orientation="vertical"
                 value={getParentNavValue(currentPage)}
               >
-                {_.map(navItems, (n, i) => (
+                {_.map(navItems, (n) => (
                   <StyleLinkTab
                     key={n.value}
                     label={n.label}
