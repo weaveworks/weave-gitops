@@ -16,4 +16,16 @@ describe("snapshots", () => {
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
+  it("renders child route", () => {
+    const tree = renderer
+      .create(
+        withTheme(
+          withContext(<Breadcrumbs />, "/kustomization?name=flux", {
+            applicationsClient: createMockClient({}),
+          })
+        )
+      )
+      .toJSON();
+    expect(tree).toMatchSnapshot();
+  });
 });

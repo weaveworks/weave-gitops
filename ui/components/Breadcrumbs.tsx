@@ -1,8 +1,7 @@
-import qs from "query-string";
 import React from "react";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
-import { getParentNavValue, V2Routes } from "../lib/nav";
+import { getPageLabel, getParentNavValue, V2Routes } from "../lib/nav";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
@@ -19,14 +18,6 @@ export const Breadcrumbs = () => {
   const { currentPage } = useNavigation();
   const parentValue = getParentNavValue(currentPage);
 
-  function pageLookup(route) {
-    const parsed = qs.parse(location.search);
-    if (route === V2Routes.Automations) return "Applications";
-    else if (route === V2Routes.Sources) return "Sources";
-    else if (route === V2Routes.FluxRuntime) return "Flux Runtime";
-    else return parsed.name;
-  }
-
   return (
     <Flex align>
       {parentValue !== currentPage && (
@@ -34,7 +25,7 @@ export const Breadcrumbs = () => {
           to={V2Routes[parentValue as V2Routes] || ""}
           textProps={{ bold: true }}
         >
-          {pageLookup(parentValue)}
+          {getPageLabel(parentValue as V2Routes)}
         </CrumbLink>
       )}
       {parentValue !== currentPage && (
@@ -44,7 +35,7 @@ export const Breadcrumbs = () => {
         to={currentPage}
         textProps={parentValue === currentPage && { bold: true }}
       >
-        {pageLookup(currentPage)}
+        {getPageLabel(currentPage)}
       </CrumbLink>
     </Flex>
   );

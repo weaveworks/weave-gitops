@@ -83,7 +83,6 @@ function defaultSortFunc(sort: Field): Sorter {
 
 export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
-
   return (rows || []).sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
@@ -107,7 +106,7 @@ export const sortWithType = (rows: Row[], sort: Field) => {
 function UnstyledDataTable({
   className,
   fields,
-  rows = [],
+  rows,
   defaultSort = 0,
   widths,
   children,
