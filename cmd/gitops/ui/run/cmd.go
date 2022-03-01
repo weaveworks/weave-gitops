@@ -47,6 +47,7 @@ type Options struct {
 	WatcherPort                   int
 	Path                          string
 	LoggingEnabled                bool
+	HumanLogs                     bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
 	TLSCert                       string
@@ -78,6 +79,7 @@ func NewCommand() *cobra.Command {
 	options = Options{}
 
 	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().BoolVar(&options.HumanLogs, "pretty-log", false, "enable human readable logging for the ui")
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
@@ -190,7 +192,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	go func() {
-		if err := profileWatcher.StartWatcher(); err != nil {
+		if err := profileWatcher.StartWatcher(options.HumanLogs); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}

@@ -68,9 +68,14 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	}, nil
 }
 
-func (w *Watcher) StartWatcher() error {
+func (w *Watcher) StartWatcher(humanLogs bool) error {
+	enableDev := false
+	if humanLogs {
+		enableDev = true
+	}
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&zap.Options{
-		Development: false,
+		Development: enableDev,
 	})))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{

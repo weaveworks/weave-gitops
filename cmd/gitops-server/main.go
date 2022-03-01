@@ -84,7 +84,7 @@ func NewAPIServerCommand() *cobra.Command {
 			}
 
 			go func() {
-				if err := profileWatcher.StartWatcher(); err != nil {
+				if err := profileWatcher.StartWatcher(false); err != nil {
 					appConfig.Logger.Error(err, "failed to start profile watcher")
 					os.Exit(1)
 				}
