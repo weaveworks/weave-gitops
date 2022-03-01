@@ -42,7 +42,9 @@ func runKubernetesCheck() (string, error) {
 
 func checkKubernetesVersion(version *semver.Version) (string, error) {
 	var valid bool
+
 	var vrange string
+
 	c, _ := semver.NewConstraint(kubernetesConstraints)
 	if c.Check(version) {
 		valid = true
@@ -59,6 +61,7 @@ func checkKubernetesVersion(version *semver.Version) (string, error) {
 func parseVersion(text string) (*semver.Version, error) {
 	version := ""
 	lines := strings.Split(text, "\n")
+
 	for _, line := range lines {
 		if strings.Contains(line, "Server") {
 			version = strings.Replace(line, "Server Version: v", "", 1)
