@@ -16,10 +16,11 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
-        './tls'
+        './server.rsa.crt',
+        './server.rsa.key',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server',
+    entrypoint='/app/build/gitops-server --tls-server-certificate=/app/build/server.rsa.crt --tls-server-key=/app/build/server.rsa.key',
     live_update=[
         sync('./bin', '/app/build'),
     ],
@@ -34,4 +35,4 @@ helm_stuff = helm(
 
 k8s_yaml(helm_stuff)
 
-k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9000'])
