@@ -106,19 +106,7 @@ exports[`Page snapshots default 1`] = `
     <div
       className="c2"
     >
-      <nav
-        className="MuiTypography-root MuiBreadcrumbs-root MuiTypography-body1 MuiTypography-colorTextSecondary"
-      >
-        <ol
-          className="MuiBreadcrumbs-ol"
-        >
-          <li
-            className="MuiBreadcrumbs-li"
-          >
-            <h2 />
-          </li>
-        </ol>
-      </nav>
+      <h2 />
     </div>
     <div
       className="c3"

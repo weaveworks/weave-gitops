@@ -4,7 +4,7 @@ import { Automation } from "../hooks/automations";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import DataTable, { SortType } from "./DataTable";
-import KubeStatusIndicator from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeReady } from "./KubeStatusIndicator";
 import Link from "./Link";
 
 type Props = {
@@ -57,6 +57,8 @@ function AutomationsTable({ className, automations }: Props) {
             a.conditions.length > 0 ? (
               <KubeStatusIndicator conditions={a.conditions} />
             ) : null,
+          sortType: SortType.bool,
+          sortValue: ({ conditions }) => computeReady(conditions),
         },
         {
           label: "Revision",

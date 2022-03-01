@@ -41,7 +41,7 @@ export interface Props {
   /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
-  rows: any[];
+  rows?: any[];
   /** index of field to initially sort against. */
   defaultSort?: number;
   /** an optional list of string widths for each field/column. */
@@ -83,8 +83,7 @@ function defaultSortFunc(sort: Field): Sorter {
 
 export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
-
-  return rows.sort((a: Row, b: Row) => {
+  return (rows || []).sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);

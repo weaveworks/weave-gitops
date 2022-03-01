@@ -6,9 +6,11 @@ import { FeatureFlags } from "../contexts/FeatureFlags";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
+import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -131,12 +133,15 @@ const TopToolBar = styled(Flex)`
 function Layout({ className, children }: Props) {
   const { authFlag } = React.useContext(FeatureFlags);
   const { currentPage } = useNavigation();
+
   return (
     <div className={className}>
       <AppContainer>
-        <TopToolBar between align>
+        <TopToolBar start align>
           <Logo />
           {authFlag ? <UserSettings /> : null}
+          <Spacer padding="xxl" />
+          <Breadcrumbs />
         </TopToolBar>
         <Main wide>
           <NavContainer>

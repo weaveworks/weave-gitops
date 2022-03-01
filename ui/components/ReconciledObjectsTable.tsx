@@ -45,11 +45,15 @@ function ReconciledObjectsTable({
           },
           {
             label: "Type",
-            value: (u: UnstructuredObject) => `${u.groupVersionKind.kind}`,
+            value: (u: UnstructuredObject) => u.groupVersionKind.kind,
+            sortType: SortType.string,
+            sortValue: (u: UnstructuredObject) => u.groupVersionKind.kind,
           },
           {
             label: "Namespace",
             value: "namespace",
+            sortType: SortType.string,
+            sortValue: ({ namespace }) => namespace,
           },
           {
             label: "Status",

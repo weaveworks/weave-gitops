@@ -2,7 +2,9 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import DataTable, { SortType } from "../../components/DataTable";
-import KubeStatusIndicator from "../../components/KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeReady,
+} from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
 import { useListFluxRuntimeObjects } from "../../hooks/flux";
@@ -31,6 +33,8 @@ function FluxRuntime({ className }: Props) {
               <KubeStatusIndicator conditions={v.conditions} />
             ),
             label: "Status",
+            sortType: SortType.bool,
+            sortValue: ({ conditions }) => computeReady(conditions),
           },
           {
             label: "Cluster",

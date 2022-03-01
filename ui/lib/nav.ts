@@ -1,4 +1,5 @@
 import qs from "query-string";
+import { useLocation } from "react-router-dom";
 import { SourceRefSourceKind } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
@@ -38,6 +39,24 @@ export const getParentNavValue = (
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
+  }
+};
+
+export const getPageLabel = (currentPage: string): string => {
+  const parsed = qs.parse(useLocation().search);
+  switch (currentPage) {
+    case V2Routes.Automations:
+      return "Applications";
+    case V2Routes.Sources:
+      return "Sources";
+    case V2Routes.FluxRuntime:
+      return "Flux Runtime";
+    case V2Routes.Kustomization:
+    case V2Routes.HelmRelease:
+    case V2Routes.GitRepo:
+    case V2Routes.HelmChart:
+    case V2Routes.Bucket:
+      return parsed.name as string;
   }
 };
 
