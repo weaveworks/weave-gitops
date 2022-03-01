@@ -77,7 +77,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
-	cmd.Flags().BoolVarP(&options.Insecure, "insecure", "i", true, "disable using tls/ssl")
+	cmd.Flags().BoolVarP(&options.Insecure, "insecure", "i", false, "disable using tls/ssl")
 	cmd.Flags().StringVar(&options.TLSServerCertificatePath, "tls-server-certificate", "", "tls/ssl server certificate path")
 	cmd.Flags().StringVar(&options.TLSServerKeyPath, "tls-server-key", "", "tls/ssl server certificate path")
 
