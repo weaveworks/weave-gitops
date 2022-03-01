@@ -98,7 +98,7 @@ export const sortWithType = (rows: Row[], sort: Field) => {
         else return 1;
 
       default:
-        return sortFn(a).localeCompare(sortFn(b));
+        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
     }
   });
 };
