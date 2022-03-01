@@ -3,7 +3,7 @@ import * as React from "react";
 import { GitProvider } from "../../lib/api/applications/applications.pb";
 import { createMockClient, withContext } from "../../lib/test-utils";
 import { GrpcErrorCodes } from "../../lib/types";
-import useAuth, { useIsAuthenticated } from "../auth";
+import useAuth, { useIsAuthenticated } from "../gitprovider";
 
 describe("useAuth", () => {
   let container;
