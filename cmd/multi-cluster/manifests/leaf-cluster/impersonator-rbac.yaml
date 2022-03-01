@@ -14,8 +14,8 @@ metadata:
   name: impersonator
 subjects:
 - kind: ServiceAccount
-  name: default
-  namespace: default
+  name: weave-gitops
+  namespace: flux-system
 roleRef:
   kind: ClusterRole
   name: impersonator

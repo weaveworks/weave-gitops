@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	ui "github.com/weaveworks/weave-gitops/cmd/multi-cluster/cmd"
+	multi_cluster "github.com/weaveworks/weave-gitops/cmd/multi-cluster/cmd"
 )
 
 func main() {
-	if err := ui.NewCommand().Execute(); err != nil {
+	if err := multi_cluster.NewServer(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
