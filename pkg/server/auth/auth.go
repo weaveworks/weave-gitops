@@ -4,9 +4,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"net/http"
+	"net/url"
 )
 
 const (
@@ -30,7 +29,11 @@ const (
 // This route is called by the OIDC Provider in order to pass back state after
 // the authentication flow completes.
 func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
-	mux.Handle(prefix+"/callback", srv)
+	mux.Handle(prefix, srv.OAuth2Flow())
+	mux.Handle(prefix+"/callback", srv.Callback())
+	mux.Handle(prefix+"/sign_in", srv.SignIn())
+	mux.Handle(prefix+"/userinfo", srv.UserInfo())
+	mux.Handle(prefix+"/logout", srv.Logout())
 }
 
 type principalCtxKey struct{}
@@ -59,13 +62,22 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 // WithAPIAuth middleware adds auth validation to API handlers.
 //
 // Unauthorized requests will be denied with a 401 status code.
-func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
-	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
-		srv.verifier(), IDTokenCookieName)
-	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
+func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
+	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
+	multi := MultiAuthPrincipal{adminAuth}
+
+	if srv.oidcEnabled() {
+		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
+		cookieAuth := NewJWTCookiePrincipalGetter(srv.logger, srv.verifier(), IDTokenCookieName)
+		multi = append(multi, headerAuth, cookieAuth)
+	}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		if IsPublicRoute(r.URL, publicRoutes) {
+			next.ServeHTTP(rw, r)
+			return
+		}
+
 		principal, err := multi.Principal(r)
 		if err != nil {
 			srv.logger.Error(err, "failed to get principal")
@@ -80,61 +92,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
 	})
 }
 
-// WithWebAuth middleware adds auth validation to HTML handlers.
-//
-// Unauthorized requests will be redirected to the OIDC Provider.
-// It is meant to be used with routes that serve HTML content,
-// not API routes.
-func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
-	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
-		srv.verifier(), IDTokenCookieName)
-	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
-
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		principal, err := multi.Principal(r)
-		if err != nil {
-			srv.logger.Error(err, "failed to get principal")
-		}
-
-		if principal == nil || err != nil {
-			startAuthFlow(rw, r, srv)
-			return
-		}
-
-		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
-	})
-}
-
-func startAuthFlow(rw http.ResponseWriter, r *http.Request, srv *AuthServer) {
-	nonce, err := generateNonce()
-	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	b, err := json.Marshal(SessionState{
-		Nonce:     nonce,
-		ReturnURL: r.URL.String(),
-	})
-	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	var scopes []string
-	// "openid", "offline_access", "email" and "groups" scopes added by default
-	scopes = append(scopes, scopeProfile)
-	authCodeUrl := srv.oauth2Config(scopes).AuthCodeURL(state)
-
-	// Issue state cookie
-	http.SetCookie(rw, srv.createCookie(StateCookieName, state))
-
-	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
-}
-
 func generateNonce() (string, error) {
 	b := make([]byte, 32)
 
@@ -144,4 +101,14 @@ func generateNonce() (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+func IsPublicRoute(u *url.URL, publicRoutes []string) bool {
+	for _, pr := range publicRoutes {
+		if u.Path == pr {
+			return true
+		}
+	}
+
+	return false
 }
