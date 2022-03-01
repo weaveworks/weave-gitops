@@ -10,11 +10,8 @@ import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
-<<<<<<< HEAD
-import UserSettings from "./UserSettings";
-=======
 import Spacer from "./Spacer";
->>>>>>> b0a4020d (breadcrumbs)
+import UserSettings from "./UserSettings";
 
 type Props = {
   className?: string;
@@ -142,13 +139,9 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align>
           <Logo />
-<<<<<<< HEAD
           {authFlag ? <UserSettings /> : null}
-=======
           <Spacer padding="xxl" />
           <Breadcrumbs />
-          {/* code for account icon - disabled while no account functionality exists <UserAvatar size="xl" type={IconType.Account} color="white" /> */}
->>>>>>> b0a4020d (breadcrumbs)
         </TopToolBar>
         <Main wide>
           <NavContainer>
