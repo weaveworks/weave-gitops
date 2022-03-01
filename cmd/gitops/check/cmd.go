@@ -1,13 +1,11 @@
 package check
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/check"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var (
@@ -29,23 +27,7 @@ func init() {
 }
 
 func runCmd(_ *cobra.Command, _ []string) error {
-	ctx := context.Background()
-
-	rest, clusterName, err := kube.RestConfig()
-	if err != nil {
-		return fmt.Errorf("failed getting rest config: %w", err)
-	}
-
-	_, k8sClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
-	if err != nil {
-		return fmt.Errorf("failed creating k8s client: %w", err)
-	}
-
-	kubeClient := &kube.KubeHTTP{
-		Client: k8sClient,
-	}
-
-	output, err := check.Pre(ctx, kubeClient)
+	output, err := check.Pre()
 	if err != nil {
 		return err
 	}

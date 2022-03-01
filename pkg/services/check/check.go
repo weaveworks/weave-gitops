@@ -1,23 +1,19 @@
 package check
 
 import (
-	"context"
 	"fmt"
 	"os/exec"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 const (
-	FluxCompatibleMessage    = "Current flux version is compatible"
-	FluxNotCompatibleMessage = "Current flux version is not compatible"
-	kubernetesConstraints    = ">=1.20.6-0"
+	kubernetesConstraints = ">=1.20.6-0"
 )
 
 // Pre runs pre-install checks
-func Pre(ctx context.Context, kubeClient kube.Kube) (string, error) {
+func Pre() (string, error) {
 	k8sOutput, err := runKubernetesCheck()
 	if err != nil {
 		return "", err
