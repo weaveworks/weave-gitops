@@ -1,8 +1,9 @@
 import * as React from "react";
-import { useHistory, Redirect } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import Layout from "../components/Layout";
 import LoadingPage from "../components/LoadingPage";
-import { FeatureFlags } from "../contexts/FeatureFlags";
+import { useFeatureFlags } from "../hooks/featureflags";
+import { AppContext } from "./AppContext";
 
 const USER_INFO = "/oauth2/userinfo";
 const SIGN_IN = "/oauth2/sign_in";
@@ -11,9 +12,9 @@ const AUTH_PATH_SIGNIN = "/sign_in";
 
 export const AuthCheck = ({ children }) => {
   // If the auth flag is null go straight to rendering the children
-  const { authFlag } = React.useContext(FeatureFlags);
+  const flags = useFeatureFlags();
 
-  if (!authFlag) {
+  if (!flags?.WEAVE_GITOPS_AUTH_ENABLED) {
     return children;
   }
 
@@ -48,10 +49,12 @@ export type AuthContext = {
   logOut: () => void;
 };
 
-export const Auth = React.createContext<AuthContext | null>(null);
+export const Auth = React.createContext<AuthContext | null>({} as AuthContext);
 
 export default function AuthContextProvider({ children }) {
-  const { authFlag } = React.useContext(FeatureFlags);
+  const { request } = React.useContext(AppContext);
+  const flags = useFeatureFlags();
+
   const [userInfo, setUserInfo] =
     React.useState<{
       email: string;
@@ -63,7 +66,7 @@ export default function AuthContextProvider({ children }) {
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
-    fetch(SIGN_IN, {
+    request(SIGN_IN, {
       method: "POST",
       body: JSON.stringify(data),
     })
@@ -79,7 +82,7 @@ export default function AuthContextProvider({ children }) {
 
   const getUserInfo = React.useCallback(() => {
     setLoading(true);
-    return fetch(USER_INFO)
+    return request(USER_INFO)
       .then((response) => {
         if (response.status === 400 || response.status === 401) {
           setUserInfo(null);
@@ -90,11 +93,11 @@ export default function AuthContextProvider({ children }) {
       .then((data) => setUserInfo({ email: data?.email, groups: [] }))
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [flags]);
 
   const logOut = React.useCallback(() => {
     setLoading(true);
-    fetch(LOG_OUT, {
+    request(LOG_OUT, {
       method: "POST",
     })
       .then((response) => {
@@ -108,16 +111,16 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   React.useEffect(() => {
-    if (!authFlag) {
+    if (!flags.WEAVE_GITOPS_AUTH_ENABLED) {
       return null;
     }
     getUserInfo();
     return history.listen(getUserInfo);
-  }, [getUserInfo, history]);
+  }, [flags, getUserInfo, history]);
 
   return (
     <>
-      {authFlag ? (
+      {flags.WEAVE_GITOPS_AUTH_ENABLED ? (
         <Auth.Provider
           value={{
             signIn,
