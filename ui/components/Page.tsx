@@ -49,16 +49,6 @@ export const TitleBar = styled.div`
   }
 `;
 
-function pageLookup(p: PageRoute) {
-  switch (p) {
-    case PageRoute.Applications:
-      return "Applications";
-
-    default:
-      break;
-  }
-}
-
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
