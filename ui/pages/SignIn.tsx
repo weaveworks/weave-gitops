@@ -1,7 +1,7 @@
+import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
 import styled from "styled-components";
-import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -9,9 +9,9 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 // @ts-ignore
-import SignInWheel from "./../images/SignInWheel.svg";
-// @ts-ignore
 import SignInBackground from "./../images/SignInBackground.svg";
+// @ts-ignore
+import SignInWheel from "./../images/SignInWheel.svg";
 // @ts-ignore
 import WeaveLogo from "./../images/WeaveLogo.svg";
 

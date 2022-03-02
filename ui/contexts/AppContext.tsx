@@ -46,6 +46,7 @@ export type AppContextType = {
     external: (url: string) => void;
   };
   notifySuccess: typeof notifySuccess;
+  request: typeof window.fetch;
 };
 
 export const AppContext = React.createContext<AppContextType>(
@@ -120,6 +121,7 @@ export default function AppContextProvider({
         window.location.href = url;
       },
     },
+    request: window.fetch,
   };
 
   return <AppContext.Provider {...props} value={value} />;
