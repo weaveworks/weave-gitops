@@ -1,5 +1,4 @@
 import qs from "query-string";
-import { useLocation } from "react-router-dom";
 import { SourceRefSourceKind } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
@@ -42,8 +41,7 @@ export const getParentNavValue = (
   }
 };
 
-export const getPageLabel = (currentPage: string): string => {
-  const parsed = qs.parse(useLocation().search);
+export const getPageLabel = (currentPage: string, name?: string): string => {
   switch (currentPage) {
     case V2Routes.Automations:
       return "Applications";
@@ -56,7 +54,7 @@ export const getPageLabel = (currentPage: string): string => {
     case V2Routes.GitRepo:
     case V2Routes.HelmChart:
     case V2Routes.Bucket:
-      return parsed.name as string;
+      return name;
   }
 };
 
