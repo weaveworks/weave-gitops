@@ -181,7 +181,7 @@ Now create a Kubernetes secret to store the password hash:
 ```sh
 kubectl create secret generic admin-password-hash \
   --namespace wego-system \
-  --from-literal="password=$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim"
+  --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
 ```
 
 You should now be able to login via the superuser account using your chosen password.
