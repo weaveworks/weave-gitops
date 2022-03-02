@@ -55,6 +55,7 @@
     "dagre": "^0.8.5",
     "dagre-d3": "^0.6.4",
     "history": "^5.0.0",
+    "http-proxy-middleware": "^2.0.3",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "postcss": "^8.3.11",

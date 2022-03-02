@@ -24,6 +24,7 @@ import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import ApplicationRemove from "./pages/ApplicationRemove";
 
 export {
   FeatureFlagsContextProvider,
@@ -33,6 +34,7 @@ export {
   AppContextProvider,
   ApplicationAdd,
   ApplicationDetail,
+  ApplicationRemove,
   Applications,
   applicationsClient,
   getProviderToken,
