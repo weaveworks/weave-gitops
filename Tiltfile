@@ -20,7 +20,7 @@ docker_build_with_restart(
         './server.rsa.key',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server --tls-server-certificate=/app/build/server.rsa.crt --tls-server-key=/app/build/server.rsa.key',
+    entrypoint='/app/build/gitops-server',
     live_update=[
         sync('./bin', '/app/build'),
     ],
