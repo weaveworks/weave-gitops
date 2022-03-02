@@ -22,6 +22,15 @@ export type ListHelmReleasesResponse = {
   helmReleases?: Gitops_coreV1Types.HelmRelease[]
 }
 
+export type GetHelmReleaseRequest = {
+  name?: string
+  namespace?: string
+}
+
+export type GetHelmReleaseResponse = {
+  helmRelease?: Gitops_coreV1Types.HelmRelease
+}
+
 export type ListGitRepositoriesRequest = {
   namespace?: string
 }
@@ -108,6 +117,9 @@ export class Core {
   }
   static ListHelmReleases(req: ListHelmReleasesRequest, initReq?: fm.InitReq): Promise<ListHelmReleasesResponse> {
     return fm.fetchReq<ListHelmReleasesRequest, ListHelmReleasesResponse>(`/v1/helmreleases?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetHelmRelease(req: GetHelmReleaseRequest, initReq?: fm.InitReq): Promise<GetHelmReleaseResponse> {
+    return fm.fetchReq<GetHelmReleaseRequest, GetHelmReleaseResponse>(`/v1/helmrelease/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListGitRepositories(req: ListGitRepositoriesRequest, initReq?: fm.InitReq): Promise<ListGitRepositoriesResponse> {
     return fm.fetchReq<ListGitRepositoriesRequest, ListGitRepositoriesResponse>(`/v1/gitrepositories?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

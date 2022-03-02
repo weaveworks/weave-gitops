@@ -28,6 +28,9 @@ type CoreClient interface {
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
 	//
+	// GetHelmRelease gets data about a single HelmRelease from the cluster.
+	GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error)
+	//
 	// ListGitRepository lists git repositories objects from a cluster.
 	ListGitRepositories(ctx context.Context, in *ListGitRepositoriesRequest, opts ...grpc.CallOption) (*ListGitRepositoriesResponse, error)
 	//
@@ -84,6 +87,15 @@ func (c *coreClient) GetKustomization(ctx context.Context, in *GetKustomizationR
 func (c *coreClient) ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error) {
 	out := new(ListHelmReleasesResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListHelmReleases", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error) {
+	out := new(GetHelmReleaseResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetHelmRelease", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +188,9 @@ type CoreServer interface {
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
 	//
+	// GetHelmRelease gets data about a single HelmRelease from the cluster.
+	GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error)
+	//
 	// ListGitRepository lists git repositories objects from a cluster.
 	ListGitRepositories(context.Context, *ListGitRepositoriesRequest) (*ListGitRepositoriesResponse, error)
 	//
@@ -216,6 +231,9 @@ func (UnimplementedCoreServer) GetKustomization(context.Context, *GetKustomizati
 }
 func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
+}
+func (UnimplementedCoreServer) GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHelmRelease not implemented")
 }
 func (UnimplementedCoreServer) ListGitRepositories(context.Context, *ListGitRepositoriesRequest) (*ListGitRepositoriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitRepositories not implemented")
@@ -304,6 +322,24 @@ func _Core_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListHelmReleases(ctx, req.(*ListHelmReleasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetHelmRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHelmReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetHelmRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetHelmRelease",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetHelmRelease(ctx, req.(*GetHelmReleaseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -470,6 +506,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListHelmReleases",
 			Handler:    _Core_ListHelmReleases_Handler,
+		},
+		{
+			MethodName: "GetHelmRelease",
+			Handler:    _Core_GetHelmRelease_Handler,
 		},
 		{
 			MethodName: "ListGitRepositories",
