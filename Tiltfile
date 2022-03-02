@@ -16,8 +16,6 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
-        './server.rsa.crt',
-        './server.rsa.key',
     ],
     dockerfile="dev.dockerfile",
     entrypoint='/app/build/gitops-server',

@@ -15,6 +15,3 @@ ginkgo.report
 test/library/wego-library-test
 tilt_modules
 .envrc
-
-server.rsa.crt
-server.rsa.key
