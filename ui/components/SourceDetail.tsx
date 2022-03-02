@@ -53,9 +53,7 @@ function SourceDetail({ className, name, info }: Props) {
   return (
     <div className={className}>
       <Flex align wide between>
-        <div>
-          <Heading level={2}>{s.name}</Heading>
-        </div>
+        <Heading level={1}>{s.name}</Heading>
         <div className="page-status">
           {ok ? (
             <Icon
@@ -78,7 +76,7 @@ function SourceDetail({ className, name, info }: Props) {
         <Alert severity="error" title="Error" message={error.message} />
       )}
       <div>
-        <Heading level={3}>{s.type}</Heading>
+        <Heading level={2}>{s.type}</Heading>
       </div>
       <div>
         <InfoList items={items} />
@@ -94,14 +92,6 @@ export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
   h2 {
     font-size: 20px;
     margin-bottom: 12px;
-  }
-
-  h3 {
-    font-size: 20px;
-    margin-top: 0;
-    margin-bottom: 24px;
-    font-weight: 400;
-    color: #737373;
   }
 
   ${InfoList} {

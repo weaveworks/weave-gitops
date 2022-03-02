@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "../../components/Flex";
+import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
@@ -27,14 +28,10 @@ function KustomizationDetail({ className, name }: Props) {
   const kustomization = data?.kustomization;
 
   return (
-    <Page
-      title={kustomization?.name}
-      loading={isLoading}
-      error={error}
-      className={className}
-    >
+    <Page loading={isLoading} error={error} className={className}>
       <Info>
-        <h3>{kustomization?.namespace}</h3>
+        <Heading level={1}>{kustomization?.name}</Heading>
+        <Heading level={2}>{kustomization?.namespace}</Heading>
         <InfoList
           items={[
             [
@@ -75,10 +72,4 @@ function KustomizationDetail({ className, name }: Props) {
 
 export default styled(KustomizationDetail).attrs({
   className: KustomizationDetail.name,
-})`
-  h3 {
-    color: #737373;
-    font-weight: 200;
-    margin-top: 12px;
-  }
-`;
+})``;
