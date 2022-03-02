@@ -40,10 +40,6 @@ jobs:
       run: make node_modules
     - name: Check Git State
       run: git diff --no-ext-diff --exit-code
-    - name: Fake Install flux
-      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: Build UI Assets
-      run: make cmd/gitops/ui/run/dist/index.html
     - name: Check Format
       run: make check-format
     - name: Run linters
@@ -95,12 +91,10 @@ jobs:
       with:
         github-ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         gitlab-ssh-private-key: ${{ secrets.GITLAB_KEY }}
-    - name: Install UI Deps
-      run: npm ci
+    - name: Build UI
+      run: make ui
     - name: UI Deps Audit
       run: make ui-audit
-    - name: Build UI Assets
-      run: make cmd/gitops/ui/run/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux
