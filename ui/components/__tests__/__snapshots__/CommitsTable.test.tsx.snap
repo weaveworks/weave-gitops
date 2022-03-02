@@ -144,6 +144,16 @@ exports[`CommitsTable snapshots renders 1`] = `
   font-size: 14px;
 }
 
+.c0 td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c0 table {
+  width: 100%;
+}
+
 <div
   class=""
 >

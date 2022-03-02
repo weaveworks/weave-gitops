@@ -3,8 +3,8 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
 import {
+  ListBucketsResponse,
   ListGitRepositoriesResponse,
-  ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { SourceRefSourceKind } from "../lib/api/core/types.pb";
@@ -22,14 +22,14 @@ export function useListSources(
       const p = [
         api.ListGitRepositories({ namespace }),
         api.ListHelmRepositories({ namespace }),
-        api.ListHelmCharts({ namespace }),
+        api.ListBuckets({ namespace }),
       ];
       return Promise.all(p).then((result) => {
-        const [repoRes, helmReleases, chartRes] = result;
+        const [repoRes, helmReleases, bucketsRes] = result;
         const repos = (repoRes as ListGitRepositoriesResponse).gitRepositories;
         const hrs = (helmReleases as ListHelmRepositoriesResponse)
           .helmRepositories;
-        const charts = (chartRes as ListHelmChartsResponse).helmCharts;
+        const buckets = (bucketsRes as ListBucketsResponse).buckets;
 
         return [
           ..._.map(repos, (r) => ({
@@ -40,9 +40,9 @@ export function useListSources(
             ...c,
             type: SourceRefSourceKind.HelmRepository,
           })),
-          ..._.map(charts, (c) => ({
-            ...c,
-            type: SourceRefSourceKind.HelmChart,
+          ..._.map(buckets, (b) => ({
+            ...b,
+            type: SourceRefSourceKind.Bucket,
           })),
         ];
       });

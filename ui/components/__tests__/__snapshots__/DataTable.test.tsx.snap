@@ -122,6 +122,16 @@ exports[`DataTable snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c0 td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c0 table {
+  width: 100%;
+}
+
 <div
   className="c0"
 >

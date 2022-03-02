@@ -29,6 +29,7 @@ export const getParentNavValue = (
     case V2Routes.Sources:
     case V2Routes.GitRepo:
     case V2Routes.HelmChart:
+    case V2Routes.HelmRepo:
     case V2Routes.Bucket:
       return V2Routes.Sources;
 
@@ -66,6 +67,12 @@ export function sourceTypeToRoute(t: SourceRefSourceKind): V2Routes {
   switch (t) {
     case SourceRefSourceKind.GitRepository:
       return V2Routes.GitRepo;
+
+    case SourceRefSourceKind.Bucket:
+      return V2Routes.Bucket;
+
+    case SourceRefSourceKind.HelmRepository:
+      return V2Routes.HelmRepo;
 
     default:
       break;
