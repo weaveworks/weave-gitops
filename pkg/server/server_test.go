@@ -15,6 +15,7 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -527,14 +528,15 @@ var _ = Describe("ApplicationsServer", func() {
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
-			var log *fakelogr.Logger
+			var sink *fakelogr.LogSink
+			var log logr.Logger
 			var appsSrv pb.ApplicationsServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
 			var err error
 
 			BeforeEach(func() {
-				log = testutils.MakeFakeLogr()
+				log, sink = testutils.MakeFakeLogr()
 				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 
 				rand.Seed(time.Now().UnixNano())
@@ -564,11 +566,11 @@ var _ = Describe("ApplicationsServer", func() {
 				url := ts.URL + path
 
 				res, err := http.Get(url)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusNotFound))
 
-				Expect(err).NotTo(HaveOccurred())
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				vals := log.WithValuesArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				vals := sink.WithValuesArgsForCall(0)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
 
@@ -592,14 +594,16 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusNotImplemented))
 
-				Expect(log.ErrorCallCount()).To(BeNumerically(">", 0))
-				vals := log.WithValuesArgsForCall(0)
+				Expect(sink.ErrorCallCount()).To(BeNumerically(">", 0))
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 
-				err, msg, _ := log.ErrorArgsForCall(0)
+				err, msg, _ := sink.ErrorArgsForCall(0)
+				// This is the meat of this test case.
+				// Check that the same error passed by kubeClient is logged.
 				Expect(msg).To(Equal(middleware.ServerErrorText))
 				Expect(err.Error()).To(ContainSubstring("GetFeatureFlags not implemented"))
 
@@ -616,11 +620,11 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusOK))
 
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				msg, _ := log.InfoArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				_, msg, _ := sink.InfoArgsForCall(0)
 				Expect(msg).To(ContainSubstring(middleware.RequestOkText))
 
-				vals := log.WithValuesArgsForCall(0)
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
@@ -658,11 +662,11 @@ var _ = Describe("ApplicationsServer", func() {
 
 				Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))
 
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				msg, _ := log.InfoArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				_, msg, _ := sink.InfoArgsForCall(0)
 				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
 
-				vals := log.WithValuesArgsForCall(0)
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)

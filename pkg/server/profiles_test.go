@@ -46,8 +46,9 @@ var _ = Describe("ProfilesServer", func() {
 
 		fakeCache = &cachefakes.FakeCache{}
 		fakeClientGetter := kubefakes.NewFakeClientGetter(kubeClient)
+		log, _ := testutils.MakeFakeLogr()
 		s = &server.ProfilesServer{
-			Log:               testutils.MakeFakeLogr(),
+			Log:               log,
 			HelmRepoName:      "helmrepo",
 			HelmRepoNamespace: "default",
 			HelmCache:         fakeCache,
