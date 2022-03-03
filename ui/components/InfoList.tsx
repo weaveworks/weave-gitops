@@ -13,7 +13,7 @@ const InfoList = styled(
           {_.map(items, ([k, v]) => (
             <tr key={k}>
               <td>
-                <Text capitalize bold>
+                <Text capitalize semiBold color="neutral30">
                   {k}:
                 </Text>
               </td>
@@ -25,6 +25,9 @@ const InfoList = styled(
     );
   }
 )`
+  table {
+    border-spacing: 0;
+  }
   tbody tr td:first-child {
     min-width: 200px;
   }
