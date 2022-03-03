@@ -2,13 +2,16 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import DataTable, { Field } from "./DataTable";
-import { FilterConfig } from "./FilterDialog";
+import FilterDialog, { FilterConfig } from "./FilterDialog";
+import Flex from "./Flex";
 
 type Props = {
   className?: string;
   fields: Field[];
   rows: any[];
   filters: FilterConfig;
+  dialogOpen: boolean;
+  onDialogClose: () => void;
 };
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -27,10 +30,28 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
   });
 }
 
-function FilterableTable({ className, fields, rows, filters }: Props) {
-  const filtered = filterRows(rows, filters);
+function FilterableTable({
+  className,
+  fields,
+  rows,
+  filters,
+  dialogOpen,
+  onDialogClose,
+}: Props) {
+  const [filterState, setFilterState] = React.useState<FilterConfig>(filters);
+  const filtered = filterRows(rows, filterState);
 
-  return <DataTable className={className} fields={fields} rows={filtered} />;
+  return (
+    <Flex>
+      <DataTable className={className} fields={fields} rows={filtered} />
+      <FilterDialog
+        onClose={onDialogClose}
+        onFilterSelect={setFilterState}
+        filterList={filters}
+        open={dialogOpen}
+      />
+    </Flex>
+  );
 }
 
 export default styled(FilterableTable).attrs({

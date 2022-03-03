@@ -1,13 +1,12 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { Button, Icon, IconType } from "..";
 import { Automation } from "../hooks/automations";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import DataTable, { SortType } from "./DataTable";
 import FilterableTable from "./FilterableTable";
-import FilterDialog, { FilterConfig } from "./FilterDialog";
+import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator, { computeReady } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -19,7 +18,8 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations }: Props) {
-  const [slid, setSlid] = React.useState(false);
+  const [filterDialogOpen, setFilterDialog] = React.useState(false);
+
   const typeVals = _.reduce(
     automations,
     (r, v) => {
@@ -37,9 +37,6 @@ function AutomationsTable({ className, automations }: Props) {
   const initialFilterState = {
     type: typeVals,
   };
-
-  const [filterState, setFilterState] =
-    React.useState<FilterConfig>(initialFilterState);
 
   const fields = [
     {
@@ -100,30 +97,18 @@ function AutomationsTable({ className, automations }: Props) {
   return (
     <div className={className}>
       <Flex wide end>
-        <Button
-          variant="text"
-          color="inherit"
-          onClick={() => {
-            setSlid(!slid);
-          }}
-        >
-          <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
-        </Button>
+        <FilterDialogButton
+          onClick={() => setFilterDialog(!filterDialogOpen)}
+        />
       </Flex>
 
-      <Flex>
-        <FilterableTable
-          filters={filterState}
-          fields={fields}
-          rows={automations}
-        />
-        <FilterDialog
-          onClose={() => setSlid(false)}
-          onFilterSelect={(val) => setFilterState(val)}
-          filterList={initialFilterState}
-          open={slid}
-        />
-      </Flex>
+      <FilterableTable
+        fields={fields}
+        filters={initialFilterState}
+        rows={automations}
+        dialogOpen={filterDialogOpen}
+        onDialogClose={() => setFilterDialog(false)}
+      />
     </div>
   );
 }
