@@ -12,7 +12,6 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -224,16 +223,11 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
-  ${Link} ${Text} {
-    font-size: 14px;
-  }
-
   td {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
   table {
     width: 100%;
   }
