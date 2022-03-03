@@ -7,10 +7,11 @@ import (
 	"github.com/go-logr/logr"
 )
 
-type Logger struct {
-	EnabledStub        func() bool
+type LogSink struct {
+	EnabledStub        func(int) bool
 	enabledMutex       sync.RWMutex
 	enabledArgsForCall []struct {
+		arg1 int
 	}
 	enabledReturns struct {
 		result1 bool
@@ -25,60 +26,56 @@ type Logger struct {
 		arg2 string
 		arg3 []interface{}
 	}
-	InfoStub        func(string, ...interface{})
+	InfoStub        func(int, string, ...interface{})
 	infoMutex       sync.RWMutex
 	infoArgsForCall []struct {
-		arg1 string
-		arg2 []interface{}
-	}
-	VStub        func(int) logr.Logger
-	vMutex       sync.RWMutex
-	vArgsForCall []struct {
 		arg1 int
+		arg2 string
+		arg3 []interface{}
 	}
-	vReturns struct {
-		result1 logr.Logger
+	InitStub        func(logr.RuntimeInfo)
+	initMutex       sync.RWMutex
+	initArgsForCall []struct {
+		arg1 logr.RuntimeInfo
 	}
-	vReturnsOnCall map[int]struct {
-		result1 logr.Logger
-	}
-	WithNameStub        func(string) logr.Logger
+	WithNameStub        func(string) logr.LogSink
 	withNameMutex       sync.RWMutex
 	withNameArgsForCall []struct {
 		arg1 string
 	}
 	withNameReturns struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}
 	withNameReturnsOnCall map[int]struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}
-	WithValuesStub        func(...interface{}) logr.Logger
+	WithValuesStub        func(...interface{}) logr.LogSink
 	withValuesMutex       sync.RWMutex
 	withValuesArgsForCall []struct {
 		arg1 []interface{}
 	}
 	withValuesReturns struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}
 	withValuesReturnsOnCall map[int]struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Logger) Enabled() bool {
+func (fake *LogSink) Enabled(arg1 int) bool {
 	fake.enabledMutex.Lock()
 	ret, specificReturn := fake.enabledReturnsOnCall[len(fake.enabledArgsForCall)]
 	fake.enabledArgsForCall = append(fake.enabledArgsForCall, struct {
-	}{})
+		arg1 int
+	}{arg1})
 	stub := fake.EnabledStub
 	fakeReturns := fake.enabledReturns
-	fake.recordInvocation("Enabled", []interface{}{})
+	fake.recordInvocation("Enabled", []interface{}{arg1})
 	fake.enabledMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -86,19 +83,26 @@ func (fake *Logger) Enabled() bool {
 	return fakeReturns.result1
 }
 
-func (fake *Logger) EnabledCallCount() int {
+func (fake *LogSink) EnabledCallCount() int {
 	fake.enabledMutex.RLock()
 	defer fake.enabledMutex.RUnlock()
 	return len(fake.enabledArgsForCall)
 }
 
-func (fake *Logger) EnabledCalls(stub func() bool) {
+func (fake *LogSink) EnabledCalls(stub func(int) bool) {
 	fake.enabledMutex.Lock()
 	defer fake.enabledMutex.Unlock()
 	fake.EnabledStub = stub
 }
 
-func (fake *Logger) EnabledReturns(result1 bool) {
+func (fake *LogSink) EnabledArgsForCall(i int) int {
+	fake.enabledMutex.RLock()
+	defer fake.enabledMutex.RUnlock()
+	argsForCall := fake.enabledArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *LogSink) EnabledReturns(result1 bool) {
 	fake.enabledMutex.Lock()
 	defer fake.enabledMutex.Unlock()
 	fake.EnabledStub = nil
@@ -107,7 +111,7 @@ func (fake *Logger) EnabledReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *Logger) EnabledReturnsOnCall(i int, result1 bool) {
+func (fake *LogSink) EnabledReturnsOnCall(i int, result1 bool) {
 	fake.enabledMutex.Lock()
 	defer fake.enabledMutex.Unlock()
 	fake.EnabledStub = nil
@@ -121,7 +125,7 @@ func (fake *Logger) EnabledReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *Logger) Error(arg1 error, arg2 string, arg3 ...interface{}) {
+func (fake *LogSink) Error(arg1 error, arg2 string, arg3 ...interface{}) {
 	fake.errorMutex.Lock()
 	fake.errorArgsForCall = append(fake.errorArgsForCall, struct {
 		arg1 error
@@ -136,120 +140,92 @@ func (fake *Logger) Error(arg1 error, arg2 string, arg3 ...interface{}) {
 	}
 }
 
-func (fake *Logger) ErrorCallCount() int {
+func (fake *LogSink) ErrorCallCount() int {
 	fake.errorMutex.RLock()
 	defer fake.errorMutex.RUnlock()
 	return len(fake.errorArgsForCall)
 }
 
-func (fake *Logger) ErrorCalls(stub func(error, string, ...interface{})) {
+func (fake *LogSink) ErrorCalls(stub func(error, string, ...interface{})) {
 	fake.errorMutex.Lock()
 	defer fake.errorMutex.Unlock()
 	fake.ErrorStub = stub
 }
 
-func (fake *Logger) ErrorArgsForCall(i int) (error, string, []interface{}) {
+func (fake *LogSink) ErrorArgsForCall(i int) (error, string, []interface{}) {
 	fake.errorMutex.RLock()
 	defer fake.errorMutex.RUnlock()
 	argsForCall := fake.errorArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *Logger) Info(arg1 string, arg2 ...interface{}) {
+func (fake *LogSink) Info(arg1 int, arg2 string, arg3 ...interface{}) {
 	fake.infoMutex.Lock()
 	fake.infoArgsForCall = append(fake.infoArgsForCall, struct {
-		arg1 string
-		arg2 []interface{}
-	}{arg1, arg2})
+		arg1 int
+		arg2 string
+		arg3 []interface{}
+	}{arg1, arg2, arg3})
 	stub := fake.InfoStub
-	fake.recordInvocation("Info", []interface{}{arg1, arg2})
+	fake.recordInvocation("Info", []interface{}{arg1, arg2, arg3})
 	fake.infoMutex.Unlock()
 	if stub != nil {
-		fake.InfoStub(arg1, arg2...)
+		fake.InfoStub(arg1, arg2, arg3...)
 	}
 }
 
-func (fake *Logger) InfoCallCount() int {
+func (fake *LogSink) InfoCallCount() int {
 	fake.infoMutex.RLock()
 	defer fake.infoMutex.RUnlock()
 	return len(fake.infoArgsForCall)
 }
 
-func (fake *Logger) InfoCalls(stub func(string, ...interface{})) {
+func (fake *LogSink) InfoCalls(stub func(int, string, ...interface{})) {
 	fake.infoMutex.Lock()
 	defer fake.infoMutex.Unlock()
 	fake.InfoStub = stub
 }
 
-func (fake *Logger) InfoArgsForCall(i int) (string, []interface{}) {
+func (fake *LogSink) InfoArgsForCall(i int) (int, string, []interface{}) {
 	fake.infoMutex.RLock()
 	defer fake.infoMutex.RUnlock()
 	argsForCall := fake.infoArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *Logger) V(arg1 int) logr.Logger {
-	fake.vMutex.Lock()
-	ret, specificReturn := fake.vReturnsOnCall[len(fake.vArgsForCall)]
-	fake.vArgsForCall = append(fake.vArgsForCall, struct {
-		arg1 int
+func (fake *LogSink) Init(arg1 logr.RuntimeInfo) {
+	fake.initMutex.Lock()
+	fake.initArgsForCall = append(fake.initArgsForCall, struct {
+		arg1 logr.RuntimeInfo
 	}{arg1})
-	stub := fake.VStub
-	fakeReturns := fake.vReturns
-	fake.recordInvocation("V", []interface{}{arg1})
-	fake.vMutex.Unlock()
+	stub := fake.InitStub
+	fake.recordInvocation("Init", []interface{}{arg1})
+	fake.initMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		fake.InitStub(arg1)
 	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
 }
 
-func (fake *Logger) VCallCount() int {
-	fake.vMutex.RLock()
-	defer fake.vMutex.RUnlock()
-	return len(fake.vArgsForCall)
+func (fake *LogSink) InitCallCount() int {
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
+	return len(fake.initArgsForCall)
 }
 
-func (fake *Logger) VCalls(stub func(int) logr.Logger) {
-	fake.vMutex.Lock()
-	defer fake.vMutex.Unlock()
-	fake.VStub = stub
+func (fake *LogSink) InitCalls(stub func(logr.RuntimeInfo)) {
+	fake.initMutex.Lock()
+	defer fake.initMutex.Unlock()
+	fake.InitStub = stub
 }
 
-func (fake *Logger) VArgsForCall(i int) int {
-	fake.vMutex.RLock()
-	defer fake.vMutex.RUnlock()
-	argsForCall := fake.vArgsForCall[i]
+func (fake *LogSink) InitArgsForCall(i int) logr.RuntimeInfo {
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
+	argsForCall := fake.initArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *Logger) VReturns(result1 logr.Logger) {
-	fake.vMutex.Lock()
-	defer fake.vMutex.Unlock()
-	fake.VStub = nil
-	fake.vReturns = struct {
-		result1 logr.Logger
-	}{result1}
-}
-
-func (fake *Logger) VReturnsOnCall(i int, result1 logr.Logger) {
-	fake.vMutex.Lock()
-	defer fake.vMutex.Unlock()
-	fake.VStub = nil
-	if fake.vReturnsOnCall == nil {
-		fake.vReturnsOnCall = make(map[int]struct {
-			result1 logr.Logger
-		})
-	}
-	fake.vReturnsOnCall[i] = struct {
-		result1 logr.Logger
-	}{result1}
-}
-
-func (fake *Logger) WithName(arg1 string) logr.Logger {
+func (fake *LogSink) WithName(arg1 string) logr.LogSink {
 	fake.withNameMutex.Lock()
 	ret, specificReturn := fake.withNameReturnsOnCall[len(fake.withNameArgsForCall)]
 	fake.withNameArgsForCall = append(fake.withNameArgsForCall, struct {
@@ -268,49 +244,49 @@ func (fake *Logger) WithName(arg1 string) logr.Logger {
 	return fakeReturns.result1
 }
 
-func (fake *Logger) WithNameCallCount() int {
+func (fake *LogSink) WithNameCallCount() int {
 	fake.withNameMutex.RLock()
 	defer fake.withNameMutex.RUnlock()
 	return len(fake.withNameArgsForCall)
 }
 
-func (fake *Logger) WithNameCalls(stub func(string) logr.Logger) {
+func (fake *LogSink) WithNameCalls(stub func(string) logr.LogSink) {
 	fake.withNameMutex.Lock()
 	defer fake.withNameMutex.Unlock()
 	fake.WithNameStub = stub
 }
 
-func (fake *Logger) WithNameArgsForCall(i int) string {
+func (fake *LogSink) WithNameArgsForCall(i int) string {
 	fake.withNameMutex.RLock()
 	defer fake.withNameMutex.RUnlock()
 	argsForCall := fake.withNameArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *Logger) WithNameReturns(result1 logr.Logger) {
+func (fake *LogSink) WithNameReturns(result1 logr.LogSink) {
 	fake.withNameMutex.Lock()
 	defer fake.withNameMutex.Unlock()
 	fake.WithNameStub = nil
 	fake.withNameReturns = struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}{result1}
 }
 
-func (fake *Logger) WithNameReturnsOnCall(i int, result1 logr.Logger) {
+func (fake *LogSink) WithNameReturnsOnCall(i int, result1 logr.LogSink) {
 	fake.withNameMutex.Lock()
 	defer fake.withNameMutex.Unlock()
 	fake.WithNameStub = nil
 	if fake.withNameReturnsOnCall == nil {
 		fake.withNameReturnsOnCall = make(map[int]struct {
-			result1 logr.Logger
+			result1 logr.LogSink
 		})
 	}
 	fake.withNameReturnsOnCall[i] = struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}{result1}
 }
 
-func (fake *Logger) WithValues(arg1 ...interface{}) logr.Logger {
+func (fake *LogSink) WithValues(arg1 ...interface{}) logr.LogSink {
 	fake.withValuesMutex.Lock()
 	ret, specificReturn := fake.withValuesReturnsOnCall[len(fake.withValuesArgsForCall)]
 	fake.withValuesArgsForCall = append(fake.withValuesArgsForCall, struct {
@@ -329,49 +305,49 @@ func (fake *Logger) WithValues(arg1 ...interface{}) logr.Logger {
 	return fakeReturns.result1
 }
 
-func (fake *Logger) WithValuesCallCount() int {
+func (fake *LogSink) WithValuesCallCount() int {
 	fake.withValuesMutex.RLock()
 	defer fake.withValuesMutex.RUnlock()
 	return len(fake.withValuesArgsForCall)
 }
 
-func (fake *Logger) WithValuesCalls(stub func(...interface{}) logr.Logger) {
+func (fake *LogSink) WithValuesCalls(stub func(...interface{}) logr.LogSink) {
 	fake.withValuesMutex.Lock()
 	defer fake.withValuesMutex.Unlock()
 	fake.WithValuesStub = stub
 }
 
-func (fake *Logger) WithValuesArgsForCall(i int) []interface{} {
+func (fake *LogSink) WithValuesArgsForCall(i int) []interface{} {
 	fake.withValuesMutex.RLock()
 	defer fake.withValuesMutex.RUnlock()
 	argsForCall := fake.withValuesArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *Logger) WithValuesReturns(result1 logr.Logger) {
+func (fake *LogSink) WithValuesReturns(result1 logr.LogSink) {
 	fake.withValuesMutex.Lock()
 	defer fake.withValuesMutex.Unlock()
 	fake.WithValuesStub = nil
 	fake.withValuesReturns = struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}{result1}
 }
 
-func (fake *Logger) WithValuesReturnsOnCall(i int, result1 logr.Logger) {
+func (fake *LogSink) WithValuesReturnsOnCall(i int, result1 logr.LogSink) {
 	fake.withValuesMutex.Lock()
 	defer fake.withValuesMutex.Unlock()
 	fake.WithValuesStub = nil
 	if fake.withValuesReturnsOnCall == nil {
 		fake.withValuesReturnsOnCall = make(map[int]struct {
-			result1 logr.Logger
+			result1 logr.LogSink
 		})
 	}
 	fake.withValuesReturnsOnCall[i] = struct {
-		result1 logr.Logger
+		result1 logr.LogSink
 	}{result1}
 }
 
-func (fake *Logger) Invocations() map[string][][]interface{} {
+func (fake *LogSink) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.enabledMutex.RLock()
@@ -380,8 +356,8 @@ func (fake *Logger) Invocations() map[string][][]interface{} {
 	defer fake.errorMutex.RUnlock()
 	fake.infoMutex.RLock()
 	defer fake.infoMutex.RUnlock()
-	fake.vMutex.RLock()
-	defer fake.vMutex.RUnlock()
+	fake.initMutex.RLock()
+	defer fake.initMutex.RUnlock()
 	fake.withNameMutex.RLock()
 	defer fake.withNameMutex.RUnlock()
 	fake.withValuesMutex.RLock()
@@ -393,7 +369,7 @@ func (fake *Logger) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *Logger) recordInvocation(key string, args []interface{}) {
+func (fake *LogSink) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -405,4 +381,4 @@ func (fake *Logger) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ logr.Logger = new(Logger)
+var _ logr.LogSink = new(LogSink)
