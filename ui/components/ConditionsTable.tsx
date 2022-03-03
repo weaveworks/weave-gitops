@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Condition } from "../lib/api/applications/applications.pb";
+import { Condition } from "../lib/api/core/types.pb";
 import DataTable, { SortType } from "./DataTable";
 
 type Props = {

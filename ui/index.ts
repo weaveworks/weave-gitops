@@ -19,8 +19,6 @@ import {
   getProviderToken,
 } from "./lib/storage";
 import { theme, muiTheme } from "./lib/theme";
-import ApplicationDetail from "./pages/ApplicationDetail";
-import Applications from "./pages/Applications";
 import OAuthCallback from "./pages/OAuthCallback";
 
 export {
@@ -28,8 +26,6 @@ export {
   FeatureFlags,
   AuthContextProvider,
   AppContextProvider,
-  ApplicationDetail,
-  Applications,
   applicationsClient,
   getProviderToken,
   GithubDeviceAuthModal,

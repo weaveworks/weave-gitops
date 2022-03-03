@@ -17,37 +17,6 @@
     "application/json"
   ],
   "paths": {
-    "/v1/applications": {
-      "get": {
-        "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
-        "operationId": "Applications_ListApplications",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListApplicationsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/auth_providers/github": {
       "get": {
         "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
@@ -318,43 +287,6 @@
         ]
       }
     },
-    "/v1/applications/{name}": {
-      "get": {
-        "summary": "GetApplication returns a given application",
-        "operationId": "Applications_GetApplication",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetApplicationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/{name}/commits": {
       "get": {
         "summary": "ListCommits returns the list of WeGo commits that the authenticated user has access to.",
@@ -547,53 +479,6 @@
         }
       }
     },
-    "v1Application": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "sourceConditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "deploymentConditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "deploymentType": {
-          "$ref": "#/definitions/v1AutomationKind"
-        },
-        "reconciledObjectKinds": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1GroupVersionKind"
-          }
-        },
-        "kustomization": {
-          "$ref": "#/definitions/v1Kustomization"
-        },
-        "helmRelease": {
-          "$ref": "#/definitions/v1HelmRelease"
-        },
-        "source": {
-          "$ref": "#/definitions/v1Source"
-        }
-      }
-    },
     "v1AuthenticateResponse": {
       "type": "object",
       "properties": {
@@ -647,36 +532,6 @@
         },
         "url": {
           "type": "string"
-        }
-      }
-    },
-    "v1Condition": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "reason": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "title": "This object represents a single condition for a Kubernetes object.\nIt roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition"
-    },
-    "v1GetApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "application": {
-          "$ref": "#/definitions/v1Application"
         }
       }
     },
@@ -793,95 +648,6 @@
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
-    "v1HelmChart": {
-      "type": "object",
-      "properties": {
-        "chart": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "valuesFiles": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v1HelmRelease": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "targetNamespace": {
-          "type": "string"
-        },
-        "chart": {
-          "$ref": "#/definitions/v1HelmChart"
-        },
-        "interval": {
-          "type": "string"
-        },
-        "lastAppliedRevision": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        }
-      }
-    },
-    "v1Kustomization": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "targetNamespace": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "interval": {
-          "type": "string"
-        },
-        "prune": {
-          "type": "boolean"
-        },
-        "lastAppliedRevision": {
-          "type": "string"
-        }
-      }
-    },
-    "v1ListApplicationsResponse": {
-      "type": "object",
-      "properties": {
-        "applications": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Application"
-          }
-        }
-      }
-    },
     "v1ListCommitsResponse": {
       "type": "object",
       "properties": {
@@ -911,49 +677,6 @@
           "type": "string"
         }
       }
-    },
-    "v1Source": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "type": {
-          "$ref": "#/definitions/v1SourceType"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "interval": {
-          "type": "string"
-        },
-        "reference": {
-          "type": "string"
-        },
-        "suspend": {
-          "type": "boolean"
-        },
-        "timeout": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        }
-      }
-    },
-    "v1SourceType": {
-      "type": "string",
-      "enum": [
-        "Git",
-        "Helm"
-      ],
-      "default": "Git"
     },
     "v1SyncApplicationResponse": {
       "type": "object",

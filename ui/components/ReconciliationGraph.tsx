@@ -6,7 +6,6 @@ import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
 import {
-  Application,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { UnstructuredObjectWithParent } from "../lib/graph";
@@ -15,7 +14,7 @@ import Flex from "./Flex";
 
 export interface Props {
   objects: UnstructuredObjectWithParent[];
-  parentObject: Application;
+  parentObject: any;
   parentObjectKind: string;
   className?: string;
 }
