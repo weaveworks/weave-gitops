@@ -1,18 +1,6 @@
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
-import { PageRoute } from "./types";
-
-export enum V2Routes {
-  Automations = "/automations",
-  Sources = "/sources",
-  FluxRuntime = "/flux_runtime",
-  Kustomization = "/kustomization",
-  HelmRelease = "/helm_release",
-  HelmRepo = "/helm_repo",
-  GitRepo = "/git_repo",
-  HelmChart = "/helm_chart",
-  Bucket = "/bucket",
-}
+import { PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
