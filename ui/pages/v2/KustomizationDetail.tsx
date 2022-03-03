@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "../../components/Flex";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
@@ -46,13 +45,9 @@ function KustomizationDetail({ className, name }: Props) {
             ],
             [
               "Status",
-              <Flex start>
-                <KubeStatusIndicator conditions={kustomization?.conditions} />
-                <div>
-                  &nbsp; Applied revision {kustomization?.lastAppliedRevision}
-                </div>
-              </Flex>,
+              <KubeStatusIndicator conditions={kustomization?.conditions} />,
             ],
+            ["Applied Revision", kustomization?.lastAppliedRevision],
             ["Cluster", ""],
             ["Path", kustomization?.path],
             ["Interval", <Interval interval={kustomization?.interval} />],
