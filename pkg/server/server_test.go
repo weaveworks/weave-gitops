@@ -29,7 +29,7 @@ import (
 	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -527,7 +527,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
-			var log *fakelogr.FakeLogger
+			var log *fakelogr.Logger
 			var appsSrv pb.ApplicationsServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
