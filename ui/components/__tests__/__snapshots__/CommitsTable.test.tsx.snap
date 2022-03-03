@@ -56,7 +56,7 @@ exports[`CommitsTable snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c11 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -87,20 +87,11 @@ exports[`CommitsTable snapshots renders 1`] = `
   margin-left: 4px;
 }
 
-.c10 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
-}
-
-.c10.title-bar-button {
-  width: 250px;
-}
-
 .c4 {
   padding: 4px;
 }
 
-.c12 {
+.c11 {
   padding: 8px;
 }
 
@@ -140,10 +131,6 @@ exports[`CommitsTable snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
-.c0 .c9 .c7 {
-  font-size: 14px;
-}
-
 .c0 td {
   white-space: nowrap;
   overflow: hidden;
@@ -152,6 +139,15 @@ exports[`CommitsTable snapshots renders 1`] = `
 
 .c0 table {
   width: 100%;
+}
+
+.c9 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c9.title-bar-button {
+  width: 250px;
 }
 
 <div
@@ -256,11 +252,11 @@ exports[`CommitsTable snapshots renders 1`] = `
                 class="c7 c8"
               >
                 <a
-                  class="c9 c10"
+                  class="c9"
                   href="/"
                 >
                   <span
-                    class="c7 c11"
+                    class="c7 c10"
                     color="primary"
                   >
                     123abc
@@ -298,7 +294,7 @@ exports[`CommitsTable snapshots renders 1`] = `
       </table>
     </div>
     <div
-      class="c12"
+      class="c11"
     />
   </div>
 </div>
