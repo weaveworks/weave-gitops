@@ -33,6 +33,11 @@ const navItems = [
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
   },
+  {
+    label: "Docs",
+    href: "https://docs.gitops.weave.works/",
+    newTab: true,
+  },
 ];
 
 const LinkTab = (props: any) => (
@@ -158,16 +163,10 @@ function Layout({ className, children }: Props) {
                     to={formatURL(n.value)}
                     value={n.value}
                     className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
                   />
                 ))}
-
-                <StyleLinkTab
-                  key="docs"
-                  label="Docs"
-                  href="https://docs.gitops.weave.works/"
-                  className="item"
-                  newTab={true}
-                />
               </Tabs>
             </NavContent>
           </NavContainer>
