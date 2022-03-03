@@ -3,12 +3,8 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
-import {
-  formatURL,
-  getPageLabel,
-  getParentNavValue,
-  V2Routes,
-} from "../lib/nav";
+import { formatURL, getPageLabel, getParentNavValue } from "../lib/nav";
+import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
