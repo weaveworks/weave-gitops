@@ -211,6 +211,13 @@ merged.lcov:
 	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
 
 ##@ Utilities
+tls-files:
+ifeq (, $(shell which mkcert))
+ $(error "mkcert is not installed, consider following this instructions: https://github.com/FiloSottile/mkcert#installation ")
+else
+ $(shell mkcert -install)
+ $(shell mkcert localhost)
+endif
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

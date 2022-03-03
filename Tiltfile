@@ -16,9 +16,11 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
+        'localhost.pem',
+        'localhost-key.pem',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server',
+    entrypoint='/app/build/gitops-server --tls-cert-file=build/localhost.pem --tls-private-key=build/localhost-key.pem',
     live_update=[
         sync('./bin', '/app/build'),
     ],
