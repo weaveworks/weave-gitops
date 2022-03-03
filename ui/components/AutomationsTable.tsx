@@ -4,14 +4,18 @@ import { Automation } from "../hooks/automations";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import DataTable, { SortType } from "./DataTable";
+import Flex from "./Flex";
 import KubeStatusIndicator, { computeReady } from "./KubeStatusIndicator";
 import Link from "./Link";
+import Text from "./Text";
 
 type Props = {
   className?: string;
   automations: Automation[];
   appName?: string;
 };
+
+const statusWidth = 360;
 
 function AutomationsTable({ className, automations }: Props) {
   return (
@@ -59,6 +63,7 @@ function AutomationsTable({ className, automations }: Props) {
             ) : null,
           sortType: SortType.bool,
           sortValue: ({ conditions }) => computeReady(conditions),
+          width: statusWidth,
         },
         {
           label: "Revision",
@@ -73,4 +78,12 @@ function AutomationsTable({ className, automations }: Props) {
 
 export default styled(AutomationsTable).attrs({
   className: AutomationsTable.name,
-})``;
+})`
+  /* Setting this here to get the ellipsis to work */
+  /* Because this is a div within a td, overflow doesn't apply to the td */
+  ${KubeStatusIndicator} ${Flex} ${Text} {
+    max-width: ${statusWidth}px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -39,4 +40,9 @@ function KubeStatusIndicator({ className, conditions }: Props) {
 
 export default styled(KubeStatusIndicator).attrs({
   className: KubeStatusIndicator.name,
-})``;
+})`
+  ${Icon} ${Text} {
+    color: ${(props) => props.theme.colors.black};
+    font-weight: 400;
+  }
+`;
