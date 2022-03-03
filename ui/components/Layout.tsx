@@ -35,7 +35,7 @@ const navItems = [
   },
 ];
 
-const LinkTab = (props) => (
+const LinkTab = (props: any) => (
   <Tab
     component={forwardRef((p: any, ref) => (
       <Link innerRef={ref} {...p} />
@@ -160,6 +160,14 @@ function Layout({ className, children }: Props) {
                     className={n.sub && "sub-item"}
                   />
                 ))}
+
+                <StyleLinkTab
+                  key="docs"
+                  label="Docs"
+                  href="https://docs.gitops.weave.works/"
+                  className="item"
+                  newTab={true}
+                />
               </Tabs>
             </NavContent>
           </NavContainer>
