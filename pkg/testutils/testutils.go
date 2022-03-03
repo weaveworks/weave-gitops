@@ -16,7 +16,7 @@ import (
 	"github.com/go-logr/logr"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -125,8 +125,8 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 // MakeFakeLogr returns an API compliant logr object that can be used for unit testing.
 // Without these stubs filled in, a nil pointer exception will be thrown on log.V().
-func MakeFakeLogr() *fakelogr.FakeLogger {
-	log := &fakelogr.FakeLogger{}
+func MakeFakeLogr() *fakelogr.Logger {
+	log := &fakelogr.Logger{}
 	log.WithValuesStub = func(i ...interface{}) logr.Logger {
 		return log
 	}

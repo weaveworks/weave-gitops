@@ -12,14 +12,14 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"google.golang.org/grpc/metadata"
 )
 
 var (
 	jwtClient      *authfakes.FakeJWTClient
 	defaultHandler http.HandlerFunc
-	log            *fakelogr.FakeLogger
+	log            *fakelogr.Logger
 )
 
 var _ = Describe("WithProviderToken", func() {
