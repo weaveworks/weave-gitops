@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -78,7 +78,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	env.Stop()
-}, 60)
+})
 
 var secretKey string
 
