@@ -1,4 +1,3 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import {
@@ -11,7 +10,7 @@ import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import DataTable, { SortType } from "./DataTable";
-import FilterableTable from "./FilterableTable";
+import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
@@ -29,22 +28,8 @@ const statusWidth = 480;
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
 
-  const typeVals = _.reduce(
-    sources,
-    (r, v) => {
-      const t = v.type;
-
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
-
-      return r;
-    },
-    []
-  );
-
   const initialFilterState = {
-    type: typeVals,
+    ...filterConfigForType(sources),
   };
 
   return (

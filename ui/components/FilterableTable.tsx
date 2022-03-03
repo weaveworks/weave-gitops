@@ -10,9 +10,27 @@ type Props = {
   fields: Field[];
   rows: any[];
   filters: FilterConfig;
-  dialogOpen: boolean;
-  onDialogClose: () => void;
+  dialogOpen?: boolean;
+  onDialogClose?: () => void;
 };
+
+export function filterConfigForType(rows) {
+  const typeFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      const t = v.type;
+
+      if (!_.includes(r, t)) {
+        r.push(t);
+      }
+
+      return r;
+    },
+    []
+  );
+
+  return { type: typeFilterConfig };
+}
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
   return _.filter(rows, (r) => {

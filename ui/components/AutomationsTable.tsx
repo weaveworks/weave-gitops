@@ -1,11 +1,10 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import DataTable, { SortType } from "./DataTable";
-import FilterableTable from "./FilterableTable";
+import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator, { computeReady } from "./KubeStatusIndicator";
@@ -20,22 +19,8 @@ type Props = {
 function AutomationsTable({ className, automations }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
 
-  const typeVals = _.reduce(
-    automations,
-    (r, v) => {
-      const t = v.type;
-
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
-
-      return r;
-    },
-    []
-  );
-
   const initialFilterState = {
-    type: typeVals,
+    ...filterConfigForType(automations),
   };
 
   const fields = [
