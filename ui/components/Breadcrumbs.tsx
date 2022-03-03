@@ -3,7 +3,12 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
-import { getPageLabel, getParentNavValue, V2Routes } from "../lib/nav";
+import {
+  formatURL,
+  getPageLabel,
+  getParentNavValue,
+  V2Routes,
+} from "../lib/nav";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
@@ -18,28 +23,30 @@ const CrumbLink = styled(Link)`
 
 export const Breadcrumbs = () => {
   const { currentPage } = useNavigation();
-  const parentValue = getParentNavValue(currentPage);
-  const parsed = qs.parse(useLocation().search);
+  const { search } = useLocation();
+
+  const parentValue = getParentNavValue(currentPage) as V2Routes;
+  const label = getPageLabel(parentValue);
+  const parsed = qs.parse(search);
 
   return (
     <Flex align>
-      {parentValue !== currentPage && (
-        <CrumbLink
-          to={V2Routes[parentValue as V2Routes] || ""}
-          textProps={{ bold: true }}
-        >
-          {getPageLabel(parentValue as V2Routes)}
-        </CrumbLink>
-      )}
-      {parentValue !== currentPage && (
-        <Icon type={IconType.NavigateNextIcon} size="large" color="neutral00" />
-      )}
-      <CrumbLink
-        to={currentPage}
-        textProps={parentValue === currentPage && { bold: true }}
-      >
-        {getPageLabel(currentPage, parsed && (parsed.name as string))}
+      <CrumbLink to={parentValue} textProps={{ bold: true }}>
+        {label}
       </CrumbLink>
+
+      {parentValue !== currentPage && (
+        <>
+          <Icon
+            type={IconType.NavigateNextIcon}
+            size="large"
+            color="neutral00"
+          />
+          <CrumbLink to={formatURL(currentPage, parsed)}>
+            {parsed.name}
+          </CrumbLink>
+        </>
+      )}
     </Flex>
   );
 };

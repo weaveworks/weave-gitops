@@ -42,21 +42,14 @@ export const getParentNavValue = (
   }
 };
 
-export const getPageLabel = (currentPage: string, name?: string): string => {
-  switch (currentPage) {
-    case V2Routes.Automations:
-      return "Applications";
-    case V2Routes.Sources:
-      return "Sources";
-    case V2Routes.FluxRuntime:
-      return "Flux Runtime";
-    case V2Routes.Kustomization:
-    case V2Routes.HelmRelease:
-    case V2Routes.GitRepo:
-    case V2Routes.HelmChart:
-    case V2Routes.Bucket:
-      return name;
-  }
+const pageTitles = {
+  [V2Routes.Automations]: "Applications",
+  [V2Routes.Sources]: "Sources",
+  [V2Routes.FluxRuntime]: "Flux Runtime",
+};
+
+export const getPageLabel = (route: V2Routes): string => {
+  return pageTitles[route];
 };
 
 export const formatURL = (page: string, query: any = {}) => {
