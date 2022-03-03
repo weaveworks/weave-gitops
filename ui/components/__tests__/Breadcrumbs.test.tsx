@@ -8,7 +8,7 @@ describe("snapshots", () => {
     const tree = renderer
       .create(
         withTheme(
-          withContext(<Breadcrumbs />, "/automations", {
+          withContext(<Breadcrumbs />, "/applications", {
             applicationsClient: createMockClient({}),
           })
         )

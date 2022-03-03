@@ -128,10 +128,6 @@ exports[`DataTable snapshots renders 1`] = `
   text-overflow: ellipsis;
 }
 
-.c0 table {
-  width: 100%;
-}
-
 <div
   className="c0"
 >
