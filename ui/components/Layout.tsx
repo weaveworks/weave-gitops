@@ -33,9 +33,14 @@ const navItems = [
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
   },
+  {
+    label: "Docs",
+    href: "https://docs.gitops.weave.works/",
+    newTab: true,
+  },
 ];
 
-const LinkTab = (props) => (
+const LinkTab = (props: any) => (
   <Tab
     component={forwardRef((p: any, ref) => (
       <Link innerRef={ref} {...p} />
@@ -158,6 +163,8 @@ function Layout({ className, children }: Props) {
                     to={formatURL(n.value)}
                     value={n.value}
                     className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
                   />
                 ))}
               </Tabs>
