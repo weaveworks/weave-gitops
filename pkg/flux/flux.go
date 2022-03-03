@@ -17,7 +17,6 @@ type Flux interface {
 	SetupBin()
 	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-	PreCheck() (string, error)
 }
 
 const (
@@ -95,18 +94,4 @@ func (f *FluxClient) fluxPath() (string, error) {
 	path := fmt.Sprintf("%v/.wego/bin", homeDir)
 
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
-}
-
-func (f *FluxClient) PreCheck() (string, error) {
-	args := []string{
-		"check",
-		"--pre",
-	}
-
-	output, err := f.runFluxCmd(args...)
-	if err != nil {
-		return "", fmt.Errorf("failed running flux pre check %w", err)
-	}
-
-	return string(output), nil
 }
