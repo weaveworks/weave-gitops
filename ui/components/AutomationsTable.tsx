@@ -69,7 +69,7 @@ function AutomationsTable({ className, automations }: Props) {
           label: "Revision",
           value: "lastAttemptedRevision",
         },
-        { label: "Last Synced At", value: "lastHandledReconciledAt" },
+        { label: "Last Updated", value: "lastHandledReconciledAt" },
       ]}
       rows={automations}
     />
