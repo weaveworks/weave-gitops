@@ -158,7 +158,7 @@ function Layout({ className, children }: Props) {
               >
                 {_.map(navItems, (n) => (
                   <StyleLinkTab
-                    key={n.value}
+                    key={n.label}
                     label={n.label}
                     to={formatURL(n.value)}
                     value={n.value}
