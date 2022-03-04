@@ -172,11 +172,7 @@ function UnstyledDataTable({
                   style={f.width && { maxWidth: f.width }}
                   key={f.label}
                 >
-                  {f.sortType ? (
-                    <SortableLabel field={f} />
-                  ) : (
-                    <h2>{f.label}</h2>
-                  )}
+                  <SortableLabel field={f} />
                 </TableCell>
               ))}
             </TableRow>
