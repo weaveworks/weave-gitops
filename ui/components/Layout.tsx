@@ -34,6 +34,7 @@ const navItems = [
     label: "Flux Runtime",
   },
   {
+    value: "docs",
     label: "Docs",
     href: "https://docs.gitops.weave.works/",
     newTab: true,

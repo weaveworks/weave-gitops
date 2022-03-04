@@ -10,6 +10,8 @@ import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import DataTable, { SortType } from "./DataTable";
+import FilterableTable, { filterConfigForType } from "./FilterableTable";
+import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -24,10 +26,24 @@ type Props = {
 const statusWidth = 480;
 
 function SourcesTable({ className, sources }: Props) {
+  const [filterDialogOpen, setFilterDialog] = React.useState(false);
+
+  const initialFilterState = {
+    ...filterConfigForType(sources),
+  };
+
   return (
     <div className={className}>
-      <DataTable
+      <Flex wide end>
+        <FilterDialogButton
+          onClick={() => setFilterDialog(!filterDialogOpen)}
+        />
+      </Flex>
+      <FilterableTable
+        filters={initialFilterState}
         rows={sources}
+        dialogOpen={filterDialogOpen}
+        onDialogClose={() => setFilterDialog(false)}
         fields={[
           {
             label: "Name",
@@ -118,5 +134,9 @@ export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
     max-width: ${statusWidth}px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  ${DataTable} table {
+    table-layout: fixed;
   }
 `;

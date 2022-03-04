@@ -25,6 +25,10 @@ export const Breadcrumbs = () => {
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);
 
+  if (!parentValue) {
+    throw new Error("invalid route");
+  }
+
   return (
     <Flex align>
       <CrumbLink to={parentValue} textProps={{ bold: true }}>
