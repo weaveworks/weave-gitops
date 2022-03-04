@@ -168,12 +168,11 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell style={f.width && { width: f.width }} key={f.label}>
-                  {f.sortType ? (
-                    <SortableLabel field={f} />
-                  ) : (
-                    <h2>{f.label}</h2>
-                  )}
+                <TableCell
+                  style={f.width && { maxWidth: f.width }}
+                  key={f.label}
+                >
+                  <SortableLabel field={f} />
                 </TableCell>
               ))}
             </TableRow>
@@ -208,7 +207,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;

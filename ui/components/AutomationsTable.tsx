@@ -76,7 +76,7 @@ function AutomationsTable({ className, automations }: Props) {
       value: "lastAttemptedRevision",
       width: 72,
     },
-    { label: "Last Synced At", value: "lastHandledReconciledAt", width: 120 },
+    { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
   ];
 
   return (
@@ -86,7 +86,6 @@ function AutomationsTable({ className, automations }: Props) {
           onClick={() => setFilterDialog(!filterDialogOpen)}
         />
       </Flex>
-
       <FilterableTable
         fields={fields}
         filters={initialFilterState}

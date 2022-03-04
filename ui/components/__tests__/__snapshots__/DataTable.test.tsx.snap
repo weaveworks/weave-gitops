@@ -105,7 +105,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c0 h2 {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
