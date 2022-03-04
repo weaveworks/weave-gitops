@@ -18,6 +18,13 @@ import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
+/*eslint import/no-unresolved: [0]*/
+//@ts-ignore
+import failedSrc from "url:../images/failed.svg";
+//@ts-ignore
+import successSrc from "url:../images/success.svg";
+//@ts-ignore
+import suspendedSrc from "url:../images/suspended.svg";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
@@ -44,6 +51,9 @@ export enum IconType {
   Circle,
   SearchIcon,
   LogoutIcon,
+  SuccessIcon,
+  FailedIcon,
+  SuspendedIcon,
 }
 
 type Props = {
@@ -107,18 +117,20 @@ function getIcon(i: IconType) {
     case IconType.ClearIcon:
       return ClearIcon;
 
-    case IconType.Circle:
-      // Our version of material UI icons does not have a plain circle.
-      return () => (
-        <svg viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" />
-        </svg>
-      );
     case IconType.SearchIcon:
       return SearchIcon;
 
     case IconType.LogoutIcon:
       return LogoutIcon;
+
+    case IconType.SuccessIcon:
+      return () => <img src={successSrc} />;
+
+    case IconType.FailedIcon:
+      return () => <img src={failedSrc} />;
+
+    case IconType.SuspendedIcon:
+      return () => <img src={suspendedSrc} />;
 
     default:
       break;
