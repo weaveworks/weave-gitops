@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Interval as IntervalType } from "../lib/api/core/types.pb";
+import { showInterval } from "../lib/time" 
 
 type Props = {
   className?: string;
@@ -10,7 +11,7 @@ type Props = {
 function Interval({ className, interval }: Props) {
   return (
     <span className={className}>
-      {interval.hours}h {interval.minutes}m
+      {showInterval(interval)}
     </span>
   );
 }
