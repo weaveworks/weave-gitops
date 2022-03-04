@@ -9,6 +9,7 @@ import {
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
+import { showInterval } from "../lib/time";
 import DataTable, { SortType } from "./DataTable";
 import Flex from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
@@ -102,8 +103,7 @@ function SourcesTable({ className, sources }: Props) {
           },
           {
             label: "Interval",
-            value: (s: Source) =>
-              `${s.interval.hours}h${s.interval.minutes}m${s.interval.seconds}s`,
+            value: (s: Source) => showInterval(s.interval)
           },
         ]}
       />
