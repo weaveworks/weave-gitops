@@ -13,8 +13,8 @@ spec:
       serviceAccountName: wego-app-service-account
       containers:
         - name: wego-app
-          image: "ghcr.io/weaveworks/wego-app:{{.Chart.AppVersion}}"
-          args: ["ui", "run", "-l", "--helm-repo-namespace","{{.Values.namespace}}"]
+          image: "{{.Values.containerRegistry}}:{{.Values.image}}"
+          args: [ "-l", "--helm-repo-namespace","{{.Values.namespace}}" ]
           ports:
             - containerPort: 9001
               protocol: TCP
@@ -43,7 +43,10 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    verbs: ["get","create"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments" ]
+    verbs: [ "list", "get" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
     verbs: [ "*" ]
@@ -51,10 +54,7 @@ rules:
     resources: [ "helmreleases" ]
     verbs: [ "*" ]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "helmrepositories" ]
-    verbs: [ "*" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "gitrepositories" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
     verbs: [ "*" ]
 ---
 apiVersion: v1
