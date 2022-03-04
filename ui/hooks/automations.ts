@@ -2,7 +2,11 @@ import _ from "lodash";
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
-import { GetKustomizationResponse } from "../lib/api/core/core.pb";
+import {
+  GetKustomizationResponse,
+  ListHelmReleasesResponse,
+  ListKustomizationsResponse,
+} from "../lib/api/core/core.pb";
 import { Kustomization } from "../lib/api/core/types.pb";
 import { AutomationType, RequestError, WeGONamespace } from "../lib/types";
 
@@ -14,17 +18,26 @@ export function useListAutomations(namespace = WeGONamespace) {
   return useQuery<Automation[], RequestError>(
     "automations",
     () => {
-      const p = [api.ListKustomizations({ namespace })];
+      const p = [
+        api.ListKustomizations({ namespace }),
+        api.ListHelmReleases({ namespace }),
+      ];
 
       return Promise.all(p).then((result) => {
-        const [kustRes] = result;
+        const [kustRes, helmRes] = result;
 
-        const kustomizations = kustRes.kustomizations;
+        const kustomizations = (kustRes as ListKustomizationsResponse)
+          .kustomizations;
+        const helmReleases = (helmRes as ListHelmReleasesResponse).helmReleases;
 
         return [
           ..._.map(kustomizations, (k) => ({
             ...k,
             type: AutomationType.Kustomization,
+          })),
+          ..._.map(helmReleases, (h) => ({
+            ...h,
+            type: AutomationType.HelmRelease,
           })),
         ];
       });

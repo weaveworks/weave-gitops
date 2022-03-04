@@ -1,11 +1,11 @@
 import { Meta, Story } from "@storybook/react";
 import React from "react";
-import FilterBar, { Props } from "../components/FilterBar";
+import FilterDialog, { FilterConfig, Props } from "../components/FilterDialog";
 import Flex from "../components/Flex";
 
 export default {
   title: "FilterBar",
-  component: FilterBar,
+  component: FilterDialog,
   parameters: {
     docs: {
       description: {
@@ -16,14 +16,16 @@ export default {
 } as Meta;
 
 const Template: Story<Props> = (args) => {
-  const [storyFilters, setStoryFilters] = React.useState([]);
+  const [storyFilters, setStoryFilters] = React.useState<FilterConfig>(
+    args.filterList
+  );
 
   return (
     <Flex wide align end>
-      <FilterBar
+      <FilterDialog
         {...args}
-        activeFilters={storyFilters}
-        setActiveFilters={setStoryFilters}
+        filterList={storyFilters}
+        onFilterSelect={(v) => setStoryFilters(v)}
       />
     </Flex>
   );
