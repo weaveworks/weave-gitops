@@ -76,73 +76,16 @@ function AutomationsTable({ className, automations }: Props) {
       value: "lastAttemptedRevision",
       width: 72,
     },
-    { label: "Last Synced At", value: "lastHandledReconciledAt", width: 120 },
+    { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
   ];
 
   return (
-<<<<<<< HEAD
-    <DataTable
-      className={className}
-      fields={[
-        {
-          label: "Name",
-          value: (k) => {
-            const route =
-              k.type === AutomationType.Kustomization
-                ? V2Routes.Kustomization
-                : V2Routes.HelmRepo;
-            return (
-              <Link
-                to={formatURL(route, {
-                  name: k.name,
-                  namespace: k.namespace,
-                })}
-              >
-                {k.name}
-              </Link>
-            );
-          },
-          sortType: SortType.string,
-          sortValue: ({ name }) => name,
-        },
-        {
-          label: "Type",
-          value: "type",
-        },
-        {
-          label: "Namespace",
-          value: "namespace",
-        },
-        {
-          label: "Cluster",
-          value: "cluster",
-        },
-        {
-          label: "Status",
-          value: (a: Automation) =>
-            a.conditions.length > 0 ? (
-              <KubeStatusIndicator conditions={a.conditions} />
-            ) : null,
-          sortType: SortType.bool,
-          sortValue: ({ conditions }) => computeReady(conditions),
-          width: statusWidth,
-        },
-        {
-          label: "Revision",
-          value: "lastAttemptedRevision",
-        },
-        { label: "Last Updated", value: "lastHandledReconciledAt" },
-      ]}
-      rows={automations}
-    />
-=======
     <div className={className}>
       <Flex wide end>
         <FilterDialogButton
           onClick={() => setFilterDialog(!filterDialogOpen)}
         />
       </Flex>
-
       <FilterableTable
         fields={fields}
         filters={initialFilterState}
@@ -151,7 +94,6 @@ function AutomationsTable({ className, automations }: Props) {
         onDialogClose={() => setFilterDialog(false)}
       />
     </div>
->>>>>>> v2
   );
 }
 
