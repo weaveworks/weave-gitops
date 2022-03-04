@@ -114,7 +114,7 @@ exports[`CommitsTable snapshots renders 1`] = `
 }
 
 .c0 h2 {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
@@ -173,9 +173,34 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2>
-                SHA
-              </h2>
+              <div
+                class="c1"
+              >
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <h2
+                      class=""
+                    >
+                      SHA
+                    </h2>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+                <div
+                  class="c4"
+                />
+                <div
+                  style="width: 16px;"
+                />
+              </div>
             </th>
             <th
               class="MuiTableCell-root MuiTableCell-head"
@@ -225,17 +250,67 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2>
-                Message
-              </h2>
+              <div
+                class="c1"
+              >
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <h2
+                      class=""
+                    >
+                      Message
+                    </h2>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+                <div
+                  class="c4"
+                />
+                <div
+                  style="width: 16px;"
+                />
+              </div>
             </th>
             <th
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2>
-                Author
-              </h2>
+              <div
+                class="c1"
+              >
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <h2
+                      class=""
+                    >
+                      Author
+                    </h2>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+                <div
+                  class="c4"
+                />
+                <div
+                  style="width: 16px;"
+                />
+              </div>
             </th>
           </tr>
         </thead>
