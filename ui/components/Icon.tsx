@@ -48,7 +48,6 @@ export enum IconType {
   RemoveCircleIcon,
   FilterIcon,
   ClearIcon,
-  Circle,
   SearchIcon,
   LogoutIcon,
   SuccessIcon,
