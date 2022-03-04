@@ -66,7 +66,10 @@ const (
 	ResumeAction  SuspendActionType = "resume"
 )
 
-const DefaultNamespace = "wego-system"
+const (
+	DefaultNamespace           = "flux-system"
+	DefaultSuperUserSecretHash = "admin-password-hash"
+)
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {

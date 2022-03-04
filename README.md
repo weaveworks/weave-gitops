@@ -55,7 +55,7 @@ Available Commands:
 
 Flags:
   -h, --help               Help for gitops
-      --namespace string   The namespace scope for this operation (default "wego-system").
+      --namespace string   The namespace scope for this operation (default "flux-system").
   -v, --verbose            Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
@@ -71,7 +71,7 @@ To set up a development environment for the CLI
 2. Install [buf](https://github.com/bufbuild/buf)
 3. Run `make all` to install dependencies and build binaries and assets
 4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
-5. Run `./bin/gitops install --config-repo=<repo url>`
+5. Run `./bin/gitops install --config-repo=<repo url>` (or just `flux install -n flux-system` if you don't care about doing the whole dance.)
 6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
 7. make or make unit-tests to ensure everything built correctly.
 
