@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"embed"
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -27,7 +30,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	wego_tls "github.com/weaveworks/weave-gitops/pkg/server/tls"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -44,9 +46,10 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
-	TLSCert                       string
-	TLSKey                        string
-	NoTLS                         bool
+	TLSCertFile                   string
+	TLSKeyFile                    string
+	Insecure                      bool
+	MTLS                          bool
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -82,9 +85,10 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
-	cmd.Flags().StringVar(&options.TLSCert, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
-	cmd.Flags().StringVar(&options.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
-	cmd.Flags().BoolVar(&options.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
+	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
+	cmd.Flags().BoolVar(&options.MTLS, "mtls", true, "enforce mTLS")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -294,27 +298,31 @@ func runCmd(cmd *cobra.Command, args []string) error {
 }
 
 func listenAndServe(srv *http.Server, options Options) error {
-	if options.NoTLS {
+	if options.Insecure {
 		log.Println("TLS connections disabled")
 		return srv.ListenAndServe()
 	}
 
-	if options.TLSCert == "" && options.TLSKey == "" {
-		log.Printf("TLS cert and key not specified, generating and using in-memory keys")
-
-		tlsConfig, err := wego_tls.TLSConfig([]string{"localhost", "0.0.0.0", "127.0.0.1"})
+	if options.MTLS {
+		caCert, err := ioutil.ReadFile(options.TLSCertFile)
 		if err != nil {
-			return fmt.Errorf("failed to generate a TLSConfig: %s", err)
+			return fmt.Errorf("failed reading cert file %s. %s", options.TLSCertFile, err)
 		}
 
-		srv.TLSConfig = tlsConfig
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		srv.TLSConfig = &tls.Config{
+			ClientCAs:  caCertPool,
+			ClientAuth: tls.RequireAndVerifyClientCert,
+		}
 	} else {
-		log.Printf("Using TLS from %q and %q", options.TLSCert, options.TLSKey)
+		log.Printf("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
 	}
 
 	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
 	// and happily use the TLSConfig supplied above
-	return srv.ListenAndServeTLS(options.TLSCert, options.TLSKey)
+	return srv.ListenAndServeTLS(options.TLSCertFile, options.TLSKeyFile)
 }
 
 //go:embed dist/*
