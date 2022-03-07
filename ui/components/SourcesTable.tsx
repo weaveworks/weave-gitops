@@ -7,10 +7,10 @@ import {
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
-import { showInterval } from "../lib/time";
-import DataTable, { SortType } from "./DataTable";
+import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
@@ -24,7 +24,7 @@ type Props = {
   appName?: string;
 };
 
-const statusWidth = 480;
+const statusWidth = 340;
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
@@ -60,10 +60,9 @@ function SourcesTable({ className, sources }: Props) {
             ),
             sortType: SortType.string,
             sortValue: (s: Source) => s.name || "",
-            width: 100,
+            width: 64,
           },
           { label: "Type", value: "type" },
-
           {
             label: "Status",
             value: (s: Source) => (
@@ -74,6 +73,7 @@ function SourcesTable({ className, sources }: Props) {
           {
             label: "Cluster",
             value: "cluster",
+            width: 96,
           },
           {
             label: "URL",
@@ -102,6 +102,7 @@ function SourcesTable({ className, sources }: Props) {
                 text
               );
             },
+            width: 96,
           },
           {
             label: "Reference",
@@ -116,10 +117,12 @@ function SourcesTable({ className, sources }: Props) {
 
               return isGit ? ref : "-";
             },
+            width: 96,
           },
           {
             label: "Interval",
-            value: (s: Source) => showInterval(s.interval)
+            value: (s: Source) => showInterval(s.interval),
+            width: 96,
           },
         ]}
       />
@@ -134,9 +137,5 @@ export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
     max-width: ${statusWidth}px;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  ${DataTable} table {
-    table-layout: fixed;
   }
 `;
