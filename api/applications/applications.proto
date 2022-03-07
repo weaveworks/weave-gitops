@@ -37,17 +37,6 @@ service Applications {
             get : "/v1/applications/{name}/commits",
         };
     }
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result of the Application.
-    * This list is derived by looking at the Kustomization that is associated with an Application.
-    * Helm Releases are not currently supported.
-    */
-    rpc GetReconciledObjects(GetReconciledObjectsReq) returns (GetReconciledObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/{automationName}/reconciled_objects"
-            body: "*"
-        };
-    };
 
     /**
     * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
@@ -206,22 +195,11 @@ message UnstructuredObject {
     string           status           = 5;
 }
 
-message GetReconciledObjectsReq {
-    string   automationName      = 1;
-    string   automationNamespace = 2;
-    AutomationKind automationKind = 3;
-    repeated GroupVersionKind kinds = 4;
-}
 // AutomationKind represents the deployment method used
 enum AutomationKind {
     Kustomize = 0;
     Helm      = 1;
 }
-
-message GetReconciledObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
 
 message GetChildObjectsReq {
     GroupVersionKind groupVersionKind = 1;

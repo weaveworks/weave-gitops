@@ -25,11 +25,6 @@ type ApplicationsClient interface {
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
 	//
-	// GetReconciledObjects returns a list of objects that were created as a result of the Application.
-	// This list is derived by looking at the Kustomization that is associated with an Application.
-	// Helm Releases are not currently supported.
-	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsReq, opts ...grpc.CallOption) (*GetReconciledObjectsRes, error)
-	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error)
@@ -89,15 +84,6 @@ func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateR
 func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
 	out := new(ListCommitsResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListCommits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsReq, opts ...grpc.CallOption) (*GetReconciledObjectsRes, error) {
-	out := new(GetReconciledObjectsRes)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetReconciledObjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,11 +182,6 @@ type ApplicationsServer interface {
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
 	//
-	// GetReconciledObjects returns a list of objects that were created as a result of the Application.
-	// This list is derived by looking at the Kustomization that is associated with an Application.
-	// Helm Releases are not currently supported.
-	GetReconciledObjects(context.Context, *GetReconciledObjectsReq) (*GetReconciledObjectsRes, error)
-	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error)
@@ -250,9 +231,6 @@ func (UnimplementedApplicationsServer) Authenticate(context.Context, *Authentica
 }
 func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
-}
-func (UnimplementedApplicationsServer) GetReconciledObjects(context.Context, *GetReconciledObjectsReq) (*GetReconciledObjectsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
 }
 func (UnimplementedApplicationsServer) GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
@@ -326,24 +304,6 @@ func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).ListCommits(ctx, req.(*ListCommitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetReconciledObjectsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).GetReconciledObjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetReconciledObjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetReconciledObjects(ctx, req.(*GetReconciledObjectsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -524,10 +484,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommits",
 			Handler:    _Applications_ListCommits_Handler,
-		},
-		{
-			MethodName: "GetReconciledObjects",
-			Handler:    _Applications_GetReconciledObjects_Handler,
 		},
 		{
 			MethodName: "GetChildObjects",

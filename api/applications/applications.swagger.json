@@ -234,59 +234,6 @@
         ]
       }
     },
-    "/v1/applications/{automationName}/reconciled_objects": {
-      "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created as a result of the Application.\nThis list is derived by looking at the Kustomization that is associated with an Application.\nHelm Releases are not currently supported.",
-        "operationId": "Applications_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "automationName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "automationNamespace": {
-                  "type": "string"
-                },
-                "automationKind": {
-                  "$ref": "#/definitions/v1AutomationKind"
-                },
-                "kinds": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1GroupVersionKind"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/{name}/commits": {
       "get": {
         "summary": "ListCommits returns the list of WeGo commits that the authenticated user has access to.",
@@ -506,15 +453,6 @@
         }
       }
     },
-    "v1AutomationKind": {
-      "type": "string",
-      "enum": [
-        "Kustomize",
-        "Helm"
-      ],
-      "default": "Kustomize",
-      "title": "AutomationKind represents the deployment method used"
-    },
     "v1Commit": {
       "type": "object",
       "properties": {
@@ -610,17 +548,6 @@
       "properties": {
         "url": {
           "type": "string"
-        }
-      }
-    },
-    "v1GetReconciledObjectsRes": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
-          }
         }
       }
     },

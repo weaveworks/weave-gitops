@@ -25,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -243,72 +242,6 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		Commits:       list,
 		NextPageToken: nextPageToken,
 	}, nil
-}
-
-func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	cl, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var opts client.MatchingLabels
-
-	switch msg.AutomationKind {
-	case pb.AutomationKind_Kustomize:
-		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.AutomationNamespace,
-		}
-	case pb.AutomationKind_Helm:
-		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
-			HelmNamespaceKey: msg.AutomationNamespace,
-		}
-	default:
-		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
-	}
-
-	result := []unstructured.Unstructured{}
-
-	for _, gvk := range msg.Kinds {
-		list := unstructured.UnstructuredList{}
-
-		list.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   gvk.Group,
-			Kind:    gvk.Kind,
-			Version: gvk.Version,
-		})
-
-		if err := cl.List(ctx, &list, opts); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s", err)
-		}
-
-		result = append(result, list.Items...)
-	}
-
-	objects := []*pb.UnstructuredObject{}
-
-	for _, obj := range result {
-		res, err := status.Compute(&obj)
-
-		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    res.Status.String(),
-			Uid:       string(obj.GetUID()),
-		})
-	}
-
-	return &pb.GetReconciledObjectsRes{Objects: objects}, nil
 }
 
 func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsReq) (*pb.GetChildObjectsRes, error) {

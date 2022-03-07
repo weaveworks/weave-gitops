@@ -81,17 +81,6 @@ export type UnstructuredObject = {
   status?: string
 }
 
-export type GetReconciledObjectsReq = {
-  automationName?: string
-  automationNamespace?: string
-  automationKind?: AutomationKind
-  kinds?: GroupVersionKind[]
-}
-
-export type GetReconciledObjectsRes = {
-  objects?: UnstructuredObject[]
-}
-
 export type GetChildObjectsReq = {
   groupVersionKind?: GroupVersionKind
   parentUid?: string
@@ -168,9 +157,6 @@ export class Applications {
   }
   static ListCommits(req: ListCommitsRequest, initReq?: fm.InitReq): Promise<ListCommitsResponse> {
     return fm.fetchReq<ListCommitsRequest, ListCommitsResponse>(`/v1/applications/${req["name"]}/commits?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
-  }
-  static GetReconciledObjects(req: GetReconciledObjectsReq, initReq?: fm.InitReq): Promise<GetReconciledObjectsRes> {
-    return fm.fetchReq<GetReconciledObjectsReq, GetReconciledObjectsRes>(`/v1/applications/${req["automationName"]}/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetChildObjects(req: GetChildObjectsReq, initReq?: fm.InitReq): Promise<GetChildObjectsRes> {
     return fm.fetchReq<GetChildObjectsReq, GetChildObjectsRes>(`/v1/applications/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
