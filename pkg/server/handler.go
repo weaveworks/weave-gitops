@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops/core/multicluster"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -41,8 +42,14 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler := middleware.WithLogging(cfg.AppConfig.Logger, mux)
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
+	restCfg, _, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("building rest config: %w", err)
+	}
+
 	if AuthEnabled() {
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
+		httpHandler = multicluster.WithClustersClients(restCfg, httpHandler)
 	}
 
 	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)
@@ -54,11 +61,6 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 
 	if err := pbprofiles.RegisterProfilesHandlerServer(ctx, mux, profilesSrv); err != nil {
 		return nil, fmt.Errorf("could not register profiles: %w", err)
-	}
-
-	restCfg, _, err := kube.RestConfig()
-	if err != nil {
-		return nil, fmt.Errorf("building rest config: %w", err)
 	}
 
 	if err := server.Hydrate(ctx, mux, restCfg); err != nil {
