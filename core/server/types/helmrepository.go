@@ -29,13 +29,17 @@ func ProtoToHelmRepository(hr *pb.HelmRepository) v1beta1.HelmRepository {
 }
 
 func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepository {
+	interval := &pb.Interval{
+		Hours:   int64(helmRepository.Spec.Interval.Hours()),
+		Minutes: int64(helmRepository.Spec.Interval.Minutes()) % 60,
+		Seconds: int64(helmRepository.Spec.Interval.Seconds()) % 60,
+	}
+
 	return &pb.HelmRepository{
-		Name:      helmRepository.Name,
-		Namespace: helmRepository.Namespace,
-		Url:       helmRepository.Spec.URL,
-		Interval: &pb.Interval{
-			Minutes: 1,
-		},
+		Name:       helmRepository.Name,
+		Namespace:  helmRepository.Namespace,
+		Url:        helmRepository.Spec.URL,
+		Interval:   interval,
 		Conditions: mapConditions(helmRepository.Status.Conditions),
 	}
 }

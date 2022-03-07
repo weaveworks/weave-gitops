@@ -89,11 +89,6 @@ function SourceDetail({ className, name, info }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
-  h2 {
-    font-size: 20px;
-    margin-bottom: 12px;
-  }
-
   ${InfoList} {
     margin-bottom: 60px;
   }

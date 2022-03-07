@@ -8,7 +8,7 @@ describe("snapshots", () => {
     const tree = renderer
       .create(
         withTheme(
-          withContext(<Breadcrumbs />, "/automations", {
+          withContext(<Breadcrumbs />, "/applications", {
             applicationsClient: createMockClient({}),
           })
         )
@@ -21,6 +21,18 @@ describe("snapshots", () => {
       .create(
         withTheme(
           withContext(<Breadcrumbs />, "/kustomization?name=flux", {
+            applicationsClient: createMockClient({}),
+          })
+        )
+      )
+      .toJSON();
+    expect(tree).toMatchSnapshot();
+  });
+  it("renders on the root page", () => {
+    const tree = renderer
+      .create(
+        withTheme(
+          withContext(<Breadcrumbs />, "/", {
             applicationsClient: createMockClient({}),
           })
         )

@@ -27,7 +27,7 @@ export const Breadcrumbs = () => {
 
   return (
     <Flex align>
-      <CrumbLink to={parentValue} textProps={{ bold: true }}>
+      <CrumbLink to={parentValue || ""} textProps={{ bold: true }}>
         {label}
       </CrumbLink>
 

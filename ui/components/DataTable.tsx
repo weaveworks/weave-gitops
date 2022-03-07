@@ -26,7 +26,7 @@ export enum SortType {
 
 type Sorter = (k: any) => any;
 
-type Field = {
+export type Field = {
   label: string;
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
@@ -154,7 +154,7 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell style={f.width && { maxWidth: f.width }} key={f.label}>
+        <TableCell style={f.width && { width: f.width }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -172,11 +172,7 @@ function UnstyledDataTable({
                   style={f.width && { maxWidth: f.width }}
                   key={f.label}
                 >
-                  {f.sortType ? (
-                    <SortableLabel field={f} />
-                  ) : (
-                    <h2>{f.label}</h2>
-                  )}
+                  <SortableLabel field={f} />
                 </TableCell>
               ))}
             </TableRow>
@@ -211,7 +207,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
@@ -223,13 +219,11 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
+
   td {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  table {
-    width: 100%;
   }
 `;
 
