@@ -7,7 +7,10 @@ import DataTable, { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
-import KubeStatusIndicator, { computeReady } from "./KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeMessage,
+  computeReady,
+} from "./KubeStatusIndicator";
 import Link from "./Link";
 
 type Props = {
@@ -65,10 +68,15 @@ function AutomationsTable({ className, automations }: Props) {
       label: "Status",
       value: (a: Automation) =>
         a.conditions.length > 0 ? (
-          <KubeStatusIndicator conditions={a.conditions} />
+          <KubeStatusIndicator short conditions={a.conditions} />
         ) : null,
       sortType: SortType.bool,
       sortValue: ({ conditions }) => computeReady(conditions),
+      width: 64,
+    },
+    {
+      label: "Message",
+      value: (a: Automation) => computeMessage(a.conditions),
       width: 360,
     },
     {

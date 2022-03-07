@@ -9,6 +9,7 @@ import Text from "./Text";
 type Props = {
   className?: string;
   conditions: Condition[];
+  short?: boolean;
 };
 
 export function computeReady(conditions: Condition[]): boolean {
@@ -26,15 +27,17 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition.message;
 }
 
-function KubeStatusIndicator({ className, conditions }: Props) {
+function KubeStatusIndicator({ className, conditions, short }: Props) {
   const ready = computeReady(conditions);
-  const readyText = ready ? "Ready" : computeMessage(conditions);
+  const readyText = ready ? "Ready" : "Not Ready";
   const icon =
     readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
 
+  const message = computeMessage(conditions);
+
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} text={readyText} />
+      <Icon size="base" type={icon} text={short ? readyText : message} />
     </Flex>
   );
 }

@@ -14,9 +14,8 @@ import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
-import KubeStatusIndicator from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
-import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -60,14 +59,20 @@ function SourcesTable({ className, sources }: Props) {
             ),
             sortType: SortType.string,
             sortValue: (s: Source) => s.name || "",
-            width: 64,
+            width: 96,
           },
-          { label: "Type", value: "type" },
+          { label: "Type", value: "type", width: 96 },
           {
             label: "Status",
             value: (s: Source) => (
-              <KubeStatusIndicator conditions={s.conditions} />
+              <KubeStatusIndicator short conditions={s.conditions} />
             ),
+            width: 96,
+          },
+          {
+            label: "Message",
+            value: (s) => computeMessage(s.conditions),
+
             width: statusWidth,
           },
           {
@@ -102,7 +107,7 @@ function SourcesTable({ className, sources }: Props) {
                 text
               );
             },
-            width: 96,
+            width: 240,
           },
           {
             label: "Reference",
@@ -131,11 +136,7 @@ function SourcesTable({ className, sources }: Props) {
 }
 
 export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
-  /* Setting this here to get the ellipsis to work */
-  /* Because this is a div within a td, overflow doesn't apply to the td */
-  ${KubeStatusIndicator} ${Flex} ${Text} {
-    max-width: ${statusWidth}px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  table {
+    table-layout: fixed;
   }
 `;
