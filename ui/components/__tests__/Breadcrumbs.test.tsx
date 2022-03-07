@@ -28,4 +28,16 @@ describe("snapshots", () => {
       .toJSON();
     expect(tree).toMatchSnapshot();
   });
+  it("renders on the root page", () => {
+    const tree = renderer
+      .create(
+        withTheme(
+          withContext(<Breadcrumbs />, "/", {
+            applicationsClient: createMockClient({}),
+          })
+        )
+      )
+      .toJSON();
+    expect(tree).toMatchSnapshot();
+  });
 });
