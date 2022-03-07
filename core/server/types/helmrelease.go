@@ -46,21 +46,33 @@ func ProtoToHelmRelease(hr *pb.HelmRelease) v2beta1.HelmRelease {
 }
 
 func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, inventory []*pb.GroupVersionKind) *pb.HelmRelease {
+	var interval, chartInterval pb.Interval
+
+	interval = pb.Interval{
+		Hours:   int64(helmrelease.Spec.Interval.Hours()),
+		Minutes: int64(helmrelease.Spec.Interval.Minutes()) % 60,
+		Seconds: int64(helmrelease.Spec.Interval.Seconds()) % 60,
+	}
+
+	if helmrelease.Spec.Chart.Spec.Interval != nil {
+		chartInterval = pb.Interval{
+			Hours:   int64(helmrelease.Spec.Chart.Spec.Interval.Hours()),
+			Minutes: int64(helmrelease.Spec.Chart.Spec.Interval.Minutes()) % 60,
+			Seconds: int64(helmrelease.Spec.Chart.Spec.Interval.Seconds()) % 60,
+		}
+	}
+
 	return &pb.HelmRelease{
 		Name:        helmrelease.Name,
 		ReleaseName: helmrelease.Spec.ReleaseName,
 		Namespace:   helmrelease.Namespace,
-		Interval: &pb.Interval{
-			Minutes: 1,
-		},
+		Interval:    &interval,
 		HelmChart: &pb.HelmChart{
 			Chart:     helmrelease.Spec.Chart.Spec.Chart,
 			Namespace: helmrelease.Spec.Chart.Spec.SourceRef.Namespace,
 			Name:      helmrelease.Spec.Chart.Spec.SourceRef.Name,
 			Version:   helmrelease.Spec.Chart.Spec.Version,
-			Interval: &pb.Interval{
-				Minutes: 1,
-			},
+			Interval:  &chartInterval,
 			SourceRef: &pb.SourceRef{
 				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
