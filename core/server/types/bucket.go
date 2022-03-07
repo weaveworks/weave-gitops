@@ -63,7 +63,7 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 			Minutes: 1,
 		},
 		// SecretRefName: bucket.Spec.SecretRef.Name,
-		Conditions: mapConditions(bucket.Status.Conditions),
+		Conditions: mapConditions(bucket.Status.Conditions, bucket.Spec.Suspend),
 		BucketName: bucket.Spec.BucketName,
 	}
 

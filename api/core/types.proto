@@ -28,6 +28,7 @@ message Condition {
     string reason = 3;
     string message = 4;
     string timestamp = 5;
+    bool suspend = 6;
 }
 
 message GitRepositoryRef {
