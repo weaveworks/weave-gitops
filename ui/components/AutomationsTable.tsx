@@ -33,7 +33,7 @@ function AutomationsTable({ className, automations }: Props) {
         const route =
           k.type === AutomationType.Kustomization
             ? V2Routes.Kustomization
-            : V2Routes.HelmRepo;
+            : V2Routes.HelmRelease;
         return (
           <Link
             to={formatURL(route, {
