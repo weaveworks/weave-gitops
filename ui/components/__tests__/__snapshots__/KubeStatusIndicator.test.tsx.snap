@@ -43,11 +43,10 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #BC381D;
 }
 
 .c4 svg {
-  fill: #BC381D !important;
+  fill: !important;
   height: 16px;
   width: 16px;
 }
@@ -66,7 +65,6 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 
 .c4 .c5 {
   margin-left: 4px;
-  color: #BC381D;
 }
 
 .c1 .c3 .c5 {
@@ -80,18 +78,11 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   <div
     className="c2 c3 c4"
   >
-    <svg
-      viewBox="0 0 100 100"
-    >
-      <circle
-        cx="50"
-        cy="50"
-        r="45"
-      />
-    </svg>
+    <img
+      src=""
+    />
     <span
       className="c5 c6"
-      color="alert"
       size="normal"
     >
       There was a problem
@@ -143,11 +134,10 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #27AE60;
 }
 
 .c4 svg {
-  fill: #27AE60 !important;
+  fill: !important;
   height: 16px;
   width: 16px;
 }
@@ -166,7 +156,6 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 
 .c4 .c5 {
   margin-left: 4px;
-  color: #27AE60;
 }
 
 .c1 .c3 .c5 {
@@ -180,18 +169,11 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   <div
     className="c2 c3 c4"
   >
-    <svg
-      viewBox="0 0 100 100"
-    >
-      <circle
-        cx="50"
-        cy="50"
-        r="45"
-      />
-    </svg>
+    <img
+      src=""
+    />
     <span
       className="c5 c6"
-      color="success"
       size="normal"
     >
       Ready

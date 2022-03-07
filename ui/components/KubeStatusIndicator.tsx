@@ -29,11 +29,12 @@ export function computeMessage(conditions: Condition[]) {
 function KubeStatusIndicator({ className, conditions }: Props) {
   const ready = computeReady(conditions);
   const readyText = ready ? "Ready" : computeMessage(conditions);
-  const color = ready ? "success" : "alert";
+  const icon =
+    readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
 
   return (
     <Flex start className={className} align>
-      <Icon color={color} size="base" type={IconType.Circle} text={readyText} />
+      <Icon size="base" type={icon} text={readyText} />
     </Flex>
   );
 }
