@@ -12,6 +12,9 @@ RUN make ui
 
 # Go build
 FROM golang:1.17 AS go-build
+# Expect to be passed these by running this via `make docker-gitops` so we don't copy all of .git/
+ARG LDFLAGS="-X localbuild=true"
+ARG GIT_COMMIT="_unset_"
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
@@ -25,7 +28,7 @@ RUN go mod download
 COPY --from=ui /home/app/cmd/gitops-server/cmd/dist/ /app/cmd/gitops-server/cmd/dist/
 COPY . /app
 # ignore the index.html dependency (which it otherwise would because node_modules is missing)
-RUN make -o cmd/gitops-server/cmd/dist/index.html gitops-server
+RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make -o cmd/gitops-server/cmd/dist/index.html gitops-server
 
 #  Distroless
 FROM gcr.io/distroless/base as runtime

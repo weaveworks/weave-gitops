@@ -6,6 +6,10 @@ FROM $FLUX_CLI as flux
 
 # Go build
 FROM golang:1.17 AS go-build
+# Expect to be passed these by running this via `make docker-gitops` so we don't copy all of .git/
+ARG LDFLAGS="-X localbuild=true"
+ARG GIT_COMMIT="_unset_"
+
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
 RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -17,7 +21,7 @@ WORKDIR /app
 COPY go.* /app/
 RUN go mod download
 COPY . /app
-RUN make gitops
+RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
 
 # Distroless
 FROM gcr.io/distroless/base as runtime

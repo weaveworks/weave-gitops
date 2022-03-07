@@ -2,9 +2,6 @@
 
 CURRENT_DIR=$(shell pwd)
 
-# Docker args
-DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
-DOCKER_REGISTRY?=ghcr.io/weaveworks/wego-app
 # Metadata for the builds. These can all be over-ridden so we can fix them in docker.
 BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
@@ -21,6 +18,14 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BU
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
 
+# Docker args
+# LDFLAGS is passed so we don't have to copy the entire .git directory into the image
+# just to get, e.g. the commit hash
+DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
+# We want to be able to reference this in builds & pushes
+DEFAULT_DOCKER_REPO=localhost:5001
+DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
+DOCKER_IMAGE?=gitops-server
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
@@ -52,9 +57,7 @@ local-kind-cluster-with-registry:
 local-registry:
 	./tools/deploy-local-registry.sh
 
-local-docker-image: DOCKERFILE:=gitops-server.dockerfile
-local-docker-image: DOCKER_REGISTRY:=localhost:5001
-local-docker-image: _docker
+local-docker-image: docker-gitops-server
 
 test: TEST_TO_RUN=./core/...
 test: unit-tests
@@ -131,7 +134,7 @@ proto: ## Generate protobuf files
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
 										-f $(DOCKERFILE) \
-										-t $(DOCKER_REGISTRY)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										-t $(DEFAULT_DOCKER_REPO)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
 										.
 
 docker-gitops: DOCKERFILE:=gitops.dockerfile
@@ -139,7 +142,6 @@ docker-gitops: _docker ## Build a Docker image of the gitops CLI
 
 docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
 docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
-
 
 ##@ UI
 # Build the UI for embedding
