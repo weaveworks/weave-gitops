@@ -526,9 +526,6 @@
         },
         "timestamp": {
           "type": "string"
-        },
-        "suspend": {
-          "type": "boolean"
         }
       }
     },

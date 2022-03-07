@@ -39,7 +39,6 @@ export type Condition = {
   reason?: string
   message?: string
   timestamp?: string
-  suspend?: boolean
 }
 
 export type GitRepositoryRef = {
