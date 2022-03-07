@@ -2,7 +2,6 @@ package run_test
 
 import (
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -14,9 +13,6 @@ import (
 )
 
 func TestNoClientID(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	client := resty.New()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -29,9 +25,6 @@ func TestNoClientID(t *testing.T) {
 }
 
 func TestNoClientSecret(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	client := resty.New()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -45,9 +38,6 @@ func TestNoClientSecret(t *testing.T) {
 }
 
 func TestNoRedirectURL(t *testing.T) {
-	os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-	defer os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-
 	client := resty.New()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
