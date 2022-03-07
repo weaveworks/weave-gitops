@@ -29,6 +29,10 @@ export const FormWrapper = styled(Flex)`
   .MuiInputBase-root {
     width: 275px;
   }
+  #email,
+  #password {
+    padding-bottom: ${(props) => props.theme.spacing.xs};
+  }
 `;
 
 const Logo = styled(Flex)`
@@ -60,7 +64,7 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, loading } = React.useContext(Auth);
+  const { signIn, error, loading, userInfo } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
@@ -110,6 +114,9 @@ function SignIn() {
               handleUserPassSubmit();
             }}
           >
+            <Flex center align>
+              <Input disabled id="email" type="text" value="admin" />
+            </Flex>
             <Flex center align>
               <Input
                 onChange={(e) => setPassword(e.currentTarget.value)}
