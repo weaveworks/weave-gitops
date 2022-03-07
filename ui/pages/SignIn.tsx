@@ -9,6 +9,8 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 import images from "../lib/images";
+import { Redirect } from "react-router-dom";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${images.SignInBackground});
@@ -51,6 +53,12 @@ const AlertWrapper = styled(Alert)`
 `;
 
 function SignIn() {
+  const { authFlag } = React.useContext(FeatureFlags);
+
+  if (authFlag === false) {
+    return <Redirect to="applications" />;
+  }
+
   const formRef = React.useRef<HTMLFormElement>();
   const { signIn, error, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
