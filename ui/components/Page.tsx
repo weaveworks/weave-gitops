@@ -20,15 +20,13 @@ export type PageProps = {
 };
 
 export const Content = styled.div`
-  min-height: 85vh;
-  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   min-width: 1260px;
   box-sizing: border-box;
   background-color: rgba(255, 255, 255, 0.75);
   padding-left: ${(props) => props.theme.spacing.large};
-  padding-right: ${(props) => props.theme.spacing.large};
+
   padding-top: ${(props) => props.theme.spacing.large};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   border-radius: 10px;
@@ -97,7 +95,6 @@ function Page({
 }
 
 export default styled(Page)`
-  min-height: 1216px;
   .MuiAlert-root {
     width: 100%;
   }
