@@ -2,7 +2,6 @@ package flux_test
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -11,7 +10,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 )
 
@@ -22,7 +20,7 @@ var (
 
 var _ = BeforeEach(func() {
 	runner = &runnerfakes.FakeRunner{}
-	fluxClient = flux.New(osys.New(), runner)
+	fluxClient = flux.New(runner)
 })
 
 var _ = Describe("CreateSecretGit", func() {
@@ -47,8 +45,5 @@ var _ = Describe("CreateSecretGit", func() {
 })
 
 func fluxPath() string {
-	homeDir, err := os.UserHomeDir()
-	Expect(err).ShouldNot(HaveOccurred())
-
-	return filepath.Join(homeDir, ".wego", "bin", "flux-0.12.0")
+	return filepath.Join("flux")
 }

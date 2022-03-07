@@ -88,6 +88,7 @@ This is a list of the tools you may need to install:
 * [reflex](https://github.com/cespare/reflex) -- A file watcher.
 * [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
 * [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
+* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
 
 Some other tools are installed automatically by the makefile for you:
 
@@ -97,7 +98,6 @@ Some other tools are installed automatically by the makefile for you:
 
 And some tools that are installed by the `tools/download-deps.sh` script:
 
-* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
 * [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
 * [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
 

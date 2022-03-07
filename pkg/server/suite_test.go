@@ -10,14 +10,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
@@ -94,23 +91,18 @@ var _ = BeforeEach(func() {
 		RestMapper:  k8sClient.RESTMapper(),
 	}
 
-	osysClient := osys.New()
-
 	gitProvider = &gitprovidersfakes.FakeGitProvider{}
 	gitProvider.GetDefaultBranchReturns("main", nil)
 
 	fakeFactory = &servicesfakes.FakeFactory{}
 	configGit = &gitfakes.FakeGit{}
 
-	fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
 	logger := &loggerfakes.FakeLogger{}
 
 	fakeFactory.GetAppServiceReturns(&app.AppSvc{
 		Context: context.Background(),
-		Flux:    fluxClient,
 		Kube:    k,
 		Logger:  logger,
-		Osys:    osysClient,
 	}, nil)
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
