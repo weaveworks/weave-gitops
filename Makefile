@@ -1,15 +1,26 @@
 .PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
-VERSION=$(shell which git > /dev/null && git describe --always --match "v*")
+
+CURRENT_DIR=$(shell pwd)
+
+# Docker args
+DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
+DOCKER_REGISTRY?=ghcr.io/weaveworks/wego-app
+# Metadata for the builds. These can all be over-ridden so we can fix them in docker.
+BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
+BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
+VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
+FLUX_VERSION?=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+
+# Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
 GOARCH=$(shell which go > /dev/null && go env GOARCH)
+LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
+				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
 
-BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
-BRANCH=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT=$(shell git log -n1 --pretty='%h')
-CURRENT_DIR=$(shell pwd)
-FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
-FLUX_VERSION=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
-LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)"
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
@@ -25,8 +36,7 @@ BINARY_NAME := gitops
 endif
 
 ##@ Default target
-all: gitops gitops-server ## Install dependencies and build Gitops binary
-
+all: gitops gitops-server ## Install dependencies and build Gitops binary. targets: gitops gitops-server
 
 TEST_TO_RUN?=./...
 ##@ Test
@@ -43,7 +53,6 @@ local-registry:
 	./tools/deploy-local-registry.sh
 
 local-docker-image: DOCKERFILE:=gitops-server.dockerfile
-local-docker-image: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 local-docker-image: DOCKER_REGISTRY:=localhost:5001
 local-docker-image: _docker
 
@@ -57,7 +66,7 @@ install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
 api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
+	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags "$(LDFLAGS)" cmd/gitops-server/main.go'
 
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
 	./tools/bin/tilt up
@@ -68,28 +77,14 @@ cluster-dev: ## Start tilt to do development with wego-app running on the cluste
 # the cmd directory (e.g. dist, on the assumption that there won't be many)
 bin/%: cmd/%/main.go $(shell find . -name "*.go") $(shell find cmd -type f)
 ifdef DEBUG
-		CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -o $@ $(GO_BUILD_OPTS) $<
+		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $@ $(GO_BUILD_OPTS) $<
 else
-		CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 endif
 
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
+
 gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
-
-DOCKER_REGISTRY?=ghcr.io/weaveworks/wego-app
-
-_docker:
-	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
-										-f $(DOCKERFILE) \
-										-t $(DOCKER_REGISTRY)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
-										.
-
-docker-gitops: DOCKERFILE:=gitops.dockerfile
-docker-gitops: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
-docker-gitops: _docker ## Build a Docker image of the gitops CLI
-
-docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
-docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
@@ -111,8 +106,12 @@ lint: ## Run linters against code
 
 dependencies: .deps ## Install build dependencies
 
+check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
 check-format: ## Check go format
-	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+# The trailing `\` are important here as this is embedded bash and technically 1 line
+	@if [ ! -z "$(FORMAT_LIST)" ] ; then \
+		echo invalid format at: ${FORMAT_LIST} && exit 1; \
+	fi
 
 proto-deps: ## Update protobuf dependencies
 	buf mod update
@@ -127,6 +126,20 @@ proto: ## Generate protobuf files
 	buf generate
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+
+##@ Docker
+_docker:
+	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
+										-f $(DOCKERFILE) \
+										-t $(DOCKER_REGISTRY)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										.
+
+docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: _docker ## Build a Docker image of the gitops CLI
+
+docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
+docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
+
 
 ##@ UI
 # Build the UI for embedding
