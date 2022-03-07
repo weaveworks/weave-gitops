@@ -10,6 +10,7 @@ type Props = {
   className?: string;
   conditions: Condition[];
   short?: boolean;
+  suspended?: boolean;
 };
 
 export function computeReady(conditions: Condition[]): boolean {
@@ -30,13 +31,22 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition.message;
 }
 
-function KubeStatusIndicator({ className, conditions, short }: Props) {
+function KubeStatusIndicator({
+  className,
+  conditions,
+  short,
+  suspended,
+}: Props) {
   const ready = computeReady(conditions);
   let readyText = ready ? "Ready" : "Not Ready";
   let icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
-  if (conditions[0].suspend) {
+  if (suspended) {
     icon = IconType.SuspendedIcon;
     readyText = "Suspended";
+  } else {
+    const ready = computeReady(conditions);
+    icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+    readyText = ready ? "Ready" : computeMessage(conditions);
   }
 
   return (

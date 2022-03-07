@@ -42,6 +42,7 @@ export interface Source {
   type?: SourceRefSourceKind;
   conditions?: Condition[];
   interval?: Interval;
+  suspended?: boolean;
 }
 
 export enum AutomationType {

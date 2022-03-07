@@ -66,11 +66,12 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization) (*pb.Kustomizati
 			Minutes: int64(kustomization.Spec.Interval.Minutes()),
 			Seconds: int64(kustomization.Spec.Interval.Seconds()),
 		},
-		Conditions:              mapConditions(kustomization.Status.Conditions, kustomization.Spec.Suspend),
+		Conditions:              mapConditions(kustomization.Status.Conditions),
 		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
 		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
 		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
 		Inventory:               inv,
+		Suspended:               kustomization.Spec.Suspend,
 	}, nil
 }
 

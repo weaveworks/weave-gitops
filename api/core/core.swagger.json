@@ -503,6 +503,9 @@
         },
         "bucketName": {
           "type": "string"
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -549,6 +552,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -661,6 +667,9 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -722,6 +731,9 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -754,6 +766,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -777,6 +792,9 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -835,6 +853,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -949,6 +970,9 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

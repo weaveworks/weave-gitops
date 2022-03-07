@@ -32,7 +32,7 @@ func getSourceKind(kind string) pb.SourceRef_SourceKind {
 	}
 }
 
-func mapConditions(conditions []metav1.Condition, suspend bool) []*pb.Condition {
+func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	out := []*pb.Condition{}
 
 	for _, c := range conditions {
@@ -42,7 +42,6 @@ func mapConditions(conditions []metav1.Condition, suspend bool) []*pb.Condition 
 			Reason:    c.Reason,
 			Message:   c.Message,
 			Timestamp: c.LastTransitionTime.String(),
-			Suspend:   suspend,
 		})
 	}
 

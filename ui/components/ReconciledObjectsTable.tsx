@@ -59,7 +59,10 @@ function ReconciledObjectsTable({
             label: "Status",
             value: (u: UnstructuredObject) =>
               u.conditions.length > 0 ? (
-                <KubeStatusIndicator conditions={u.conditions} />
+                <KubeStatusIndicator
+                  conditions={u.conditions}
+                  suspended={u.suspended}
+                />
               ) : null,
             sortType: SortType.bool,
             sortValue: ({ conditions }) => computeReady(conditions),
