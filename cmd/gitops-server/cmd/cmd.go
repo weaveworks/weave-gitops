@@ -88,7 +88,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
-	cmd.Flags().BoolVar(&options.MTLS, "mtls", true, "enforce mTLS")
+	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
