@@ -20,6 +20,7 @@ export const SignInPageWrapper = styled(Flex)`
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
+  border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
   height: 650px;
   padding-top: ${(props) => props.theme.spacing.medium};
