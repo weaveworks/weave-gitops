@@ -64,23 +64,12 @@ const AppContainer = styled.div`
 `;
 
 const NavContainer = styled.div`
-  position: relative;
-  width: 240px;
-  height: 0;
-  min-height: 100%;
-  margin-top: ${(props) => props.theme.spacing.medium};
-  margin-right: ${(props) => props.theme.spacing.medium};
-  background-color: ${(props) => props.theme.colors.neutral00};
-  border-radius: 10px;
-`;
-
-const FixedNav = styled.div`
-  background-color: white;
-  position: fixed;
-  height: 100%;
-  top: 80;
-  width: 240px;
+  position: absolute;
   left: 0;
+  width: 240px;
+  height: 100%;
+  margin-top: ${(props) => props.theme.spacing.medium};
+  background-color: ${(props) => props.theme.colors.neutral00};
   border-radius: 10px;
 `;
 
@@ -126,14 +115,11 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
-  max-height: 85vh;
   overflow: auto;
+  margin-left: 240px;
 `;
 
-const Main = styled(Flex)`
-  height: 100%;
-  flex: 1 1 auto;
-`;
+const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
   padding: 8px 0;
@@ -163,27 +149,25 @@ function Layout({ className, children }: Props) {
         </TopToolBar>
         <Main wide>
           <NavContainer>
-            <FixedNav>
-              <NavContent>
-                <Tabs
-                  centered={false}
-                  orientation="vertical"
-                  value={getParentNavValue(currentPage)}
-                >
-                  {_.map(navItems, (n) => (
-                    <StyleLinkTab
-                      key={n.label}
-                      label={n.label}
-                      to={formatURL(n.value)}
-                      value={n.value}
-                      className={n.sub && "sub-item"}
-                      href={n.href}
-                      newTab={n.newTab}
-                    />
-                  ))}
-                </Tabs>
-              </NavContent>
-            </FixedNav>
+            <NavContent>
+              <Tabs
+                centered={false}
+                orientation="vertical"
+                value={getParentNavValue(currentPage)}
+              >
+                {_.map(navItems, (n) => (
+                  <StyleLinkTab
+                    key={n.label}
+                    label={n.label}
+                    to={formatURL(n.value)}
+                    value={n.value}
+                    className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
+                  />
+                ))}
+              </Tabs>
+            </NavContent>
           </NavContainer>
           <ContentContainer>{children}</ContentContainer>
         </Main>
