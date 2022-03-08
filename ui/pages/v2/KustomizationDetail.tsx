@@ -26,6 +26,10 @@ const Info = styled.div`
   padding-bottom: 32px;
 `;
 
+const TabContent = styled.div`
+  margin-top: 52px;
+`;
+
 function routesToIndex(route: string) {
   switch (route) {
     case "/details":
@@ -99,28 +103,30 @@ function KustomizationDetail({ className, name }: Props) {
           />
         </Link>
       </Tabs>
-      <HashRouter>
-        <Switch>
-          <Route exact path="/details">
-            <ReconciledObjectsTable
-              kinds={kustomization?.inventory}
-              automationName={kustomization?.name}
-              namespace={WeGONamespace}
-              automationKind={AutomationKind.KustomizationAutomation}
-            />
-          </Route>
-          <Route exact path="/events">
-            <EventsTable
-              involvedObject={{
-                kind: AutomationKind.KustomizationAutomation,
-                name,
-                namespace: kustomization?.namespace,
-              }}
-            />
-          </Route>
-          <Redirect exact from="/" to="/details" />
-        </Switch>
-      </HashRouter>
+      <TabContent>
+        <HashRouter>
+          <Switch>
+            <Route exact path="/details">
+              <ReconciledObjectsTable
+                kinds={kustomization?.inventory}
+                automationName={kustomization?.name}
+                namespace={WeGONamespace}
+                automationKind={AutomationKind.KustomizationAutomation}
+              />
+            </Route>
+            <Route exact path="/events">
+              <EventsTable
+                involvedObject={{
+                  kind: AutomationKind.KustomizationAutomation,
+                  name,
+                  namespace: kustomization?.namespace,
+                }}
+              />
+            </Route>
+            <Redirect exact from="/" to="/details" />
+          </Switch>
+        </HashRouter>
+      </TabContent>
     </Page>
   );
 }
