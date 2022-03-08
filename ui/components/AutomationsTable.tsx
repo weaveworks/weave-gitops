@@ -61,7 +61,7 @@ function AutomationsTable({ className, automations }: Props) {
     },
     {
       label: "Cluster",
-      value: "cluster",
+      value: () => "Default",
       width: 64,
     },
     {
