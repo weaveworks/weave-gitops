@@ -23,15 +23,18 @@ export function useGetReconciledObjects(
   kinds: GroupVersionKind[]
 ) {
   const { api } = useContext(AppContext);
-  const [res, setRes] = useState([]);
+  const [data, setRes] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!name || !namespace || !type || kinds.length === 0) {
       return;
     }
 
-    getChildren(api, name, namespace, kinds).then((res) => setRes(res));
+    getChildren(api, name, namespace, kinds)
+      .then((res) => setRes(res))
+      .catch((e) => setError(e));
   }, [type, kinds]);
 
-  return res;
+  return { data, error };
 }
