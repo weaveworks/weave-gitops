@@ -146,6 +146,14 @@ service Core {
             get: "/v1/namespaces"
         };
     }
+    /*
+     * ListFluxEvents returns with a list of events based on Flux labels
+     */
+    rpc ListFluxEvents(ListFluxEventsRequest) returns (ListFluxEventsResponse) {
+        option (google.api.http) = {
+            get: "/v1/events"
+        };
+    }
 }
 
 message ListKustomizationsRequest {
@@ -253,4 +261,13 @@ message ListNamespacesRequest {}
 
 message ListNamespacesResponse {
   repeated Namespace namespaces = 1;
+}
+
+message ListFluxEventsRequest {
+    string          namespace      = 1;
+    ObjectReference involvedObject = 2;
+}
+
+message ListFluxEventsResponse {
+    repeated Event events = 1;
 }

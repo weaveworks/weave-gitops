@@ -115,6 +115,15 @@ export type ListNamespacesResponse = {
   namespaces?: Gitops_coreV1Types.Namespace[]
 }
 
+export type ListFluxEventsRequest = {
+  namespace?: string
+  involvedObject?: Gitops_coreV1Types.ObjectReference
+}
+
+export type ListFluxEventsResponse = {
+  events?: Gitops_coreV1Types.Event[]
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -154,5 +163,8 @@ export class Core {
   }
   static ListNamespaces(req: ListNamespacesRequest, initReq?: fm.InitReq): Promise<ListNamespacesResponse> {
     return fm.fetchReq<ListNamespacesRequest, ListNamespacesResponse>(`/v1/namespaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListFluxEvents(req: ListFluxEventsRequest, initReq?: fm.InitReq): Promise<ListFluxEventsResponse> {
+    return fm.fetchReq<ListFluxEventsRequest, ListFluxEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
