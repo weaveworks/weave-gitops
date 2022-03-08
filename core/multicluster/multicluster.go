@@ -64,7 +64,7 @@ func (cc confimapClusterFetcher) Fetch(ctx context.Context) ([]Cluster, error) {
 
 	err := cc.hubClient.Get(ctx, clusterCmKey, clustersCm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list pods in namespace default: %w", err)
+		return nil, fmt.Errorf("failed getting clusters config map: %w", err)
 	}
 
 	clusters := []Cluster{}
