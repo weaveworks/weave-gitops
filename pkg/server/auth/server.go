@@ -11,6 +11,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
@@ -263,8 +264,8 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: "wego-system",
-			Name:      "admin-password-hash",
+			Namespace: v1alpha1.DefaultNamespace,
+			Name:      v1alpha1.DefaultSuperUserSecretHash,
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")
 			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)

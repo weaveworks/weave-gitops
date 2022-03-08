@@ -1,18 +1,6 @@
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
-import { PageRoute } from "./types";
-
-export enum V2Routes {
-  Automations = "/automations",
-  Sources = "/sources",
-  FluxRuntime = "/flux_runtime",
-  Kustomization = "/kustomization",
-  HelmRelease = "/helm_release",
-  HelmRepo = "/helm_repo",
-  GitRepo = "/git_repo",
-  HelmChart = "/helm_chart",
-  Bucket = "/bucket",
-}
+import { PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
@@ -29,6 +17,7 @@ export const getParentNavValue = (
     case V2Routes.Sources:
     case V2Routes.GitRepo:
     case V2Routes.HelmChart:
+    case V2Routes.HelmRepo:
     case V2Routes.Bucket:
       return V2Routes.Sources;
 
@@ -41,6 +30,16 @@ export const getParentNavValue = (
   }
 };
 
+const pageTitles = {
+  [V2Routes.Automations]: "Applications",
+  [V2Routes.Sources]: "Sources",
+  [V2Routes.FluxRuntime]: "Flux Runtime",
+};
+
+export const getPageLabel = (route: V2Routes): string => {
+  return pageTitles[route];
+};
+
 export const formatURL = (page: string, query: any = {}) => {
   return `${page}?${qs.stringify(query)}`;
 };
@@ -49,6 +48,12 @@ export function sourceTypeToRoute(t: SourceRefSourceKind): V2Routes {
   switch (t) {
     case SourceRefSourceKind.GitRepository:
       return V2Routes.GitRepo;
+
+    case SourceRefSourceKind.Bucket:
+      return V2Routes.Bucket;
+
+    case SourceRefSourceKind.HelmRepository:
+      return V2Routes.HelmRepo;
 
     default:
       break;

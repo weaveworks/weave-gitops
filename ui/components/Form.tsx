@@ -5,7 +5,7 @@ import styled from "styled-components";
 interface Props {
   className?: string;
   children?: any;
-  onSubmit: (state: any) => any;
+  onSubmit?: (state: any) => any;
   onChange?: (state: any) => any;
   initialState: any;
 }

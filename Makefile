@@ -1,23 +1,23 @@
-.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests  proto proto-deps fakes crd
-VERSION=$(shell git describe --always --match "v*")
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
+.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes crd
+VERSION=$(shell which git > /dev/null && git describe --always --match "v*")
+GOOS=$(shell which go > /dev/null && go env GOOS)
+GOARCH=$(shell which go > /dev/null && go env GOARCH)
 
 BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+BRANCH=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
-FORMAT_LIST=$(shell gofmt -l .)
-FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
+FLUX_VERSION=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)"
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
+ifeq (,$(shell which go > /dev/null && go env GOBIN))
+GOBIN=$(shell which go > /dev/null && go env GOPATH)/bin
 else
-GOBIN=$(shell go env GOBIN)
+GOBIN=$(shell which go > /dev/null && go env GOBIN)
 endif
 
 ifeq ($(BINARY_NAME),)
@@ -25,18 +25,16 @@ BINARY_NAME := gitops
 endif
 
 ##@ Default target
-all: gitops ## Install dependencies and build Gitops binary
+all: gitops gitops-server ## Install dependencies and build Gitops binary
 
+
+TEST_TO_RUN?=./...
 ##@ Test
-unit-tests: dependencies  ## Run unit tests
+unit-tests: dependencies ## Run unit tests
+	@go install github.com/onsi/ginkgo/v2/ginkgo
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
 
-integration-tests: dependencies
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
-
-acceptance-tests: local-registry local-docker-image
-	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -49,8 +47,8 @@ local-docker-image: DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION)
 local-docker-image: DOCKER_REGISTRY:=localhost:5001
 local-docker-image: _docker
 
-test: dependencies
-	go test -v ./core/...
+test: TEST_TO_RUN=./core/...
+test: unit-tests
 
 fakes: ## Generate testing fakes
 	go generate ./...
@@ -95,15 +93,8 @@ docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-	rm -f bin/*
-	rm -rf cmd/gitops-server/cmd/dist
-	rm -rf coverage
-	rm -rf node_modules
-	rm -f .deps
-	rm -rf dist
-	# There is an important (tracked) file in pkg/flux/bin so don't just nuke the whole folder
-	# -x: remove gitignored files too, -d: remove directories too
-	git clean -x -d --force pkg/flux/bin/
+#	Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
+	git clean -x -d --force
 
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -144,6 +135,11 @@ proto: ## Generate protobuf files
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 ##@ UI
+# Build the UI for embedding
+ui: cmd/gitops-server/cmd/dist/index.html ## Build the UI
+
+cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
+	npm run build
 
 node_modules: ## Install node modules
 	npm install-clean
@@ -158,17 +154,17 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	npm audit --production
 
-ui: node_modules cmd/gitops-server/cmd/dist/index.html ## Build the UI
-
+# Build the UI as an NPM package (hosted on github)
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
 
-cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
-# use `mkdir -p` so this works in the ui docker stage
-	if [ ! -d "cmd/gitops-server/cmd/dist" ]; then mkdir -p cmd/gitops-server/cmd/dist; fi
-	npm run build
+dist/index.js: ui/index.ts
+	npm run build:lib && cp package.json dist
+
+dist/index.d.ts: ui/index.ts
+	npm run typedefs
 
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
@@ -179,11 +175,6 @@ lib-test: dependencies ## Run the library integration test
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
 		 gitops-library-test
 
-dist/index.js: ui/index.ts
-	npm run build:lib && cp package.json dist
-
-dist/index.d.ts: ui/index.ts
-	npm run typedefs
 
 # Test coverage
 

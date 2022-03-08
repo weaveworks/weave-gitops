@@ -19,13 +19,15 @@ export type RequestError = Error & {
 };
 
 export enum V2Routes {
-  Automations = "/automations",
+  Automations = "/applications",
   Sources = "/sources",
   FluxRuntime = "/flux_runtime",
   Kustomization = "/kustomization",
   HelmRelease = "/helm_release",
   HelmRepo = "/helm_repo",
   GitRepo = "/git_repo",
+  HelmChart = "/helm_chart",
+  Bucket = "/bucket",
 
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.

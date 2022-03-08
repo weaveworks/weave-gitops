@@ -23,8 +23,10 @@ import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
 import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
+import BucketDetail from "./pages/v2/BucketDetail";
 import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
+import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationDetail from "./pages/v2/KustomizationDetail";
 import Sources from "./pages/v2/Sources";
 
@@ -39,61 +41,71 @@ function withName(Cmp) {
 }
 
 const App = () => (
-  <AppContextProvider renderFooter coreClient={Core}>
-    <Layout>
-      <ErrorBoundary>
-        <Switch>
-          <Route exact path={V2Routes.Automations} component={Automations} />
-          <Route
-            exact
-            path={V2Routes.Kustomization}
-            component={withName(KustomizationDetail)}
-          />
-          <Route exact path={V2Routes.Sources} component={Sources} />
-          <Route exact path={V2Routes.FluxRuntime} component={FluxRuntime} />
-          <Route
-            exact
-            path={V2Routes.GitRepo}
-            component={withName(GitRepositoryDetail)}
-          />
-          <Redirect exact from="/" to={V2Routes.Automations} />
-          <Route exact path="*" component={Error} />
-        </Switch>
-      </ErrorBoundary>
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        newestOnTop={false}
-      />
-    </Layout>
-  </AppContextProvider>
+  <Layout>
+    <ErrorBoundary>
+      <Switch>
+        <Route exact path={V2Routes.Automations} component={Automations} />
+        <Route
+          exact
+          path={V2Routes.Kustomization}
+          component={withName(KustomizationDetail)}
+        />
+        <Route exact path={V2Routes.Sources} component={Sources} />
+        <Route exact path={V2Routes.FluxRuntime} component={FluxRuntime} />
+        <Route
+          exact
+          path={V2Routes.GitRepo}
+          component={withName(GitRepositoryDetail)}
+        />
+        <Route
+          exact
+          path={V2Routes.HelmRepo}
+          component={withName(HelmRepositoryDetail)}
+        />
+        <Route
+          exact
+          path={V2Routes.Bucket}
+          component={withName(BucketDetail)}
+        />
+        <Redirect exact from="/" to={V2Routes.Automations} />
+        <Route exact path="*" component={Error} />
+      </Switch>
+    </ErrorBoundary>
+    <ToastContainer
+      position="top-center"
+      autoClose={5000}
+      newestOnTop={false}
+    />
+  </Layout>
 );
 
 export default function AppContainer() {
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <Fonts />
-          <GlobalStyle />
-          <Router>
-            <FeatureFlagsContextProvider>
-              <AuthContextProvider>
-                <Switch>
-                  {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                  <Route component={SignIn} exact={true} path="/sign_in" />
-                  <Route path="*">
-                    {/* Check we've got a logged in user otherwise redirect back to signin */}
-                    <AuthCheck>
-                      <App />
-                    </AuthCheck>
-                  </Route>
-                </Switch>
-              </AuthContextProvider>
-            </FeatureFlagsContextProvider>
-          </Router>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <AppContextProvider renderFooter coreClient={Core}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider theme={theme}>
+            <Fonts />
+            <GlobalStyle />
+            <Router>
+              <FeatureFlagsContextProvider>
+                <AuthContextProvider>
+                  <Switch>
+                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                    <Route component={SignIn} exact path="/sign_in" />
+                    <Route path="*">
+                      {/* Check we've got a logged in user otherwise redirect back to signin */}
+                      <AuthCheck>
+                        <App />
+                      </AuthCheck>
+                    </Route>
+                  </Switch>
+                </AuthContextProvider>
+              </FeatureFlagsContextProvider>
+            </Router>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </AppContextProvider>
     </MuiThemeProvider>
   );
 }

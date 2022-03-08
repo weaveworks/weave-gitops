@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -40,7 +40,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	cleanupK8s()
-}, 60)
+})
 
 func init() {
 	rand.Seed(time.Now().UnixNano())

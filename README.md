@@ -55,7 +55,7 @@ Available Commands:
 
 Flags:
   -h, --help               Help for gitops
-      --namespace string   The namespace scope for this operation (default "wego-system").
+      --namespace string   The namespace scope for this operation (default "flux-system").
   -v, --verbose            Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
@@ -71,9 +71,36 @@ To set up a development environment for the CLI
 2. Install [buf](https://github.com/bufbuild/buf)
 3. Run `make all` to install dependencies and build binaries and assets
 4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
-5. Run `./bin/gitops install --config-repo=<repo url>`
+5. Run `./bin/gitops install --config-repo=<repo url>` (or just `flux install -n flux-system` if you don't care about doing the whole dance.)
 6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
 7. make or make unit-tests to ensure everything built correctly.
+
+### Requirements/tools
+
+This is a list of the tools you may need to install:
+
+* [go](https://go.dev) -- Primary compiler for the CLI.
+* [npm](https://www.npmjs.com/) -- Package manager for UI components.
+* [ginkgo](https://onsi.github.io/ginkgo/) -- A go testing framework.
+* [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
+* [golangci-lint](https://github.com/golangci/golangci-lint/) -- A go linter.
+* [buf](https://buf.build/) -- To generate the protobufs used by the API.
+* [reflex](https://github.com/cespare/reflex) -- A file watcher.
+* [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
+* [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
+* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
+
+Some other tools are installed automatically by the makefile for you:
+
+* [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
+* [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
+* [controller-gen](https://sigs.k8s.io/controller-tools/cmd/controller-gen) -- Helps generate kubernetes controller code.
+
+And some tools that are installed by the `tools/download-deps.sh` script:
+
+* [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
+* [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
+
 
 ### Cluster Dev Tips
 

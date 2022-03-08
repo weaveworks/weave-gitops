@@ -57,8 +57,8 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 		},
 		Interval: &pb.Interval{
 			Hours:   int64(repository.Spec.Interval.Hours()),
-			Minutes: int64(repository.Spec.Interval.Minutes()),
-			Seconds: int64(repository.Spec.Interval.Seconds()),
+			Minutes: int64(repository.Spec.Interval.Minutes()) % 60,
+			Seconds: int64(repository.Spec.Interval.Seconds()) % 60,
 		},
 		Conditions: mapConditions(repository.Status.Conditions),
 	}

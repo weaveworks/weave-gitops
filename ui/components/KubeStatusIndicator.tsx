@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -28,15 +29,21 @@ export function computeMessage(conditions: Condition[]) {
 function KubeStatusIndicator({ className, conditions }: Props) {
   const ready = computeReady(conditions);
   const readyText = ready ? "Ready" : computeMessage(conditions);
-  const color = ready ? "success" : "alert";
+  const icon =
+    readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
 
   return (
     <Flex start className={className} align>
-      <Icon color={color} size="base" type={IconType.Circle} text={readyText} />
+      <Icon size="base" type={icon} text={readyText} />
     </Flex>
   );
 }
 
 export default styled(KubeStatusIndicator).attrs({
   className: KubeStatusIndicator.name,
-})``;
+})`
+  ${Icon} ${Text} {
+    color: ${(props) => props.theme.colors.black};
+    font-weight: 400;
+  }
+`;

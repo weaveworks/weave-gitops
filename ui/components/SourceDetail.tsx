@@ -7,8 +7,9 @@ import { SourceRefSourceKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Flex from "./Flex";
+import Heading from "./Heading";
 import Icon, { IconType } from "./Icon";
-import InfoList from "./InfoList";
+import InfoList, { InfoField } from "./InfoList";
 import { computeMessage, computeReady } from "./KubeStatusIndicator";
 import LoadingPage from "./LoadingPage";
 import Text from "./Text";
@@ -19,7 +20,7 @@ type Props = {
   name: string;
   namespace: string;
   children?: JSX.Element;
-  info: <T>(s: T) => { [key: string]: any };
+  info: <T>(s: T) => InfoField[];
 };
 
 function SourceDetail({ className, name, info }: Props) {
@@ -52,9 +53,7 @@ function SourceDetail({ className, name, info }: Props) {
   return (
     <div className={className}>
       <Flex align wide between>
-        <div>
-          <h2>{s.name}</h2>
-        </div>
+        <Heading level={1}>{s.name}</Heading>
         <div className="page-status">
           {ok ? (
             <Icon
@@ -77,7 +76,7 @@ function SourceDetail({ className, name, info }: Props) {
         <Alert severity="error" title="Error" message={error.message} />
       )}
       <div>
-        <h3>{s.type}</h3>
+        <Heading level={2}>{s.type}</Heading>
       </div>
       <div>
         <InfoList items={items} />
@@ -90,10 +89,6 @@ function SourceDetail({ className, name, info }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
-  h3 {
-    margin-bottom: 24px;
-  }
-
   ${InfoList} {
     margin-bottom: 60px;
   }

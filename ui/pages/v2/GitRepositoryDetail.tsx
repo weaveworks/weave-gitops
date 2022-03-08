@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import Interval from "../../components/Interval";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import {
@@ -21,14 +20,13 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
         name={name}
         namespace={namespace}
         type={SourceRefSourceKind.GitRepository}
-        info={(s: GitRepository) => ({
-          URL: s.url,
-          Ref: s.reference.branch,
-          "Last Updated": "",
-          Interval: <Interval interval={s.interval} />,
-          Cluster: "",
-          Namespace: s.namespace,
-        })}
+        info={(s: GitRepository) => [
+          ["URL", s.url],
+          ["Ref", s.reference.branch],
+          ["Last Updated", ""],
+          ["Cluster", ""],
+          ["Namespace", s.namespace],
+        ]}
       ></SourceDetail>
     </Page>
   );

@@ -12,7 +12,6 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -27,11 +26,12 @@ export enum SortType {
 
 type Sorter = (k: any) => any;
 
-type Field = {
+export type Field = {
   label: string;
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
   sortValue?: Sorter;
+  width?: number;
 };
 
 /** DataTable Properties  */
@@ -41,7 +41,7 @@ export interface Props {
   /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
-  rows: any[];
+  rows?: any[];
   /** index of field to initially sort against. */
   defaultSort?: number;
   /** an optional list of string widths for each field/column. */
@@ -83,8 +83,7 @@ function defaultSortFunc(sort: Field): Sorter {
 
 export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
-
-  return rows.sort((a: Row, b: Row) => {
+  return (rows || []).sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);
@@ -98,7 +97,7 @@ export const sortWithType = (rows: Row[], sort: Field) => {
         else return 1;
 
       default:
-        return sortFn(a).localeCompare(sortFn(b));
+        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
     }
   });
 };
@@ -109,7 +108,6 @@ function UnstyledDataTable({
   fields,
   rows,
   defaultSort = 0,
-  widths,
   children,
 }: Props) {
   const [sort, setSort] = React.useState(fields[defaultSort]);
@@ -155,8 +153,8 @@ function UnstyledDataTable({
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {_.map(fields, (f, i) => (
-        <TableCell style={widths && { width: widths[i] }} key={f.label}>
+      {_.map(fields, (f) => (
+        <TableCell style={f.width && { width: f.width }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -169,13 +167,12 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f, i) => (
-                <TableCell style={widths && { width: widths[i] }} key={f.label}>
-                  {f.sortType ? (
-                    <SortableLabel field={f} />
-                  ) : (
-                    <h2>{f.label}</h2>
-                  )}
+              {_.map(fields, (f) => (
+                <TableCell
+                  style={f.width && { maxWidth: f.width }}
+                  key={f.label}
+                >
+                  <SortableLabel field={f} />
                 </TableCell>
               ))}
             </TableRow>
@@ -210,7 +207,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
@@ -222,8 +219,11 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
-  ${Link} ${Text} {
-    font-size: 14px;
+
+  td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 

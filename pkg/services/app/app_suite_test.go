@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
@@ -14,14 +14,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 )
 
 var (
 	gitClient    *gitfakes.FakeGit
 	fluxClient   *fluxfakes.FakeFlux
 	kubeClient   *kubefakes.FakeKube
-	osysClient   *osysfakes.FakeOsys
 	gitProviders *gitprovidersfakes.FakeGitProvider
 	log          *loggerfakes.FakeLogger
 	appSrv       AppService
@@ -30,7 +28,6 @@ var (
 var _ = BeforeEach(func() {
 	gitClient = &gitfakes.FakeGit{}
 	fluxClient = &fluxfakes.FakeFlux{}
-	osysClient = &osysfakes.FakeOsys{}
 	kubeClient = &kubefakes.FakeKube{
 		GetClusterNameStub: func(ctx context.Context) (string, error) {
 			return "test-cluster", nil
@@ -50,7 +47,7 @@ var _ = BeforeEach(func() {
 	}
 
 	log = &loggerfakes.FakeLogger{}
-	appSrv = New(context.Background(), log, fluxClient, kubeClient, osysClient)
+	appSrv = New(context.Background(), log, kubeClient)
 })
 
 func TestApp(t *testing.T) {

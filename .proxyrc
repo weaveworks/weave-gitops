@@ -3,6 +3,6 @@
     "target": "http://localhost:9000/",
   }, 
   "/oauth2": {
-    "target": "http://localhost:9001/"
+    "target": "http://localhost:9000/"
   },
 }

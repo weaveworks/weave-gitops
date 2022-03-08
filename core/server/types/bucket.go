@@ -52,7 +52,7 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 		provider = pb.Bucket_GCP
 	}
 
-	hr := &pb.Bucket{
+	bkt := &pb.Bucket{
 		Name:      bucket.Name,
 		Namespace: bucket.Namespace,
 		Endpoint:  bucket.Spec.Endpoint,
@@ -62,9 +62,14 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 		Interval: &pb.Interval{
 			Minutes: 1,
 		},
-		SecretRefName: bucket.Spec.SecretRef.Name,
-		Conditions:    mapConditions(bucket.Status.Conditions),
+		// SecretRefName: bucket.Spec.SecretRef.Name,
+		Conditions: mapConditions(bucket.Status.Conditions),
+		BucketName: bucket.Spec.BucketName,
 	}
 
-	return hr
+	if bucket.Spec.SecretRef != nil {
+		bkt.SecretRefName = bucket.Spec.SecretRef.Name
+	}
+
+	return bkt
 }

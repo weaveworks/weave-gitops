@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -64,7 +63,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 		rand.Seed(time.Now().UnixNano())
 
 		log := internal.NewCLILogger(os.Stdout)
-		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

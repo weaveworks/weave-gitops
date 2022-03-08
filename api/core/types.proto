@@ -111,6 +111,7 @@ message Bucket {
     string   secretRefName        = 8;
     int32    timeout              = 9;
     repeated Condition conditions = 10;
+    string   bucket_name          = 11;
 }
 
 message Deployment {

@@ -14,7 +14,7 @@ function Automations({ className }: Props) {
     <Page
       error={error}
       loading={isLoading}
-      title="Releases"
+      title="Applications"
       className={className}
     >
       <AutomationsTable automations={automations} />

@@ -50,10 +50,8 @@ jobs:
         go-version: 1.17.x
     - name: checkout
       uses: actions/checkout@v2
-    - name: Install UI Deps
-      run: npm ci
     - name: Build UI Assets
-      run: make cmd/gitops/ui/run/dist/main.js
+      run: make ui
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux

@@ -15,25 +15,22 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -42,7 +39,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -57,129 +53,6 @@ var _ = Describe("ApplicationsServer", func() {
 		namespace.Name = "kube-test-" + rand.String(5)
 		err = k8sClient.Create(context.Background(), namespace)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
-	})
-	It("ListApplication", func() {
-		ctx := context.Background()
-		name := "my-app"
-		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace.Name,
-		}}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		res, err := appsClient.ListApplications(context.Background(), &pb.ListApplicationsRequest{})
-
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(len(res.Applications)).To(Equal(1))
-	})
-
-	Describe("GetApplication", func() {
-		var (
-			ctx  context.Context
-			name string
-			app  *wego.Application
-		)
-
-		BeforeEach(func() {
-			ctx = context.Background()
-			name = "my-app-" + rand.String(5)
-			app = &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType: wego.SourceTypeGit,
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-		})
-
-		AfterEach(func() {
-			deletePolicy := metav1.DeletePropagationForeground
-			Expect(k8sClient.Delete(ctx, app, &client.DeleteOptions{PropagationPolicy: &deletePolicy})).Should(Succeed())
-		})
-
-		It("fetches an application", func() {
-			resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(resp.Application.Name).To(Equal(name))
-		})
-
-		Describe("fetches the application source", func() {
-			It("fetches a git repository", func() {
-				git := &sourcev1.GitRepository{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: sourcev1.GitRepositorySpec{
-						URL:       "ssh://my-repo",
-						Interval:  metav1.Duration{Duration: 1 * time.Second},
-						Timeout:   &metav1.Duration{Duration: 1 * time.Second},
-						Reference: &sourcev1.GitRepositoryRef{Branch: "master"},
-					},
-				}
-				Expect(k8sClient.Create(ctx, git)).Should(Succeed())
-
-				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-					Name:      name,
-					Namespace: namespace.Name,
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Git))
-				Expect(resp.Application.Source.Url).To(Equal("ssh://my-repo"))
-				Expect(resp.Application.Source.Interval).To(Equal("1s"))
-				Expect(resp.Application.Source.Timeout).To(Equal("1s"))
-				Expect(resp.Application.Source.Reference).To(Equal("master"))
-
-				Expect(k8sClient.Delete(ctx, git)).Should(Succeed())
-			})
-
-		})
-
-		Describe("fetches the application deployment", func() {
-			It("fetches a kustomization", func() {
-				kust := &kustomizev2.Kustomization{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      name,
-						Namespace: namespace.Name,
-					},
-					Spec: kustomizev2.KustomizationSpec{
-						TargetNamespace: "target-namespace",
-						Path:            "/path",
-						Interval:        metav1.Duration{Duration: 1 * time.Second},
-						Prune:           true,
-						SourceRef: kustomizev2.CrossNamespaceSourceReference{
-							Kind: "GitRepository",
-							Name: name,
-						},
-					},
-				}
-				Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
-
-				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-					Name:      name,
-					Namespace: namespace.Name,
-				})
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(resp.Application.Kustomization.TargetNamespace).To(Equal("target-namespace"))
-				Expect(resp.Application.Kustomization.Path).To(Equal("/path"))
-				Expect(resp.Application.Kustomization.Interval).To(Equal("1s"))
-
-				Expect(k8sClient.Delete(ctx, kust)).Should(Succeed())
-			})
-		})
-
 	})
 
 	It("Authorize", func() {
@@ -655,27 +528,26 @@ var _ = Describe("ApplicationsServer", func() {
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
-			var log *fakelogr.FakeLogger
+			var sink *fakelogr.LogSink
+			var log logr.Logger
 			var appsSrv pb.ApplicationsServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
 			var err error
 
 			BeforeEach(func() {
-				log = testutils.MakeFakeLogr()
+				log, sink = testutils.MakeFakeLogr()
 				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
-					Logger:         log,
-					JwtClient:      auth.NewJwtClient(secretKey),
-					FetcherFactory: fakeFetcherFactory,
-					Factory:        fakeFactory,
+					Logger:    log,
+					JwtClient: auth.NewJwtClient(secretKey),
+					Factory:   fakeFactory,
 				}
 
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
@@ -694,11 +566,11 @@ var _ = Describe("ApplicationsServer", func() {
 				url := ts.URL + path
 
 				res, err := http.Get(url)
+				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusNotFound))
 
-				Expect(err).NotTo(HaveOccurred())
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				vals := log.WithValuesArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				vals := sink.WithValuesArgsForCall(0)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
 
@@ -707,46 +579,33 @@ var _ = Describe("ApplicationsServer", func() {
 
 			})
 			It("logs server errors", func() {
-				errMsg := "there was a big problem"
-				fakeFetcher := &applicationv2fakes.FakeFetcher{}
-				// Pretend something went horribly wrong
-				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
-				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(fakeFetcher)
 
-				cfg := ApplicationsConfig{
-					Logger:         log,
-					FetcherFactory: fakeFetcherFactory,
-				}
-
-				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-				appSrv := NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
 				Expect(err).NotTo(HaveOccurred())
 
 				ts := httptest.NewServer(httpHandler)
 				defer ts.Close()
 
-				path := "/v1/applications"
+				path := "/v1/featureflags"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
 				// err is still nil even if we get a 5XX.
 				Expect(err).NotTo(HaveOccurred())
-				Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
+				Expect(res.StatusCode).To(Equal(http.StatusNotImplemented))
 
-				Expect(log.ErrorCallCount()).To(BeNumerically(">", 0))
-				vals := log.WithValuesArgsForCall(0)
+				Expect(sink.ErrorCallCount()).To(BeNumerically(">", 0))
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 
-				err, msg, _ := log.ErrorArgsForCall(0)
+				err, msg, _ := sink.ErrorArgsForCall(0)
 				// This is the meat of this test case.
 				// Check that the same error passed by kubeClient is logged.
-				Expect(err.Error()).To(Equal(errMsg))
 				Expect(msg).To(Equal(middleware.ServerErrorText))
+				Expect(err.Error()).To(ContainSubstring("GetFeatureFlags not implemented"))
 
 			})
 			It("logs ok requests", func() {
@@ -754,18 +613,18 @@ var _ = Describe("ApplicationsServer", func() {
 				defer ts.Close()
 
 				// A valid URL for our server
-				path := "/v1/applications"
+				path := "/v1/featureflags"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusOK))
 
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				msg, _ := log.InfoArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				_, msg, _ := sink.InfoArgsForCall(0)
 				Expect(msg).To(ContainSubstring(middleware.RequestOkText))
 
-				vals := log.WithValuesArgsForCall(0)
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)
@@ -803,11 +662,11 @@ var _ = Describe("ApplicationsServer", func() {
 
 				Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))
 
-				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
-				msg, _ := log.InfoArgsForCall(0)
+				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+				_, msg, _ := sink.InfoArgsForCall(0)
 				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
 
-				vals := log.WithValuesArgsForCall(0)
+				vals := sink.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
 
 				expectedStatus := strconv.Itoa(res.StatusCode)

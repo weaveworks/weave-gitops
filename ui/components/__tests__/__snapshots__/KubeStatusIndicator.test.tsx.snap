@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`KubeStatusIndicator snapshots renders error 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c4 svg {
+  fill: !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 .c5 {
+  margin-left: 4px;
+}
+
+.c1 .c3 .c5 {
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+<div
+  className="c0 c1 KubeStatusIndicator"
+>
+  <div
+    className="c2 c3 c4"
+  >
+    <img
+      src=""
+    />
+    <span
+      className="c5 c6"
+      size="normal"
+    >
+      There was a problem
+    </span>
+  </div>
+</div>
+`;
+
+exports[`KubeStatusIndicator snapshots renders success 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c4 svg {
+  fill: !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 .c5 {
+  margin-left: 4px;
+}
+
+.c1 .c3 .c5 {
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+<div
+  className="c0 c1 KubeStatusIndicator"
+>
+  <div
+    className="c2 c3 c4"
+  >
+    <img
+      src=""
+    />
+    <span
+      className="c5 c6"
+      size="normal"
+    >
+      Ready
+    </span>
+  </div>
+</div>
+`;

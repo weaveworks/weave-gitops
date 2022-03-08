@@ -39,6 +39,7 @@ service Core {
             get : "/v1/kustomizations/{name}"
         };
     }
+
     /*
      * ListHelmReleases lists helm releases from a cluster.
      */
@@ -47,6 +48,17 @@ service Core {
           get : "/v1/helmreleases"
         };
     }
+
+
+    /*
+     * GetHelmRelease gets data about a single HelmRelease from the cluster.
+     */
+    rpc GetHelmRelease(GetHelmReleaseRequest) returns (GetHelmReleaseResponse) {
+        option (google.api.http) = {
+            get : "/v1/helmrelease/{name}"
+        };
+    }
+
 
     // Sources
 
@@ -141,6 +153,15 @@ message ListHelmReleasesRequest {
 
 message ListHelmReleasesResponse {
     repeated HelmRelease helm_releases = 1;
+}
+
+message GetHelmReleaseRequest {
+    string name      = 1;
+    string namespace = 2;
+}
+
+message GetHelmReleaseResponse {
+    HelmRelease helm_release = 1;
 }
 
 message ListGitRepositoriesRequest {

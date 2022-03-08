@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wego-app
+  namespace: flux-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wego-app
+    spec:
+      serviceAccountName: wego-app-service-account
+      containers:
+        - name: wego-app
+          image: localhost:5001/weaveworks/wego-app:latest
+          args: ["-l", "--helm-repo-namespace", "flux-system"]
+          ports:
+            - containerPort: 9001
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          env:
+            # this is disabled for local development
+            # make true if testing that feature
+            # - name: WEAVE_GITOPS_AUTH_ENABLED
+            #   value: "true"
+  selector:
+    matchLabels:
+      app: wego-app

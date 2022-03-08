@@ -2,13 +2,15 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
-import { FeatureFlags } from "../contexts/FeatureFlags";
+import { useFeatureFlags } from "../hooks/featureflags";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
+import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -31,9 +33,15 @@ const navItems = [
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
   },
+  {
+    value: "docs",
+    label: "Docs",
+    href: "https://docs.gitops.weave.works/",
+    newTab: true,
+  },
 ];
 
-const LinkTab = (props) => (
+const LinkTab = (props: any) => (
   <Tab
     component={forwardRef((p: any, ref) => (
       <Link innerRef={ref} {...p} />
@@ -129,14 +137,17 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
-  const { authFlag } = React.useContext(FeatureFlags);
+  const flags = useFeatureFlags();
   const { currentPage } = useNavigation();
+
   return (
     <div className={className}>
       <AppContainer>
-        <TopToolBar between align>
+        <TopToolBar start align>
           <Logo />
-          {authFlag ? <UserSettings /> : null}
+          {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
+          <Spacer padding="xxl" />
+          <Breadcrumbs />
         </TopToolBar>
         <Main wide>
           <NavContainer>
@@ -146,13 +157,15 @@ function Layout({ className, children }: Props) {
                 orientation="vertical"
                 value={getParentNavValue(currentPage)}
               >
-                {_.map(navItems, (n, i) => (
+                {_.map(navItems, (n) => (
                   <StyleLinkTab
-                    key={n.value}
+                    key={n.label}
                     label={n.label}
                     to={formatURL(n.value)}
                     value={n.value}
                     className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
                   />
                 ))}
               </Tabs>

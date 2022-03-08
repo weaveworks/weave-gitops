@@ -1,12 +1,10 @@
 import _ from "lodash";
-import { Application } from "../api/applications/applications.pb";
-import { Core } from "../api/core/core.pb";
 import { getChildren } from "../graph";
-import { createMockClient } from "../test-utils";
+import { createCoreMockClient } from "../test-utils";
 
 describe("graph lib", () => {
   it("getChildren", async () => {
-    const app: Application = {
+    const app = {
       name: "my-app",
       namespace: "my-namespace",
       reconciledObjectKinds: [
@@ -16,7 +14,7 @@ describe("graph lib", () => {
     const name = "stringly";
     const rsName = name + "-7d9b7454c7";
     const podName = rsName + "-mvz75";
-    const client = createMockClient({
+    const client = createCoreMockClient({
       GetReconciledObjects: () => {
         return {
           objects: [
@@ -74,8 +72,7 @@ describe("graph lib", () => {
     });
 
     const objects = await getChildren(
-      // @ts-ignore
-      client as typeof Core,
+      client,
       app.name,
       app.namespace,
       [{ group: "apps", version: "v1", kind: "Deployment" }]
