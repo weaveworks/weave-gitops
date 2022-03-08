@@ -27,7 +27,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
-	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
@@ -239,7 +238,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.23.0 // indirect
 	k8s.io/component-base v0.23.0 // indirect
-	k8s.io/helm v2.17.0+incompatible // indirect
 	k8s.io/klog/v2 v2.40.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/kubectl v0.22.1 // indirect
