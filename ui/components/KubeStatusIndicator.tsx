@@ -22,8 +22,10 @@ export function computeReady(conditions: Condition[]): boolean {
 }
 
 export function computeMessage(conditions: Condition[]) {
-  const readyCondition = _.find(conditions, (c) => c.type === "Ready");
-
+  const readyCondition =
+    _.find(conditions, { type: "Ready" }) ||
+    // see above
+    _.find(conditions, { type: "Available" });
   return readyCondition.message;
 }
 
