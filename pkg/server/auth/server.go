@@ -53,6 +53,7 @@ type AuthServer struct {
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
 type LoginRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -272,6 +273,13 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")
 			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
+
+			return
+		}
+
+		if loginRequest.Username != string(hashedSecret.Data["username"]) {
+			s.logger.Info("Wrong username")
+			rw.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}
