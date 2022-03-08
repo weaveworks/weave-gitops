@@ -68,7 +68,7 @@ function SignIn() {
   const formRef = React.useRef<HTMLFormElement>();
   const { signIn, error, setError, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
-  const [email, setEmail] = React.useState<string>("");
+  const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
@@ -78,7 +78,7 @@ function SignIn() {
     )}`);
   };
 
-  const handleUserPassSubmit = () => signIn({ email, password });
+  const handleUserPassSubmit = () => signIn({ username, password });
 
   React.useEffect(() => {
     return () => {
@@ -125,11 +125,11 @@ function SignIn() {
           >
             <Flex center align>
               <Input
-                onChange={(e) => setEmail(e.currentTarget.value)}
+                onChange={(e) => setUsername(e.currentTarget.value)}
                 id="email"
                 type="text"
                 placeholder="Username"
-                value={email}
+                value={username}
               />
             </Flex>
             <Flex center align>
