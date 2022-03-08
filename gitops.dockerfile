@@ -14,7 +14,6 @@ RUN ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 COPY Makefile /app/
 COPY tools /app/tools
 WORKDIR /app
-COPY --from=flux /usr/local/bin/flux /app/pkg/flux/bin/flux
 COPY go.* /app/
 RUN go mod download
 COPY . /app
@@ -22,6 +21,7 @@ RUN make gitops
 
 # Distroless
 FROM gcr.io/distroless/base as runtime
+COPY --from=flux /usr/local/bin/flux /usr/local/bin/flux
 COPY --from=go-build /app/bin/gitops /gitops
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 

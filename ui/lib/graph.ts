@@ -4,7 +4,7 @@ import _ from "lodash";
 import {
   GroupVersionKind,
   UnstructuredObject,
-} from "./api/applications/applications.pb";
+} from "./api/core/types.pb";
 import { Core } from "./api/core/core.pb";
 
 export type UnstructuredObjectWithParent = UnstructuredObject & {

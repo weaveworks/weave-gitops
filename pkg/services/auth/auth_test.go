@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -23,7 +22,7 @@ type actualFluxRunner struct {
 }
 
 func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
-	cmd := "../../flux/bin/flux"
+	cmd := "../../../tools/bin/flux"
 
 	return r.Runner.Run(cmd, args...)
 }
@@ -46,7 +45,6 @@ var _ = Describe("auth", func() {
 			ctx        context.Context
 			secretName models.GeneratedSecretName
 			gp         gitprovidersfakes.FakeGitProvider
-			osysClient osys.Osys
 			as         AuthService
 			fluxClient flux.Flux
 		)
@@ -54,10 +52,9 @@ var _ = Describe("auth", func() {
 			ctx = context.Background()
 			secretName = models.CreateRepoSecretName(configRepoUrl)
 			Expect(err).NotTo(HaveOccurred())
-			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
 			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil)
-			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
+			fluxClient = flux.New(&actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
 				logger:      &loggerfakes.FakeLogger{}, //Stay silent in tests.
