@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { Redirect } from "react-router-dom";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -9,7 +10,6 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 import images from "../lib/images";
-import { Redirect } from "react-router-dom";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 
 export const SignInPageWrapper = styled(Flex)`
@@ -21,6 +21,7 @@ export const SignInPageWrapper = styled(Flex)`
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   width: 500px;
+  height: 650px;
   padding-top: ${(props) => props.theme.spacing.medium};
   align-content: space-between;
   .MuiButton-label {
@@ -64,7 +65,7 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, loading } = React.useContext(Auth);
+  const { signIn, error, setError, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [email, setEmail] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -78,7 +79,11 @@ function SignIn() {
 
   const handleUserPassSubmit = () => signIn({ email, password });
 
-  // clear error here on unmount
+  React.useEffect(() => {
+    return () => {
+      setError(null);
+    };
+  }, []);
 
   return (
     <SignInPageWrapper center align column>
