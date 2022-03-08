@@ -6,9 +6,6 @@ FROM $FLUX_CLI as flux
 
 # Go build
 FROM golang:1.17 AS go-build
-# Expect to be passed these by running this via `make docker-gitops` so we don't copy all of .git/
-ARG LDFLAGS="-X localbuild=true"
-ARG GIT_COMMIT="_unset_"
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
@@ -21,6 +18,13 @@ WORKDIR /app
 COPY go.* /app/
 RUN go mod download
 COPY . /app
+
+# These are ARGS are defined here to minimise cache misses
+# (cf. https://docs.docker.com/engine/reference/builder/#impact-on-build-caching)
+# Pass these flags so we don't have to copy .git/ for those commands to work
+ARG LDFLAGS="-X localbuild=true"
+ARG GIT_COMMIT="_unset_"
+
 RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
 
 # Distroless
