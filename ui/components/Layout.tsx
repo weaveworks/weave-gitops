@@ -58,7 +58,6 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  overflow: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
@@ -82,6 +81,7 @@ const FixedNav = styled.div`
   top: 80;
   width: 240px;
   left: 0;
+  border-radius: 10px;
 `;
 
 const NavContent = styled.div`
@@ -126,6 +126,8 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
+  max-height: 85vh;
+  overflow: auto;
 `;
 
 const Main = styled(Flex)`

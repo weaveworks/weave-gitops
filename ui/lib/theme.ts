@@ -92,6 +92,7 @@ export const GlobalStyle = createGlobalStyle`
     background: right bottom url(${bg}) no-repeat fixed ${(props) =>
   props.theme.colors.neutral10}; 
     background-size: 100%;
+    overflow: hidden;
   }
   .auth-modal-size {
     min-height: 475px
