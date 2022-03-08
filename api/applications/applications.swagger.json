@@ -253,50 +253,6 @@
         ]
       }
     },
-    "/v1/applications/{name}/sync": {
-      "post": {
-        "summary": "SyncApplication triggers the Application reconciliation loop.",
-        "operationId": "Applications_SyncApplication",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SyncApplicationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "namespace": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/authenticate/{providerName}": {
       "post": {
         "summary": "Authenticate generates jwt token using git provider name and git provider token arguments",
@@ -532,14 +488,6 @@
         },
         "owner": {
           "type": "string"
-        }
-      }
-    },
-    "v1SyncApplicationResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
         }
       }
     },

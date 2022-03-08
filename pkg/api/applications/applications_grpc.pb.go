@@ -47,9 +47,6 @@ type ApplicationsClient interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
-	// SyncApplication triggers the Application reconciliation loop.
-	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
-	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
 	//
@@ -122,15 +119,6 @@ func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeG
 	return out, nil
 }
 
-func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error) {
-	out := new(SyncApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/SyncApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
 	out := new(ParseRepoURLResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ParseRepoURL", in, out, opts...)
@@ -191,9 +179,6 @@ type ApplicationsServer interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
-	// SyncApplication triggers the Application reconciliation loop.
-	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
-	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
 	//
@@ -226,9 +211,6 @@ func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGit
 }
 func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
-}
-func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
 }
 func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
@@ -360,24 +342,6 @@ func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).SyncApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/SyncApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).SyncApplication(ctx, req.(*SyncApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ParseRepoURLRequest)
 	if err := dec(in); err != nil {
@@ -462,10 +426,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthorizeGitlab",
 			Handler:    _Applications_AuthorizeGitlab_Handler,
-		},
-		{
-			MethodName: "SyncApplication",
-			Handler:    _Applications_SyncApplication_Handler,
 		},
 		{
 			MethodName: "ParseRepoURL",

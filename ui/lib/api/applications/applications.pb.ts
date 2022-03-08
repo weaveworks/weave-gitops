@@ -30,15 +30,6 @@ export type AuthenticateResponse = {
   token?: string
 }
 
-export type SyncApplicationRequest = {
-  name?: string
-  namespace?: string
-}
-
-export type SyncApplicationResponse = {
-  success?: boolean
-}
-
 export type Commit = {
   hash?: string
   date?: string
@@ -141,9 +132,6 @@ export class Applications {
   }
   static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
     return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/applications/auth_providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static SyncApplication(req: SyncApplicationRequest, initReq?: fm.InitReq): Promise<SyncApplicationResponse> {
-    return fm.fetchReq<SyncApplicationRequest, SyncApplicationResponse>(`/v1/applications/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
     return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/applications/parse_repo_url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

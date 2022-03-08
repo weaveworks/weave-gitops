@@ -114,27 +114,6 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(exists2).To(BeTrue())
 	})
 
-	It("GetApplication", func() {
-		ctx := context.Background()
-		name := "my-app"
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				SourceType:     wego.SourceTypeGit,
-				DeploymentType: wego.DeploymentTypeKustomize,
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		a, err := k.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(a.Name).To(Equal(name))
-	})
-
 	It("SecretPresent", func() {
 		name := "my-secret"
 		ctx := context.Background()
@@ -245,31 +224,6 @@ metadata:
 		})
 	})
 
-	It("DeleteByName", func() {
-		ctx := context.Background()
-		name := "my-app"
-
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				Branch:         "master",
-				Path:           "/.kustomize",
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		Expect(k.DeleteByName(ctx, name, kube.GVRApp, namespace.Name)).Should(Succeed())
-
-		a, err := k.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name})
-		Expect(err).ToNot(HaveOccurred())
-		Expect(a.DeletionTimestamp).ToNot(BeNil())
-	})
 	Describe("Getting client with override kubeconfig", func() {
 		It("valid kubeconfig", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }

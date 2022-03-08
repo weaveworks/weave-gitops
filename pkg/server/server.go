@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/benbjohnson/clock"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -137,29 +136,6 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 			DefaultConfig: rest,
 			ClusterName:   clusterName,
 		},
-	}, nil
-}
-
-func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
-	kubeClient, err := s.kubeGetter.Kube(ctx)
-	if err != nil {
-		return &pb.SyncApplicationResponse{
-			Success: false,
-		}, fmt.Errorf("failed to create kube service: %w", err)
-	}
-
-	appSrv := &app.AppSvc{
-		Kube:  kubeClient,
-		Clock: clock.New(),
-	}
-	if err := appSrv.Sync(app.SyncParams{Name: msg.Name, Namespace: msg.Namespace}); err != nil {
-		return &pb.SyncApplicationResponse{
-			Success: false,
-		}, fmt.Errorf("error syncing app: %w", err)
-	}
-
-	return &pb.SyncApplicationResponse{
-		Success: true,
 	}, nil
 }
 

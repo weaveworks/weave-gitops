@@ -86,16 +86,6 @@ service Applications {
         };
     }
 
-    /*
-    * SyncApplication triggers the Application reconciliation loop.
-    */
-    rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications/{name}/sync"
-            body: "*"
-        };
-    }
-
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */
@@ -133,15 +123,6 @@ message AuthenticateRequest {
 
 message AuthenticateResponse {
     string token = 1;  // The jwt token that was generated using git provider name and git provider token
-}
-
-message SyncApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-}
-
-message SyncApplicationResponse {
-    bool success = 1;
 }
 
 message Commit {

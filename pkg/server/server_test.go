@@ -12,14 +12,10 @@ import (
 	"strings"
 	"time"
 
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -35,8 +31,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -161,108 +155,6 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(ok).To(BeTrue(), "could not get status from err")
 			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
 			Expect(res).To(BeNil())
-		})
-	})
-
-	Describe("SyncApplication", func() {
-		var (
-			ctx    context.Context
-			name   string
-			app    *wego.Application
-			kust   *kustomizev2.Kustomization
-			source *sourcev1.GitRepository
-		)
-
-		BeforeEach(func() {
-			ctx = context.Background()
-			name = "my-app"
-			app = &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-
-			kust = &kustomizev2.Kustomization{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: kustomizev2.KustomizationSpec{
-					SourceRef: kustomizev2.CrossNamespaceSourceReference{
-						Kind: "GitRepository",
-					},
-				},
-				Status: kustomizev2.KustomizationStatus{
-					ReconcileRequestStatus: meta.ReconcileRequestStatus{
-						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
-					},
-				},
-			}
-
-			source = &sourcev1.GitRepository{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: sourcev1.GitRepositorySpec{
-					URL: "https://github.com/owner/repo",
-				},
-				Status: sourcev1.GitRepositoryStatus{
-					ReconcileRequestStatus: meta.ReconcileRequestStatus{
-						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
-					},
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, source)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
-		})
-
-		// TODO: Issue 981 fix flaky test
-		XIt("trigger the reconcile loop for an application", func() {
-			appRequest := &pb.SyncApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-			}
-
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
-			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
-
-			done := make(chan bool)
-			defer close(done)
-
-			go func() {
-				defer GinkgoRecover()
-
-				res, err := appsClient.SyncApplication(contextWithAuth(ctx), appRequest)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(res.Success).To(BeTrue())
-				done <- true
-			}()
-
-			ticker := time.NewTicker(500 * time.Millisecond)
-			for {
-				select {
-				case <-ticker.C:
-					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
-					source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-					Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
-					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
-					kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-					Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
-				case <-done:
-					return
-				case <-time.After(3 * time.Second):
-					Fail("SyncApplication test timed out")
-				}
-			}
 		})
 	})
 

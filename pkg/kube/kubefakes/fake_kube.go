@@ -5,10 +5,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -39,20 +37,6 @@ type FakeKube struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteByNameStub        func(context.Context, string, schema.GroupVersionResource, string) error
-	deleteByNameMutex       sync.RWMutex
-	deleteByNameArgsForCall []struct {
-		arg1 context.Context
-		arg2 string
-		arg3 schema.GroupVersionResource
-		arg4 string
-	}
-	deleteByNameReturns struct {
-		result1 error
-	}
-	deleteByNameReturnsOnCall map[int]struct {
-		result1 error
-	}
 	FetchNamespaceWithLabelStub        func(context.Context, string, string) (*v1.Namespace, error)
 	fetchNamespaceWithLabelMutex       sync.RWMutex
 	fetchNamespaceWithLabelArgsForCall []struct {
@@ -79,20 +63,6 @@ type FakeKube struct {
 	}
 	fluxPresentReturnsOnCall map[int]struct {
 		result1 bool
-		result2 error
-	}
-	GetApplicationStub        func(context.Context, types.NamespacedName) (*v1alpha1.Application, error)
-	getApplicationMutex       sync.RWMutex
-	getApplicationArgsForCall []struct {
-		arg1 context.Context
-		arg2 types.NamespacedName
-	}
-	getApplicationReturns struct {
-		result1 *v1alpha1.Application
-		result2 error
-	}
-	getApplicationReturnsOnCall map[int]struct {
-		result1 *v1alpha1.Application
 		result2 error
 	}
 	GetClusterNameStub        func(context.Context) (string, error)
@@ -365,70 +335,6 @@ func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) DeleteByName(arg1 context.Context, arg2 string, arg3 schema.GroupVersionResource, arg4 string) error {
-	fake.deleteByNameMutex.Lock()
-	ret, specificReturn := fake.deleteByNameReturnsOnCall[len(fake.deleteByNameArgsForCall)]
-	fake.deleteByNameArgsForCall = append(fake.deleteByNameArgsForCall, struct {
-		arg1 context.Context
-		arg2 string
-		arg3 schema.GroupVersionResource
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
-	stub := fake.DeleteByNameStub
-	fakeReturns := fake.deleteByNameReturns
-	fake.recordInvocation("DeleteByName", []interface{}{arg1, arg2, arg3, arg4})
-	fake.deleteByNameMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKube) DeleteByNameCallCount() int {
-	fake.deleteByNameMutex.RLock()
-	defer fake.deleteByNameMutex.RUnlock()
-	return len(fake.deleteByNameArgsForCall)
-}
-
-func (fake *FakeKube) DeleteByNameCalls(stub func(context.Context, string, schema.GroupVersionResource, string) error) {
-	fake.deleteByNameMutex.Lock()
-	defer fake.deleteByNameMutex.Unlock()
-	fake.DeleteByNameStub = stub
-}
-
-func (fake *FakeKube) DeleteByNameArgsForCall(i int) (context.Context, string, schema.GroupVersionResource, string) {
-	fake.deleteByNameMutex.RLock()
-	defer fake.deleteByNameMutex.RUnlock()
-	argsForCall := fake.deleteByNameArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
-}
-
-func (fake *FakeKube) DeleteByNameReturns(result1 error) {
-	fake.deleteByNameMutex.Lock()
-	defer fake.deleteByNameMutex.Unlock()
-	fake.DeleteByNameStub = nil
-	fake.deleteByNameReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 error) {
-	fake.deleteByNameMutex.Lock()
-	defer fake.deleteByNameMutex.Unlock()
-	fake.DeleteByNameStub = nil
-	if fake.deleteByNameReturnsOnCall == nil {
-		fake.deleteByNameReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteByNameReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeKube) FetchNamespaceWithLabel(arg1 context.Context, arg2 string, arg3 string) (*v1.Namespace, error) {
 	fake.fetchNamespaceWithLabelMutex.Lock()
 	ret, specificReturn := fake.fetchNamespaceWithLabelReturnsOnCall[len(fake.fetchNamespaceWithLabelArgsForCall)]
@@ -555,71 +461,6 @@ func (fake *FakeKube) FluxPresentReturnsOnCall(i int, result1 bool, result2 erro
 	}
 	fake.fluxPresentReturnsOnCall[i] = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 types.NamespacedName) (*v1alpha1.Application, error) {
-	fake.getApplicationMutex.Lock()
-	ret, specificReturn := fake.getApplicationReturnsOnCall[len(fake.getApplicationArgsForCall)]
-	fake.getApplicationArgsForCall = append(fake.getApplicationArgsForCall, struct {
-		arg1 context.Context
-		arg2 types.NamespacedName
-	}{arg1, arg2})
-	stub := fake.GetApplicationStub
-	fakeReturns := fake.getApplicationReturns
-	fake.recordInvocation("GetApplication", []interface{}{arg1, arg2})
-	fake.getApplicationMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeKube) GetApplicationCallCount() int {
-	fake.getApplicationMutex.RLock()
-	defer fake.getApplicationMutex.RUnlock()
-	return len(fake.getApplicationArgsForCall)
-}
-
-func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, types.NamespacedName) (*v1alpha1.Application, error)) {
-	fake.getApplicationMutex.Lock()
-	defer fake.getApplicationMutex.Unlock()
-	fake.GetApplicationStub = stub
-}
-
-func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, types.NamespacedName) {
-	fake.getApplicationMutex.RLock()
-	defer fake.getApplicationMutex.RUnlock()
-	argsForCall := fake.getApplicationArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKube) GetApplicationReturns(result1 *v1alpha1.Application, result2 error) {
-	fake.getApplicationMutex.Lock()
-	defer fake.getApplicationMutex.Unlock()
-	fake.GetApplicationStub = nil
-	fake.getApplicationReturns = struct {
-		result1 *v1alpha1.Application
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeKube) GetApplicationReturnsOnCall(i int, result1 *v1alpha1.Application, result2 error) {
-	fake.getApplicationMutex.Lock()
-	defer fake.getApplicationMutex.Unlock()
-	fake.GetApplicationStub = nil
-	if fake.getApplicationReturnsOnCall == nil {
-		fake.getApplicationReturnsOnCall = make(map[int]struct {
-			result1 *v1alpha1.Application
-			result2 error
-		})
-	}
-	fake.getApplicationReturnsOnCall[i] = struct {
-		result1 *v1alpha1.Application
 		result2 error
 	}{result1, result2}
 }
@@ -1261,14 +1102,10 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.applyMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
-	fake.deleteByNameMutex.RLock()
-	defer fake.deleteByNameMutex.RUnlock()
 	fake.fetchNamespaceWithLabelMutex.RLock()
 	defer fake.fetchNamespaceWithLabelMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
 	defer fake.fluxPresentMutex.RUnlock()
-	fake.getApplicationMutex.RLock()
-	defer fake.getApplicationMutex.RUnlock()
 	fake.getClusterNameMutex.RLock()
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()

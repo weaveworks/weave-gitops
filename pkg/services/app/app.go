@@ -9,17 +9,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // AppService entity that manages applications
 type AppService interface {
-	// Get returns a given applicaiton
-	Get(name types.NamespacedName) (*wego.Application, error)
 	// GetCommits returns a list of commits for an application
 	GetCommits(gitProvider gitproviders.GitProvider, params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
-	// Sync trigger reconciliation loop for an application
-	Sync(params SyncParams) error
 }
 
 type AppSvc struct {
