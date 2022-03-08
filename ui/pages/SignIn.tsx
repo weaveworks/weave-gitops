@@ -64,8 +64,9 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, loading, userInfo } = React.useContext(Auth);
+  const { signIn, error, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
+  const [email, setEmail] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
@@ -75,7 +76,9 @@ function SignIn() {
     )}`);
   };
 
-  const handleUserPassSubmit = () => signIn({ password });
+  const handleUserPassSubmit = () => signIn({ email, password });
+
+  // clear error here on unmount
 
   return (
     <SignInPageWrapper center align column>
@@ -115,7 +118,13 @@ function SignIn() {
             }}
           >
             <Flex center align>
-              <Input disabled id="email" type="text" value="admin" />
+              <Input
+                onChange={(e) => setEmail(e.currentTarget.value)}
+                id="email"
+                type="text"
+                placeholder="Username"
+                value={email}
+              />
             </Flex>
             <Flex center align>
               <Input
