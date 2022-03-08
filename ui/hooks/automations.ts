@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
 import {
+  GetHelmReleaseResponse,
   GetKustomizationResponse,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
@@ -52,6 +53,16 @@ export function useGetKustomization(name: string, namespace = WeGONamespace) {
   return useQuery<GetKustomizationResponse, RequestError>(
     ["kustomizations", name],
     () => api.GetKustomization({ name, namespace }),
+    { retry: false }
+  );
+}
+
+export function useGetHelmRelease(name: string, namespace = WeGONamespace) {
+  const { api } = useContext(AppContext);
+
+  return useQuery<GetHelmReleaseResponse, RequestError>(
+    ["helmrelease", name],
+    () => api.GetHelmRelease({ name, namespace }),
     { retry: false }
   );
 }
