@@ -25,10 +25,6 @@ type ApplicationsClient interface {
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
 	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error)
-	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error)
@@ -84,15 +80,6 @@ func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateR
 func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
 	out := new(ListCommitsResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListCommits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error) {
-	out := new(GetChildObjectsRes)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetChildObjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -182,10 +169,6 @@ type ApplicationsServer interface {
 	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
 	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
 	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error)
-	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error)
@@ -231,9 +214,6 @@ func (UnimplementedApplicationsServer) Authenticate(context.Context, *Authentica
 }
 func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
-}
-func (UnimplementedApplicationsServer) GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubDeviceCode not implemented")
@@ -304,24 +284,6 @@ func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).ListCommits(ctx, req.(*ListCommitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChildObjectsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).GetChildObjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetChildObjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetChildObjects(ctx, req.(*GetChildObjectsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -484,10 +446,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommits",
 			Handler:    _Applications_ListCommits_Handler,
-		},
-		{
-			MethodName: "GetChildObjects",
-			Handler:    _Applications_GetChildObjects_Handler,
 		},
 		{
 			MethodName: "GetGithubDeviceCode",

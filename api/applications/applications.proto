@@ -39,17 +39,6 @@ service Applications {
     }
 
     /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
-    rpc GetChildObjects(GetChildObjectsReq) returns (GetChildObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/child_objects"
-            body: "*"
-        };
-    };
-
-    /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
     * This code is used to start the Github device-flow.
     */
@@ -178,38 +167,6 @@ message ListCommitsResponse {
     // that indicates from where listing should continue.
     int32 next_page_token = 2;
 }
-
-// GroupVersionKind represents an objects Kubernetes API type data
-message GroupVersionKind {
-    string group   = 1;
-    string kind    = 2;
-    string version = 3;
-}
-
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind = 1;
-    string           name             = 2;
-    string           namespace        = 3;
-    string           uid              = 4;
-    string           status           = 5;
-}
-
-// AutomationKind represents the deployment method used
-enum AutomationKind {
-    Kustomize = 0;
-    Helm      = 1;
-}
-
-message GetChildObjectsReq {
-    GroupVersionKind groupVersionKind = 1;
-    string           parentUid        = 2;
-}
-
-message GetChildObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
 
 message GetGithubDeviceCodeRequest {
 

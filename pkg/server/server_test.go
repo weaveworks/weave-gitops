@@ -34,7 +34,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -97,69 +96,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrEmptyAccessToken))
 	})
-	Describe("GetChildObjects", func() {
-		It("returns child objects for a parent", func() {
-			ctx := context.Background()
-			name := "my-app"
-			deployment := &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-deployment",
-					Namespace: namespace.Name,
-				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app": name,
-						},
-					},
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{"app": name},
-						},
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{{
-								Name:  "nginx",
-								Image: "nginx",
-							}},
-						},
-					},
-				},
-			}
-			Expect(k8sClient.Create(ctx, deployment)).Should(Succeed())
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment))
-			Expect(deployment.UID).NotTo(Equal(""))
-			rs := &appsv1.ReplicaSet{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("%s-123abcd", name),
-					Namespace: namespace.Name,
-				},
-				Spec: appsv1.ReplicaSetSpec{
-					Template: deployment.Spec.Template,
-					Selector: deployment.Spec.Selector,
-				},
-			}
-			rs.SetOwnerReferences([]metav1.OwnerReference{{
-				UID:        deployment.UID,
-				APIVersion: appsv1.SchemeGroupVersion.String(),
-				Kind:       "Deployment",
-				Name:       deployment.Name,
-			}})
-
-			Expect(k8sClient.Create(ctx, rs)).Should(Succeed())
-
-			res, err := appsClient.GetChildObjects(ctx, &pb.GetChildObjectsReq{
-				ParentUid:        string(deployment.UID),
-				GroupVersionKind: &pb.GroupVersionKind{Group: "apps", Version: "v1", Kind: "ReplicaSet"},
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Objects).To(HaveLen(1))
-
-			first := res.Objects[0]
-			Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-			Expect(first.Name).To(Equal(rs.Name))
-		})
-	})
-
 	Describe("GetGithubDeviceCode", func() {
 		It("returns a device code", func() {
 			ctx := context.Background()

@@ -137,39 +137,6 @@
         ]
       }
     },
-    "/v1/applications/child_objects": {
-      "post": {
-        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
-        "operationId": "Applications_GetChildObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsRes"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsReq"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/applications/parse_repo_url": {
       "get": {
         "summary": "ParseRepoURL returns structured data about a git repository URL",
@@ -473,28 +440,6 @@
         }
       }
     },
-    "v1GetChildObjectsReq": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "parentUid": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GetChildObjectsRes": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
-          }
-        }
-      }
-    },
     "v1GetFeatureFlagsResponse": {
       "type": "object",
       "properties": {
@@ -560,21 +505,6 @@
       ],
       "default": "Unknown"
     },
-    "v1GroupVersionKind": {
-      "type": "object",
-      "properties": {
-        "group": {
-          "type": "string"
-        },
-        "kind": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        }
-      },
-      "title": "GroupVersionKind represents an objects Kubernetes API type data"
-    },
     "v1ListCommitsResponse": {
       "type": "object",
       "properties": {
@@ -612,27 +542,6 @@
           "type": "boolean"
         }
       }
-    },
-    "v1UnstructuredObject": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        }
-      },
-      "title": "UnstructuredObject is a Kubernetes object of an unknown type"
     },
     "v1ValidateProviderTokenRequest": {
       "type": "object",

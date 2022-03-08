@@ -7,7 +7,7 @@ import { renderToString } from "react-dom/server";
 import styled from "styled-components";
 import {
   UnstructuredObject,
-} from "../lib/api/applications/applications.pb";
+} from "../lib/api/core/types.pb";
 import { UnstructuredObjectWithParent } from "../lib/graph";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";

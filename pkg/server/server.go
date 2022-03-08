@@ -20,11 +20,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -242,60 +239,6 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		Commits:       list,
 		NextPageToken: nextPageToken,
 	}, nil
-}
-
-func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsReq) (*pb.GetChildObjectsRes, error) {
-	cl, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	list := unstructured.UnstructuredList{}
-
-	list.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   msg.GroupVersionKind.Group,
-		Version: msg.GroupVersionKind.Version,
-		Kind:    msg.GroupVersionKind.Kind,
-	})
-
-	if err := cl.List(ctx, &list); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s", err)
-	}
-
-	objects := []*pb.UnstructuredObject{}
-
-Items:
-	for _, obj := range list.Items {
-
-		refs := obj.GetOwnerReferences()
-
-		for _, ref := range refs {
-			if ref.UID != types.UID(msg.ParentUid) {
-				// This is not the child we are looking for.
-				// Skip the rest of the operations in Items loops.
-				// The is effectively an early return.
-				continue Items
-			}
-		}
-
-		statusResult, err := status.Compute(&obj)
-		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
-		}
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    statusResult.Status.String(),
-			Uid:       string(obj.GetUID()),
-		})
-	}
-
-	return &pb.GetChildObjectsRes{Objects: objects}, nil
 }
 
 func (s *applicationServer) GetGithubDeviceCode(ctx context.Context, msg *pb.GetGithubDeviceCodeRequest) (*pb.GetGithubDeviceCodeResponse, error) {
