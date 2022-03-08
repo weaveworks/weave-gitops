@@ -30,8 +30,7 @@ export function computeMessage(conditions: Condition[]) {
 function KubeStatusIndicator({ className, conditions, short }: Props) {
   const ready = computeReady(conditions);
   const readyText = ready ? "Ready" : "Not Ready";
-  const icon =
-    readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+  const icon = ready ? IconType.SuccessIcon : IconType.FailedIcon;
 
   const message = computeMessage(conditions);
 

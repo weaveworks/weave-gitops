@@ -53,44 +53,37 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c1 {
-  min-height: 85vh;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  min-width: 1260px;
-  box-sizing: border-box;
   background-color: rgba(255,255,255,0.75);
-  padding-left: 32px;
-  padding-right: 32px;
-  padding-top: 32px;
-  padding-bottom: 24px;
   border-radius: 10px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  min-width: 1260px;
+  padding-bottom: 24px;
+  padding-left: 32px;
+  padding-top: 32px;
+  width: 100%;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 .c2 h2 {
   margin: 0 !important;
   color: #1a1a1a !important;
-}
-
-.c0 {
-  min-height: 1216px;
 }
 
 .c0 .MuiAlert-root {

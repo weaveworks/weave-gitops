@@ -19,6 +19,22 @@ describe("KubeStatusIndicator", () => {
     ];
     render(withTheme(<KubeStatusIndicator conditions={conditions} />));
 
+    const msg = screen.getByText(conditions[0].message);
+    expect(msg).toBeTruthy();
+  });
+  it("renders ready - short", () => {
+    const conditions = [
+      {
+        type: "Ready",
+        status: "True",
+        reason: "ReconciliationSucceeded",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+    ];
+    render(withTheme(<KubeStatusIndicator short conditions={conditions} />));
+
     const ready = screen.getByText("Ready");
     expect(ready).toBeTruthy();
   });
