@@ -10,7 +10,7 @@ exports[`snapshots renders 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ klFDZy"
+      className="sc-gsDKAQ dDjzBs"
       color="primary"
       size="normal"
     >
@@ -30,7 +30,7 @@ exports[`snapshots renders child route 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ klFDZy"
+      className="sc-gsDKAQ dDjzBs"
       color="primary"
       size="normal"
     >
@@ -57,7 +57,7 @@ exports[`snapshots renders child route 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ fcdFvu"
+      className="sc-gsDKAQ ksAsTo"
       color="primary"
       size="normal"
     >
@@ -77,7 +77,7 @@ exports[`snapshots renders on the root page 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ klFDZy"
+      className="sc-gsDKAQ dDjzBs"
       color="primary"
       size="normal"
     />
@@ -102,7 +102,7 @@ exports[`snapshots renders on the root page 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ fcdFvu"
+      className="sc-gsDKAQ ksAsTo"
       color="primary"
       size="normal"
     />

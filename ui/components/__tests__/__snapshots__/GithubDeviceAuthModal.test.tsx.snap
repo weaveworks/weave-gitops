@@ -123,6 +123,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-size: 32px;
   font-weight: 400;
   text-transform: none;
+  text-transform: none;
   font-style: normal;
 }
 

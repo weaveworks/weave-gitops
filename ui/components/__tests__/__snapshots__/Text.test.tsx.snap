@@ -6,6 +6,7 @@ exports[`Text snapshots bold 1`] = `
   font-size: 16px;
   font-weight: 800;
   text-transform: none;
+  text-transform: none;
   font-style: normal;
 }
 
@@ -23,6 +24,7 @@ exports[`Text snapshots normal 1`] = `
   font-size: 16px;
   font-weight: 400;
   text-transform: none;
+  text-transform: none;
   font-style: normal;
 }
 
@@ -39,6 +41,7 @@ exports[`Text snapshots with color 1`] = `
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
+  text-transform: none;
   text-transform: none;
   font-style: normal;
   color: #27AE60;

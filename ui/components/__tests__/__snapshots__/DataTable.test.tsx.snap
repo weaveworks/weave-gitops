@@ -53,6 +53,7 @@ exports[`DataTable snapshots renders 1`] = `
   font-size: 16px;
   font-weight: 400;
   text-transform: none;
+  text-transform: none;
   font-style: normal;
 }
 
