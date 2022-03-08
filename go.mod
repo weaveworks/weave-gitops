@@ -37,7 +37,6 @@ require (
 	github.com/onsi/gomega v1.17.0
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/errors v0.9.1
-	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.0

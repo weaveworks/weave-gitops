@@ -24,16 +24,9 @@ const Info = styled.div`
 function HelmReleaseDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
+  console.log(helmRelease);
 
-  export type HelmRelease = {
-    releaseName?: string;
-    namespace?: string;
-    name?: string;
-    interval?: Interval;
-    helmChart?: HelmChart;
-    conditions?: Condition[];
-    inventory?: GroupVersionKind[];
-  };
+  //TODO: lastUpdated, helmChart.sourceRef.name link not working bc name not being grabbed, nothing in table?!
 
   return (
     <Page loading={isLoading} error={error} className={className}>
@@ -45,20 +38,19 @@ function HelmReleaseDetail({ className, name }: Props) {
             [
               "Source",
               <Link
-                to={formatURL(V2Routes.GitRepo, {
-                  name: helmRelease?.helmChart?.sourceRef.name,
+                to={formatURL(V2Routes.HelmChart, {
+                  name: helmRelease?.helmChart.name,
                 })}
               >
-                {helmRelease?.helmChart?.sourceRef.kind}/
-                {helmRelease?.helmChart?.sourceRef.name}
+                HelmChart/
+                {helmRelease?.helmChart.name}
               </Link>,
             ],
             [
               "Status",
               <KubeStatusIndicator conditions={helmRelease?.conditions} />,
             ],
-            ["Chart", helmRelease?.helmChart?.chart],
-            ["Applied Revision", helmRelease?.helmChart?.version],
+            ["Chart", helmRelease?.helmChart.chart],
             ["Cluster", "Default"],
             ["Interval", <Interval interval={helmRelease?.interval} />],
           ]}
