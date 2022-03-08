@@ -10,6 +10,7 @@ export interface TextProps {
   capitalize?: boolean;
   italic?: boolean;
   color?: keyof typeof colors;
+  uppercase?: boolean;
 }
 
 const Text = styled.span<TextProps>`
@@ -21,6 +22,7 @@ const Text = styled.span<TextProps>`
     else return "400";
   }};
   text-transform: ${(props) => (props.capitalize ? "capitalize" : "none")};
+  text-transform: ${(props) => (props.uppercase ? "uppercase" : "none")};
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
   color: ${(props) => props.theme.colors[props.color as any]};
 `;
