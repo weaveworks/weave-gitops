@@ -7,9 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
@@ -221,126 +218,6 @@ func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dyna
 	return dr, obj.GetName(), data, nil
 }
 
-func (k *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
-	key := types.NamespacedName{
-		Name: FluxNamespace,
-	}
-
-	ns := corev1.Namespace{}
-
-	if err := k.Client.Get(ctx, key, &ns); err != nil {
-		if apierrors.IsNotFound(err) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("could not find flux namespace: %w", err)
-	}
-
-	return true, nil
-}
-
-func (k *KubeHTTP) NamespacePresent(ctx context.Context, namespace string) (bool, error) {
-	key := types.NamespacedName{
-		Name: namespace,
-	}
-
-	ns := corev1.Namespace{}
-
-	if err := k.Client.Get(ctx, key, &ns); err != nil {
-		if apierrors.IsNotFound(err) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("could not find namespace: %w", err)
-	}
-
-	return true, nil
-}
-
-func (k *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespace string) (bool, error) {
-	name := types.NamespacedName{
-		Name:      secretName,
-		Namespace: namespace,
-	}
-
-	if _, err := k.GetSecret(ctx, name); err != nil {
-		return false, fmt.Errorf("error checking secret presence for secret \"%s\": %w", secretName, err)
-	}
-
-	// No error, it must exist
-	return true, nil
-}
-
-func (k KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
-	secret := corev1.Secret{}
-	if err := k.Client.Get(ctx, name, &secret); err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil, nil
-		}
-
-		return nil, fmt.Errorf("could not get secret: %w", err)
-	}
-
-	return &secret, nil
-}
-
-func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
-	if err := k.Client.Get(ctx, name, resource); err != nil {
-		if apierrors.IsNotFound(err) {
-			return nil
-		}
-
-		return fmt.Errorf("error getting resource: %w", err)
-	}
-
-	return nil
-}
-
-func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error) {
-	configBytes, err := kyaml.Marshal(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
-	}
-
-	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
-
-	cm := &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "ConfigMap",
-			APIVersion: corev1.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name.Name,
-			Namespace: name.Namespace,
-		},
-		Data: map[string]string{
-			"config": string(configBytes),
-		},
-	}
-
-	orginalCm := cm.DeepCopy()
-
-	if err := k.Client.Get(ctx, name, cm); err != nil {
-		if apierrors.IsNotFound(err) {
-			if err = k.Client.Create(ctx, cm); err != nil {
-				return nil, fmt.Errorf("failed creating weave-gitops configmap: %w", err)
-			}
-
-			return orginalCm, nil
-		}
-
-		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
-	}
-
-	cm.Data["config"] = string(configBytes)
-
-	if err = k.Client.Update(ctx, cm); err != nil {
-		return nil, fmt.Errorf("failed updating weave-gitops configmap: %w", err)
-	}
-
-	return orginalCm, nil
-}
-
 // GetWegoConfig fetches the wego config saved in the cluster in a given namespace.
 // If an empty namespace is passed it will search in all namespaces and return the first one it finds.
 func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
@@ -386,41 +263,6 @@ func (k *KubeHTTP) getWegoConfigMapFromAllNamespaces(ctx context.Context) (*core
 	}
 
 	return nil, ErrWegoConfigNotFound
-}
-
-// FetchNamespaceWithLabel fetches a namespace where a label follows key=value
-func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error) {
-	selector := labels.NewSelector()
-
-	partOf, err := labels.NewRequirement(key, selection.Equals, []string{value})
-	if err != nil {
-		return nil, fmt.Errorf("bad requirement: %w", err)
-	}
-
-	selector = selector.Add(*partOf)
-
-	options := client.ListOptions{
-		LabelSelector: selector,
-	}
-
-	nsl := &corev1.NamespaceList{}
-	if err := k.Client.List(ctx, nsl, &options); err != nil {
-		return nil, fmt.Errorf("failed getting namespaces list: %w", err)
-	}
-
-	switch totalNamespaces := len(nsl.Items); {
-	case totalNamespaces == 0:
-		return nil, ErrNamespaceNotFound
-	case totalNamespaces > 1:
-		namespaces := make([]string, 0)
-		for _, n := range nsl.Items {
-			namespaces = append(namespaces, n.Name)
-		}
-
-		return nil, fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
-	default:
-		return &nsl.Items[0], nil
-	}
 }
 
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
