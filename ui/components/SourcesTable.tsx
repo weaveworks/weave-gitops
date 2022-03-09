@@ -16,6 +16,7 @@ import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -132,6 +133,12 @@ function SourcesTable({ className, sources }: Props) {
             label: "Interval",
             value: (s: Source) => showInterval(s.interval),
             width: 96,
+          },
+          {
+            label: "Last Updated",
+            value: (s: Source) => (
+              <Timestamp time={(s as GitRepository).lastUpdatedAt} />
+            ),
           },
         ]}
       />

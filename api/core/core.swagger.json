@@ -529,6 +529,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
         }
       }
     },
@@ -690,6 +693,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
         }
       }
     },
@@ -754,6 +760,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
         }
       }
     },
@@ -789,6 +798,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
         }
       }
     },
@@ -815,6 +827,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
         }
       }
     },

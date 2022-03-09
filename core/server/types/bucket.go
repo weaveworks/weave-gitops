@@ -63,9 +63,10 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 			Minutes: 1,
 		},
 		// SecretRefName: bucket.Spec.SecretRef.Name,
-		Conditions: mapConditions(bucket.Status.Conditions),
-		Suspended:  bucket.Spec.Suspend,
-		BucketName: bucket.Spec.BucketName,
+		Conditions:    mapConditions(bucket.Status.Conditions),
+		Suspended:     bucket.Spec.Suspend,
+		BucketName:    bucket.Spec.BucketName,
+		LastUpdatedAt: updatedAtShim{bucket: bucket}.lastUpdatedAt(),
 	}
 
 	if bucket.Spec.SecretRef != nil {
