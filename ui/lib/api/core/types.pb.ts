@@ -159,7 +159,7 @@ export type Event = {
   type?: string
   reason?: string
   message?: string
-  timestamp?: number
+  timestamp?: string
   component?: string
   host?: string
   name?: string

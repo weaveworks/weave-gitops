@@ -2,12 +2,14 @@ import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { useListFluxEvents } from "../hooks/events";
-import { ObjectReference } from "../lib/api/core/types.pb";
+import { Event, ObjectReference } from "../lib/api/core/types.pb";
 import { WeGONamespace } from "../lib/types";
 import Alert from "./Alert";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
+import Text from "./Text";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -45,9 +47,16 @@ function EventsTable({
     <DataTable
       className={className}
       fields={[
+        {
+          value: (e: Event) => <Text capitalize>{e.reason}</Text>,
+          label: "Reason",
+        },
         { value: "message", label: "Message" },
-        { value: "source", label: "Source" },
-        { value: "reason", label: "Reason" },
+        { value: "component", label: "Component" },
+        {
+          label: "Timestamp",
+          value: (e: Event) => <Timestamp time={e.timestamp} />,
+        },
       ]}
       rows={data.events}
     />

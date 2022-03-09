@@ -35,7 +35,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 				Name:      e.ObjectMeta.Name,
 				Reason:    e.Reason,
 				Message:   e.Message,
-				Timestamp: int32(e.LastTimestamp.Unix()),
+				Timestamp: e.LastTimestamp.String(),
 				Host:      e.Source.Host,
 			})
 		}

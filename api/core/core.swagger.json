@@ -643,8 +643,7 @@
           "type": "string"
         },
         "timestamp": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         },
         "component": {
           "type": "string"
