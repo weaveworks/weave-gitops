@@ -30,15 +30,6 @@ service Applications {
     }
 
     /**
-     * ListCommits returns the list of WeGo commits that the authenticated user has access to.
-    */
-    rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
-        option (google.api.http) = {
-            get : "/v1/applications/{name}/commits",
-        };
-    }
-
-    /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
     * This code is used to start the Github device-flow.
     */
@@ -123,30 +114,6 @@ message AuthenticateRequest {
 
 message AuthenticateResponse {
     string token = 1;  // The jwt token that was generated using git provider name and git provider token
-}
-
-message Commit {
-    string   hash    = 1;  // The hash of the commit
-    string   date    = 2;  // The date the commit was made.
-    string   author  = 3;  // The author of the commit
-    string   message = 4;  // The commit message
-    string   url     = 5;  // The commit url
-}
-
-message ListCommitsRequest {
-    string name      = 1;  // The application name
-    string namespace = 2;  // The namespace the application is in
-    int32  page_size = 3;
-    // Optional. A pagination token returned from a previous call
-    // that indicates where this listing should continue from.
-    optional int32 page_token = 4;
-}
-
-message ListCommitsResponse {
-    repeated Commit commits = 1; // A list of commits
-    // A pagination token returned from a previous call
-    // that indicates from where listing should continue.
-    int32 next_page_token = 2;
 }
 
 message GetGithubDeviceCodeRequest {

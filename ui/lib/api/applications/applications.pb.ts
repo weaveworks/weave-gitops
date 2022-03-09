@@ -6,15 +6,6 @@
 
 import * as fm from "./fetch.pb"
 
-type Absent<T, K extends keyof T> = { [k in Exclude<keyof T, K>]?: undefined };
-type OneOf<T> =
-  | { [k in keyof T]?: undefined }
-  | (
-    keyof T extends infer K ?
-      (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
-        : never)
-    : never);
-
 export enum GitProvider {
   Unknown = "Unknown",
   GitHub = "GitHub",
@@ -28,29 +19,6 @@ export type AuthenticateRequest = {
 
 export type AuthenticateResponse = {
   token?: string
-}
-
-export type Commit = {
-  hash?: string
-  date?: string
-  author?: string
-  message?: string
-  url?: string
-}
-
-
-type BaseListCommitsRequest = {
-  name?: string
-  namespace?: string
-  pageSize?: number
-}
-
-export type ListCommitsRequest = BaseListCommitsRequest
-  & OneOf<{ pageToken: number }>
-
-export type ListCommitsResponse = {
-  commits?: Commit[]
-  nextPageToken?: number
 }
 
 export type GetGithubDeviceCodeRequest = {
@@ -117,9 +85,6 @@ export type GetFeatureFlagsResponse = {
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static ListCommits(req: ListCommitsRequest, initReq?: fm.InitReq): Promise<ListCommitsResponse> {
-    return fm.fetchReq<ListCommitsRequest, ListCommitsResponse>(`/v1/applications/${req["name"]}/commits?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetGithubDeviceCode(req: GetGithubDeviceCodeRequest, initReq?: fm.InitReq): Promise<GetGithubDeviceCodeResponse> {
     return fm.fetchReq<GetGithubDeviceCodeRequest, GetGithubDeviceCodeResponse>(`/v1/applications/auth_providers/github?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

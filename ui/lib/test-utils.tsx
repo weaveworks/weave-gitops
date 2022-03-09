@@ -11,8 +11,6 @@ import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeRequest,
   GetGithubDeviceCodeResponse,
-  ListCommitsRequest,
-  ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
   ValidateProviderTokenRequest,
@@ -60,7 +58,6 @@ export const createCoreMockClient = (
 };
 
 export type ApplicationOverrides = {
-  ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
   GetGithubDeviceCode?: (
     req: GetGithubDeviceCodeRequest
   ) => GetGithubDeviceCodeResponse;
