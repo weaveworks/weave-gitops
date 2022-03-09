@@ -134,31 +134,6 @@ func PrintTable(writer io.Writer, header []string, rows [][]string) {
 	table.Render()
 }
 
-func CleanCommitMessage(msg string) string {
-	str := strings.ReplaceAll(msg, "\n", " ")
-	if len(str) > 50 {
-		str = str[:49] + "..."
-	}
-
-	return str
-}
-
-func CleanCommitCreatedAt(createdAt time.Time) string {
-	return createdAt.Format(time.RFC3339)
-}
-
-func ConvertCommitHashToShort(hash string) string {
-	return hash[:7]
-}
-
-func ConvertCommitURLToShort(url string) string {
-	urlArray := strings.SplitAfter(url, "commit/")
-	path := urlArray[0]
-	hash := urlArray[1][:7]
-
-	return path + hash
-}
-
 func MigrateToNewDirStructure(orig string) string {
 	if orig == "" {
 		return orig

@@ -5,13 +5,11 @@ import (
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
@@ -20,7 +18,6 @@ import (
 
 // Factory provides helpers for generating various WeGO service objects at runtime.
 type Factory interface {
-	GetAppService(ctx context.Context, kubeClient kube.Kube) (app.AppService, error)
 	GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 }
 
@@ -30,18 +27,6 @@ type GitConfigParams struct {
 	Namespace        string
 	IsHelmRepository bool
 	DryRun           bool
-}
-
-func NewGitConfigParamsFromApp(app *wego.Application, dryRun bool) GitConfigParams {
-	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
-
-	return GitConfigParams{
-		URL:              app.Spec.URL,
-		ConfigRepo:       app.Spec.ConfigRepo,
-		Namespace:        app.Namespace,
-		IsHelmRepository: isHelmRepository,
-		DryRun:           dryRun,
-	}
 }
 
 type defaultFactory struct {
@@ -54,10 +39,6 @@ func NewFactory(fluxClient flux.Flux, log logger.Logger) Factory {
 		fluxClient: fluxClient,
 		log:        log,
 	}
-}
-
-func (f *defaultFactory) GetAppService(ctx context.Context, kubeClient kube.Kube) (app.AppService, error) {
-	return app.New(ctx, f.log, kubeClient), nil
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
