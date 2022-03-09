@@ -1,18 +1,15 @@
-import { Tab, Tabs } from "@material-ui/core";
 import { createHashHistory } from "history";
 import * as React from "react";
-import { HashRouter, Redirect, Route, Switch } from "react-router-dom";
 import styled from "styled-components";
 import EventsTable from "../../components/EventsTable";
+import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
-import Link from "../../components/Link";
 import Page from "../../components/Page";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
-import Text from "../../components/Text";
 import { useGetKustomization } from "../../hooks/automations";
 import { AutomationKind } from "../../lib/api/core/types.pb";
 import { WeGONamespace } from "../../lib/types";
@@ -29,22 +26,6 @@ const Info = styled.div`
 const TabContent = styled.div`
   margin-top: 52px;
 `;
-
-function routesToIndex(route: string) {
-  switch (route) {
-    case "/details":
-      return 0;
-    case "/events":
-      return 1;
-
-    default:
-      return 0;
-  }
-}
-
-function activeClassName(route, hashHistory) {
-  return `${hashHistory.location.pathname === route && "active-tab"}`;
-}
 
 function KustomizationDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetKustomization(name);
@@ -75,57 +56,26 @@ function KustomizationDetail({ className, name }: Props) {
           ]}
         />
       </Info>
-      <Tabs
-        indicatorColor="primary"
-        value={routesToIndex(hashHistory.location.pathname)}
-        onChange={(e, val) => {
-          hashHistory.push(val === 0 ? "details" : "events");
-        }}
-      >
-        <Link href="#/details">
-          <Tab
-            className={activeClassName("/details", hashHistory)}
-            label={
-              <Text uppercase bold>
-                Details
-              </Text>
-            }
-          />
-        </Link>
-        <Link href="#/events">
-          <Tab
-            className={activeClassName("/events", hashHistory)}
-            label={
-              <Text uppercase bold>
-                Events
-              </Text>
-            }
-          />
-        </Link>
-      </Tabs>
       <TabContent>
-        <HashRouter>
-          <Switch>
-            <Route exact path="/details">
-              <ReconciledObjectsTable
-                kinds={kustomization?.inventory}
-                automationName={kustomization?.name}
-                namespace={WeGONamespace}
-                automationKind={AutomationKind.KustomizationAutomation}
-              />
-            </Route>
-            <Route exact path="/events">
-              <EventsTable
-                involvedObject={{
-                  kind: AutomationKind.KustomizationAutomation,
-                  name,
-                  namespace: kustomization?.namespace,
-                }}
-              />
-            </Route>
-            <Redirect exact from="/" to="/details" />
-          </Switch>
-        </HashRouter>
+        <HashRouterTabs history={hashHistory} defaultPath="/details">
+          <HashRouterTab name="Details" path="/details">
+            <ReconciledObjectsTable
+              kinds={kustomization?.inventory}
+              automationName={kustomization?.name}
+              namespace={WeGONamespace}
+              automationKind={AutomationKind.KustomizationAutomation}
+            />
+          </HashRouterTab>
+          <HashRouterTab name="Events" path="/events">
+            <EventsTable
+              involvedObject={{
+                kind: AutomationKind.KustomizationAutomation,
+                name,
+                namespace: kustomization?.namespace,
+              }}
+            />
+          </HashRouterTab>
+        </HashRouterTabs>
       </TabContent>
     </Page>
   );
@@ -133,8 +83,4 @@ function KustomizationDetail({ className, name }: Props) {
 
 export default styled(KustomizationDetail).attrs({
   className: KustomizationDetail.name,
-})`
-  .MuiTabs-root ${Link} .active-tab {
-    background: ${(props) => props.theme.colors.primary}19;
-  }
-`;
+})``;
