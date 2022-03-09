@@ -46,12 +46,16 @@ function KubeStatusIndicator({
   } else {
     const ready = computeReady(conditions);
     icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
-    readyText = ready ? "Ready" : computeMessage(conditions);
+    readyText = ready ? "Ready" : "Not Ready";
   }
 
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} text={short ? readyText : message} />
+      <Icon
+        size="base"
+        type={icon}
+        text={short ? readyText : computeMessage(conditions)}
+      />
     </Flex>
   );
 }

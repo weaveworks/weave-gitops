@@ -4,7 +4,7 @@ import {
   Bucket,
   GitRepository,
   HelmChart,
-  SourceRefSourceKind
+  SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
@@ -16,10 +16,6 @@ import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
-<<<<<<< HEAD
-=======
-import DataTable, { SortType } from "./DataTable";
->>>>>>> 665abff8 (moved suspended outside of conditions type)
 
 type Props = {
   className?: string;
@@ -135,10 +131,7 @@ function SourcesTable({ className, sources }: Props) {
           {
             label: "Interval",
             value: (s: Source) => showInterval(s.interval),
-<<<<<<< HEAD
             width: 96,
-=======
->>>>>>> 665abff8 (moved suspended outside of conditions type)
           },
         ]}
       />
