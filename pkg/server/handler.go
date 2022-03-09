@@ -48,8 +48,8 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	}
 
 	if AuthEnabled() {
-		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 		httpHandler = multicluster.WithClustersClients(restCfg, httpHandler)
+		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 	}
 
 	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)

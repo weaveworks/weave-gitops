@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
@@ -18,6 +19,10 @@ const (
 
 const (
 	ClustersConfigMapName = "leaf-clusters"
+)
+
+var (
+	scheme = kube.CreateScheme()
 )
 
 // Cluster defines a leaf cluster
@@ -114,13 +119,17 @@ func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true, // TODO: proper certs loading
 		},
-		Impersonate: rest.ImpersonationConfig{
-			UserName: user.ID,
-			Groups:   user.Groups,
-		},
+		// Impersonate: rest.ImpersonationConfig{
+		// 	UserName: "luiz.filho@weave.works",
+		// 	Groups:   user.Groups,
+		// },
 	}
 
-	leafClient, err := client.New(config, client.Options{})
+	fmt.Println(config)
+
+	leafClient, err := client.New(config, client.Options{
+		Scheme: scheme,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}

@@ -14,7 +14,8 @@ func WithClustersClients(hubRestConfig *rest.Config, next http.Handler) http.Han
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.Principal(r.Context())
 		if user == nil {
-			http.Error(w, "Failed creating clusters clients. No user authenticated", http.StatusUnauthorized)
+			//TODO: log ignored
+			next.ServeHTTP(w, r)
 			return
 		}
 
