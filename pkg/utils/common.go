@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/olekukonko/tablewriter"
-
 	"github.com/benbjohnson/clock"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 
@@ -114,24 +112,6 @@ func ValidateNamespace(ns string) error {
 	}
 
 	return nil
-}
-
-func PrintTable(writer io.Writer, header []string, rows [][]string) {
-	table := tablewriter.NewWriter(writer)
-	table.SetHeader(header)
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetBorder(false)
-	table.SetTablePadding("\t")
-	table.SetNoWhiteSpace(true)
-	table.AppendBulk(rows)
-	table.Render()
 }
 
 func CleanCommitMessage(msg string) string {
