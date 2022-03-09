@@ -38,9 +38,7 @@ function FluxRuntime({ className }: Props) {
           },
           {
             label: "Cluster",
-            value: "cluster",
-            sortType: SortType.string,
-            sortValue: ({ cluster }) => cluster,
+            value: () => "Default",
           },
           {
             value: (v: Deployment) => (

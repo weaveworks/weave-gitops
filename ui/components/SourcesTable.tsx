@@ -7,16 +7,15 @@ import {
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
-import { showInterval } from "../lib/time";
-import DataTable, { SortType } from "./DataTable";
+import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
-import KubeStatusIndicator from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
-import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -24,7 +23,7 @@ type Props = {
   appName?: string;
 };
 
-const statusWidth = 480;
+const statusWidth = 340;
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
@@ -60,20 +59,26 @@ function SourcesTable({ className, sources }: Props) {
             ),
             sortType: SortType.string,
             sortValue: (s: Source) => s.name || "",
-            width: 100,
+            width: 96,
           },
-          { label: "Type", value: "type" },
-
+          { label: "Type", value: "type", width: 96 },
           {
             label: "Status",
             value: (s: Source) => (
-              <KubeStatusIndicator conditions={s.conditions} />
+              <KubeStatusIndicator short conditions={s.conditions} />
             ),
+            width: 96,
+          },
+          {
+            label: "Message",
+            value: (s) => computeMessage(s.conditions),
+
             width: statusWidth,
           },
           {
             label: "Cluster",
-            value: "cluster",
+            value: () => "Default",
+            width: 96,
           },
           {
             label: "URL",
@@ -102,6 +107,7 @@ function SourcesTable({ className, sources }: Props) {
                 text
               );
             },
+            width: 240,
           },
           {
             label: "Reference",
@@ -116,10 +122,12 @@ function SourcesTable({ className, sources }: Props) {
 
               return isGit ? ref : "-";
             },
+            width: 96,
           },
           {
             label: "Interval",
-            value: (s: Source) => showInterval(s.interval)
+            value: (s: Source) => showInterval(s.interval),
+            width: 96,
           },
         ]}
       />
@@ -128,15 +136,7 @@ function SourcesTable({ className, sources }: Props) {
 }
 
 export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
-  /* Setting this here to get the ellipsis to work */
-  /* Because this is a div within a td, overflow doesn't apply to the td */
-  ${KubeStatusIndicator} ${Flex} ${Text} {
-    max-width: ${statusWidth}px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  ${DataTable} table {
+  table {
     table-layout: fixed;
   }
 `;

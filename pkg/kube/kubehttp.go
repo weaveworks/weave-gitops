@@ -266,15 +266,6 @@ func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dyna
 	return dr, obj.GetName(), data, nil
 }
 
-func (k *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
-	app := wego.Application{}
-	if err := k.Client.Get(ctx, name, &app); err != nil {
-		return nil, fmt.Errorf("could not get application: %w", err)
-	}
-
-	return &app, nil
-}
-
 func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
 	dr, name, data, err := k.getResourceInterface(manifest, "")
 	if err != nil {
@@ -289,19 +280,6 @@ func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
 	err = dr.Delete(ctx, name, deleteOptions)
 	if err != nil {
 		return fmt.Errorf("failed deleting %s: %w", string(data), err)
-	}
-
-	return nil
-}
-
-func (c *KubeHTTP) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
-	deletePolicy := metav1.DeletePropagationForeground
-	deleteOptions := metav1.DeleteOptions{
-		PropagationPolicy: &deletePolicy,
-	}
-
-	if err := c.DynClient.Resource(gvr).Namespace(namespace).Delete(ctx, name, deleteOptions); err != nil {
-		return fmt.Errorf("failed to delete resource name=%s resource-type=%#v namespace=%s error=%w", name, gvr, namespace, err)
 	}
 
 	return nil

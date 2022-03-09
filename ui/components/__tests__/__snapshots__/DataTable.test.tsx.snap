@@ -123,6 +123,8 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c0 td {
+  word-break: break-all;
+  word-wrap: break-word;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

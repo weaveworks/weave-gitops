@@ -20,28 +20,25 @@ export type PageProps = {
 };
 
 export const Content = styled.div`
-  min-height: 85vh;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  min-width: 1260px;
-  box-sizing: border-box;
   background-color: rgba(255, 255, 255, 0.75);
-  padding-left: ${(props) => props.theme.spacing.large};
-  padding-right: ${(props) => props.theme.spacing.large};
-  padding-top: ${(props) => props.theme.spacing.large};
-  padding-bottom: ${(props) => props.theme.spacing.medium};
   border-radius: 10px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  min-width: 1260px;
+  padding-bottom: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.large};
+  padding-top: ${(props) => props.theme.spacing.large};
+  width: 100%;
 `;
 
 const Children = styled.div``;
 
 export const TitleBar = styled.div`
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
   align-items: center;
+  display: flex;
+  justify-content: space-between;
   margin-bottom: ${(props) => props.theme.spacing.small};
+  width: 100%;
 
   h2 {
     margin: 0 !important;
@@ -97,7 +94,6 @@ function Page({
 }
 
 export default styled(Page)`
-  min-height: 1216px;
   .MuiAlert-root {
     width: 100%;
   }

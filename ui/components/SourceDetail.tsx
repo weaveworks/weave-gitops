@@ -33,6 +33,16 @@ function SourceDetail({ className, name, info }: Props) {
 
   const s = _.find(sources, { name });
 
+  if (!s) {
+    return (
+      <Alert
+        severity="error"
+        title="Not found"
+        message={`Could not find source '${name}'`}
+      />
+    );
+  }
+
   const items = info(s);
 
   const relevantAutomations = _.filter(automations, (a) => {

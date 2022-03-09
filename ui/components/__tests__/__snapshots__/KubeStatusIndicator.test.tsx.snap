@@ -176,7 +176,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
       className="c5 c6"
       size="normal"
     >
-      Ready
+      Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161
     </span>
   </div>
 </div>

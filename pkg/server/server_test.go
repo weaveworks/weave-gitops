@@ -12,14 +12,10 @@ import (
 	"strings"
 	"time"
 
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -34,10 +30,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -97,148 +90,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrEmptyAccessToken))
 	})
-	Describe("GetReconciledObjects", func() {
-		It("gets object with a kustomization + git repo configuration", func() {
-			ctx := context.Background()
-			name := "my-app"
-			kustomization := kustomizev2.Kustomization{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: kustomizev2.KustomizationSpec{
-					SourceRef: kustomizev2.CrossNamespaceSourceReference{
-						Kind: sourcev1.GitRepositoryKind,
-					},
-				},
-				Status: kustomizev2.KustomizationStatus{
-					Inventory: &kustomizev2.ResourceInventory{
-						Entries: []kustomizev2.ResourceRef{
-							{
-								Version: "v1",
-								ID:      namespace.Name + "_my-deployment_apps_Deployment",
-							},
-						},
-					},
-				},
-			}
-			reconciledObj := appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-deployment",
-					Namespace: namespace.Name,
-					Labels: map[string]string{
-						KustomizeNameKey:      name,
-						KustomizeNamespaceKey: namespace.Name,
-					},
-				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app": name,
-						},
-					},
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{"app": name},
-						},
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{{
-								Name:  "nginx",
-								Image: "nginx",
-							}},
-						},
-					},
-				},
-			}
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-			Expect(k8sClient.Create(ctx, &kustomization)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, &reconciledObj)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-			res, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
-				AutomationName:      name,
-				AutomationNamespace: namespace.Name,
-				AutomationKind:      pb.AutomationKind_Kustomize,
-				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Objects).To(HaveLen(1))
-
-			first := res.Objects[0]
-			Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
-			Expect(first.Name).To(Equal(reconciledObj.Name))
-		})
-	})
-	Describe("GetChildObjects", func() {
-		It("returns child objects for a parent", func() {
-			ctx := context.Background()
-			name := "my-app"
-			deployment := &appsv1.Deployment{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-deployment",
-					Namespace: namespace.Name,
-				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app": name,
-						},
-					},
-					Template: corev1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{"app": name},
-						},
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{{
-								Name:  "nginx",
-								Image: "nginx",
-							}},
-						},
-					},
-				},
-			}
-			Expect(k8sClient.Create(ctx, deployment)).Should(Succeed())
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment))
-			Expect(deployment.UID).NotTo(Equal(""))
-			rs := &appsv1.ReplicaSet{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("%s-123abcd", name),
-					Namespace: namespace.Name,
-				},
-				Spec: appsv1.ReplicaSetSpec{
-					Template: deployment.Spec.Template,
-					Selector: deployment.Spec.Selector,
-				},
-			}
-			rs.SetOwnerReferences([]metav1.OwnerReference{{
-				UID:        deployment.UID,
-				APIVersion: appsv1.SchemeGroupVersion.String(),
-				Kind:       "Deployment",
-				Name:       deployment.Name,
-			}})
-
-			Expect(k8sClient.Create(ctx, rs)).Should(Succeed())
-
-			res, err := appsClient.GetChildObjects(ctx, &pb.GetChildObjectsReq{
-				ParentUid:        string(deployment.UID),
-				GroupVersionKind: &pb.GroupVersionKind{Group: "apps", Version: "v1", Kind: "ReplicaSet"},
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Objects).To(HaveLen(1))
-
-			first := res.Objects[0]
-			Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-			Expect(first.Name).To(Equal(rs.Name))
-		})
-	})
-
 	Describe("GetGithubDeviceCode", func() {
 		It("returns a device code", func() {
 			ctx := context.Background()
@@ -304,108 +155,6 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(ok).To(BeTrue(), "could not get status from err")
 			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
 			Expect(res).To(BeNil())
-		})
-	})
-
-	Describe("SyncApplication", func() {
-		var (
-			ctx    context.Context
-			name   string
-			app    *wego.Application
-			kust   *kustomizev2.Kustomization
-			source *sourcev1.GitRepository
-		)
-
-		BeforeEach(func() {
-			ctx = context.Background()
-			name = "my-app"
-			app = &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-
-			kust = &kustomizev2.Kustomization{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: kustomizev2.KustomizationSpec{
-					SourceRef: kustomizev2.CrossNamespaceSourceReference{
-						Kind: "GitRepository",
-					},
-				},
-				Status: kustomizev2.KustomizationStatus{
-					ReconcileRequestStatus: meta.ReconcileRequestStatus{
-						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
-					},
-				},
-			}
-
-			source = &sourcev1.GitRepository{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: sourcev1.GitRepositorySpec{
-					URL: "https://github.com/owner/repo",
-				},
-				Status: sourcev1.GitRepositoryStatus{
-					ReconcileRequestStatus: meta.ReconcileRequestStatus{
-						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
-					},
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, source)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
-		})
-
-		// TODO: Issue 981 fix flaky test
-		XIt("trigger the reconcile loop for an application", func() {
-			appRequest := &pb.SyncApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-			}
-
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
-			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
-
-			done := make(chan bool)
-			defer close(done)
-
-			go func() {
-				defer GinkgoRecover()
-
-				res, err := appsClient.SyncApplication(contextWithAuth(ctx), appRequest)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(res.Success).To(BeTrue())
-				done <- true
-			}()
-
-			ticker := time.NewTicker(500 * time.Millisecond)
-			for {
-				select {
-				case <-ticker.C:
-					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
-					source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-					Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
-					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
-					kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-					Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
-				case <-done:
-					return
-				case <-time.After(3 * time.Second):
-					Fail("SyncApplication test timed out")
-				}
-			}
 		})
 	})
 

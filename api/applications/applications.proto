@@ -37,28 +37,6 @@ service Applications {
             get : "/v1/applications/{name}/commits",
         };
     }
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result of the Application.
-    * This list is derived by looking at the Kustomization that is associated with an Application.
-    * Helm Releases are not currently supported.
-    */
-    rpc GetReconciledObjects(GetReconciledObjectsReq) returns (GetReconciledObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/{automationName}/reconciled_objects"
-            body: "*"
-        };
-    };
-
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
-    rpc GetChildObjects(GetChildObjectsReq) returns (GetChildObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/child_objects"
-            body: "*"
-        };
-    };
 
     /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
@@ -108,16 +86,6 @@ service Applications {
         };
     }
 
-    /*
-    * SyncApplication triggers the Application reconciliation loop.
-    */
-    rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications/{name}/sync"
-            body: "*"
-        };
-    }
-
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */
@@ -157,15 +125,6 @@ message AuthenticateResponse {
     string token = 1;  // The jwt token that was generated using git provider name and git provider token
 }
 
-message SyncApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-}
-
-message SyncApplicationResponse {
-    bool success = 1;
-}
-
 message Commit {
     string   hash    = 1;  // The hash of the commit
     string   date    = 2;  // The date the commit was made.
@@ -189,49 +148,6 @@ message ListCommitsResponse {
     // that indicates from where listing should continue.
     int32 next_page_token = 2;
 }
-
-// GroupVersionKind represents an objects Kubernetes API type data
-message GroupVersionKind {
-    string group   = 1;
-    string kind    = 2;
-    string version = 3;
-}
-
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind = 1;
-    string           name             = 2;
-    string           namespace        = 3;
-    string           uid              = 4;
-    string           status           = 5;
-}
-
-message GetReconciledObjectsReq {
-    string   automationName      = 1;
-    string   automationNamespace = 2;
-    AutomationKind automationKind = 3;
-    repeated GroupVersionKind kinds = 4;
-}
-// AutomationKind represents the deployment method used
-enum AutomationKind {
-    Kustomize = 0;
-    Helm      = 1;
-}
-
-message GetReconciledObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
-
-message GetChildObjectsReq {
-    GroupVersionKind groupVersionKind = 1;
-    string           parentUid        = 2;
-}
-
-message GetChildObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
 
 message GetGithubDeviceCodeRequest {
 

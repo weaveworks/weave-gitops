@@ -58,22 +58,33 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
 `;
 
 const NavContainer = styled.div`
+  position: relative;
   width: 240px;
+  height: 0;
   min-height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
+  margin-right: ${(props) => props.theme.spacing.medium};
   background-color: ${(props) => props.theme.colors.neutral00};
   border-radius: 10px;
 `;
 
+const FixedNav = styled.div`
+  background-color: white;
+  position: fixed;
+  height: 100%;
+  top: 80;
+  width: 240px;
+  left: 0;
+`;
+
 const NavContent = styled.div`
-  min-height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
   .MuiTab-textColorInherit {
@@ -111,7 +122,6 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
-  min-height: 100vh;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
@@ -151,25 +161,27 @@ function Layout({ className, children }: Props) {
         </TopToolBar>
         <Main wide>
           <NavContainer>
-            <NavContent>
-              <Tabs
-                centered={false}
-                orientation="vertical"
-                value={getParentNavValue(currentPage)}
-              >
-                {_.map(navItems, (n) => (
-                  <StyleLinkTab
-                    key={n.label}
-                    label={n.label}
-                    to={formatURL(n.value)}
-                    value={n.value}
-                    className={n.sub && "sub-item"}
-                    href={n.href}
-                    newTab={n.newTab}
-                  />
-                ))}
-              </Tabs>
-            </NavContent>
+            <FixedNav>
+              <NavContent>
+                <Tabs
+                  centered={false}
+                  orientation="vertical"
+                  value={getParentNavValue(currentPage)}
+                >
+                  {_.map(navItems, (n) => (
+                    <StyleLinkTab
+                      key={n.label}
+                      label={n.label}
+                      to={formatURL(n.value)}
+                      value={n.value}
+                      className={n.sub && "sub-item"}
+                      href={n.href}
+                      newTab={n.newTab}
+                    />
+                  ))}
+                </Tabs>
+              </NavContent>
+            </FixedNav>
           </NavContainer>
           <ContentContainer>{children}</ContentContainer>
         </Main>
