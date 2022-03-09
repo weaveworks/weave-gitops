@@ -69,6 +69,7 @@ const (
 const (
 	DefaultNamespace           = "flux-system"
 	DefaultSuperUserSecretHash = "admin-password-hash"
+	DefaultClaimsSubject       = "wego-admin"
 )
 
 // ApplicationStatus defines the observed state of Application
