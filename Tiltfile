@@ -35,4 +35,4 @@ helm_stuff = helm(
 
 k8s_yaml(helm_stuff)
 
-k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9000'])
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9001'])
