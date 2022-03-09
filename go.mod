@@ -250,16 +250,3 @@ require (
 
 // Fix for CVE-2020-26160: https://github.com/advisories/GHSA-w73w-5m7g-f7qc
 replace github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.1.0
-
-// CVE-2014-3499
-replace github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 => github.com/docker/docker v1.6.1
-
-// CVE-2020-8552
-replace k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655 => k8s.io/apimachinery v0.19.0
-
-// CVE-2020-8552
-replace k8s.io/apiserver v0.0.0-20190918160949-bfa5e2e684ad => k8s.io/apiserver v0.17.3
-
-replace k8s.io/apiextensions-apiserver v0.0.0-20190918161926-8f644eb6e783 => k8s.io/apiextensions-apiserver v0.20.2
-
-replace k8s.io/api v0.0.0-20190918155943-95b840bb6a1f => k8s.io/api v0.17.0
