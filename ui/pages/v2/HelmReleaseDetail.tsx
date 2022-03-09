@@ -24,9 +24,6 @@ const Info = styled.div`
 function HelmReleaseDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
-  console.log(helmRelease);
-
-  //TODO: lastUpdated, helmChart.sourceRef.name link not working bc name not being grabbed, nothing in table?!
 
   return (
     <Page loading={isLoading} error={error} className={className}>
