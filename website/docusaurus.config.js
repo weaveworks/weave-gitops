@@ -9,7 +9,7 @@ module.exports = {
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon_150px.png",
   organizationName: "weaveworks", // Usually your GitHub org/user name.
-  projectName: "weave-gitops-docs", // Usually your repo name.
+  projectName: "weave-gitops", // Usually your repo name.
   plugins: [
     () => ({
       // Load yaml files as blobs
@@ -110,7 +110,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
-          editUrl: "https://github.com/weaveworks/weave-gitops-docs/edit/main/",
+          editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
           lastVersion: versions[0],
           versions: {
             current: {
@@ -122,7 +122,7 @@ module.exports = {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            "https://github.com/weaveworks/weave-gitops-docs/edit/main/blog/",
+            "https://github.com/weaveworks/weave-gitops/edit/main/website/blog",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
