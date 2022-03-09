@@ -40,7 +40,8 @@ func TestMain(m *testing.M) {
 func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
 	s := grpc.NewServer()
 
-	core := server.NewCoreServer(cfg)
+	coreCfg := server.NewCoreConfig(cfg, "foobar")
+	core := server.NewCoreServer(coreCfg)
 
 	lis := bufconn.Listen(1024 * 1024)
 

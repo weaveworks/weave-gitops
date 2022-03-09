@@ -1,4 +1,4 @@
-package server_test
+package kube_test
 
 import (
 	"context"
@@ -6,15 +6,14 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/rest"
 )
 
-var _ kube.ConfigGetter = (*server.ImpersonatingConfigGetter)(nil)
+var _ kube.ConfigGetter = (*kube.ImpersonatingConfigGetter)(nil)
 
 func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
-	g := server.NewImpersonatingConfigGetter(&rest.Config{}, false)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false)
 	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
 
 	cfg := g.Config(ctx)
@@ -30,7 +29,7 @@ func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
 }
 
 func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
-	g := server.NewImpersonatingConfigGetter(&rest.Config{}, false)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false)
 	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com", Groups: []string{"test-group"}})
 
 	cfg := g.Config(ctx)
@@ -47,7 +46,7 @@ func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
 }
 
 func TestImpersonatingConfigGetterInsecureClient(t *testing.T) {
-	g := server.NewImpersonatingConfigGetter(&rest.Config{}, true)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true)
 	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
 
 	cfg := g.Config(ctx)
@@ -66,7 +65,7 @@ func TestImpersonatingConfigGetterInsecureClient(t *testing.T) {
 }
 
 func TestImpersonatingConfigGetterNoPrincipalInContext(t *testing.T) {
-	g := server.NewImpersonatingConfigGetter(&rest.Config{}, true)
+	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true)
 
 	cfg := g.Config(context.TODO())
 
