@@ -248,9 +248,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
 
-// https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
-replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1
-
 // https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMOPENCONTAINERSIMAGESPECSPECSGOV1-1922832
 replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
 
