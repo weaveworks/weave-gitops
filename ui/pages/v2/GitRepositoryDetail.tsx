@@ -27,7 +27,7 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
           ["Cluster", ""],
           ["Namespace", s.namespace],
         ]}
-      ></SourceDetail>
+      />
     </Page>
   );
 }
