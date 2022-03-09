@@ -1,4 +1,4 @@
-.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes crd
+.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
 VERSION=$(shell which git > /dev/null && git describe --always --match "v*")
 GOOS=$(shell which go > /dev/null && go env GOOS)
 GOARCH=$(shell which go > /dev/null && go env GOARCH)
@@ -110,12 +110,6 @@ lint: ## Run linters against code
 	@touch .deps
 
 dependencies: .deps ## Install build dependencies
-
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
-crd: ## Generate CRDs
-	@go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
-	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
 
 check-format: ## Check go format
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi

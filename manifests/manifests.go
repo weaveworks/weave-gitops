@@ -14,8 +14,6 @@ const (
 )
 
 var (
-	//go:embed crds/wego.weave.works_apps.yaml
-	AppCRD []byte
 	//go:embed wego-app/*
 	wegoAppTemplates embed.FS
 )
