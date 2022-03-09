@@ -27,7 +27,7 @@ export function computeMessage(conditions: Condition[]) {
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
 
-  return readyCondition.message;
+  return readyCondition ? readyCondition.message : "unknown error";
 }
 
 function KubeStatusIndicator({ className, conditions, short }: Props) {
