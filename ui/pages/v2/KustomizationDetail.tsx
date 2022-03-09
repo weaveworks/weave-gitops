@@ -2,12 +2,17 @@ import { createHashHistory } from "history";
 import * as React from "react";
 import styled from "styled-components";
 import EventsTable from "../../components/EventsTable";
+import Flex from "../../components/Flex";
 import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
-import KubeStatusIndicator from "../../components/KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeMessage,
+  computeReady,
+} from "../../components/KubeStatusIndicator";
 import Page from "../../components/Page";
+import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
 import { useGetKustomization } from "../../hooks/automations";
@@ -32,30 +37,34 @@ function KustomizationDetail({ className, name }: Props) {
   const hashHistory = createHashHistory();
 
   const kustomization = data?.kustomization;
-
+  const ok = computeReady(kustomization?.conditions);
+  const msg = computeMessage(kustomization?.conditions);
   return (
     <Page loading={isLoading} error={error} className={className}>
-      <Info>
-        <Heading level={1}>{kustomization?.name}</Heading>
-        <Heading level={2}>{kustomization?.namespace}</Heading>
-        <InfoList
-          items={[
-            ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
-            [
-              "Status",
-              <KubeStatusIndicator
-                conditions={kustomization?.conditions}
-                suspended={kustomization?.suspended}
-              />,
-            ],
-            ["Applied Revision", kustomization?.lastAppliedRevision],
-            ["Cluster", ""],
-            ["Path", kustomization?.path],
-            ["Interval", <Interval interval={kustomization?.interval} />],
-            ["Last Updated At", kustomization?.lastHandledReconciledAt],
-          ]}
-        />
-      </Info>
+      <Flex wide between>
+        <Info>
+          <Heading level={1}>{kustomization?.name}</Heading>
+          <Heading level={2}>{kustomization?.namespace}</Heading>
+          <InfoList
+            items={[
+              ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
+              [
+                "Status",
+                <KubeStatusIndicator
+                  conditions={kustomization?.conditions}
+                  suspended={kustomization?.suspended}
+                />,
+              ],
+              ["Applied Revision", kustomization?.lastAppliedRevision],
+              ["Cluster", ""],
+              ["Path", kustomization?.path],
+              ["Interval", <Interval interval={kustomization?.interval} />],
+              ["Last Updated At", kustomization?.lastHandledReconciledAt],
+            ]}
+          />
+        </Info>
+        <PageStatus ok={ok} msg={msg} error={error && true} />
+      </Flex>
       <TabContent>
         <HashRouterTabs history={hashHistory} defaultPath="/details">
           <HashRouterTab name="Details" path="/details">
