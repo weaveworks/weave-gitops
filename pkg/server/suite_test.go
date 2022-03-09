@@ -14,8 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -96,14 +94,6 @@ var _ = BeforeEach(func() {
 
 	fakeFactory = &servicesfakes.FakeFactory{}
 	configGit = &gitfakes.FakeGit{}
-
-	logger := &loggerfakes.FakeLogger{}
-
-	fakeFactory.GetAppServiceReturns(&app.AppSvc{
-		Context: context.Background(),
-		Kube:    k,
-		Logger:  logger,
-	}, nil)
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 

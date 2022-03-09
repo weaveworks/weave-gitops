@@ -19,10 +19,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -31,9 +29,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const DefaultPort = "9001"
@@ -136,84 +132,6 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 			DefaultConfig: rest,
 			ClusterName:   clusterName,
 		},
-	}, nil
-}
-
-//Until the middleware is done this function will not be able to get the token and will fail
-func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
-	providerToken, err := middleware.ExtractProviderToken(ctx)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error listing commits: %s", err.Error())
-	}
-
-	cl, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	kubeClient, err := s.kubeGetter.Kube(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kube service: %w", err)
-	}
-
-	pageToken := 0
-	if msg.PageToken != nil {
-		pageToken = int(*msg.PageToken)
-	}
-
-	params := app.CommitParams{
-		Name:             msg.Name,
-		Namespace:        msg.Namespace,
-		GitProviderToken: providerToken.AccessToken,
-		PageSize:         int(msg.PageSize),
-		PageToken:        pageToken,
-	}
-
-	application := &wego.Application{}
-	if err := cl.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
-		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
-	}
-
-	appService, err := s.factory.GetAppService(ctx, kubeClient)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", err.Error())
-	}
-
-	client := internal.NewGitProviderClient(providerToken.AccessToken)
-
-	_, gitProvider, err := s.factory.GetGitClients(ctx, kubeClient, client, services.GitConfigParams{
-		URL:        application.Spec.URL,
-		ConfigRepo: application.Spec.ConfigRepo,
-		Namespace:  msg.Namespace,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get git clients: %w", err)
-	}
-
-	commits, err := appService.GetCommits(gitProvider, params, application)
-	if err != nil {
-		return nil, err
-	}
-
-	list := []*pb.Commit{}
-
-	for _, commit := range commits {
-		c := commit.Get()
-
-		list = append(list, &pb.Commit{
-			Author:  c.Author,
-			Message: utils.CleanCommitMessage(c.Message),
-			Hash:    utils.ConvertCommitHashToShort(c.Sha),
-			Date:    utils.CleanCommitCreatedAt(c.CreatedAt),
-			Url:     utils.ConvertCommitURLToShort(c.URL),
-		})
-	}
-
-	nextPageToken := int32(pageToken + 1)
-
-	return &pb.ListCommitsResponse{
-		Commits:       list,
-		NextPageToken: nextPageToken,
 	}, nil
 }
 

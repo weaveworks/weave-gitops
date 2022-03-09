@@ -22,9 +22,6 @@ type ApplicationsClient interface {
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	//
-	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
-	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
-	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error)
@@ -68,15 +65,6 @@ func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
-	out := new(ListCommitsResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListCommits", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,9 +142,6 @@ type ApplicationsServer interface {
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	//
-	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
-	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
-	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error)
@@ -196,9 +181,6 @@ type UnimplementedApplicationsServer struct {
 
 func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
-}
-func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubDeviceCode not implemented")
@@ -248,24 +230,6 @@ func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCommitsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).ListCommits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/ListCommits",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ListCommits(ctx, req.(*ListCommitsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -406,10 +370,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _Applications_Authenticate_Handler,
-		},
-		{
-			MethodName: "ListCommits",
-			Handler:    _Applications_ListCommits_Handler,
 		},
 		{
 			MethodName: "GetGithubDeviceCode",
