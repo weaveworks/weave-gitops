@@ -21,7 +21,7 @@ const (
 	LoginOIDC                      string = "oidc"
 	LoginUsername                  string = "username"
 	ClusterUserAuthSecretNamespace string = "wego-system"
-	ClusterUserAuthSecretName      string = "admin-password-hash"
+	ClusterUserAuthSecretName      string = "cluster-user-auth"
 	OIDCAuthSecretNamespace        string = "wego-system"
 	OIDCAuthSecretName             string = "oidc-auth"
 )

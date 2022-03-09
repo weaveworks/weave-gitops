@@ -1390,7 +1390,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			name:     "Cluster auth secret set",
 			envSet:   func() {},
 			envUnset: func() {},
-			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "wego-system", Name: "admin-password-hash"}}},
+			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "wego-system", Name: "cluster-user-auth"}}},
 			result: map[string]string{
 				"WEAVE_GITOPS_AUTH_ENABLED": "",
 				"CLUSTER_USER_AUTH":         "true",
