@@ -59,3 +59,40 @@ func TestGetFluxNamespace_notFound(t *testing.T) {
 	_, err = coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
 	g.Expect(err).To(HaveOccurred())
 }
+
+func TestListNamespaces(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	coreClient, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, client, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	namespaces := []*corev1.Namespace{}
+	for len(namespaces) < 5 {
+		namespaces = append(namespaces, newNamespace(ctx, client, g))
+	}
+
+	res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
+
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Can't test with HaveLen, because we created a lot of namespaces in previous
+	// test cases and we never clean them up. It would be good, but we don't (yet).
+	for _, ns := range namespaces {
+		g.Expect(namespaceInResponse(res, ns)).To(BeTrue())
+	}
+}
+
+func namespaceInResponse(list *pb.ListNamespacesResponse, ns *corev1.Namespace) bool {
+	for _, item := range list.Namespaces {
+		if item.GetName() == ns.GetName() {
+			return true
+		}
+	}
+
+	return false
+}

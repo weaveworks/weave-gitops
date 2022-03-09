@@ -145,3 +145,10 @@ message UnstructuredObject {
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
 }
+
+message Namespace {
+  string name = 1;
+  string status = 2;
+  map<string, string> annotations = 3;
+  map<string, string> labels = 4;
+}

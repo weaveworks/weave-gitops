@@ -142,3 +142,10 @@ export type UnstructuredObject = {
   conditions?: Condition[]
   suspended?: boolean
 }
+
+export type Namespace = {
+  name?: string
+  status?: string
+  annotations?: {[key: string]: string}
+  labels?: {[key: string]: string}
+}
