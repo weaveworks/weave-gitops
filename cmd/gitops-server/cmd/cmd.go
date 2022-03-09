@@ -303,6 +303,10 @@ func listenAndServe(srv *http.Server, options Options) error {
 		return srv.ListenAndServe()
 	}
 
+	if options.TLSCertFile == "" || options.TLSKeyFile == "" {
+		return fmt.Errorf("flags --tls-cert-file and --tls-private-key-file cannot be empty")
+	}
+
 	if options.MTLS {
 		caCert, err := ioutil.ReadFile(options.TLSCertFile)
 		if err != nil {
