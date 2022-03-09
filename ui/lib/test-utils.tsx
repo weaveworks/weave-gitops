@@ -15,8 +15,6 @@ import {
   ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
-  SyncApplicationRequest,
-  SyncApplicationResponse,
   ValidateProviderTokenRequest,
   ValidateProviderTokenResponse,
 } from "./api/applications/applications.pb";
@@ -70,7 +68,6 @@ export type ApplicationOverrides = {
     req: GetGithubAuthStatusRequest
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
   ValidateProviderToken?: (
     req: ValidateProviderTokenRequest
   ) => ValidateProviderTokenResponse;

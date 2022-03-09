@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/benbjohnson/clock"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -20,12 +19,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -144,29 +139,6 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 	}, nil
 }
 
-func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
-	kubeClient, err := s.kubeGetter.Kube(ctx)
-	if err != nil {
-		return &pb.SyncApplicationResponse{
-			Success: false,
-		}, fmt.Errorf("failed to create kube service: %w", err)
-	}
-
-	appSrv := &app.AppSvc{
-		Kube:  kubeClient,
-		Clock: clock.New(),
-	}
-	if err := appSrv.Sync(app.SyncParams{Name: msg.Name, Namespace: msg.Namespace}); err != nil {
-		return &pb.SyncApplicationResponse{
-			Success: false,
-		}, fmt.Errorf("error syncing app: %w", err)
-	}
-
-	return &pb.SyncApplicationResponse{
-		Success: true,
-	}, nil
-}
-
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
@@ -243,126 +215,6 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		Commits:       list,
 		NextPageToken: nextPageToken,
 	}, nil
-}
-
-func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	cl, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var opts client.MatchingLabels
-
-	switch msg.AutomationKind {
-	case pb.AutomationKind_Kustomize:
-		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.AutomationNamespace,
-		}
-	case pb.AutomationKind_Helm:
-		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
-			HelmNamespaceKey: msg.AutomationNamespace,
-		}
-	default:
-		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
-	}
-
-	result := []unstructured.Unstructured{}
-
-	for _, gvk := range msg.Kinds {
-		list := unstructured.UnstructuredList{}
-
-		list.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   gvk.Group,
-			Kind:    gvk.Kind,
-			Version: gvk.Version,
-		})
-
-		if err := cl.List(ctx, &list, opts); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s", err)
-		}
-
-		result = append(result, list.Items...)
-	}
-
-	objects := []*pb.UnstructuredObject{}
-
-	for _, obj := range result {
-		res, err := status.Compute(&obj)
-
-		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    res.Status.String(),
-			Uid:       string(obj.GetUID()),
-		})
-	}
-
-	return &pb.GetReconciledObjectsRes{Objects: objects}, nil
-}
-
-func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsReq) (*pb.GetChildObjectsRes, error) {
-	cl, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	list := unstructured.UnstructuredList{}
-
-	list.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   msg.GroupVersionKind.Group,
-		Version: msg.GroupVersionKind.Version,
-		Kind:    msg.GroupVersionKind.Kind,
-	})
-
-	if err := cl.List(ctx, &list); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s", err)
-	}
-
-	objects := []*pb.UnstructuredObject{}
-
-Items:
-	for _, obj := range list.Items {
-
-		refs := obj.GetOwnerReferences()
-
-		for _, ref := range refs {
-			if ref.UID != types.UID(msg.ParentUid) {
-				// This is not the child we are looking for.
-				// Skip the rest of the operations in Items loops.
-				// The is effectively an early return.
-				continue Items
-			}
-		}
-
-		statusResult, err := status.Compute(&obj)
-		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
-		}
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:      obj.GetName(),
-			Namespace: obj.GetNamespace(),
-			Status:    statusResult.Status.String(),
-			Uid:       string(obj.GetUID()),
-		})
-	}
-
-	return &pb.GetChildObjectsRes{Objects: objects}, nil
 }
 
 func (s *applicationServer) GetGithubDeviceCode(ctx context.Context, msg *pb.GetGithubDeviceCodeRequest) (*pb.GetGithubDeviceCodeResponse, error) {
