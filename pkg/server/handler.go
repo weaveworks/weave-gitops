@@ -7,14 +7,11 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-<<<<<<< HEAD
 	"github.com/weaveworks/weave-gitops/core/multicluster"
-	"github.com/weaveworks/weave-gitops/core/server"
-=======
 	core "github.com/weaveworks/weave-gitops/core/server"
->>>>>>> 7ceb85ae2289bd2e98339bd303be6faa34719144
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
