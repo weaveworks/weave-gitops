@@ -65,7 +65,11 @@ function SourcesTable({ className, sources }: Props) {
           {
             label: "Status",
             value: (s: Source) => (
-              <KubeStatusIndicator short conditions={s.conditions} />
+              <KubeStatusIndicator
+                short
+                conditions={s.conditions}
+                suspended={s.suspended}
+              />
             ),
             width: 96,
           },

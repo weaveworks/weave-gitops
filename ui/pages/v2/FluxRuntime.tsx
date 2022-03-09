@@ -30,7 +30,10 @@ function FluxRuntime({ className }: Props) {
           { value: "name", label: "Name" },
           {
             value: (v: Deployment) => (
-              <KubeStatusIndicator conditions={v.conditions} />
+              <KubeStatusIndicator
+                conditions={v.conditions}
+                suspended={v.suspended}
+              />
             ),
             label: "Status",
             sortType: SortType.bool,

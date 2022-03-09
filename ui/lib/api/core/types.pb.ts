@@ -65,6 +65,7 @@ export type Kustomization = {
   lastAttemptedRevision?: string
   lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
+  suspended?: boolean
 }
 
 export type HelmChart = {
@@ -75,6 +76,7 @@ export type HelmChart = {
   version?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
 }
 
 export type HelmRelease = {
@@ -85,6 +87,7 @@ export type HelmRelease = {
   helmChart?: HelmChart
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
+  suspended?: boolean
 }
 
 export type GitRepository = {
@@ -95,6 +98,7 @@ export type GitRepository = {
   secretRef?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
 }
 
 export type HelmRepository = {
@@ -103,6 +107,7 @@ export type HelmRepository = {
   url?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
 }
 
 export type Bucket = {
@@ -117,6 +122,7 @@ export type Bucket = {
   timeout?: number
   conditions?: Condition[]
   bucketName?: string
+  suspended?: boolean
 }
 
 export type Deployment = {
@@ -124,6 +130,7 @@ export type Deployment = {
   namespace?: string
   conditions?: Condition[]
   images?: string[]
+  suspended?: boolean
 }
 
 export type UnstructuredObject = {
@@ -133,4 +140,5 @@ export type UnstructuredObject = {
   uid?: string
   status?: string
   conditions?: Condition[]
+  suspended?: boolean
 }

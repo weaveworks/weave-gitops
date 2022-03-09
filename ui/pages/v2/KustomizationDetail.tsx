@@ -45,7 +45,10 @@ function KustomizationDetail({ className, name }: Props) {
             ],
             [
               "Status",
-              <KubeStatusIndicator conditions={kustomization?.conditions} />,
+              <KubeStatusIndicator
+                conditions={kustomization?.conditions}
+                suspended={kustomization?.suspended}
+              />,
             ],
             ["Applied Revision", kustomization?.lastAppliedRevision],
             ["Cluster", ""],

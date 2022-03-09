@@ -61,6 +61,7 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 			Seconds: int64(repository.Spec.Interval.Seconds()) % 60,
 		},
 		Conditions: mapConditions(repository.Status.Conditions),
+		Suspended:  repository.Spec.Suspend,
 	}
 
 	if repository.Spec.SecretRef != nil {

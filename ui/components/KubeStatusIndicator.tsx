@@ -10,6 +10,7 @@ type Props = {
   className?: string;
   conditions: Condition[];
   short?: boolean;
+  suspended?: boolean;
 };
 
 export function computeReady(conditions: Condition[]): boolean {
@@ -30,15 +31,31 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition ? readyCondition.message : "unknown error";
 }
 
-function KubeStatusIndicator({ className, conditions, short }: Props) {
+function KubeStatusIndicator({
+  className,
+  conditions,
+  short,
+  suspended,
+}: Props) {
   const ready = computeReady(conditions);
-  const readyText = ready ? "Ready" : "Not Ready";
-  const icon = ready ? IconType.SuccessIcon : IconType.FailedIcon;
-  const message = computeMessage(conditions);
+  let readyText = ready ? "Ready" : "Not Ready";
+  let icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+  if (suspended) {
+    icon = IconType.SuspendedIcon;
+    readyText = "Suspended";
+  } else {
+    const ready = computeReady(conditions);
+    icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+    readyText = ready ? "Ready" : "Not Ready";
+  }
 
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} text={short ? readyText : message} />
+      <Icon
+        size="base"
+        type={icon}
+        text={short ? readyText : computeMessage(conditions)}
+      />
     </Flex>
   );
 }

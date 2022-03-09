@@ -71,6 +71,7 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization) (*pb.Kustomizati
 		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
 		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
 		Inventory:               inv,
+		Suspended:               kustomization.Spec.Suspend,
 	}, nil
 }
 

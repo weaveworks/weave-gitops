@@ -68,7 +68,11 @@ function AutomationsTable({ className, automations }: Props) {
       label: "Status",
       value: (a: Automation) =>
         a.conditions.length > 0 ? (
-          <KubeStatusIndicator short conditions={a.conditions} />
+          <KubeStatusIndicator
+            short
+            conditions={a.conditions}
+            suspended={a.suspended}
+          />
         ) : null,
       sortType: SortType.bool,
       sortValue: ({ conditions }) => computeReady(conditions),

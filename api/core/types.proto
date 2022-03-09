@@ -55,6 +55,7 @@ message Kustomization {
     string    lastAttemptedRevision      = 8;
     string    lastHandledReconciledAt    = 9;
     repeated  GroupVersionKind inventory = 10;
+    bool      suspended                  = 11;
 }
 
 message HelmChart {
@@ -65,6 +66,7 @@ message HelmChart {
     string    version              = 5;
     Interval  interval             = 6;
     repeated  Condition conditions = 7;
+    bool      suspended            = 8;
 }
 
 message HelmRelease {
@@ -75,6 +77,7 @@ message HelmRelease {
     HelmChart helm_chart                 = 5;
     repeated  Condition conditions       = 6;
     repeated  GroupVersionKind inventory = 10;
+    bool      suspended                  = 11;
 }
 
 message GitRepository {
@@ -85,6 +88,7 @@ message GitRepository {
     string           secretRef            = 5;
     Interval         interval             = 6;
     repeated         Condition conditions = 7;
+    bool             suspended            = 8;
 }
 
 message HelmRepository {
@@ -93,6 +97,7 @@ message HelmRepository {
     string   url                  = 3;
     Interval interval             = 4;
     repeated Condition conditions = 5;
+    bool     suspended            = 6;
 }
 
 message Bucket {
@@ -112,6 +117,7 @@ message Bucket {
     int32    timeout              = 9;
     repeated Condition conditions = 10;
     string   bucket_name          = 11;
+    bool     suspended            = 12;
 }
 
 message Deployment {
@@ -119,6 +125,7 @@ message Deployment {
     string   namespace            = 2;
     repeated Condition conditions = 3;
     repeated string images        = 4;
+    bool     suspended            = 5;
 }
 
 enum AutomationKind {
@@ -136,4 +143,5 @@ message UnstructuredObject {
     string           uid                  = 4;
     string           status               = 5;
     repeated         Condition conditions = 6;
+    bool             suspended            = 7;
 }
