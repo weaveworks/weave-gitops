@@ -74,6 +74,8 @@ To set up a development environment for the CLI
 5. Run `./bin/gitops install --config-repo=<repo url>` (or just `flux install -n flux-system` if you don't care about doing the whole dance.)
 6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
 7. make or make unit-tests to ensure everything built correctly.
+8. The UI will start immediately on port `9001`. Auth is now always on (I do not recommend
+  turning it off). The password is `dev`.
 
 ### Requirements/tools
 

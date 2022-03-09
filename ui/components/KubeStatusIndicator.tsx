@@ -18,11 +18,14 @@ export function computeReady(conditions: Condition[]): boolean {
     // Deployment conditions work slightly differently;
     // they show "Available" instead of 'Ready'
     _.find(conditions, { type: "Available" });
+
   return ready?.status == "True";
 }
 
 export function computeMessage(conditions: Condition[]) {
-  const readyCondition = _.find(conditions, (c) => c.type === "Ready");
+  const readyCondition =
+    _.find(conditions, (c) => c.type === "Ready") ||
+    _.find(conditions, (c) => c.type === "Available");
 
   return readyCondition.message;
 }
@@ -31,7 +34,6 @@ function KubeStatusIndicator({ className, conditions, short }: Props) {
   const ready = computeReady(conditions);
   const readyText = ready ? "Ready" : "Not Ready";
   const icon = ready ? IconType.SuccessIcon : IconType.FailedIcon;
-
   const message = computeMessage(conditions);
 
   return (

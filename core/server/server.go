@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -15,8 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) error {
-	appsServer := NewCoreServer(config)
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) error {
+	appsServer := NewCoreServer(cfg)
 	if err := pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
@@ -24,34 +25,34 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) er
 	return nil
 }
 
-// Create the scheme once and re-use it on every call.
-// This shouldn't need to change between requests(?)
-var scheme = kube.CreateScheme()
-
 const temporarilyEmptyAppName = ""
 
 type coreServer struct {
 	pb.UnimplementedCoreServer
 
-	k8s placeholderClientGetter
+	k8s    kube.ClientGetter
+	logger logr.Logger
 }
 
-// This struct is only here to avoid a circular import with the `server` package.
-// This is meant to match the ClientGetter interface.
-// Since we are in a prototyping phase, it didn't make sense to move and import that code just yet.
-type placeholderClientGetter struct {
-	cfg *rest.Config
+type CoreServerConfig struct {
+	Logger      logr.Logger
+	restCfg     *rest.Config
+	clusterName string
 }
 
-func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, error) {
-	return client.New(p.cfg, client.Options{
-		Scheme: scheme,
-	})
+func NewCoreConfig(cfg *rest.Config, clusterName string) CoreServerConfig {
+	return CoreServerConfig{
+		restCfg:     cfg,
+		clusterName: clusterName,
+	}
 }
 
-func NewCoreServer(cfg *rest.Config) pb.CoreServer {
+func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
+	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.restCfg, false)
+
 	return &coreServer{
-		k8s: placeholderClientGetter{cfg: cfg},
+		k8s:    kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
+		logger: cfg.Logger,
 	}
 }
 

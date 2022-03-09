@@ -20,6 +20,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -129,15 +130,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
 
-	appConfig, err := server.DefaultApplicationsConfig()
-	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
-	}
-
-	if !options.LoggingEnabled {
-		appConfig.Logger = zapr.NewLogger(zap.NewNop())
-	}
-
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
 		return fmt.Errorf("could not create client config: %w", err)
@@ -176,6 +168,19 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		DefaultConfig: rest,
 		ClusterName:   clusterName,
 	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
+
+	appConfig, err := server.DefaultApplicationsConfig()
+	if err != nil {
+		return fmt.Errorf("could not create http client: %w", err)
+	}
+
+	coreConfig := core.NewCoreConfig(rest, clusterName)
+
+	if !options.LoggingEnabled {
+		logger := zapr.NewLogger(zap.NewNop())
+		appConfig.Logger = logger
+		coreConfig.Logger = logger
+	}
 
 	var authServer *auth.AuthServer
 
@@ -216,7 +221,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig, AuthServer: authServer})
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(),
+		&server.Config{
+			AppConfig:        appConfig,
+			ProfilesConfig:   profilesConfig,
+			CoreServerConfig: coreConfig,
+			AuthServer:       authServer,
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
 	}

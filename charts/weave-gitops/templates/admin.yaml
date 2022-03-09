@@ -1,0 +1,44 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-admin-read-resources
+  namespace: {{.Values.namespace}}
+subjects:
+  - kind: User
+    name: wego-admin
+    namespace: {{.Values.namespace}}
+roleRef:
+  kind: Role
+  name: wego-admin-user-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-admin-user-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-password-hash
+  namespace: {{.Values.namespace}}
+type: Opaque
+data:
+  password: {{.Values.adminPassword}}

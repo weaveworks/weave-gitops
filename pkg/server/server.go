@@ -76,7 +76,7 @@ type ApplicationsConfig struct {
 
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
-	configGetter := NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false)
+	configGetter := kube.NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, cfg.ClusterConfig.ClusterName)
 	kubeGetter := kube.NewDefaultKubeGetter(configGetter, cfg.ClusterConfig.ClusterName)
 

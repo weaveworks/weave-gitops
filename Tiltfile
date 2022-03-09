@@ -4,14 +4,15 @@ local_resource(
     'gitops-server',
     'GOOS=linux GOARCH=amd64 make gitops-server',
     deps=[
-        './cmd', 
+        './cmd',
         './pkg',
-        "./core",
+        './core',
+        './charts',
     ]
 )
 
 docker_build_with_restart(
-    'localhost:5001/weaveworks/wego-app', 
+    'localhost:5001/weaveworks/wego-app',
     '.',
     only=[
         './bin',
@@ -23,13 +24,13 @@ docker_build_with_restart(
     ],
 )
 
-k8s_yaml([
-    'tools/dev-manifests/wego-app.yaml',
-    'tools/dev-manifests/role.yaml',
-    'tools/dev-manifests/role-binding.yaml',
-    'tools/dev-manifests/helm_watcher_role.yaml',
-    'tools/dev-manifests/helm_watcher_role_binding.yaml',
-    'tools/dev-manifests/service-account.yaml',
-])
+helm_stuff = helm(
+  './charts/weave-gitops',
+  name='weave-gitops',
+  namespace='flux-system',
+  values=['./tools/helm-values-dev.yaml'],
+)
 
-k8s_resource('wego-app', port_forwards='9000', resource_deps=['gitops-server'])
+k8s_yaml(helm_stuff)
+
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])
