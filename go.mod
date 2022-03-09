@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/benbjohnson/clock v1.3.0
 	github.com/bufbuild/buf v1.0.0
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
@@ -87,6 +86,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/bugsnag/bugsnag-go v2.1.2+incompatible // indirect
