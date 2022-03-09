@@ -106,7 +106,7 @@ describe("KubeStatusIndicator", () => {
     ];
 
     render(
-      withTheme(<KubeStatusIndicator conditions={conditions} suspended />)
+      withTheme(<KubeStatusIndicator conditions={conditions} suspended short />)
     );
     const msg = screen.getByText("Suspended");
     expect(msg).toBeTruthy();
