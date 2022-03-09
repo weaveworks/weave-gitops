@@ -64,7 +64,7 @@ type ProfilesServer struct {
 }
 
 func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
-	configGetter := NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
+	configGetter := kube.NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, config.clusterConfig.ClusterName)
 
 	return &ProfilesServer{

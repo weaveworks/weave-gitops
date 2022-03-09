@@ -7,10 +7,9 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops/core/server"
+	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
@@ -30,10 +29,11 @@ func AuthEnabled() bool {
 }
 
 type Config struct {
-	AppConfig      *ApplicationsConfig
-	AppOptions     []ApplicationsOption
-	ProfilesConfig ProfilesConfig
-	AuthServer     *auth.AuthServer
+	AppConfig        *ApplicationsConfig
+	AppOptions       []ApplicationsOption
+	ProfilesConfig   ProfilesConfig
+	CoreServerConfig core.CoreServerConfig
+	AuthServer       *auth.AuthServer
 }
 
 func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
@@ -56,12 +56,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 		return nil, fmt.Errorf("could not register profiles: %w", err)
 	}
 
-	restCfg, _, err := kube.RestConfig()
-	if err != nil {
-		return nil, fmt.Errorf("building rest config: %w", err)
-	}
-
-	if err := server.Hydrate(ctx, mux, restCfg); err != nil {
+	if err := core.Hydrate(ctx, mux, cfg.CoreServerConfig); err != nil {
 		return nil, fmt.Errorf("could not start up core servers: %w", err)
 	}
 
