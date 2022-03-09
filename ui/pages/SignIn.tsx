@@ -22,8 +22,7 @@ export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
-  height: 650px;
-  padding-top: ${(props) => props.theme.spacing.medium};
+  padding-top: ${(props) => props.theme.spacing.large};
   align-content: space-between;
   .MuiButton-label {
     width: 250px;
@@ -58,8 +57,17 @@ const AlertWrapper = styled(Alert)`
   }
 `;
 
+const DocsWrapper = styled(Flex)`
+  padding: ${(props) => props.theme.spacing.medium};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 function SignIn() {
-  const { authFlag } = React.useContext(FeatureFlags);
+  const { authFlag, clusterUserFlag, OIDCFlag } =
+    React.useContext(FeatureFlags);
 
   if (authFlag === false) {
     return <Redirect to="applications" />;
@@ -97,76 +105,93 @@ function SignIn() {
         />
       )}
       <FormWrapper center align wrap>
-        <div style={{ padding: theme.spacing.base }}>
+        <div
+          style={{
+            paddingTop: theme.spacing.base,
+          }}
+        >
           <Logo>
             <img src={images.WeaveLogo} />
           </Logo>
-          <Action>
-            <Button
-              type="submit"
-              onClick={(e) => {
+          {OIDCFlag ? (
+            <Action>
+              <Button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleOIDCSubmit();
+                }}
+              >
+                LOGIN WITH OIDC PROVIDER
+              </Button>
+            </Action>
+          ) : null}
+          {OIDCFlag && clusterUserFlag ? (
+            <Divider variant="middle" style={{ margin: theme.spacing.base }} />
+          ) : null}
+          {clusterUserFlag ? (
+            <form
+              ref={formRef}
+              onSubmit={(e) => {
                 e.preventDefault();
-                handleOIDCSubmit();
+                handleUserPassSubmit();
               }}
             >
-              LOGIN WITH OIDC PROVIDER
-            </Button>
-            <Divider
-              variant="middle"
-              style={{ width: "100%", margin: theme.spacing.base }}
-            />
-          </Action>
-          <form
-            ref={formRef}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUserPassSubmit();
-            }}
-          >
-            <Flex center align>
-              <Input
-                onChange={(e) => setUsername(e.currentTarget.value)}
-                id="email"
-                type="text"
-                placeholder="Username"
-                value={username}
-              />
-            </Flex>
-            <Flex center align>
-              <Input
-                onChange={(e) => setPassword(e.currentTarget.value)}
-                required
-                id="password"
-                placeholder="Password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </Flex>
-            <Flex center>
-              {!loading ? (
-                <Button
-                  type="submit"
-                  style={{ marginTop: theme.spacing.medium }}
-                >
-                  CONTINUE
-                </Button>
-              ) : (
-                <div style={{ margin: theme.spacing.medium }}>
-                  <LoadingPage />
-                </div>
-              )}
-            </Flex>
-          </form>
+              <Flex center align>
+                <Input
+                  onChange={(e) => setUsername(e.currentTarget.value)}
+                  id="email"
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                />
+              </Flex>
+              <Flex center align>
+                <Input
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  id="password"
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                />
+              </Flex>
+              <Flex center>
+                {!loading ? (
+                  <Button
+                    type="submit"
+                    style={{ marginTop: theme.spacing.medium }}
+                  >
+                    CONTINUE
+                  </Button>
+                ) : (
+                  <div style={{ margin: theme.spacing.medium }}>
+                    <LoadingPage />
+                  </div>
+                )}
+              </Flex>
+            </form>
+          ) : null}
+          <DocsWrapper center align>
+            Need help? Have a look at the&nbsp;
+            <a
+              href="https://docs.gitops.weave.works/docs/getting-started"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              documentation.
+            </a>
+          </DocsWrapper>
         </div>
         <Footer>
           <img src={images.SignInWheel} />
