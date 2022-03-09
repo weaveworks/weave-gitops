@@ -10,7 +10,6 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -180,50 +179,6 @@ metadata:
 		})
 	})
 
-	Describe("Delete", func() {
-		It("delete a manifest", func() {
-			ctx := context.Background()
-			name := "my-app"
-
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					Branch:         "master",
-					Path:           "/.kustomize",
-					DeploymentType: wego.DeploymentTypeKustomize,
-					SourceType:     wego.SourceTypeGit,
-				},
-			}
-			appYaml := fmt.Sprintf(`
-apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: %s
-  namespace: %s
-  spec:
-    branch: master
-    deployment_type: kustomize
-    path: ./kustomize
-    source_type: git
-`, name, namespace.Name)
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			Expect(k.Delete(ctx, []byte(appYaml))).Should(Succeed())
-		})
-
-		It("delete an invalid manifest", func() {
-			ctx := context.Background()
-			appYaml := "invalid"
-
-			err := k.Delete(ctx, []byte(appYaml))
-			Expect(errors.Unwrap(err).Error()).Should(ContainSubstring("failed decoding manifest"))
-		})
-	})
-
 	Describe("Getting client with override kubeconfig", func() {
 		It("valid kubeconfig", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
@@ -290,42 +245,6 @@ metadata:
 			_, clusterName, err := kube.RestConfig()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(clusterName).To(Equal("foo"))
-		})
-	})
-
-	Describe("SetResouce", func() {
-		It("sets a k8s resource", func() {
-			ctx := context.Background()
-			name := "my-app"
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			resource := &wego.Application{}
-
-			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			resource.SetAnnotations(map[string]string{
-				"my-annotation": "note",
-			})
-
-			err = k.SetResource(ctx, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			newResource := &wego.Application{}
-
-			err = k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, newResource)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(newResource.GetAnnotations()["my-annotation"]).To(Equal("note"))
 		})
 	})
 

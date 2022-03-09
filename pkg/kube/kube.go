@@ -48,14 +48,12 @@ type WegoConfig struct {
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
-	Delete(ctx context.Context, manifest []byte) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	FluxPresent(ctx context.Context) (bool, error)
 	NamespacePresent(ctx context.Context, namespace string) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
-	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
 	FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error)
 	SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error)

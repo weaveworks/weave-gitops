@@ -25,18 +25,6 @@ type FakeKube struct {
 	applyReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStub        func(context.Context, []byte) error
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct {
-		arg1 context.Context
-		arg2 []byte
-	}
-	deleteReturns struct {
-		result1 error
-	}
-	deleteReturnsOnCall map[int]struct {
-		result1 error
-	}
 	FetchNamespaceWithLabelStub        func(context.Context, string, string) (*v1.Namespace, error)
 	fetchNamespaceWithLabelMutex       sync.RWMutex
 	fetchNamespaceWithLabelArgsForCall []struct {
@@ -169,18 +157,6 @@ type FakeKube struct {
 		result1 bool
 		result2 error
 	}
-	SetResourceStub        func(context.Context, kube.Resource) error
-	setResourceMutex       sync.RWMutex
-	setResourceArgsForCall []struct {
-		arg1 context.Context
-		arg2 kube.Resource
-	}
-	setResourceReturns struct {
-		result1 error
-	}
-	setResourceReturnsOnCall map[int]struct {
-		result1 error
-	}
 	SetWegoConfigStub        func(context.Context, kube.WegoConfig, string) (*v1.ConfigMap, error)
 	setWegoConfigMutex       sync.RWMutex
 	setWegoConfigArgsForCall []struct {
@@ -264,73 +240,6 @@ func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.applyReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) Delete(arg1 context.Context, arg2 []byte) error {
-	var arg2Copy []byte
-	if arg2 != nil {
-		arg2Copy = make([]byte, len(arg2))
-		copy(arg2Copy, arg2)
-	}
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		arg1 context.Context
-		arg2 []byte
-	}{arg1, arg2Copy})
-	stub := fake.DeleteStub
-	fakeReturns := fake.deleteReturns
-	fake.recordInvocation("Delete", []interface{}{arg1, arg2Copy})
-	fake.deleteMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKube) DeleteCallCount() int {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return len(fake.deleteArgsForCall)
-}
-
-func (fake *FakeKube) DeleteCalls(stub func(context.Context, []byte) error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = stub
-}
-
-func (fake *FakeKube) DeleteArgsForCall(i int) (context.Context, []byte) {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	argsForCall := fake.deleteArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKube) DeleteReturns(result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = nil
-	fake.deleteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 error) {
-	fake.deleteMutex.Lock()
-	defer fake.deleteMutex.Unlock()
-	fake.DeleteStub = nil
-	if fake.deleteReturnsOnCall == nil {
-		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -967,68 +876,6 @@ func (fake *FakeKube) SecretPresentReturnsOnCall(i int, result1 bool, result2 er
 	}{result1, result2}
 }
 
-func (fake *FakeKube) SetResource(arg1 context.Context, arg2 kube.Resource) error {
-	fake.setResourceMutex.Lock()
-	ret, specificReturn := fake.setResourceReturnsOnCall[len(fake.setResourceArgsForCall)]
-	fake.setResourceArgsForCall = append(fake.setResourceArgsForCall, struct {
-		arg1 context.Context
-		arg2 kube.Resource
-	}{arg1, arg2})
-	stub := fake.SetResourceStub
-	fakeReturns := fake.setResourceReturns
-	fake.recordInvocation("SetResource", []interface{}{arg1, arg2})
-	fake.setResourceMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKube) SetResourceCallCount() int {
-	fake.setResourceMutex.RLock()
-	defer fake.setResourceMutex.RUnlock()
-	return len(fake.setResourceArgsForCall)
-}
-
-func (fake *FakeKube) SetResourceCalls(stub func(context.Context, kube.Resource) error) {
-	fake.setResourceMutex.Lock()
-	defer fake.setResourceMutex.Unlock()
-	fake.SetResourceStub = stub
-}
-
-func (fake *FakeKube) SetResourceArgsForCall(i int) (context.Context, kube.Resource) {
-	fake.setResourceMutex.RLock()
-	defer fake.setResourceMutex.RUnlock()
-	argsForCall := fake.setResourceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKube) SetResourceReturns(result1 error) {
-	fake.setResourceMutex.Lock()
-	defer fake.setResourceMutex.Unlock()
-	fake.SetResourceStub = nil
-	fake.setResourceReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) SetResourceReturnsOnCall(i int, result1 error) {
-	fake.setResourceMutex.Lock()
-	defer fake.setResourceMutex.Unlock()
-	fake.SetResourceStub = nil
-	if fake.setResourceReturnsOnCall == nil {
-		fake.setResourceReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.setResourceReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeKube) SetWegoConfig(arg1 context.Context, arg2 kube.WegoConfig, arg3 string) (*v1.ConfigMap, error) {
 	fake.setWegoConfigMutex.Lock()
 	ret, specificReturn := fake.setWegoConfigReturnsOnCall[len(fake.setWegoConfigArgsForCall)]
@@ -1100,8 +947,6 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
 	fake.fetchNamespaceWithLabelMutex.RLock()
 	defer fake.fetchNamespaceWithLabelMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
@@ -1122,8 +967,6 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.rawMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
-	fake.setResourceMutex.RLock()
-	defer fake.setResourceMutex.RUnlock()
 	fake.setWegoConfigMutex.RLock()
 	defer fake.setWegoConfigMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
