@@ -58,30 +58,19 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  overflow: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
 `;
 
 const NavContainer = styled.div`
-  position: relative;
+  position: absolute;
+  left: 0;
   width: 240px;
-  height: 0;
-  min-height: 100%;
+  height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
-  margin-right: ${(props) => props.theme.spacing.medium};
   background-color: ${(props) => props.theme.colors.neutral00};
   border-radius: 10px;
-`;
-
-const FixedNav = styled.div`
-  background-color: white;
-  position: fixed;
-  height: 100%;
-  top: 80;
-  width: 240px;
-  left: 0;
 `;
 
 const NavContent = styled.div`
@@ -126,23 +115,26 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
+  overflow: auto;
+  margin-left: 240px;
 `;
 
-const Main = styled(Flex)`
-  height: 100%;
-  flex: 1 1 auto;
-`;
+const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
   padding: 8px 0;
   background-color: ${(props) => props.theme.colors.primary};
-  width: 100%;
   height: 80px;
   flex: 0 1 auto;
 
   ${Logo} img {
     width: 70px;
     height: 72.85px;
+  }
+
+  ${UserSettings} {
+    justify-self: flex-end;
+    margin-left: auto;
   }
 `;
 
@@ -153,35 +145,33 @@ function Layout({ className, children }: Props) {
   return (
     <div className={className}>
       <AppContainer>
-        <TopToolBar start align>
+        <TopToolBar start align wide>
           <Logo />
-          {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
           <Spacer padding="xxl" />
           <Breadcrumbs />
+          {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>
         <Main wide>
           <NavContainer>
-            <FixedNav>
-              <NavContent>
-                <Tabs
-                  centered={false}
-                  orientation="vertical"
-                  value={getParentNavValue(currentPage)}
-                >
-                  {_.map(navItems, (n) => (
-                    <StyleLinkTab
-                      key={n.label}
-                      label={n.label}
-                      to={formatURL(n.value)}
-                      value={n.value}
-                      className={n.sub && "sub-item"}
-                      href={n.href}
-                      newTab={n.newTab}
-                    />
-                  ))}
-                </Tabs>
-              </NavContent>
-            </FixedNav>
+            <NavContent>
+              <Tabs
+                centered={false}
+                orientation="vertical"
+                value={getParentNavValue(currentPage)}
+              >
+                {_.map(navItems, (n) => (
+                  <StyleLinkTab
+                    key={n.label}
+                    label={n.label}
+                    to={formatURL(n.value)}
+                    value={n.value}
+                    className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
+                  />
+                ))}
+              </Tabs>
+            </NavContent>
           </NavContainer>
           <ContentContainer>{children}</ContentContainer>
         </Main>

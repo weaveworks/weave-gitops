@@ -154,3 +154,19 @@ export type Namespace = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
 }
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ObjectReference = {
+  kind?: string
+  namespace?: string
+  name?: string
+}

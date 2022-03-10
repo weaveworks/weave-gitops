@@ -81,6 +81,55 @@
         ]
       }
     },
+    "/v1/events": {
+      "get": {
+        "summary": "ListFluxEvents returns with a list of events based on Flux labels",
+        "operationId": "Core_ListFluxEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFluxEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -581,6 +630,32 @@
         }
       }
     },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChildObjectsRequest": {
       "type": "object",
       "properties": {
@@ -905,6 +980,17 @@
         }
       }
     },
+    "v1ListFluxEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
     "v1ListFluxRuntimeObjectsResponse": {
       "type": "object",
       "properties": {
@@ -1002,6 +1088,20 @@
           "additionalProperties": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1ObjectReference": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },

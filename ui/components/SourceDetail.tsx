@@ -1,3 +1,4 @@
+import { createHashHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -6,7 +7,9 @@ import { useListSources } from "../hooks/sources";
 import { SourceRefSourceKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
+import EventsTable from "./EventsTable";
 import Flex from "./Flex";
+import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import Icon, { IconType } from "./Icon";
 import InfoList, { InfoField } from "./InfoList";
@@ -23,7 +26,7 @@ type Props = {
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, info }: Props) {
+function SourceDetail({ className, name, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
 
@@ -91,9 +94,21 @@ function SourceDetail({ className, name, info }: Props) {
       <div>
         <InfoList items={items} />
       </div>
-      <div>
-        <AutomationsTable automations={relevantAutomations} />
-      </div>
+      <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
+        <HashRouterTab name="Related Automations" path="/automations">
+          <AutomationsTable automations={relevantAutomations} />
+        </HashRouterTab>
+        <HashRouterTab name="Events" path="/events">
+          <EventsTable
+            namespace={s.namespace}
+            involvedObject={{
+              kind: type,
+              name,
+              namespace: s.namespace,
+            }}
+          />
+        </HashRouterTab>
+      </HashRouterTabs>
     </div>
   );
 }

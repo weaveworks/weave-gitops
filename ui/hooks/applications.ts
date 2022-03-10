@@ -1,9 +1,6 @@
-import _ from "lodash";
 import { useContext, useEffect } from "react";
 import { AppContext } from "../contexts/AppContext";
-import {
-  ParseRepoURLResponse,
-} from "../lib/api/applications/applications.pb";
+import { ParseRepoURLResponse } from "../lib/api/applications/applications.pb";
 import { useRequestState } from "./common";
 
 export function useParseRepoURL(url: string) {

@@ -1,5 +1,8 @@
+import { createHashHistory } from "history";
 import * as React from "react";
 import styled from "styled-components";
+import EventsTable from "../../components/EventsTable";
+import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
@@ -20,8 +23,13 @@ const Info = styled.div`
   padding-bottom: 32px;
 `;
 
+const TabContent = styled.div`
+  margin-top: 52px;
+`;
+
 function KustomizationDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetKustomization(name);
+  const hashHistory = createHashHistory();
 
   const kustomization = data?.kustomization;
 
@@ -48,12 +56,27 @@ function KustomizationDetail({ className, name }: Props) {
           ]}
         />
       </Info>
-      <ReconciledObjectsTable
-        kinds={kustomization?.inventory}
-        automationName={kustomization?.name}
-        namespace={WeGONamespace}
-        automationKind={AutomationKind.KustomizationAutomation}
-      />
+      <TabContent>
+        <HashRouterTabs history={hashHistory} defaultPath="/details">
+          <HashRouterTab name="Details" path="/details">
+            <ReconciledObjectsTable
+              kinds={kustomization?.inventory}
+              automationName={kustomization?.name}
+              namespace={WeGONamespace}
+              automationKind={AutomationKind.KustomizationAutomation}
+            />
+          </HashRouterTab>
+          <HashRouterTab name="Events" path="/events">
+            <EventsTable
+              involvedObject={{
+                kind: AutomationKind.KustomizationAutomation,
+                name,
+                namespace: kustomization?.namespace,
+              }}
+            />
+          </HashRouterTab>
+        </HashRouterTabs>
+      </TabContent>
     </Page>
   );
 }

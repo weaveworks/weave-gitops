@@ -7,11 +7,13 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import Alert from "./Alert";
 import DataTable, { SortType } from "./DataTable";
 import KubeStatusIndicator, {
   computeMessage,
   computeReady,
 } from "./KubeStatusIndicator";
+import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -28,12 +30,20 @@ function ReconciledObjectsTable({
   automationKind,
   kinds,
 }: Props) {
-  const objs = useGetReconciledObjects(
+  const { data: objs, error } = useGetReconciledObjects(
     automationName,
     namespace,
     automationKind,
     kinds
   );
+
+  if (error) {
+    return (
+      <Spacer padding="small">
+        <Alert severity="error" message={error.message} />
+      </Spacer>
+    );
+  }
 
   return (
     <div className={className}>
