@@ -48,28 +48,24 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
-type updatedAtShim struct {
-	repo     *v1beta1.GitRepository
-	bucket   *v1beta1.Bucket
-	chart    *v1beta1.HelmChart
-	helmRepo *v1beta1.HelmRepository
-}
-
-func (s updatedAtShim) lastUpdatedAt() string {
-	if s.repo != nil && s.repo.Status.Artifact != nil {
-		return s.repo.Status.Artifact.LastUpdateTime.String()
-	}
-
-	if s.bucket != nil && s.bucket.Status.Artifact != nil {
-		return s.bucket.Status.Artifact.LastUpdateTime.String()
-	}
-
-	if s.chart != nil && s.chart.Status.Artifact != nil {
-		return s.chart.Status.Artifact.LastUpdateTime.String()
-	}
-
-	if s.helmRepo != nil && s.helmRepo.Status.Artifact != nil {
-		return s.helmRepo.Status.Artifact.LastUpdateTime.String()
+func lastUpdatedAt(obj interface{}) string {
+	switch s := obj.(type) {
+	case *v1beta1.GitRepository:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.Bucket:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.HelmChart:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.HelmRepository:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
 	}
 
 	return ""

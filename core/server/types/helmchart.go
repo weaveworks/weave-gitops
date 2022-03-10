@@ -47,6 +47,6 @@ func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
 		},
 		Conditions:    mapConditions(helmchart.Status.Conditions),
 		Suspended:     helmchart.Spec.Suspend,
-		LastUpdatedAt: updatedAtShim{chart: helmchart}.lastUpdatedAt(),
+		LastUpdatedAt: lastUpdatedAt(helmchart),
 	}
 }

@@ -66,7 +66,7 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 		Conditions:    mapConditions(bucket.Status.Conditions),
 		Suspended:     bucket.Spec.Suspend,
 		BucketName:    bucket.Spec.BucketName,
-		LastUpdatedAt: updatedAtShim{bucket: bucket}.lastUpdatedAt(),
+		LastUpdatedAt: lastUpdatedAt(bucket),
 	}
 
 	if bucket.Spec.SecretRef != nil {

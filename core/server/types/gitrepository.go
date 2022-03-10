@@ -61,7 +61,7 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 		},
 		Conditions:    mapConditions(repository.Status.Conditions),
 		Suspended:     repository.Spec.Suspend,
-		LastUpdatedAt: updatedAtShim{repo: repository}.lastUpdatedAt(),
+		LastUpdatedAt: lastUpdatedAt(repository),
 	}
 
 	if repository.Spec.SecretRef != nil {
