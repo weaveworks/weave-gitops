@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"gopkg.in/square/go-jose.v2"
@@ -72,7 +71,6 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		ClientDisableCacheFor: []client.Object{
-			&wego.Application{},
 			&corev1.Namespace{},
 			&corev1.Secret{},
 			&appsv1.Deployment{},

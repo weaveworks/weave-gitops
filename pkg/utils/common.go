@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/benbjohnson/clock"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 
 	validation "k8s.io/apimachinery/pkg/api/validation"
@@ -44,27 +42,6 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 		checkDone)
 
 	return err
-}
-
-func Poll(appClock clock.Clock, intervalDur time.Duration, timeoutDur time.Duration, condition func() (bool, error)) error {
-	timeout := appClock.After(timeoutDur)
-	ticker := appClock.Ticker(intervalDur)
-
-	for {
-		select {
-		case <-timeout:
-			return errors.New("poll timeout")
-		case <-ticker.C:
-			ok, err := condition()
-			if err != nil {
-				return err
-			}
-
-			if ok {
-				return nil
-			}
-		}
-	}
 }
 
 // timedRepeat runs checkDone until a timeout is reached by updating the current time via a specified operation

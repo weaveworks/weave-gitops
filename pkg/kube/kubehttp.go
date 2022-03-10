@@ -23,7 +23,6 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/pkg/errors"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -32,7 +31,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -44,7 +42,6 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = sourcev1.AddToScheme(scheme)
 	_ = kustomizev2.AddToScheme(scheme)
 	_ = helmv2.AddToScheme(scheme)
-	_ = wego.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
 	_ = extensionsv1.AddToScheme(scheme)
 	_ = appsv1.AddToScheme(scheme)
@@ -55,10 +52,6 @@ func CreateScheme() *apiruntime.Scheme {
 
 const WeGOCRDName = "apps.wego.weave.works"
 const FluxNamespace = "flux-system"
-
-var (
-	GVRApp schema.GroupVersionResource = wego.GroupVersion.WithResource("apps")
-)
 
 const (
 	WegoConfigMapName = "weave-gitops-config"
@@ -266,25 +259,6 @@ func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dyna
 	return dr, obj.GetName(), data, nil
 }
 
-func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
-	dr, name, data, err := k.getResourceInterface(manifest, "")
-	if err != nil {
-		return fmt.Errorf("failed to dynamic resource interface: %w", err)
-	}
-
-	deletePolicy := metav1.DeletePropagationForeground
-	deleteOptions := metav1.DeleteOptions{
-		PropagationPolicy: &deletePolicy,
-	}
-
-	err = dr.Delete(ctx, name, deleteOptions)
-	if err != nil {
-		return fmt.Errorf("failed deleting %s: %w", string(data), err)
-	}
-
-	return nil
-}
-
 func (k *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	key := types.NamespacedName{
 		Name: FluxNamespace,
@@ -355,14 +329,6 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 		}
 
 		return fmt.Errorf("error getting resource: %w", err)
-	}
-
-	return nil
-}
-
-func (k *KubeHTTP) SetResource(ctx context.Context, resource Resource) error {
-	if err := k.Client.Update(ctx, resource); err != nil {
-		return fmt.Errorf("error setting resource: %w", err)
 	}
 
 	return nil
