@@ -7,10 +7,6 @@ import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
-import {
-  computeMessage,
-  computeReady,
-} from "../../components/KubeStatusIndicator";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
@@ -35,10 +31,7 @@ const TabContent = styled.div`
 function KustomizationDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetKustomization(name);
   const hashHistory = createHashHistory();
-
   const kustomization = data?.kustomization;
-  const ok = computeReady(kustomization?.conditions);
-  const msg = computeMessage(kustomization?.conditions);
   return (
     <Page loading={isLoading} error={error} className={className}>
       <Flex wide between>
@@ -56,7 +49,10 @@ function KustomizationDetail({ className, name }: Props) {
             ]}
           />
         </Info>
-        <PageStatus ok={ok} msg={msg} error={error && true} />
+        <PageStatus
+          conditions={kustomization?.conditions}
+          error={error && true}
+        />
       </Flex>
       <TabContent>
         <HashRouterTabs history={hashHistory} defaultPath="/details">

@@ -1,19 +1,21 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Condition } from "../lib/api/core/types.pb";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import { computeMessage, computeReady } from "./KubeStatusIndicator";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
 type StatusProps = {
-  ok: boolean;
-  msg: string;
+  conditions: Condition[];
   error: boolean;
   className?: string;
 };
 
-function PageStatus({ ok, msg, error, className }: StatusProps) {
-  console.log(error);
+function PageStatus({ conditions, error, className }: StatusProps) {
+  const ok = computeReady(conditions);
+  const msg = computeMessage(conditions);
   return (
     <div className={`${className}${!ok || error ? " error-border" : ""}`}>
       <Flex align>

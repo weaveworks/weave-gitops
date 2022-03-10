@@ -12,7 +12,6 @@ import Flex from "./Flex";
 import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import InfoList, { InfoField } from "./InfoList";
-import { computeMessage, computeReady } from "./KubeStatusIndicator";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
 type Props = {
@@ -58,9 +57,6 @@ function SourceDetail({ className, name, info, type }: Props) {
     return false;
   });
 
-  const ok = computeReady(s.conditions);
-  const msg = computeMessage(s.conditions);
-
   return (
     <div className={className}>
       <Flex wide between>
@@ -69,7 +65,7 @@ function SourceDetail({ className, name, info, type }: Props) {
           <Heading level={2}>{s.type}</Heading>
           <InfoList items={items} />
         </div>
-        <PageStatus ok={ok} msg={msg} error={error && true} />
+        <PageStatus conditions={s.conditions} error={error && true} />
       </Flex>
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
