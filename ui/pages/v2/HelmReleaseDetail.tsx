@@ -32,6 +32,8 @@ function HelmReleaseDetail({ className, name }: Props) {
   const ok = computeReady(helmRelease?.conditions);
   const msg = computeMessage(helmRelease?.conditions);
 
+  console.log(error);
+
   return (
     <Page loading={isLoading} error={error} className={className}>
       <Flex wide between>
@@ -57,7 +59,7 @@ function HelmReleaseDetail({ className, name }: Props) {
             ]}
           />
         </Info>
-        <PageStatus ok={ok} msg={msg} error={error && true} />
+        <PageStatus ok={ok} msg={msg} error={error ? true : false} />
       </Flex>
       <ReconciledObjectsTable
         kinds={helmRelease?.inventory}

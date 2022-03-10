@@ -9,11 +9,13 @@ type StatusProps = {
   ok: boolean;
   msg: string;
   error: boolean;
+  className?: string;
 };
 
-function PageStatus({ ok, msg, error }: StatusProps) {
+function PageStatus({ ok, msg, error, className }: StatusProps) {
+  console.log(error);
   return (
-    <div className={`page-status${error ? " error-border" : ""}`}>
+    <div className={`${className}${!ok || error ? " error-border" : ""}`}>
       <Flex align>
         <Icon
           type={ok ? IconType.CheckCircleIcon : IconType.FailedIcon}
@@ -26,14 +28,13 @@ function PageStatus({ ok, msg, error }: StatusProps) {
     </div>
   );
 }
-export default styled(PageStatus)`
-  .page-status {
-    max-width: 45%;
-    padding: ${(props) => props.theme.spacing.small};
-    color: ${(props) => props.theme.colors.neutral30};
-    &.error-border {
-      border: 1px solid ${(props) => props.theme.colors.neutral20};
-      border-radius: 10px;
-    }
+export default styled(PageStatus).attrs({ className: PageStatus.name })`
+  max-width: 45%;
+  margin-right: ${(props) => props.theme.spacing.medium};
+  padding: ${(props) => props.theme.spacing.small};
+  color: ${(props) => props.theme.colors.neutral30};
+  &.error-border {
+    border: 1px solid ${(props) => props.theme.colors.neutral20};
+    border-radius: 10px;
   }
 `;
