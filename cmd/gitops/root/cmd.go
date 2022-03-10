@@ -124,8 +124,9 @@ func RootCmd(client *resty.Client) *cobra.Command {
 			if options.overrideInCluster {
 				kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			}
-
-			client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: viper.GetBool("insecure-skip-tls-verify")})
+			if options.insecureSkipTlsVerify {
+				client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+			}
 		},
 	}
 
