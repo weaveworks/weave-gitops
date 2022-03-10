@@ -7,7 +7,7 @@ import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
-import KubeStatusIndicator, {
+import {
   computeMessage,
   computeReady,
 } from "../../components/KubeStatusIndicator";
@@ -48,13 +48,6 @@ function KustomizationDetail({ className, name }: Props) {
           <InfoList
             items={[
               ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
-              [
-                "Status",
-                <KubeStatusIndicator
-                  conditions={kustomization?.conditions}
-                  suspended={kustomization?.suspended}
-                />,
-              ],
               ["Applied Revision", kustomization?.lastAppliedRevision],
               ["Cluster", ""],
               ["Path", kustomization?.path],

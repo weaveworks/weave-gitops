@@ -8,14 +8,16 @@ import {
   computeMessage,
   computeReady,
 } from "../../components/KubeStatusIndicator";
-import Link from "../../components/Link";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
+import SourceLink from "../../components/SourceLink";
 import { useGetHelmRelease } from "../../hooks/automations";
-import { AutomationKind } from "../../lib/api/core/types.pb";
-import { formatURL } from "../../lib/nav";
-import { V2Routes, WeGONamespace } from "../../lib/types";
+import {
+  AutomationKind,
+  SourceRefSourceKind,
+} from "../../lib/api/core/types.pb";
+import { WeGONamespace } from "../../lib/types";
 
 type Props = {
   name: string;
@@ -44,14 +46,12 @@ function HelmReleaseDetail({ className, name }: Props) {
             items={[
               [
                 "Source",
-                <Link
-                  to={formatURL(V2Routes.HelmChart, {
-                    name: helmRelease?.helmChart.name,
-                  })}
-                >
-                  HelmChart/
-                  {helmRelease?.helmChart.name}
-                </Link>,
+                <SourceLink
+                  sourceRef={{
+                    kind: SourceRefSourceKind.HelmChart,
+                    name: helmRelease.helmChart.chart,
+                  }}
+                />,
               ],
               ["Chart", helmRelease?.helmChart.chart],
               ["Cluster", "Default"],
