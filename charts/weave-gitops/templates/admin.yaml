@@ -20,10 +20,10 @@ metadata:
   namespace: {{.Values.namespace}}
 rules:
   - apiGroups: [""]
-    resources: ["secrets"]
+    resources: ["secrets", "pods" ]
     verbs: [ "get", "list" ]
   - apiGroups: ["apps"]
-    resources: [ "deployments" ]
+    resources: [ "deployments", "replicasets", "pods" ]
     verbs: [ "get", "list" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
