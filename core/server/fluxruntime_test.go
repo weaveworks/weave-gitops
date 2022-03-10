@@ -20,8 +20,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -80,8 +79,7 @@ func TestGetChildObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
