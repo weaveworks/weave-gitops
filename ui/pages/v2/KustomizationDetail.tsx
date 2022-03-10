@@ -4,13 +4,12 @@ import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
 import KubeStatusIndicator from "../../components/KubeStatusIndicator";
-import Link from "../../components/Link";
 import Page from "../../components/Page";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
+import SourceLink from "../../components/SourceLink";
 import { useGetKustomization } from "../../hooks/automations";
 import { AutomationKind } from "../../lib/api/core/types.pb";
-import { formatURL } from "../../lib/nav";
-import { V2Routes, WeGONamespace } from "../../lib/types";
+import { WeGONamespace } from "../../lib/types";
 
 type Props = {
   name: string;
@@ -33,16 +32,7 @@ function KustomizationDetail({ className, name }: Props) {
         <Heading level={2}>{kustomization?.namespace}</Heading>
         <InfoList
           items={[
-            [
-              "Source",
-              <Link
-                to={formatURL(V2Routes.GitRepo, {
-                  name: kustomization?.sourceRef.name,
-                })}
-              >
-                {kustomization?.sourceRef.kind}/{kustomization?.sourceRef.name}
-              </Link>,
-            ],
+            ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
             [
               "Status",
               <KubeStatusIndicator

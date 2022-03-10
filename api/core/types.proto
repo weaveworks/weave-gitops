@@ -67,6 +67,7 @@ message HelmChart {
     Interval  interval             = 6;
     repeated  Condition conditions = 7;
     bool      suspended            = 8;
+    string    lastUpdatedAt        = 9;
 }
 
 message HelmRelease {
@@ -78,6 +79,7 @@ message HelmRelease {
     repeated  Condition conditions       = 6;
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
+    string    lastUpdatedAt              = 12;
 }
 
 message GitRepository {
@@ -89,6 +91,7 @@ message GitRepository {
     Interval         interval             = 6;
     repeated         Condition conditions = 7;
     bool             suspended            = 8;
+    string           lastUpdatedAt        = 9;
 }
 
 message HelmRepository {
@@ -98,6 +101,7 @@ message HelmRepository {
     Interval interval             = 4;
     repeated Condition conditions = 5;
     bool     suspended            = 6;
+    string   lastUpdatedAt        = 7;
 }
 
 message Bucket {
@@ -118,6 +122,7 @@ message Bucket {
     repeated Condition conditions = 10;
     string   bucket_name          = 11;
     bool     suspended            = 12;
+    string   lastUpdatedAt        = 13;
 }
 
 message Deployment {

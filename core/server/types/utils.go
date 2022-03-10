@@ -47,3 +47,26 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 
 	return out
 }
+
+func lastUpdatedAt(obj interface{}) string {
+	switch s := obj.(type) {
+	case *v1beta1.GitRepository:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.Bucket:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.HelmChart:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	case *v1beta1.HelmRepository:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.String()
+		}
+	}
+
+	return ""
+}

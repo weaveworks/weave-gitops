@@ -77,6 +77,7 @@ export type HelmChart = {
   interval?: Interval
   conditions?: Condition[]
   suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type HelmRelease = {
@@ -88,6 +89,7 @@ export type HelmRelease = {
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
   suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type GitRepository = {
@@ -99,6 +101,7 @@ export type GitRepository = {
   interval?: Interval
   conditions?: Condition[]
   suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type HelmRepository = {
@@ -108,6 +111,7 @@ export type HelmRepository = {
   interval?: Interval
   conditions?: Condition[]
   suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type Bucket = {
@@ -123,6 +127,7 @@ export type Bucket = {
   conditions?: Condition[]
   bucketName?: string
   suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type Deployment = {
