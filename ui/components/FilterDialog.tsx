@@ -11,7 +11,7 @@ import Spacer from "./Spacer";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
-export type DialogFormState = { [inputName: string]: string };
+export type DialogFormState = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
@@ -24,12 +24,14 @@ const SlideWrapper = styled.div`
   top: 0;
 `;
 
+export const filterSeparator = ":";
+
 export function initialFormState(cfg: FilterConfig) {
   return _.reduce(
     cfg,
     (r, vals, k) => {
       _.each(vals, (v) => {
-        r[`${k}.${v}`] = false;
+        r[`${k}${filterSeparator}${v}`] = false;
       });
 
       return r;
@@ -53,7 +55,7 @@ export interface Props {
 function formStateToFilters(values) {
   const out = {};
   _.each(values, (v, k) => {
-    const [key, val] = k.split(".");
+    const [key, val] = k.split(filterSeparator);
 
     if (v) {
       const el = out[key];
@@ -78,7 +80,7 @@ function UnstyledFilterDialog({
   onClose,
   open,
 }: Props) {
-  const onFormChange = (name: string, value: string) => {
+  const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
       onFilterSelect(formStateToFilters(next), next);
@@ -125,7 +127,7 @@ function UnstyledFilterDialog({
                                       <ListItemIcon>
                                         <FormCheckbox
                                           label=""
-                                          name={`${header}.${option}`}
+                                          name={`${header}${filterSeparator}${option}`}
                                         />
                                       </ListItemIcon>
                                       <Text color="neutral30">

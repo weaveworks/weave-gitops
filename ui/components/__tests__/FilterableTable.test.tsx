@@ -147,7 +147,7 @@ describe("FilterableTable", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("type.foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
     fireEvent.click(checkbox1);
 
     const tableRows = document.querySelectorAll("tbody tr");
@@ -159,7 +159,7 @@ describe("FilterableTable", () => {
     const chip1 = screen.getByText("type:foo");
     expect(chip1).toBeTruthy();
 
-    const checkbox2 = document.getElementById("type.baz") as HTMLInputElement;
+    const checkbox2 = document.getElementById("type:baz") as HTMLInputElement;
     fireEvent.click(checkbox2);
 
     const tableRows2 = document.querySelectorAll("tbody tr");
@@ -168,6 +168,43 @@ describe("FilterableTable", () => {
 
     const chip2 = screen.getByText("type:baz");
     expect(chip2).toBeTruthy();
+  });
+  it("should remove a param when a single chip is clicked", () => {
+    const initialFilterState = {
+      ...filterConfigForType(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    fireEvent.click(checkbox1);
+    const chip1 = screen.getByText("type:foo");
+    expect(chip1).toBeTruthy();
+
+    const tableRows1 = document.querySelectorAll("tbody tr");
+    expect(tableRows1).toHaveLength(2);
+
+    const checkbox2 = document.getElementById("type:baz") as HTMLInputElement;
+    fireEvent.click(checkbox2);
+    const chip2 = screen.getByText("type:baz");
+    expect(chip2).toBeTruthy();
+
+    // TODO: this is probably an a11y problem. The SVG needs "role=button", since it is clickable
+    const svgButton = chip1.parentElement.getElementsByTagName("svg")[0];
+    fireEvent.click(svgButton);
+
+    const tableRows2 = document.querySelectorAll("tbody tr");
+    expect(tableRows2).toHaveLength(1);
+
+    expect(screen.queryByText("type:foo")).toBeFalsy();
   });
   it("should clear filtering when the `clear all` chip is clicked", () => {
     const initialFilterState = {
@@ -184,7 +221,7 @@ describe("FilterableTable", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("type.foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
     fireEvent.click(checkbox1);
     const chip1 = screen.getByText("type:foo");
     expect(chip1).toBeTruthy();
@@ -192,7 +229,7 @@ describe("FilterableTable", () => {
     const tableRows1 = document.querySelectorAll("tbody tr");
     expect(tableRows1).toHaveLength(2);
 
-    const checkbox2 = document.getElementById("type.baz") as HTMLInputElement;
+    const checkbox2 = document.getElementById("type:baz") as HTMLInputElement;
     fireEvent.click(checkbox2);
     const chip2 = screen.getByText("type:baz");
     expect(chip2).toBeTruthy();

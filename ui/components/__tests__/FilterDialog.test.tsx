@@ -49,7 +49,7 @@ describe("FilterDialog", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("Name.app") as HTMLInputElement;
+    const checkbox1 = document.getElementById("Name:app") as HTMLInputElement;
 
     expect(checkbox1.checked).toEqual(false);
     fireEvent.click(checkbox1);

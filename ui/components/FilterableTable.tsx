@@ -6,6 +6,7 @@ import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
   DialogFormState,
   FilterConfig,
+  filterSeparator,
   initialFormState,
 } from "./FilterDialog";
 import Flex from "./Flex";
@@ -81,14 +82,16 @@ function FilterableTable({
   });
   const filtered = filterRows(rows, filterState.filters);
 
-  const handleChipRemove = (chips) => {
+  const handleChipRemove = (chips: string[]) => {
     const next = {
       ...filterState,
     };
 
     _.each(chips, (chip) => {
-      const [k, v] = chip.split(":");
-      next[k] = _.filter(filterState[k], (d) => d !== v);
+      const [k, v] = chip.split(filterSeparator);
+
+      next.filters[k] = _.filter(filterState[k], (d) => d !== v);
+      next.formState[chip] = false;
     });
 
     setFilterState(next);
