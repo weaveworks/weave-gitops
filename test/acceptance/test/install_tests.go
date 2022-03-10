@@ -58,10 +58,10 @@ Flags:
   -h, --help                 help for install
 
 Global Flags:
-  -e, --endpoint string        The Weave GitOps Enterprise HTTP API endpoint
-  --insecure-skip-tls-verify   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-  --namespace string           The namespace scope for this operation (default "%s")
-  -v, --verbose                Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)
+  -e, --endpoint string            The Weave GitOps Enterprise HTTP API endpoint
+      --insecure-skip-tls-verify   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
+      --namespace string           The namespace scope for this operation (default "%s")
+  -v, --verbose                    Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)
 			helpTest = regexp.QuoteMeta(helpTest)
 			Eventually(sessionOutput).Should(gbytes.Say(helpTest))
 		})
@@ -75,7 +75,7 @@ Global Flags:
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*--force\s*If set, 'gitops uninstall' will not ask for confirmation\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--insecure-skip-tls-verify\s*If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure\n*s--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*--force\s*If set, 'gitops uninstall' will not ask for confirmation\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--insecure-skip-tls-verify\s*If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
