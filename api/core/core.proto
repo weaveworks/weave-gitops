@@ -137,6 +137,15 @@ service Core {
             body: "*"
         };
     }
+
+    /*
+     * ListNamespaces returns with the list of available namespaces.
+     */
+    rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
+        option (google.api.http) = {
+            get: "/v1/namespaces"
+        };
+    }
 }
 
 message ListKustomizationsRequest {
@@ -238,4 +247,10 @@ message GetFluxNamespaceRequest {}
 
 message GetFluxNamespaceResponse {
   string name = 1;
+}
+
+message ListNamespacesRequest {}
+
+message ListNamespacesResponse {
+  repeated Namespace namespaces = 1;
 }
