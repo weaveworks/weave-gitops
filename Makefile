@@ -205,6 +205,8 @@ merged.lcov:
 	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
 
 ##@ Utilities
+tls-files:
+	./tools/validate-mkcert.sh
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
