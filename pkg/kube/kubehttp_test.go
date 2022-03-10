@@ -52,16 +52,6 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(name).To(Equal(testClustername))
 	})
 
-	It("GetClusterStatus", func() {
-		ctx := context.Background()
-		status := k.GetClusterStatus(ctx)
-
-		// To determine cluster status, we check for the wego CRD.
-		// We cannot remove that CRD for tests, so we can only test this
-		// cluster state.
-		Expect(status.String()).To(Equal(kube.GitOpsInstalled.String()))
-	})
-
 	It("FluxPresent", func() {
 		ctx := context.Background()
 

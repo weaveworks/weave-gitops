@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	managedByWeaveGitops         = "weave-gitops"
-	createdByKustomizeController = "kustomize-controller"
-	createdBySourceController    = "source-controller"
+	managedByWeaveGitops      = "weave-gitops"
+	createdBySourceController = "source-controller"
 )
 
 func ProtoToGitRepository(repo *pb.GitRepository) *v1beta1.GitRepository {

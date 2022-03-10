@@ -66,17 +66,6 @@ type FakeKube struct {
 		result1 string
 		result2 error
 	}
-	GetClusterStatusStub        func(context.Context) kube.ClusterStatus
-	getClusterStatusMutex       sync.RWMutex
-	getClusterStatusArgsForCall []struct {
-		arg1 context.Context
-	}
-	getClusterStatusReturns struct {
-		result1 kube.ClusterStatus
-	}
-	getClusterStatusReturnsOnCall map[int]struct {
-		result1 kube.ClusterStatus
-	}
 	GetResourceStub        func(context.Context, types.NamespacedName, kube.Resource) error
 	getResourceMutex       sync.RWMutex
 	getResourceArgsForCall []struct {
@@ -436,67 +425,6 @@ func (fake *FakeKube) GetClusterNameReturnsOnCall(i int, result1 string, result2
 		result1 string
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeKube) GetClusterStatus(arg1 context.Context) kube.ClusterStatus {
-	fake.getClusterStatusMutex.Lock()
-	ret, specificReturn := fake.getClusterStatusReturnsOnCall[len(fake.getClusterStatusArgsForCall)]
-	fake.getClusterStatusArgsForCall = append(fake.getClusterStatusArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.GetClusterStatusStub
-	fakeReturns := fake.getClusterStatusReturns
-	fake.recordInvocation("GetClusterStatus", []interface{}{arg1})
-	fake.getClusterStatusMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKube) GetClusterStatusCallCount() int {
-	fake.getClusterStatusMutex.RLock()
-	defer fake.getClusterStatusMutex.RUnlock()
-	return len(fake.getClusterStatusArgsForCall)
-}
-
-func (fake *FakeKube) GetClusterStatusCalls(stub func(context.Context) kube.ClusterStatus) {
-	fake.getClusterStatusMutex.Lock()
-	defer fake.getClusterStatusMutex.Unlock()
-	fake.GetClusterStatusStub = stub
-}
-
-func (fake *FakeKube) GetClusterStatusArgsForCall(i int) context.Context {
-	fake.getClusterStatusMutex.RLock()
-	defer fake.getClusterStatusMutex.RUnlock()
-	argsForCall := fake.getClusterStatusArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeKube) GetClusterStatusReturns(result1 kube.ClusterStatus) {
-	fake.getClusterStatusMutex.Lock()
-	defer fake.getClusterStatusMutex.Unlock()
-	fake.GetClusterStatusStub = nil
-	fake.getClusterStatusReturns = struct {
-		result1 kube.ClusterStatus
-	}{result1}
-}
-
-func (fake *FakeKube) GetClusterStatusReturnsOnCall(i int, result1 kube.ClusterStatus) {
-	fake.getClusterStatusMutex.Lock()
-	defer fake.getClusterStatusMutex.Unlock()
-	fake.GetClusterStatusStub = nil
-	if fake.getClusterStatusReturnsOnCall == nil {
-		fake.getClusterStatusReturnsOnCall = make(map[int]struct {
-			result1 kube.ClusterStatus
-		})
-	}
-	fake.getClusterStatusReturnsOnCall[i] = struct {
-		result1 kube.ClusterStatus
-	}{result1}
 }
 
 func (fake *FakeKube) GetResource(arg1 context.Context, arg2 types.NamespacedName, arg3 kube.Resource) error {
@@ -953,8 +881,6 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.fluxPresentMutex.RUnlock()
 	fake.getClusterNameMutex.RLock()
 	defer fake.getClusterNameMutex.RUnlock()
-	fake.getClusterStatusMutex.RLock()
-	defer fake.getClusterStatusMutex.RUnlock()
 	fake.getResourceMutex.RLock()
 	defer fake.getResourceMutex.RUnlock()
 	fake.getSecretMutex.RLock()

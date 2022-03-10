@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
@@ -23,7 +22,6 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -45,7 +43,6 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = corev1.AddToScheme(scheme)
 	_ = extensionsv1.AddToScheme(scheme)
 	_ = appsv1.AddToScheme(scheme)
-	_ = v1alpha2.AddToScheme(scheme)
 
 	return scheme
 }
@@ -169,41 +166,6 @@ func (k *KubeHTTP) Raw() client.Client {
 
 func (k *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
 	return k.ClusterName, nil
-}
-
-func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
-	tName := types.NamespacedName{
-		Name: WeGOCRDName,
-	}
-
-	crd := v1.CustomResourceDefinition{}
-
-	if k.Client.Get(ctx, tName, &crd) == nil {
-		return GitOpsInstalled
-	}
-
-	if ok, _ := k.FluxPresent(ctx); ok {
-		return FluxInstalled
-	}
-
-	dep := appsv1.Deployment{}
-	coreDnsName := types.NamespacedName{
-		Name:      "coredns",
-		Namespace: "kube-system",
-	}
-
-	if err := k.Client.Get(ctx, coreDnsName, &dep); err != nil {
-		// Some clusters don't have 'coredns'; if we get a "not found" error, we know we
-		// can talk to the cluster
-		if apierrors.IsNotFound(err) {
-			return Unmodified
-		}
-
-		return Unknown
-	} else {
-		// Request for the coredns namespace was successful.
-		return Unmodified
-	}
 }
 
 func (k *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string) error {

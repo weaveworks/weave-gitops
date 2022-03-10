@@ -96,7 +96,6 @@ Some other tools are installed automatically by the makefile for you:
 
 * [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
 * [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
-* [controller-gen](https://sigs.k8s.io/controller-tools/cmd/controller-gen) -- Helps generate kubernetes controller code.
 
 And some tools that are installed by the `tools/download-deps.sh` script:
 
