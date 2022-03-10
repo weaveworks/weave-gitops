@@ -137,4 +137,4 @@ git clone https://github.com/FiloSottile/mkcert && (cd mkcert
 go build -ldflags "-X main.Version=$(git describe --tags)"
 cp mkcert "$(go env GOPATH)"/bin)
 rm -rf mkcert
-mkcert -install
+"$(go env GOPATH)"/bin/mkcert -install
