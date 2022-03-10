@@ -1,8 +1,13 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
-import FilterDialog, { FilterConfig } from "./FilterDialog";
+import FilterDialog, {
+  DialogFormState,
+  FilterConfig,
+  initialFormState,
+} from "./FilterDialog";
 import Flex from "./Flex";
 
 type Props = {
@@ -52,6 +57,16 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
   });
 }
 
+function toPairs(state: DialogFormState): string[] {
+  const result = _.map(state, (val, key) => val && key.split(".").join(":"));
+  return _.compact(result);
+}
+
+type State = {
+  filters: FilterConfig;
+  formState: DialogFormState;
+};
+
 function FilterableTable({
   className,
   fields,
@@ -60,19 +75,47 @@ function FilterableTable({
   dialogOpen,
   onDialogClose,
 }: Props) {
-  const [filterState, setFilterState] = React.useState<FilterConfig>(filters);
-  const filtered = filterRows(rows, filterState);
+  const [filterState, setFilterState] = React.useState<State>({
+    filters,
+    formState: initialFormState(filters),
+  });
+  const filtered = filterRows(rows, filterState.filters);
+
+  const handleChipRemove = (chips) => {
+    const next = {
+      ...filterState,
+    };
+
+    _.each(chips, (chip) => {
+      const [k, v] = chip.split(":");
+      next[k] = _.filter(filterState[k], (d) => d !== v);
+    });
+
+    setFilterState(next);
+  };
 
   return (
-    <Flex>
-      <DataTable className={className} fields={fields} rows={filtered} />
-      <FilterDialog
-        onClose={onDialogClose}
-        onFilterSelect={setFilterState}
-        filterList={filters}
-        open={dialogOpen}
+    <div className={className}>
+      <ChipGroup
+        chips={toPairs(filterState.formState)}
+        onChipRemove={handleChipRemove}
+        onClearAll={() =>
+          setFilterState({ filters: {}, formState: initialFormState(filters) })
+        }
       />
-    </Flex>
+      <Flex>
+        <DataTable className={className} fields={fields} rows={filtered} />
+        <FilterDialog
+          onClose={onDialogClose}
+          onFilterSelect={(filters, formState) =>
+            setFilterState({ filters, formState })
+          }
+          filterList={filters}
+          formState={filterState.formState}
+          open={dialogOpen}
+        />
+      </Flex>
+    </div>
   );
 }
 

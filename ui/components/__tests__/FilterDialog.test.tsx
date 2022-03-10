@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
-import FilterDialog from "../FilterDialog";
+import FilterDialog, { initialFormState } from "../FilterDialog";
 
 describe("FilterDialog", () => {
   const setActiveFilters = jest.fn();
@@ -16,6 +16,7 @@ describe("FilterDialog", () => {
       withTheme(
         <FilterDialog
           filterList={filterList}
+          formState={initialFormState(filterList)}
           onFilterSelect={setActiveFilters}
         />
       )
@@ -27,6 +28,7 @@ describe("FilterDialog", () => {
       withTheme(
         <FilterDialog
           open
+          formState={initialFormState(filterList)}
           filterList={filterList}
           onFilterSelect={setActiveFilters}
         />
@@ -40,6 +42,7 @@ describe("FilterDialog", () => {
       withTheme(
         <FilterDialog
           open
+          formState={initialFormState(filterList)}
           filterList={filterList}
           onFilterSelect={onFilterSelect}
         />
@@ -50,26 +53,10 @@ describe("FilterDialog", () => {
 
     expect(checkbox1.checked).toEqual(false);
     fireEvent.click(checkbox1);
-    expect(checkbox1.checked).toEqual(true);
 
-    expect(onFilterSelect).toHaveBeenCalledWith({
+    const filterResult = onFilterSelect.mock.calls[0][0];
+    expect(filterResult).toEqual({
       Name: ["app"],
-      // Status: ["Ready", "Failed"],
-      // Type: ["Application", "Helm Release"],
-    });
-
-    const checkbox2 = document.getElementById(
-      "Type.Application"
-    ) as HTMLInputElement;
-
-    expect(checkbox2.checked).toEqual(false);
-    fireEvent.click(checkbox2);
-    expect(checkbox2.checked).toEqual(true);
-
-    expect(onFilterSelect).toHaveBeenCalledWith({
-      Name: ["app"],
-      // Status: ["Ready", "Failed"],
-      Type: ["Application"],
     });
   });
 });
