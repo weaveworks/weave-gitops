@@ -6,7 +6,7 @@ import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
   DialogFormState,
   FilterConfig,
-  filterSeparator,
+  formStateToFilters,
   initialFormState,
 } from "./FilterDialog";
 import Flex from "./Flex";
@@ -59,8 +59,9 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 }
 
 function toPairs(state: DialogFormState): string[] {
-  const result = _.map(state, (val, key) => val && key.split(".").join(":"));
-  return _.compact(result);
+  const result = _.map(state, (val, key) => (val ? key : null));
+  const out = _.compact(result);
+  return out;
 }
 
 type State = {
@@ -88,13 +89,12 @@ function FilterableTable({
     };
 
     _.each(chips, (chip) => {
-      const [k, v] = chip.split(filterSeparator);
-
-      next.filters[k] = _.filter(filterState[k], (d) => d !== v);
       next.formState[chip] = false;
     });
 
-    setFilterState(next);
+    const filters = formStateToFilters(next.formState);
+
+    setFilterState({ formState: next.formState, filters });
   };
 
   return (
@@ -110,9 +110,9 @@ function FilterableTable({
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
           onClose={onDialogClose}
-          onFilterSelect={(filters, formState) =>
-            setFilterState({ filters, formState })
-          }
+          onFilterSelect={(filters, formState) => {
+            setFilterState({ filters, formState });
+          }}
           filterList={filters}
           formState={filterState.formState}
           open={dialogOpen}

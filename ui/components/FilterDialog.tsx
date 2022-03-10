@@ -52,7 +52,7 @@ export interface Props {
   open?: boolean;
 }
 
-function formStateToFilters(values) {
+export function formStateToFilters(values: DialogFormState): FilterConfig {
   const out = {};
   _.each(values, (v, k) => {
     const [key, val] = k.split(filterSeparator);
