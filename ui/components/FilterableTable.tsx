@@ -33,6 +33,10 @@ export function filterConfigForType(rows) {
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
+  if (_.keys(filters).length === 0) {
+    return rows;
+  }
+
   return _.filter(rows, (r) => {
     let ok = false;
 

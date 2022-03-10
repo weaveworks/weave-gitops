@@ -58,7 +58,7 @@ function intialFormstate(cfg: FilterConfig) {
     cfg,
     (r, vals, k) => {
       _.each(vals, (v) => {
-        r[`${k}.${v}`] = true;
+        r[`${k}.${v}`] = false;
       });
 
       return r;

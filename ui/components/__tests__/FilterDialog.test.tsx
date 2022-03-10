@@ -48,28 +48,28 @@ describe("FilterDialog", () => {
 
     const checkbox1 = document.getElementById("Name.app") as HTMLInputElement;
 
-    expect(checkbox1.checked).toEqual(true);
-    fireEvent.click(checkbox1);
     expect(checkbox1.checked).toEqual(false);
+    fireEvent.click(checkbox1);
+    expect(checkbox1.checked).toEqual(true);
 
     expect(onFilterSelect).toHaveBeenCalledWith({
-      Name: ["app2", "app3"],
-      Status: ["Ready", "Failed"],
-      Type: ["Application", "Helm Release"],
+      Name: ["app"],
+      // Status: ["Ready", "Failed"],
+      // Type: ["Application", "Helm Release"],
     });
 
     const checkbox2 = document.getElementById(
       "Type.Application"
     ) as HTMLInputElement;
 
-    expect(checkbox2.checked).toEqual(true);
-    fireEvent.click(checkbox2);
     expect(checkbox2.checked).toEqual(false);
+    fireEvent.click(checkbox2);
+    expect(checkbox2.checked).toEqual(true);
 
     expect(onFilterSelect).toHaveBeenCalledWith({
-      Name: ["app2", "app3"],
-      Status: ["Ready", "Failed"],
-      Type: ["Helm Release"],
+      Name: ["app"],
+      // Status: ["Ready", "Failed"],
+      Type: ["Application"],
     });
   });
 });
