@@ -87,7 +87,6 @@ type ApplicationsConfig struct {
 	FetcherFactory   applicationv2.FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
 	ClusterConfig    kube.ClusterConfig
-	UseOIDC          bool
 }
 
 var _ applicationv2.FetcherFactory = &DefaultFetcherFactory{}

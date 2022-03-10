@@ -191,12 +191,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			OIDCConfig.RedirectURL = options.OIDC.RedirectURL
 			OIDCConfig.TokenDuration = options.OIDC.TokenDuration
 		} else {
-			OIDCConfig.IssuerURL = string(secret.Data["IssuerURL"])
-			OIDCConfig.ClientID = string(secret.Data["ClientID"])
-			OIDCConfig.ClientSecret = string(secret.Data["ClientSecret"])
-			OIDCConfig.RedirectURL = string(secret.Data["RedirectURL"])
+			OIDCConfig.IssuerURL = string(secret.Data["issuerURL"])
+			OIDCConfig.ClientID = string(secret.Data["clientID"])
+			OIDCConfig.ClientSecret = string(secret.Data["clientSecret"])
+			OIDCConfig.RedirectURL = string(secret.Data["redirectURL"])
 
-			tokenDuration, err := time.ParseDuration(string(secret.Data["TokenDuration"]))
+			tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
 			if err != nil {
 				appConfig.Logger.Error(err, "Invalid token duration")
 				tokenDuration = time.Hour
