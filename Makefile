@@ -223,7 +223,7 @@ merged.lcov:
 
 ##@ Utilities
 tls-files:
-	./tools/validate-mkcert.sh
+	mkcert localhost
 
 
 # These echo commands exist to make it easier to pass stuff around github actions
