@@ -1,4 +1,4 @@
-.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
+.PHONY: all test install clean fmt vet dependencies gitops gitops-server docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
 
 CURRENT_DIR=$(shell pwd)
 
@@ -25,7 +25,7 @@ DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFL
 # We want to be able to reference this in builds & pushes
 DEFAULT_DOCKER_REPO=localhost:5001
 DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
-DOCKER_IMAGE?=gitops-server
+DOCKER_IMAGE_LIST?=gitops gitops-server
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
@@ -131,17 +131,23 @@ proto: ## Generate protobuf files
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 ##@ Docker
-_docker:
-	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
-										-f $(DOCKERFILE) \
-										-t $(DEFAULT_DOCKER_REPO)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+_docker-%: %.dockerfile
+	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS) \
+										-t $(DEFAULT_DOCKER_REPO)/$*:latest \
+										-f $< \
 										.
 
-docker-gitops: DOCKERFILE:=gitops.dockerfile
-docker-gitops: _docker ## Build a Docker image of the gitops CLI
+# Convenience targets
+docker-gitops: _docker-gitops ## Build a Docker image of the gitops CLI
+docker-gitops-server: _docker-gitops-server ## Build a Docker image of the Gitops UI Server
 
-docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
-docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
+docker-image-push: docker-gitops docker-gitops-server ## Push images to a $DOCKER_REGISTRY (default localhost:5001)
+# This mixes makefile completion and bash, sorry.
+	@for IMAGE in $(DOCKER_IMAGE_LIST) ; do \
+		echo "pushing docker image '$${IMAGE}'"; \
+		docker tag $(DEFAULT_DOCKER_REPO)/$$IMAGE:latest $(DOCKER_REGISTRY)/$$IMAGE:$(GIT_COMMIT); \
+		docker push $(DOCKER_REGISTRY)/$$IMAGE:$(GIT_COMMIT); \
+	done
 
 ##@ UI
 # Build the UI for embedding
