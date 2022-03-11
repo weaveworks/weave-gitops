@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEventsRequest) (*pb.ListFluxEventsResponse, error) {
@@ -17,7 +18,14 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 	}
 
 	l := &corev1.EventList{}
-	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
+
+	fields := client.MatchingFields{
+		"involvedObject.kind":      msg.InvolvedObject.Kind,
+		"involvedObject.name":      msg.InvolvedObject.Name,
+		"involvedObject.namespace": msg.InvolvedObject.Namespace,
+	}
+
+	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l, fields); err != nil {
 		return nil, fmt.Errorf("could not get events: %w", err)
 	}
 
