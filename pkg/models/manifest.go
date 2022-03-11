@@ -8,11 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
-type Manifest struct {
-	Path    string
-	Content []byte
-}
-
 const (
 	MaxKubernetesResourceNameLength = 63
 
@@ -25,16 +20,7 @@ const (
 	WegoAppPath             = "wego-app.yaml"
 	WegoConfigPath          = "wego-config.yaml"
 	WegoProfilesPath        = "profiles.yaml"
-
-	WegoConfigMapName = "weave-gitops-config"
-	WegoImage         = "ghcr.io/weaveworks/wego-app"
 )
-
-type ManifestsParams struct {
-	ClusterName   string
-	WegoNamespace string
-	ConfigRepo    gitproviders.RepoURL
-}
 
 func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())

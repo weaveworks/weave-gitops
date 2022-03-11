@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -25,14 +23,7 @@ type WegoConfig struct {
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
-	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
-	FluxPresent(ctx context.Context) (bool, error)
-	NamespacePresent(ctx context.Context, namespace string) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
-	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
-	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
-	FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error)
-	SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error)
 	GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error)
 	Raw() client.Client
 }

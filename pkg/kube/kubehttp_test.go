@@ -52,73 +52,6 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(name).To(Equal(testClustername))
 	})
 
-	It("FluxPresent", func() {
-		ctx := context.Background()
-
-		exists1, err := k.FluxPresent(ctx)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Flux doesn't exist yet
-		Expect(exists1).To(BeFalse())
-
-		fluxNs := corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: kube.FluxNamespace,
-			},
-		}
-
-		// Create the namespace
-		err = k8sClient.Create(ctx, &fluxNs)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists2, err := k.FluxPresent(ctx)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists2).To(BeTrue())
-	})
-
-	It("NamespacePresent", func() {
-		ctx := context.Background()
-		namespace := "wego-system"
-
-		exists1, err := k.NamespacePresent(ctx, namespace)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Namespace doesn't exist yet
-		Expect(exists1).To(BeFalse())
-
-		ns := corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
-			},
-		}
-
-		// Create the namespace
-		err = k8sClient.Create(ctx, &ns)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists2, err := k.NamespacePresent(ctx, namespace)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists2).To(BeTrue())
-	})
-
-	It("SecretPresent", func() {
-		name := "my-secret"
-		ctx := context.Background()
-		secret := corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace.Name},
-		}
-
-		err = k8sClient.Create(ctx, &secret)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists, err := k.SecretPresent(ctx, name, namespace.Name)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists).To(BeTrue())
-	})
-
 	Describe("Apply", func() {
 		It("applies a namespaced manifest", func() {
 			ctx := context.Background()
@@ -293,29 +226,6 @@ metadata:
 			Expect(err.Error()).To(ContainSubstring("Wego Config not found"))
 		})
 	})
-
-	Describe("SetWegoConfig", func() {
-		It("set a wego config in a namespace", func() {
-			ctx := context.Background()
-
-			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, namespace.Name)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cm).ToNot(BeNil())
-
-			wegoConfig, err := k.GetWegoConfig(ctx, namespace.Name)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(wegoConfig.FluxNamespace).To(Equal("foo"))
-		})
-
-		It("fails setting a wego config", func() {
-			ctx := context.Background()
-
-			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, "")
-			Expect(err.Error()).To(ContainSubstring("failed getting weave-gitops configmap"))
-			Expect(cm).To(BeNil())
-		})
-	})
-
 })
 
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
