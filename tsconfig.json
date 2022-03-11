@@ -2,6 +2,7 @@
     "compilerOptions": {
         "esModuleInterop": true,
         "jsx": "react",
-        "resolveJsonModule": true
-    }
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+    },
 }
