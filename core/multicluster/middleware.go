@@ -6,23 +6,14 @@ import (
 	"net/http"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"k8s.io/client-go/rest"
 )
 
 // WithClustersClients creates clusters client for provided user in the context
-func WithClustersClients(hubRestConfig *rest.Config, next http.Handler) http.Handler {
+func WithClustersClients(clustersFetcher ClustersFetcher, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.Principal(r.Context())
 		if user == nil {
-			//TODO: log ignored
 			next.ServeHTTP(w, r)
-			return
-		}
-
-		clustersFetcher, err := NewConfigMapClustersFetcher(hubRestConfig, "flux-system")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, "failed getting hub cluster client: %s", err)
 			return
 		}
 

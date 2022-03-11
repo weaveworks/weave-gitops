@@ -13,6 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 const (
 	ClustersClientsPoolCtxKey = iota
 )
@@ -38,7 +40,8 @@ type Cluster struct {
 	BearerToken string
 }
 
-// ClustersFetcher fetches all the leaf clusters
+//ClustersFetcher fetches all leaf clusters
+//counterfeiter:generate . ClustersFetcher
 type ClustersFetcher interface {
 	Fetch(ctx context.Context) ([]Cluster, error)
 }
@@ -119,13 +122,11 @@ func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true, // TODO: proper certs loading
 		},
-		// Impersonate: rest.ImpersonationConfig{
-		// 	UserName: "luiz.filho@weave.works",
-		// 	Groups:   user.Groups,
-		// },
+		Impersonate: rest.ImpersonationConfig{
+			UserName: user.ID,
+			Groups:   user.Groups,
+		},
 	}
-
-	fmt.Println(config)
 
 	leafClient, err := client.New(config, client.Options{
 		Scheme: scheme,

@@ -11,8 +11,6 @@ import (
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	l := &kustomizev1.KustomizationList{}
-
 	clientsPool := multicluster.ClientsPoolFromCtx(ctx)
 	if clientsPool == nil {
 		return &pb.ListKustomizationsResponse{
@@ -20,37 +18,23 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		}, nil
 	}
 
-	clients := clientsPool.Clients()
-
-	if err := clients["kind-local"].List(ctx, l); err != nil {
-		return nil, err
-	}
-	// for _, c := range clientsPool.Clients() {
-	// 	if err := list(ctx, c, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
-	// k8s, err := cs.k8s.Client(ctx)
-	// if err != nil {
-	// 	return nil, doClientError(err)
-	// }
-
-	// l := &kustomizev1.KustomizationList{}
-
-	// if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
-	// 	return nil, err
-	// }
-
 	var results []*pb.Kustomization
 
-	for _, kustomization := range l.Items {
-		k, err := types.KustomizationToProto(&kustomization)
-		if err != nil {
-			return nil, fmt.Errorf("converting items: %w", err)
+	//TODO: handle failures and parallelize
+	for _, c := range clientsPool.Clients() {
+		l := &kustomizev1.KustomizationList{}
+		if err := list(ctx, c, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
+			return nil, err
 		}
 
-		results = append(results, k)
+		for _, kustomization := range l.Items {
+			k, err := types.KustomizationToProto(&kustomization)
+			if err != nil {
+				return nil, fmt.Errorf("converting items: %w", err)
+			}
+
+			results = append(results, k)
+		}
 	}
 
 	return &pb.ListKustomizationsResponse{

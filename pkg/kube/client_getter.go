@@ -37,6 +37,7 @@ func NewDefaultClientGetter(configGetter ConfigGetter, clusterName string, schem
 func (g *DefaultClientGetter) Client(ctx context.Context) (client.Client, error) {
 	config := g.configGetter.Config(ctx)
 
+	fmt.Println("Config Insie Default COnfig Getter:", config)
 	_, rawClient, err := NewKubeHTTPClientWithConfig(config, g.clusterName, g.schemeBuilder...)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
