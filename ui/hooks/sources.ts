@@ -5,6 +5,7 @@ import { AppContext } from "../contexts/AppContext";
 import {
   ListBucketsResponse,
   ListGitRepositoriesResponse,
+  ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { SourceRefSourceKind } from "../lib/api/core/types.pb";
@@ -22,14 +23,16 @@ export function useListSources(
       const p = [
         api.ListGitRepositories({ namespace }),
         api.ListHelmRepositories({ namespace }),
+        api.ListHelmCharts({ namespace }),
         api.ListBuckets({ namespace }),
       ];
       return Promise.all(p).then((result) => {
-        const [repoRes, helmReleases, bucketsRes] = result;
+        const [repoRes, helmReleases, bucketsRes, chartRes] = result;
         const repos = (repoRes as ListGitRepositoriesResponse).gitRepositories;
         const hrs = (helmReleases as ListHelmRepositoriesResponse)
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
+        const charts = (chartRes as ListHelmChartsResponse).helmCharts;
 
         return [
           ..._.map(repos, (r) => ({
@@ -43,6 +46,10 @@ export function useListSources(
           ..._.map(buckets, (b) => ({
             ...b,
             type: SourceRefSourceKind.Bucket,
+          })),
+          ..._.map(charts, (ch) => ({
+            ...ch,
+            type: SourceRefSourceKind.HelmChart,
           })),
         ];
       });

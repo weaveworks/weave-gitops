@@ -4,10 +4,6 @@ import Flex from "../../components/Flex";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
-import {
-  computeMessage,
-  computeReady,
-} from "../../components/KubeStatusIndicator";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
@@ -31,8 +27,6 @@ const Info = styled.div`
 function HelmReleaseDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
-  const ok = computeReady(helmRelease?.conditions);
-  const msg = computeMessage(helmRelease?.conditions);
 
   return (
     <Page loading={isLoading} error={error} className={className}>
@@ -57,7 +51,10 @@ function HelmReleaseDetail({ className, name }: Props) {
             ]}
           />
         </Info>
-        <PageStatus ok={ok} msg={msg} error={error ? true : false} />
+        <PageStatus
+          conditions={helmRelease?.conditions}
+          error={error ? true : false}
+        />
       </Flex>
       <ReconciledObjectsTable
         kinds={helmRelease?.inventory}
