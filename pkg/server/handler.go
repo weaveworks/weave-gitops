@@ -50,9 +50,9 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	}
 
 	if AuthEnabled() {
-		clustersFetcher, err := multicluster.NewConfigMapClustersFetcher(restCfg, wego.DefaultNamespace)
+		clustersFetcher, err := multicluster.NewSingleClustersFetcher(restCfg, wego.DefaultNamespace)
 		if err != nil {
-			return nil, fmt.Errorf("failed creating configmap clusters fetcher: %w", err)
+			return nil, fmt.Errorf("failed fetching clusters: %w", err)
 		}
 
 		httpHandler = multicluster.WithClustersClients(clustersFetcher, httpHandler)
