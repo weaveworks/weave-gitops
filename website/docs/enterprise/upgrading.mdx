@@ -280,10 +280,10 @@ A **Pull Request** will be created against your cluster repository. **Review and
 You should now be able to load the WGE UI:
 
 ```bash
-kubectl port-forward --namespace wego-system deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80
+kubectl port-forward --namespace wego-system svc/clusters-service 8000:8000
 ```
 
-The WGE UI should now be accessible at [http://localhost:8000](http://localhost:8000).
+The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
 
 ### 7. Connect the management cluster up to itself
 
