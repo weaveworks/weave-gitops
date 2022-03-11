@@ -24,8 +24,7 @@ func TestListHelmReleases(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -47,8 +46,7 @@ func TestGetHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -94,8 +92,7 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -176,8 +173,7 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
