@@ -24,7 +24,10 @@ export function useListAutomations(namespace = WeGONamespace) {
         api.ListHelmReleases({ namespace }),
       ];
 
-      return Promise.all(p).then((result) => {
+      // The typescript CLI complains about Promise.all,
+      // but VSCode does not. Supress the CLI error here.
+      // useQuery will still give us the correct types.
+      return Promise.all<any>(p).then((result) => {
         const [kustRes, helmRes] = result;
 
         const kustomizations = (kustRes as ListKustomizationsResponse)
