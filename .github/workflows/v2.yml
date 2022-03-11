@@ -128,6 +128,15 @@ jobs:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
 
+  # We only push images on merge so create a passing check if everything finished
+  finish-ci-no-push:
+    name: V2 CI Check (16.13.2, 1.17.5)
+    runs-on: ubuntu-latest
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    if: github.event_name != 'push'
+    steps:
+      - run: echo "All done"
+
   ci-upload-images:
     name: V2 CI Upload Images
     runs-on: ubuntu-latest
@@ -136,6 +145,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+    if: github.event_name == 'push'
     strategy:
       matrix:
         docker-image:
@@ -162,7 +172,7 @@ jobs:
           docker load --input /tmp/${{ matrix.docker-image }}.tar
           docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
 
-  finish-ci:
+  finish-ci-push:
     # must match https://github.com/weaveworks/corp/blob/master/github-repo-weave-gitops.tf#L50
     name: V2 CI Check (16.13.2, 1.17.5)
     runs-on: ubuntu-latest
