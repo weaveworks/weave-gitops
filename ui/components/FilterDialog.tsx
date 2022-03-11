@@ -3,14 +3,15 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import Button from "./Button";
+import ControlledForm from "./ControlledForm";
 import Flex from "./Flex";
-import Form from "./Form";
 import FormCheckbox from "./FormCheckbox";
 import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
+export type DialogFormState = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
@@ -23,21 +24,38 @@ const SlideWrapper = styled.div`
   top: 0;
 `;
 
+export const filterSeparator = ":";
+
+export function initialFormState(cfg: FilterConfig) {
+  return _.reduce(
+    cfg,
+    (r, vals, k) => {
+      _.each(vals, (v) => {
+        r[`${k}${filterSeparator}${v}`] = false;
+      });
+
+      return r;
+    },
+    {}
+  );
+}
+
 /** Filter Bar Properties */
 export interface Props {
   className?: string;
   /** the setState function for `activeFilters` */
-  onFilterSelect: (val: FilterConfig) => void;
+  onFilterSelect: (val: FilterConfig, state: DialogFormState) => void;
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
+  formState: DialogFormState;
   onClose?: () => void;
   open?: boolean;
 }
 
-function formStateToFilters(values) {
+export function formStateToFilters(values: DialogFormState): FilterConfig {
   const out = {};
   _.each(values, (v, k) => {
-    const [key, val] = k.split(".");
+    const [key, val] = k.split(filterSeparator);
 
     if (v) {
       const el = out[key];
@@ -53,35 +71,21 @@ function formStateToFilters(values) {
   return out;
 }
 
-function intialFormstate(cfg: FilterConfig) {
-  return _.reduce(
-    cfg,
-    (r, vals, k) => {
-      _.each(vals, (v) => {
-        r[`${k}.${v}`] = true;
-      });
-
-      return r;
-    },
-    {}
-  );
-}
-
 /** Form Filter Bar */
 function UnstyledFilterDialog({
   className,
   onFilterSelect,
   filterList,
+  formState,
   onClose,
   open,
 }: Props) {
-  const onFormChange = ({ values }) => {
+  const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
-      onFilterSelect(formStateToFilters(values));
+      const next = { ...formState, [name]: value };
+      onFilterSelect(formStateToFilters(next), next);
     }
   };
-
-  const initialState = intialFormstate(filterList);
 
   return (
     <SlideContainer>
@@ -102,7 +106,10 @@ function UnstyledFilterDialog({
                     />
                   </Button>
                 </Flex>
-                <Form initialState={initialState} onChange={onFormChange}>
+                <ControlledForm
+                  state={{ values: formState }}
+                  onChange={onFormChange}
+                >
                   <List>
                     {_.map(filterList, (options: string[], header: string) => {
                       return (
@@ -120,7 +127,7 @@ function UnstyledFilterDialog({
                                       <ListItemIcon>
                                         <FormCheckbox
                                           label=""
-                                          name={`${header}.${option}`}
+                                          name={`${header}${filterSeparator}${option}`}
                                         />
                                       </ListItemIcon>
                                       <Text color="neutral30">
@@ -136,7 +143,7 @@ function UnstyledFilterDialog({
                       );
                     })}
                   </List>
-                </Form>
+                </ControlledForm>
               </Spacer>
             </Flex>
           </Paper>

@@ -11,7 +11,11 @@ describe("ChipGroup", () => {
   it("should render chips", () => {
     render(
       withTheme(
-        <ChipGroup activeChips={chipList} setActiveChips={setActiveChips} />
+        <ChipGroup
+          chips={chipList}
+          onChipRemove={setActiveChips}
+          onClearAll={() => jest.fn()}
+        />
       )
     );
     expect(screen.queryByText("app")).toBeTruthy();
