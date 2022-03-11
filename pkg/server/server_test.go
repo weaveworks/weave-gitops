@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -21,10 +22,12 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/assert"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -1328,4 +1331,140 @@ func makeDirEntries(paths map[string]bool) []os.DirEntry {
 	}
 
 	return results
+}
+
+func TestGetFeatureFlags(t *testing.T) {
+	type Data struct {
+		Flags map[string]string
+	}
+
+	tests := []struct {
+		name     string
+		envSet   func()
+		envUnset func()
+		state    []client.Object
+		result   map[string]string
+	}{
+		{
+			name: "Auth enabled",
+			envSet: func() {
+				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+			},
+			envUnset: func() {
+				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+			},
+			state: []client.Object{},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "true",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+		{
+			name: "Auth disabled",
+			envSet: func() {
+				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "false")
+			},
+			envUnset: func() {
+				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+			},
+			state: []client.Object{},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "false",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+		{
+			name:     "Auth not set",
+			envSet:   func() {},
+			envUnset: func() {},
+			state:    []client.Object{},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+		{
+			name:     "Cluster auth secret set",
+			envSet:   func() {},
+			envUnset: func() {},
+			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "wego-system", Name: "cluster-user-auth"}}},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "",
+				"CLUSTER_USER_AUTH":         "true",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+		{
+			name:     "Cluster auth secret not set",
+			envSet:   func() {},
+			envUnset: func() {},
+			state:    []client.Object{},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+		{
+			name:     "OIDC secret set",
+			envSet:   func() {},
+			envUnset: func() {},
+			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "wego-system", Name: "oidc-auth"}}},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "true",
+			},
+		},
+		{
+			name:     "OIDC secret not set",
+			envSet:   func() {},
+			envUnset: func() {},
+			state:    []client.Object{},
+			result: map[string]string{
+				"WEAVE_GITOPS_AUTH_ENABLED": "",
+				"CLUSTER_USER_AUTH":         "false",
+				"OIDC_AUTH":                 "false",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			log := testutils.MakeFakeLogr()
+			mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
+
+			cfg := ApplicationsConfig{
+				Logger: logr.Discard(),
+			}
+
+			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
+			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+			appSrv := NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
+			err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
+
+			httpHandler := middleware.WithLogging(log, mux)
+
+			ts := httptest.NewServer(httpHandler)
+			defer ts.Close()
+
+			path := "/v1/featureflags"
+			url := ts.URL + path
+
+			tt.envSet()
+			defer tt.envUnset()
+
+			res, err := http.Get(url)
+			assert.NoError(t, err)
+			assert.Equal(t, http.StatusOK, res.StatusCode)
+
+			var data Data
+			err = json.NewDecoder(res.Body).Decode(&data)
+			assert.NoError(t, err)
+			assert.Equal(t, data.Flags, tt.result)
+		})
+	}
 }

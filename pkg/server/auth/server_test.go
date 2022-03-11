@@ -264,6 +264,58 @@ func TestSignInNoSecret(t *testing.T) {
 	}
 }
 
+func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
+	username := "admin"
+	password := "my-secret-password"
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	if err != nil {
+		t.Errorf("failed to generate a hash from password: %v", err)
+	}
+
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "wego-system",
+		},
+		Data: map[string][]byte{
+			"username": []byte(base64.StdEncoding.EncodeToString([]byte(username))),
+			"password": hashed,
+		},
+	}
+
+	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	if err != nil {
+		t.Errorf("failed to create HMAC signer: %v", err)
+	}
+
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
+
+	login := auth.LoginRequest{
+		Username: "wrong",
+		Password: "my-secret-password",
+	}
+
+	j, err := json.Marshal(login)
+	if err != nil {
+		t.Errorf("failed to marshal to JSON: %v", err)
+	}
+
+	reader := bytes.NewReader(j)
+
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/signin", reader)
+	w := httptest.NewRecorder()
+	s.SignIn().ServeHTTP(w, req)
+
+	resp := w.Result()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("expected status to be 401 but got %v instead", resp.StatusCode)
+	}
+}
+
 func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	password := "my-secret-password"
 
@@ -275,7 +327,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "admin-password-hash",
+			Name:      "cluster-user-auth",
 			Namespace: "wego-system",
 		},
 		Data: map[string][]byte{
@@ -323,7 +375,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "admin-password-hash",
+			Name:      "cluster-user-auth",
 			Namespace: "wego-system",
 		},
 		Data: map[string][]byte{

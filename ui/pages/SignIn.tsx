@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { Redirect } from "react-router-dom";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -9,6 +10,7 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 import images from "../lib/images";
+import { FeatureFlags } from "../contexts/FeatureFlags";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${images.SignInBackground});
@@ -18,14 +20,19 @@ export const SignInPageWrapper = styled(Flex)`
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
+  border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
-  padding-top: ${(props) => props.theme.spacing.medium};
+  padding-top: ${(props) => props.theme.spacing.large};
   align-content: space-between;
   .MuiButton-label {
     width: 250px;
   }
   .MuiInputBase-root {
     width: 275px;
+  }
+  #email,
+  #password {
+    padding-bottom: ${(props) => props.theme.spacing.xs};
   }
 `;
 
@@ -50,10 +57,26 @@ const AlertWrapper = styled(Alert)`
   }
 `;
 
+const DocsWrapper = styled(Flex)`
+  padding: ${(props) => props.theme.spacing.medium};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 function SignIn() {
+  const { authFlag, clusterUserFlag, OIDCFlag } =
+    React.useContext(FeatureFlags);
+
+  if (authFlag === false) {
+    return <Redirect to="applications" />;
+  }
+
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, loading } = React.useContext(Auth);
+  const { signIn, error, setError, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
+  const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
@@ -63,7 +86,13 @@ function SignIn() {
     )}`);
   };
 
-  const handleUserPassSubmit = () => signIn({ password });
+  const handleUserPassSubmit = () => signIn({ username, password });
+
+  React.useEffect(() => {
+    return () => {
+      setError(null);
+    };
+  }, []);
 
   return (
     <SignInPageWrapper center align column>
@@ -76,67 +105,93 @@ function SignIn() {
         />
       )}
       <FormWrapper center align wrap>
-        <div style={{ padding: theme.spacing.base }}>
+        <div
+          style={{
+            paddingTop: theme.spacing.base,
+          }}
+        >
           <Logo>
             <img src={images.WeaveLogo} />
           </Logo>
-          <Action>
-            <Button
-              type="submit"
-              onClick={(e) => {
+          {OIDCFlag ? (
+            <Action>
+              <Button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleOIDCSubmit();
+                }}
+              >
+                LOGIN WITH OIDC PROVIDER
+              </Button>
+            </Action>
+          ) : null}
+          {OIDCFlag && clusterUserFlag ? (
+            <Divider variant="middle" style={{ margin: theme.spacing.base }} />
+          ) : null}
+          {clusterUserFlag ? (
+            <form
+              ref={formRef}
+              onSubmit={(e) => {
                 e.preventDefault();
-                handleOIDCSubmit();
+                handleUserPassSubmit();
               }}
             >
-              LOGIN WITH OIDC PROVIDER
-            </Button>
-            <Divider
-              variant="middle"
-              style={{ width: "100%", margin: theme.spacing.base }}
-            />
-          </Action>
-          <form
-            ref={formRef}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleUserPassSubmit();
-            }}
-          >
-            <Flex center align>
-              <Input
-                onChange={(e) => setPassword(e.currentTarget.value)}
-                required
-                id="password"
-                placeholder="Password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                endAdornment={
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <Visibility /> : <VisibilityOff />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </Flex>
-            <Flex center>
-              {!loading ? (
-                <Button
-                  type="submit"
-                  style={{ marginTop: theme.spacing.medium }}
-                >
-                  CONTINUE
-                </Button>
-              ) : (
-                <div style={{ margin: theme.spacing.medium }}>
-                  <LoadingPage />
-                </div>
-              )}
-            </Flex>
-          </form>
+              <Flex center align>
+                <Input
+                  onChange={(e) => setUsername(e.currentTarget.value)}
+                  id="email"
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                />
+              </Flex>
+              <Flex center align>
+                <Input
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  id="password"
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                />
+              </Flex>
+              <Flex center>
+                {!loading ? (
+                  <Button
+                    type="submit"
+                    style={{ marginTop: theme.spacing.medium }}
+                  >
+                    CONTINUE
+                  </Button>
+                ) : (
+                  <div style={{ margin: theme.spacing.medium }}>
+                    <LoadingPage />
+                  </div>
+                )}
+              </Flex>
+            </form>
+          ) : null}
+          <DocsWrapper center align>
+            Need help? Have a look at the&nbsp;
+            <a
+              href="https://docs.gitops.weave.works/docs/getting-started"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              documentation.
+            </a>
+          </DocsWrapper>
         </div>
         <Footer>
           <img src={images.SignInWheel} />

@@ -18,8 +18,12 @@ import (
 )
 
 const (
-	LoginOIDC     string = "oidc"
-	LoginUsername string = "username"
+	LoginOIDC                      string = "oidc"
+	LoginUsername                  string = "username"
+	ClusterUserAuthSecretNamespace string = "wego-system"
+	ClusterUserAuthSecretName      string = "cluster-user-auth"
+	OIDCAuthSecretNamespace        string = "wego-system"
+	OIDCAuthSecretName             string = "oidc-auth"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -49,6 +53,7 @@ type AuthServer struct {
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
 type LoginRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -263,11 +268,18 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: "wego-system",
-			Name:      "admin-password-hash",
+			Namespace: ClusterUserAuthSecretNamespace,
+			Name:      ClusterUserAuthSecretName,
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")
 			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
+
+			return
+		}
+
+		if loginRequest.Username != string(hashedSecret.Data["username"]) {
+			s.logger.Info("Wrong username")
+			rw.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}

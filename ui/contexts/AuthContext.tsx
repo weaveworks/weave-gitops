@@ -43,6 +43,7 @@ export type AuthContext = {
     groups: string[];
   };
   error: { status: number; statusText: string };
+  setError: any;
   loading: boolean;
   logOut: () => void;
 };
@@ -122,6 +123,7 @@ export default function AuthContextProvider({ children }) {
             signIn,
             userInfo,
             error,
+            setError,
             loading,
             logOut,
           }}
