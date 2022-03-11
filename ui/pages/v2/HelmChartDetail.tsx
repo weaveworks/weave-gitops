@@ -12,7 +12,6 @@ type Props = {
 };
 
 function HelmChartDetail({ className, name, namespace }: Props) {
-  console.log(name);
   return (
     <Page error={null} className={className}>
       <SourceDetail
@@ -20,11 +19,11 @@ function HelmChartDetail({ className, name, namespace }: Props) {
         namespace={namespace}
         type={SourceRefSourceKind.HelmChart}
         info={(ch: HelmChart) => [
-          ["Chart", ch.chart],
-          ["Ref", ch.sourceRef.name],
+          ["Chart", ch?.chart],
+          ["Ref", ch?.sourceRef?.name],
           ["Last Updated", ""],
-          ["Interval", <Interval interval={ch.interval} />],
-          ["Namespace", ch.namespace],
+          ["Interval", <Interval interval={ch?.interval} />],
+          ["Namespace", ch?.namespace],
         ]}
       />
     </Page>

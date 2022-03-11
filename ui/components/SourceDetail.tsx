@@ -26,13 +26,13 @@ type Props = {
 function SourceDetail({ className, name, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
-  console.log(sources);
+
   if (isLoading) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name });
-  console.log(s);
+  const s = _.find(sources, { name, type: type });
+
   if (!s) {
     return (
       <Alert
@@ -70,12 +70,6 @@ function SourceDetail({ className, name, info, type }: Props) {
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
       )}
-      <div>
-        <Heading level={2}>{s.type}</Heading>
-      </div>
-      <div>
-        <InfoList items={items} />
-      </div>
       <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
         <HashRouterTab name="Related Automations" path="/automations">
           <AutomationsTable automations={relevantAutomations} />

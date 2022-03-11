@@ -27,7 +27,7 @@ const Info = styled.div`
 function HelmReleaseDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
-  console.log(helmRelease);
+
   return (
     <Page loading={isLoading} error={error} className={className}>
       <Flex wide between>
