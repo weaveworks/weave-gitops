@@ -26,13 +26,13 @@ type Props = {
 function SourceDetail({ className, name, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
-
+  console.log(sources);
   if (isLoading) {
     return <LoadingPage />;
   }
 
   const s = _.find(sources, { name });
-
+  console.log(s);
   if (!s) {
     return (
       <Alert

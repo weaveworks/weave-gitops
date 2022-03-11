@@ -12,6 +12,7 @@ type Props = {
 };
 
 function HelmChartDetail({ className, name, namespace }: Props) {
+  console.log(name);
   return (
     <Page error={null} className={className}>
       <SourceDetail
