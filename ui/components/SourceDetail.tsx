@@ -11,12 +11,9 @@ import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
-import Icon, { IconType } from "./Icon";
 import InfoList, { InfoField } from "./InfoList";
-import { computeMessage, computeReady } from "./KubeStatusIndicator";
 import LoadingPage from "./LoadingPage";
-import Text from "./Text";
-
+import PageStatus from "./PageStatus";
 type Props = {
   className?: string;
   type: SourceRefSourceKind;
@@ -60,30 +57,15 @@ function SourceDetail({ className, name, info, type }: Props) {
     return false;
   });
 
-  const ok = computeReady(s.conditions);
-  const msg = computeMessage(s.conditions);
-
   return (
     <div className={className}>
-      <Flex align wide between>
-        <Heading level={1}>{s.name}</Heading>
-        <div className="page-status">
-          {ok ? (
-            <Icon
-              color="success"
-              size="medium"
-              type={IconType.CheckMark}
-              text={msg}
-            />
-          ) : (
-            <Icon
-              color="alert"
-              size="medium"
-              type={IconType.ErrorIcon}
-              text={`Error: ${msg}`}
-            />
-          )}
+      <Flex wide between>
+        <div>
+          <Heading level={1}>{s.name}</Heading>
+          <Heading level={2}>{s.type}</Heading>
+          <InfoList items={items} />
         </div>
+        <PageStatus conditions={s.conditions} error={error && true} />
       </Flex>
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
@@ -116,10 +98,5 @@ function SourceDetail({ className, name, info, type }: Props) {
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
   ${InfoList} {
     margin-bottom: 60px;
-  }
-
-  .page-status ${Icon} ${Text} {
-    color: ${(props) => props.theme.colors.black};
-    font-weight: normal;
   }
 `;
