@@ -1,7 +1,7 @@
 import { FormControl, FormLabel } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import { FormContext } from "./Form";
+import { FormContext } from "./ControlledForm";
 import Input, { InputProps } from "./Input";
 import Text from "./Text";
 

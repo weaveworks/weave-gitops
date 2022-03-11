@@ -65,6 +65,7 @@ export type Kustomization = {
   lastAttemptedRevision?: string
   lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
+  suspended?: boolean
 }
 
 export type HelmChart = {
@@ -75,6 +76,8 @@ export type HelmChart = {
   version?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type HelmRelease = {
@@ -85,6 +88,8 @@ export type HelmRelease = {
   helmChart?: HelmChart
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
+  suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type GitRepository = {
@@ -95,6 +100,8 @@ export type GitRepository = {
   secretRef?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type HelmRepository = {
@@ -103,6 +110,8 @@ export type HelmRepository = {
   url?: string
   interval?: Interval
   conditions?: Condition[]
+  suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type Bucket = {
@@ -117,6 +126,8 @@ export type Bucket = {
   timeout?: number
   conditions?: Condition[]
   bucketName?: string
+  suspended?: boolean
+  lastUpdatedAt?: string
 }
 
 export type Deployment = {
@@ -124,6 +135,7 @@ export type Deployment = {
   namespace?: string
   conditions?: Condition[]
   images?: string[]
+  suspended?: boolean
 }
 
 export type UnstructuredObject = {
@@ -133,4 +145,28 @@ export type UnstructuredObject = {
   uid?: string
   status?: string
   conditions?: Condition[]
+  suspended?: boolean
+}
+
+export type Namespace = {
+  name?: string
+  status?: string
+  annotations?: {[key: string]: string}
+  labels?: {[key: string]: string}
+}
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ObjectReference = {
+  kind?: string
+  namespace?: string
+  name?: string
 }

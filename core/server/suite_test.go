@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
+func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	s := grpc.NewServer()
 
 	coreCfg := server.NewCoreConfig(cfg, "foobar")
@@ -57,15 +57,20 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
 		}
 	}(t)
 
-	conn, err := grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"bufnet",
+		grpc.WithContextDialer(dialer),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	cleanup := func() {
+	t.Cleanup(func() {
 		s.GracefulStop()
 		conn.Close()
-	}
+	})
 
-	return pb.NewCoreClient(conn), cleanup
+	return pb.NewCoreClient(conn)
 }

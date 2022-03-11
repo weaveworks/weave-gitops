@@ -56,6 +56,12 @@ type CoreClient interface {
 	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
+	//
+	// ListNamespaces returns with the list of available namespaces.
+	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
+	//
+	// ListFluxEvents returns with a list of events based on Flux labels
+	ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error)
 }
 
 type coreClient struct {
@@ -174,6 +180,24 @@ func (c *coreClient) GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceR
 	return out, nil
 }
 
+func (c *coreClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
+	out := new(ListNamespacesResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListNamespaces", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error) {
+	out := new(ListFluxEventsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -216,6 +240,12 @@ type CoreServer interface {
 	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
+	//
+	// ListNamespaces returns with the list of available namespaces.
+	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	//
+	// ListFluxEvents returns with a list of events based on Flux labels
+	ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -258,6 +288,12 @@ func (UnimplementedCoreServer) GetChildObjects(context.Context, *GetChildObjects
 }
 func (UnimplementedCoreServer) GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFluxNamespace not implemented")
+}
+func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
+}
+func (UnimplementedCoreServer) ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFluxEvents not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -488,6 +524,42 @@ func _Core_GetFluxNamespace_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNamespacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListNamespaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListNamespaces",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ListFluxEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFluxEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListFluxEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListFluxEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListFluxEvents(ctx, req.(*ListFluxEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -542,6 +614,14 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFluxNamespace",
 			Handler:    _Core_GetFluxNamespace_Handler,
+		},
+		{
+			MethodName: "ListNamespaces",
+			Handler:    _Core_ListNamespaces_Handler,
+		},
+		{
+			MethodName: "ListFluxEvents",
+			Handler:    _Core_ListFluxEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -12,8 +12,9 @@ error() {
 
 title_case() {
     local param="${1}"
+    # shellcheck disable=SC2155,SC2086
     local titled="$(tr '[:lower:]' '[:upper:]' <<<${param:0:1})${param:1}"
-    echo $titled
+    echo "$titled"
 }
 
 os() {
@@ -122,6 +123,7 @@ do_curl_tarball() {
 
 do_curl_tarball_with_path() {
     local cmd="${1}"
+    # shellcheck disable=SC2206
     local url_and_path=(${2//;/ })
     local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"
@@ -137,9 +139,11 @@ validate_file() {
     local checksums_path="${1}"
     local file_path="${2}"
     local cmd="${3}"
-    if ! grep $(openssl dgst -sha256 ${file_path} | cut -d ' ' -f 2) ${checksums_path}; then
-        echo ${cmd} is not a valid file
-        rm -rf ${file_path}
+    # shellcheck disable=SC2155
+    local digest=$(openssl dgst -sha256 "${file_path}" | cut -d ' ' -f 2)
+    if ! grep "${digest}" "${checksums_path}"; then
+        echo "${cmd} is not a valid file"
+        rm -rf "${file_path}"
         exit 1
     fi
 }

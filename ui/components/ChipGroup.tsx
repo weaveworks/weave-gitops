@@ -8,33 +8,25 @@ import Spacer from "./Spacer";
 export interface Props {
   className?: string;
   /** currently checked filter options. Part of a `useState` with `setActiveChips` */
-  activeChips: string[];
+  chips: string[];
   /** the setState function for `activeChips` */
-  setActiveChips: (newChips: string[]) => void;
+  onChipRemove: (chip: string[]) => void;
+  onClearAll: () => void;
 }
 
-function ChipGroup({ className, activeChips, setActiveChips }: Props) {
+function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
   return (
     <Flex className={className} align start>
-      {_.map(activeChips, (filter, index) => {
+      {_.map(chips, (chip, index) => {
         return (
           <Flex key={index}>
             <Spacer padding="xxs" />
-            <Chip
-              label={filter}
-              onDelete={() =>
-                setActiveChips(
-                  activeChips.filter((filterCheck) => filterCheck !== filter)
-                )
-              }
-            />
+            <Chip label={chip} onDelete={() => onChipRemove([chip])} />
             <Spacer padding="xxs" />
           </Flex>
         );
       })}
-      {activeChips.length > 0 && (
-        <Chip label="Clear All" onDelete={() => setActiveChips([])} />
-      )}
+      {chips.length > 0 && <Chip label="Clear All" onDelete={onClearAll} />}
     </Flex>
   );
 }

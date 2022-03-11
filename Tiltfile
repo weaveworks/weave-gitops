@@ -16,21 +16,21 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
+        'localhost.pem',
+        'localhost-key.pem',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server -l',
+    entrypoint='/app/build/gitops-server --tls-cert-file=build/localhost.pem --tls-private-key-file=build/localhost-key.pem',
     live_update=[
         sync('./bin', '/app/build'),
     ],
 )
 
-helm_stuff = helm(
-  './charts/weave-gitops',
-  name='weave-gitops',
-  namespace='flux-system',
-  values=['./tools/helm-values-dev.yaml'],
-)
+def helmfiles(chart, values):
+	watch_file(chart)
+	watch_file(values)
+	return local('./tools/bin/helm template {c} -f {v}'.format(c=chart, v=values))
 
-k8s_yaml(helm_stuff)
+k8s_yaml(helmfiles('./charts/weave-gitops', './tools/helm-values-dev.yaml'))
 
-k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9001'])

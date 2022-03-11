@@ -1,6 +1,6 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import ControlledForm from "./ControlledForm";
 
 interface Props {
   className?: string;
@@ -9,13 +9,6 @@ interface Props {
   onChange?: (state: any) => any;
   initialState: any;
 }
-
-interface FormContextType {
-  handleChange: (name: string, value) => void;
-  findValue: (name: string) => string;
-}
-
-export const FormContext = React.createContext<FormContextType>(null);
 
 enum ActionTypes {
   setValue,
@@ -55,23 +48,16 @@ function Form({
   }, [state]);
 
   return (
-    <FormContext.Provider
-      value={{
-        findValue: (name: string) => _.get(state.values, name),
-        handleChange: (name: string, value: string) =>
-          dispatch({ type: ActionTypes.setValue, name, value }),
-      }}
+    <ControlledForm
+      className={className}
+      state={state}
+      onChange={(name, value) =>
+        dispatch({ type: ActionTypes.setValue, name, value })
+      }
+      onSubmit={() => onSubmit(state.values)}
     >
-      <form
-        onSubmit={(ev) => {
-          ev.preventDefault();
-          onSubmit(state.values);
-        }}
-        className={className}
-      >
-        {children}
-      </form>
-    </FormContext.Provider>
+      {children}
+    </ControlledForm>
   );
 }
 

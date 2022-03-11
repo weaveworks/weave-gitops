@@ -1,6 +1,6 @@
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
-import { PageRoute, V2Routes } from "./types";
+import { PageRoute, V2Routes, WeGONamespace } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
@@ -44,6 +44,14 @@ export const formatURL = (page: string, query: any = {}) => {
   return `${page}?${qs.stringify(query)}`;
 };
 
+export const formatSourceURL = (
+  kind: SourceRefSourceKind,
+  name: string,
+  namespace: string = WeGONamespace
+) => {
+  return formatURL(sourceTypeToRoute(kind), { name, namespace });
+};
+
 export function sourceTypeToRoute(t: SourceRefSourceKind): V2Routes {
   switch (t) {
     case SourceRefSourceKind.GitRepository:
@@ -54,6 +62,9 @@ export function sourceTypeToRoute(t: SourceRefSourceKind): V2Routes {
 
     case SourceRefSourceKind.HelmRepository:
       return V2Routes.HelmRepo;
+
+    case SourceRefSourceKind.HelmChart:
+      return V2Routes.HelmChart;
 
     default:
       break;

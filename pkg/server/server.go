@@ -12,8 +12,6 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
@@ -32,19 +30,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
+const DefaultHost = "0.0.0.0"
 const DefaultPort = "9001"
 
 var (
 	ErrEmptyAccessToken = errors.New("access token is empty")
 	ErrBadProvider      = errors.New("wrong provider name")
-)
-
-// Flux owner labels
-var (
-	KustomizeNameKey      = fmt.Sprintf("%s/name", kustomizev2.GroupVersion.Group)
-	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev2.GroupVersion.Group)
-	HelmNameKey           = fmt.Sprintf("%s/name", helmv2.GroupVersion.Group)
-	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
 )
 
 type applicationServer struct {

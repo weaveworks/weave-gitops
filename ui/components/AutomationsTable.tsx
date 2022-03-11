@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import DataTable, { SortType } from "./DataTable";
@@ -12,6 +13,7 @@ import KubeStatusIndicator, {
   computeReady,
 } from "./KubeStatusIndicator";
 import Link from "./Link";
+import SourceLink from "./SourceLink";
 
 type Props = {
   className?: string;
@@ -65,10 +67,34 @@ function AutomationsTable({ className, automations }: Props) {
       width: 64,
     },
     {
+      label: "Source",
+      value: (a: Automation) => {
+        let sourceKind;
+        let sourceName;
+
+        if (a.type === AutomationType.Kustomization) {
+          sourceKind = a.sourceRef.kind;
+          sourceName = a.sourceRef.name;
+        } else {
+          sourceKind = SourceRefSourceKind.HelmChart;
+          sourceName = (a as HelmRelease).helmChart.name;
+        }
+
+        return (
+          <SourceLink sourceRef={{ kind: sourceKind, name: sourceName }} />
+        );
+      },
+      width: 160,
+    },
+    {
       label: "Status",
       value: (a: Automation) =>
         a.conditions.length > 0 ? (
-          <KubeStatusIndicator short conditions={a.conditions} />
+          <KubeStatusIndicator
+            short
+            conditions={a.conditions}
+            suspended={a.suspended}
+          />
         ) : null,
       sortType: SortType.bool,
       sortValue: ({ conditions }) => computeReady(conditions),

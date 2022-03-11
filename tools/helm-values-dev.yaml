@@ -1,3 +1,4 @@
 image: latest
 containerRegistry: localhost:5001/weaveworks/wego-app
 adminPassword: JDJiJDEyJEU5STRSU01VWTVMYUJrVHNQLmxiTy4zTDB2M1BTUHZIb1htN29kSE80TXN4MXZiZmVwRzdX
+namespace: flux-system

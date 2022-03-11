@@ -41,5 +41,6 @@ func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepos
 		Url:        helmRepository.Spec.URL,
 		Interval:   interval,
 		Conditions: mapConditions(helmRepository.Status.Conditions),
+		Suspended:  helmRepository.Spec.Suspend,
 	}
 }

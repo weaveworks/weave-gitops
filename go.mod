@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/benbjohnson/clock v1.3.0
 	github.com/bufbuild/buf v1.0.0
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
@@ -59,7 +58,6 @@ require (
 	k8s.io/client-go v0.23.4
 	sigs.k8s.io/cli-utils v0.26.0
 	sigs.k8s.io/controller-runtime v0.11.1
-	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/kustomize/api v0.10.1
 	sigs.k8s.io/kustomize/kstatus v0.0.2
 	sigs.k8s.io/yaml v1.3.0
@@ -87,6 +85,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bshuster-repo/logrus-logstash-hook v1.0.2 // indirect
 	github.com/bugsnag/bugsnag-go v2.1.2+incompatible // indirect
@@ -124,7 +123,6 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gobuffalo/flect v0.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang/glog v1.0.0 // indirect

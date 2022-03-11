@@ -1,3 +1,4 @@
+import { createHashHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -6,14 +7,13 @@ import { useListSources } from "../hooks/sources";
 import { SourceRefSourceKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
+import EventsTable from "./EventsTable";
 import Flex from "./Flex";
+import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
-import Icon, { IconType } from "./Icon";
 import InfoList, { InfoField } from "./InfoList";
-import { computeMessage, computeReady } from "./KubeStatusIndicator";
 import LoadingPage from "./LoadingPage";
-import Text from "./Text";
-
+import PageStatus from "./PageStatus";
 type Props = {
   className?: string;
   type: SourceRefSourceKind;
@@ -23,7 +23,7 @@ type Props = {
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, info }: Props) {
+function SourceDetail({ className, name, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
 
@@ -57,30 +57,15 @@ function SourceDetail({ className, name, info }: Props) {
     return false;
   });
 
-  const ok = computeReady(s.conditions);
-  const msg = computeMessage(s.conditions);
-
   return (
     <div className={className}>
-      <Flex align wide between>
-        <Heading level={1}>{s.name}</Heading>
-        <div className="page-status">
-          {ok ? (
-            <Icon
-              color="success"
-              size="medium"
-              type={IconType.CheckMark}
-              text={msg}
-            />
-          ) : (
-            <Icon
-              color="alert"
-              size="medium"
-              type={IconType.ErrorIcon}
-              text={`Error: ${msg}`}
-            />
-          )}
+      <Flex wide between>
+        <div>
+          <Heading level={1}>{s.name}</Heading>
+          <Heading level={2}>{s.type}</Heading>
+          <InfoList items={items} />
         </div>
+        <PageStatus conditions={s.conditions} error={error && true} />
       </Flex>
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
@@ -91,9 +76,21 @@ function SourceDetail({ className, name, info }: Props) {
       <div>
         <InfoList items={items} />
       </div>
-      <div>
-        <AutomationsTable automations={relevantAutomations} />
-      </div>
+      <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
+        <HashRouterTab name="Related Automations" path="/automations">
+          <AutomationsTable automations={relevantAutomations} />
+        </HashRouterTab>
+        <HashRouterTab name="Events" path="/events">
+          <EventsTable
+            namespace={s.namespace}
+            involvedObject={{
+              kind: type,
+              name,
+              namespace: s.namespace,
+            }}
+          />
+        </HashRouterTab>
+      </HashRouterTabs>
     </div>
   );
 }
@@ -101,10 +98,5 @@ function SourceDetail({ className, name, info }: Props) {
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
   ${InfoList} {
     margin-bottom: 60px;
-  }
-
-  .page-status ${Icon} ${Text} {
-    color: ${(props) => props.theme.colors.black};
-    font-weight: normal;
   }
 `;

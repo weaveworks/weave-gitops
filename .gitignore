@@ -15,3 +15,6 @@ ginkgo.report
 test/library/wego-library-test
 tilt_modules
 .envrc
+
+localhost-key.pem
+localhost.pem

@@ -10,6 +10,19 @@ export interface TextProps {
   capitalize?: boolean;
   italic?: boolean;
   color?: keyof typeof colors;
+  uppercase?: boolean;
+}
+
+function textTransform(props) {
+  if (props.capitalize) {
+    return "capitalize";
+  }
+
+  if (props.uppercase) {
+    return "uppercase";
+  }
+
+  return "none";
 }
 
 const Text = styled.span<TextProps>`
@@ -20,7 +33,8 @@ const Text = styled.span<TextProps>`
     else if (props.semiBold) return "600";
     else return "400";
   }};
-  text-transform: ${(props) => (props.capitalize ? "capitalize" : "none")};
+  text-transform: ${textTransform};
+
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
   color: ${(props) => props.theme.colors[props.color as any]};
 `;

@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"embed"
 	"fmt"
 	"io/fs"
+	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -31,6 +35,7 @@ import (
 // Options contains all the options for the gitops-server command.
 type Options struct {
 	Port                          string
+	Host                          string
 	HelmRepoNamespace             string
 	HelmRepoName                  string
 	ProfileCacheLocation          string
@@ -41,6 +46,10 @@ type Options struct {
 	LoggingEnabled                bool
 	OIDC                          OIDCAuthenticationOptions
 	NotificationControllerAddress string
+	TLSCertFile                   string
+	TLSKeyFile                    string
+	Insecure                      bool
+	MTLS                          bool
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -65,6 +74,7 @@ func NewCommand() *cobra.Command {
 	options = Options{}
 
 	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging")
+	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "Port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
@@ -74,6 +84,11 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
+
+	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
+	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -248,7 +263,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := net.JoinHostPort("0.0.0.0", options.Port)
+	addr := net.JoinHostPort(options.Host, options.Port)
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
@@ -257,7 +273,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	go func() {
 		log.Infof("Serving on port %s", options.Port)
 
-		if err := srv.ListenAndServe(); err != nil {
+		if err := listenAndServe(srv, options); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
@@ -279,6 +295,38 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func listenAndServe(srv *http.Server, options Options) error {
+	if options.Insecure {
+		log.Println("TLS connections disabled")
+		return srv.ListenAndServe()
+	}
+
+	if options.TLSCertFile == "" || options.TLSKeyFile == "" {
+		return fmt.Errorf("flags --tls-cert-file and --tls-private-key-file cannot be empty")
+	}
+
+	if options.MTLS {
+		caCert, err := ioutil.ReadFile(options.TLSCertFile)
+		if err != nil {
+			return fmt.Errorf("failed reading cert file %s. %s", options.TLSCertFile, err)
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		srv.TLSConfig = &tls.Config{
+			ClientCAs:  caCertPool,
+			ClientAuth: tls.RequireAndVerifyClientCert,
+		}
+	} else {
+		log.Printf("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
+	}
+
+	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
+	// and happily use the TLSConfig supplied above
+	return srv.ListenAndServeTLS(options.TLSCertFile, options.TLSKeyFile)
 }
 
 //go:embed dist/*

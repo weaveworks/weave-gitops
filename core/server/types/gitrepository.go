@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	managedByWeaveGitops         = "weave-gitops"
-	createdByKustomizeController = "kustomize-controller"
-	createdBySourceController    = "source-controller"
+	managedByWeaveGitops      = "weave-gitops"
+	createdBySourceController = "source-controller"
 )
 
 func ProtoToGitRepository(repo *pb.GitRepository) *v1beta1.GitRepository {
@@ -60,7 +59,9 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 			Minutes: int64(repository.Spec.Interval.Minutes()) % 60,
 			Seconds: int64(repository.Spec.Interval.Seconds()) % 60,
 		},
-		Conditions: mapConditions(repository.Status.Conditions),
+		Conditions:    mapConditions(repository.Status.Conditions),
+		Suspended:     repository.Spec.Suspend,
+		LastUpdatedAt: lastUpdatedAt(repository),
 	}
 
 	if repository.Spec.SecretRef != nil {

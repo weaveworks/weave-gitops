@@ -79,5 +79,6 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, inventory []*pb.GroupV
 		},
 		Inventory:  inventory,
 		Conditions: mapConditions(helmrelease.Status.Conditions),
+		Suspended:  helmrelease.Spec.Suspend,
 	}
 }

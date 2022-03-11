@@ -86,11 +86,14 @@ jobs:
       - run: make dependencies
       - run: make check-format
       - run: make lint
+      - run: go mod tidy
+      - name: Check that go mod tidy has been run
+        run: git diff --no-ext-diff --exit-code
       - run: make proto
-      - name: Check that proto is updated
+      - name: Check that make proto has been run
         run: git diff --no-ext-diff --exit-code
       - run: make fakes
-      - name: Check that fakes are updated
+      - name: Check that make fakes has been run
         run: git diff --no-ext-diff --exit-code
 
 

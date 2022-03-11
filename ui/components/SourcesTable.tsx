@@ -4,6 +4,7 @@ import {
   Bucket,
   GitRepository,
   HelmChart,
+  HelmRepository,
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
@@ -16,6 +17,7 @@ import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -65,7 +67,11 @@ function SourcesTable({ className, sources }: Props) {
           {
             label: "Status",
             value: (s: Source) => (
-              <KubeStatusIndicator short conditions={s.conditions} />
+              <KubeStatusIndicator
+                short
+                conditions={s.conditions}
+                suspended={s.suspended}
+              />
             ),
             width: 96,
           },
@@ -87,16 +93,25 @@ function SourcesTable({ className, sources }: Props) {
               let url;
               let link = false;
 
-              if (s.type === SourceRefSourceKind.GitRepository) {
-                text = (s as GitRepository).url;
-                url = convertGitURLToGitProvider((s as GitRepository).url);
-                link = true;
-              } else if (s.type === SourceRefSourceKind.Bucket) {
-                text = (s as Bucket).endpoint;
-              } else if (s.type === SourceRefSourceKind.HelmChart) {
-                text = `https://${(s as HelmChart).sourceRef?.name}`;
-                url = (s as HelmChart).chart;
-                link = true;
+              switch (s.type) {
+                case SourceRefSourceKind.GitRepository:
+                  text = (s as GitRepository).url;
+                  url = convertGitURLToGitProvider((s as GitRepository).url);
+                  link = true;
+                  break;
+                case SourceRefSourceKind.Bucket:
+                  text = (s as Bucket).endpoint;
+                  break;
+                case SourceRefSourceKind.HelmChart:
+                  text = `https://${(s as HelmChart).sourceRef?.name}`;
+                  url = (s as HelmChart).chart;
+                  link = true;
+                  break;
+                case SourceRefSourceKind.HelmRepository:
+                  text = (s as HelmRepository).url;
+                  url = text;
+                  link = true;
+                  break;
               }
 
               return link ? (
@@ -128,6 +143,12 @@ function SourcesTable({ className, sources }: Props) {
             label: "Interval",
             value: (s: Source) => showInterval(s.interval),
             width: 96,
+          },
+          {
+            label: "Last Updated",
+            value: (s: Source) => (
+              <Timestamp time={(s as GitRepository).lastUpdatedAt} />
+            ),
           },
         ]}
       />

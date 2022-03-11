@@ -72,10 +72,10 @@ To set up a development environment for the CLI
 3. Run `make all` to install dependencies and build binaries and assets
 4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
 5. Run `./bin/gitops install --config-repo=<repo url>` (or just `flux install -n flux-system` if you don't care about doing the whole dance.)
-6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
-7. make or make unit-tests to ensure everything built correctly.
-8. The UI will start immediately on port `9001`. Auth is now always on (I do not recommend
-  turning it off). The password is `dev`.
+6. Run `make tls-files`
+7. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
+8. `make` or `make unit-tests` to ensure everything built correctly.
+9. Navigate to https://localhost:9001 in your broswer. Note the `https`: with TLS enabled `http` will not work. The password for login is `dev`.
 
 ### Requirements/tools
 
@@ -96,7 +96,6 @@ Some other tools are installed automatically by the makefile for you:
 
 * [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
 * [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
-* [controller-gen](https://sigs.k8s.io/controller-tools/cmd/controller-gen) -- Helps generate kubernetes controller code.
 
 And some tools that are installed by the `tools/download-deps.sh` script:
 
