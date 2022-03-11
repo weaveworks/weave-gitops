@@ -25,6 +25,7 @@ export const Content = styled.div`
   box-sizing: border-box;
   margin: 0 auto;
   min-width: 1260px;
+  min-height: 480px;
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.large};
