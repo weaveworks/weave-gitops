@@ -223,6 +223,14 @@ merged.lcov:
 tls-files:
 	./tools/validate-mkcert.sh
 
+
+# These echo commands exist to make it easier to pass stuff around github actions
+echo-ldflags:
+	@echo $(LDFLAGS)
+
+echo-flux-version:
+	@echo $(FLUX_VERSION)
+
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
 help:  ## Display this help.
