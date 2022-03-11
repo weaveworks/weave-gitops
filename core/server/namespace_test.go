@@ -63,8 +63,7 @@ func TestListNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	coreClient, cleanup := makeGRPCServer(k8sEnv.Rest, t)
-	defer cleanup()
+	coreClient := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, client, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
