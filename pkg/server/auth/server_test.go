@@ -446,6 +446,32 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	g.Expect(info.Email).To(Equal("wego-admin"))
 }
 
+func TestUserInfoAdminFlowBadCookie(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: "",
+	})
+
+	w := httptest.NewRecorder()
+	s.UserInfo().ServeHTTP(w, req)
+
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	var info auth.UserInfo
+
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal(""))
+}
+
 func TestUserInfoOIDCFlow(t *testing.T) {
 	const (
 		state = "abcdef"
