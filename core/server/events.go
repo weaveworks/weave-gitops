@@ -17,6 +17,10 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		return nil, doClientError(err)
 	}
 
+	if msg.InvolvedObject == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: no object was specified")
+	}
+
 	l := &corev1.EventList{}
 
 	fields := client.MatchingFields{
@@ -29,33 +33,19 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		return nil, fmt.Errorf("could not get events: %w", err)
 	}
 
-	if msg.InvolvedObject == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "bad request: no object was specified")
-	}
-
 	events := []*pb.Event{}
 
 	for _, e := range l.Items {
-		if isObjectReference(e.InvolvedObject, msg.InvolvedObject) {
-			events = append(events, &pb.Event{
-				Type:      e.Type,
-				Component: e.Source.Component,
-				Name:      e.ObjectMeta.Name,
-				Reason:    e.Reason,
-				Message:   e.Message,
-				Timestamp: e.LastTimestamp.String(),
-				Host:      e.Source.Host,
-			})
-		}
+		events = append(events, &pb.Event{
+			Type:      e.Type,
+			Component: e.Source.Component,
+			Name:      e.ObjectMeta.Name,
+			Reason:    e.Reason,
+			Message:   e.Message,
+			Timestamp: e.LastTimestamp.String(),
+			Host:      e.Source.Host,
+		})
 	}
 
 	return &pb.ListFluxEventsResponse{Events: events}, nil
-}
-
-func isObjectReference(ref corev1.ObjectReference, msg *pb.ObjectReference) bool {
-	if ref.Kind == msg.Kind && ref.Name == msg.Name && ref.Namespace == msg.Namespace {
-		return true
-	}
-
-	return false
 }
