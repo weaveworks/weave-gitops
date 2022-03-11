@@ -3,12 +3,18 @@ import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
-import { SortType } from "../DataTable";
+import { Field } from "../DataTable";
 import FilterableTable, {
   filterConfigForType,
   filterRows,
 } from "../FilterableTable";
-import Icon, { IconType } from "../Icon";
+
+const addTextSearchInput = (term: string) => {
+  const input = document.getElementById("table-search");
+  fireEvent.input(input, { target: { value: term } });
+  const form = document.getElementsByTagName("form")[0];
+  fireEvent.submit(form);
+};
 
 describe("FilterableTable", () => {
   const rows = [
@@ -38,10 +44,11 @@ describe("FilterableTable", () => {
     },
   ];
 
-  const fields = [
+  const fields: Field[] = [
     {
       label: "Name",
       value: "name",
+      textSearchable: true,
     },
     {
       label: "Type",
@@ -50,18 +57,6 @@ describe("FilterableTable", () => {
     {
       label: "Status",
       value: "success",
-      filterType: SortType.bool,
-      displayText: (r) =>
-        r.success ? (
-          <Icon
-            color="success"
-            size="base"
-            type={IconType.CheckMark}
-            text="Successful!"
-          />
-        ) : (
-          <Icon color="alert" size="base" type={IconType.ErrorIcon} />
-        ),
     },
     {
       label: "Qty",
@@ -244,5 +239,123 @@ describe("FilterableTable", () => {
     const tableRows3 = document.querySelectorAll("tbody tr");
 
     expect(tableRows3).toHaveLength(rows.length);
+  });
+
+  it("should add a text filter", () => {
+    const initialFilterState = {
+      ...filterConfigForType(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const searchTerms = "my-criterion";
+    addTextSearchInput(searchTerms);
+
+    const textChip = screen.queryByText(searchTerms);
+    expect(textChip).toBeTruthy();
+    expect(textChip.innerHTML).toContain(searchTerms);
+  });
+  it("should remove a text filter", () => {
+    const initialFilterState = {
+      ...filterConfigForType(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const searchTerms = "my-criterion";
+    addTextSearchInput(searchTerms);
+
+    const textChip = screen.queryByText(searchTerms);
+
+    const svgButton = textChip.parentElement.getElementsByTagName("svg")[0];
+    fireEvent.click(svgButton);
+
+    expect(screen.queryByText(searchTerms)).toBeFalsy();
+  });
+  it("filters by a text field", () => {
+    const initialFilterState = {
+      ...filterConfigForType(rows),
+    };
+
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const searchTerms = rows[0].name;
+    addTextSearchInput(searchTerms);
+
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain(searchTerms);
+  });
+  it("filters by multiple text fields", () => {
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={{
+            ...filterConfigForType(rows),
+          }}
+          dialogOpen
+        />
+      )
+    );
+
+    const term1 = rows[0].name;
+    addTextSearchInput(term1);
+
+    const term2 = rows[3].name;
+    addTextSearchInput(term2);
+
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(2);
+    expect(tableRows[0].innerHTML).toContain(term1);
+    expect(tableRows[1].innerHTML).toContain(term2);
+  });
+  it("filters by fragments of text fields", () => {
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={{
+            ...filterConfigForType(rows),
+          }}
+          dialogOpen
+        />
+      )
+    );
+
+    const row = rows[0];
+    const term = row.name.slice(0, 2);
+    addTextSearchInput(term);
+
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain(row.name);
   });
 });

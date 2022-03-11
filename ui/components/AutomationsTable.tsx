@@ -4,10 +4,8 @@ import { Automation } from "../hooks/automations";
 import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
-import DataTable, { SortType } from "./DataTable";
+import DataTable, { Field, SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
-import FilterDialogButton from "./FilterDialogButton";
-import Flex from "./Flex";
 import KubeStatusIndicator, {
   computeMessage,
   computeReady,
@@ -22,13 +20,11 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations }: Props) {
-  const [filterDialogOpen, setFilterDialog] = React.useState(false);
-
   const initialFilterState = {
     ...filterConfigForType(automations),
   };
 
-  const fields = [
+  const fields: Field[] = [
     {
       label: "Name",
       value: (k) => {
@@ -47,9 +43,9 @@ function AutomationsTable({ className, automations }: Props) {
           </Link>
         );
       },
-      sortType: SortType.string,
       sortValue: ({ name }) => name,
       width: 64,
+      textSearchable: true,
     },
     {
       label: "Type",
@@ -84,6 +80,7 @@ function AutomationsTable({ className, automations }: Props) {
           <SourceLink sourceRef={{ kind: sourceKind, name: sourceName }} />
         );
       },
+      sortValue: (a: Automation) => a.sourceRef?.name,
       width: 160,
     },
     {
@@ -104,6 +101,7 @@ function AutomationsTable({ className, automations }: Props) {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
       width: 360,
+      sortValue: ({ conditions }) => computeMessage(conditions),
     },
     {
       label: "Revision",
@@ -115,17 +113,10 @@ function AutomationsTable({ className, automations }: Props) {
 
   return (
     <div className={className}>
-      <Flex wide end>
-        <FilterDialogButton
-          onClick={() => setFilterDialog(!filterDialogOpen)}
-        />
-      </Flex>
       <FilterableTable
         fields={fields}
         filters={initialFilterState}
         rows={automations}
-        dialogOpen={filterDialogOpen}
-        onDialogClose={() => setFilterDialog(false)}
       />
     </div>
   );

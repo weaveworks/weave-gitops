@@ -9,7 +9,9 @@ import FilterDialog, {
   formStateToFilters,
   initialFormState,
 } from "./FilterDialog";
+import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
+import SearchField from "./SearchField";
 
 type Props = {
   className?: string;
@@ -58,15 +60,53 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
   });
 }
 
-function toPairs(state: DialogFormState): string[] {
-  const result = _.map(state, (val, key) => (val ? key : null));
+function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
+  if (textFilters.length === 0) {
+    return rows;
+  }
+
+  return _.filter(rows, (row) => {
+    let matches = false;
+    for (const colName in row) {
+      const value = row[colName];
+
+      const field = _.find(fields, (f) => {
+        if (typeof f.value === "string") {
+          return f.value === colName;
+        }
+
+        if (f.sortValue) {
+          return f.sortValue(row) === value;
+        }
+      });
+
+      if (!field || !field.textSearchable) {
+        continue;
+      }
+
+      // This allows us to look for a fragment in the string.
+      // For example, if the user searches for "pod", the "podinfo" kustomization should be returned.
+      for (const filterString of textFilters) {
+        if (_.includes(value, filterString)) {
+          matches = true;
+        }
+      }
+    }
+
+    return matches;
+  });
+}
+
+function toPairs(state: State): string[] {
+  const result = _.map(state.formState, (val, key) => (val ? key : null));
   const out = _.compact(result);
-  return out;
+  return _.concat(out, state.textFilters);
 }
 
 type State = {
   filters: FilterConfig;
   formState: DialogFormState;
+  textFilters: string[];
 };
 
 function FilterableTable({
@@ -75,13 +115,16 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
-  onDialogClose,
 }: Props) {
+  const [filterDialogOpen, setFilterDialog] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters,
     formState: initialFormState(filters),
+    textFilters: [],
   });
-  const filtered = filterRows(rows, filterState.filters);
+  let filtered = filterRows(rows, filterState.filters);
+  filtered = filterText(filtered, fields, filterState.textFilters);
+  const chips = toPairs(filterState);
 
   const handleChipRemove = (chips: string[]) => {
     const next = {
@@ -94,28 +137,56 @@ function FilterableTable({
 
     const filters = formStateToFilters(next.formState);
 
-    setFilterState({ formState: next.formState, filters });
+    const textFilters = _.filter(
+      next.textFilters,
+      (f) => !_.includes(chips, f)
+    );
+
+    setFilterState({ formState: next.formState, filters, textFilters });
+  };
+
+  const handleTextSearchSubmit = (val: string) => {
+    setFilterState({
+      ...filterState,
+      textFilters: _.uniq(_.concat(filterState.textFilters, val)),
+    });
+  };
+
+  const handleClearAll = () => {
+    setFilterState({
+      filters: {},
+      formState: initialFormState(filters),
+      textFilters: [],
+    });
+  };
+
+  const handleFilterSelect = (filters, formState) => {
+    setFilterState({ ...filterState, filters, formState });
   };
 
   return (
     <div className={className}>
-      <ChipGroup
-        chips={toPairs(filterState.formState)}
-        onChipRemove={handleChipRemove}
-        onClearAll={() =>
-          setFilterState({ filters: {}, formState: initialFormState(filters) })
-        }
-      />
+      <Flex>
+        <ChipGroup
+          chips={chips}
+          onChipRemove={handleChipRemove}
+          onClearAll={handleClearAll}
+        />
+        <Flex align wide end>
+          <SearchField onSubmit={handleTextSearchSubmit} />
+          <FilterDialogButton
+            onClick={() => setFilterDialog(!filterDialogOpen)}
+          />
+        </Flex>
+      </Flex>
       <Flex>
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
-          onClose={onDialogClose}
-          onFilterSelect={(filters, formState) => {
-            setFilterState({ filters, formState });
-          }}
+          onClose={() => setFilterDialog(!filterDialogOpen)}
+          onFilterSelect={handleFilterSelect}
           filterList={filters}
           formState={filterState.formState}
-          open={dialogOpen}
+          open={filterDialogOpen}
         />
       </Flex>
     </div>
