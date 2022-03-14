@@ -10,7 +10,6 @@ import (
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
 	_ "github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts"
 	_ "github.com/jandelgado/gcov2lcov"
-	_ "github.com/k0kubun/pp/v3"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 	_ "github.com/onsi/ginkgo/v2/ginkgo"
 	_ "github.com/ory/go-acc"
