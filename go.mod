@@ -29,6 +29,7 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
+	github.com/k0kubun/pp/v3 v3.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	github.com/olekukonko/tablewriter v0.0.5
@@ -151,8 +152,6 @@ require (
 	github.com/jmoiron/sqlx v1.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/k0kubun/pp v3.0.1+incompatible // indirect
-	github.com/k0kubun/pp/v3 v3.1.0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.14.2 // indirect
