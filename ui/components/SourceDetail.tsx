@@ -31,7 +31,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, type: type });
+  const s = _.find(sources, { name, type });
 
   if (!s) {
     return (
