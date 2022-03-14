@@ -37,9 +37,9 @@ type Cluster struct {
 	BearerToken string
 }
 
-//ClustersFetcher fetches all leaf clusters
-//counterfeiter:generate . ClustersFetcher
-type ClustersFetcher interface {
+//ClusterFetcher fetches all leaf clusters
+//counterfeiter:generate . ClusterFetcher
+type ClusterFetcher interface {
 	Fetch(ctx context.Context) ([]Cluster, error)
 }
 

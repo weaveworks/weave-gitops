@@ -15,7 +15,7 @@ import (
 
 func TestWithClustersClientsMiddleware(t *testing.T) {
 	cluster := makeLeafCluster(t)
-	clustersFetcher := &multiclusterfakes.FakeClustersFetcher{}
+	clustersFetcher := &multiclusterfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]multicluster.Cluster{cluster}, nil)
 
 	g := NewGomegaWithT(t)
@@ -47,7 +47,7 @@ func TestWithClustersClientsMiddleware(t *testing.T) {
 func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	clustersFetcher := &multiclusterfakes.FakeClustersFetcher{}
+	clustersFetcher := &multiclusterfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns(nil, errors.New("error"))
 
 	middleware := multicluster.WithClustersClients(clustersFetcher, defaultHandler)

@@ -9,7 +9,7 @@ import (
 )
 
 // WithClustersClients creates clusters client for provided user in the context
-func WithClustersClients(clustersFetcher ClustersFetcher, next http.Handler) http.Handler {
+func WithClustersClients(clustersFetcher ClusterFetcher, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.Principal(r.Context())
 		if user == nil {

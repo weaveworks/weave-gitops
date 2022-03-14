@@ -16,7 +16,7 @@ type confimapClusterFetcher struct {
 	namespace string
 }
 
-func NewConfigMapClustersFetcher(config *rest.Config, namespace string) (ClustersFetcher, error) {
+func NewConfigMapClustersFetcher(config *rest.Config, namespace string) (ClusterFetcher, error) {
 	client, err := client.New(config, client.Options{})
 	if err != nil {
 		return nil, fmt.Errorf("failed creating hub client: %w", err)

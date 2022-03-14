@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/multicluster"
 )
 
-type FakeClustersFetcher struct {
+type FakeClusterFetcher struct {
 	FetchStub        func(context.Context) ([]multicluster.Cluster, error)
 	fetchMutex       sync.RWMutex
 	fetchArgsForCall []struct {
@@ -26,7 +26,7 @@ type FakeClustersFetcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClustersFetcher) Fetch(arg1 context.Context) ([]multicluster.Cluster, error) {
+func (fake *FakeClusterFetcher) Fetch(arg1 context.Context) ([]multicluster.Cluster, error) {
 	fake.fetchMutex.Lock()
 	ret, specificReturn := fake.fetchReturnsOnCall[len(fake.fetchArgsForCall)]
 	fake.fetchArgsForCall = append(fake.fetchArgsForCall, struct {
@@ -45,26 +45,26 @@ func (fake *FakeClustersFetcher) Fetch(arg1 context.Context) ([]multicluster.Clu
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeClustersFetcher) FetchCallCount() int {
+func (fake *FakeClusterFetcher) FetchCallCount() int {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
 	return len(fake.fetchArgsForCall)
 }
 
-func (fake *FakeClustersFetcher) FetchCalls(stub func(context.Context) ([]multicluster.Cluster, error)) {
+func (fake *FakeClusterFetcher) FetchCalls(stub func(context.Context) ([]multicluster.Cluster, error)) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = stub
 }
 
-func (fake *FakeClustersFetcher) FetchArgsForCall(i int) context.Context {
+func (fake *FakeClusterFetcher) FetchArgsForCall(i int) context.Context {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
 	argsForCall := fake.fetchArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeClustersFetcher) FetchReturns(result1 []multicluster.Cluster, result2 error) {
+func (fake *FakeClusterFetcher) FetchReturns(result1 []multicluster.Cluster, result2 error) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = nil
@@ -74,7 +74,7 @@ func (fake *FakeClustersFetcher) FetchReturns(result1 []multicluster.Cluster, re
 	}{result1, result2}
 }
 
-func (fake *FakeClustersFetcher) FetchReturnsOnCall(i int, result1 []multicluster.Cluster, result2 error) {
+func (fake *FakeClusterFetcher) FetchReturnsOnCall(i int, result1 []multicluster.Cluster, result2 error) {
 	fake.fetchMutex.Lock()
 	defer fake.fetchMutex.Unlock()
 	fake.FetchStub = nil
@@ -90,7 +90,7 @@ func (fake *FakeClustersFetcher) FetchReturnsOnCall(i int, result1 []multicluste
 	}{result1, result2}
 }
 
-func (fake *FakeClustersFetcher) Invocations() map[string][][]interface{} {
+func (fake *FakeClusterFetcher) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.fetchMutex.RLock()
@@ -102,7 +102,7 @@ func (fake *FakeClustersFetcher) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeClustersFetcher) recordInvocation(key string, args []interface{}) {
+func (fake *FakeClusterFetcher) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -114,4 +114,4 @@ func (fake *FakeClustersFetcher) recordInvocation(key string, args []interface{}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ multicluster.ClustersFetcher = new(FakeClustersFetcher)
+var _ multicluster.ClusterFetcher = new(FakeClusterFetcher)
