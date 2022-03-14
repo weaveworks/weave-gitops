@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: make dependencies
+      - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - run: make node_modules
       - run: make ui-audit
       - run: make ui
