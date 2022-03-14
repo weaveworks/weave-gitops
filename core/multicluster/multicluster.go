@@ -12,8 +12,10 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
+type key int
+
 const (
-	ClustersClientsPoolCtxKey = iota
+	ClustersClientsPoolCtxKey key = iota
 )
 
 const (
