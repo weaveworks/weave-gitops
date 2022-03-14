@@ -43,30 +43,29 @@ As the certificate is _self-signed_, Chrome and other browser will show a warnin
 | ------------------- | ------ | --------------------------------------------------------------- | ------- |
 | `--no-tls`          | bool   | Disable TLS, access the dashboard on default port via http      | false   |
 | `--tls-private-key` | string | Filename for the TLS certficate, in-memory generated if omitted |         |
-| `--tls-cert-file`   | string | filename for the TLS key, in-memory generated if omitted        |         |
-| `--host`            | string | host to listen on                                               | 0.0.0.0 |
+| `--tls-cert-file`   | string | Filename for the TLS key, in-memory generated if omitted        |         |
+| `--host`            | string | Host to listen on                                               | 0.0.0.0 |
 
 ## Dashboard Login
 
 There are 2 supported methods for logging in to the dashboard:
 - Login via an OIDC provider
-- Login via the superuser account
+- Login via a cluster user account
 
-The recommended approach is to integrate with an OIDC provider, as this will let you control permissions for your platform users *and groups* using standard Kubernetes RBAC. However, it is also possible to use a superuser account to login, if an OIDC provider is not available to use. The superuser will assume the Kubernetes RBAC `User` named `admin`.
+The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
 
 :::note FEATURE TOGGLE 
 The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
 ```
-
 :::
 
 ### Login via an OIDC provider
 
 #### Securing the dashboard using OIDC and Kubernetes RBAC
 
-You may decide to host the dashboard centrally to allow for your engineering teams to access it in order to manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
+You may decide to give your engineering teams access to the dashboard, in order to view and manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
 
 #### Background
 
@@ -74,21 +73,74 @@ OIDC extends the OAuth2 authorization protocol by including an additional field 
 
 #### Configuration
 
-After enabling the feature, `gitops ui run` will require the following additional parameters:
+In order to login via your OIDC provider, you need to create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
 
-| Parameter                | Type     | Description                                                                                                                      | Default  |
-| ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `--oidc-issuer-url`      | string   | The URL of the issuer, typically the discovery URL without a path                                                                |          |
-| `--oidc-client-id`       | string   | The client ID that has been setup for Weave GitOps in the issuer                                                                 |          |
-| `--oidc-client-secret`   | string   | The client secret that has been setup for Weave GitOps in the issuer                                                             |          |
-| `--oidc-redirect-url`    | string   | The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |          |
-| `--oidc-cookie-duration` | duration | The time duration that the ID Token HTTP cookie will remain valid, after successful authentication                               | "1h0m0s" |
+| Parameter         |  Description                                                                                                                      | Default   |
+| ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `IssuerURL`       |  The URL of the issuer, typically the discovery URL without a path                                                                |           |
+| `ClientID`        |  The client ID that has been setup for Weave GitOps in the issuer                                                                 |           |
+| `ClientSecret`    |  The client secret that has been setup for Weave GitOps in the issuer                                                             |           |
+| `RedirectURL`     |  The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |           |
+| `TokenDuration`   |  The time duration that the ID Token will remain valid, after successful authentication                               | "1h0m0s"  |           |
 
 Ensure that your OIDC provider has been setup with a client ID/secret and the redirect URL of the dashboard.
 
-Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. The following manifests represent the minimal set of permissions needed to view applications, commits and profiles from the dashboard:
+Create a secret named `oidc-auth` in the `wego-system` namespace with these parameters set:
 
-```yaml title="apps-reader.yaml"
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace wego-system \
+  --from-literal=issuerURL=<oidc-issuer-url> \
+  --from-literal=clientID=<client-id> \
+  --from-literal=clientSecret=<client-secret> \
+  --from-literal=redirectURL=<redirect-url> \
+  --from-literal=tokenDuration=<token-duration>
+```
+
+Running `gitops ui run` should now load the dashboard and show the option to login via your OIDC provider.
+
+Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. Follow the instructions in the [RBAC authorization](#rbac-authorization) section in order to configure RBAC correctly.
+
+### Login via a cluster user account
+
+Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
+
+Run an Alpine Docker image interactively and supply the password of your choice as an environment variable:
+
+```sh
+docker run -e CLEAR_PASSWORD="super secret password" -it alpine
+```
+
+Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
+
+```sh
+apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
+pip install bcrypt
+```
+
+Run the following Python script to generate a hash:
+
+```sh
+python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
+b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+```
+
+Now create a Kubernetes secret to store your chosen username and the password hash:
+
+```sh
+kubectl create secret generic admin-password-hash \
+  --namespace wego-system \
+  --from-literal=username=admin
+  --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+```
+
+You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.
+
+### RBAC authorization
+
+Both login methods work with standard Kubernetes RBAC. The following roles represent the minimal set of permissions needed to view applications, commits and profiles from the dashboard:
+
+```yaml title="apps-profiles-reader.yaml"
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -116,7 +168,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: profiles-reader
-  namespace: default
+  namespace: wego-system
 rules:
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["helmrepositories"]
@@ -124,7 +176,7 @@ rules:
     resourceNames: ["weaveworks-charts"]
 ```
 
-The following manifest represents the minimal set of permissions needed to add applications from the dashboard:
+The following role represents the minimal set of permissions needed to add applications from the dashboard:
 
 ```yaml title="apps-writer.yaml"
 apiVersion: rbac.authorization.k8s.io/v1
@@ -152,40 +204,58 @@ The table below contains all the permissions that the dashboard uses:
 | `secrets`                   |                               | `get`    | Required to read deploy key secret in order to retrieve the list of commits                  |
 | `customresourcedefinitions` | `apiextensions.k8s.io`        | `get`    | Required to read custom resources of type `apps.wego.weave.works` when adding an application |
 
-### Login via the superuser account
+In order to assign permissions to a user, create a `RoleBinding`/`ClusterRoleBinding`. For example, the following role bindings assign all dashboard permissions to the `admin` user:
 
-Before you login via the superuser account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
-
-Run an Alpine Docker image interactively and supply the password of your choice as an environment variable:
-
-```sh
-docker run -e CLEAR_PASSWORD="super secret password" -it alpine
+```yaml title="admin-role-bindings.yaml"
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-apps
+  namespace: wego-system
+subjects:
+- kind: User
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: apps-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-profiles
+  namespace: wego-system
+subjects:
+- kind: User
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: profiles-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: write-apps
+subjects:
+- kind: User
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: apps-writer
+  apiGroup: rbac.authorization.k8s.io
 ```
 
-Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
-
+To test whether permissions have been setup correctly for a specific user/group use the `kubectl auth can-i` subcommand:
 ```sh
-apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
-pip install bcrypt
+kubectl auth can-i list apps --as "admin" --namespace wego-system
 ```
 
-Run the following Python script to generate a hash:
+For more information about RBAC authorization visit the [Kubernetes reference documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
 
-```sh
-python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
-b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
-```
-
-Now create a Kubernetes secret to store the password hash:
-
-```sh
-kubectl create secret generic admin-password-hash \
-  --namespace wego-system \
-  --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
-```
-
-You should now be able to login via the superuser account using your chosen password.
- 
 ## Future development
 
 The GitOps Dashboard is under active development, watch this space for exciting new features.
