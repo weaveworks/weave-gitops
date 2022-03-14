@@ -148,11 +148,19 @@ export type UnstructuredObject = {
   suspended?: boolean
 }
 
+export type ResourceRule = {
+  verbs?: string[]
+  apiGroups?: string[]
+  resources?: string[]
+  resourceNames?: string[]
+}
+
 export type Namespace = {
   name?: string
   status?: string
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
+  resourceRules?: ResourceRule[]
 }
 
 export type Event = {

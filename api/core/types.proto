@@ -151,11 +151,19 @@ message UnstructuredObject {
     bool             suspended            = 7;
 }
 
+message ResourceRule {
+    repeated string verbs         = 1;
+    repeated string apiGroups     = 2;
+    repeated string resources     = 3;
+    repeated string resourceNames = 4;
+}
+
 message Namespace {
-  string name = 1;
-  string status = 2;
-  map<string, string> annotations = 3;
-  map<string, string> labels = 4;
+  string     name                       = 1;
+  string     status                     = 2;
+  map<string, string> annotations       = 3;
+  map<string, string> labels            = 4;
+  repeated   ResourceRule resourceRules = 5;
 }
 
 message Event {

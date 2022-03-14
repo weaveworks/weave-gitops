@@ -3,10 +3,16 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	authorizationv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -51,13 +57,38 @@ func (as *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespaces
 		return nil, doClientError(err)
 	}
 
+	auth, err := newAuthClient(as.rest)
+	if err != nil {
+		return nil, fmt.Errorf("making auth client: %w", err)
+	}
+
 	response := &pb.ListNamespacesResponse{
 		Namespaces: []*pb.Namespace{},
 	}
 
 	for _, ns := range nsList.Items {
-		response.Namespaces = append(response.Namespaces, types.NamespaceToProto(ns))
+		sar := &authorizationv1.SelfSubjectRulesReview{
+			Spec: authorizationv1.SelfSubjectRulesReviewSpec{
+				Namespace: ns.Name,
+			},
+		}
+
+		authRes, err := auth.SelfSubjectRulesReviews().Create(ctx, sar, metav1.CreateOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		response.Namespaces = append(response.Namespaces, types.NamespaceToProto(ns, authRes))
 	}
 
 	return response, nil
+}
+
+func newAuthClient(cfg *rest.Config) (typedauth.AuthorizationV1Interface, error) {
+	cs, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("making clientset: %w", err)
+	}
+
+	return cs.AuthorizationV1(), nil
 }

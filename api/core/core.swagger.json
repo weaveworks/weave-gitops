@@ -1088,6 +1088,12 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "resourceRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ResourceRule"
+          }
         }
       }
     },
@@ -1102,6 +1108,35 @@
         },
         "name": {
           "type": "string"
+        }
+      }
+    },
+    "v1ResourceRule": {
+      "type": "object",
+      "properties": {
+        "verbs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "apiGroups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resourceNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
