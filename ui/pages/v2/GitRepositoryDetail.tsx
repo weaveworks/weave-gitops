@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
+import Timestamp from "../../components/Timestamp";
 import {
   GitRepository,
   SourceRefSourceKind,
@@ -23,8 +24,8 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
         info={(s: GitRepository) => [
           ["URL", s.url],
           ["Ref", s.reference.branch],
-          ["Last Updated", ""],
-          ["Cluster", ""],
+          ["Last Updated", <Timestamp time={s.lastUpdatedAt} />],
+          ["Cluster", "Default"],
           ["Namespace", s.namespace],
         ]}
       />

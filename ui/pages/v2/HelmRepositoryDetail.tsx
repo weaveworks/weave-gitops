@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Interval from "../../components/Interval";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
+import Timestamp from "../../components/Timestamp";
 import {
   HelmRepository,
   SourceRefSourceKind,
@@ -21,12 +22,12 @@ function HelmRepositoryDetail({ className, name, namespace }: Props) {
         name={name}
         namespace={namespace}
         type={SourceRefSourceKind.HelmRepository}
-        // Guard against an undefined bucket with a default empty object
+        // Guard against an undefined repo with a default empty object
         info={(hr: HelmRepository = {}) => [
           ["URL", hr.url],
-          ["Last Updated", ""],
+          ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
           ["Interval", <Interval interval={hr.interval} />],
-          ["Cluster", ""],
+          ["Cluster", "Default"],
           ["Namespace", hr.namespace],
         ]}
       />

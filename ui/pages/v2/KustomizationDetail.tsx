@@ -42,7 +42,7 @@ function KustomizationDetail({ className, name }: Props) {
             items={[
               ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
               ["Applied Revision", kustomization?.lastAppliedRevision],
-              ["Cluster", ""],
+              ["Cluster", "Default"],
               ["Path", kustomization?.path],
               ["Interval", <Interval interval={kustomization?.interval} />],
               ["Last Updated At", kustomization?.lastHandledReconciledAt],
