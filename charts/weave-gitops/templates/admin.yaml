@@ -20,7 +20,7 @@ metadata:
   namespace: {{.Values.namespace}}
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods" ]
+    resources: ["secrets", "pods","events", "namespaces"]
     verbs: [ "get", "list" ]
   - apiGroups: ["apps"]
     resources: [ "deployments", "replicasets", "pods" ]
@@ -34,9 +34,7 @@ rules:
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
     verbs: [ "get", "list" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
+  
 ---
 apiVersion: v1
 kind: Secret
