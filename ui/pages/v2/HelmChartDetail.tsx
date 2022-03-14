@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Interval from "../../components/Interval";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
+import Timestamp from "../../components/Timestamp";
 import { HelmChart, SourceRefSourceKind } from "../../lib/api/core/types.pb";
 
 type Props = {
@@ -21,7 +22,7 @@ function HelmChartDetail({ className, name, namespace }: Props) {
         info={(ch: HelmChart) => [
           ["Chart", ch?.chart],
           ["Ref", ch?.sourceRef?.name],
-          ["Last Updated", ""],
+          ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
           ["Interval", <Interval interval={ch?.interval} />],
           ["Namespace", ch?.namespace],
         ]}

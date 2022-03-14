@@ -24,7 +24,7 @@ function HelmRepositoryDetail({ className, name, namespace }: Props) {
         // Guard against an undefined bucket with a default empty object
         info={(hr: HelmRepository = {}) => [
           ["URL", hr.url],
-          ["Last Updated", ""],
+          ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
           ["Interval", <Interval interval={hr.interval} />],
           ["Cluster", "Default"],
           ["Namespace", hr.namespace],
