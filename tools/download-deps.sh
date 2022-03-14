@@ -133,8 +133,4 @@ echo "Installing golangci-lint"
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.44.0
 
 echo "Installing mkcert"
-git clone https://github.com/FiloSottile/mkcert && (cd mkcert
-go build -ldflags "-X main.Version=$(git describe --tags)"
-cp mkcert "$(go env GOPATH)"/bin)
-rm -rf mkcert
-"$(go env GOPATH)"/bin/mkcert -install
+go install filippo.io/mkcert@v1.4.3
