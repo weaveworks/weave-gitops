@@ -2,22 +2,15 @@ package multicluster_test
 
 import (
 	"context"
-	"net"
 	"os"
 	"testing"
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/multicluster"
-	"github.com/weaveworks/weave-gitops/core/server"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
@@ -79,37 +72,4 @@ func makeLeafCluster(t *testing.T) multicluster.Cluster {
 		Server: k8sEnv.Rest.Host,
 		Name:   "leaf-cluster",
 	}
-}
-
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, func()) {
-	s := grpc.NewServer()
-
-	coreCfg := server.NewCoreConfig(cfg, "foobar")
-	core := server.NewCoreServer(coreCfg)
-
-	lis := bufconn.Listen(1024 * 1024)
-
-	pb.RegisterCoreServer(s, core)
-
-	dialer := func(context.Context, string) (net.Conn, error) {
-		return lis.Dial()
-	}
-
-	go func(tt *testing.T) {
-		if err := s.Serve(lis); err != nil {
-			tt.Error(err)
-		}
-	}(t)
-
-	conn, err := grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cleanup := func() {
-		s.GracefulStop()
-		conn.Close()
-	}
-
-	return pb.NewCoreClient(conn), cleanup
 }

@@ -11,7 +11,6 @@ type singleClusterFetcher struct {
 }
 
 func NewSingleClustersFetcher(config *rest.Config, _ string) (ClusterFetcher, error) {
-
 	return singleClusterFetcher{
 		restConfig: config,
 	}, nil
