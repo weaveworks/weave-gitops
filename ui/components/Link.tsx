@@ -11,7 +11,7 @@ type Props = {
   href?: any;
   newTab?: boolean;
   textProps?: TextProps;
-  onClick?: () => void;
+  onClick?: (ev: any) => void;
 };
 
 function Link({

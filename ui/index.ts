@@ -1,24 +1,23 @@
 import Button from "./components/Button";
 import Footer from "./components/Footer";
 import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
+import Icon, { IconType } from "./components/Icon";
 import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
-import Icon, { IconType } from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider from "./contexts/AuthContext";
+import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
-import CallbackStateContextProvider from "./contexts/CallbackStateContext";
-import useApplications from "./hooks/applications";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import {
   clearCallbackState,
   getCallbackState,
   getProviderToken,
 } from "./lib/storage";
-import { theme, muiTheme } from "./lib/theme";
+import { muiTheme, theme } from "./lib/theme";
 import OAuthCallback from "./pages/OAuthCallback";
 
 export {
@@ -32,7 +31,6 @@ export {
   LoadingPage,
   theme,
   muiTheme,
-  useApplications,
   Footer,
   RepoInputWithAuth,
   CallbackStateContextProvider,

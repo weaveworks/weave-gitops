@@ -58,6 +58,7 @@ exports[`Page snapshots default 1`] = `
   box-sizing: border-box;
   margin: 0 auto;
   min-width: 1260px;
+  min-height: 480px;
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 32px;
