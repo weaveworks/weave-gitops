@@ -24,7 +24,7 @@ function BucketDetail({ className, name, namespace }: Props) {
           ["Bucket Name", b.name],
           ["Last Updated", ""],
           ["Interval", <Interval interval={b.interval} />],
-          ["Cluster", ""],
+          ["Cluster", "Default"],
           ["Namespace", b.namespace],
         ]}
       />

@@ -24,7 +24,7 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
           ["URL", s.url],
           ["Ref", s.reference.branch],
           ["Last Updated", ""],
-          ["Cluster", ""],
+          ["Cluster", "Default"],
           ["Namespace", s.namespace],
         ]}
       />

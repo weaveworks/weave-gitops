@@ -26,7 +26,7 @@ function HelmRepositoryDetail({ className, name, namespace }: Props) {
           ["URL", hr.url],
           ["Last Updated", ""],
           ["Interval", <Interval interval={hr.interval} />],
-          ["Cluster", ""],
+          ["Cluster", "Default"],
           ["Namespace", hr.namespace],
         ]}
       />
