@@ -56,9 +56,14 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 	}
 }
 
-func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList) error {
-	opts := getMatchingLabels(appName)
-	err := k8s.List(ctx, list, &opts, client.InNamespace(namespace))
+func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList, extraOpts ...client.ListOption) error {
+	opts := []client.ListOption{
+		getMatchingLabels(appName),
+		client.InNamespace(namespace),
+	}
+
+	opts = append(opts, extraOpts...)
+	err := k8s.List(ctx, list, opts...)
 	err = wrapK8sAPIError("list resource", err)
 
 	return err

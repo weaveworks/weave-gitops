@@ -13,8 +13,6 @@ import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
-import FilterDialogButton from "./FilterDialogButton";
-import Flex from "./Flex";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -36,11 +34,6 @@ function SourcesTable({ className, sources }: Props) {
 
   return (
     <div className={className}>
-      <Flex wide end>
-        <FilterDialogButton
-          onClick={() => setFilterDialog(!filterDialogOpen)}
-        />
-      </Flex>
       <FilterableTable
         filters={initialFilterState}
         rows={sources}
@@ -62,6 +55,7 @@ function SourcesTable({ className, sources }: Props) {
             sortType: SortType.string,
             sortValue: (s: Source) => s.name || "",
             width: 96,
+            textSearchable: true,
           },
           { label: "Type", value: "type", width: 96 },
           {
