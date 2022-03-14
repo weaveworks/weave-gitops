@@ -27,7 +27,7 @@ export function useListSources(
         api.ListHelmCharts({ namespace }),
       ];
       return Promise.all<any>(p).then((result) => {
-        const [repoRes, helmReleases, bucketsRes] = result;
+        const [repoRes, helmReleases, bucketsRes, chartRes] = result;
         const repos = (repoRes as ListGitRepositoriesResponse).gitRepositories;
         const hrs = (helmReleases as ListHelmRepositoriesResponse)
           .helmRepositories;
