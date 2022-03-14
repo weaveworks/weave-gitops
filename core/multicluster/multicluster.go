@@ -29,11 +29,14 @@ type Cluster struct {
 	Name string `yaml:"name"`
 	// Server defines cluster api address
 	Server string `yaml:"server"`
+
 	// SecretRef defines secret name that holds the cluster Bearer Token
 	SecretRef string `yaml:"secretRef"`
-
 	// BearerToken cluster access token read from SecretRef
 	BearerToken string
+
+	// TLSConfig holds configuration for TLS connection with the cluster values read from SecretRef
+	TLSConfig rest.TLSClientConfig
 }
 
 //ClusterFetcher fetches all leaf clusters
@@ -62,11 +65,9 @@ func NewClustersClientsPool() ClientsPool {
 // Add adds a cluster client to the clients pool with the given user impersonation
 func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 	config := &rest.Config{
-		Host:        cluster.Server,
-		BearerToken: cluster.BearerToken,
-		TLSClientConfig: rest.TLSClientConfig{
-			Insecure: true, // TODO: proper certs loading
-		},
+		Host:            cluster.Server,
+		BearerToken:     cluster.BearerToken,
+		TLSClientConfig: cluster.TLSConfig,
 		Impersonate: rest.ImpersonationConfig{
 			UserName: user.ID,
 			Groups:   user.Groups,

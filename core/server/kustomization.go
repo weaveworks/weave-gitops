@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -15,7 +16,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	if clientsPool == nil {
 		return &pb.ListKustomizationsResponse{
 			Kustomizations: []*pb.Kustomization{},
-		}, nil
+		}, errors.New("no clients pool present in context")
 	}
 
 	var results []*pb.Kustomization

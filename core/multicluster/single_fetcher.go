@@ -22,6 +22,7 @@ func (cf singleClusterFetcher) Fetch(ctx context.Context) ([]Cluster, error) {
 			Name:        "Default",
 			Server:      cf.restConfig.Host,
 			BearerToken: cf.restConfig.BearerToken,
+			TLSConfig:   cf.restConfig.TLSClientConfig,
 		},
 	}, nil
 }
