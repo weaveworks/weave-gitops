@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakehttp"
 )
 
 type testServerTransport struct {
@@ -196,7 +196,7 @@ var _ = Describe("Github Device Flow", func() {
 
 var _ = Describe("ValidateToken", func() {
 	It("returns unauthenticated on an invalid token", func() {
-		rt := &fakehttp.FakeRoundTripper{}
+		rt := &fakehttp.RoundTripper{}
 		gh := NewGithubAuthClient(&http.Client{Transport: rt})
 
 		rt.RoundTripReturns(&http.Response{StatusCode: http.StatusUnauthorized}, nil)
@@ -204,7 +204,7 @@ var _ = Describe("ValidateToken", func() {
 		Expect(gh.ValidateToken(context.Background(), "sometoken")).To(HaveOccurred())
 	})
 	It("does not return an error when a token is valid", func() {
-		rt := &fakehttp.FakeRoundTripper{}
+		rt := &fakehttp.RoundTripper{}
 		gh := NewGithubAuthClient(&http.Client{Transport: rt})
 		rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
 

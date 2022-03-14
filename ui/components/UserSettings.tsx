@@ -10,10 +10,6 @@ import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import Icon, { IconType } from "./Icon";
 
-const UserAvatar = styled(Icon)`
-  padding-right: ${(props) => props.theme.spacing.medium};
-`;
-
 const SettingsMenu = styled(Menu)`
   .MuiList-root {
     padding: ${(props) => props.theme.spacing.small};
@@ -30,7 +26,7 @@ const SettingsMenu = styled(Menu)`
   }
 `;
 
-function UserSettings() {
+function UserSettings({ className }: { className?: string }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
 
@@ -43,7 +39,7 @@ function UserSettings() {
   };
 
   return (
-    <>
+    <div className={className}>
       <Tooltip title="Account settings">
         <IconButton
           onClick={handleClick}
@@ -51,7 +47,7 @@ function UserSettings() {
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
         >
-          <UserAvatar size="xl" type={IconType.Account} color="white" />
+          <Icon size="xl" type={IconType.Account} color="white" />
         </IconButton>
       </Tooltip>
       <SettingsMenu
@@ -70,7 +66,7 @@ function UserSettings() {
           Logout
         </MenuItem>
       </SettingsMenu>
-    </>
+    </div>
   );
 }
 

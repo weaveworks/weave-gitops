@@ -2,7 +2,7 @@ import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { GithubAuthContext } from "../contexts/GithubAuthContext";
-import useAuth from "../hooks/auth";
+import useAuth from "../hooks/gitprovider";
 import {
   GetGithubDeviceCodeResponse,
   GitProvider,

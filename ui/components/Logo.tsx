@@ -3,6 +3,9 @@ import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/
 // @ts-ignore
 import logoSrc from "url:../images/logo.svg";
+// @ts-ignore
+import titleSrc from "url:../images/Title.svg";
+import Flex from "./Flex";
 import Spacer from "./Spacer";
 
 type Props = {
@@ -11,11 +14,13 @@ type Props = {
 
 function Logo({ className }: Props) {
   return (
-    <div className={className}>
-      <Spacer padding="medium">
+    <Spacer padding="medium">
+      <Flex className={className} align>
         <img src={logoSrc} />
-      </Spacer>
-    </div>
+        <Spacer padding="xxs" />
+        <img src={titleSrc} style={{ height: "90%" }} />
+      </Flex>
+    </Spacer>
   );
 }
 

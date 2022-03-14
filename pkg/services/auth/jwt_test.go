@@ -7,7 +7,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

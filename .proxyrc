@@ -1,0 +1,10 @@
+{
+  "/v1": {
+    "target": "https://localhost:9001/",
+    "secure": false
+  },
+  "/oauth2": {
+    "target": "https://localhost:9001/",
+    "secure": false
+  }
+}

@@ -1,6 +1,6 @@
 # Weave Gitops Release Process
 
-The current release process for weave gitops is fairly straightforward. You need to:
+To release a new version of Weave Gitops, you need to:
 - Create the actual release
 - Update the [website](/website) with documentation for the new version
 - Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version

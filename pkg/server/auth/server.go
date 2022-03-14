@@ -11,6 +11,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
@@ -18,12 +19,10 @@ import (
 )
 
 const (
-	LoginOIDC                      string = "oidc"
-	LoginUsername                  string = "username"
-	ClusterUserAuthSecretNamespace string = "wego-system"
-	ClusterUserAuthSecretName      string = "cluster-user-auth"
-	OIDCAuthSecretNamespace        string = "wego-system"
-	OIDCAuthSecretName             string = "oidc-auth"
+	LoginOIDC                 string = "oidc"
+	LoginUsername             string = "username"
+	ClusterUserAuthSecretName string = "cluster-user-auth"
+	OIDCAuthSecretName        string = "oidc-auth"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -268,7 +267,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: ClusterUserAuthSecretNamespace,
+			Namespace: v1alpha1.DefaultNamespace,
 			Name:      ClusterUserAuthSecretName,
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")

@@ -1,19 +1,24 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Divider, Input, InputAdornment, IconButton } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
 import { Redirect } from "react-router-dom";
+import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
-import images from "../lib/images";
-import { FeatureFlags } from "../contexts/FeatureFlags";
+import { useFeatureFlags } from "../hooks/featureflags";
+// @ts-ignore
+import SignInBackground from "./../images/SignInBackground.svg";
+// @ts-ignore
+import SignInWheel from "./../images/SignInWheel.svg";
+// @ts-ignore
+import WeaveLogo from "./../images/WeaveLogo.svg";
 
 export const SignInPageWrapper = styled(Flex)`
-  background: url(${images.SignInBackground});
+  background: url(${SignInBackground});
   height: 100%;
   width: 100%;
 `;
@@ -66,10 +71,9 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const { authFlag, clusterUserFlag, OIDCFlag } =
-    React.useContext(FeatureFlags);
+  const flags = useFeatureFlags();
 
-  if (authFlag === false) {
+  if (flags.WEAVE_GITOPS_AUTH_ENABLED === false) {
     return <Redirect to="applications" />;
   }
 
@@ -111,9 +115,9 @@ function SignIn() {
           }}
         >
           <Logo>
-            <img src={images.WeaveLogo} />
+            <img src={WeaveLogo} />
           </Logo>
-          {OIDCFlag ? (
+          {flags.OIDC_AUTH ? (
             <Action>
               <Button
                 type="submit"
@@ -126,10 +130,10 @@ function SignIn() {
               </Button>
             </Action>
           ) : null}
-          {OIDCFlag && clusterUserFlag ? (
+          {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />
           ) : null}
-          {clusterUserFlag ? (
+          {flags.CLUSTER_USER_AUTH ? (
             <form
               ref={formRef}
               onSubmit={(e) => {
@@ -194,7 +198,7 @@ function SignIn() {
           </DocsWrapper>
         </div>
         <Footer>
-          <img src={images.SignInWheel} />
+          <img src={SignInWheel} />
         </Footer>
       </FormWrapper>
     </SignInPageWrapper>

@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -60,7 +59,7 @@ func UpdateCommand() *cobra.Command {
 func updateProfileCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
-		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

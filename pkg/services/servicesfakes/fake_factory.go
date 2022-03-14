@@ -9,24 +9,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
 type FakeFactory struct {
-	GetAppServiceStub        func(context.Context, kube.Kube) (app.AppService, error)
-	getAppServiceMutex       sync.RWMutex
-	getAppServiceArgsForCall []struct {
-		arg1 context.Context
-		arg2 kube.Kube
-	}
-	getAppServiceReturns struct {
-		result1 app.AppService
-		result2 error
-	}
-	getAppServiceReturnsOnCall map[int]struct {
-		result1 app.AppService
-		result2 error
-	}
 	GetGitClientsStub        func(context.Context, kube.Kube, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 	getGitClientsMutex       sync.RWMutex
 	getGitClientsArgsForCall []struct {
@@ -47,71 +32,6 @@ type FakeFactory struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeFactory) GetAppService(arg1 context.Context, arg2 kube.Kube) (app.AppService, error) {
-	fake.getAppServiceMutex.Lock()
-	ret, specificReturn := fake.getAppServiceReturnsOnCall[len(fake.getAppServiceArgsForCall)]
-	fake.getAppServiceArgsForCall = append(fake.getAppServiceArgsForCall, struct {
-		arg1 context.Context
-		arg2 kube.Kube
-	}{arg1, arg2})
-	stub := fake.GetAppServiceStub
-	fakeReturns := fake.getAppServiceReturns
-	fake.recordInvocation("GetAppService", []interface{}{arg1, arg2})
-	fake.getAppServiceMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeFactory) GetAppServiceCallCount() int {
-	fake.getAppServiceMutex.RLock()
-	defer fake.getAppServiceMutex.RUnlock()
-	return len(fake.getAppServiceArgsForCall)
-}
-
-func (fake *FakeFactory) GetAppServiceCalls(stub func(context.Context, kube.Kube) (app.AppService, error)) {
-	fake.getAppServiceMutex.Lock()
-	defer fake.getAppServiceMutex.Unlock()
-	fake.GetAppServiceStub = stub
-}
-
-func (fake *FakeFactory) GetAppServiceArgsForCall(i int) (context.Context, kube.Kube) {
-	fake.getAppServiceMutex.RLock()
-	defer fake.getAppServiceMutex.RUnlock()
-	argsForCall := fake.getAppServiceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeFactory) GetAppServiceReturns(result1 app.AppService, result2 error) {
-	fake.getAppServiceMutex.Lock()
-	defer fake.getAppServiceMutex.Unlock()
-	fake.GetAppServiceStub = nil
-	fake.getAppServiceReturns = struct {
-		result1 app.AppService
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppService, result2 error) {
-	fake.getAppServiceMutex.Lock()
-	defer fake.getAppServiceMutex.Unlock()
-	fake.GetAppServiceStub = nil
-	if fake.getAppServiceReturnsOnCall == nil {
-		fake.getAppServiceReturnsOnCall = make(map[int]struct {
-			result1 app.AppService
-			result2 error
-		})
-	}
-	fake.getAppServiceReturnsOnCall[i] = struct {
-		result1 app.AppService
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeFactory) GetGitClients(arg1 context.Context, arg2 kube.Kube, arg3 gitproviders.Client, arg4 services.GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
@@ -187,8 +107,6 @@ func (fake *FakeFactory) GetGitClientsReturnsOnCall(i int, result1 git.Git, resu
 func (fake *FakeFactory) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getAppServiceMutex.RLock()
-	defer fake.getAppServiceMutex.RUnlock()
 	fake.getGitClientsMutex.RLock()
 	defer fake.getGitClientsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

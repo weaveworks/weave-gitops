@@ -4,7 +4,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 
 	"github.com/go-resty/resty/v2"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 )

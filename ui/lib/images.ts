@@ -1,13 +1,16 @@
 /* eslint-disable */
 // @ts-ignore
-import SignInWheel from "data-url:../images/SignInWheel.svg";
+import background from "url:../images/background.svg";
 // @ts-ignore
-import SignInBackground from "data-url:../images/SignInBackground.svg";
+import fancyCardBackgroundBlue from "url:../images/fancy-card-background-blue.svg";
 // @ts-ignore
-import WeaveLogo from "data-url:../images/WeaveLogo.svg";
+import fancyCardBackgroundOrange from "url:../images/fancy-card-background-orange.svg";
+// @ts-ignore
+import fancyCardBackground from "url:../images/fancy-card-background.svg";
 
 export default {
-  SignInWheel,
-  SignInBackground,
-  WeaveLogo,
+  background,
+  fancyCardBackground,
+  fancyCardBackgroundBlue,
+  fancyCardBackgroundOrange,
 };

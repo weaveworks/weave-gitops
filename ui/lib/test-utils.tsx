@@ -7,38 +7,57 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import {
   Applications,
-  GetApplicationRequest,
-  GetApplicationResponse,
-  GetChildObjectsReq,
-  GetChildObjectsRes,
   GetGithubAuthStatusRequest,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeRequest,
   GetGithubDeviceCodeResponse,
-  GetReconciledObjectsReq,
-  GetReconciledObjectsRes,
-  ListApplicationsRequest,
-  ListApplicationsResponse,
-  ListCommitsRequest,
-  ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
-  SyncApplicationRequest,
-  SyncApplicationResponse,
   ValidateProviderTokenRequest,
   ValidateProviderTokenResponse,
 } from "./api/applications/applications.pb";
+import {
+  Core,
+  GetReconciledObjectsRequest,
+  GetReconciledObjectsResponse,
+  GetChildObjectsRequest,
+  GetChildObjectsResponse,
+} from "./api/core/core.pb";
+
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
 
-export type ApplicationOverrides = {
-  ListApplications?: (req: ListApplicationsRequest) => ListApplicationsResponse;
-  GetApplication?: (req: GetApplicationRequest) => GetApplicationResponse;
-  ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
+
+export type CoreOverrides = {
+  GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
-    req: GetReconciledObjectsReq
-  ) => GetReconciledObjectsRes;
-  GetChildObjects?: (req: GetChildObjectsReq) => GetChildObjectsRes;
+    req: GetReconciledObjectsRequest
+  ) => GetReconciledObjectsResponse;
+}
+
+export const createCoreMockClient = (
+  ovr: CoreOverrides,
+  error?: RequestError
+): typeof Core => {
+  const promisified = _.reduce(
+    ovr,
+    (result, handlerFn, method) => {
+      result[method] = (req) => {
+        if (error) {
+          return new Promise((_, reject) => reject(error));
+        }
+        return new Promise((accept) => accept(handlerFn(req) as any));
+      };
+
+      return result;
+    },
+    {}
+  );
+
+  return promisified as typeof Core;
+};
+
+export type ApplicationOverrides = {
   GetGithubDeviceCode?: (
     req: GetGithubDeviceCodeRequest
   ) => GetGithubDeviceCodeResponse;
@@ -46,7 +65,6 @@ export type ApplicationOverrides = {
     req: GetGithubAuthStatusRequest
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
   ValidateProviderToken?: (
     req: ValidateProviderTokenRequest
   ) => ValidateProviderTokenResponse;
