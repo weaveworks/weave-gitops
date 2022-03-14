@@ -109,7 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-buildx-action@v1
-      - run: make dependencies
+      - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - name: Set build-time flags
         run: |
           echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
