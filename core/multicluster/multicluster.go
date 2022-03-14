@@ -15,11 +15,8 @@ import (
 type key int
 
 const (
+	// Clusters Clients Pool context key
 	ClustersClientsPoolCtxKey key = iota
-)
-
-const (
-	ClustersConfigMapName = "leaf-clusters"
 )
 
 var (
@@ -45,6 +42,7 @@ type ClusterFetcher interface {
 	Fetch(ctx context.Context) ([]Cluster, error)
 }
 
+// ClientsPool stores all clients to the leaf clusters
 type ClientsPool interface {
 	Add(user *auth.UserPrincipal, cluster Cluster) error
 	Clients() map[string]client.Client
@@ -54,12 +52,14 @@ type clientsPool struct {
 	clients map[string]client.Client
 }
 
+// NewClustersClientsPool initializes a new ClientsPool
 func NewClustersClientsPool() ClientsPool {
 	return &clientsPool{
 		clients: map[string]client.Client{},
 	}
 }
 
+// Add adds a cluster client to the clients pool with the given user impersonation
 func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 	config := &rest.Config{
 		Host:        cluster.Server,
@@ -85,6 +85,7 @@ func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 	return nil
 }
 
+// Clients returns the clusters clients
 func (cp *clientsPool) Clients() map[string]client.Client {
 	return cp.clients
 }

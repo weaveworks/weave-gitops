@@ -39,10 +39,7 @@ func WithClustersClients(clustersFetcher ClusterFetcher, next http.Handler) http
 	})
 }
 
-func WithPrincipal(ctx context.Context, cp ClientsPool) context.Context {
-	return context.WithValue(ctx, ClustersClientsPoolCtxKey, cp)
-}
-
+// ClientsPoolFromCtx returns the ClusterClients pool stored in the context
 func ClientsPoolFromCtx(ctx context.Context) ClientsPool {
 	pool, ok := ctx.Value(ClustersClientsPoolCtxKey).(*clientsPool)
 	if ok {

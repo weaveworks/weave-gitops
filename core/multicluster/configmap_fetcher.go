@@ -11,6 +11,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	ClustersConfigMapName = "leaf-clusters"
+)
+
 type confimapClusterFetcher struct {
 	hubClient client.Client
 	namespace string
