@@ -29,7 +29,6 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/k0kubun/pp/v3 v3.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	github.com/olekukonko/tablewriter v0.0.5
