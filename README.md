@@ -77,7 +77,7 @@ To set up a development environment for the CLI
 6. Run `make tls-files`
 7. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
 8. `make` or `make unit-tests` to ensure everything built correctly.
-9. Navigate to https://localhost:9001 in your broswer. Note the
+9. Navigate to https://localhost:9001 in your browser. Note the
    `https`: with TLS enabled `http` will not work. The login is `dev`
    with the password `dev`.
 
