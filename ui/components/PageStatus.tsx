@@ -9,18 +9,24 @@ import Text from "./Text";
 
 type StatusProps = {
   conditions: Condition[];
-  error: boolean;
+  suspended: boolean;
   className?: string;
 };
 
-function PageStatus({ conditions, error, className }: StatusProps) {
-  const ok = computeReady(conditions);
-  const msg = computeMessage(conditions);
+function PageStatus({ conditions, suspended, className }: StatusProps) {
+  const ok = suspended ? false : computeReady(conditions);
+  const msg = suspended ? "Suspended" : computeMessage(conditions);
   return (
-    <div className={`${className}${!ok || error ? " error-border" : ""}`}>
+    <div className={`${className}${!ok ? " error-border" : ""}`}>
       <Flex align>
         <Icon
-          type={ok ? IconType.CheckCircleIcon : IconType.FailedIcon}
+          type={
+            suspended
+              ? IconType.SuspendedIcon
+              : ok
+              ? IconType.CheckCircleIcon
+              : IconType.FailedIcon
+          }
           color={ok ? "success" : "alert"}
           size="medium"
         />

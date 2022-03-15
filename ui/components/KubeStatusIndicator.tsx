@@ -37,9 +37,8 @@ function KubeStatusIndicator({
   short,
   suspended,
 }: Props) {
-  const ready = computeReady(conditions);
-  let readyText = ready ? "Ready" : "Not Ready";
-  let icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+  let readyText;
+  let icon;
   if (suspended) {
     icon = IconType.SuspendedIcon;
     readyText = "Suspended";
@@ -54,7 +53,7 @@ function KubeStatusIndicator({
       <Icon
         size="base"
         type={icon}
-        text={short ? readyText : computeMessage(conditions)}
+        text={short || suspended ? readyText : computeMessage(conditions)}
       />
     </Flex>
   );

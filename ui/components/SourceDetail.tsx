@@ -65,7 +65,7 @@ function SourceDetail({ className, name, info, type }: Props) {
           <Heading level={2}>{s.type}</Heading>
           <InfoList items={items} />
         </div>
-        <PageStatus conditions={s.conditions} error={error && true} />
+        <PageStatus conditions={s.conditions} suspended={s.suspended} />
       </Flex>
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
