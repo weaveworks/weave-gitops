@@ -136,5 +136,6 @@ if [ -z ${SKIP_MKCERT_INSTALLATION+x} ];
 then
     echo "Installing mkcert"
     go install filippo.io/mkcert@v1.4.3
+    mkcert -install
 fi
 
