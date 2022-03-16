@@ -25,9 +25,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...filterConfigForType(automations),
   };
 
-  const sourceWidth = hideSource ? 0 : 160;
-
-  const fields: Field[] = [
+  let fields: Field[] = [
     {
       label: "Name",
       value: (k) => {
@@ -84,7 +82,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,
-      width: sourceWidth,
+      width: 160,
     },
     {
       label: "Status",
@@ -113,6 +111,11 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
   ];
+
+  if (hideSource)
+    fields = fields.filter((field) => {
+      if (field.label !== "Source") return field;
+    });
 
   return (
     <div className={className}>
