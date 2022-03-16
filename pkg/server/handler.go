@@ -12,7 +12,6 @@ import (
 	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
@@ -44,13 +43,8 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler := middleware.WithLogging(cfg.AppConfig.Logger, mux)
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
-	restCfg, _, err := kube.RestConfig()
-	if err != nil {
-		return nil, fmt.Errorf("building rest config: %w", err)
-	}
-
 	if AuthEnabled() {
-		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(restCfg, wego.DefaultNamespace)
+		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg, wego.DefaultNamespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed fetching clusters: %w", err)
 		}

@@ -36,19 +36,19 @@ type coreServer struct {
 
 type CoreServerConfig struct {
 	Logger      logr.Logger
-	restCfg     *rest.Config
+	RestCfg     *rest.Config
 	clusterName string
 }
 
 func NewCoreConfig(cfg *rest.Config, clusterName string) CoreServerConfig {
 	return CoreServerConfig{
-		restCfg:     cfg,
+		RestCfg:     cfg,
 		clusterName: clusterName,
 	}
 }
 
 func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
-	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.restCfg, false)
+	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
 	return &coreServer{
 		k8s:    kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
