@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -73,13 +72,6 @@ func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client,
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
-	}
-
-	hmacSecret := make([]byte, 64)
-
-	_, err := rand.Read(hmacSecret)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate random HMAC secret: %w", err)
 	}
 
 	return &AuthServer{
@@ -336,6 +328,8 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 		if !s.oidcEnabled() {
 			ui := UserInfo{}
 			toJson(rw, ui, s.logger)
+
+			return
 		}
 
 		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
