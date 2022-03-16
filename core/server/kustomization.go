@@ -2,34 +2,40 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	k8s, err := cs.k8s.Client(ctx)
-	if err != nil {
-		return nil, doClientError(err)
-	}
-
-	l := &kustomizev1.KustomizationList{}
-
-	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
-		return nil, err
+	clientsPool := clustersmngr.ClientsPoolFromCtx(ctx)
+	if clientsPool == nil {
+		return &pb.ListKustomizationsResponse{
+			Kustomizations: []*pb.Kustomization{},
+		}, errors.New("no clients pool present in context")
 	}
 
 	var results []*pb.Kustomization
 
-	for _, kustomization := range l.Items {
-		k, err := types.KustomizationToProto(&kustomization)
-		if err != nil {
-			return nil, fmt.Errorf("converting items: %w", err)
+	//TODO: handle failures and parallelize
+	for _, c := range clientsPool.Clients() {
+		l := &kustomizev1.KustomizationList{}
+		if err := list(ctx, c, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
+			return nil, err
 		}
 
-		results = append(results, k)
+		for _, kustomization := range l.Items {
+			k, err := types.KustomizationToProto(&kustomization)
+			if err != nil {
+				return nil, fmt.Errorf("converting items: %w", err)
+			}
+
+			results = append(results, k)
+		}
 	}
 
 	return &pb.ListKustomizationsResponse{

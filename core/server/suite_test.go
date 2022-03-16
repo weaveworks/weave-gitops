@@ -6,8 +6,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -38,7 +40,7 @@ func TestMain(m *testing.M) {
 }
 
 func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
-	s := grpc.NewServer()
+	s := grpc.NewServer(withClientsPoolInterceptor(cfg, &auth.UserPrincipal{}))
 
 	coreCfg := server.NewCoreConfig(cfg, "foobar")
 	core := server.NewCoreServer(coreCfg)
@@ -73,4 +75,24 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	})
 
 	return pb.NewCoreClient(conn)
+}
+
+func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
+	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		cluster := clustersmngr.Cluster{
+			Name:        "Default",
+			Server:      config.Host,
+			BearerToken: config.BearerToken,
+			TLSConfig:   config.TLSClientConfig,
+		}
+
+		clientsPool := clustersmngr.NewClustersClientsPool()
+		if err := clientsPool.Add(user, cluster); err != nil {
+			return nil, err
+		}
+
+		ctx = context.WithValue(ctx, clustersmngr.ClustersClientsPoolCtxKey, clientsPool)
+
+		return handler(ctx, req)
+	})
 }
