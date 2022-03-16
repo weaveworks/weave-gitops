@@ -2,7 +2,7 @@
 
 To release a new version of Weave Gitops, you need to:
 - Create the actual release
-- Update the `weave-gitops-docs` repository with documentation for the new version
+- Update the [website](/website) with documentation for the new version
 - Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
 - Add a record of the new version in the checkpoint system
 
@@ -25,7 +25,7 @@ To release a new version of Weave Gitops, you need to:
 
 The go-releaser will spin for a bit, generating a changelog and artifacts.
 
-# Updating weave-gitops-docs
+# Updating the website
 - Approve and merge the auto-generated PR if the release is declared satisfactory; otherwise, close the PR
 
 # Updating the README

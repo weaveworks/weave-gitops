@@ -11,9 +11,18 @@ import { Auth } from "../contexts/AuthContext";
 import Icon, { IconType } from "./Icon";
 
 const SettingsMenu = styled(Menu)`
-  .MuiListItemIcon-root {
-    min-width: 25px;
-    color: ${(props) => props.theme.colors.black};
+  .MuiList-root {
+    padding: ${(props) => props.theme.spacing.small};
+  }
+  .logout {
+    justify-content: flex-end;
+    .MuiListItemIcon-root {
+      min-width: 0;
+      color: ${(props) => props.theme.colors.black};
+    }
+    .MuiSvgIcon-root {
+      padding-right: ${(props) => props.theme.spacing.xs};
+    }
   }
 `;
 
@@ -50,7 +59,7 @@ function UserSettings({ className }: { className?: string }) {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
       >
         <MenuItem>Hello, {userInfo?.email}</MenuItem>
-        <MenuItem onClick={() => logOut()}>
+        <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>
             <Icon type={IconType.LogoutIcon} size="base" />
           </ListItemIcon>

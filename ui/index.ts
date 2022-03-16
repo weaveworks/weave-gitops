@@ -6,8 +6,8 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
-import AuthContextProvider from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
+import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
@@ -19,11 +19,13 @@ import {
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import OAuthCallback from "./pages/OAuthCallback";
+import SignIn from "./pages/SignIn";
 
 export {
   FeatureFlagsContextProvider,
   FeatureFlags,
   AuthContextProvider,
+  AuthCheck,
   AppContextProvider,
   applicationsClient,
   getProviderToken,
@@ -41,4 +43,6 @@ export {
   Icon,
   IconType,
   UserSettings,
+  SignIn,
+  Auth,
 };

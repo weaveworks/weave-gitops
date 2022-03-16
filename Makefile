@@ -74,6 +74,8 @@ api-dev: ## Server and watch gitops-server, will reload automatically on change
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
 	./tools/bin/tilt up
 
+clean-dev-cluster:
+	kind delete cluster --name kind && docker rm -f kind-registry
 
 ##@ Build
 # In addition to the main file depend on all go files and any other files in

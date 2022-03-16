@@ -80,7 +80,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -115,19 +114,10 @@ jobs:
     needs: goreleaser
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout WG
+      - name: Checkout
         uses: actions/checkout@v2
-        with:
-          path: main-repo
-      - name: Checkout Docs
-        uses: actions/checkout@v2
-        with:
-          repository: weaveworks/weave-gitops-docs
-          path: doc-repo
-          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_PAT }}
       - name: Unshallow
         run: |
-          cd main-repo
           git fetch --prune --unshallow
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -135,18 +125,17 @@ jobs:
           go-version: 1.17.x
       - name: Create GitOps binary
         run: |
-          cd main-repo
           make all
       - name: Set up environment vars
         run: |
           echo "BRANCH=release-doc-updates-$$" >> $GITHUB_ENV
-          cd main-repo
           echo "GITOPS_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       - name: Update with new version
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          GA_KEY: ${{ secrets.GA_KEY }}
         run: |
-          bash main-repo/tools/update-docs.sh ${PWD}/main-repo/bin/gitops ${PWD}/doc-repo
+          bash tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
         with:
@@ -154,7 +143,6 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: weave-test-user <weave-test-user@example.com>
           signoff: true
-          path: doc-repo
           branch: ${{ env.BRANCH }}
           title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
           body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."

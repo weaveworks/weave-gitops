@@ -17,17 +17,22 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	serverauth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const DefaultHost = "0.0.0.0"
@@ -232,10 +237,48 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 }
 
 func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFlagsRequest) (*pb.GetFeatureFlagsResponse, error) {
+	flags := make(map[string]string)
+
+	flags["WEAVE_GITOPS_AUTH_ENABLED"] = os.Getenv("WEAVE_GITOPS_AUTH_ENABLED")
+
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get Kubernetes client from context: %w", err)
+	}
+
+	var secret corev1.Secret
+	err = cl.Get(ctx, client.ObjectKey{
+		Namespace: v1alpha1.DefaultNamespace,
+		Name:      serverauth.ClusterUserAuthSecretName,
+	}, &secret)
+
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			flags["CLUSTER_USER_AUTH"] = "false"
+		} else {
+			s.log.Error(err, "could not get secret for cluster user")
+		}
+	} else {
+		flags["CLUSTER_USER_AUTH"] = "true"
+	}
+
+	err = cl.Get(ctx, client.ObjectKey{
+		Namespace: v1alpha1.DefaultNamespace,
+		Name:      serverauth.OIDCAuthSecretName,
+	}, &secret)
+
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			flags["OIDC_AUTH"] = "false"
+		} else {
+			s.log.Error(err, "could not get secret for oidc")
+		}
+	} else {
+		flags["OIDC_AUTH"] = "true"
+	}
+
 	return &pb.GetFeatureFlagsResponse{
-		Flags: map[string]string{
-			"WEAVE_GITOPS_AUTH_ENABLED": os.Getenv("WEAVE_GITOPS_AUTH_ENABLED"),
-		},
+		Flags: flags,
 	}, nil
 }
 

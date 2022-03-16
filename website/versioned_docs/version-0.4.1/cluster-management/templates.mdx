@@ -1,0 +1,201 @@
+---
+title: CAPI Templates
+sidebar_position: 3
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="enterprise" />
+</h1>
+
+## How to: Add a CAPI Template
+
+CAPI Templates objects need to be wrapped with the `CAPITemplate` custom resource and then loaded into the management cluster.
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-development
+spec:
+  description: This is the std. CAPD template
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+  resourcetemplates:
+    # Template objects go here
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+```
+
+### Resource templates - `spec.resourcetemplates`
+
+Add the list of objects to be rendered out to the `spec.resourcetemplates` section.
+
+Under each resource template, annotations can be added for easier UI navigation. Use `capi.weave.works/display-name` to describe the annotation. For example:
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: Cluster
+metadata:
+  name: "${CLUSTER_NAME}"
+  annotations:
+    capi.weave.works/display-name: ClusterName
+```
+
+This will result in showing `ClusterName` as the display name for the cluster name text field as opposed to the template parameter $CLUSTER_NAME, when the template is rendered in the UI.
+
+### Parameter metadata - `spec.params`
+
+You can provide additional metadata about the parameters to the templates in the `spec.params` section.
+
+- `name`: The variable name within the resource templates
+- `descripton`: Description of the parameter. This will be rendered in the UI and CLI
+- `options`: The list of possible values this parameter can be set to.
+
+### Loading the template into the cluster
+
+Load templates into the cluster by adding them to your flux managed git repository or by apply directly with
+`kubectl apply -f capi-template.yaml`
+
+Weave GitOps will search for templates in the `default` namespace. This can be changed by configuring the `config.capi.namespace` value in the helm chart.
+
+## Full CAPD docker template example
+
+This example works with the CAPD provider, see [Cluster API Providers](cluster-api-providers.mdx).
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-development
+spec:
+  description: This is the std. CAPD template
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+    - name: NAMESPACE
+      description: Namespace to create the cluster in.
+    - name: KUBERNETES_VERSION
+      description: The version of Kubernetes to use.
+      options: ["1.19.7", "1.19.8"]
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks:
+              - 192.168.0.0/16
+          serviceDomain: cluster.local
+          services:
+            cidrBlocks:
+              - 10.128.0.0/12
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+          kind: DockerCluster
+          name: "${CLUSTER_NAME}"
+          namespace: "${NAMESPACE}"
+        controlPlaneRef:
+          kind: KubeadmControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+          name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+      kind: DockerCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+      kind: DockerMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            extraMounts:
+              - containerPath: "/var/run/docker.sock"
+                hostPath: "/var/run/docker.sock"
+    - kind: KubeadmControlPlane
+      apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        replicas: 1
+        infrastructureTemplate:
+          kind: DockerMachineTemplate
+          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+          name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
+        kubeadmConfigSpec:
+          clusterConfiguration:
+            controllerManager:
+              extraArgs: { enable-hostpath-provisioner: "true" }
+            apiServer:
+              certSANs: [localhost, 127.0.0.1]
+          initConfiguration:
+            nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
+              kubeletExtraArgs:
+                eviction-hard: "nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%"
+          joinConfiguration:
+            nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
+              kubeletExtraArgs:
+                eviction-hard: "nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%"
+        version: "${KUBERNETES_VERSION}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+      kind: DockerMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec: {}
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  eviction-hard: "nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%"
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: MachineDeployment
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        clusterName: "${CLUSTER_NAME}"
+        replicas: 1
+        selector:
+          matchLabels:
+        template:
+          spec:
+            clusterName: "${CLUSTER_NAME}"
+            version: "${KUBERNETES_VERSION}"
+            bootstrap:
+              configRef:
+                name: "${CLUSTER_NAME}-md-0"
+                namespace: "${NAMESPACE}"
+                apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+                kind: KubeadmConfigTemplate
+            infrastructureRef:
+              name: "${CLUSTER_NAME}-md-0"
+              namespace: "${NAMESPACE}"
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: DockerMachineTemplate
+```

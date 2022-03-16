@@ -9,6 +9,8 @@ type OptionsFlags<Type> = {
 
 type FeatureFlags = {
   WEAVE_GITOPS_AUTH_ENABLED: () => void;
+  CLUSTER_USER_AUTH: () => void;
+  OIDC_AUTH: () => void;
 };
 
 export type Flags = OptionsFlags<FeatureFlags>;

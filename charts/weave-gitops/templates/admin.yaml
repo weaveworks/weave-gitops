@@ -41,8 +41,9 @@ rules:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: admin-password-hash
+  name: cluster-user-auth
   namespace: {{.Values.namespace}}
 type: Opaque
 data:
+  username: {{.Values.adminUsername}}
   password: {{.Values.adminPassword}}

@@ -83,6 +83,7 @@ export const GlobalStyle = createGlobalStyle`
   }
   
   body {
+    overflow: hidden;
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${(props) => props.theme.fontSizes.normal};
     color: ${(props) => props.theme.colors.black};

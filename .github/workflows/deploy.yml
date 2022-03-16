@@ -98,4 +98,3 @@ jobs:
     - run: |
         aws s3 cp bin/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/gitops-${{matrix.os}}
-

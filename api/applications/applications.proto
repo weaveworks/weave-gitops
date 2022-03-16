@@ -104,7 +104,6 @@ service Applications {
             get : "/v1/featureflags"
         };
     }
-
 }
 
 message AuthenticateRequest {

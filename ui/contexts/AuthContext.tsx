@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Redirect, useHistory } from "react-router-dom";
-import Layout from "../components/Layout";
-import LoadingPage from "../components/LoadingPage";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { AppContext } from "./AppContext";
 
@@ -10,7 +8,12 @@ const SIGN_IN = "/oauth2/sign_in";
 const LOG_OUT = "/oauth2/logout";
 const AUTH_PATH_SIGNIN = "/sign_in";
 
-export const AuthCheck = ({ children }) => {
+interface AuthCheckProps {
+  children: any;
+  Loader?: React.ElementType;
+}
+
+export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   // If the auth flag is null go straight to rendering the children
   const flags = useFeatureFlags();
 
@@ -22,11 +25,7 @@ export const AuthCheck = ({ children }) => {
 
   // Wait until userInfo is loaded before showing signin or app content
   if (loading) {
-    return (
-      <Layout>
-        <LoadingPage />
-      </Layout>
-    );
+    return Loader ? <Loader /> : null;
   }
 
   // Signed in! Show app
@@ -45,6 +44,7 @@ export type AuthContext = {
     groups: string[];
   };
   error: { status: number; statusText: string };
+  setError: any;
   loading: boolean;
   logOut: () => void;
 };
@@ -126,6 +126,7 @@ export default function AuthContextProvider({ children }) {
             signIn,
             userInfo,
             error,
+            setError,
             loading,
             logOut,
           }}

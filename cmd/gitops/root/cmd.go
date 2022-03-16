@@ -1,6 +1,7 @@
 package root
 
 import (
+	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -25,10 +27,11 @@ import (
 )
 
 var options struct {
-	endpoint          string
-	overrideInCluster bool
-	verbose           bool
-	gitHostTypes      map[string]string
+	endpoint              string
+	overrideInCluster     bool
+	verbose               bool
+	gitHostTypes          map[string]string
+	insecureSkipTlsVerify bool
 }
 
 // Only want AutomaticEnv to be called once!
@@ -107,6 +110,9 @@ func RootCmd(client *resty.Client) *cobra.Command {
 			if options.overrideInCluster {
 				kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			}
+			if options.insecureSkipTlsVerify {
+				client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+			}
 		},
 	}
 
@@ -115,6 +121,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	rootCmd.PersistentFlags().StringToStringVar(&options.gitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
+	rootCmd.PersistentFlags().BoolVar(&options.insecureSkipTlsVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
@@ -122,6 +129,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
+	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(ui.Cmd)

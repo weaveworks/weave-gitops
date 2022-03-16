@@ -16,11 +16,9 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
-        'localhost.pem',
-        'localhost-key.pem',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server --tls-cert-file=build/localhost.pem --tls-private-key-file=build/localhost-key.pem',
+    entrypoint='/app/build/gitops-server -l --insecure',
     live_update=[
         sync('./bin', '/app/build'),
     ],
@@ -33,4 +31,4 @@ def helmfiles(chart, values):
 
 k8s_yaml(helmfiles('./charts/weave-gitops', './tools/helm-values-dev.yaml'))
 
-k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9001'])
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])

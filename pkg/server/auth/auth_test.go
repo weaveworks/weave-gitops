@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -14,7 +15,11 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"golang.org/x/crypto/bcrypt"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -53,7 +58,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 		t.Error("failed to create auth config")
 	}
 
-	auth.RegisterAuthServer(mux, "/oauth2", srv)
+	_ = auth.RegisterAuthServer(mux, "/oauth2", srv, 1)
 
 	s := httptest.NewServer(mux)
 	defer s.Close()
@@ -114,7 +119,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 		t.Error("failed to create auth config")
 	}
 
-	auth.RegisterAuthServer(mux, "/oauth2", srv)
+	_ = auth.RegisterAuthServer(mux, "/oauth2", srv, 1)
 
 	s := httptest.NewServer(mux)
 	defer s.Close()
@@ -141,4 +146,62 @@ func TestIsPublicRoute(t *testing.T) {
 	assert.True(t, auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"}))
 	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"}))
 	assert.False(t, auth.IsPublicRoute(&url.URL{Path: "/foob"}, []string{"/foo"}))
+}
+
+func TestRateLimit(t *testing.T) {
+	ctx := context.Background()
+	mux := http.NewServeMux()
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	require.NoError(t, err)
+
+	password := "my-secret-password"
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	require.NoError(t, err)
+
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"password": hashed,
+		},
+	}
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().WithObjects(hashedSecret).Build()
+
+	srv, err := auth.NewAuthServer(ctx, logr.Discard(), http.DefaultClient,
+		auth.AuthConfig{
+			auth.OIDCConfig{
+				TokenDuration: 20 * time.Minute,
+			},
+		}, fakeKubernetesClient, tokenSignerVerifier)
+	require.NoError(t, err)
+	err = auth.RegisterAuthServer(mux, "/oauth2", srv, 1)
+	require.NoError(t, err)
+
+	s := httptest.NewServer(mux)
+	defer s.Close()
+
+	res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	require.NoError(t, err)
+
+	if res1.StatusCode != http.StatusOK {
+		t.Errorf("expected 200 but got %d instead", res1.StatusCode)
+	}
+
+	res2, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	require.NoError(t, err)
+
+	if res2.StatusCode != http.StatusTooManyRequests {
+		t.Errorf("expected 429 but got %d instead", res2.StatusCode)
+	}
+
+	time.Sleep(time.Second)
+
+	res3, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	require.NoError(t, err)
+
+	if res3.StatusCode != http.StatusOK {
+		t.Errorf("expected 200 but got %d instead", res3.StatusCode)
+	}
 }

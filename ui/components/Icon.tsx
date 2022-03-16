@@ -5,7 +5,6 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
-import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
@@ -16,6 +15,7 @@ import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
 import * as React from "react";
 import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/

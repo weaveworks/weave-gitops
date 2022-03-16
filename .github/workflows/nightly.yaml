@@ -4,6 +4,11 @@ on:
     - cron: '0 0 * * Sun'
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: weaveworks/wego-app
+  USE_NIGHTLY_BUILD_TAG: "true"
+
 name: Nightly
 jobs:
   build:

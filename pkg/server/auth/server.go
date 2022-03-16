@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -19,8 +18,10 @@ import (
 )
 
 const (
-	LoginOIDC     string = "oidc"
-	LoginUsername string = "username"
+	LoginOIDC                 string = "oidc"
+	LoginUsername             string = "username"
+	ClusterUserAuthSecretName string = "cluster-user-auth"
+	OIDCAuthSecretName        string = "oidc-auth"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -50,6 +51,7 @@ type AuthServer struct {
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
 type LoginRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -70,13 +72,6 @@ func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client,
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
-	}
-
-	hmacSecret := make([]byte, 64)
-
-	_, err := rand.Read(hmacSecret)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate random HMAC secret: %w", err)
 	}
 
 	return &AuthServer{
@@ -265,10 +260,17 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
 			Namespace: v1alpha1.DefaultNamespace,
-			Name:      v1alpha1.DefaultSuperUserSecretHash,
+			Name:      ClusterUserAuthSecretName,
 		}, &hashedSecret); err != nil {
 			s.logger.Error(err, "Failed to query for the secret")
 			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
+
+			return
+		}
+
+		if loginRequest.Username != string(hashedSecret.Data["username"]) {
+			s.logger.Info("Wrong username")
+			rw.WriteHeader(http.StatusUnauthorized)
 
 			return
 		}
@@ -318,6 +320,13 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
+			toJson(rw, ui, s.logger)
+
+			return
+		}
+
+		if !s.oidcEnabled() {
+			ui := UserInfo{}
 			toJson(rw, ui, s.logger)
 
 			return
