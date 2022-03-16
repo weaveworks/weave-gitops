@@ -112,10 +112,10 @@ func RestConfig() (*rest.Config, string, error) {
 		return nil, "", fmt.Errorf("could not create in-cluster config: %w", err)
 	}
 
-	return config, inClusterConfigClusterName(), nil
+	return config, InClusterConfigClusterName(), nil
 }
 
-func inClusterConfigClusterName() string {
+func InClusterConfigClusterName() string {
 	// kube clusters don't really know their own names
 	// try and read a unique name from the env, fall back to "default"
 	clusterName := os.Getenv("CLUSTER_NAME")
