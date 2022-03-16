@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	fluxNamespacePartOf   = "flux"
+	FluxNamespacePartOf   = "flux"
 	fluxNamespaceInstance = "flux-system"
 )
 
