@@ -134,7 +134,7 @@ curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/insta
 
 if [ -z ${SKIP_MKCERT_INSTALLATION+x} ];
 then
-    echo "Installing mkcert"
+    echo "Installing mkcert "
     go install filippo.io/mkcert@v1.4.3
     mkcert -install
 fi
