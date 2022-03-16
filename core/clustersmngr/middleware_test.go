@@ -1,4 +1,4 @@
-package multicluster_test
+package clustersmngr_test
 
 import (
 	"errors"
@@ -8,22 +8,22 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/weaveworks/weave-gitops/core/multicluster"
-	"github.com/weaveworks/weave-gitops/core/multicluster/multiclusterfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 func TestWithClustersClientsMiddleware(t *testing.T) {
 	cluster := makeLeafCluster(t)
-	clustersFetcher := &multiclusterfakes.FakeClusterFetcher{}
-	clustersFetcher.FetchReturns([]multicluster.Cluster{cluster}, nil)
+	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
+	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
 
 	g := NewGomegaWithT(t)
 
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	middleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			clientsPool := multicluster.ClientsPoolFromCtx(r.Context())
+			clientsPool := clustersmngr.ClientsPoolFromCtx(r.Context())
 
 			clients := clientsPool.Clients()
 			if _, ok := clients[cluster.Name]; !ok {
@@ -34,7 +34,7 @@ func TestWithClustersClientsMiddleware(t *testing.T) {
 		})
 	}(defaultHandler)
 
-	middleware = multicluster.WithClustersClients(clustersFetcher, middleware)
+	middleware = clustersmngr.WithClustersClients(clustersFetcher, middleware)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
@@ -47,10 +47,10 @@ func TestWithClustersClientsMiddleware(t *testing.T) {
 func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	clustersFetcher := &multiclusterfakes.FakeClusterFetcher{}
+	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns(nil, errors.New("error"))
 
-	middleware := multicluster.WithClustersClients(clustersFetcher, defaultHandler)
+	middleware := clustersmngr.WithClustersClients(clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)

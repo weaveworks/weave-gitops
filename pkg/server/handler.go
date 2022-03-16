@@ -8,7 +8,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/core/multicluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -50,12 +50,12 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	}
 
 	if AuthEnabled() {
-		clustersFetcher, err := multicluster.NewSingleClustersFetcher(restCfg, wego.DefaultNamespace)
+		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(restCfg, wego.DefaultNamespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed fetching clusters: %w", err)
 		}
 
-		httpHandler = multicluster.WithClustersClients(clustersFetcher, httpHandler)
+		httpHandler = clustersmngr.WithClustersClients(clustersFetcher, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 	}
 

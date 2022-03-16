@@ -1,10 +1,10 @@
-package multicluster_test
+package clustersmngr_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops/core/multicluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
@@ -30,8 +30,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeLeafCluster(t *testing.T) multicluster.Cluster {
-	return multicluster.Cluster{
+func makeLeafCluster(t *testing.T) clustersmngr.Cluster {
+	return clustersmngr.Cluster{
 		Name:        "leaf-cluster",
 		Server:      k8sEnv.Rest.Host,
 		BearerToken: k8sEnv.Rest.BearerToken,

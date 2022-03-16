@@ -1,4 +1,4 @@
-package multicluster
+package clustersmngr
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package multicluster
+package clustersmngr
 
 import (
 	"context"
@@ -10,7 +10,7 @@ type singleClusterFetcher struct {
 	restConfig *rest.Config
 }
 
-func NewSingleClustersFetcher(config *rest.Config, _ string) (ClusterFetcher, error) {
+func NewSingleClusterFetcher(config *rest.Config, _ string) (ClusterFetcher, error) {
 	return singleClusterFetcher{
 		restConfig: config,
 	}, nil

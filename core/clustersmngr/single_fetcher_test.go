@@ -1,11 +1,11 @@
-package multicluster_test
+package clustersmngr_test
 
 import (
 	"context"
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/multicluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/client-go/rest"
 )
 
@@ -17,7 +17,7 @@ func TestSingleFetcher(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	fetcher, err := multicluster.NewSingleClustersFetcher(config, "default")
+	fetcher, err := clustersmngr.NewSingleClusterFetcher(config, "default")
 	g.Expect(err).To(BeNil())
 
 	clusters, err := fetcher.Fetch(context.TODO())
