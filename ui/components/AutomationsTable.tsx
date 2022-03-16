@@ -17,12 +17,15 @@ type Props = {
   className?: string;
   automations: Automation[];
   appName?: string;
+  hideSource?: boolean;
 };
 
-function AutomationsTable({ className, automations }: Props) {
+function AutomationsTable({ className, automations, hideSource }: Props) {
   const initialFilterState = {
     ...filterConfigForType(automations),
   };
+
+  const sourceWidth = hideSource ? 0 : 160;
 
   const fields: Field[] = [
     {
@@ -81,7 +84,7 @@ function AutomationsTable({ className, automations }: Props) {
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,
-      width: 160,
+      width: sourceWidth,
     },
     {
       label: "Status",

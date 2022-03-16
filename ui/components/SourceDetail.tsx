@@ -72,7 +72,7 @@ function SourceDetail({ className, name, info, type }: Props) {
       )}
       <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
         <HashRouterTab name="Related Automations" path="/automations">
-          <AutomationsTable automations={relevantAutomations} />
+          <AutomationsTable automations={relevantAutomations} hideSource />
         </HashRouterTab>
         <HashRouterTab name="Events" path="/events">
           <EventsTable
