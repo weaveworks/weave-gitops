@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestGetFluxNamespace(t *testing.T) {
@@ -19,7 +20,9 @@ func TestGetFluxNamespace(t *testing.T) {
 
 	coreClient := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, client, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	kClient, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ns := &corev1.Namespace{}
@@ -29,13 +32,13 @@ func TestGetFluxNamespace(t *testing.T) {
 		types.PartOfLabel:   "flux",
 	}
 
-	g.Expect(client.Create(ctx, ns)).To(Succeed())
+	g.Expect(kClient.Create(ctx, ns)).To(Succeed())
 
 	defer func() {
 		// Workaround, somehow it does not get deleted with client.Delete().
 		ns.ObjectMeta.Labels = map[string]string{}
 
-		_ = client.Update(ctx, ns)
+		_ = kClient.Update(ctx, ns)
 	}()
 
 	res, err := coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
@@ -51,10 +54,7 @@ func TestGetFluxNamespace_notFound(t *testing.T) {
 
 	coreClient := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, _, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
-	g.Expect(err).NotTo(HaveOccurred())
-
-	_, err = coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
+	_, err := coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -65,12 +65,14 @@ func TestListNamespaces(t *testing.T) {
 
 	coreClient := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, client, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	kClient, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	namespaces := []*corev1.Namespace{}
 	for len(namespaces) < 5 {
-		namespaces = append(namespaces, newNamespace(ctx, client, g))
+		namespaces = append(namespaces, newNamespace(ctx, kClient, g))
 	}
 
 	res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
