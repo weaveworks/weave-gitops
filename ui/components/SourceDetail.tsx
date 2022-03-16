@@ -31,7 +31,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name });
+  const s = _.find(sources, { name, type });
 
   if (!s) {
     return (
@@ -70,12 +70,6 @@ function SourceDetail({ className, name, info, type }: Props) {
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
       )}
-      <div>
-        <Heading level={2}>{s.type}</Heading>
-      </div>
-      <div>
-        <InfoList items={items} />
-      </div>
       <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
         <HashRouterTab name="Related Automations" path="/automations">
           <AutomationsTable automations={relevantAutomations} />

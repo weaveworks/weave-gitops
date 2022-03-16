@@ -41,7 +41,7 @@ function HelmReleaseDetail({ className, name }: Props) {
                 <SourceLink
                   sourceRef={{
                     kind: SourceRefSourceKind.HelmChart,
-                    name: helmRelease.helmChart.chart,
+                    name: helmRelease?.helmChart.chart,
                   }}
                 />,
               ],
