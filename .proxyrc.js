@@ -1,6 +1,6 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
-const DEFAULT_PROXY_HOST = "https://localhost:9001/";
+const DEFAULT_PROXY_HOST = "http://localhost:9001/";
 const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
 
 // Localhost is running tls by default now
