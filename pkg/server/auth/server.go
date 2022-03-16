@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -36,17 +37,17 @@ type OIDCConfig struct {
 
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
-	OIDCConfig
+	logger              logr.Logger
+	client              *http.Client
+	kubernetesClient    ctrlclient.Client
+	tokenSignerVerifier TokenSignerVerifier
+	config              OIDCConfig
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	logger              logr.Logger
-	client              *http.Client
-	provider            *oidc.Provider
-	config              AuthConfig
-	kubernetesClient    ctrlclient.Client
-	tokenSignerVerifier TokenSignerVerifier
+	AuthConfig
+	provider *oidc.Provider
 }
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
@@ -61,27 +62,56 @@ type UserInfo struct {
 	Groups []string `json:"groups"`
 }
 
+func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
+	cfg := OIDCConfig{
+		IssuerURL:    string(secret.Data["issuerURL"]),
+		ClientID:     string(secret.Data["clientID"]),
+		ClientSecret: string(secret.Data["clientSecret"]),
+		RedirectURL:  string(secret.Data["redirectURL"]),
+	}
+
+	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
+	if err != nil {
+		tokenDuration = time.Hour
+	}
+
+	cfg.TokenDuration = tokenDuration
+
+	return cfg
+}
+
+func NewAuthServerConfig(logger logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
+	if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
+		return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
+	}
+
+	if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
+		return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+	}
+
+	return AuthConfig{
+		logger:              logger,
+		client:              http.DefaultClient,
+		kubernetesClient:    kubernetesClient,
+		tokenSignerVerifier: tsv,
+		config:              oidcCfg,
+	}, nil
+}
+
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client, tokenSignerVerifier TokenSignerVerifier) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	var provider *oidc.Provider
 
-	if config.IssuerURL != "" {
+	if cfg.config.IssuerURL != "" {
 		var err error
 
-		provider, err = oidc.NewProvider(ctx, config.IssuerURL)
+		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
 	}
 
-	return &AuthServer{
-		logger:              logger,
-		client:              client,
-		provider:            provider,
-		config:              config,
-		kubernetesClient:    kubernetesClient,
-		tokenSignerVerifier: tokenSignerVerifier,
-	}, nil
+	return &AuthServer{cfg, provider}, nil
 }
 
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
