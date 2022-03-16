@@ -25,10 +25,7 @@ func TestWithClustersClientsMiddleware(t *testing.T) {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			clientsPool := clustersmngr.ClientsPoolFromCtx(r.Context())
 
-			clients := clientsPool.Clients()
-			if _, ok := clients[cluster.Name]; !ok {
-				g.Fail("leaf cluster client not present")
-			}
+			g.Expect(clientsPool.Clients()).To(HaveKey(cluster.Name))
 
 			next.ServeHTTP(w, r)
 		})
