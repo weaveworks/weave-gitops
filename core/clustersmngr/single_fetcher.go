@@ -10,7 +10,7 @@ type singleClusterFetcher struct {
 	restConfig *rest.Config
 }
 
-func NewSingleClusterFetcher(config *rest.Config, _ string) (ClusterFetcher, error) {
+func NewSingleClusterFetcher(config *rest.Config) (ClusterFetcher, error) {
 	return singleClusterFetcher{
 		restConfig: config,
 	}, nil

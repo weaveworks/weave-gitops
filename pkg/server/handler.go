@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -44,7 +43,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
 	if AuthEnabled() {
-		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg, wego.DefaultNamespace)
+		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
 		if err != nil {
 			return nil, fmt.Errorf("failed fetching clusters: %w", err)
 		}
