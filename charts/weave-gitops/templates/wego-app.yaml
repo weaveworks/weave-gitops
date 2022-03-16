@@ -14,7 +14,7 @@ spec:
       containers:
         - name: wego-app
           image: "{{.Values.containerRegistry}}:{{.Values.image}}"
-          args: [ "-l", "--helm-repo-namespace","{{.Values.namespace}}" ]
+          args: [ "-l", "--helm-repo-namespace", "{{.Values.namespace}}" ]
           ports:
             - containerPort: 9001
               protocol: TCP

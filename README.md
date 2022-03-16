@@ -70,16 +70,13 @@ To set up a development environment for the CLI
 ### To use an existing environment
 
 1. Install go v1.17
-2. Install [buf](https://github.com/bufbuild/buf)
-3. Run `make all` to install dependencies and build binaries and assets
-4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
-5. Run `flux install -n flux-system`
-6. Run `make tls-files`
-7. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
-8. `make` or `make unit-tests` to ensure everything built correctly.
-9. Navigate to https://localhost:9001 in your browser. Note the
-   `https`: with TLS enabled `http` will not work. The login is `dev`
-   with the password `dev`.
+1. Install [buf](https://github.com/bufbuild/buf)
+1. Run `make all` to install dependencies and build binaries and assets
+1. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
+1. Run `flux install -n flux-system`
+1. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
+1. `make` or `make unit-tests` to ensure everything built correctly.
+1. Navigate to http://localhost:9001 in your browser. The login is `dev` with the password `dev`.
 
 ### Requirements/tools
 
