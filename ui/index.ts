@@ -6,7 +6,6 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
-import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import FeatureFlagsContextProvider, {
