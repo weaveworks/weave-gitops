@@ -13,7 +13,7 @@ env:
   CI_CONTAINER_REGISTRY: europe-west1-docker.pkg.dev
   CI_CONTAINER_REPOSITORY: europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops
 
-name: PR CI Workflow
+name: PR CI Workflo w
 jobs:
   ci-js:
     name: CI Test JS
