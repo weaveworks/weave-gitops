@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import shutil
+from subprocess import run
+import sys
+import textwrap
+
+
+def parse_tag(tag_name):
+    """Parse the version from its tag name.
+
+    Release tags are of the form "v0.6.3", and release candidates are of the form "v0.6.3-rc2".
+
+    Raise a ValueError if the tag isn't in a recognised format.
+    """
+    pattern = re.compile(
+        r"""
+            v
+            (?P<major>\d+)
+            .
+            (?P<minor>\d+)
+            .
+            (?P<patch>\d+)
+            (
+                -rc
+                (?P<rc>\d+)
+            )?
+            $
+        """,
+        re.VERBOSE,
+    )
+    if tag_match := pattern.match(tag_name):
+        if rc := tag_match.group("rc"):
+            return RCVersion(
+                major=int(tag_match.group("major")),
+                minor=int(tag_match.group("minor")),
+                patch=int(tag_match.group("patch")),
+                rc=int(rc),
+            )
+        else:
+            return ReleaseVersion(
+                major=int(tag_match.group("major")),
+                minor=int(tag_match.group("minor")),
+                patch=int(tag_match.group("patch")),
+            )
+    else:
+        raise ValueError(f"Unable to parse version tag '{tag_name}'")
+
+
+class ReleaseVersion:
+    """A version for a full (non-RC) release.
+
+    Release tags are of the form `v0.0.0`, for example `v0.6.3`.
+    """
+
+    def __init__(self, major, minor, patch):
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+
+    def __repr__(self):
+        return f"ReleaseVersion({self.major}, {self.minor}, {self.patch})"
+
+    def __str__(self):
+        return f"v{self.major}.{self.minor}.{self.patch}"
+
+    def bump(self, release_type):
+        if release_type == "minor":
+            return ReleaseVersion(self.major, self.minor + 1, 0)
+        if release_type == "patch":
+            return ReleaseVersion(self.major, self.minor, self.patch + 1)
+        if release_type == "rc":
+            return RCVersion(self.major, self.minor, self.patch + 1, rc=1)
+        if release_type == "promote":
+            raise ValueError("Cannot promote a non-RC release")
+
+        raise ValueError(f"Unrecognized release type {release_type}")
+
+
+class RCVersion:
+    """A version for an RC (release candidate).
+
+    Release candidate tags are of the form `v0.0.0-rc0`, for example `v0.6.3-rc1`.
+
+    Candidate numbers start at 1.
+    """
+
+    def __init__(self, major, minor, patch, rc):
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+        self.rc = rc
+
+    def __repr__(self):
+        return f"RCVersion({self.major}, {self.minor}, {self.patch}, {self.rc})"
+
+    def __str__(self):
+        return f"v{self.major}.{self.minor}.{self.patch}-rc{self.rc}"
+
+    def bump(self, release_type):
+        if release_type == "minor":
+            raise ValueError("Cannot patch on top of an existing RC")
+        if release_type == "patch":
+            raise ValueError("Cannot patch on top of an existing RC")
+        if release_type == "rc":
+            return RCVersion(self.major, self.minor, self.patch, rc=self.rc + 1)
+        if release_type == "promote":
+            return ReleaseVersion(self.major, self.minor, self.patch)
+
+        raise ValueError(f"Unrecognized release type {release_type}")
+
+
+def update_tags():
+    run(["git", "fetch", "--prune", "origin", "+refs/tags/*:refs/tags/*"], check=True)
+
+
+def get_latest_tag():
+    git_path = shutil.which("git")
+    tag_cmd = run(
+        ["git", "describe", "--abbrev=0", "--tags", "--match=v*.*.*"],
+        check=True,
+        capture_output=True,
+        encoding="ascii",
+    )
+    return tag_cmd.stdout.strip()
+
+
+def print_err(*args, **kwargs):
+    """Print a debug message to stderr.
+
+    Most of the program's output is going to go here, as there probably isn't much output we'd want
+    to pipe into anything else.
+    """
+    print(file=sys.stderr, *args, **kwargs)
+
+
+def type_name(release_type):
+    """The human-readable name for the release type, mostly because of extreme grammar pedantry."""
+    if release_type == "rc":
+        return f"an RC"
+    else:
+        return f"a {release_type}"
+
+
+def run_self_test():
+    """Run a somewhat janky self-test to make sure the version logic works as expected."""
+    assert str(parse_tag("v0.6.3").bump("minor")) == "v0.7.0"
+    assert str(parse_tag("v0.6.3").bump("patch")) == "v0.6.4"
+    assert str(parse_tag("v0.6.3").bump("rc")) == "v0.6.4-rc1"
+    assert str(parse_tag("v0.6.3-rc1").bump("rc")) == "v0.6.3-rc2"
+    assert str(parse_tag("v0.6.3-rc1").bump("promote")) == "v0.6.3"
+
+    try:
+        parse_tag("v0.6.3").bump("promote")
+        raise AssertionError("We shouldn't be able to promote non-RC releases")
+    except ValueError:
+        pass
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ["self-test"]:
+        run_self_test()
+        print("Self-test OK!")
+        sys.exit(0)
+
+    parser = argparse.ArgumentParser(
+        description="Create and push a new release tag.",
+        epilog=textwrap.dedent(
+            """\
+            Release types:
+
+              - major:   not supported yet
+              - minor:   includes new features, or changes existing ones
+              - patch:   no new features, just bug fixes, security patches, and so forth
+              - rc:      create a release candidate for a new release, or bump an existing one
+              - promote: tag a full release based on an existing release candidate
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--skip-update",
+        action="store_true",
+        help="skip updating Git tags from the remote",
+    )
+    parser.add_argument(
+        "type",
+        choices=["major", "minor", "patch", "rc", "promote"],
+        help="the type of release we're doing",
+    )
+
+    args = parser.parse_args()
+
+    release_type = args.type
+
+    if release_type == "major":
+        print_err("We're not thinking about major releases yet")
+        sys.exit(1)
+
+    if not args.skip_update:
+        update_tags()
+
+    tag_name = get_latest_tag()
+    tag = parse_tag(tag_name)
+
+    new_tag = tag.bump(release_type)
+
+    print_err(f"Performing {type_name(release_type)} release ({tag} --> {new_tag})")
+
+    # TODO: something something push tags
