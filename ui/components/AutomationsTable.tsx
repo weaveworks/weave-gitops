@@ -1,3 +1,4 @@
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
@@ -112,11 +113,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
   ];
 
-  if (hideSource)
-    fields = fields.filter((field) => {
-      if (field.label !== "Source") return field;
-    });
-  console.log(automations[0]);
+  if (hideSource) fields = _.filter(fields, { label: "Source" });
+
   return (
     <div className={className}>
       <FilterableTable

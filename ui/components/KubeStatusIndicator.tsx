@@ -48,13 +48,12 @@ function KubeStatusIndicator({
     readyText = ready ? "Ready" : "Not Ready";
   }
 
+  let text = computeMessage(conditions);
+  if (short || suspended) text = readyText;
+
   return (
     <Flex start className={className} align>
-      <Icon
-        size="base"
-        type={icon}
-        text={short || suspended ? readyText : computeMessage(conditions)}
-      />
+      <Icon size="base" type={icon} text={text} />
     </Flex>
   );
 }

@@ -153,6 +153,7 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
             <div
               className="c1"
@@ -208,6 +209,7 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
             <div
               className="c1"
@@ -256,6 +258,7 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
             <div
               className="c1"
@@ -304,6 +307,7 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
             <div
               className="c1"
