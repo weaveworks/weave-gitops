@@ -15,7 +15,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/stretchr/testify/assert"
+	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
@@ -32,6 +33,8 @@ var httpClient = &http.Client{
 }
 
 func TestCallbackAllowsGet(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	methods := []string{
 		http.MethodPost,
 		http.MethodPatch,
@@ -41,7 +44,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 		http.MethodOptions,
 	}
 
-	s, _ := makeAuthServer(t, nil, nil)
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/callback", nil)
@@ -49,57 +52,51 @@ func TestCallbackAllowsGet(t *testing.T) {
 		s.Callback().ServeHTTP(w, req)
 
 		resp := w.Result()
-		if resp.StatusCode != http.StatusMethodNotAllowed {
-			t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
-		}
-
-		if resp.Header.Get("Allow") != "GET" {
-			t.Errorf("expected `Allow` header to be set to `GET` but was not")
-		}
+		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
+		g.Expect(resp.Header.Get("Allow")).To(Equal(http.MethodGet))
 	}
 }
 
 func TestCallbackErrorFromOIDC(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?error=invalid_request&error_description=Unsupported%20response_type%20value", nil)
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackCodeIsEmpty(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback", nil)
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackStateCookieNotSet(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123", nil)
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackStateCookieNotValid(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123&state=some_state", nil)
 	req.AddCookie(&http.Cookie{
@@ -110,14 +107,13 @@ func TestCallbackStateCookieNotValid(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123&state=some_state", nil)
 	req.AddCookie(&http.Cookie{
@@ -128,14 +124,13 @@ func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	encState := base64.StdEncoding.EncodeToString([]byte("some_state"))
 
@@ -148,14 +143,13 @@ func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestCallbackCodeExchangeError(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	state, _ := json.Marshal(auth.SessionState{
 		Nonce:     "abcde",
@@ -172,13 +166,12 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.Callback().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusInternalServerError {
-		t.Errorf("expected status to be 500 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusInternalServerError))
 }
 
 func TestSignInAllowsPOST(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	methods := []string{
 		http.MethodGet,
 		http.MethodPatch,
@@ -189,11 +182,9 @@ func TestSignInAllowsPOST(t *testing.T) {
 	}
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, false)
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/signin", nil)
@@ -201,56 +192,44 @@ func TestSignInAllowsPOST(t *testing.T) {
 		s.SignIn().ServeHTTP(w, req)
 
 		resp := w.Result()
-		if resp.StatusCode != http.StatusMethodNotAllowed {
-			t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
-		}
-
-		if resp.Header.Get("Allow") != "POST" {
-			t.Errorf("expected `Allow` header to be set to `POST` but was not")
-		}
+		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
+		g.Expect(resp.Header.Get("Allow")).To(Equal(http.MethodPost))
 	}
 }
 
 func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	if err != nil {
 		t.Errorf("failed to create HMAC signer: %v", err)
 	}
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, false)
 
 	req := httptest.NewRequest(http.MethodPost, "https://example.com/signin", nil)
 	w := httptest.NewRecorder()
 	s.SignIn().ServeHTTP(w, req)
 
 	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
 	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("expected to read response body successfully but got error instead: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
-	respBody := string(b)
-	if respBody != "Failed to read request body.\n" {
-		t.Errorf("expected different response body but got instead: %q", respBody)
-	}
+	g.Expect(string(b)).To(Equal("Failed to read request body.\n"))
 }
 
 func TestSignInNoSecret(t *testing.T) {
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g := gomega.NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier)
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, false)
 
 	j, err := json.Marshal(auth.LoginRequest{})
-	if err != nil {
-		t.Errorf("failed to marshal to JSON: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	reader := bytes.NewReader(j)
 
@@ -258,21 +237,17 @@ func TestSignInNoSecret(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.SignIn().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	username := "admin"
 	password := "my-secret-password"
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	if err != nil {
-		t.Errorf("failed to generate a hash from password: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -288,11 +263,9 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, true)
 
 	login := auth.LoginRequest{
 		Username: "wrong",
@@ -300,9 +273,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 	}
 
 	j, err := json.Marshal(login)
-	if err != nil {
-		t.Errorf("failed to marshal to JSON: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	reader := bytes.NewReader(j)
 
@@ -310,20 +281,16 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.SignIn().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("expected status to be 401 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusUnauthorized))
 }
 
 func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	password := "my-secret-password"
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	if err != nil {
-		t.Errorf("failed to generate a hash from password: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -338,20 +305,16 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, false)
 
 	login := auth.LoginRequest{
 		Password: "wrong",
 	}
 
 	j, err := json.Marshal(login)
-	if err != nil {
-		t.Errorf("failed to marshal to JSON: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	reader := bytes.NewReader(j)
 
@@ -359,19 +322,16 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	w := httptest.NewRecorder()
 	s.SignIn().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("expected status to be 401 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusUnauthorized))
 }
 
 func TestSingInCorrectPassword(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	password := "my-secret-password"
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		t.Errorf("failed to generate a hash from password: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -386,20 +346,16 @@ func TestSingInCorrectPassword(t *testing.T) {
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier)
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, false)
 
 	login := auth.LoginRequest{
 		Password: password,
 	}
 
 	j, err := json.Marshal(login)
-	if err != nil {
-		t.Errorf("failed to marshal to JSON: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	reader := bytes.NewReader(j)
 
@@ -408,9 +364,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 	s.SignIn().ServeHTTP(w, req)
 
 	resp := w.Result()
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	var cookie *http.Cookie
 
@@ -421,18 +375,14 @@ func TestSingInCorrectPassword(t *testing.T) {
 		}
 	}
 
-	if cookie == nil {
-		t.Errorf("expected to find cookie %q but did not", auth.IDTokenCookieName)
-		// Make linter happy about possible nil deref below
-		return
-	}
-
-	if _, err := tokenSignerVerifier.Verify(cookie.Value); err != nil {
-		t.Errorf("expected to verify the issued token but got an error instead: %v", err)
-	}
+	g.Expect(cookie).ToNot(BeNil())
+	_, err = tokenSignerVerifier.Verify(cookie.Value)
+	g.Expect(err).NotTo(HaveOccurred())
 }
 
 func TestUserInfoAllowsGET(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	methods := []string{
 		http.MethodPost,
 		http.MethodPatch,
@@ -442,7 +392,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 		http.MethodOptions,
 	}
 
-	s, _ := makeAuthServer(t, nil, nil)
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/userinfo", nil)
@@ -450,41 +400,33 @@ func TestUserInfoAllowsGET(t *testing.T) {
 		s.UserInfo().ServeHTTP(w, req)
 
 		resp := w.Result()
-		if resp.StatusCode != http.StatusMethodNotAllowed {
-			t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
-		}
-
-		if resp.Header.Get("Allow") != "GET" {
-			t.Errorf("expected `Allow` header to be set to `GET` but was not")
-		}
+		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
+		g.Expect(resp.Header.Get("Allow")).To(Equal(http.MethodGet))
 	}
 }
 
 func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	w := httptest.NewRecorder()
 	s.UserInfo().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected status to be 400 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestUserInfoAdminFlow(t *testing.T) {
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g := gomega.NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, tokenSignerVerifier)
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
 
 	signed, err := tokenSignerVerifier.Sign()
-	if err != nil {
-		t.Errorf("failed to sign token: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	req.AddCookie(&http.Cookie{
@@ -496,18 +438,12 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	s.UserInfo().ServeHTTP(w, req)
 
 	resp := w.Result()
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	var info auth.UserInfo
-	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		t.Errorf("expected to decode response body to UserInfo object but got an error: %v", err)
-	}
 
-	if info.Email != "wego-admin" {
-		t.Errorf("expected admin flow to return `wego-admin` as the email but got %q instead", info.Email)
-	}
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal("wego-admin"))
 }
 
 func TestUserInfoOIDCFlow(t *testing.T) {
@@ -517,12 +453,12 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 		code  = "mnopqr"
 	)
 
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	if err != nil {
-		t.Errorf("failed to create HMAC signer: %v", err)
-	}
+	g := gomega.NewGomegaWithT(t)
 
-	s, m := makeAuthServer(t, nil, tokenSignerVerifier)
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, false)
 
 	authorizeQuery := url.Values{}
 	authorizeQuery.Set("client_id", m.Config().ClientID)
@@ -533,27 +469,23 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	authorizeQuery.Set("nonce", nonce)
 
 	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
-	if err != nil {
-		t.Errorf("failed to parse authorization endpoint: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	authorizeURL.RawQuery = authorizeQuery.Encode()
 
 	authorizeReq, err := http.NewRequest(http.MethodGet, authorizeURL.String(), nil)
-	if err != nil {
-		t.Errorf("failed to call the authorization endpoint: %v", err)
-	}
+	g.Expect(err).NotTo(HaveOccurred())
 
 	m.QueueCode(code)
 
 	authorizeResp, err := httpClient.Do(authorizeReq)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusFound, authorizeResp.StatusCode)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(authorizeResp.StatusCode).To(Equal(http.StatusFound))
 
 	appRedirect, err := url.Parse(authorizeResp.Header.Get("Location"))
-	assert.NoError(t, err)
-	assert.Equal(t, code, appRedirect.Query().Get("code"))
-	assert.Equal(t, state, appRedirect.Query().Get("state"))
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(appRedirect.Query().Get("code")).To(Equal(code))
+	g.Expect(appRedirect.Query().Get("state")).To(Equal(state))
 
 	tokenForm := url.Values{}
 	tokenForm.Set("client_id", m.Config().ClientID)
@@ -563,27 +495,26 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	tokenReq, err := http.NewRequest(
 		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
-	assert.NoError(t, err)
+	g.Expect(err).NotTo(HaveOccurred())
 	tokenReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	tokenResp, err := httpClient.Do(tokenReq)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, tokenResp.StatusCode)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(tokenResp.StatusCode).To(Equal(http.StatusOK))
 
 	defer tokenResp.Body.Close()
 	body, err := ioutil.ReadAll(tokenResp.Body)
-	assert.NoError(t, err)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	tokens := make(map[string]interface{})
-	err = json.Unmarshal(body, &tokens)
-	assert.NoError(t, err)
+	g.Expect(json.Unmarshal(body, &tokens)).To(Succeed())
 
 	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string))
-	assert.NoError(t, err)
+	g.Expect(err).NotTo(HaveOccurred())
 	_, err = m.Keypair.VerifyJWT(tokens["refresh_token"].(string))
-	assert.NoError(t, err)
+	g.Expect(err).NotTo(HaveOccurred())
 	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
-	assert.NoError(t, err)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	req.AddCookie(&http.Cookie{
@@ -595,48 +526,18 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	s.UserInfo().ServeHTTP(w, req)
 
 	resp := w.Result()
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	var info auth.UserInfo
-	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
-		t.Errorf("expected to decode response body to UserInfo object but got an error: %v", err)
-	}
 
-	if info.Email != "jane.doe@example.com" {
-		t.Errorf("expected admin flow to return `jane.doe@example.com` as the email but got %q instead", info.Email)
-	}
-}
-
-func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier auth.TokenSignerVerifier) (*auth.AuthServer, *mockoidc.MockOIDC) {
-	t.Helper()
-
-	m, err := mockoidc.Run()
-	if err != nil {
-		t.Errorf("failed to create mock OIDC server: %v", err)
-	}
-
-	t.Cleanup(func() {
-		_ = m.Shutdown()
-	})
-
-	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
-		OIDCConfig: auth.OIDCConfig{
-			ClientID:     m.Config().ClientID,
-			ClientSecret: m.Config().ClientSecret,
-			IssuerURL:    m.Config().Issuer,
-		},
-	}, client, tokenSignerVerifier)
-	if err != nil {
-		t.Errorf("failed to create a new AuthServer instance: %v", err)
-	}
-
-	return s, m
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal("jane.doe@example.com"))
 }
 
 func TestLogoutSuccess(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	w := httptest.NewRecorder()
 
@@ -644,11 +545,9 @@ func TestLogoutSuccess(t *testing.T) {
 	s.Logout().ServeHTTP(w, req)
 
 	resp := w.Result()
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("expected status to be 200 but got %v instead", resp.StatusCode)
-	}
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	cookie := &http.Cookie{}
+	var cookie *http.Cookie
 
 	for _, c := range resp.Cookies() {
 		if c.Name == auth.IDTokenCookieName {
@@ -657,19 +556,48 @@ func TestLogoutSuccess(t *testing.T) {
 		}
 	}
 
-	assert.Equal(t, cookie.Value, "")
+	g.Expect(cookie).ToNot(BeNil())
+	g.Expect(cookie.Value).To(Equal(""))
 }
 
 func TestLogoutWithWrongMethod(t *testing.T) {
-	s, _ := makeAuthServer(t, nil, nil)
+	g := gomega.NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, false)
 
 	w := httptest.NewRecorder()
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/logout", nil)
 	s.Logout().ServeHTTP(w, req)
 
-	resp := w.Result()
-	if resp.StatusCode != http.StatusMethodNotAllowed {
-		t.Errorf("expected status to be 405 but got %v instead", resp.StatusCode)
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
+}
+
+func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier auth.TokenSignerVerifier, disableProvider bool) (*auth.AuthServer, *mockoidc.MockOIDC) {
+	t.Helper()
+	g := gomega.NewGomegaWithT(t)
+
+	m, err := mockoidc.Run()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		_ = m.Shutdown()
+	})
+
+	cfg := m.Config()
+
+	if disableProvider {
+		cfg.Issuer = ""
 	}
+
+	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
+		OIDCConfig: auth.OIDCConfig{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			IssuerURL:    cfg.Issuer,
+		},
+	}, client, tokenSignerVerifier)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return s, m
 }
