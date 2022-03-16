@@ -1,0 +1,140 @@
+import * as React from "react";
+import styled from "styled-components";
+import { Automation } from "../hooks/automations";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { formatURL } from "../lib/nav";
+import { AutomationType, V2Routes } from "../lib/types";
+import DataTable, { SortType } from "./DataTable";
+import FilterableTable, { filterConfigForType } from "./FilterableTable";
+import FilterDialogButton from "./FilterDialogButton";
+import Flex from "./Flex";
+import KubeStatusIndicator, {
+  computeMessage,
+  computeReady,
+} from "./KubeStatusIndicator";
+import Link from "./Link";
+import SourceLink from "./SourceLink";
+
+type Props = {
+  className?: string;
+  automations: Automation[];
+  appName?: string;
+};
+
+function AutomationsTable({ className, automations }: Props) {
+  const [filterDialogOpen, setFilterDialog] = React.useState(false);
+
+  const initialFilterState = {
+    ...filterConfigForType(automations),
+  };
+
+  const fields = [
+    {
+      label: "Name",
+      value: (k) => {
+        const route =
+          k.type === AutomationType.Kustomization
+            ? V2Routes.Kustomization
+            : V2Routes.HelmRelease;
+        return (
+          <Link
+            to={formatURL(route, {
+              name: k.name,
+              namespace: k.namespace,
+            })}
+          >
+            {k.name}
+          </Link>
+        );
+      },
+      sortType: SortType.string,
+      sortValue: ({ name }) => name,
+      width: 64,
+    },
+    {
+      label: "Type",
+      value: "type",
+      width: 96,
+    },
+    {
+      label: "Namespace",
+      value: "namespace",
+      width: 64,
+    },
+    {
+      label: "Cluster",
+      value: () => "Default",
+      width: 64,
+    },
+    {
+      label: "Source",
+      value: (a: Automation) => {
+        let sourceKind;
+        let sourceName;
+
+        if (a.type === AutomationType.Kustomization) {
+          sourceKind = a.sourceRef.kind;
+          sourceName = a.sourceRef.name;
+        } else {
+          sourceKind = SourceRefSourceKind.HelmChart;
+          sourceName = (a as HelmRelease).helmChart.name;
+        }
+
+        return (
+          <SourceLink sourceRef={{ kind: sourceKind, name: sourceName }} />
+        );
+      },
+      width: 160,
+    },
+    {
+      label: "Status",
+      value: (a: Automation) =>
+        a.conditions.length > 0 ? (
+          <KubeStatusIndicator
+            short
+            conditions={a.conditions}
+            suspended={a.suspended}
+          />
+        ) : null,
+      sortType: SortType.bool,
+      sortValue: ({ conditions }) => computeReady(conditions),
+      width: 64,
+    },
+    {
+      label: "Message",
+      value: (a: Automation) => computeMessage(a.conditions),
+      width: 360,
+    },
+    {
+      label: "Revision",
+      value: "lastAttemptedRevision",
+      width: 72,
+    },
+    { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
+  ];
+
+  return (
+    <div className={className}>
+      <Flex wide end>
+        <FilterDialogButton
+          onClick={() => setFilterDialog(!filterDialogOpen)}
+        />
+      </Flex>
+      <FilterableTable
+        fields={fields}
+        filters={initialFilterState}
+        rows={automations}
+        dialogOpen={filterDialogOpen}
+        onDialogClose={() => setFilterDialog(false)}
+      />
+    </div>
+  );
+}
+
+export default styled(AutomationsTable).attrs({
+  className: AutomationsTable.name,
+})`
+  ${DataTable} table {
+    table-layout: fixed;
+  }
+`;

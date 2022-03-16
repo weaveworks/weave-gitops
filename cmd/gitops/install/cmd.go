@@ -7,30 +7,15 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-	"github.com/weaveworks/weave-gitops/pkg/services/install"
-	corev1 "k8s.io/api/core/v1"
 )
 
 type params struct {
-	DryRun     bool
-	AutoMerge  bool
 	ConfigRepo string
 }
 
@@ -41,9 +26,7 @@ var (
 var Cmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
-	Long: `The install command deploys GitOps in the specified namespace,
-adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
-repo. If a previous version is installed, then an in-place upgrade will be performed.`,
+	Long:  `The install command is currently being rewritten.`,
 	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
   gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
 	RunE:          installRunCmd,
@@ -55,8 +38,6 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 }
 
 func init() {
-	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
-	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
 	Cmd.Flags().StringVar(&installParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	cobra.CheckErr(Cmd.MarkFlagRequired("config-repo"))
 }
@@ -70,10 +51,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
-
-	kubeClient, rawK8sClient, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -83,66 +61,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	log := internal.NewCLILogger(os.Stdout)
-
-	token, err := internal.GetToken(configURL, osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-	if err != nil {
-		return err
-	}
-
-	gitProvider, err := gitproviders.New(gitproviders.Config{
-		Provider: configURL.Provider(),
-		Token:    token,
-		Hostname: configURL.URL().Host,
-	}, configURL.Owner(), gitproviders.GetAccountType)
-	if err != nil {
-		return fmt.Errorf("error creating git provider client: %w", err)
-	}
-
-	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, kubeClient, models.ManifestsParams{
-			ClusterName:   clusterName,
-			WegoNamespace: namespace,
-			ConfigRepo:    configURL,
-		})
-		if err != nil {
-			return fmt.Errorf("failed getting gitops manifests: %w", err)
-		}
-
-		for _, manifest := range manifests {
-			fmt.Println(string(manifest.Content))
-		}
-
-		return nil
-	}
-
-	namespaceObj := &corev1.Namespace{}
-	namespaceObj.Name = namespace
-
-	if err := rawK8sClient.Create(ctx, namespaceObj); err != nil {
-		if !strings.Contains(err.Error(), "already exists") {
-			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
-		}
-	}
-
-	authService, err := auth.NewAuthService(fluxClient, rawK8sClient, gitProvider, log)
-	if err != nil {
-		return err
-	}
-
-	deployKey, err := authService.SetupDeployKey(ctx, namespace, configURL)
-	if err != nil {
-		return err
-	}
-
-	gitClient := git.New(deployKey, wrapper.NewGoGit())
-
-	repoWriter := gitopswriter.NewRepoWriter(log, gitClient, gitProvider)
-	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, repoWriter)
-
-	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
-		return fmt.Errorf("failed installing: %w", err)
-	}
+	fmt.Printf(`🚧 This command is temporarily out of order 🚧
+To install gitops using an already initialised repository, for now use:
+  flux install -n %[1]s
+  flux create source git -n %[1]s weave-gitops --url=%[2]s --branch=main
+  flux create kustomization weave-gitops -n %[1]s --interval=10m --source=GitRepository/weave-gitops --path=./..weave-gitops/clusters/%[3]s
+`, namespace, configURL, clusterName)
 
 	return nil
 }

@@ -2,7 +2,7 @@ package gitproviders
 
 import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

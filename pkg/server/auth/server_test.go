@@ -277,7 +277,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "wego-system",
+			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
 			"username": []byte(base64.StdEncoding.EncodeToString([]byte(username))),
@@ -328,7 +328,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "wego-system",
+			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
 			"password": hashed,
@@ -376,7 +376,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "wego-system",
+			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
 			"password": hashed,
@@ -505,8 +505,8 @@ func TestUserInfoAdminFlow(t *testing.T) {
 		t.Errorf("expected to decode response body to UserInfo object but got an error: %v", err)
 	}
 
-	if info.Email != "admin" {
-		t.Errorf("expected admin flow to return `admin` as the email but got %q instead", info.Email)
+	if info.Email != "wego-admin" {
+		t.Errorf("expected admin flow to return `wego-admin` as the email but got %q instead", info.Email)
 	}
 }
 

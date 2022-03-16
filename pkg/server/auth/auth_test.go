@@ -161,7 +161,7 @@ func TestRateLimit(t *testing.T) {
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "wego-system",
+			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
 			"password": hashed,

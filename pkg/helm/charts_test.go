@@ -11,7 +11,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"

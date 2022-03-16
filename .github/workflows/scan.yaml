@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - main
+      - v2
   pull_request:
+    branches:
+      - main
+      - v2
   workflow_dispatch:
-
 
 jobs:
   fossa:
@@ -19,27 +22,8 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17.X
-      - name: Fake Install flux
-        run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-      - name: Fake dist for the ui cmd
-        run: mkdir -p cmd/gitops/ui/run/dist && touch cmd/gitops/ui/run/dist/index.js
       - name: Run FOSSA scan and upload build data
         uses: fossa-contrib/fossa-action@v1
         with:
           fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
           github-token: ${{ github.token }}
-
-  codeql:
-    name: CodeQL
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
-        with:
-          languages: go
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1

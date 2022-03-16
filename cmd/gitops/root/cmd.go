@@ -6,31 +6,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
-
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
-	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
 )
@@ -55,11 +46,6 @@ func init() {
 }
 
 func RootCmd(client *resty.Client) *cobra.Command {
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := fluxBin.New(osysClient, cliRunner)
-	fluxClient.SetupBin()
-
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -140,18 +126,13 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(install.Cmd)
-	rootCmd.AddCommand(beta.Cmd)
-	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(flux.Cmd)
-	rootCmd.AddCommand(ui.NewCommand())
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
-	rootCmd.AddCommand(resume.GetCommand())
-	rootCmd.AddCommand(suspend.GetCommand())
 	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(ui.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 

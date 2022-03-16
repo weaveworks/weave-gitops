@@ -11,9 +11,10 @@ If we have missed anything you think should be included, or if anything is not
 clear, we also accept contributions to this contribution doc :smile:.
 
 
-## Building the binary
-To build the `gitops` binary locally you can run `make bin`. This will create a `gitops`
-binary in the `bin/` directory.
+## Building the binaries
+To build the `gitops` binary locally you can run `make gitops`. This will create a `gitops`
+binary in the `bin/` directory. Similarly running `make gitops-server` will create a
+`gitops-server` binary in the same directory.
 
 
 ## Testing
@@ -60,7 +61,7 @@ The acceptance tests can be run using `make acceptance-tests`. They require the 
 environment variables as the integration tests, with the following in addition:
 
 - `WEGO_BIN_PATH`- The path to the `gitops` binary the tests should use. To test a locally
-built binary which is created from `make bin`, you want to set it to `WEGO_BIN_PATH=$PWD/bin/gitops`.
+built binary which is created from `make gitops`, you want to set it to `WEGO_BIN_PATH=$PWD/bin/gitops`.
 - `IS_TEST_ENV`- If this environment variable is set to anything, it indicates to the `gitops` binary
 that it should deploy images using the `latest` tag, instead of the latest version.
 
@@ -72,7 +73,7 @@ Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolve
 `docker build -f Dockerfile -t aclevernameww/wego-app:latest . && docker push aclevernameww/wego-app:latest`
 2. Update the `manifests/wego-app/deployment.yaml.tpl` to use your registry. Example:
 `image: aclevernameww/wego-app:{{.Version}})`
-3. Rebuild the local gitops binary via `make bin`
+3. Rebuild the local gitops binary via `make gitops`
 4. Ensure `WEGO_BIN_PATH` is set to the local binary and `IS_TEST_ENV=true`
 
 As a result, when the acceptance tests run `gitops install`, they should deploy your custom-built docker image with the desired code changes.

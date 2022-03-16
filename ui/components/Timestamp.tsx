@@ -8,7 +8,7 @@ type Props = {
 };
 
 function Timestamp({ className, time }: Props) {
-  const t = DateTime.fromISO(time);
+  const t = DateTime.fromJSDate(new Date(time));
   return <span className={className}>{t.toRelative()}</span>;
 }
 

@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 type clusterCommandFlags struct {
@@ -118,7 +117,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return fmt.Errorf("cannot parse url: %w", err)
 		}
 
-		token, err := internal.GetToken(url, os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, internal.NewCLILogger(os.Stdout))
+		token, err := internal.GetToken(url, os.LookupEnv)
 		if err != nil {
 			return err
 		}

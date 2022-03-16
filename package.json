@@ -4,7 +4,7 @@
   "description": "Weave GitOps core",
   "targets": {
     "default": {
-      "distDir": "cmd/gitops/ui/run/dist",
+      "distDir": "cmd/gitops-server/cmd/dist",
       "source": "ui/index.html",
       "sourceMap": false
     },
@@ -62,6 +62,7 @@
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
     "styled-components": "^5.3.0"

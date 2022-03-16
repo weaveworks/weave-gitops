@@ -5,21 +5,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/metadata"
 )
 
 var (
 	jwtClient      *authfakes.FakeJWTClient
 	defaultHandler http.HandlerFunc
-	log            *fakelogr.FakeLogger
+	log            logr.Logger
 )
 
 var _ = Describe("WithProviderToken", func() {
@@ -33,7 +33,7 @@ var _ = Describe("WithProviderToken", func() {
 		}
 
 		defaultHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-		log = testutils.MakeFakeLogr()
+		log, _ = testutils.MakeFakeLogr()
 	})
 
 	It("does nothing when no token is passed", func() {

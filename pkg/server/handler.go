@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
+	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -29,10 +29,11 @@ func AuthEnabled() bool {
 }
 
 type Config struct {
-	AppConfig      *ApplicationsConfig
-	AppOptions     []ApplicationsOption
-	ProfilesConfig ProfilesConfig
-	AuthServer     *auth.AuthServer
+	AppConfig        *ApplicationsConfig
+	AppOptions       []ApplicationsOption
+	ProfilesConfig   ProfilesConfig
+	CoreServerConfig core.CoreServerConfig
+	AuthServer       *auth.AuthServer
 }
 
 func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
@@ -53,6 +54,10 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 
 	if err := pbprofiles.RegisterProfilesHandlerServer(ctx, mux, profilesSrv); err != nil {
 		return nil, fmt.Errorf("could not register profiles: %w", err)
+	}
+
+	if err := core.Hydrate(ctx, mux, cfg.CoreServerConfig); err != nil {
+		return nil, fmt.Errorf("could not start up core servers: %w", err)
 	}
 
 	return httpHandler, nil

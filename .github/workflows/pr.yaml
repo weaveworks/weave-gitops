@@ -1,0 +1,184 @@
+on:
+  push:
+    paths-ignore:
+      - "doc/**"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CI_CONTAINER_REGISTRY: europe-west1-docker.pkg.dev
+  CI_CONTAINER_REPOSITORY: europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops
+
+name: PR CI Workflow
+jobs:
+  ci-js:
+    name: CI Test JS
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.13.2]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Node modules cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: make dependencies
+      - run: make node_modules
+      - run: make ui-audit
+      - run: make ui
+      - run: make ui-lint
+      - run: make ui-test
+
+  ci-go:
+    name: CI Test Go
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17.5]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Go modules cache
+        uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Set up kubebuilder
+        uses: fluxcd/pkg/actions/kubebuilder@main
+      - run: make dependencies
+      - run: go mod download
+      - run: make unit-tests
+      # - run: make lib-test
+
+  ci-static:
+    name: CI Check Static Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17.5]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - run: make dependencies
+      - run: make check-format
+      - run: make lint
+      - run: go mod tidy
+      - name: Check that go mod tidy has been run
+        run: git diff --no-ext-diff --exit-code
+      - run: make proto
+      - name: Check that make proto has been run
+        run: git diff --no-ext-diff --exit-code
+      - run: make fakes
+      - name: Check that make fakes has been run
+        run: git diff --no-ext-diff --exit-code
+
+  ci-build-gitops-image:
+    name: CI Build Gitops Docker Image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker-image:
+          - gitops
+          - gitops-server
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-buildx-action@v1
+      - run: make dependencies
+      - name: Set build-time flags
+        run: |
+          echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
+          echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
+      - name: Build and export
+        uses: docker/build-push-action@v2
+        with:
+          tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
+          outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
+          file: ${{ matrix.docker-image }}.dockerfile
+          # Warning: the ' in build-args are fragile -- only use on LDFLAGS
+          build-args: |
+            FLUX_VERSION=${{ env.FLUX_VERSION }}
+            LDFLAGS='${{ env.LDFLAGS }}'
+            GIT_COMMIT=${{ github.sha }}
+      - name: Cache docker image
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.docker-image }}
+          path: /tmp/${{ matrix.docker-image }}.tar
+
+  ci-upload-images:
+    name: CI Upload Images
+    runs-on: ubuntu-latest
+    # Make sure we only upload images if tests etc have passed
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        docker-image:
+          - gitops
+          - gitops-server
+    steps:
+      - uses: docker/setup-buildx-action@v1
+      - uses: google-github-actions/setup-gcloud@v0
+      - name: Download cached docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.docker-image }}
+          path: /tmp
+      - name: Authenticate to Google Cloud
+        id: gcloud-auth
+        uses: google-github-actions/auth@v0
+        with:
+          service_account: ${{ secrets.service_account }}
+          workload_identity_provider: ${{ secrets.workload_identity_provider }}
+      - name: Login to gcloud for docker
+        run: gcloud --quiet auth configure-docker ${{ env.CI_CONTAINER_REGISTRY }}
+      - name: Push images to gcloud
+        run: |
+          docker load --input /tmp/${{ matrix.docker-image }}.tar
+          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
+
+  # We only push images on merge so create a passing check if everything finished
+  finish-ci-no-push:
+    name: PR CI Pipeline
+    runs-on: ubuntu-latest
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    if: github.event_name != 'push'
+    steps:
+      - run: echo "All done"
+
+  finish-ci-push:
+    # must match https://github.com/weaveworks/corp/blob/master/github-repo-weave-gitops.tf
+    name: PR CI Pipeline
+    runs-on: ubuntu-latest
+    needs: ci-upload-images
+    steps:
+      - run: echo "All done"

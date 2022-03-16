@@ -1,47 +1,37 @@
 import * as React from "react";
+import { AppContext } from "./AppContext";
 
-export type FeatureFlagsContext = {
-  authFlag: boolean | null;
-  clusterUserFlag: boolean | null;
-  OIDCFlag: boolean | null;
+// Taken straight from the TS docs:
+// https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
+type OptionsFlags<Type> = {
+  [Property in keyof Type]: boolean;
 };
 
+type FeatureFlags = {
+  WEAVE_GITOPS_AUTH_ENABLED: () => void;
+  CLUSTER_USER_AUTH: () => void;
+  OIDC_AUTH: () => void;
+};
+
+export type Flags = OptionsFlags<FeatureFlags>;
+
+export type FeatureFlagsContextType = Flags;
+
 export const FeatureFlags =
-  React.createContext<FeatureFlagsContext | null>(null);
+  React.createContext<FeatureFlagsContextType | null>(null);
 
 export default function FeatureFlagsContextProvider({ children }) {
-  const [authFlag, setAuthFlag] = React.useState<boolean>(null);
-  const [clusterUserFlag, setClusterUserFlag] = React.useState<boolean>(null);
-  const [OIDCFlag, setOIDCFlag] = React.useState<boolean>(null);
-
-  const getAuthFlag = React.useCallback(() => {
-    fetch("/v1/featureflags")
-      .then((response) => response.json())
-      .then((data) => {
-        setAuthFlag(data.flags.WEAVE_GITOPS_AUTH_ENABLED === "true");
-        setClusterUserFlag(data.flags.CLUSTER_USER_AUTH === "true");
-        setOIDCFlag(data.flags.OIDC_AUTH === "true");
-      })
-      .catch((err) => console.log(err));
-  }, []);
+  const { request } = React.useContext(AppContext);
+  const [data, setData] = React.useState(null);
 
   React.useEffect(() => {
-    getAuthFlag();
-  }, [getAuthFlag]);
-
-  // Loading...
-  if (authFlag === null) {
-    return null;
-  }
+    request("/v1/featureflags")
+      .then((response) => response.json())
+      .then((data) => setData(data));
+  }, []);
 
   return (
-    <FeatureFlags.Provider
-      value={{
-        authFlag,
-        clusterUserFlag,
-        OIDCFlag,
-      }}
-    >
+    <FeatureFlags.Provider value={data?.flags}>
       {children}
     </FeatureFlags.Provider>
   );

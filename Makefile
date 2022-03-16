@@ -1,43 +1,55 @@
-.PHONY: debug bin gitops install clean fmt vet dependencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
-VERSION=$(shell git describe --always --match "v*")
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
+.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
 
-BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
-FORMAT_LIST=$(shell gofmt -l .)
-FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
-LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)"
+
+# Metadata for the builds. These can all be over-ridden so we can fix them in docker.
+BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
+BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
+VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
+FLUX_VERSION?=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+
+# Go build args
+GOOS=$(shell which go > /dev/null && go env GOOS)
+GOARCH=$(shell which go > /dev/null && go env GOARCH)
+LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
+				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
+
+# Docker args
+# LDFLAGS is passed so we don't have to copy the entire .git directory into the image
+# just to get, e.g. the commit hash
+DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
+# We want to be able to reference this in builds & pushes
+DEFAULT_DOCKER_REPO=localhost:5001
+DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
+DOCKER_IMAGE?=gitops-server
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
+ifeq (,$(shell which go > /dev/null && go env GOBIN))
+GOBIN=$(shell which go > /dev/null && go env GOPATH)/bin
 else
-GOBIN=$(shell go env GOBIN)
+GOBIN=$(shell which go > /dev/null && go env GOBIN)
 endif
 
 ifeq ($(BINARY_NAME),)
 BINARY_NAME := gitops
 endif
 
-.PHONY: bin
+##@ Default target
+all: gitops gitops-server ## Install dependencies and build Gitops binary. targets: gitops gitops-server
 
-all: gitops ## Install dependencies and build Gitops binary
-
+TEST_TO_RUN?=./...
 ##@ Test
-unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
+unit-tests: dependencies ## Run unit tests
+	@go install github.com/onsi/ginkgo/v2/ginkgo
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
 
-integration-tests: dependencies
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
-
-acceptance-tests: local-registry local-docker-image
-	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true ginkgo ${ACCEPTANCE_TEST_ARGS} -v ./test/acceptance/test/...
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -45,53 +57,44 @@ local-kind-cluster-with-registry:
 local-registry:
 	./tools/deploy-local-registry.sh
 
-local-docker-image:
-	docker build -t localhost:5001/wego-app:latest .
-	docker push localhost:5001/wego-app:latest
+local-docker-image: docker-gitops-server
+
+test: TEST_TO_RUN=./core/...
+test: unit-tests
 
 fakes: ## Generate testing fakes
 	go generate ./...
-
-##@ Build
-gitops: dependencies ui bin ## Install dependencies and build gitops binary
 
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
 api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
+	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags "$(LDFLAGS)" cmd/gitops-server/main.go'
 
-cluster-dev: check-config-repo bin local-kind-cluster-with-registry local-docker-image ## Start tilt to do development with wego-app running on the cluster
-	IS_TEST_ENV=true IS_LOCAL_REGISTRY=true bin/$(BINARY_NAME) install --config-repo=${TEST_CONFIG_REPO} --auto-merge true
-	tilt up
-
-check-config-repo:
-	@test $${TEST_CONFIG_REPO?Please set TEST_CONFIG_REPO to use a dev cluster.}
+cluster-dev: ## Start tilt to do development with wego-app running on the cluster
+	./tools/bin/tilt up
 
 clean-dev-cluster:
 	kind delete cluster --name kind && docker rm -f kind-registry
 
-debug: ## Compile binary with optimisations and inlining disabled
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
+##@ Build
+# In addition to the main file depend on all go files and any other files in
+# the cmd directory (e.g. dist, on the assumption that there won't be many)
+bin/%: cmd/%/main.go $(shell find . -name "*.go") $(shell find cmd -type f)
+ifdef DEBUG
+		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $@ $(GO_BUILD_OPTS) $<
+else
+		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+endif
 
-bin: ## Build gitops binary
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
+gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 
-docker: ## Build wego-app docker image
-	docker build -t ghcr.io/weaveworks/wego-app:latest .
-
+gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-	rm -f bin/gitops
-	rm -rf cmd/gitops/ui/run/dist
-	rm -rf coverage
-	rm -rf node_modules
-	rm -f .deps
-	rm -rf dist
-	# There is an important (tracked) file in pkg/flux/bin so don't just nuke the whole folder
-	# -x: remove gitignored files too, -d: remove directories too
-	git clean -x -d --force pkg/flux/bin/
+#	Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
+	git clean -x -d --force
 
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -100,7 +103,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	golangci-lint run --out-format=github-actions --build-tags acceptance --timeout 600s
+	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 .deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
@@ -108,27 +111,49 @@ lint: ## Run linters against code
 
 dependencies: .deps ## Install build dependencies
 
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
-crd: ## Generate CRDs
-	@go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
-	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
-
+check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
 check-format: ## Check go format
-	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+# The trailing `\` are important here as this is embedded bash and technically 1 line
+	@if [ ! -z "$(FORMAT_LIST)" ] ; then \
+		echo invalid format at: ${FORMAT_LIST} && exit 1; \
+	fi
 
 proto-deps: ## Update protobuf dependencies
 	buf mod update
 
 proto: ## Generate protobuf files
+	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+	  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+	  github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
+	  google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+	  google.golang.org/protobuf/cmd/protoc-gen-go \
+	  github.com/bufbuild/buf/cmd/buf
 	buf generate
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
+##@ Docker
+_docker:
+	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
+										-f $(DOCKERFILE) \
+										-t $(DEFAULT_DOCKER_REPO)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										.
+
+docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: _docker ## Build a Docker image of the gitops CLI
+
+docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
+docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
+
 ##@ UI
+# Build the UI for embedding
+ui: cmd/gitops-server/cmd/dist/index.html ## Build the UI
+
+cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
+	npm run build
 
 node_modules: ## Install node modules
-	npm ci
+	npm install-clean
 	npx npm-force-resolutions
 
 ui-lint: ## Run linter against the UI
@@ -140,21 +165,17 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	npm audit --production
 
-ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
-
+# Build the UI as an NPM package (hosted on github)
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
 
-cmd/gitops/ui/run/dist:
-	mkdir -p cmd/gitops/ui/run/dist
+dist/index.js: ui/index.ts
+	npm run build:lib && cp package.json dist
 
-cmd/gitops/ui/run/dist/index.html: cmd/gitops/ui/run/dist
-	touch cmd/gitops/ui/run/dist/index.html
-
-cmd/gitops/ui/run/dist/main.js:
-	npm run build
+dist/index.d.ts: ui/index.ts
+	npm run typedefs
 
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
@@ -165,11 +186,6 @@ lib-test: dependencies ## Run the library integration test
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
 		 gitops-library-test
 
-dist/index.js: ui/index.ts
-	npm run build:lib && cp package.json dist
-
-dist/index.d.ts: ui/index.ts
-	npm run typedefs
 
 # Test coverage
 
@@ -206,6 +222,16 @@ merged.lcov:
 	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
 
 ##@ Utilities
+tls-files:
+	./tools/validate-mkcert.sh
+
+
+# These echo commands exist to make it easier to pass stuff around github actions
+echo-ldflags:
+	@echo $(LDFLAGS)
+
+echo-flux-version:
+	@echo $(FLUX_VERSION)
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

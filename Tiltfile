@@ -1,11 +1,13 @@
 load('ext://restart_process', 'docker_build_with_restart')
 
 local_resource(
-    'gitops-bin',
-    'GOOS=linux GOARCH=amd64 make bin',
+    'gitops-server',
+    'GOOS=linux GOARCH=amd64 make gitops-server',
     deps=[
         './cmd',
         './pkg',
+        './core',
+        './charts',
     ]
 )
 
@@ -14,16 +16,21 @@ docker_build_with_restart(
     '.',
     only=[
         './bin',
+        'localhost.pem',
+        'localhost-key.pem',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops ui run -l',
+    entrypoint='/app/build/gitops-server -l --tls-cert-file=build/localhost.pem --tls-private-key-file=build/localhost-key.pem',
     live_update=[
         sync('./bin', '/app/build'),
     ],
 )
 
-k8s_yaml([
-    'tools/wego-app-dev.yaml',
-])
+def helmfiles(chart, values):
+	watch_file(chart)
+	watch_file(values)
+	return local('./tools/bin/helm template {c} -f {v}'.format(c=chart, v=values))
 
-k8s_resource('wego-app', port_forwards='9000', resource_deps=['gitops-bin'])
+k8s_yaml(helmfiles('./charts/weave-gitops', './tools/helm-values-dev.yaml'))
+
+k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'], links=['https://localhost:9001'])
