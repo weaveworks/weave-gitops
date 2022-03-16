@@ -51,7 +51,7 @@ function KustomizationDetail({ className, name }: Props) {
         </Info>
         <PageStatus
           conditions={kustomization?.conditions}
-          error={error && true}
+          suspended={kustomization?.suspended}
         />
       </Flex>
       <TabContent>

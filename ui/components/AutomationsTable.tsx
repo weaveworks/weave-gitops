@@ -116,7 +116,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     fields = fields.filter((field) => {
       if (field.label !== "Source") return field;
     });
-
+  console.log(automations[0]);
   return (
     <div className={className}>
       <FilterableTable

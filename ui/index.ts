@@ -6,11 +6,7 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
-<<<<<<< HEAD
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
-=======
-import AuthContextProvider from "./contexts/AuthContext";
->>>>>>> b4662b16 (Fix linting errors)
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
