@@ -26,6 +26,7 @@ import Automations from "./pages/v2/Automations";
 import BucketDetail from "./pages/v2/BucketDetail";
 import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
+import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleaseDetail from "./pages/v2/HelmReleaseDetail";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationDetail from "./pages/v2/KustomizationDetail";
@@ -72,6 +73,11 @@ const App = () => (
           exact
           path={V2Routes.HelmRelease}
           component={withName(HelmReleaseDetail)}
+        />
+        <Route
+          exact
+          path={V2Routes.HelmChart}
+          component={withName(HelmChartDetail)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />

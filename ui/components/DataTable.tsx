@@ -32,6 +32,7 @@ export type Field = {
   sortType?: SortType;
   sortValue?: Sorter;
   width?: number;
+  textSearchable?: boolean;
 };
 
 /** DataTable Properties  */

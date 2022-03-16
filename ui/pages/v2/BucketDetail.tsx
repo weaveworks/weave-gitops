@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Interval from "../../components/Interval";
 import Page, { Content, TitleBar } from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
+import Timestamp from "../../components/Timestamp";
 import { Bucket, SourceRefSourceKind } from "../../lib/api/core/types.pb";
 
 type Props = {
@@ -22,9 +23,9 @@ function BucketDetail({ className, name, namespace }: Props) {
         info={(b: Bucket = {}) => [
           ["Endpoint", b.endpoint],
           ["Bucket Name", b.name],
-          ["Last Updated", ""],
+          ["Last Updated", <Timestamp time={b.lastUpdatedAt} />],
           ["Interval", <Interval interval={b.interval} />],
-          ["Cluster", ""],
+          ["Cluster", "Default"],
           ["Namespace", b.namespace],
         ]}
       />

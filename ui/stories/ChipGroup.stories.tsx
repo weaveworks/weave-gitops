@@ -23,11 +23,7 @@ const Template: Story<Props> = (args) => {
   ]);
 
   return (
-    <ChipGroup
-      {...args}
-      activeChips={storyChips}
-      setActiveChips={setStoryChips}
-    />
+    <ChipGroup {...args} chips={storyChips} onChipRemove={setStoryChips} />
   );
 };
 
