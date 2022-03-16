@@ -7,6 +7,7 @@ import Input from "./Input";
 
 type Props = {
   className?: string;
+
   onSubmit: (val: string) => void;
 };
 
