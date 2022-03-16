@@ -323,10 +323,6 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
-		if s.provider == nil {
-			return
-		}
-
 		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: c.Value,
 		}))
