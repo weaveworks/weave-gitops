@@ -6,13 +6,13 @@ import (
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops/core/multicluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	clientsPool := multicluster.ClientsPoolFromCtx(ctx)
+	clientsPool := clustersmngr.ClientsPoolFromCtx(ctx)
 	if clientsPool == nil {
 		return &pb.ListKustomizationsResponse{
 			Kustomizations: []*pb.Kustomization{},

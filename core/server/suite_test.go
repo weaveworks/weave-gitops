@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops/core/multicluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -79,19 +79,19 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 
 func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		cluster := multicluster.Cluster{
+		cluster := clustersmngr.Cluster{
 			Name:        "Default",
 			Server:      config.Host,
 			BearerToken: config.BearerToken,
 			TLSConfig:   config.TLSClientConfig,
 		}
 
-		clientsPool := multicluster.NewClustersClientsPool()
+		clientsPool := clustersmngr.NewClustersClientsPool()
 		if err := clientsPool.Add(user, cluster); err != nil {
 			return nil, err
 		}
 
-		ctx = context.WithValue(ctx, multicluster.ClustersClientsPoolCtxKey, clientsPool)
+		ctx = context.WithValue(ctx, clustersmngr.ClustersClientsPoolCtxKey, clientsPool)
 
 		return handler(ctx, req)
 	})
