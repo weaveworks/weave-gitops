@@ -40,7 +40,6 @@ type Config struct {
 func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.AppConfig.Logger))
 	httpHandler := middleware.WithLogging(cfg.AppConfig.Logger, mux)
-	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
 	if AuthEnabled() {
 		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
