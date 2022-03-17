@@ -45,5 +45,5 @@ metadata:
   namespace: {{.Values.namespace}}
 type: Opaque
 data:
-  username: {{.Values.adminUsername}}
-  password: {{.Values.adminPassword}}
+  username: {{ .Values.adminUsername | b64enc | quote }}
+  password: {{ .Values.adminPassword | b64enc | quote }}
