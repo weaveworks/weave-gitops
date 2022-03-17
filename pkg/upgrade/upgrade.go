@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -266,13 +265,10 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 }
 
 func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
-	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
-	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 	wegoEnterprisePath := filepath.Join(clusterPath, WegoEnterpriseName)
 
 	manifests := map[string]string{
 		wegoEnterprisePath: wegoEnterpriseManifests,
-		capiKeepPath:       capiKeepContents,
 	}
 
 	for path, content := range manifests {
