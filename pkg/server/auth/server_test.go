@@ -599,7 +599,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
 }
 
-func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier auth.TokenSignerVerifier, disableProvider bool) (*auth.AuthServer, *mockoidc.MockOIDC) {
+func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, disableProvider bool) (*auth.AuthServer, *mockoidc.MockOIDC) {
 	t.Helper()
 	g := gomega.NewGomegaWithT(t)
 
@@ -616,13 +616,16 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tokenSignerVerifier 
 		cfg.Issuer = ""
 	}
 
-	s, err := auth.NewAuthServer(context.Background(), logr.Discard(), http.DefaultClient, auth.AuthConfig{
-		OIDCConfig: auth.OIDCConfig{
-			ClientID:     cfg.ClientID,
-			ClientSecret: cfg.ClientSecret,
-			IssuerURL:    cfg.Issuer,
-		},
-	}, client, tokenSignerVerifier)
+	oidcCfg := auth.OIDCConfig{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		IssuerURL:    cfg.Issuer,
+	}
+
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	return s, m

@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -51,22 +50,12 @@ type Options struct {
 	WatcherPort                   int
 	Path                          string
 	LoggingEnabled                bool
-	OIDC                          OIDCAuthenticationOptions
+	OIDC                          auth.OIDCConfig
 	NotificationControllerAddress string
 	TLSCertFile                   string
 	TLSKeyFile                    string
 	Insecure                      bool
 	MTLS                          bool
-}
-
-// OIDCAuthenticationOptions contains the OIDC authentication options for the
-// gitops-server
-type OIDCAuthenticationOptions struct {
-	IssuerURL     string
-	ClientID      string
-	ClientSecret  string
-	RedirectURL   string
-	TokenDuration time.Duration
 }
 
 var options Options
@@ -181,62 +170,29 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	var authServer *auth.AuthServer
 
-	if server.AuthEnabled() {
-		var OIDCConfig auth.OIDCConfig
+	oidcConfig := options.OIDC
 
-		// If OIDC auth secret is not found use CLI parameters
+	if server.AuthEnabled() {
+		// If OIDC auth secret is found prefer that over CLI parameters
 		var secret corev1.Secret
 		if err := rawClient.Get(cmd.Context(), client.ObjectKey{
 			Namespace: v1alpha1.DefaultNamespace,
 			Name:      auth.OIDCAuthSecretName,
-		}, &secret); err != nil {
-			appConfig.Logger.Error(err, "OIDC auth secret not found")
-
-			OIDCConfig.IssuerURL = options.OIDC.IssuerURL
-			OIDCConfig.ClientID = options.OIDC.ClientID
-			OIDCConfig.ClientSecret = options.OIDC.ClientSecret
-			OIDCConfig.RedirectURL = options.OIDC.RedirectURL
-			OIDCConfig.TokenDuration = options.OIDC.TokenDuration
-		} else {
-			OIDCConfig.IssuerURL = string(secret.Data["issuerURL"])
-			OIDCConfig.ClientID = string(secret.Data["clientID"])
-			OIDCConfig.ClientSecret = string(secret.Data["clientSecret"])
-			OIDCConfig.RedirectURL = string(secret.Data["redirectURL"])
-
-			tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
-			if err != nil {
-				appConfig.Logger.Error(err, "Invalid token duration")
-				tokenDuration = time.Hour
-			}
-			OIDCConfig.TokenDuration = tokenDuration
+		}, &secret); err == nil {
+			oidcConfig = auth.NewOIDCConfigFromSecret(secret)
 		}
 
-		_, err := url.Parse(OIDCConfig.IssuerURL)
-		if err != nil {
-			return fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		_, err = url.Parse(OIDCConfig.RedirectURL)
-		if err != nil {
-			return fmt.Errorf("invalid redirect URL: %w", err)
-		}
-
-		tsv, err := auth.NewHMACTokenSignerVerifier(OIDCConfig.TokenDuration)
+		tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
 		if err != nil {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
-		srv, err := auth.NewAuthServer(cmd.Context(), appConfig.Logger, http.DefaultClient,
-			auth.AuthConfig{
-				OIDCConfig: auth.OIDCConfig{
-					IssuerURL:     OIDCConfig.IssuerURL,
-					ClientID:      OIDCConfig.ClientID,
-					ClientSecret:  OIDCConfig.ClientSecret,
-					RedirectURL:   OIDCConfig.RedirectURL,
-					TokenDuration: OIDCConfig.TokenDuration,
-				},
-			}, rawClient, tsv,
-		)
+		authCfg, err := auth.NewAuthServerConfig(appConfig.Logger, oidcConfig, rawClient, tsv)
+		if err != nil {
+			return err
+		}
+
+		srv, err := auth.NewAuthServer(cmd.Context(), authCfg)
 		if err != nil {
 			return fmt.Errorf("could not create auth server: %w", err)
 		}
