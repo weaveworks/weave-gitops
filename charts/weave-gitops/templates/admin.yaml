@@ -6,7 +6,7 @@ metadata:
   namespace: {{.Values.namespace}}
 subjects:
   - kind: User
-    name: wego-admin
+    name: admin
     namespace: {{.Values.namespace}}
 roleRef:
   kind: Role
@@ -43,6 +43,8 @@ kind: Secret
 metadata:
   name: cluster-user-auth
   namespace: {{.Values.namespace}}
+  labels:
+    gitops.weave.works/entity: user
 type: Opaque
 data:
   username: {{ .Values.adminUsername | b64enc | quote }}

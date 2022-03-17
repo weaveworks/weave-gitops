@@ -35,8 +35,6 @@ func NewJWTCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier
 }
 
 func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from cookie")
-
 	cookie, err := r.Cookie(pg.cookieName)
 	if err == http.ErrNoCookie {
 		return nil, nil
@@ -61,8 +59,6 @@ func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.ID
 }
 
 func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from auth header")
-
 	header := r.Header.Get("Authorization")
 	if header == "" {
 		return nil, nil

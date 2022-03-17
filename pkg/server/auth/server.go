@@ -11,10 +11,11 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -286,33 +287,38 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		var hashedSecret corev1.Secret
+		users := &corev1.SecretList{}
 
-		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
-			Name:      ClusterUserAuthSecretName,
-		}, &hashedSecret); err != nil {
-			s.logger.Error(err, "Failed to query for the secret")
-			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
+		opts := []client.ListOption{
+			client.MatchingLabels{
+				"gitops.weave.works/entity": "user",
+			},
+			client.InNamespace(wego.DefaultNamespace),
+		}
+
+		if err := s.kubernetesClient.List(r.Context(), users, opts...); err != nil {
+			s.logger.Error(err, "Failed to list users")
+			http.Error(rw, "Failed to list users", http.StatusInternalServerError)
 
 			return
 		}
 
-		if loginRequest.Username != string(hashedSecret.Data["username"]) {
-			s.logger.Info("Wrong username")
-			rw.WriteHeader(http.StatusUnauthorized)
+		for _, u := range users.Items {
+			if loginRequest.Username != string(u.Data["username"]) {
+				continue
+			}
 
-			return
+			if err := bcrypt.CompareHashAndPassword(u.Data["password"], []byte(loginRequest.Password)); err != nil {
+				s.logger.Error(err, "Failed to compare hash with password")
+				rw.WriteHeader(http.StatusUnauthorized)
+
+				return
+			}
+
+			break
 		}
 
-		if err := bcrypt.CompareHashAndPassword(hashedSecret.Data["password"], []byte(loginRequest.Password)); err != nil {
-			s.logger.Error(err, "Failed to compare hash with password")
-			rw.WriteHeader(http.StatusUnauthorized)
-
-			return
-		}
-
-		signed, err := s.tokenSignerVerifier.Sign()
+		signed, err := s.tokenSignerVerifier.Sign(loginRequest.Username)
 		if err != nil {
 			s.logger.Error(err, "Failed to create and sign token")
 			rw.WriteHeader(http.StatusInternalServerError)
