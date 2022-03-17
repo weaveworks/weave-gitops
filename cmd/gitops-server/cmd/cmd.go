@@ -31,6 +31,7 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 const (
@@ -110,8 +111,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
+	clusterName := kube.InClusterConfigClusterName()
 
-	rest, clusterName, err := kube.RestConfig()
+	rest, err := config.GetConfig()
 	if err != nil {
 		return fmt.Errorf("could not create client config: %w", err)
 	}

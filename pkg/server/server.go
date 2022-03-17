@@ -20,6 +20,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -110,8 +111,9 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 	}
 
 	jwtClient := auth.NewJwtClient(secretKey)
+	clusterName := kube.InClusterConfigClusterName()
 
-	rest, clusterName, err := kube.RestConfig()
+	rest, err := config.GetConfig()
 	if err != nil {
 		return nil, fmt.Errorf("could not create client config: %w", err)
 	}
