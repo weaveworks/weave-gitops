@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: developers
+---
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: dev-user
+  namespace: developers
+  labels:
+    gitops.weave.works/entity: user
+data:
+  username: {{ "dev" | b64enc | quote }}
+  password: {{ "$2b$12$E9I4RSMUY5LaBkTsP.lbO.3L0v3PSPvHoXm7odHO4Msx1vbfepG7W" | b64enc | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev-user-role
+  namespace: developers
+rules:
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-user-read-resources
+  namespace: developers
+subjects:
+  - kind: User
+    name: dev
+    namespace: developers
+roleRef:
+  kind: Role
+  name: dev-user-role
+  apiGroup: rbac.authorization.k8s.io
+---
