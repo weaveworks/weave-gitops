@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Interval from "../../components/Interval";
 import Link from "../../components/Link";
-import Page, { Content, TitleBar } from "../../components/Page";
+import Page from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import Timestamp from "../../components/Timestamp";
 import {
@@ -43,12 +43,4 @@ function HelmRepositoryDetail({ className, name, namespace }: Props) {
 
 export default styled(HelmRepositoryDetail).attrs({
   className: HelmRepositoryDetail.name,
-})`
-  ${TitleBar} {
-    margin-bottom: 0;
-  }
-
-  ${Content} {
-    padding-top: 0;
-  }
-`;
+})``;

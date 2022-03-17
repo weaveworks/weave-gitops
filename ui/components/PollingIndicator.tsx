@@ -32,6 +32,7 @@ function PollingIndicator({ className, loading }: Props) {
 }
 
 export default styled(PollingIndicator)`
+  padding-left: ${(props) => props.theme.spacing.xs};
   .MuiCircularProgress-root {
     transition: opacity 2s;
     margin-bottom: 0;

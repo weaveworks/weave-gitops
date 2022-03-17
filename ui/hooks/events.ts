@@ -18,6 +18,7 @@ export function useListFluxEvents(namespace, obj: ObjectReference) {
     {
       retry: false,
       refetchOnWindowFocus: false,
+      refetchInterval: 5000,
     }
   );
 }

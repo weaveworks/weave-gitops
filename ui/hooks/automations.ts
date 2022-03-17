@@ -46,7 +46,7 @@ export function useListAutomations(namespace = WeGONamespace) {
         ];
       });
     },
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
@@ -56,7 +56,7 @@ export function useGetKustomization(name: string, namespace = WeGONamespace) {
   return useQuery<GetKustomizationResponse, RequestError>(
     ["kustomizations", name],
     () => api.GetKustomization({ name, namespace }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
@@ -66,6 +66,6 @@ export function useGetHelmRelease(name: string, namespace = WeGONamespace) {
   return useQuery<GetHelmReleaseResponse, RequestError>(
     ["helmrelease", name],
     () => api.GetHelmRelease({ name, namespace }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }

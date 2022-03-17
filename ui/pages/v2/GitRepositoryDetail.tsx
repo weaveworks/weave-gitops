@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Link from "../../components/Link";
-import Page, { Content, TitleBar } from "../../components/Page";
+import Page from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import Timestamp from "../../components/Timestamp";
 import {
@@ -41,12 +41,4 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
 
 export default styled(GitRepositoryDetail).attrs({
   className: GitRepositoryDetail.name,
-})`
-  ${TitleBar} {
-    margin-bottom: 0;
-  }
-
-  ${Content} {
-    padding-top: 0;
-  }
-`;
+})``;
