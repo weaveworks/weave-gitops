@@ -111,7 +111,7 @@ function GithubDeviceAuthModal({
       title="Authenticate with Github"
       open={open}
       onClose={onClose}
-      description={`Weave GitOps needs to authenitcate with the Git Provider for the ${repoName} repo`}
+      description={`Weave GitOps needs to authenticate with the Git Provider for the ${repoName} repo`}
     >
       <p>
         Paste this code into the Github Device Activation field to grant Weave
