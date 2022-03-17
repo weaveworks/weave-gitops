@@ -26,7 +26,9 @@ func TestListHelmReleases(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"
@@ -48,7 +50,9 @@ func TestGetHelmRelease(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp" + rand.String(5)
@@ -94,7 +98,9 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp" + rand.String(5)
@@ -175,7 +181,9 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp" + rand.String(5)

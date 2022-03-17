@@ -25,7 +25,9 @@ func TestListKustomizations(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"
@@ -58,7 +60,9 @@ func TestGetKustomization(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"

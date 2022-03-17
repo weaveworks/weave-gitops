@@ -116,7 +116,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create client config: %w", err)
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
+	rawClient, err := client.New(rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}

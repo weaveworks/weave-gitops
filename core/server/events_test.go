@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -20,7 +21,9 @@ func TestListFluxEvents(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	eventObjectName := "my-kustomization"

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestListHelmRepositories(t *testing.T) {
@@ -18,7 +19,9 @@ func TestListHelmRepositories(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"
@@ -45,7 +48,9 @@ func TestListHelmCharts(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"
@@ -78,7 +83,9 @@ func TestListBuckets(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	appName := "myapp"

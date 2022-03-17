@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestGetReconciledObjects(t *testing.T) {
@@ -22,7 +23,9 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	automationName := "my-automation"
@@ -81,7 +84,9 @@ func TestGetChildObjects(t *testing.T) {
 
 	c := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	automationName := "my-automation"
