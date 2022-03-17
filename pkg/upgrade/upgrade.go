@@ -9,6 +9,7 @@ import (
 	"io"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -22,6 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,6 +36,7 @@ import (
 
 type UpgradeValues struct {
 	ConfigRepo    string
+	ClusterPath   string
 	Version       string
 	BaseBranch    string
 	HeadBranch    string
@@ -104,7 +107,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		}
 	}
 
-	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
+	remover, repoDir, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -116,7 +119,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to create new branch %s: %w", uv.HeadBranch, err)
 	}
 
-	err = upgradeGitManifests(gitClient, cname, stringOut, logger)
+	err = upgradeGitManifests(gitClient, repoDir, uv.ClusterPath, cname, stringOut, logger)
 	if err != nil {
 		return fmt.Errorf("failed to write update manifest in clone repo: %w", err)
 	}
@@ -134,6 +137,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		NewBranch:                 uv.HeadBranch,
 	}
 
+	fmt.Printf("PRI: %#+v\n", pri)
 	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
 	if err != nil {
 		return err
@@ -262,25 +266,14 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	return []runtime.Object{helmRepository, helmRelease}, nil
 }
 
-func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
+func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
-	kustomizationPath := git.GetSystemQualifiedPath(cname, models.SystemKustomizationPath)
-	wegoAppPath := git.GetSystemQualifiedPath(cname, models.WegoAppPath)
-	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
+	wegoEnterprisePath := filepath.Join(clusterPath, WegoEnterpriseName)
 
 	manifests := map[string]string{
 		wegoEnterprisePath: wegoEnterpriseManifests,
 		capiKeepPath:       capiKeepContents,
-	}
-
-	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath, logger)
-	if err != nil {
-		return fmt.Errorf("Failed to update kustomization: %w", err)
-	}
-
-	if newKustomizationBytes != nil {
-		manifests[kustomizationPath] = string(newKustomizationBytes)
 	}
 
 	for path, content := range manifests {
@@ -289,15 +282,35 @@ func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 		}
 	}
 
-	err = gitClient.Remove(wegoAppPath)
-	if err != nil {
-		logger.Warningf("Failed to remove existing %s deployment, skipping.\n", wegoAppPath)
+	configRoot := clusterPath
+	if !strings.HasPrefix(configRoot, "/") {
+		configRoot = filepath.Join(repoDir, configRoot)
+	}
+
+	findResult := utils.FindCoreConfig(repoDir)
+
+	switch findResult.Status {
+	case utils.Valid:
+		relativePath := strings.TrimPrefix(findResult.Path, repoDir)
+		err := gitClient.Remove(relativePath)
+		if err != nil {
+			logger.Warningf("Failed to remove existing core configuration: %q, skipping.\n", relativePath)
+		}
+
+	case utils.Embedded:
+		logger.Warningf("The core configuration manifests are contained in a file: %q that also contains other manifests, skipping deletion.\n", findResult.Path)
+
+	case utils.Partial:
+		logger.Warningf("The core configuration manifests are not contained in a single file; skipping deletion.\n")
+
+	case utils.Missing:
+		logger.Warningf("Could not find existing core configuration manifests.\n")
 	}
 
 	return nil
 }
 
-func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wegoEnterprisePath string, logger logger.Logger) ([]byte, error) {
+func updateKustomization(gitClient git.Git, kustomizationPath, wegoEnterprisePath string, logger logger.Logger) ([]byte, error) {
 	kustomizationBytes, err := gitClient.Read(kustomizationPath)
 	if err != nil {
 		logger.Warningf("Failed to read existing kustomization, skipping, may be an older weave-gitops installation %s: %w", kustomizationPath, err)
