@@ -137,7 +137,6 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		NewBranch:                 uv.HeadBranch,
 	}
 
-	fmt.Printf("PRI: %#+v\n", pri)
 	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
 	if err != nil {
 		return err
