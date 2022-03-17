@@ -73,14 +73,14 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		// err is falsey even on 4XX or 5XX
-		return nil, fmt.Errorf("request failed with status code: %v", res.StatusCode)
-	}
-
 	rb, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		// err is falsey even on 4XX or 5XX
+		return nil, fmt.Errorf("request failed with status code (%s): %v", rb, res.StatusCode)
 	}
 
 	return rb, nil
