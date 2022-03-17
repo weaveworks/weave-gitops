@@ -26,7 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -282,11 +281,12 @@ func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnt
 		configRoot = filepath.Join(repoDir, configRoot)
 	}
 
-	findResult := utils.FindCoreConfig(repoDir)
+	findResult := utils.FindCoreConfig(configRoot)
 
 	switch findResult.Status {
 	case utils.Valid:
 		relativePath := strings.TrimPrefix(findResult.Path, repoDir)
+
 		err := gitClient.Remove(relativePath)
 		if err != nil {
 			logger.Warningf("Failed to remove existing core configuration: %q, skipping.\n", relativePath)
@@ -303,31 +303,6 @@ func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnt
 	}
 
 	return nil
-}
-
-func updateKustomization(gitClient git.Git, kustomizationPath, wegoEnterprisePath string, logger logger.Logger) ([]byte, error) {
-	kustomizationBytes, err := gitClient.Read(kustomizationPath)
-	if err != nil {
-		logger.Warningf("Failed to read existing kustomization, skipping, may be an older weave-gitops installation %s: %w", kustomizationPath, err)
-		return nil, nil
-	}
-
-	var k types.Kustomization
-	if err := yaml.Unmarshal(kustomizationBytes, &k); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal kustomization file %s: %w", kustomizationPath, err)
-	}
-
-	newResources := []string{WegoEnterpriseName}
-
-	for _, resource := range k.Resources {
-		if resource != models.WegoAppPath {
-			newResources = append(newResources, resource)
-		}
-	}
-
-	k.Resources = newResources
-
-	return yaml.Marshal(&k)
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
