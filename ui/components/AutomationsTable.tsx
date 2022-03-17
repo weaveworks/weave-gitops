@@ -1,3 +1,4 @@
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
@@ -17,14 +18,15 @@ type Props = {
   className?: string;
   automations: Automation[];
   appName?: string;
+  hideSource?: boolean;
 };
 
-function AutomationsTable({ className, automations }: Props) {
+function AutomationsTable({ className, automations, hideSource }: Props) {
   const initialFilterState = {
     ...filterConfigForType(automations),
   };
 
-  const fields: Field[] = [
+  let fields: Field[] = [
     {
       label: "Name",
       value: (k) => {
@@ -110,6 +112,8 @@ function AutomationsTable({ className, automations }: Props) {
     },
     { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
   ];
+
+  if (hideSource) fields = _.filter(fields, { label: "Source" });
 
   return (
     <div className={className}>

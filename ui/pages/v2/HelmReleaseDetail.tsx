@@ -51,7 +51,10 @@ function HelmReleaseDetail({ className, name }: Props) {
             ]}
           />
         </Info>
-        <PageStatus conditions={helmRelease?.conditions} error={!!error} />
+        <PageStatus
+          conditions={helmRelease?.conditions}
+          suspended={helmRelease?.suspended}
+        />
       </Flex>
       <ReconciledObjectsTable
         kinds={helmRelease?.inventory}
