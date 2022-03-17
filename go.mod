@@ -59,12 +59,14 @@ require (
 	k8s.io/client-go v0.23.4
 	sigs.k8s.io/cli-utils v0.26.0
 	sigs.k8s.io/controller-runtime v0.11.1
-	sigs.k8s.io/kustomize/api v0.10.1
 	sigs.k8s.io/kustomize/kstatus v0.0.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require gopkg.in/yaml.v2 v2.4.0 // indirect
+require (
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	sigs.k8s.io/kustomize/api v0.10.1 // indirect
+)
 
 require (
 	cloud.google.com/go v0.99.0 // indirect
