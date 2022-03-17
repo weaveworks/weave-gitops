@@ -1,6 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Page snapshots default 1`] = `
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
 .c5 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -48,10 +66,6 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
-.c3 {
-  margin-top: 12px;
-}
-
 .c1 {
   background-color: rgba(255,255,255,0.75);
   border-radius: 10px;
@@ -61,7 +75,7 @@ exports[`Page snapshots default 1`] = `
   min-height: 480px;
   padding-bottom: 24px;
   padding-left: 32px;
-  padding-top: 32px;
+  padding-top: 24px;
   width: 100%;
 }
 
@@ -78,7 +92,6 @@ exports[`Page snapshots default 1`] = `
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
-  margin-bottom: 12px;
   width: 100%;
 }
 
@@ -100,11 +113,12 @@ exports[`Page snapshots default 1`] = `
     <div
       className="c2"
     >
-      <h2 />
+      <div
+        className="c3"
+      >
+        <h2 />
+      </div>
     </div>
-    <div
-      className="c3"
-    />
     <div
       className=""
     />
