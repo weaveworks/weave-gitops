@@ -37,8 +37,10 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
+  position: relative;
   max-width: 45%;
-  margin-right: ${(props) => props.theme.spacing.medium};
+  right: ${(props) => props.theme.spacing.medium};
+  bottom: ${(props) => props.theme.spacing.large};
   padding: ${(props) => props.theme.spacing.small};
   color: ${(props) => props.theme.colors.neutral30};
   &.error-border {

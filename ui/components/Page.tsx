@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React from "react";
+import { useIsFetching } from "react-query";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
 import { PageRoute, RequestError } from "../lib/types";
@@ -8,6 +9,7 @@ import Flex from "./Flex";
 import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
 import PollingIndicator from "./PollingIndicator";
+import Spacer from "./Spacer";
 
 export type PageProps = {
   className?: string;
@@ -66,9 +68,9 @@ function Page({
   actions,
   loading,
   error,
-  isFetching,
 }: PageProps) {
   const { settings } = useCommon();
+  const fetching = useIsFetching();
 
   if (loading) {
     return (
@@ -84,11 +86,15 @@ function Page({
         <TitleBar>
           <Flex align>
             <h2>{title}</h2>
-            {title && <PollingIndicator loading={isFetching} />}
+            <Spacer padding="xs" />
+            {error ? (
+              <Errors error={error} />
+            ) : (
+              <PollingIndicator loading={fetching > 0} />
+            )}
           </Flex>
           {actions}
         </TitleBar>
-        {error && <Errors error={error} />}
         <Children>{children}</Children>
       </Content>
       {settings.renderFooter && <Footer />}

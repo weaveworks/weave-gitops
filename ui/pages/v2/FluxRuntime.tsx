@@ -7,6 +7,7 @@ import KubeStatusIndicator, {
 } from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
+import Spacer from "../../components/Spacer";
 import { useListFluxRuntimeObjects } from "../../hooks/flux";
 import { Deployment } from "../../lib/api/core/types.pb";
 
@@ -15,16 +16,16 @@ type Props = {
 };
 
 function FluxRuntime({ className }: Props) {
-  const { data, isLoading, error, isFetching } = useListFluxRuntimeObjects();
+  const { data, isLoading, error } = useListFluxRuntimeObjects();
 
   return (
     <Page
       title="Flux Runtime"
       loading={isLoading}
       error={error}
-      isFetching={isFetching}
       className={className}
     >
+      <Spacer padding="xs" />
       <DataTable
         defaultSort={2}
         fields={[

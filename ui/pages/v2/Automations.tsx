@@ -9,18 +9,12 @@ type Props = {
 };
 
 function Automations({ className }: Props) {
-  const {
-    data: automations,
-    error,
-    isLoading,
-    isFetching,
-  } = useListAutomations();
+  const { data: automations, error, isLoading } = useListAutomations();
   return (
     <Page
       error={error}
       loading={isLoading}
       title="Applications"
-      isFetching={isFetching}
       className={className}
     >
       <AutomationsTable automations={automations} />
