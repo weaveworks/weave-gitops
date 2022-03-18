@@ -113,8 +113,6 @@ func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerif
 }
 
 func (pg *JWTAdminCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from cookie")
-
 	cookie, err := r.Cookie(pg.cookieName)
 	if err == http.ErrNoCookie {
 		return nil, nil

@@ -6,7 +6,7 @@ metadata:
   namespace: {{.Values.namespace}}
 subjects:
   - kind: User
-    name: admin
+    name: {{ .Values.adminUsername }}
     namespace: {{.Values.namespace}}
 roleRef:
   kind: Role
@@ -41,11 +41,11 @@ rules:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cluster-user-auth
+  name: admin-user
   namespace: {{.Values.namespace}}
   labels:
     gitops.weave.works/entity: user
 type: Opaque
 data:
   username: {{ .Values.adminUsername | b64enc | quote }}
-  password: {{ .Values.adminPassword | b64enc | quote }}
+  password: {{ required "A valid adminPassword entry required!" .Values.adminPassword | b64enc | quote }}

@@ -30,5 +30,6 @@ def helmfiles(chart, values):
 	return local('./tools/bin/helm template {c} -f {v}'.format(c=chart, v=values))
 
 k8s_yaml(helmfiles('./charts/weave-gitops', './tools/helm-values-dev.yaml'))
+k8s_yaml(helmfiles('./tools/charts/dev', './tools/charts/dev/values.yaml'))
 
 k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])

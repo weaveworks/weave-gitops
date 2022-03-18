@@ -1,0 +1,6 @@
+apiVersion: v2
+name: dev
+description: Contains auxiliary resources that helps Weave Gitops development
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

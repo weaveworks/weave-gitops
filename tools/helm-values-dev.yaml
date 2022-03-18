@@ -1,6 +1,6 @@
 ---
 image: latest
 containerRegistry: localhost:5001/weaveworks/wego-app
-adminUsername: admin
-adminPassword: $2a$10$KIR2uDE61tKAKC4aqRmNCu9lnezk.pJNHQt/MNmhvEve.s9XpmzdW
+adminUsername: dev
+adminPassword: $2a$10$EnR6CQiV4zQBmd3EpeRyTe7mQZZODR49w/8CtnT2IrV8p72LAbvb2 # bcrypt hash of 'dev'
 namespace: flux-system
