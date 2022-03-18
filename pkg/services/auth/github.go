@@ -229,7 +229,9 @@ func parseGitHubError(b []byte, statusCode int) error {
 	if err := json.Unmarshal(b, &gerr); err != nil {
 		return fmt.Errorf("failed to unmarshal GitHub error: %w", err)
 	}
+
 	gerr.StatusCode = statusCode
+
 	return gerr
 }
 
