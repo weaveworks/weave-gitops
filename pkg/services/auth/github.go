@@ -73,14 +73,14 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		// err is falsey even on 4XX or 5XX
-		return nil, fmt.Errorf("request failed with status code: %v", res.StatusCode)
-	}
-
 	rb, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		// err is falsey even on 4XX or 5XX
+		return nil, parseGitHubError(rb, res.StatusCode)
 	}
 
 	return rb, nil
@@ -222,4 +222,25 @@ func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 
 		return pollAuthStatus(time.Sleep, retryInterval, client, codeRes.DeviceCode)
 	}
+}
+
+func parseGitHubError(b []byte, statusCode int) error {
+	var gerr GitHubError
+	if err := json.Unmarshal(b, &gerr); err != nil {
+		return fmt.Errorf("failed to unmarshal GitHub error: %w", err)
+	}
+	gerr.StatusCode = statusCode
+	return gerr
+}
+
+// GitHubError indicates a failure response from GitHub.
+type GitHubError struct {
+	Type        string `json:"error"`
+	Description string `json:"error_description"`
+	URI         string `json:"error_uri"`
+	StatusCode  int
+}
+
+func (e GitHubError) Error() string {
+	return fmt.Sprintf("GitHub %d - %s (%q) more information at %s", e.StatusCode, e.Type, e.Description, e.URI)
 }
