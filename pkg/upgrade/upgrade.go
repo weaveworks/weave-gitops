@@ -266,14 +266,8 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	wegoEnterprisePath := filepath.Join(clusterPath, WegoEnterpriseName)
 
-	manifests := map[string]string{
-		wegoEnterprisePath: wegoEnterpriseManifests,
-	}
-
-	for path, content := range manifests {
-		if err := gitClient.Write(path, []byte(content)); err != nil {
-			return fmt.Errorf("failed to write out manifest to %s: %w", path, err)
-		}
+	if err := gitClient.Write(wegoEnterprisePath, []byte(wegoEnterpriseManifests)); err != nil {
+		return fmt.Errorf("failed to write out manifest to %s: %w", wegoEnterprisePath, err)
 	}
 
 	configRoot := clusterPath

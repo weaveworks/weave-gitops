@@ -136,6 +136,11 @@ func MigrateToNewDirStructure(orig string) string {
 	}
 }
 
+const (
+	coreManifestCount = 2
+	coreManifestName  = "ww-gitops"
+)
+
 type ConfigStatus int
 
 const (
@@ -201,12 +206,12 @@ func FindCoreConfig(dir string) WalkResult {
 			rootNode := dasel.New(docs)
 			foundPartial := false
 
-			_, err = rootNode.QueryMultiple(".(kind=HelmRelease)(.metadata.name=ww-gitops)")
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=HelmRelease)(.metadata.name=%s)", coreManifestName))
 			if err == nil {
 				foundPartial = true
 			}
 
-			_, err = rootNode.QueryMultiple(".(kind=GitRepository)(.metadata.name=ww-gitops)")
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=GitRepository)(.metadata.name=%s)", coreManifestName))
 			if err != nil {
 				if foundPartial {
 					return WalkResult{Status: Partial, Path: path}
@@ -215,12 +220,13 @@ func FindCoreConfig(dir string) WalkResult {
 				return nil
 			}
 
+			// retrieve the number of top-level entries from the file
 			val, err := rootNode.Query(".[#]")
 			if err != nil {
 				return nil
 			}
 
-			if val.InterfaceValue() != 2 { // we have two manifests
+			if val.InterfaceValue() != coreManifestCount {
 				return WalkResult{Status: Embedded, Path: path}
 			}
 
