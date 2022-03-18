@@ -155,7 +155,7 @@ For VSCode, use these editor configuration flags:
 To set up a development environment for the UI
 
 1. Install go v1.17
-2. Install Node.js version 14.15.1
+2. Install Node.js version 16.13.2
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
 5. Run `make node_modules`. NOTE: Running `npm install` could leave you unable to pass our ui-tests. If you're getting an error about a git diff in your package.lock, run `rm -rf node_modules && make node_modules`.
