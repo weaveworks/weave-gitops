@@ -185,12 +185,11 @@ jobs:
       run: make clean
     - id: gitsha
       run: |
-        gitsha=$(git rev-parse --short "$GITHUB_SHA")
+        gitsha=$(git rev-parse --short ${{ github.sha }})
         echo "::set-output name=sha::$gitsha"
     - name: build
       run: |
         make gitops
-
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -198,8 +197,8 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.gitsha}}
-        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.gitsha}} s3://weave-gitops/gitops-${{matrix.os}}
+        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
