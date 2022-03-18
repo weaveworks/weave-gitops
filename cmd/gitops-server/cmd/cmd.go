@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -17,18 +16,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-logr/zapr"
-	"github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -50,7 +48,7 @@ type Options struct {
 	WatcherHealthzBindAddress     string
 	WatcherPort                   int
 	Path                          string
-	LoggingEnabled                bool
+	LogLevel                      string
 	OIDC                          auth.OIDCConfig
 	NotificationControllerAddress string
 	TLSCertFile                   string
@@ -69,7 +67,7 @@ func NewCommand() *cobra.Command {
 
 	options = Options{}
 
-	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
@@ -96,7 +94,10 @@ func NewCommand() *cobra.Command {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-	var log = logrus.New()
+	log, err := logger.New(options.LogLevel, options.Insecure)
+	if err != nil {
+		return err
+	}
 
 	mux := http.NewServeMux()
 
@@ -104,7 +105,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		_, err := w.Write([]byte("ok"))
 
 		if err != nil {
-			log.Errorf("error writing health check: %s", err)
+			log.Error(err, "error writing health check")
 		}
 	}))
 
@@ -148,29 +149,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	go func() {
-		if err := profileWatcher.StartWatcher(); err != nil {
+		if err := profileWatcher.StartWatcher(log); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
 	}()
-
-	profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
-		DefaultConfig: rest,
-		ClusterName:   clusterName,
-	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
-
-	appConfig, err := server.DefaultApplicationsConfig()
-	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
-	}
-
-	coreConfig := core.NewCoreConfig(rest, clusterName)
-
-	if !options.LoggingEnabled {
-		logger := zapr.NewLogger(zap.NewNop())
-		appConfig.Logger = logger
-		coreConfig.Logger = logger
-	}
 
 	var authServer *auth.AuthServer
 
@@ -191,7 +174,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
-		authCfg, err := auth.NewAuthServerConfig(appConfig.Logger, oidcConfig, rawClient, tsv)
+		authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
 		if err != nil {
 			return err
 		}
@@ -201,7 +184,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create auth server: %w", err)
 		}
 
-		appConfig.Logger.Info("Registering auth routes")
+		log.Info("Registering auth routes")
 
 		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
 			return fmt.Errorf("failed to register auth routes: %w", err)
@@ -210,7 +193,19 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(),
+	coreConfig := core.NewCoreConfig(log, rest, clusterName)
+
+	appConfig, err := server.DefaultApplicationsConfig(log)
+	if err != nil {
+		return fmt.Errorf("could not create http client: %w", err)
+	}
+
+	profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
+		DefaultConfig: rest,
+		ClusterName:   clusterName,
+	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
+
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), log,
 		&server.Config{
 			AppConfig:        appConfig,
 			ProfilesConfig:   profilesConfig,
@@ -245,9 +240,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	go func() {
-		log.Infof("Serving on %s", addr)
+		log.Info("Starting server", "address", addr)
 
-		if err := listenAndServe(srv, options); err != nil {
+		if err := listenAndServe(log, srv, options); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
 		}
@@ -271,9 +266,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func listenAndServe(srv *http.Server, options Options) error {
+func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	if options.Insecure {
-		log.Println("TLS connections disabled")
+		log.Info("TLS connections disabled")
 		return srv.ListenAndServe()
 	}
 
@@ -295,7 +290,7 @@ func listenAndServe(srv *http.Server, options Options) error {
 			ClientAuth: tls.RequireAndVerifyClientCert,
 		}
 	} else {
-		log.Printf("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
+		log.Info("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
 	}
 
 	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
@@ -318,7 +313,7 @@ func getAssets() fs.FS {
 
 // A redirector ensures that index.html always gets served.
 // The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
+func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
 
