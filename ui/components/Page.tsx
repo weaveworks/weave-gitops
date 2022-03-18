@@ -7,7 +7,7 @@ import Alert from "./Alert";
 import Flex from "./Flex";
 import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
-import Spacer from "./Spacer";
+import PollingIndicator from "./PollingIndicator";
 
 export type PageProps = {
   className?: string;
@@ -17,6 +17,7 @@ export type PageProps = {
   actions?: JSX.Element;
   loading?: boolean;
   error?: RequestError | RequestError[];
+  isFetching?: boolean;
 };
 
 export const Content = styled.div`
@@ -28,7 +29,7 @@ export const Content = styled.div`
   min-height: 480px;
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.large};
-  padding-top: ${(props) => props.theme.spacing.large};
+  padding-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
 `;
 
@@ -38,9 +39,7 @@ export const TitleBar = styled.div`
   align-items: center;
   display: flex;
   justify-content: space-between;
-  margin-bottom: ${(props) => props.theme.spacing.small};
   width: 100%;
-
   h2 {
     margin: 0 !important;
     color: ${(props) => props.theme.colors.neutral40} !important;
@@ -67,6 +66,7 @@ function Page({
   actions,
   loading,
   error,
+  isFetching,
 }: PageProps) {
   const { settings } = useCommon();
 
@@ -82,11 +82,13 @@ function Page({
     <div className={className}>
       <Content>
         <TitleBar>
-          <h2>{title}</h2>
+          <Flex align>
+            <h2>{title}</h2>
+            {title && <PollingIndicator loading={isFetching} />}
+          </Flex>
           {actions}
         </TitleBar>
         {error && <Errors error={error} />}
-        <Spacer m={["small"]} />
         <Children>{children}</Children>
       </Content>
       {settings.renderFooter && <Footer />}

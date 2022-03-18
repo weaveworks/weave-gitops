@@ -15,13 +15,14 @@ type Props = {
 };
 
 function FluxRuntime({ className }: Props) {
-  const { data, isLoading, error } = useListFluxRuntimeObjects();
+  const { data, isLoading, error, isFetching } = useListFluxRuntimeObjects();
 
   return (
     <Page
       title="Flux Runtime"
       loading={isLoading}
       error={error}
+      isFetching={isFetching}
       className={className}
     >
       <DataTable
