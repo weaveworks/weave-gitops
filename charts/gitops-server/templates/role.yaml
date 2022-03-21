@@ -1,0 +1,45 @@
+{{- if .Values.rbac.create -}}
+{{- if semverCompare "<1.17-0" (include "common.capabilities.kubeVersion" .) -}}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+{{- end }}
+kind: ClusterRole
+metadata:
+  name:  {{ include "chart.fullname" . }}
+rules:
+  # impersonation rules for ui calls
+  - apiGroups: [""]
+    {{- if .Values.rbac.impersonationResources }}
+    resources:
+    {{ range .Values.rbac.impersonationResources }}
+      - {{ . | quote}}
+    {{- end}}
+    {{- else }}
+    resources: [ "users", "groups" ]
+    {{- end }}
+    verbs: [ "impersonate" ]
+    {{- with .Values.rbac.impersonationResourceNames }}
+    resourceNames:
+      {{- range . }}
+        - {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  # Access to enterprise entitlement
+  - apiGroups: [""]
+    resources: [ "secrets" ]
+    verbs: [ "get", "list" ]
+    {{- with .Values.rbac.viewSecrets }}
+    resourceNames:
+      {{- range . }}
+        - {{ . | quote }}
+      {{- end }}
+    {{- end }}
+  # helm repository rules for...?
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "helmrepositories" ]
+    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "helmrepositories/finalizers", "helmrepositories/status" ]
+    verbs: [ "get" ]
+{{- end -}}

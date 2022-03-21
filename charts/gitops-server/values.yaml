@@ -33,6 +33,18 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+rbac:
+  # Specifies whether the clusterRole & binding to the service account should be created
+  create: true
+  # List of resources that the service account can impersonate
+  impersonationResourceNames: []
+  # Limit the type of principal that can be impersonated
+  # impersonationResources: [ "users", "groups" ]
+  # Specify whether additional permissions should be granted to the service account
+  # in order to work with weave-gitops enterprise
+  enableEnterprise: false
+  viewSecrets: []
+
 podAnnotations: {}
 
 podSecurityContext: {}
