@@ -5,14 +5,24 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  # FIXME check the app name
+  repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "v0.6.2"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+logLevel: info
+# Additional arguments to pass in
+# additionalArgs: []
+
+# To enable enterprise OIDC:
+# envVars:
+# - name: WEAVE_GITOPS_AUTH_ENABLED
+#   value: true
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -38,7 +48,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 80
+  port: 9001
 
 ingress:
   enabled: false

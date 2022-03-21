@@ -33,9 +33,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "--helm-repo-namespace"
+            - "{{ .Release.Namespace }}"
+            - "--log-level"
+            - "{{ .Values.logLevel }}"
+          {{- with .Values.additionalArgs }}
+            {{- range . }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 9001
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -45,6 +55,10 @@ spec:
             httpGet:
               path: /
               port: http
+          {{- with .Values.envVars }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
