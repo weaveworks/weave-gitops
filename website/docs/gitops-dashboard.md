@@ -108,7 +108,7 @@ Before you login via the Static User account, you need to generate a bcrypt hash
 Run an Docker image interactively and supply the password of your choice as an environment variable:
 
 ```sh
-$ docker run -e CLEAR_PASSWORD="super secret password" -it golang:1.17 go install github.com/bitnami/bcrypt-cli@latest && echo -n $CLEAR_PASSWORD | bcrypt-cli
+$ docker run -it golang:1.17 go install github.com/bitnami/bcrypt-cli@latest && echo -n "super secret password" | bcrypt-cli
 
 $2a$10$cNkw6LZJOgv9LvgvLNbuz.gFxNjjFLMNJhZE95NHjzOTBD06a3LnG
 ```
