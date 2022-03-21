@@ -26,6 +26,12 @@ const (
 	OIDCAuthSecretName        string = "oidc-auth"
 )
 
+var (
+	GitopsUserMatchingLabel client.MatchingLabels = client.MatchingLabels{
+		"gitops.weave.works/entity": "user",
+	}
+)
+
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
@@ -287,12 +293,15 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
+		if loginRequest.Username == "" || loginRequest.Password == "" {
+			http.Error(rw, "invalid credentials", http.StatusBadRequest)
+			return
+		}
+
 		users := &corev1.SecretList{}
 
 		opts := []client.ListOption{
-			client.MatchingLabels{
-				"gitops.weave.works/entity": "user",
-			},
+			GitopsUserMatchingLabel,
 			client.InNamespace(wego.DefaultNamespace),
 		}
 
@@ -302,6 +311,8 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 			return
 		}
+
+		userAuthenticated := false
 
 		for _, u := range users.Items {
 			if loginRequest.Username != string(u.Data["username"]) {
@@ -315,7 +326,14 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 				return
 			}
 
+			userAuthenticated = true
+
 			break
+		}
+
+		if !userAuthenticated {
+			rw.WriteHeader(http.StatusUnauthorized)
+			return
 		}
 
 		signed, err := s.tokenSignerVerifier.Sign(loginRequest.Username)

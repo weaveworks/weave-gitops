@@ -143,6 +143,7 @@ func TestRateLimit(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
+	username := "user"
 	password := "my-secret-password"
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -151,8 +152,10 @@ func TestRateLimit(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
 			Namespace: "flux-system",
+			Labels:    auth.GitopsUserMatchingLabel,
 		},
 		Data: map[string][]byte{
+			"username": []byte(username),
 			"password": hashed,
 		},
 	}
@@ -174,17 +177,17 @@ func TestRateLimit(t *testing.T) {
 		s.Close()
 	})
 
-	res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"user", "password":"my-secret-password"}`)))
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res1).To(HaveHTTPStatus(http.StatusOK))
 
-	res2, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	res2, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"user", "password":"my-secret-password"}`)))
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res2).To(HaveHTTPStatus(http.StatusTooManyRequests))
 
 	time.Sleep(time.Second)
 
-	res3, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	res3, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"user", "password":"my-secret-password"}`)))
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res3).To(HaveHTTPStatus(http.StatusOK))
 }

@@ -255,7 +255,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 			Namespace: "flux-system",
 		},
 		Data: map[string][]byte{
-			"username": []byte(base64.StdEncoding.EncodeToString([]byte(username))),
+			"username": []byte(username),
 			"password": hashed,
 		},
 	}
@@ -287,6 +287,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
+	username := "user"
 	password := "my-secret-password"
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -294,10 +295,12 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "cluster-user-auth",
+			Name:      "admin-auth",
 			Namespace: "flux-system",
+			Labels:    auth.GitopsUserMatchingLabel,
 		},
 		Data: map[string][]byte{
+			"username": []byte(username),
 			"password": hashed,
 		},
 	}
@@ -310,6 +313,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, false)
 
 	login := auth.LoginRequest{
+		Username: username,
 		Password: "wrong",
 	}
 
@@ -328,6 +332,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 func TestSingInCorrectPassword(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
+	username := "user"
 	password := "my-secret-password"
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -337,8 +342,10 @@ func TestSingInCorrectPassword(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
 			Namespace: "flux-system",
+			Labels:    auth.GitopsUserMatchingLabel,
 		},
 		Data: map[string][]byte{
+			"username": []byte(username),
 			"password": hashed,
 		},
 	}
@@ -351,6 +358,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, false)
 
 	login := auth.LoginRequest{
+		Username: username,
 		Password: password,
 	}
 
@@ -417,7 +425,7 @@ func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
-func TestUserInfoAdminFlow(t *testing.T) {
+func TestUserInfoFlow(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -425,7 +433,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 
 	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
 
-	signed, err := tokenSignerVerifier.Sign()
+	signed, err := tokenSignerVerifier.Sign("admin")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
@@ -443,10 +451,10 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	var info auth.UserInfo
 
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
-	g.Expect(info.Email).To(Equal("wego-admin"))
+	g.Expect(info.Email).To(Equal("admin"))
 }
 
-func TestUserInfoAdminFlowBadCookie(t *testing.T) {
+func TestUserInfoFlowBadCookie(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
