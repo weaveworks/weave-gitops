@@ -50,11 +50,11 @@ As the certificate is _self-signed_, Chrome and other browser will show a warnin
 
 There are 2 supported methods for logging in to the dashboard:
 - Login via an OIDC provider
-- Login via a cluster user account
+- Login via Static User account
 
-The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
+The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a Static User account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
 
-:::note FEATURE TOGGLE 
+:::note FEATURE TOGGLE
 The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
@@ -85,11 +85,11 @@ In order to login via your OIDC provider, you need to create a Kubernetes secret
 
 Ensure that your OIDC provider has been setup with a client ID/secret and the redirect URL of the dashboard.
 
-Create a secret named `oidc-auth` in the `wego-system` namespace with these parameters set:
+Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
 
 ```sh
 kubectl create secret generic oidc-auth \
-  --namespace wego-system \
+  --namespace flux-system \
   --from-literal=issuerURL=<oidc-issuer-url> \
   --from-literal=clientID=<client-id> \
   --from-literal=clientSecret=<client-secret> \
@@ -101,37 +101,27 @@ Running `gitops ui run` should now load the dashboard and show the option to log
 
 Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. Follow the instructions in the [RBAC authorization](#rbac-authorization) section in order to configure RBAC correctly.
 
-### Login via a cluster user account
+### Login via a Static User account
 
-Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
+Before you login via the Static User account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes with the `gitops.weave.works/entity: user` label. There are several different ways to generate a bcrypt hash, this guide uses an Docker image to generate one:
 
-Run an Alpine Docker image interactively and supply the password of your choice as an environment variable:
+Run an Docker image interactively and supply the password of your choice as an environment variable:
 
 ```sh
-docker run -e CLEAR_PASSWORD="super secret password" -it alpine
+$ docker run -e CLEAR_PASSWORD="super secret password" -it golang:1.17 go install github.com/bitnami/bcrypt-cli@latest && echo -n $CLEAR_PASSWORD | bcrypt-cli
+
+$2a$10$cNkw6LZJOgv9LvgvLNbuz.gFxNjjFLMNJhZE95NHjzOTBD06a3LnG
 ```
 
-Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
+Now create a Kubernetes secret to store your chosen username and the password hash and label it:
 
 ```sh
-apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
-pip install bcrypt
-```
+kubectl create secret generic admin-user \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password='$2a$10$cNkw6LZJOgv9LvgvLNbuz.gFxNjjFLMNJhZE95NHjzOTBD06a3LnG'
 
-Run the following Python script to generate a hash:
-
-```sh
-python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
-b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
-```
-
-Now create a Kubernetes secret to store your chosen username and the password hash:
-
-```sh
-kubectl create secret generic admin-password-hash \
-  --namespace wego-system \
-  --from-literal=username=admin
-  --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+kubectl label secret admin-user gitops.weave.works/entity=user
 ```
 
 You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.
@@ -145,7 +135,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: apps-reader
-  namespace: wego-system
+  namespace: flux-system
 rules:
   - apiGroups: ["wego.weave.works"]
     resources: ["apps"]
@@ -168,7 +158,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: profiles-reader
-  namespace: wego-system
+  namespace: flux-system
 rules:
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: ["helmrepositories"]
@@ -211,7 +201,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-apps
-  namespace: wego-system
+  namespace: flux-system
 subjects:
 - kind: User
   name: admin
@@ -225,7 +215,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-profiles
-  namespace: wego-system
+  namespace: flux-system
 subjects:
 - kind: User
   name: admin
@@ -251,7 +241,7 @@ roleRef:
 
 To test whether permissions have been setup correctly for a specific user/group use the `kubectl auth can-i` subcommand:
 ```sh
-kubectl auth can-i list apps --as "admin" --namespace wego-system
+kubectl auth can-i list apps --as "admin" --namespace flux-system
 ```
 
 For more information about RBAC authorization visit the [Kubernetes reference documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
