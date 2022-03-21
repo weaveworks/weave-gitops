@@ -50,42 +50,19 @@ func RootCmd(client *resty.Client) *cobra.Command {
 		SilenceErrors: true,
 		Short:         "Weave GitOps",
 		Long:          "Command line utility for managing Kubernetes applications via GitOps.",
-		Example: fmt.Sprintf(`
+		Example: `
   # Get verbose output for any gitops command
   gitops [command] -v, --verbose
 
-  # Get gitops app help
-  gitops help app
-
-  # Add application to gitops control from a local git repository
-  gitops add app . --name <myapp>
-  OR
-  gitops add app <myapp-directory>
-
-  # Add application to gitops control from a github repository
-  gitops add app \
-    --name <myapp> \
-    --url git@github.com:myorg/<myapp> \
-    --branch prod-<myapp>
-
-  # Get status of application under gitops control
-  gitops get app podinfo
-
-  # Get help for gitops add app command
-  gitops add app -h
-  gitops help add app
-
-  # Show manifests that would be installed by the gitops install command
-  gitops install --dry-run
-
-  # Install gitops in the %s namespace
-  gitops install
+  # Get help for gitops add cluster command
+  gitops add cluster -h
+  gitops help add cluster
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
 
   To learn more, you can find our documentation at https://docs.gitops.weave.works/
-`, wego.DefaultNamespace),
+`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			configureLogger()
 
