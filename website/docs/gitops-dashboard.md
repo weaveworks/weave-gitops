@@ -121,7 +121,7 @@ kubectl create secret generic admin-user \
   --from-literal=username=admin \
   --from-literal=password='$2a$10$cNkw6LZJOgv9LvgvLNbuz.gFxNjjFLMNJhZE95NHjzOTBD06a3LnG'
 
-kubectl label secret admin-user gitops.weave.works/entity=user
+kubectl label secret -n flux-system admin-user gitops.weave.works/entity=user
 ```
 
 You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.
