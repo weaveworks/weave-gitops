@@ -4,7 +4,7 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-import * as fm from "../applications/fetch.pb"
+import * as fm from "../../fetch.pb"
 import * as Gitops_coreV1Types from "./types.pb"
 export type ListKustomizationsRequest = {
   namespace?: string
