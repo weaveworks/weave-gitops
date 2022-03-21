@@ -9,9 +9,9 @@ import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
-import PollingIndicator from "../../components/PollingIndicator";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
+import Spacer from "../../components/Spacer";
 import { useGetKustomization } from "../../hooks/automations";
 import { AutomationKind } from "../../lib/api/core/types.pb";
 import { WeGONamespace } from "../../lib/types";
@@ -30,17 +30,14 @@ const TabContent = styled.div`
 `;
 
 function KustomizationDetail({ className, name }: Props) {
-  const { data, isLoading, error, isFetching } = useGetKustomization(name);
+  const { data, isLoading, error } = useGetKustomization(name);
   const hashHistory = createHashHistory();
   const kustomization = data?.kustomization;
   return (
-    <Page loading={isLoading} error={error} className={className}>
+    <Page loading={isLoading} error={error} className={className} title={name}>
+      <Spacer padding="xs" />
       <Flex wide between>
         <Info>
-          <Flex align start>
-            <Heading level={1}>{kustomization?.name}</Heading>
-            <PollingIndicator loading={isFetching} />
-          </Flex>
           <Heading level={2}>{kustomization?.namespace}</Heading>
           <InfoList
             items={[

@@ -14,7 +14,7 @@ type Props = {
 
 function BucketDetail({ className, name, namespace }: Props) {
   return (
-    <Page error={null} className={className}>
+    <Page error={null} className={className} title={name}>
       <SourceDetail
         name={name}
         namespace={namespace}
