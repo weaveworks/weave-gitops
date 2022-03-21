@@ -59,6 +59,7 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
+  create: true
   type: ClusterIP
   port: 9001
 
