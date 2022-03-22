@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import Page, { Content, TitleBar } from "../../components/Page";
+import Link from "../../components/Link";
+import Page from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import Timestamp from "../../components/Timestamp";
 import {
@@ -16,13 +17,18 @@ type Props = {
 
 function GitRepositoryDetail({ className, name, namespace }: Props) {
   return (
-    <Page error={null} className={className}>
+    <Page error={null} className={className} title={name}>
       <SourceDetail
         name={name}
         namespace={namespace}
         type={SourceRefSourceKind.GitRepository}
         info={(s: GitRepository) => [
-          ["URL", s.url],
+          [
+            "URL",
+            <Link newTab href={s.url}>
+              {s.url}
+            </Link>,
+          ],
           ["Ref", s.reference.branch],
           ["Last Updated", <Timestamp time={s.lastUpdatedAt} />],
           ["Cluster", "Default"],
@@ -35,12 +41,4 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
 
 export default styled(GitRepositoryDetail).attrs({
   className: GitRepositoryDetail.name,
-})`
-  ${TitleBar} {
-    margin-bottom: 0;
-  }
-
-  ${Content} {
-    padding-top: 0;
-  }
-`;
+})``;

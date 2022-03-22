@@ -9,18 +9,24 @@ import Text from "./Text";
 
 type StatusProps = {
   conditions: Condition[];
-  error: boolean;
+  suspended: boolean;
   className?: string;
 };
 
-function PageStatus({ conditions, error, className }: StatusProps) {
-  const ok = computeReady(conditions);
-  const msg = computeMessage(conditions);
+function PageStatus({ conditions, suspended, className }: StatusProps) {
+  const ok = suspended ? false : computeReady(conditions);
+  const msg = suspended ? "Suspended" : computeMessage(conditions);
   return (
-    <div className={`${className}${!ok || error ? " error-border" : ""}`}>
+    <div className={`${className}${!ok ? " error-border" : ""}`}>
       <Flex align>
         <Icon
-          type={ok ? IconType.CheckCircleIcon : IconType.FailedIcon}
+          type={
+            suspended
+              ? IconType.SuspendedIcon
+              : ok
+              ? IconType.CheckCircleIcon
+              : IconType.FailedIcon
+          }
           color={ok ? "success" : "alert"}
           size="medium"
         />
@@ -31,8 +37,10 @@ function PageStatus({ conditions, error, className }: StatusProps) {
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
+  position: relative;
   max-width: 45%;
-  margin-right: ${(props) => props.theme.spacing.medium};
+  right: ${(props) => props.theme.spacing.medium};
+  bottom: ${(props) => props.theme.spacing.large};
   padding: ${(props) => props.theme.spacing.small};
   color: ${(props) => props.theme.colors.neutral30};
   &.error-border {

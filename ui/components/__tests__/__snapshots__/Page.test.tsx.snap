@@ -1,7 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Page snapshots default 1`] = `
-.c5 {
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -24,14 +42,14 @@ exports[`Page snapshots default 1`] = `
   justify-content: center;
 }
 
-.c4 {
+.c6 {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   font-size: 14px;
 }
 
-.c4 ul {
+.c6 ul {
   list-style: none;
   display: -webkit-box;
   display: -webkit-flex;
@@ -39,17 +57,35 @@ exports[`Page snapshots default 1`] = `
   display: flex;
 }
 
-.c4 ul li {
+.c6 ul li {
   padding: 0 16px;
 }
 
-.c4 a {
+.c6 a {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c3 {
-  margin-top: 12px;
+.c5 {
+  padding-left: 8px;
+}
+
+.c5 .MuiCircularProgress-root {
+  -webkit-transition: opacity 2s;
+  transition: opacity 2s;
+  margin-bottom: 0;
+}
+
+.c5 .MuiCircularProgress-root.in {
+  opacity: 1;
+}
+
+.c5 .MuiCircularProgress-root.out {
+  opacity: 0;
+}
+
+.c4 {
+  padding: 8px;
 }
 
 .c1 {
@@ -61,7 +97,7 @@ exports[`Page snapshots default 1`] = `
   min-height: 480px;
   padding-bottom: 24px;
   padding-left: 32px;
-  padding-top: 32px;
+  padding-top: 24px;
   width: 100%;
 }
 
@@ -78,7 +114,6 @@ exports[`Page snapshots default 1`] = `
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
-  margin-bottom: 12px;
   width: 100%;
 }
 
@@ -100,20 +135,53 @@ exports[`Page snapshots default 1`] = `
     <div
       className="c2"
     >
-      <h2 />
+      <div
+        className="c3"
+      >
+        <h2 />
+        <div
+          className="c4"
+        />
+        <div
+          className="c3 c5"
+        >
+          <div
+            className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
+            role="progressbar"
+            style={
+              Object {
+                "height": "16px",
+                "width": "16px",
+              }
+            }
+          >
+            <svg
+              className="MuiCircularProgress-svg"
+              viewBox="22 22 44 44"
+            >
+              <circle
+                className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
+                cx={44}
+                cy={44}
+                fill="none"
+                r={20.2}
+                strokeWidth={3.6}
+                style={Object {}}
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <div
-      className="c3"
-    />
     <div
       className=""
     />
   </div>
   <footer
-    className="c4 Footer"
+    className="c6 Footer"
   >
     <div
-      className="c5"
+      className="c7"
     >
       <ul>
         <li>

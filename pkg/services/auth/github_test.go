@@ -58,6 +58,14 @@ func (t *sleeper) now() time.Time {
 	return t.time
 }
 
+var _ = Describe("GitHub error parsing", func() {
+	It("parses from a response", func() {
+		err := parseGitHubError([]byte(`{"error":"device_flow_disabled","error_description":"Device Flow must be explicitly enabled for this App","error_uri":"https://docs.github.com"}`), http.StatusBadRequest)
+
+		Expect(err).To(MatchError(`GitHub 400 - device_flow_disabled ("Device Flow must be explicitly enabled for this App") more information at https://docs.github.com`))
+	})
+})
+
 var _ = Describe("Github Device Flow", func() {
 	var ts *httptest.Server
 	var client *http.Client

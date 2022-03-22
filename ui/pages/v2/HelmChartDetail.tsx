@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Interval from "../../components/Interval";
-import Page, { Content, TitleBar } from "../../components/Page";
+import Page from "../../components/Page";
 import SourceDetail from "../../components/SourceDetail";
 import Timestamp from "../../components/Timestamp";
 import { HelmChart, SourceRefSourceKind } from "../../lib/api/core/types.pb";
@@ -14,7 +14,7 @@ type Props = {
 
 function HelmChartDetail({ className, name, namespace }: Props) {
   return (
-    <Page error={null} className={className}>
+    <Page error={null} className={className} title={name}>
       <SourceDetail
         name={name}
         namespace={namespace}
@@ -33,12 +33,4 @@ function HelmChartDetail({ className, name, namespace }: Props) {
 
 export default styled(HelmChartDetail).attrs({
   className: HelmChartDetail.name,
-})`
-  ${TitleBar} {
-    margin-bottom: 0;
-  }
-
-  ${Content} {
-    padding-top: 0;
-  }
-`;
+})``;

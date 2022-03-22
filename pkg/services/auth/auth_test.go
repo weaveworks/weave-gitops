@@ -57,7 +57,7 @@ var _ = Describe("auth", func() {
 			fluxClient = flux.New(&actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
-				logger:      &loggerfakes.FakeLogger{}, //Stay silent in tests.
+				log:         &loggerfakes.FakeLogger{}, //Stay silent in tests.
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
 				gitProvider: &gp,

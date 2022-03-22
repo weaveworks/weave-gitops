@@ -166,8 +166,42 @@ jobs:
           docker load --input /tmp/${{ matrix.docker-image }}.tar
           docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
 
+  ci-upload-binary:
+    name: Upload Binary
+    runs-on: ${{matrix.os}}
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    if: github.event_name == 'push'
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Clean
+      run: make clean
+    - id: gitsha
+      run: |
+        gitsha=$(git rev-parse --short ${{ github.sha }})
+        echo "::set-output name=sha::$gitsha"
+    - name: build
+      run: |
+        make gitops
+    - name: publish to s3
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+    - run: |
+        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
+
   # We only push images on merge so create a passing check if everything finished
-  finish-ci-no-push:
+  finish-ci-pr:
     name: PR CI Pipeline
     runs-on: ubuntu-latest
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
@@ -175,10 +209,12 @@ jobs:
     steps:
       - run: echo "All done"
 
-  finish-ci-push:
+  finish-ci-merge:
     # must match https://github.com/weaveworks/corp/blob/master/github-repo-weave-gitops.tf
     name: PR CI Pipeline
     runs-on: ubuntu-latest
-    needs: ci-upload-images
+    needs:
+      - ci-upload-images
+      - ci-upload-binary
     steps:
       - run: echo "All done"

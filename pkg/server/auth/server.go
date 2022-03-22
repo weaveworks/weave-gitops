@@ -44,7 +44,7 @@ type OIDCConfig struct {
 
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
-	logger              logr.Logger
+	Log                 logr.Logger
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
@@ -87,7 +87,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	return cfg
 }
 
-func NewAuthServerConfig(logger logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
 	if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
 		return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
 	}
@@ -97,7 +97,7 @@ func NewAuthServerConfig(logger logr.Logger, oidcCfg OIDCConfig, kubernetesClien
 	}
 
 	return AuthConfig{
-		logger:              logger,
+		Log:                 log.WithName("auth-server"),
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
@@ -194,7 +194,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		// Authorization redirect callback from OAuth2 auth flow.
 		if errorCode := r.FormValue("error"); errorCode != "" {
-			s.logger.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
+			s.Log.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -202,7 +202,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		code := r.FormValue("code")
 		if code == "" {
-			s.logger.Info("code value was empty")
+			s.Log.Info("code value was empty")
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -210,14 +210,14 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		cookie, err := r.Cookie(StateCookieName)
 		if err != nil {
-			s.logger.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
+			s.Log.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if state := r.FormValue("state"); state != cookie.Value {
-			s.logger.Info("cookie value does not match state form value")
+			s.Log.Info("cookie value does not match state form value")
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -225,14 +225,14 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		b, err := base64.StdEncoding.DecodeString(cookie.Value)
 		if err != nil {
-			s.logger.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
+			s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if err := json.Unmarshal(b, &state); err != nil {
-			s.logger.Error(err, "failed to unmarshal state to JSON", "state", string(b))
+			s.Log.Error(err, "failed to unmarshal state to JSON", "state", string(b))
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -240,7 +240,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		token, err = s.oauth2Config(nil).Exchange(ctx, code)
 		if err != nil {
-			s.logger.Error(err, "failed to exchange auth code for token", "code", code)
+			s.Log.Error(err, "failed to exchange auth code for token", "code", code)
 			rw.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -287,7 +287,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
-			s.logger.Error(err, "Failed to decode from JSON")
+			s.Log.Error(err, "Failed to decode from JSON")
 			http.Error(rw, "Failed to read request body.", http.StatusBadRequest)
 
 			return
@@ -306,7 +306,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		}
 
 		if err := s.kubernetesClient.List(r.Context(), users, opts...); err != nil {
-			s.logger.Error(err, "Failed to list users")
+			s.Log.Error(err, "Failed to list users")
 			http.Error(rw, "Failed to list users", http.StatusInternalServerError)
 
 			return
@@ -320,7 +320,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			}
 
 			if err := bcrypt.CompareHashAndPassword(u.Data["password"], []byte(loginRequest.Password)); err != nil {
-				s.logger.Error(err, "Failed to compare hash with password")
+				s.Log.Error(err, "Failed to compare hash with password")
 				rw.WriteHeader(http.StatusUnauthorized)
 
 				return
@@ -338,7 +338,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 		signed, err := s.tokenSignerVerifier.Sign(loginRequest.Username)
 		if err != nil {
-			s.logger.Error(err, "Failed to create and sign token")
+			s.Log.Error(err, "Failed to create and sign token")
 			rw.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -374,14 +374,14 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
-			toJson(rw, ui, s.logger)
+			toJson(rw, ui, s.Log)
 
 			return
 		}
 
 		if !s.oidcEnabled() {
 			ui := UserInfo{}
-			toJson(rw, ui, s.logger)
+			toJson(rw, ui, s.Log)
 
 			return
 		}
@@ -398,11 +398,11 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			Email: info.Email,
 		}
 
-		toJson(rw, ui, s.logger)
+		toJson(rw, ui, s.Log)
 	}
 }
 
-func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
+func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
@@ -411,7 +411,7 @@ func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
 
 	_, err = rw.Write(b)
 	if err != nil {
-		logger.Error(err, "Failing to write response")
+		log.Error(err, "Failing to write response")
 	}
 }
 
@@ -453,7 +453,7 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 func (s *AuthServer) Logout() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			s.logger.Info("Only POST requests allowed")
+			s.Log.Info("Only POST requests allowed")
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 
 			return

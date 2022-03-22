@@ -2,6 +2,7 @@ import { MuiThemeProvider } from "@material-ui/core";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
@@ -18,22 +19,20 @@ import {
 } from "./api/applications/applications.pb";
 import {
   Core,
-  GetReconciledObjectsRequest,
-  GetReconciledObjectsResponse,
   GetChildObjectsRequest,
   GetChildObjectsResponse,
+  GetReconciledObjectsRequest,
+  GetReconciledObjectsResponse,
 } from "./api/core/core.pb";
-
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
-
 
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
     req: GetReconciledObjectsRequest
   ) => GetReconciledObjectsResponse;
-}
+};
 
 export const createCoreMockClient = (
   ovr: CoreOverrides,
@@ -104,12 +103,14 @@ export function withTheme(element) {
 export function withContext(TestComponent, url: string, ctxProps: AppProps) {
   const history = createMemoryHistory();
   history.push(url);
-
+  const queryClient = new QueryClient();
   const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
       <AppContextProvider renderFooter {...ctxProps}>
-        {isElement ? TestComponent : <TestComponent />}
+        <QueryClientProvider client={queryClient}>
+          {isElement ? TestComponent : <TestComponent />}
+        </QueryClientProvider>
       </AppContextProvider>
     </Router>
   );

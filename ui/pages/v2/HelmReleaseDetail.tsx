@@ -8,6 +8,7 @@ import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
+import Spacer from "../../components/Spacer";
 import { useGetHelmRelease } from "../../hooks/automations";
 import {
   AutomationKind,
@@ -29,10 +30,10 @@ function HelmReleaseDetail({ className, name }: Props) {
   const helmRelease = data?.helmRelease;
 
   return (
-    <Page loading={isLoading} error={error} className={className}>
+    <Page loading={isLoading} error={error} className={className} title={name}>
+      <Spacer padding="xs" />
       <Flex wide between>
         <Info>
-          <Heading level={1}>{helmRelease?.name}</Heading>
           <Heading level={2}>{helmRelease?.namespace}</Heading>
           <InfoList
             items={[
@@ -51,7 +52,10 @@ function HelmReleaseDetail({ className, name }: Props) {
             ]}
           />
         </Info>
-        <PageStatus conditions={helmRelease?.conditions} error={!!error} />
+        <PageStatus
+          conditions={helmRelease?.conditions}
+          suspended={helmRelease?.suspended}
+        />
       </Flex>
       <ReconciledObjectsTable
         kinds={helmRelease?.inventory}

@@ -18,7 +18,7 @@ docker_build_with_restart(
         './bin',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server -l --insecure',
+    entrypoint='/app/build/gitops-server --log-level=debug --insecure',
     live_update=[
         sync('./bin', '/app/build'),
     ],

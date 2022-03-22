@@ -14,6 +14,7 @@ import Heading from "./Heading";
 import InfoList, { InfoField } from "./InfoList";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
+
 type Props = {
   className?: string;
   type: SourceRefSourceKind;
@@ -61,18 +62,17 @@ function SourceDetail({ className, name, info, type }: Props) {
     <div className={className}>
       <Flex wide between>
         <div>
-          <Heading level={1}>{s.name}</Heading>
           <Heading level={2}>{s.type}</Heading>
           <InfoList items={items} />
         </div>
-        <PageStatus conditions={s.conditions} error={error && true} />
+        <PageStatus conditions={s.conditions} suspended={s.suspended} />
       </Flex>
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
       )}
       <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
         <HashRouterTab name="Related Automations" path="/automations">
-          <AutomationsTable automations={relevantAutomations} />
+          <AutomationsTable automations={relevantAutomations} hideSource />
         </HashRouterTab>
         <HashRouterTab name="Events" path="/events">
           <EventsTable
@@ -90,6 +90,7 @@ function SourceDetail({ className, name, info, type }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
+  padding-top: ${(props) => props.theme.spacing.xs};
   ${InfoList} {
     margin-bottom: 60px;
   }

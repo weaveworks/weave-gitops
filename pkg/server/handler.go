@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
@@ -37,9 +38,9 @@ type Config struct {
 	AuthServer       *auth.AuthServer
 }
 
-func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
-	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.AppConfig.Logger))
-	httpHandler := middleware.WithLogging(cfg.AppConfig.Logger, mux)
+func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handler, error) {
+	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
+	httpHandler := middleware.WithLogging(log, mux)
 
 	if AuthEnabled() {
 		clustersFetcher, err := clustersmngr.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
@@ -56,7 +57,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 		return nil, fmt.Errorf("could not register application: %w", err)
 	}
 
-	profilesSrv := NewProfilesServer(cfg.ProfilesConfig)
+	profilesSrv := NewProfilesServer(log, cfg.ProfilesConfig)
 
 	if err := pbprofiles.RegisterProfilesHandlerServer(ctx, mux, profilesSrv); err != nil {
 		return nil, fmt.Errorf("could not register profiles: %w", err)

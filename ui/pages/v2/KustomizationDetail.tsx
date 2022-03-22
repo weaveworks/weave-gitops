@@ -11,6 +11,7 @@ import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
+import Spacer from "../../components/Spacer";
 import { useGetKustomization } from "../../hooks/automations";
 import { AutomationKind } from "../../lib/api/core/types.pb";
 import { WeGONamespace } from "../../lib/types";
@@ -33,10 +34,10 @@ function KustomizationDetail({ className, name }: Props) {
   const hashHistory = createHashHistory();
   const kustomization = data?.kustomization;
   return (
-    <Page loading={isLoading} error={error} className={className}>
+    <Page loading={isLoading} error={error} className={className} title={name}>
+      <Spacer padding="xs" />
       <Flex wide between>
         <Info>
-          <Heading level={1}>{kustomization?.name}</Heading>
           <Heading level={2}>{kustomization?.namespace}</Heading>
           <InfoList
             items={[
@@ -51,7 +52,7 @@ function KustomizationDetail({ className, name }: Props) {
         </Info>
         <PageStatus
           conditions={kustomization?.conditions}
-          error={error && true}
+          suspended={kustomization?.suspended}
         />
       </Flex>
       <TabContent>

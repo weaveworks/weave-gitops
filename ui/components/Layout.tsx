@@ -147,7 +147,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-          <Spacer padding="xxl" />
+          <Spacer padding="xl" />
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>

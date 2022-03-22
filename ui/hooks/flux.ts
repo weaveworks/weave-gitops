@@ -12,7 +12,7 @@ export function useListFluxRuntimeObjects(namespace = WeGONamespace) {
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
     () => api.ListFluxRuntimeObjects({ namespace }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
