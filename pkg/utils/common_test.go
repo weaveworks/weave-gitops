@@ -144,4 +144,62 @@ error occurred some error, retrying in 1s
 			}
 		})
 	})
+
+	Describe("Fail to find core configuration in empty dir", func() {
+		dir, err := ioutil.TempDir("", "empty")
+		Expect(err).To(BeNil())
+		defer func() { _ = os.RemoveAll(dir) }()
+		Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Missing, Path: ""}))
+	})
+
+	Describe("Fail to find core configuration in non-empty dir with no config file", func() {
+		dir, err := ioutil.TempDir("", "bad")
+		Expect(err).To(BeNil())
+		defer func() { _ = os.RemoveAll(dir) }()
+		configFile, err := ioutil.ReadFile("testdata/ingress.yaml")
+		Expect(err).To(BeNil())
+		path := filepath.Join(dir, "ingress.yaml")
+		err = ioutil.WriteFile(path, configFile, 0666)
+		Expect(err).To(BeNil())
+		Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Missing, Path: ""}))
+	})
+
+	Describe("Find embedded core configuration in dir containing file with wrong number of entries", func() {
+		dir, err := ioutil.TempDir("", "bad")
+		Expect(err).To(BeNil())
+		defer func() { _ = os.RemoveAll(dir) }()
+		configFile, err := ioutil.ReadFile("testdata/config.yaml")
+		Expect(err).To(BeNil())
+		// Add an extraneous entry
+		configFile = append(configFile, []byte("---\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: my-ns\n")...)
+		path := filepath.Join(dir, "config.yaml")
+		err = ioutil.WriteFile(path, configFile, 0666)
+		Expect(err).To(BeNil())
+		Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
+	})
+
+	Describe("Find partial core configuration in dir containing file with partial config", func() {
+		dir, err := ioutil.TempDir("", "bad")
+		Expect(err).To(BeNil())
+		defer func() { _ = os.RemoveAll(dir) }()
+		partialConfigFile, err := ioutil.ReadFile("testdata/partial-config.yaml")
+		Expect(err).To(BeNil())
+		path := filepath.Join(dir, "config.yaml")
+		err = ioutil.WriteFile(path, partialConfigFile, 0666)
+		Expect(err).To(BeNil())
+		Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
+	})
+
+	Describe("Find core configuration nested in dir containing one (regardless of name)", func() {
+		dir, err := ioutil.TempDir("", "bad")
+		Expect(err).To(BeNil())
+		defer func() { _ = os.RemoveAll(dir) }()
+		testConfigFile, err := ioutil.ReadFile("testdata/config.yaml")
+		Expect(err).To(BeNil())
+		Expect(os.MkdirAll(filepath.Join(dir, "nested"), 0700)).Should(Succeed())
+		renamedConfigFile := filepath.Join(dir, "nested", "sprug.yaml")
+		err = ioutil.WriteFile(renamedConfigFile, testConfigFile, 0666)
+		Expect(err).To(BeNil())
+		Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Valid, Path: renamedConfigFile}))
+	})
 })
