@@ -117,7 +117,7 @@ function SourcesTable({ className, sources }: Props) {
             width: 25,
           },
           {
-            label: "Ref",
+            label: "Reference",
             value: (s: Source) => {
               const isGit = s.type === SourceRefSourceKind.GitRepository;
               const repo = s as GitRepository;
