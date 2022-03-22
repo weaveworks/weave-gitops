@@ -23,8 +23,6 @@ type Props = {
   appName?: string;
 };
 
-const statusWidth = 340;
-
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
 
@@ -54,10 +52,10 @@ function SourcesTable({ className, sources }: Props) {
             ),
             sortType: SortType.string,
             sortValue: (s: Source) => s.name || "",
-            width: 96,
+            width: 5,
             textSearchable: true,
           },
-          { label: "Type", value: "type", width: 96 },
+          { label: "Type", value: "type", width: 5 },
           {
             label: "Status",
             value: (s: Source) => (
@@ -67,18 +65,18 @@ function SourcesTable({ className, sources }: Props) {
                 suspended={s.suspended}
               />
             ),
-            width: 96,
+            width: 5,
           },
           {
             label: "Message",
             value: (s) => computeMessage(s.conditions),
 
-            width: statusWidth,
+            width: 45,
           },
           {
             label: "Cluster",
             value: () => "Default",
-            width: 96,
+            width: 5,
           },
           {
             label: "URL",
@@ -116,10 +114,10 @@ function SourcesTable({ className, sources }: Props) {
                 text
               );
             },
-            width: 240,
+            width: 25,
           },
           {
-            label: "Reference",
+            label: "Ref",
             value: (s: Source) => {
               const isGit = s.type === SourceRefSourceKind.GitRepository;
               const repo = s as GitRepository;
@@ -131,18 +129,19 @@ function SourcesTable({ className, sources }: Props) {
 
               return isGit ? ref : "-";
             },
-            width: 96,
+            width: 5,
           },
           {
             label: "Interval",
             value: (s: Source) => showInterval(s.interval),
-            width: 96,
+            width: 5,
           },
           {
             label: "Last Updated",
             value: (s: Source) => (
               <Timestamp time={(s as GitRepository).lastUpdatedAt} />
             ),
+            width: 5,
           },
         ]}
       />
