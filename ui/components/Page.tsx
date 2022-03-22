@@ -86,7 +86,7 @@ function Page({
         <TitleBar>
           <Flex align>
             <h2>{title}</h2>
-            <Spacer padding="medium" />
+            <Spacer padding="small" />
             {error ? (
               <Errors error={error} />
             ) : (
