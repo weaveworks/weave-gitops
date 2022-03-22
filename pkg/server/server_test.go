@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
@@ -81,7 +82,7 @@ var _ = Describe("ApplicationsServer", func() {
 			AccessToken:  token,
 		})
 
-		Expect(err.Error()).To(ContainSubstring(ErrBadProvider.Error()))
+		Expect(err.Error()).To(ContainSubstring(server.ErrBadProvider.Error()))
 		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
 	})
@@ -94,7 +95,7 @@ var _ = Describe("ApplicationsServer", func() {
 			AccessToken:  "",
 		})
 
-		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrEmptyAccessToken))
+		Expect(err).Should(testutils.MatchGRPCError(codes.InvalidArgument, server.ErrEmptyAccessToken))
 	})
 	Describe("GetGithubDeviceCode", func() {
 		It("returns a device code", func() {
@@ -299,19 +300,20 @@ var _ = Describe("ApplicationsServer", func() {
 
 				fakeFactory := &servicesfakes.FakeFactory{}
 
-				cfg := ApplicationsConfig{
+				cfg := server.ApplicationsConfig{
 					Logger:    log,
 					JwtClient: auth.NewJwtClient(secretKey),
 					Factory:   fakeFactory,
 				}
 
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
+				appsSrv = server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 			})
+
 			It("logs invalid requests", func() {
 				ts := httptest.NewServer(httpHandler)
 				defer ts.Close()
@@ -331,10 +333,9 @@ var _ = Describe("ApplicationsServer", func() {
 
 				list := formatLogVals(vals)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
-
 			})
-			It("logs server errors", func() {
 
+			It("logs server errors", func() {
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -361,8 +362,8 @@ var _ = Describe("ApplicationsServer", func() {
 				// Check that the same error passed by kubeClient is logged.
 				Expect(msg).To(Equal(middleware.ServerErrorText))
 				Expect(err.Error()).To(ContainSubstring("GetFeatureFlags not implemented"))
-
 			})
+
 			It("logs ok requests", func() {
 				ts := httptest.NewServer(httpHandler)
 				defer ts.Close()
@@ -385,8 +386,8 @@ var _ = Describe("ApplicationsServer", func() {
 				expectedStatus := strconv.Itoa(res.StatusCode)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 			})
-			It("Authorize fails generating jwt token", func() {
 
+			It("Authorize fails generating jwt token", func() {
 				fakeJWTToken := &authfakes.FakeJWTClient{}
 				fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
 					return "", fmt.Errorf("some error")
@@ -395,7 +396,9 @@ var _ = Describe("ApplicationsServer", func() {
 				factory := &servicesfakes.FakeFactory{}
 				fakeKubeGetter := kubefakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
 
-				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken}, WithKubeGetter(fakeKubeGetter))
+				appsSrv = server.NewApplicationsServer(
+					&server.ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken},
+					server.WithKubeGetter(fakeKubeGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -428,7 +431,6 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 			})
 		})
-
 	})
 })
 
@@ -561,13 +563,13 @@ func TestGetFeatureFlags(t *testing.T) {
 			log, _ := testutils.MakeFakeLogr()
 			mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 
-			cfg := ApplicationsConfig{
+			cfg := server.ApplicationsConfig{
 				Logger: logr.Discard(),
 			}
 
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
 			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-			appSrv := NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
+			appSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 			err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 
 			httpHandler := middleware.WithLogging(log, mux)

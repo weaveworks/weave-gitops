@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -13,8 +12,6 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -94,14 +91,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 }
 
 // DefaultApplicationsConfig creates a populated config with the dependencies for a Server
-func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
-	zapLog, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatalf("could not create zap logger: %v", err)
-	}
-
-	logr := zapr.NewLogger(zapLog)
-
+func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)
 	envSecretKey := os.Getenv("GITOPS_JWT_ENCRYPTION_SECRET")
@@ -121,8 +111,8 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 	fluxClient := flux.New(&runner.CLIRunner{})
 
 	return &ApplicationsConfig{
-		Logger:           logr,
-		Factory:          services.NewFactory(fluxClient, internal.NewApiLogger(zapLog)),
+		Logger:           log.WithName("app-server"),
+		Factory:          services.NewFactory(fluxClient, internal.NewApiLogger(log.WithName("services"))),
 		JwtClient:        jwtClient,
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),

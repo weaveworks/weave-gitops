@@ -4,20 +4,16 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"go.uber.org/zap"
 )
 
 type ApiLogger struct {
 	logger logr.Logger
 }
 
-func NewApiLogger(z *zap.Logger) logger.Logger {
-	logger := zapr.NewLogger(z.WithOptions(zap.AddCallerSkip(1)))
-
+func NewApiLogger(l logr.Logger) logger.Logger {
 	return ApiLogger{
-		logger: logger,
+		logger: l,
 	}
 }
 
