@@ -1,0 +1,49 @@
+{{- if .Values.testUser.create }}
+# This should not be used in production. It is for testing & demo purposes only
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-test-user-read-resources
+subjects:
+  - kind: User
+    name: wego-test-user
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: wego-test-user-user-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-test-user-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wego-test-user-auth
+type: Opaque
+data:
+  username: {{ .Values.testUser.username | b64enc | quote }}
+  password: {{ .Values.testUser.password | b64enc | quote }}
+{{- end }}

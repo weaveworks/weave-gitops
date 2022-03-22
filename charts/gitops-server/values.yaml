@@ -42,8 +42,16 @@ rbac:
   # impersonationResources: [ "users", "groups" ]
   # Specify whether additional permissions should be granted to the service account
   # in order to work with weave-gitops enterprise
-  enableEnterprise: false
   viewSecrets: []
+
+# This should not be used in production
+testUser:
+  # Whether the wego-admin user should be created.
+  # If you use this make sure you add it to rbac.impersonationResourceNames.
+  create: false
+  # helm will base64 encode these
+  username: not-production-worthy
+  password: seriously-change-me
 
 podAnnotations: {}
 
