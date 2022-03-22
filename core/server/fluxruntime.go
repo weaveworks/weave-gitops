@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,6 +33,10 @@ func (as *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 	}
 
 	l := &appsv1.DeploymentList{}
+
+	for _, ns := range as.cacheContainer.Namespaces() {
+		logrus.WithField("check", "efertone").Infof("NamespaceList: %s", ns.Name)
+	}
 
 	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
 		return nil, err
