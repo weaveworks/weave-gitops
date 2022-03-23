@@ -51,9 +51,10 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 }
 
 func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
+	ctx := context.Background()
+
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 	k8s := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
-	ctx := context.Background()
 	cacheContainer := cache.NewContainer(ctx, k8s)
 
 	cacheContainer.Start(ctx)

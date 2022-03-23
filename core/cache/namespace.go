@@ -9,17 +9,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const pollInteralSeconds = 300
+const pollInteralSeconds = 120
 
 type namespaceStore struct {
-	client     client.Client
-	namespaces []v1.Namespace
+	client       client.Client
+	namespaces   []v1.Namespace
+	forceRefresh chan bool
+	cancel       func()
 }
 
-func newNamespaceStore(c client.Client) *namespaceStore {
-	return &namespaceStore{
-		client:     c,
-		namespaces: []v1.Namespace{},
+func newNamespaceStore(c client.Client) namespaceStore {
+	return namespaceStore{
+		client:       c,
+		namespaces:   []v1.Namespace{},
+		cancel:       nil,
+		forceRefresh: make(chan bool),
 	}
 }
 
@@ -27,12 +31,30 @@ func (n *namespaceStore) Namespaces() []v1.Namespace {
 	return n.namespaces
 }
 
+func (n *namespaceStore) ForceRefresh() {
+	n.forceRefresh <- true
+}
+
+func (n *namespaceStore) Stop() {
+	if n.cancel != nil {
+		n.cancel()
+	}
+}
+
 func (n *namespaceStore) Start(ctx context.Context) {
+	var newCtx context.Context
+
+	newCtx, n.cancel = context.WithCancel(ctx)
+
 	go func() {
-		for ; true; <-time.Tick(pollInteralSeconds * time.Second) {
+		ticker := time.NewTicker(pollInteralSeconds * time.Second)
+
+		defer ticker.Stop()
+
+		for {
 			list := &v1.NamespaceList{}
 
-			err := n.client.List(ctx, list)
+			err := n.client.List(newCtx, list)
 			if err != nil {
 				logrus.Infof("poll error: %s", err.Error())
 			}
@@ -41,6 +63,15 @@ func (n *namespaceStore) Start(ctx context.Context) {
 			newList = append(newList, list.Items...)
 
 			n.namespaces = newList
+
+			select {
+			case <-newCtx.Done():
+				break
+			case <-n.forceRefresh:
+				continue
+			case <-ticker.C:
+				continue
+			}
 		}
 	}()
 }
