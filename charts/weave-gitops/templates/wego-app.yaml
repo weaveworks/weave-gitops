@@ -9,15 +9,17 @@ spec:
     metadata:
       labels:
         app: wego-app
+      {{- if and .Values.tls.localCertFile .Values.tls.localKeyFile }}
       annotations:
         tls-cert: {{.Files.Get "localhost.pem" | quote }}
         tls-key: {{.Files.Get "localhost-key.pem" | quote }}
+      {{ end }}
     spec:
       serviceAccountName: wego-app-service-account
       containers:
         - name: wego-app
           image: "{{.Values.containerRegistry}}:{{.Values.image}}"
-          args: [ "--log-level", "{{.Values.wegoServerLogLevel}}", "--helm-repo-namespace", "{{.Values.namespace}}","--tls-cert-file","/etc/podinfo/cert","--tls-private-key-file","/etc/podinfo/key" ]
+          args: [ "--log-level", "{{.Values.wegoServerLogLevel}}", "--helm-repo-namespace", "{{.Values.namespace}}","--tls-cert-file","/etc/tls-volume/.cert-file","--tls-private-key-file","/etc/tls-volume/.key-file" ]
           ports:
             - containerPort: 9001
               protocol: TCP
@@ -26,18 +28,26 @@ spec:
           - name: WEAVE_GITOPS_AUTH_ENABLED
             value: "true"
           volumeMounts:
-            - name: podinfo
-              mountPath: /etc/podinfo
+            - name: tls-volume
+              readOnly: true
+              mountPath: "/etc/tls-volume"
+      {{ if .Values.tls.secretName}}
       volumes:
-        - name: podinfo
+        - name: tls-volume
+          secret:
+            secretName: {{ .Values.tls.secretName }} # This needs to be a parameter
+      {{- else -}}
+      volumes:
+        - name: tls-volume
           downwardAPI:
             items:
-              - path: "cert"
+              - path: ".cert-file"
                 fieldRef:
                   fieldPath: metadata.annotations['tls-cert']
-              - path: "key"
+              - path: ".key-file"
                 fieldRef:
                   fieldPath: metadata.annotations['tls-key']
+      {{- end }}
   selector:
     matchLabels:
       app: wego-app
