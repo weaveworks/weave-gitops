@@ -4,8 +4,9 @@ image:
   repository: localhost:5001/weaveworks/wego-app
 
 logLevel: debug
+enableLogin: true
 
-testUser:
+adminUser:
   create: true
   username: dev
   password: dev

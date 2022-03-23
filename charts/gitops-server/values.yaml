@@ -15,14 +15,14 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Sets the WEAVE_GITOPS_AUTH_ENABLED environment variable to enable auth systems
+enableLogin: true
+# valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
 # Additional arguments to pass in
-# additionalArgs: []
-
-# To enable enterprise OIDC:
+# additionalArgs:
+# Any other environment variables:
 # envVars:
-# - name: WEAVE_GITOPS_AUTH_ENABLED
-#   value: true
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -45,7 +45,7 @@ rbac:
   viewSecrets: []
 
 # This should not be used in production
-testUser:
+adminUser:
   # Whether the wego-admin user should be created.
   # If you use this make sure you add it to rbac.impersonationResourceNames.
   create: false
@@ -53,7 +53,7 @@ testUser:
   username: gitops-test-user
   # The password will be hashed using the bcrypt algorithm.
   # It should not be stored in plain-text so is best passed using a set flag:
-  # --set testUser.password="My $uper secure password that is not this $tring"
+  # --set adminUser.password="My $uper secure password that is not this $tring"
   # password:
 
 podAnnotations: {}
