@@ -44,6 +44,8 @@ metadata:
   name: wego-test-user-auth
 type: Opaque
 data:
-  username: {{ .Values.testUser.username | b64enc | quote }}
-  password: {{ .Values.testUser.password | b64enc | quote }}
+  {{- with .Values.testUser }}
+  username: {{ .username | b64enc | quote }}
+  password: {{ htpasswd .username (required "You must set a password for this user!" .password) | b64enc | quote }}
+  {{- end }}
 {{- end }}
