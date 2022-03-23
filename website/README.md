@@ -14,6 +14,7 @@ Set a fake Algolia API key to pass validation errors:
 
 ```shell
 export ALGOLIA_API_KEY=fakekey
+export GA_KEY=fakekey
 ```
 
 ```console
