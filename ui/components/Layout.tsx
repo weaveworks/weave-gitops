@@ -64,8 +64,6 @@ const AppContainer = styled.div`
 `;
 
 const NavContainer = styled.div`
-  position: absolute;
-  left: 0;
   width: 240px;
   height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
@@ -115,11 +113,11 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
-  overflow: auto;
-  margin-left: 240px;
 `;
 
-const Main = styled(Flex)``;
+const Main = styled(Flex)`
+  height: 100%;
+`;
 
 const TopToolBar = styled(Flex)`
   padding: 8px 0;
