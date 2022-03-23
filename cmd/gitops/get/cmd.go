@@ -14,12 +14,6 @@ func GetCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Use:   "get",
 		Short: "Display one or many Weave GitOps resources",
 		Example: `
-# Get all applications under gitops control
-gitops get apps
-
-# Get last 10 commits for an application
-gitops get commits <app-name>
-
 # Get all CAPI templates
 gitops get templates
 
