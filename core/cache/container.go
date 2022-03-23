@@ -3,8 +3,8 @@ package cache
 import (
 	"context"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -19,15 +19,13 @@ type Container struct {
 
 var globalCacheContainer *Container
 
-func NewContainer(ctx context.Context, clientGetter kube.ClientGetter) *Container {
+func NewContainer(crClient client.Client) *Container {
 	if globalCacheContainer != nil {
 		return globalCacheContainer
 	}
 
-	c, _ := clientGetter.Client(ctx)
-
 	globalCacheContainer = &Container{
-		namespace: newNamespaceStore(c),
+		namespace: newNamespaceStore(crClient),
 	}
 
 	return globalCacheContainer
