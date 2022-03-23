@@ -27,8 +27,8 @@ docker_build_with_restart(
 def helmfiles(chart, values):
 	watch_file(chart)
 	watch_file(values)
-	return local('./tools/bin/helm template {c} -f {v}'.format(c=chart, v=values))
+	return local('./tools/bin/helm template dev {c} -f {v}'.format(c=chart, v=values))
 
-k8s_yaml(helmfiles('./charts/weave-gitops', './tools/helm-values-dev.yaml'))
+k8s_yaml(helmfiles('./charts/gitops-server', './tools/helm-values-dev.yaml'))
 
-k8s_resource('wego-app', port_forwards='9001', resource_deps=['gitops-server'])
+k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server'])
