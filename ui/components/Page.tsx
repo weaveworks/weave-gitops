@@ -33,6 +33,7 @@ export const Content = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
+  height: 100%;
 `;
 
 const Children = styled.div``;
@@ -103,6 +104,7 @@ function Page({
 }
 
 export default styled(Page)`
+  height: 100%;
   .MuiAlert-root {
     width: 100%;
   }
