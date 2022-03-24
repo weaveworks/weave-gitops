@@ -10,30 +10,17 @@ metadata:
 rules:
   # impersonation rules for ui calls
   - apiGroups: [""]
-    {{- if .Values.rbac.impersonationResources }}
-    resources:
-    {{ range .Values.rbac.impersonationResources }}
-      - {{ . | quote}}
-    {{- end}}
-    {{- else }}
-    resources: [ "users", "groups" ]
-    {{- end }}
+    resources: {{ .Values.rbac.impersonationResources | toJson }}
     verbs: [ "impersonate" ]
     {{- with .Values.rbac.impersonationResourceNames }}
-    resourceNames:
-      {{- range . }}
-        - {{ . | quote }}
-      {{- end }}
+    resourceNames: {{ . | toJson }}
     {{- end }}
   # Access to enterprise entitlement
   - apiGroups: [""]
     resources: [ "secrets" ]
     verbs: [ "get", "list" ]
     {{- with .Values.rbac.viewSecrets }}
-    resourceNames:
-      {{- range . }}
-        - {{ . | quote }}
-      {{- end }}
+    resourceNames: {{ . | toJson }}
     {{- end }}
   # helm repository rules for...?
   - apiGroups: [ "source.toolkit.fluxcd.io" ]

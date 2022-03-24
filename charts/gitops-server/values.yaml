@@ -36,10 +36,11 @@ serviceAccount:
 rbac:
   # Specifies whether the clusterRole & binding to the service account should be created
   create: true
-  # List of resources that the service account can impersonate
+  # List of resources that the service account can impersonate. It is strongly
+  # recommended that you configure groups that can be used to populate this.
   impersonationResourceNames: []
   # Limit the type of principal that can be impersonated
-  # impersonationResources: [ "users", "groups" ]
+  impersonationResources: [ "users", "groups" ]
   # Specify whether additional permissions should be granted to the service account
   # in order to work with weave-gitops enterprise
   viewSecrets: []
