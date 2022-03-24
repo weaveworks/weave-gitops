@@ -95,8 +95,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             suspended={a.suspended}
           />
         ) : null,
-      sortType: SortType.bool,
-      sortValue: ({ conditions }) => computeReady(conditions),
+      sortType: SortType.number,
+      sortValue: ({ conditions, suspended }) => {
+        if (suspended) return 2;
+        if (computeReady(conditions)) return 3;
+        else return 1;
+      },
       width: 7.5,
     },
     {

@@ -13,7 +13,10 @@ import { Source } from "../lib/types";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
-import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeMessage,
+  computeReady,
+} from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
 
@@ -65,6 +68,12 @@ function SourcesTable({ className, sources }: Props) {
                 suspended={s.suspended}
               />
             ),
+            sortType: SortType.number,
+            sortValue: ({ conditions, suspended }) => {
+              if (suspended) return 2;
+              if (computeReady(conditions)) return 3;
+              else return 1;
+            },
             width: 5,
           },
           {

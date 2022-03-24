@@ -9,13 +9,13 @@ describe("DataTable", () => {
   const rows = [
     {
       name: "the-cool-app",
-      status: "Ready",
+      status: true,
       lastUpdate: "2005-01-02T15:04:05-0700",
       lastSyncedAt: 1000,
     },
     {
       name: "podinfo",
-      status: "Failed",
+      status: false,
       lastUpdate: "2006-01-02T15:04:05-0700",
       lastSyncedAt: 2000,
     },
@@ -24,6 +24,7 @@ describe("DataTable", () => {
       status: "Ready",
       lastUpdate: "2004-01-02T15:04:05-0700",
       lastSyncedAt: 3000,
+      suspended: true,
     },
   ];
 
@@ -37,8 +38,12 @@ describe("DataTable", () => {
     {
       label: "Status",
       value: "status",
-      sortType: SortType.bool,
-      sortValue: ({ status }) => (status === "Ready" ? true : false),
+      sortType: SortType.number,
+      sortValue: ({ status, suspended }) => {
+        if (suspended) return 2;
+        if (status) return 1;
+        else return 3;
+      },
     },
     {
       label: "Last Updated",
@@ -69,11 +74,15 @@ describe("DataTable", () => {
         const boolSort = sortWithType(rows, {
           label: "Status",
           value: "status",
-          sortType: SortType.bool,
-          sortValue: ({ status }) => (status === "Ready" ? true : false),
+          sortType: SortType.number,
+          sortValue: ({ status, suspended }) => {
+            if (suspended) return 2;
+            if (status) return 3;
+            else return 1;
+          },
         });
-        expect(boolSort[0].status).toBe("Failed");
-        expect(boolSort[2].status).toBe("Ready");
+        expect(boolSort[0].status).toBe(false);
+        expect(boolSort[2].status).toBe(true);
       });
       it("should handle sorting with case SortType.date", () => {
         const dateSort = sortWithType(rows, {

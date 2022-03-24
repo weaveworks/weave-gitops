@@ -437,9 +437,7 @@ exports[`DataTable snapshots renders 1`] = `
             <span
               className="c7 c8"
               size="normal"
-            >
-              Failed
-            </span>
+            />
           </td>
           <td
             aria-sort={null}
@@ -490,9 +488,7 @@ exports[`DataTable snapshots renders 1`] = `
             <span
               className="c7 c8"
               size="normal"
-            >
-              Ready
-            </span>
+            />
           </td>
           <td
             aria-sort={null}
