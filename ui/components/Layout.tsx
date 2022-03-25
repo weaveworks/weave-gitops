@@ -114,7 +114,7 @@ const ContentContainer = styled.div`
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.small};
   overflow: auto;
   margin-left: 240px;
 `;
@@ -122,15 +122,9 @@ const ContentContainer = styled.div`
 const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
-  padding: 8px 0;
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
   flex: 0 1 auto;
-
-  ${Logo} img {
-    width: 70px;
-    height: 72.85px;
-  }
 
   ${UserSettings} {
     justify-self: flex-end;
@@ -147,7 +141,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-          <Spacer padding="xl" />
+          <Spacer padding="small" />
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>
