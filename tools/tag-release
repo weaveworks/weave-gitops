@@ -135,6 +135,16 @@ def get_latest_tag():
     return tag_cmd.stdout.strip()
 
 
+def tag_version(tag):
+    tag_name = str(tag)
+    run(["git", "tag", "-a", tag_name, "-m", tag_name], check=True)
+
+
+def push_tag(tag):
+    tag_name = str(tag)
+    run(["git", "push", "origin", "tag", tag_name], check=True)
+
+
 def print_err(*args, **kwargs):
     """Print a debug message to stderr.
 
@@ -212,6 +222,11 @@ def _build_parser():
         action="store_true",
         help="skip over an existing RC tag, going to the next minor/patch version instead",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Don't actually push any tags anywhere",
+    )
 
     parser.add_argument(
         "action",
@@ -278,6 +293,7 @@ if __name__ == "__main__":
 
     tag_name = get_latest_tag()
     tag = original_tag = parse_tag(tag_name)
+    print_err(f"Most recent tag: {original_tag}")
 
     try:
         tag = next_tag(original_tag, args.action, abandon=args.abandon, rc=args.rc)
@@ -287,6 +303,11 @@ if __name__ == "__main__":
             print_err(e.advice)
         sys.exit(1)
 
-    print_err(f"Going from tag {original_tag} to {tag}")
-
-    # TODO: something something push tags
+    if args.dry_run:
+        print_err(f"Not tagging {tag}, as this is a dry run")
+        sys.exit(0)
+    else:
+        tag_version(tag)
+        print_err(f"Tagged {tag}")
+        push_tag(tag)
+        print_err(f"Pushed {tag} to Git remote")
