@@ -41,8 +41,8 @@ describe("DataTable", () => {
       sortType: SortType.number,
       sortValue: ({ status, suspended }) => {
         if (suspended) return 2;
-        if (status) return 1;
-        else return 3;
+        if (status) return 3;
+        else return 1;
       },
     },
     {
