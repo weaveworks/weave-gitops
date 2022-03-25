@@ -2,7 +2,6 @@
 
 import argparse
 import re
-import shutil
 from subprocess import run
 import sys
 import textwrap
@@ -127,7 +126,6 @@ def update_tags():
 
 
 def get_latest_tag():
-    git_path = shutil.which("git")
     tag_cmd = run(
         ["git", "describe", "--abbrev=0", "--tags", "--match=v*.*.*"],
         check=True,
