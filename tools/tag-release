@@ -49,6 +49,18 @@ def parse_tag(tag_name):
         raise ValueError(f"Unable to parse version tag '{tag_name}'")
 
 
+class OperationError(Exception):
+    """An exception indicating the user tried to do something impossible.
+
+    There is an extra `advice` argument that can tell them what they should do instead,
+    if there's a clear course of action.
+    """
+
+    def __init__(self, message, advice=None):
+        super().__init__(message)
+        self.advice = advice
+
+
 class ReleaseVersion:
     """A version for a full (non-RC) release.
 
@@ -66,15 +78,19 @@ class ReleaseVersion:
     def __str__(self):
         return f"v{self.major}.{self.minor}.{self.patch}"
 
-    def bump(self, release_type):
+    def next_rc(self, release_type):
         if release_type == "minor":
-            return ReleaseVersion(self.major, self.minor + 1, 0)
+            return RCVersion(self.major, self.minor + 1, patch=0, rc=1)
+        if release_type == "patch":
+            return RCVersion(self.major, self.minor, self.patch + 1, rc=1)
+
+        raise ValueError(f"Unrecognized release type {release_type}")
+
+    def next_release(self, release_type):
+        if release_type == "minor":
+            return ReleaseVersion(self.major, self.minor + 1, patch=0)
         if release_type == "patch":
             return ReleaseVersion(self.major, self.minor, self.patch + 1)
-        if release_type == "rc":
-            return RCVersion(self.major, self.minor, self.patch + 1, rc=1)
-        if release_type == "promote":
-            raise ValueError("Cannot promote a non-RC release")
 
         raise ValueError(f"Unrecognized release type {release_type}")
 
@@ -99,17 +115,11 @@ class RCVersion:
     def __str__(self):
         return f"v{self.major}.{self.minor}.{self.patch}-rc{self.rc}"
 
-    def bump(self, release_type):
-        if release_type == "minor":
-            raise ValueError("Cannot patch on top of an existing RC")
-        if release_type == "patch":
-            raise ValueError("Cannot patch on top of an existing RC")
-        if release_type == "rc":
-            return RCVersion(self.major, self.minor, self.patch, rc=self.rc + 1)
-        if release_type == "promote":
-            return ReleaseVersion(self.major, self.minor, self.patch)
+    def base(self):
+        return ReleaseVersion(self.major, self.minor, self.patch)
 
-        raise ValueError(f"Unrecognized release type {release_type}")
+    def bump(self):
+        return RCVersion(self.major, self.minor, self.patch, self.rc + 1)
 
 
 def update_tags():
@@ -136,27 +146,125 @@ def print_err(*args, **kwargs):
     print(file=sys.stderr, *args, **kwargs)
 
 
-def type_name(release_type):
-    """The human-readable name for the release type, mostly because of extreme grammar pedantry."""
-    if release_type == "rc":
-        return f"an RC"
-    else:
-        return f"a {release_type}"
-
-
 def run_self_test():
     """Run a somewhat janky self-test to make sure the version logic works as expected."""
-    assert str(parse_tag("v0.6.3").bump("minor")) == "v0.7.0"
-    assert str(parse_tag("v0.6.3").bump("patch")) == "v0.6.4"
-    assert str(parse_tag("v0.6.3").bump("rc")) == "v0.6.4-rc1"
-    assert str(parse_tag("v0.6.3-rc1").bump("rc")) == "v0.6.3-rc2"
-    assert str(parse_tag("v0.6.3-rc1").bump("promote")) == "v0.6.3"
+    release = parse_tag("v0.1.2")
+    rc = parse_tag("v0.1.2-rc3")
 
-    try:
-        parse_tag("v0.6.3").bump("promote")
-        raise AssertionError("We shouldn't be able to promote non-RC releases")
-    except ValueError:
-        pass
+    assert str(next_tag(release, "minor", abandon=False, rc=True)) == "v0.2.0-rc1"
+    assert str(next_tag(release, "minor", abandon=False, rc=False)) == "v0.2.0"
+    assert str(next_tag(release, "patch", abandon=False, rc=True)) == "v0.1.3-rc1"
+    assert str(next_tag(release, "patch", abandon=False, rc=False)) == "v0.1.3"
+
+    assert str(next_tag(rc, "minor", abandon=True, rc=True)) == "v0.2.0-rc1"
+    assert str(next_tag(rc, "minor", abandon=True, rc=False)) == "v0.2.0"
+    assert str(next_tag(rc, "patch", abandon=True, rc=True)) == "v0.1.3-rc1"
+    assert str(next_tag(rc, "patch", abandon=True, rc=False)) == "v0.1.3"
+
+    assert str(next_tag(rc, "bump", abandon=False, rc=True)) == "v0.1.2-rc4"
+
+    errors = [
+        lambda: next_tag(release, "promote", abandon=False, rc=True),
+        lambda: next_tag(rc, "minor", abandon=False, rc=True),
+        lambda: next_tag(rc, "patch", abandon=False, rc=True),
+        lambda: next_tag(release, "bump", abandon=False, rc=True),
+    ]
+
+    for error in errors:
+        try:
+            result = error()
+            raise AssertionError(f"Expected an error, got {result}")
+        except OperationError:
+            pass
+
+
+def _build_parser():
+    """Create and return the parser for this command's options and arguments."""
+    parser = argparse.ArgumentParser(
+        description="Create and push a new release tag.",
+        epilog=textwrap.dedent(
+            """\
+            Release types:
+
+            (Major releases are not supported yet.)
+
+              - minor:   includes new features, or changes existing ones
+              - patch:   no new features, just bug fixes, security patches, and so forth
+              - bump:    increment an existing release candidate
+              - promote: tag a full release based on an existing release candidate
+            """
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--skip-update",
+        dest="update_tags",
+        action="store_false",
+        help="skip updating Git tags from the remote",
+    )
+    parser.add_argument(
+        "--no-rc",
+        dest="rc",
+        action="store_false",
+        help="go straight to a full release, rather than tagging an RC first",
+    )
+    parser.add_argument(
+        "--abandon",
+        action="store_true",
+        help="skip over an existing RC tag, going to the next minor/patch version instead",
+    )
+
+    parser.add_argument(
+        "action",
+        choices=["promote", "bump", "minor", "patch"],
+        help="the type of release to tag",
+    )
+
+    return parser
+
+
+PARSER = _build_parser()
+
+
+def next_tag(original_tag, action, abandon, rc):
+    tag = original_tag
+
+    if action == "promote":
+        try:
+            return tag.base()
+        except AttributeError:
+            raise OperationError(f"Cannot promote non-RC tag {tag}")
+    if action == "bump":
+        try:
+            return tag.bump()
+        except AttributeError:
+            raise OperationError(f"Cannot bump non-RC tag {tag}")
+    if action in ["minor", "patch"]:
+        if abandon:
+            try:
+                tag = tag.base()
+            except AttributeError:
+                raise OperationError(f"Cannot abandon non-RC tag {tag}")
+        if rc:
+            try:
+                return tag.next_rc(action)
+            except AttributeError:
+                raise OperationError(
+                    f"Cannot release on top of RC tag {tag}",
+                    advice="To skip to the next version, use the `--abandon` option",
+                )
+        else:
+            try:
+                return tag.next_release(action)
+            except AttributeError:
+                raise OperationError(
+                    f"Cannot release on top of RC tag {tag}",
+                    advice="To skip to the next version, use the `--abandon` option",
+                )
+
+    # The argument parser should stop us getting here, but best to be safe
+    raise OperationError(f"Invalid action '{action}'")
 
 
 if __name__ == "__main__":
@@ -165,48 +273,22 @@ if __name__ == "__main__":
         print("Self-test OK!")
         sys.exit(0)
 
-    parser = argparse.ArgumentParser(
-        description="Create and push a new release tag.",
-        epilog=textwrap.dedent(
-            """\
-            Release types:
+    args = PARSER.parse_args()
 
-              - major:   not supported yet
-              - minor:   includes new features, or changes existing ones
-              - patch:   no new features, just bug fixes, security patches, and so forth
-              - rc:      create a release candidate for a new release, or bump an existing one
-              - promote: tag a full release based on an existing release candidate
-            """
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--skip-update",
-        action="store_true",
-        help="skip updating Git tags from the remote",
-    )
-    parser.add_argument(
-        "type",
-        choices=["major", "minor", "patch", "rc", "promote"],
-        help="the type of release we're doing",
-    )
-
-    args = parser.parse_args()
-
-    release_type = args.type
-
-    if release_type == "major":
-        print_err("We're not thinking about major releases yet")
-        sys.exit(1)
-
-    if not args.skip_update:
+    if args.update_tags:
         update_tags()
 
     tag_name = get_latest_tag()
-    tag = parse_tag(tag_name)
+    tag = original_tag = parse_tag(tag_name)
 
-    new_tag = tag.bump(release_type)
+    try:
+        tag = next_tag(original_tag, args.action, abandon=args.abandon, rc=args.rc)
+    except OperationError as e:
+        print_err(e)
+        if e.advice:
+            print_err(e.advice)
+        sys.exit(1)
 
-    print_err(f"Performing {type_name(release_type)} release ({tag} --> {new_tag})")
+    print_err(f"Going from tag {original_tag} to {tag}")
 
     # TODO: something something push tags
