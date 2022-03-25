@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
@@ -19,15 +20,21 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		}, errors.New("no clients pool present in context")
 	}
 
+	clustersClient := clustersmngr.NewClient(clientsPool)
+
+	clist := &clustersmngr.ClusteredKustomizationList{}
+
+	opts := []client.ListOption{
+		client.InNamespace(msg.Namespace),
+	}
+
+	if err := clustersClient.List(ctx, clist, opts...); err != nil {
+		return nil, err
+	}
+
 	var results []*pb.Kustomization
 
-	//TODO: handle failures and parallelize
-	for _, c := range clientsPool.Clients() {
-		l := &kustomizev1.KustomizationList{}
-		if err := list(ctx, c, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
-			return nil, err
-		}
-
+	for _, l := range clist.Lists {
 		for _, kustomization := range l.Items {
 			k, err := types.KustomizationToProto(&kustomization)
 			if err != nil {
