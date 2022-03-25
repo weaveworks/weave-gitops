@@ -1,0 +1,110 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  # FIXME check the app name
+  repository: ghcr.io/weaveworks/wego-app
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v0.6.2"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Sets the WEAVE_GITOPS_AUTH_ENABLED environment variable to enable auth systems
+enableLogin: true
+# valid levels are 'debug', 'info', 'warn' and 'error'
+logLevel: info
+# Additional arguments to pass in
+# additionalArgs:
+# Any other environment variables:
+# envVars:
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+rbac:
+  # Specifies whether the clusterRole & binding to the service account should be created
+  create: true
+  # List of resources that the service account can impersonate. It is strongly
+  # recommended that you configure groups that can be used to populate this.
+  impersonationResourceNames: []
+  # Limit the type of principal that can be impersonated
+  impersonationResources: [ "users", "groups" ]
+  # Specify whether additional permissions should be granted to the service account
+  # in order to work with weave-gitops enterprise
+  viewSecrets: []
+
+# This should not be used in production
+adminUser:
+  # Whether the wego-admin user should be created.
+  # If you use this make sure you add it to rbac.impersonationResourceNames.
+  create: false
+  # Set the username and password, these will be stored in a secret in k8s.
+  username: gitops-test-user
+  # The password will be hashed using the bcrypt algorithm.
+  # It should not be stored in plain-text so is best passed using a set flag:
+  # --set adminUser.password="My $uper secure password that is not this $tring"
+  # password:
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  create: true
+  type: ClusterIP
+  port: 9001
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

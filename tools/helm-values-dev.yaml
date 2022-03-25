@@ -1,6 +1,12 @@
 ---
-image: latest
-containerRegistry: localhost:5001/weaveworks/wego-app
-adminUsername: ZGV2
-adminPassword: JDJiJDEyJEU5STRSU01VWTVMYUJrVHNQLmxiTy4zTDB2M1BTUHZIb1htN29kSE80TXN4MXZiZmVwRzdX
-namespace: flux-system
+image:
+  tag: latest
+  repository: localhost:5001/weaveworks/wego-app
+
+logLevel: debug
+enableLogin: true
+
+adminUser:
+  create: true
+  username: dev
+  password: dev
