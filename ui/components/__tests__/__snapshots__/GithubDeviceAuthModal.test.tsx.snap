@@ -206,7 +206,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
       <p
         id="simple-modal-description"
       >
-        Weave GitOps needs to authenitcate with the Git Provider for the ssh://example.com/user/repo.git repo
+        Weave GitOps needs to authenticate with the Git Provider for the ssh://example.com/user/repo.git repo
       </p>
     </div>
     <div>

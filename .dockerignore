@@ -4,4 +4,6 @@ node_modules
 .git
 dist
 pkg/flux/bin/flux
-cmd/gitops/ui/run/dist
+cmd/gitops-server/cmd/dist
+# Ignore generated credentials from google-github-actions/auth
+gha-creds-*.json

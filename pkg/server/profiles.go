@@ -6,18 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -31,7 +28,6 @@ const (
 )
 
 type ProfilesConfig struct {
-	logr              logr.Logger
 	helmRepoNamespace string
 	helmRepoName      string
 	helmCache         cache.Cache
@@ -39,13 +35,7 @@ type ProfilesConfig struct {
 }
 
 func NewProfilesConfig(clusterConfig kube.ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
-	zapLog, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatalf("could not create zap logger: %v", err)
-	}
-
 	return ProfilesConfig{
-		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
 		helmCache:         helmCache,
@@ -63,12 +53,12 @@ type ProfilesServer struct {
 	ClientGetter      kube.ClientGetter
 }
 
-func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
-	configGetter := NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
+func NewProfilesServer(log logr.Logger, config ProfilesConfig) pb.ProfilesServer {
+	configGetter := kube.NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, config.clusterConfig.ClusterName)
 
 	return &ProfilesServer{
-		Log:               config.logr,
+		Log:               log.WithName("profiles-server"),
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		HelmCache:         config.helmCache,

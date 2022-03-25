@@ -23,7 +23,7 @@ Default.args = {
   onSkipForward: () => "",
   onBack: () => "",
   onSkipBack: () => "",
-  onSelect: (value: string) => "",
+  onSelect: () => "",
   index: 0,
   length: 1,
   totalObjects: 1,

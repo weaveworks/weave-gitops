@@ -233,7 +233,7 @@ func NewGitlabAuthFlowHandler(client *http.Client, flow types.AuthFlow) Blocking
 
 		_, _ = fmt.Fprintf(w, "Starting authorization server:\n")
 		_, _ = fmt.Fprintf(w, "Visit this URL to authenticate with Gitlab:\n\n")
-		_, _ = fmt.Fprintf(w, "%s\n\n", req.URL.String())
+		_, _ = fmt.Fprintf(w, "%s\n\n", req.URL)
 		_, _ = fmt.Fprintf(w, "Waiting for authentication flow completion...\n\n")
 
 		serverShutdown := &sync.WaitGroup{}

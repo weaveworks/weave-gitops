@@ -2,21 +2,46 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import useNavigation from "../hooks/navigation";
-import { PageRoute } from "../lib/types";
-import { formatURL, getNavValue } from "../lib/utils";
+import { formatURL, getParentNavValue } from "../lib/nav";
+import { V2Routes } from "../lib/types";
+import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
+import Spacer from "./Spacer";
+import UserSettings from "./UserSettings";
 
 type Props = {
   className?: string;
   children?: any;
 };
 
-const navItems = [{ value: PageRoute.Applications, label: "Applications" }];
+const navItems = [
+  {
+    value: V2Routes.Automations,
+    label: "Applications",
+  },
+  {
+    value: V2Routes.Sources,
+    label: "Sources",
+    sub: true,
+  },
 
-const LinkTab = (props) => (
+  {
+    value: V2Routes.FluxRuntime,
+    label: "Flux Runtime",
+  },
+  {
+    value: "docs",
+    label: "Docs",
+    href: "https://docs.gitops.weave.works/",
+    newTab: true,
+  },
+];
+
+const LinkTab = (props: any) => (
   <Tab
     component={forwardRef((p: any, ref) => (
       <Link innerRef={ref} {...p} />
@@ -28,63 +53,77 @@ const LinkTab = (props) => (
 const StyleLinkTab = styled(LinkTab)`
   span {
     align-items: flex-start;
-    color: #4b4b4b;
   }
 `;
 
 const AppContainer = styled.div`
   width: 100%;
-  overflow-x: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
 `;
 
 const NavContainer = styled.div`
+  position: absolute;
+  left: 0;
   width: 240px;
-  min-height: 100%;
+  height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
-  padding-right: ${(props) => props.theme.spacing.small};
-  background-color: ${(props) => props.theme.colors.white};
+  background-color: ${(props) => props.theme.colors.neutral00};
+  border-radius: 10px;
 `;
 
 const NavContent = styled.div`
-  min-height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
-  padding-right: ${(props) => props.theme.spacing.xl};
-
-  .MuiTab-wrapper {
-    text-transform: capitalize;
-    font-size: 20px;
-    font-weight: bold;
+  .MuiTab-textColorInherit {
+    opacity: 1;
+    .MuiTab-wrapper {
+      font-weight: 600;
+      font-size: 20px;
+      color: ${(props) => props.theme.colors.neutral40};
+    }
+    &.sub-item {
+      opacity: 0.7;
+      .MuiTab-wrapper {
+        font-weight: 400;
+      }
+    }
   }
-
   .MuiTabs-indicator {
-    left: 0;
     width: 4px;
     background-color: ${(props) => props.theme.colors.primary};
+  }
+  .MuiTab-root {
+    padding: 0px 12px;
+    min-height: 24px;
+    &.sub-item {
+      margin-bottom: 24px;
+    }
+  }
+  ${Link} {
+    justify-content: flex-start;
+    &.sub-item {
+      font-weight: 400;
+    }
   }
 `;
 
 const ContentContainer = styled.div`
   width: 100%;
-  min-height: 100vh;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
+  overflow: auto;
+  margin-left: 240px;
 `;
 
-const Main = styled(Flex)`
-  height: 100%;
-  flex: 1 1 auto;
-`;
+const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
   padding: 8px 0;
   background-color: ${(props) => props.theme.colors.primary};
-  width: 100%;
   height: 80px;
   flex: 0 1 auto;
 
@@ -92,22 +131,25 @@ const TopToolBar = styled(Flex)`
     width: 70px;
     height: 72.85px;
   }
+
+  ${UserSettings} {
+    justify-self: flex-end;
+    margin-left: auto;
+  }
 `;
 
-//style for account icon - disabled while no account functionality exists
-// const UserAvatar = styled(Icon)`
-//   padding-right: ${(props) => props.theme.spacing.medium};
-// `;
-
 function Layout({ className, children }: Props) {
+  const flags = useFeatureFlags();
   const { currentPage } = useNavigation();
 
   return (
     <div className={className}>
       <AppContainer>
-        <TopToolBar between align>
+        <TopToolBar start align wide>
           <Logo />
-          {/* code for account icon - disabled while no account functionality exists <UserAvatar size="xl" type={IconType.Account} color="white" /> */}
+          <Spacer padding="xl" />
+          <Breadcrumbs />
+          {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>
         <Main wide>
           <NavContainer>
@@ -115,14 +157,17 @@ function Layout({ className, children }: Props) {
               <Tabs
                 centered={false}
                 orientation="vertical"
-                value={getNavValue(currentPage)}
+                value={getParentNavValue(currentPage)}
               >
                 {_.map(navItems, (n) => (
                   <StyleLinkTab
-                    value={n.value}
-                    key={n.value}
+                    key={n.label}
                     label={n.label}
                     to={formatURL(n.value)}
+                    value={n.value}
+                    className={n.sub && "sub-item"}
+                    href={n.href}
+                    newTab={n.newTab}
                   />
                 ))}
               </Tabs>

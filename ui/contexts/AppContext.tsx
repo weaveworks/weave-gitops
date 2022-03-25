@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
+import { Core } from "../lib/api/core/core.pb";
+import { formatURL } from "../lib/nav";
 import {
   clearCallbackState,
   getCallbackState,
@@ -8,8 +10,8 @@ import {
   storeCallbackState,
   storeProviderToken,
 } from "../lib/storage";
-import { PageRoute } from "../lib/types";
-import { formatURL, notifySuccess } from "../lib/utils";
+import { PageRoute, V2Routes } from "../lib/types";
+import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -27,6 +29,8 @@ export function defaultLinkResolver(incoming: string): string {
 
 export type AppContextType = {
   applicationsClient: typeof Applications;
+  api: typeof Core;
+  userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
   appState: AppState;
@@ -38,10 +42,11 @@ export type AppContextType = {
   storeCallbackState: typeof storeCallbackState;
   clearCallbackState: typeof clearCallbackState;
   navigate: {
-    internal: (page: PageRoute, query?: any) => void;
+    internal: (page: PageRoute | V2Routes, query?: any) => void;
     external: (url: string) => void;
   };
   notifySuccess: typeof notifySuccess;
+  request: typeof window.fetch;
 };
 
 export const AppContext = React.createContext<AppContextType>(
@@ -50,6 +55,7 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   applicationsClient?: typeof Applications;
+  coreClient?: typeof Core;
   linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
@@ -87,6 +93,8 @@ export default function AppContextProvider({
 
   const value: AppContextType = {
     applicationsClient,
+    api: props.coreClient,
+    userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
     appState,
@@ -113,6 +121,7 @@ export default function AppContextProvider({
         window.location.href = url;
       },
     },
+    request: window.fetch,
   };
 
   return <AppContext.Provider {...props} value={value} />;

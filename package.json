@@ -4,7 +4,7 @@
   "description": "Weave GitOps core",
   "targets": {
     "default": {
-      "distDir": "cmd/gitops/ui/run/dist",
+      "distDir": "cmd/gitops-server/cmd/dist",
       "source": "ui/index.html",
       "sourceMap": false
     },
@@ -23,12 +23,13 @@
     "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
-    "lint": "eslint ui",
+    "lint": "eslint ui && npm run typecheck",
     "test": "jest",
     "watch": "jest --runInBand --watch",
     "coverage": "jest --coverage",
     "storybook": "start-storybook -s ui/ -p 6006",
-    "build-storybook": "build-storybook ui/assets"
+    "build-storybook": "build-storybook ui/assets",
+    "typecheck": "tsc --noemit"
   },
   "repository": {
     "type": "git",
@@ -55,12 +56,14 @@
     "dagre": "^0.8.5",
     "dagre-d3": "^0.6.4",
     "history": "^5.0.0",
+    "http-proxy-middleware": "^2.0.3",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "postcss": "^8.3.11",
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
     "styled-components": "^5.3.0"
@@ -87,8 +90,10 @@
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@parcel/config-default": "^2.2.1",
-    "@parcel/transformer-typescript-tsc": "^2.2.1",
+    "@parcel/config-default": "^2.3.2",
+    "@parcel/optimizer-data-url": "^2.3.2",
+    "@parcel/transformer-inline-string": "^2.3.2",
+    "@parcel/transformer-typescript-tsc": "^2.3.2",
     "@storybook/addon-actions": "^6.3.12",
     "@storybook/addon-essentials": "^6.4.14",
     "@storybook/addon-links": "^6.3.12",
@@ -111,7 +116,7 @@
     "eslint-plugin-import": "^2.22.1",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
-    "parcel": "^2.2.1",
+    "parcel": "^2.3.2",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.0.7",
     "typescript": "~4.3.5"

@@ -2,18 +2,30 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
+import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
+import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
 import * as React from "react";
 import styled from "styled-components";
+/*eslint import/no-unresolved: [0]*/
+//@ts-ignore
+import failedSrc from "url:../images/failed.svg";
+//@ts-ignore
+import successSrc from "url:../images/success.svg";
+//@ts-ignore
+import suspendedSrc from "url:../images/suspended.svg";
+// eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import Text from "./Text";
@@ -34,6 +46,13 @@ export enum IconType {
   SkipNextIcon,
   SkipPreviousIcon,
   RemoveCircleIcon,
+  FilterIcon,
+  ClearIcon,
+  SearchIcon,
+  LogoutIcon,
+  SuccessIcon,
+  FailedIcon,
+  SuspendedIcon,
 }
 
 type Props = {
@@ -90,6 +109,27 @@ function getIcon(i: IconType) {
 
     case IconType.RemoveCircleIcon:
       return RemoveCircleIcon;
+
+    case IconType.FilterIcon:
+      return FilterIcon;
+
+    case IconType.ClearIcon:
+      return ClearIcon;
+
+    case IconType.SearchIcon:
+      return SearchIcon;
+
+    case IconType.LogoutIcon:
+      return LogoutIcon;
+
+    case IconType.SuccessIcon:
+      return () => <img src={successSrc} />;
+
+    case IconType.FailedIcon:
+      return () => <img src={failedSrc} />;
+
+    case IconType.SuspendedIcon:
+      return () => <img src={suspendedSrc} />;
 
     default:
       break;

@@ -2,43 +2,61 @@ import { MuiThemeProvider } from "@material-ui/core";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import {
   Applications,
-  GetApplicationRequest,
-  GetApplicationResponse,
-  GetChildObjectsReq,
-  GetChildObjectsRes,
   GetGithubAuthStatusRequest,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeRequest,
   GetGithubDeviceCodeResponse,
-  GetReconciledObjectsReq,
-  GetReconciledObjectsRes,
-  ListApplicationsRequest,
-  ListApplicationsResponse,
-  ListCommitsRequest,
-  ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
-  SyncApplicationRequest,
-  SyncApplicationResponse,
   ValidateProviderTokenRequest,
   ValidateProviderTokenResponse,
 } from "./api/applications/applications.pb";
+import {
+  Core,
+  GetChildObjectsRequest,
+  GetChildObjectsResponse,
+  GetReconciledObjectsRequest,
+  GetReconciledObjectsResponse,
+} from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
 
-export type ApplicationOverrides = {
-  ListApplications?: (req: ListApplicationsRequest) => ListApplicationsResponse;
-  GetApplication?: (req: GetApplicationRequest) => GetApplicationResponse;
-  ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
+export type CoreOverrides = {
+  GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
-    req: GetReconciledObjectsReq
-  ) => GetReconciledObjectsRes;
-  GetChildObjects?: (req: GetChildObjectsReq) => GetChildObjectsRes;
+    req: GetReconciledObjectsRequest
+  ) => GetReconciledObjectsResponse;
+};
+
+export const createCoreMockClient = (
+  ovr: CoreOverrides,
+  error?: RequestError
+): typeof Core => {
+  const promisified = _.reduce(
+    ovr,
+    (result, handlerFn, method) => {
+      result[method] = (req) => {
+        if (error) {
+          return new Promise((_, reject) => reject(error));
+        }
+        return new Promise((accept) => accept(handlerFn(req) as any));
+      };
+
+      return result;
+    },
+    {}
+  );
+
+  return promisified as typeof Core;
+};
+
+export type ApplicationOverrides = {
   GetGithubDeviceCode?: (
     req: GetGithubDeviceCodeRequest
   ) => GetGithubDeviceCodeResponse;
@@ -46,7 +64,6 @@ export type ApplicationOverrides = {
     req: GetGithubAuthStatusRequest
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
   ValidateProviderToken?: (
     req: ValidateProviderTokenRequest
   ) => ValidateProviderTokenResponse;
@@ -86,12 +103,14 @@ export function withTheme(element) {
 export function withContext(TestComponent, url: string, ctxProps: AppProps) {
   const history = createMemoryHistory();
   history.push(url);
-
+  const queryClient = new QueryClient();
   const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
       <AppContextProvider renderFooter {...ctxProps}>
-        {isElement ? TestComponent : <TestComponent />}
+        <QueryClientProvider client={queryClient}>
+          {isElement ? TestComponent : <TestComponent />}
+        </QueryClientProvider>
       </AppContextProvider>
     </Router>
   );

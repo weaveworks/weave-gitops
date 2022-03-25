@@ -6,6 +6,9 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
+
+	"github.com/sethvargo/go-limiter/httplimit"
+	"github.com/sethvargo/go-limiter/memorystore"
 )
 
 const (
@@ -28,12 +31,26 @@ const (
 // RegisterAuthServer registers the /callback route under a specified prefix.
 // This route is called by the OIDC Provider in order to pass back state after
 // the authentication flow completes.
-func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
+func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, loginRequestRateLimit uint64) error {
+	store, err := memorystore.New(&memorystore.Config{
+		Tokens: loginRequestRateLimit,
+	})
+	if err != nil {
+		return err
+	}
+
+	middleware, err := httplimit.NewMiddleware(store, httplimit.IPKeyFunc())
+	if err != nil {
+		return err
+	}
+
 	mux.Handle(prefix, srv.OAuth2Flow())
 	mux.Handle(prefix+"/callback", srv.Callback())
-	mux.Handle(prefix+"/sign_in", srv.SignIn())
+	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
 	mux.Handle(prefix+"/userinfo", srv.UserInfo())
 	mux.Handle(prefix+"/logout", srv.Logout())
+
+	return nil
 }
 
 type principalCtxKey struct{}
@@ -63,12 +80,12 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 //
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
-	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
+	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 	multi := MultiAuthPrincipal{adminAuth}
 
 	if srv.oidcEnabled() {
-		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-		cookieAuth := NewJWTCookiePrincipalGetter(srv.logger, srv.verifier(), IDTokenCookieName)
+		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
+		cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
 		multi = append(multi, headerAuth, cookieAuth)
 	}
 
@@ -80,7 +97,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		principal, err := multi.Principal(r)
 		if err != nil {
-			srv.logger.Error(err, "failed to get principal")
+			srv.Log.Error(err, "failed to get principal")
 		}
 
 		if principal == nil || err != nil {

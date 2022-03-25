@@ -89,7 +89,7 @@ Go to [https://github.com/wego-example/podinfo-deploy](https://github.com/wego-e
 gitops ui run
 ```
 
-This will open the dashboard in your browser at [http://0.0.0.0:9001/](http://0.0.0.0:9001/).
+This will open the dashboard in your browser at [https://localhost:9001/](https://localhost:9001/).
 
 You will see an empty Applications view as shown in the image below.
 

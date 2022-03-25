@@ -1,0 +1,12 @@
+---
+image:
+  tag: latest
+  repository: localhost:5001/weaveworks/wego-app
+
+logLevel: debug
+enableLogin: true
+
+adminUser:
+  create: true
+  username: dev
+  password: dev

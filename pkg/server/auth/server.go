@@ -2,15 +2,16 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
@@ -18,8 +19,10 @@ import (
 )
 
 const (
-	LoginOIDC     string = "oidc"
-	LoginUsername string = "username"
+	LoginOIDC                 string = "oidc"
+	LoginUsername             string = "username"
+	ClusterUserAuthSecretName string = "cluster-user-auth"
+	OIDCAuthSecretName        string = "oidc-auth"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -34,21 +37,22 @@ type OIDCConfig struct {
 
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
-	OIDCConfig
+	Log                 logr.Logger
+	client              *http.Client
+	kubernetesClient    ctrlclient.Client
+	tokenSignerVerifier TokenSignerVerifier
+	config              OIDCConfig
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	logger              logr.Logger
-	client              *http.Client
-	provider            *oidc.Provider
-	config              AuthConfig
-	kubernetesClient    ctrlclient.Client
-	tokenSignerVerifier TokenSignerVerifier
+	AuthConfig
+	provider *oidc.Provider
 }
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
 type LoginRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -58,34 +62,56 @@ type UserInfo struct {
 	Groups []string `json:"groups"`
 }
 
+func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
+	cfg := OIDCConfig{
+		IssuerURL:    string(secret.Data["issuerURL"]),
+		ClientID:     string(secret.Data["clientID"]),
+		ClientSecret: string(secret.Data["clientSecret"]),
+		RedirectURL:  string(secret.Data["redirectURL"]),
+	}
+
+	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
+	if err != nil {
+		tokenDuration = time.Hour
+	}
+
+	cfg.TokenDuration = tokenDuration
+
+	return cfg
+}
+
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
+	if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
+		return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
+	}
+
+	if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
+		return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+	}
+
+	return AuthConfig{
+		Log:                 log.WithName("auth-server"),
+		client:              http.DefaultClient,
+		kubernetesClient:    kubernetesClient,
+		tokenSignerVerifier: tsv,
+		config:              oidcCfg,
+	}, nil
+}
+
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, logger logr.Logger, client *http.Client, config AuthConfig, kubernetesClient ctrlclient.Client, tokenSignerVerifier TokenSignerVerifier) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	var provider *oidc.Provider
 
-	if config.IssuerURL != "" {
+	if cfg.config.IssuerURL != "" {
 		var err error
 
-		provider, err = oidc.NewProvider(ctx, config.IssuerURL)
+		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
 	}
 
-	hmacSecret := make([]byte, 64)
-
-	_, err := rand.Read(hmacSecret)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate random HMAC secret: %w", err)
-	}
-
-	return &AuthServer{
-		logger:              logger,
-		client:              client,
-		provider:            provider,
-		config:              config,
-		kubernetesClient:    kubernetesClient,
-		tokenSignerVerifier: tokenSignerVerifier,
-	}, nil
+	return &AuthServer{cfg, provider}, nil
 }
 
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
@@ -161,7 +187,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		// Authorization redirect callback from OAuth2 auth flow.
 		if errorCode := r.FormValue("error"); errorCode != "" {
-			s.logger.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
+			s.Log.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -169,7 +195,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		code := r.FormValue("code")
 		if code == "" {
-			s.logger.Info("code value was empty")
+			s.Log.Info("code value was empty")
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -177,14 +203,14 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		cookie, err := r.Cookie(StateCookieName)
 		if err != nil {
-			s.logger.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
+			s.Log.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if state := r.FormValue("state"); state != cookie.Value {
-			s.logger.Info("cookie value does not match state form value")
+			s.Log.Info("cookie value does not match state form value")
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -192,14 +218,14 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		b, err := base64.StdEncoding.DecodeString(cookie.Value)
 		if err != nil {
-			s.logger.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
+			s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		if err := json.Unmarshal(b, &state); err != nil {
-			s.logger.Error(err, "failed to unmarshal state to JSON", "state", string(b))
+			s.Log.Error(err, "failed to unmarshal state to JSON", "state", string(b))
 			rw.WriteHeader(http.StatusBadRequest)
 
 			return
@@ -207,7 +233,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		token, err = s.oauth2Config(nil).Exchange(ctx, code)
 		if err != nil {
-			s.logger.Error(err, "failed to exchange auth code for token", "code", code)
+			s.Log.Error(err, "failed to exchange auth code for token", "code", code)
 			rw.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -254,7 +280,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
-			s.logger.Error(err, "Failed to decode from JSON")
+			s.Log.Error(err, "Failed to decode from JSON")
 			http.Error(rw, "Failed to read request body.", http.StatusBadRequest)
 
 			return
@@ -263,17 +289,24 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: "wego-system",
-			Name:      "admin-password-hash",
+			Namespace: v1alpha1.DefaultNamespace,
+			Name:      ClusterUserAuthSecretName,
 		}, &hashedSecret); err != nil {
-			s.logger.Error(err, "Failed to query for the secret")
+			s.Log.Error(err, "Failed to query for the secret")
 			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
 
 			return
 		}
 
+		if loginRequest.Username != string(hashedSecret.Data["username"]) {
+			s.Log.Info("Wrong username")
+			rw.WriteHeader(http.StatusUnauthorized)
+
+			return
+		}
+
 		if err := bcrypt.CompareHashAndPassword(hashedSecret.Data["password"], []byte(loginRequest.Password)); err != nil {
-			s.logger.Error(err, "Failed to compare hash with password")
+			s.Log.Error(err, "Failed to compare hash with password")
 			rw.WriteHeader(http.StatusUnauthorized)
 
 			return
@@ -281,7 +314,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 
 		signed, err := s.tokenSignerVerifier.Sign()
 		if err != nil {
-			s.logger.Error(err, "Failed to create and sign token")
+			s.Log.Error(err, "Failed to create and sign token")
 			rw.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -317,7 +350,14 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
-			toJson(rw, ui, s.logger)
+			toJson(rw, ui, s.Log)
+
+			return
+		}
+
+		if !s.oidcEnabled() {
+			ui := UserInfo{}
+			toJson(rw, ui, s.Log)
 
 			return
 		}
@@ -334,11 +374,11 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			Email: info.Email,
 		}
 
-		toJson(rw, ui, s.logger)
+		toJson(rw, ui, s.Log)
 	}
 }
 
-func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
+func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
@@ -347,7 +387,7 @@ func toJson(rw http.ResponseWriter, ui UserInfo, logger logr.Logger) {
 
 	_, err = rw.Write(b)
 	if err != nil {
-		logger.Error(err, "Failing to write response")
+		log.Error(err, "Failing to write response")
 	}
 }
 
@@ -389,7 +429,7 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 func (s *AuthServer) Logout() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			s.logger.Info("Only POST requests allowed")
+			s.Log.Info("Only POST requests allowed")
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 
 			return

@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 	"sigs.k8s.io/yaml"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/fake"

@@ -2,11 +2,9 @@ package version
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/spf13/cobra"
 )
@@ -31,14 +29,6 @@ func runCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("GitCommit:", GitCommit)
 	fmt.Println("BuildTime:", BuildTime)
 	fmt.Println("Branch:", Branch)
-
-	version, err := CheckFluxVersion()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println("Flux Version:", version)
 }
 
 // CheckVersion looks to see if there is a newer version of the software available
@@ -74,10 +64,4 @@ func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command)
 	}
 
 	return p
-}
-func CheckFluxVersion() (string, error) {
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osys.New(), cliRunner)
-
-	return fluxClient.GetVersion()
 }

@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshots renders 1`] = `
+<div
+  className="sc-bdvvtL lacWsj"
+>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/applications"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ izdIGU"
+      color="primary"
+      size="normal"
+    >
+      Applications
+    </span>
+  </a>
+</div>
+`;
+
+exports[`snapshots renders child route 1`] = `
+<div
+  className="sc-bdvvtL lacWsj"
+>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/applications"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ izdIGU"
+      color="primary"
+      size="normal"
+    >
+      Applications
+    </span>
+  </a>
+  <div
+    className="sc-bdvvtL lacWsj sc-dkPtRN hTjxvJ"
+  >
+    <svg
+      aria-hidden={true}
+      className="MuiSvgIcon-root"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+      />
+    </svg>
+  </div>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/kustomization?name=flux"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ eouEkA"
+      color="primary"
+      size="normal"
+    >
+      flux
+    </span>
+  </a>
+</div>
+`;
+
+exports[`snapshots renders on the root page 1`] = `
+<div
+  className="sc-bdvvtL lacWsj"
+>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ izdIGU"
+      color="primary"
+      size="normal"
+    />
+  </a>
+  <div
+    className="sc-bdvvtL lacWsj sc-dkPtRN hTjxvJ"
+  >
+    <svg
+      aria-hidden={true}
+      className="MuiSvgIcon-root"
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+      />
+    </svg>
+  </div>
+  <a
+    className="sc-hKwDye sc-eCImPb kCA-dBN cQVkzF"
+    href="/"
+    onClick={[Function]}
+  >
+    <span
+      className="sc-gsDKAQ eouEkA"
+      color="primary"
+      size="normal"
+    />
+  </a>
+</div>
+`;

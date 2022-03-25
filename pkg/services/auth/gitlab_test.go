@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/types/typesfakes"
-	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakehttp"
 )
 
 func roundTripperErrorStub(*http.Request) (*http.Response, error) {
@@ -31,8 +31,8 @@ var _ = Describe("Gitlab auth flow", func() {
 	var redirectUrl string
 	var client *http.Client
 	var authFlow types.AuthFlow
-	var mockRoundTripper *fakehttp.FakeRoundTripper
-	var mockHandler *fakehttp.FakeHandler
+	var mockRoundTripper *fakehttp.RoundTripper
+	var mockHandler *fakehttp.Handler
 	var tokenState types.TokenResponseState
 
 	expectedTokenRequest := func() *http.Request {
@@ -58,8 +58,8 @@ var _ = Describe("Gitlab auth flow", func() {
 	}
 
 	BeforeEach(func() {
-		mockRoundTripper = &fakehttp.FakeRoundTripper{}
-		mockHandler = &fakehttp.FakeHandler{}
+		mockRoundTripper = &fakehttp.RoundTripper{}
+		mockHandler = &fakehttp.Handler{}
 		client = &http.Client{
 			Transport: mockRoundTripper,
 		}
@@ -215,8 +215,8 @@ var _ = Describe("Shutdown server handler", func() {
 var _ = Describe("Gitlab cli auth flow", func() {
 	var client *http.Client
 	var mockAuthFlow *typesfakes.FakeAuthFlow
-	var mockRoundTripper *fakehttp.FakeRoundTripper
-	var mockHandler *fakehttp.FakeHandler
+	var mockRoundTripper *fakehttp.RoundTripper
+	var mockHandler *fakehttp.Handler
 	var writer *bytes.Buffer
 
 	var cliOutputWithError = func(err error) string {
@@ -230,8 +230,8 @@ var _ = Describe("Gitlab cli auth flow", func() {
 
 	BeforeEach(func() {
 		mockAuthFlow = &typesfakes.FakeAuthFlow{}
-		mockRoundTripper = &fakehttp.FakeRoundTripper{}
-		mockHandler = &fakehttp.FakeHandler{}
+		mockRoundTripper = &fakehttp.RoundTripper{}
+		mockHandler = &fakehttp.Handler{}
 		client = &http.Client{
 			Transport: mockRoundTripper,
 		}
@@ -285,14 +285,14 @@ var _ = Describe("Gitlab cli auth flow", func() {
 var _ = Describe("Gitlab auth flow end-to-end", func() {
 	var client *http.Client
 	var mockAuthFlow *typesfakes.FakeAuthFlow
-	var mockRoundTripper *fakehttp.FakeRoundTripper
-	var mockHandler *fakehttp.FakeHandler
+	var mockRoundTripper *fakehttp.RoundTripper
+	var mockHandler *fakehttp.Handler
 	var writer *bytes.Buffer
 
 	BeforeEach(func() {
 		mockAuthFlow = &typesfakes.FakeAuthFlow{}
-		mockRoundTripper = &fakehttp.FakeRoundTripper{}
-		mockHandler = &fakehttp.FakeHandler{}
+		mockRoundTripper = &fakehttp.RoundTripper{}
+		mockHandler = &fakehttp.Handler{}
 		client = &http.Client{
 			Transport: mockRoundTripper,
 		}
@@ -365,7 +365,7 @@ var _ = Describe("Gitlab auth flow end-to-end", func() {
 
 var _ = Describe("GitlabAuthClient", func() {
 	It("AuthURL", func() {
-		rt := fakehttp.FakeRoundTripper{}
+		rt := fakehttp.RoundTripper{}
 		rt.RoundTripReturns(&http.Response{}, nil)
 		c := NewGitlabAuthClient(&http.Client{Transport: &rt})
 
@@ -375,7 +375,7 @@ var _ = Describe("GitlabAuthClient", func() {
 		Expect(u.Scheme).To(Equal("https"))
 	})
 	It("ExchangeCode", func() {
-		rt := fakehttp.FakeRoundTripper{}
+		rt := fakehttp.RoundTripper{}
 		res := &http.Response{StatusCode: http.StatusOK}
 
 		rs := &internal.GitlabTokenResponse{
@@ -399,14 +399,14 @@ var _ = Describe("GitlabAuthClient", func() {
 	})
 	Describe("ValidateToken", func() {
 		It("returns an error when a 401 is returned", func() {
-			rt := fakehttp.FakeRoundTripper{}
+			rt := fakehttp.RoundTripper{}
 			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusUnauthorized}, nil)
 			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
 
 			Expect(c.ValidateToken(context.Background(), "sometoken")).To(HaveOccurred())
 		})
 		It("does not return an error when a token is valid", func() {
-			rt := fakehttp.FakeRoundTripper{}
+			rt := fakehttp.RoundTripper{}
 			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
 			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
 

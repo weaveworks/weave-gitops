@@ -1,0 +1,175 @@
+
+syntax = "proto3";
+
+package gitops_core.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/core/api";
+
+message Interval {
+    int64 hours = 1;
+    int64 minutes = 2;
+    int64 seconds = 3;
+}
+
+message SourceRef {
+    enum SourceKind {
+      GitRepository  = 0;
+      Bucket         = 1;
+      HelmRepository = 2;
+      HelmChart      = 3;
+    };
+    SourceKind kind = 1;
+    string     name = 2;
+}
+
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
+}
+
+message GitRepositoryRef {
+    string branch = 1;
+    string tag = 2;
+    string semver = 3;
+    string commit = 4;
+}
+
+// GroupVersionKind represents an objects Kubernetes API type data
+message GroupVersionKind {
+    string group   = 1;
+    string kind    = 2;
+    string version = 3;
+}
+
+message Kustomization {
+    string    namespace                  = 1;
+    string    name                       = 2;
+    string    path                       = 3;
+    SourceRef sourceRef                  = 4;
+    Interval  interval                   = 5;
+    repeated  Condition conditions       = 6;
+    string    lastAppliedRevision        = 7;
+    string    lastAttemptedRevision      = 8;
+    string    lastHandledReconciledAt    = 9;
+    repeated  GroupVersionKind inventory = 10;
+    bool      suspended                  = 11;
+}
+
+message HelmChart {
+    string    namespace            = 1;
+    string    name                 = 2;
+    SourceRef sourceRef            = 3;
+    string    chart                = 4;
+    string    version              = 5;
+    Interval  interval             = 6;
+    repeated  Condition conditions = 7;
+    bool      suspended            = 8;
+    string    lastUpdatedAt        = 9;
+}
+
+message HelmRelease {
+    string    release_name               = 1;
+    string    namespace                  = 2;
+    string    name                       = 3;
+    Interval  interval                   = 4;
+    HelmChart helm_chart                 = 5;
+    repeated  Condition conditions       = 6;
+    repeated  GroupVersionKind inventory = 10;
+    bool      suspended                  = 11;
+    string    lastUpdatedAt              = 12;
+}
+
+message GitRepository {
+    string           namespace            = 1;
+    string           name                 = 2;
+    string           url                  = 3;
+    GitRepositoryRef reference            = 4;
+    string           secretRef            = 5;
+    Interval         interval             = 6;
+    repeated         Condition conditions = 7;
+    bool             suspended            = 8;
+    string           lastUpdatedAt        = 9;
+}
+
+message HelmRepository {
+    string   namespace            = 1;
+    string   name                 = 2;
+    string   url                  = 3;
+    Interval interval             = 4;
+    repeated Condition conditions = 5;
+    bool     suspended            = 6;
+    string   lastUpdatedAt        = 7;
+}
+
+message Bucket {
+    string   namespace = 1;
+    string   name      = 2;
+    string   endpoint  = 3;
+    bool     insecure  = 4;
+    Interval interval  = 5;
+    enum Provider {
+      Generic = 0;
+      AWS     = 1;
+      GCP     = 2;
+    };
+    Provider provider             = 6;
+    string   region               = 7;
+    string   secretRefName        = 8;
+    int32    timeout              = 9;
+    repeated Condition conditions = 10;
+    string   bucket_name          = 11;
+    bool     suspended            = 12;
+    string   lastUpdatedAt        = 13;
+}
+
+message Deployment {
+    string   name                 = 1;
+    string   namespace            = 2;
+    repeated Condition conditions = 3;
+    repeated string images        = 4;
+    bool     suspended            = 5;
+}
+
+enum AutomationKind {
+    // enums populate a global namespace, so spell these out.
+    // `Kustomization` and `HelmRelease` are already taken as names.
+    KustomizationAutomation = 0;
+    HelmReleaseAutomation   = 1;
+}
+
+// UnstructuredObject is a Kubernetes object of an unknown type
+message UnstructuredObject {
+    GroupVersionKind groupVersionKind     = 1;
+    string           name                 = 2;
+    string           namespace            = 3;
+    string           uid                  = 4;
+    string           status               = 5;
+    repeated         Condition conditions = 6;
+    bool             suspended            = 7;
+}
+
+message Namespace {
+  string name = 1;
+  string status = 2;
+  map<string, string> annotations = 3;
+  map<string, string> labels = 4;
+}
+
+message Event {
+    string type      = 1;
+    string reason    = 2;
+    string message   = 3;
+    string timestamp = 4;
+    string component = 5;
+    string host      = 6;
+    string name      = 7;
+}
+
+message ObjectReference {
+    string kind      = 1;
+    string namespace = 2;
+    string name      = 3;
+}

@@ -18,11 +18,6 @@ package logger
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// Higher verbosity means the message is less important
-var LogLevelDebug int = 3
-var LogLevelWarn int = 2
-var LogLevelError int = 1
-
 //counterfeiter:generate . Logger
 type Logger interface {
 	Println(format string, a ...interface{})

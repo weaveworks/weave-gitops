@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
 type AdminClaims struct {
@@ -51,7 +52,7 @@ func (sv *HMACTokenSignerVerifier) Sign() (string, error) {
 			IssuedAt:  time.Now().UTC().Unix(),
 			ExpiresAt: time.Now().Add(sv.expireAfter).UTC().Unix(),
 			NotBefore: time.Now().UTC().Unix(),
-			Subject:   "admin",
+			Subject:   v1alpha1.DefaultClaimsSubject,
 		},
 	}
 
