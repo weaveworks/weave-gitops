@@ -164,7 +164,7 @@ jobs:
       - name: Push images to gcloud
         run: |
           docker load --input /tmp/${{ matrix.docker-image }}.tar
-          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${date -u +%s}-${{ github.sha }}"
+          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:$(date -u +%s)-${{ github.sha }}"
 
   ci-upload-binary:
     name: Upload Binary
