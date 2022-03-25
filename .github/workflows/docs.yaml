@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
         with:
-          node-version: "14.x"
+          node-version: "16.x"
       - name: Test Build
         env:
           GA_KEY: "dummy"
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
         with:
-          node-version: "14.x"
+          node-version: "16.x"
       - uses: weaveworks/webfactory-ssh-agent@6b2f2c5354ff41f1edbbf7a17ea9b6178c89be9f
         with:
           ssh-private-key: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
