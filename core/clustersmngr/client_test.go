@@ -4,11 +4,14 @@ import (
 	"context"
 	"testing"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -47,7 +50,7 @@ func TestClientGet(t *testing.T) {
 	g.Expect(k.Name).To(Equal("test"))
 }
 
-func TestClientList(t *testing.T) {
+func TestClientGenericList(t *testing.T) {
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
 	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
@@ -75,9 +78,33 @@ func TestClientList(t *testing.T) {
 	ctx := context.Background()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
-	clist := &clustersmngr.ClusteredKustomizationList{}
+	cklist := clustersmngr.NewClusteredList(func() *kustomizev1.KustomizationList {
+		return &kustomizev1.KustomizationList{}
+	})
 
-	g.Expect(clustersClient.List(ctx, clist)).To(Succeed())
-	g.Expect(clist.Lists["test"].Items).To(HaveLen(1))
-	g.Expect(clist.Lists["test"].Items[0].Name).To(Equal("test"))
+	g.Expect(clustersClient.List(ctx, cklist)).To(Succeed())
+	g.Expect(cklist.Lists["test"].Items).To(HaveLen(1))
+	g.Expect(cklist.Lists["test"].Items[0].Name).To(Equal("test"))
+
+	bucket := &sourcev1.Bucket{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "my-bucket",
+			Namespace: "default",
+		},
+		Spec: sourcev1.BucketSpec{
+			SecretRef: &meta.LocalObjectReference{
+				Name: "somesecret",
+			},
+		},
+	}
+
+	g.Expect(k8sEnv.Client.Create(ctx, bucket)).To(Succeed())
+
+	cblist := clustersmngr.NewClusteredList(func() *sourcev1.BucketList {
+		return &sourcev1.BucketList{}
+	})
+
+	g.Expect(clustersClient.List(ctx, cblist)).To(Succeed())
+	g.Expect(cblist.Lists["test"].Items).To(HaveLen(1))
+	g.Expect(cblist.Lists["test"].Items[0].Name).To(Equal("my-bucket"))
 }
