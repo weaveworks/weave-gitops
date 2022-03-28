@@ -110,11 +110,11 @@ tolerations: []
 affinity: {}
 
 serverTLS:
-  # This block is meant to
-  useSecret: true # Use secret to pass in tls info to the gitops server
-  secretName: "mysecret" # Specify the secret name that contains certificate and private key info
-  certContentField: "cert" # Specify the key within the secret that contains the certificate
-  keyContentField: "key" # Specify the key within the secret that contains the private key
+  # This block is meant to use a secret as a source for the tls info
+  useSecret: false # Use secret to pass in tls info to the gitops server
+  secretName: "" # Specify the secret name that contains certificate and private key info
+  certContentField: "" # Specify the key within the secret that contains the certificate
+  keyContentField: "" # Specify the key within the secret that contains the private key
   # This block is meant to pass in local files directly to the gitops server
   useLocalFiles: false # Use local files to pass in tls info to the gitops server
   localCertFile: "" # Specify the path for the local certificate file (it needs to be relative  to the charts folder)
