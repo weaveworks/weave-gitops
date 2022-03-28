@@ -21,6 +21,8 @@ type Client interface {
 	Delete(ctx context.Context, cluster string, obj client.Object, opts ...client.DeleteOption) error
 	Update(ctx context.Context, cluster string, obj client.Object, opts ...client.UpdateOption) error
 	Patch(ctx context.Context, cluster string, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
+
+	ClientsPool() ClientsPool
 }
 
 type clustersClient struct {
@@ -31,6 +33,10 @@ func NewClient(clientsPool ClientsPool) Client {
 	return &clustersClient{
 		pool: clientsPool,
 	}
+}
+
+func (c *clustersClient) ClientsPool() ClientsPool {
+	return c.pool
 }
 
 func (c *clustersClient) Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error {

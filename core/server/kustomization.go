@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -13,24 +12,13 @@ import (
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	clientsPool := clustersmngr.ClientsPoolFromCtx(ctx)
-	if clientsPool == nil {
-		return &pb.ListKustomizationsResponse{
-			Kustomizations: []*pb.Kustomization{},
-		}, errors.New("no clients pool present in context")
-	}
-
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
 	clist := clustersmngr.NewClusteredList(func() *kustomizev1.KustomizationList {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	opts := []client.ListOption{
-		client.InNamespace(msg.Namespace),
-	}
-
-	if err := clustersClient.List(ctx, clist, opts...); err != nil {
+	if err := clustersClient.List(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, err
 	}
 

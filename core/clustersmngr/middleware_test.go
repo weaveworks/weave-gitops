@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-func TestWithClustersClientsMiddleware(t *testing.T) {
+func TestWithClustersClientMiddleware(t *testing.T) {
 	cluster := makeLeafCluster(t)
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
@@ -23,15 +23,15 @@ func TestWithClustersClientsMiddleware(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	middleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			clientsPool := clustersmngr.ClientsPoolFromCtx(r.Context())
+			clustersClient := clustersmngr.ClientFromCtx(r.Context())
 
-			g.Expect(clientsPool.Clients()).To(HaveKey(cluster.Name))
+			g.Expect(clustersClient.ClientsPool().Clients()).To(HaveKey(cluster.Name))
 
 			next.ServeHTTP(w, r)
 		})
 	}(defaultHandler)
 
-	middleware = clustersmngr.WithClustersClients(clustersFetcher, middleware)
+	middleware = clustersmngr.WithClustersClient(clustersFetcher, middleware)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
@@ -47,7 +47,7 @@ func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns(nil, errors.New("error"))
 
-	middleware := clustersmngr.WithClustersClients(clustersFetcher, defaultHandler)
+	middleware := clustersmngr.WithClustersClient(clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)

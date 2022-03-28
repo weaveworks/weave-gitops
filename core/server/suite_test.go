@@ -92,7 +92,9 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 			return nil, err
 		}
 
-		ctx = context.WithValue(ctx, clustersmngr.ClustersClientsPoolCtxKey, clientsPool)
+		clusterClient := clustersmngr.NewClient(clientsPool)
+
+		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 
 		return handler(ctx, req)
 	})

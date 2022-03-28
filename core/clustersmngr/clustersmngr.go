@@ -15,8 +15,8 @@ import (
 type key int
 
 const (
-	// Clusters Clients Pool context key
-	ClustersClientsPoolCtxKey key = iota
+	// Clusters Client context key
+	ClustersClientCtxKey key = iota
 )
 
 var (
