@@ -52,13 +52,13 @@ export const TitleBar = styled.div`
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
-    <>
+    <Spacer m={["small"]}>
       {_.map(arr, (e, i) => (
-        <Flex key={i} center wide>
+        <Flex key={i} wide>
           <Alert title="Error" message={e?.message} severity="error" />
         </Flex>
       ))}
-    </>
+    </Spacer>
   );
 }
 
@@ -88,14 +88,11 @@ function Page({
           <Flex align>
             <h2>{title}</h2>
             <Spacer padding="small" />
-            {error ? (
-              <Errors error={error} />
-            ) : (
-              <PollingIndicator loading={fetching > 0} />
-            )}
+            <PollingIndicator loading={fetching > 0} />
           </Flex>
           {actions}
         </TitleBar>
+        {error && <Errors error={error} />}
         <Children>{children}</Children>
       </Content>
       {settings.renderFooter && <Footer />}

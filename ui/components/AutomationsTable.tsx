@@ -113,7 +113,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     { label: "Last Updated", value: "lastHandledReconciledAt", width: 10 },
   ];
 
-  if (hideSource) fields = _.filter(fields, { label: "Source" });
+  if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
     <div className={className}>

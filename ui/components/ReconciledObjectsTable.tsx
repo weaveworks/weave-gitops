@@ -13,6 +13,7 @@ import KubeStatusIndicator, {
   computeMessage,
   computeReady,
 } from "./KubeStatusIndicator";
+import LoadingPage from "./LoadingPage";
 import Spacer from "./Spacer";
 
 type Props = {
@@ -30,12 +31,15 @@ function ReconciledObjectsTable({
   automationKind,
   kinds,
 }: Props) {
-  const { data: objs, error } = useGetReconciledObjects(
-    automationName,
-    namespace,
-    automationKind,
-    kinds
-  );
+  const {
+    data: objs,
+    error,
+    isLoading,
+  } = useGetReconciledObjects(automationName, namespace, automationKind, kinds);
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
 
   if (error) {
     return (
