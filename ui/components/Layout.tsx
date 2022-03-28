@@ -98,7 +98,7 @@ const NavContent = styled.div`
     padding: 0px 12px;
     min-height: 24px;
     &.sub-item {
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
   }
   ${Link} {
