@@ -11,10 +11,14 @@ spec:
       {{- include "chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- if .Values.serverTLS.useLocalFiles }}
+        tls-cert: {{.Files.Get .Values.serverTLS.localCertFile | quote }}
+        tls-key: {{.Files.Get .Values.serverTLS.localKeyFile | quote }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
@@ -36,6 +40,18 @@ spec:
             - "{{ .Release.Namespace }}"
             - "--log-level"
             - "{{ .Values.logLevel }}"
+            {{- if .Values.serverTLS.useSecret }}
+            - "--tls-cert-file"
+            - "/etc/tls-volume/{{ .Values.serverTLS.certContentField }}"
+            - "--tls-private-key-file"
+            - "/etc/tls-volume/{{ .Values.serverTLS.keyContentField }}"
+            {{- end }}
+            {{- if .Values.serverTLS.useLocalFiles  }}
+            - "--tls-cert-file"
+            - "/etc/tls-volume/.cert-file"
+            - "--tls-private-key-file"
+            - "/etc/tls-volume/.key-file"
+           {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}
@@ -65,6 +81,30 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if or .Values.serverTLS.useSecret .Values.serverTLS.useLocalFiles }}
+          volumeMounts:
+            - name: tls-volume
+              readOnly: true
+              mountPath: "/etc/tls-volume"
+          {{- end }}
+      {{- if .Values.serverTLS.useSecret }}
+      volumes:
+        - name: tls-volume
+          secret:
+            secretName: {{ .Values.serverTLS.secretName }}
+      {{ end }}
+      {{- if .Values.serverTLS.useLocalFiles -}}
+      volumes:
+        - name: tls-volume
+          downwardAPI:
+            items:
+              - path: ".cert-file"
+                fieldRef:
+                  fieldPath: metadata.annotations['tls-cert']
+              - path: ".key-file"
+                fieldRef:
+                  fieldPath: metadata.annotations['tls-key']
+      {{ end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
