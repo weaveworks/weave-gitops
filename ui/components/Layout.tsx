@@ -58,14 +58,12 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   margin: 0 auto;
   padding: 0;
 `;
 
 const NavContainer = styled.div`
-  position: absolute;
-  left: 0;
   width: 240px;
   height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
@@ -98,7 +96,7 @@ const NavContent = styled.div`
     padding: 0px 12px;
     min-height: 24px;
     &.sub-item {
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
   }
   ${Link} {
@@ -111,26 +109,21 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
-  overflow: auto;
-  margin-left: 240px;
 `;
 
-const Main = styled(Flex)``;
+const Main = styled(Flex)`
+  height: 100%;
+`;
 
 const TopToolBar = styled(Flex)`
-  padding: 8px 0;
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
   flex: 0 1 auto;
-
-  ${Logo} img {
-    width: 70px;
-    height: 72.85px;
-  }
 
   ${UserSettings} {
     justify-self: flex-end;
@@ -147,7 +140,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-          <Spacer padding="xl" />
+          <Spacer padding="small" />
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>

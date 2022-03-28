@@ -14,7 +14,7 @@ import Heading from "./Heading";
 import InfoList, { InfoField } from "./InfoList";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
-import PollingIndicator from "./PollingIndicator";
+
 type Props = {
   className?: string;
   type: SourceRefSourceKind;
@@ -25,7 +25,7 @@ type Props = {
 };
 
 function SourceDetail({ className, name, info, type }: Props) {
-  const { data: sources, isLoading, error, isFetching } = useListSources();
+  const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
 
   if (isLoading) {
@@ -62,10 +62,6 @@ function SourceDetail({ className, name, info, type }: Props) {
     <div className={className}>
       <Flex wide between>
         <div>
-          <Flex align start>
-            <Heading level={1}>{s.name}</Heading>
-            <PollingIndicator loading={isFetching} />
-          </Flex>
           <Heading level={2}>{s.type}</Heading>
           <InfoList items={items} />
         </div>
@@ -94,6 +90,7 @@ function SourceDetail({ className, name, info, type }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
+  padding-top: ${(props) => props.theme.spacing.xs};
   ${InfoList} {
     margin-bottom: 60px;
   }

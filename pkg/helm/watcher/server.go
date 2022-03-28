@@ -5,15 +5,16 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/weaveworks/weave-gitops/pkg/helm"
+
 	//+kubebuilder:scaffold:imports
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller"
@@ -22,8 +23,7 @@ import (
 const controllerName = "helm-watcher"
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme = runtime.NewScheme()
 )
 
 type Options struct {
@@ -68,10 +68,8 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	}, nil
 }
 
-func (w *Watcher) StartWatcher() error {
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&zap.Options{
-		Development: false,
-	})))
+func (w *Watcher) StartWatcher(log logr.Logger) error {
+	ctrl.SetLogger(log.WithName("helm-watcher"))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
@@ -81,17 +79,17 @@ func (w *Watcher) StartWatcher() error {
 		Logger:                 ctrl.Log,
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to create manager")
+		ctrl.Log.Error(err, "unable to create manager")
 		return err
 	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
+		ctrl.Log.Error(err, "unable to set up health check")
 		return err
 	}
 
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
+		ctrl.Log.Error(err, "unable to set up ready check")
 		return err
 	}
 
@@ -100,7 +98,7 @@ func (w *Watcher) StartWatcher() error {
 	if w.notificationAddress != "" {
 		var err error
 		if eventRecorder, err = events.NewRecorder(w.notificationAddress, controllerName); err != nil {
-			setupLog.Error(err, "unable to create event recorder")
+			ctrl.Log.Error(err, "unable to create event recorder")
 			return err
 		}
 	}
@@ -112,14 +110,14 @@ func (w *Watcher) StartWatcher() error {
 		Scheme:                scheme,
 		ExternalEventRecorder: eventRecorder,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
+		ctrl.Log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err
 	}
 
-	setupLog.Info("starting manager")
+	ctrl.Log.Info("starting manager")
 
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+		ctrl.Log.Error(err, "problem running manager")
 		return err
 	}
 

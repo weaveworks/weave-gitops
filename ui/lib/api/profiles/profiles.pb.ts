@@ -4,8 +4,8 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as fm from "../../fetch.pb"
 import * as GoogleApiHttpbody from "../../google/api/httpbody.pb"
-import * as fm from "../applications/fetch.pb"
 export type Maintainer = {
   name?: string
   email?: string

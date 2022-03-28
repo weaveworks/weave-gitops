@@ -44,8 +44,8 @@ function KubeStatusIndicator({
     readyText = "Suspended";
   } else {
     const ready = computeReady(conditions);
-    icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
     readyText = ready ? "Ready" : "Not Ready";
+    icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
   }
 
   let text = computeMessage(conditions);

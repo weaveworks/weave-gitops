@@ -6,13 +6,13 @@ import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
-import PollingIndicator from "../../components/PollingIndicator";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
 import SourceLink from "../../components/SourceLink";
+import Spacer from "../../components/Spacer";
 import { useGetHelmRelease } from "../../hooks/automations";
 import {
   AutomationKind,
-  SourceRefSourceKind
+  SourceRefSourceKind,
 } from "../../lib/api/core/types.pb";
 import { WeGONamespace } from "../../lib/types";
 
@@ -26,17 +26,14 @@ const Info = styled.div`
 `;
 
 function HelmReleaseDetail({ className, name }: Props) {
-  const { data, isLoading, error, isFetching } = useGetHelmRelease(name);
+  const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
 
   return (
-    <Page loading={isLoading} error={error} className={className}>
+    <Page loading={isLoading} error={error} className={className} title={name}>
+      <Spacer padding="xs" />
       <Flex wide between>
         <Info>
-          <Flex align start>
-            <Heading level={1}>{helmRelease?.name}</Heading>
-            <PollingIndicator loading={isFetching} />
-          </Flex>
           <Heading level={2}>{helmRelease?.namespace}</Heading>
           <InfoList
             items={[

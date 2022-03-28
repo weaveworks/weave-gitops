@@ -14,14 +14,15 @@ type Props = {
 
 function Logo({ className }: Props) {
   return (
-    <Spacer padding="medium">
-      <Flex className={className} align>
-        <img src={logoSrc} />
-        <Spacer padding="xxs" />
-        <img src={titleSrc} style={{ height: "90%" }} />
-      </Flex>
-    </Spacer>
+    <Flex className={className} align start>
+      <img src={logoSrc} style={{ height: 56 }} />
+      <Spacer padding="xxs" />
+      <img src={titleSrc} />
+    </Flex>
   );
 }
 
-export default styled(Logo)``;
+export default styled(Logo)`
+  margin-left: ${(props) => props.theme.spacing.medium};
+  width: 240px;
+`;

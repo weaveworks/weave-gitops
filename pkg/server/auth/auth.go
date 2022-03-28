@@ -80,12 +80,12 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 //
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
-	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.logger, srv.tokenSignerVerifier, IDTokenCookieName)
+	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 	multi := MultiAuthPrincipal{adminAuth}
 
 	if srv.oidcEnabled() {
-		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
-		cookieAuth := NewJWTCookiePrincipalGetter(srv.logger, srv.verifier(), IDTokenCookieName)
+		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
+		cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
 		multi = append(multi, headerAuth, cookieAuth)
 	}
 
@@ -97,7 +97,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		principal, err := multi.Principal(r)
 		if err != nil {
-			srv.logger.Error(err, "failed to get principal")
+			srv.Log.Error(err, "failed to get principal")
 		}
 
 		if principal == nil || err != nil {

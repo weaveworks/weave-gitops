@@ -17,4 +17,5 @@ plugins:
       - allow_delete_body=true
   - name: grpc-gateway-ts
     out: ./ui/lib
-    opt: fetch_module_directory=./api/applications
+    opt: []
+    strategy: all

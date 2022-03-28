@@ -11,9 +11,6 @@ func DeleteCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Use:   "delete",
 		Short: "Delete one or many Weave GitOps resources",
 		Example: `
-# Delete an application from gitops
-gitops delete app <app-name>
-
 # Delete a CAPI cluster given its name
 gitops delete cluster <cluster-name>`,
 	}

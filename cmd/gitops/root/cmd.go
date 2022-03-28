@@ -16,8 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
@@ -52,42 +50,19 @@ func RootCmd(client *resty.Client) *cobra.Command {
 		SilenceErrors: true,
 		Short:         "Weave GitOps",
 		Long:          "Command line utility for managing Kubernetes applications via GitOps.",
-		Example: fmt.Sprintf(`
+		Example: `
   # Get verbose output for any gitops command
   gitops [command] -v, --verbose
 
-  # Get gitops app help
-  gitops help app
-
-  # Add application to gitops control from a local git repository
-  gitops add app . --name <myapp>
-  OR
-  gitops add app <myapp-directory>
-
-  # Add application to gitops control from a github repository
-  gitops add app \
-    --name <myapp> \
-    --url git@github.com:myorg/<myapp> \
-    --branch prod-<myapp>
-
-  # Get status of application under gitops control
-  gitops get app podinfo
-
-  # Get help for gitops add app command
-  gitops add app -h
-  gitops help add app
-
-  # Show manifests that would be installed by the gitops install command
-  gitops install --dry-run
-
-  # Install gitops in the %s namespace
-  gitops install
+  # Get help for gitops add cluster command
+  gitops add cluster -h
+  gitops help add cluster
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
 
   To learn more, you can find our documentation at https://docs.gitops.weave.works/
-`, wego.DefaultNamespace),
+`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			configureLogger()
 
@@ -125,14 +100,12 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
-	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
 	rootCmd.AddCommand(upgrade.Cmd)
-	rootCmd.AddCommand(ui.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 
