@@ -7,7 +7,6 @@ import ControlledForm from "./ControlledForm";
 import Flex from "./Flex";
 import FormCheckbox from "./FormCheckbox";
 import Icon, { IconType } from "./Icon";
-import Spacer from "./Spacer";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
@@ -91,6 +90,7 @@ function UnstyledFilterDialog({
     <SlideContainer>
       <SlideWrapper>
         <Slide direction="left" in={open} mountOnEnter unmountOnExit>
+<<<<<<< HEAD
 <<<<<<< HEAD
           <Paper elevation={4}>
             <Flex className={className + " filter-bar"} align start>
@@ -199,6 +199,56 @@ function UnstyledFilterDialog({
                 </List>
               </ControlledForm>
             </Spacer>
+=======
+          <Flex className={className + " filter-bar"} start column>
+            <Flex wide align between>
+              <Text size="extraLarge" color="neutral30">
+                Filters
+              </Text>
+              <Button variant="text" color="inherit" onClick={onClose}>
+                <Icon
+                  type={IconType.ClearIcon}
+                  size="large"
+                  color="neutral30"
+                />
+              </Button>
+            </Flex>
+            <ControlledForm
+              state={{ values: formState }}
+              onChange={onFormChange}
+            >
+              <List>
+                {_.map(filterList, (options: string[], header: string) => {
+                  return (
+                    <ListItem key={header}>
+                      <Flex column>
+                        <Text capitalize size="large" color="neutral30">
+                          {header}
+                        </Text>
+                        <List>
+                          {_.map(options, (option: string, index: number) => {
+                            return (
+                              <ListItem key={index}>
+                                <ListItemIcon>
+                                  <FormCheckbox
+                                    label=""
+                                    name={`${header}${filterSeparator}${option}`}
+                                  />
+                                </ListItemIcon>
+                                <Text color="neutral30">
+                                  {_.toString(option)}
+                                </Text>
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      </Flex>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </ControlledForm>
+>>>>>>> 4bee3a76 (spacer fix)
           </Flex>
 >>>>>>> 4b588120 (corrected filter class)
         </Slide>
@@ -212,7 +262,8 @@ export default styled(UnstyledFilterDialog)`
     background: ${(props) => props.theme.colors.neutral00};
     min-width: 450px;
     border-left: 2px solid ${(props) => props.theme.colors.neutral20};
-    padding-left: ${(props) => props.theme.spacing.medium};
+    padding: ${(props) => props.theme.spacing.medium};
+    padding-left: ${(props) => props.theme.spacing.large};
   }
   .MuiListItem-gutters {
     padding-left: 0px;
