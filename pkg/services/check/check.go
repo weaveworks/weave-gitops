@@ -1,118 +1,70 @@
 package check
 
 import (
-	"context"
-	"errors"
 	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
-var ErrKubernetesNotFound = errors.New("no kubernetes version found")
-
 const (
-	FluxCompatibleMessage    = "Current flux version is compatible"
-	FluxNotCompatibleMessage = "Current flux version is not compatible"
+	kubernetesConstraints = ">=1.20.6-0"
 )
 
 // Pre runs pre-install checks
-func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expectedFluxVersion string) (string, error) {
-	output := ""
-
-	k8sOutput, err := runKubernetesCheck(fluxClient)
+func Pre() (string, error) {
+	k8sOutput, err := runKubernetesCheck()
 	if err != nil {
 		return "", err
 	}
 
-	output += k8sOutput + "\n"
-
-	currentFluxVersion, err := getCurrentFluxVersion(ctx, kubeClient)
-	if err != nil {
-		if errors.Is(err, kube.ErrNamespaceNotFound) {
-			output += "✔ Flux is not installed"
-			return output, nil
-		}
-
-		return "", fmt.Errorf("failed getting installed flux version: %w", err)
-	}
-
-	fluxOutput, err := validateFluxVersion(currentFluxVersion, expectedFluxVersion)
-	if err != nil {
-		return "", err
-	}
-
-	output += fluxOutput
-
-	return output, nil
+	return k8sOutput, nil
 }
 
-func runKubernetesCheck(fluxClient flux.Flux) (string, error) {
-	output, err := fluxClient.PreCheck()
+func runKubernetesCheck() (string, error) {
+	versionOutput, err := exec.Command("kubectl", "version", "--short").CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed running flux pre check %w", err)
+		return "", fmt.Errorf("unable to get kubernetes version: %w", err)
 	}
 
-	lines := strings.Split(output, "\n")
+	v, err := parseVersion(string(versionOutput))
+	if err != nil {
+		return "", fmt.Errorf("kubernetes version can't be determined: %w", err)
+	}
+
+	return checkKubernetesVersion(v)
+}
+
+func checkKubernetesVersion(version *semver.Version) (string, error) {
+	var valid bool
+
+	var vrange string
+
+	c, _ := semver.NewConstraint(kubernetesConstraints)
+	if c.Check(version) {
+		valid = true
+		vrange = kubernetesConstraints
+	}
+
+	if !valid {
+		return "", fmt.Errorf("✗ kubernetes version %s does not match %s", version.Original(), kubernetesConstraints)
+	}
+
+	return fmt.Sprintf("✔ Kubernetes %s %s", version.String(), vrange), nil
+}
+
+func parseVersion(text string) (*semver.Version, error) {
+	version := ""
+	lines := strings.Split(text, "\n")
+
 	for _, line := range lines {
-		if strings.Contains(line, "Kubernetes") {
-			return line, nil
+		if strings.Contains(line, "Server") {
+			version = strings.Replace(line, "Server Version: v", "", 1)
 		}
 	}
 
-	return "", ErrKubernetesNotFound
-}
-
-func getCurrentFluxVersion(ctx context.Context, kubeClient kube.Kube) (string, error) {
-	namespace, err := kubeClient.FetchNamespaceWithLabel(ctx, flux.PartOfLabelKey, flux.PartOfLabelValue)
-	if err != nil {
-		return "", err
-	}
-
-	labels := namespace.GetLabels()
-
-	return labels[flux.VersionLabelKey], nil
-}
-
-func validateFluxVersion(actualFluxVersion string, expectedFluxVersion string) (string, error) {
-	actualParsedFluxVersion, err := parseVersion(actualFluxVersion)
-	if err != nil {
-		return "", err
-	}
-
-	expectedParsedFluxVersion, err := parseVersion(expectedFluxVersion)
-	if err != nil {
-		return "", err
-	}
-
-	fluxOutput := ""
-
-	expectedMajor := expectedParsedFluxVersion.Major()
-	expectedMinor := expectedParsedFluxVersion.Minor()
-	constraintFormat := fmt.Sprintf("~%d.%d.x", expectedMajor, expectedMinor)
-
-	constraint, err := semver.NewConstraint(constraintFormat)
-	if err != nil {
-		return "", fmt.Errorf("failed creating semver constraint: %w", err)
-	}
-
-	check := constraint.Check(actualParsedFluxVersion)
-	if check {
-		fluxOutput += fmt.Sprintf("✔ Flux %s ~=%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
-		fluxOutput += FluxCompatibleMessage
-	} else {
-		fluxOutput += fmt.Sprintf("✗ Flux %s !=%s\n", actualParsedFluxVersion, constraintFormat)
-		fluxOutput += FluxNotCompatibleMessage
-	}
-
-	return fluxOutput, nil
-}
-
-func parseVersion(version string) (*semver.Version, error) {
-	versionLessV := strings.TrimPrefix(version, "v")
-	if _, err := semver.StrictNewVersion(versionLessV); err != nil {
+	if _, err := semver.StrictNewVersion(version); err != nil {
 		return nil, err
 	}
 

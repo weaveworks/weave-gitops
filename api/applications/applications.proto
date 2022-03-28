@@ -1,4 +1,3 @@
-
 syntax = "proto3";
 
 package wego_server.v1;
@@ -29,53 +28,6 @@ service Applications {
             body: "*"
         };
     }
-
-    /**
-     * ListApplications returns the list of WeGo applications that the authenticated user has access to.
-    */
-    rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
-        option (google.api.http) = {
-            get : "/v1/applications"
-        };
-    }
-    /**
-    * GetApplication returns a given application
-    */
-    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
-        option (google.api.http) = {
-            get : "/v1/applications/{name}"
-        };
-    }
-    /**
-     * ListCommits returns the list of WeGo commits that the authenticated user has access to.
-    */
-    rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
-        option (google.api.http) = {
-            get : "/v1/applications/{name}/commits",
-        };
-    }
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result of the Application.
-    * This list is derived by looking at the Kustomization that is associated with an Application.
-    * Helm Releases are not currently supported.
-    */
-    rpc GetReconciledObjects(GetReconciledObjectsReq) returns (GetReconciledObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/{automationName}/reconciled_objects"
-            body: "*"
-        };
-    };
-
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
-    rpc GetChildObjects(GetChildObjectsReq) returns (GetChildObjectsRes) {
-        option (google.api.http) = {
-            post : "/v1/applications/child_objects"
-            body: "*"
-        };
-    };
 
     /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
@@ -125,36 +77,6 @@ service Applications {
         };
     }
 
-    /*
-    * AddApplication adds an Application to a cluster via GitOps.
-    */
-    rpc AddApplication(AddApplicationRequest) returns (AddApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications"
-            body: "*"
-        };
-    }
-
-    /*
-    * RemoveApplication removes an Application from a cluster via GitOps.
-    */
-    rpc RemoveApplication(RemoveApplicationRequest) returns (RemoveApplicationResponse) {
-        option (google.api.http) = {
-            delete : "/v1/applications/{name}"
-            body: "*"
-        };
-    }
-
-    /*
-    * SyncApplication triggers the Application reconciliation loop.
-    */
-    rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
-        option (google.api.http) = {
-            post : "/v1/applications/{name}/sync"
-            body: "*"
-        };
-    }
-    
     /**
     * ParseRepoURL returns structured data about a git repository URL
     */
@@ -174,73 +96,14 @@ service Applications {
         };
     }
 
-}
-
-// This object represents a single condition for a Kubernetes object.
-// It roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition
-message Condition {
-    string type      = 1;
-    string status    = 2;
-    string reason    = 3;
-    string message   = 4;
-    int32  timestamp = 5;
-}
-
-message Application {
-    string                    name                            = 1;  // The name of the application
-    string                    path                            = 2;  // The file path where the k8s yaml files for this application are stored.
-    string                    url                             = 3;  // The git repository URL for this application
-    repeated                  Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
-    repeated                  Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
-    string                    namespace                       = 6;  // The kubernetes namespace of the application
-    AutomationKind            deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
-    repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
-    Kustomization             kustomization                   = 9;  // Kustomization associated to the application
-    HelmRelease               helm_release                    = 10; // HelmRelease associated to the application
-    Source                    source                          = 11; // Source associated to the application
-}
-
-message Kustomization {
-    string   name                 = 1;  // The name of the Kustomization
-    string   namespace            = 2;  // The namespace of the Kustomization
-    string   targetNamespace      = 3;  // Sets or overrides the namespace in the kustomization.yaml file.
-    string   path                 = 4;  // Path to the directory containing the kustomization.yaml file, or the set of plain YAMLs a kustomization.yaml should be generated for.
-    repeated Condition conditions = 5;  // A list of conditions for this Kustomization
-    string   interval             = 6;  // The interval at which to reconcile the Kustomization.
-    bool     prune                = 7;  // Enables garbage collection.
-    string   lastAppliedRevision  = 8;  // The last successfully applied revision.
-}
-
-message HelmRelease {
-    string    name                 = 1; // The name of the Helm Release
-    string    namespace            = 2; // The namespace of the Helm Release
-    string    targetNamespace      = 3; // Namepsace to target when performing operations for the HelmRelease
-    HelmChart chart                = 4; // Chart defines the template of the Chart that should be created for this HelmRelease.
-    string    interval             = 5; // Interval at which to reconcile the Helm release.
-    string    lastAppliedRevision  = 6; // The last successfully applied revision.
-    repeated  Condition conditions = 7; // A list of conditions for this Helm Release
-}
-
-message HelmChart {
-    string   chart              = 1; // The name or path the Helm chart
-    string   version            = 2; // Version semver expression
-    repeated string valuesFiles = 3; // List of values files to use as the chart values
-}
-
-message Source {
-    string name = 1; // The name of the Source
-    string url  = 2; // Git or Helm repository URL
-    enum Type {
-        Git  = 0;
-        Helm = 1;
-    };
-    Type     type                 = 3; // Source Type
-    string   namespace            = 4; // The namespace of the Source
-    string   interval             = 5; // The interval at which to check the upstream for updates
-    string   reference            = 6; // Git branch or tag
-    bool     suspend              = 7; // This flag tells the controller to suspend the reconciliation of this source
-    string   timeout              = 8; // The timeout of index downloading.
-    repeated Condition conditions = 9; // A list of conditions for this Source
+    /**
+    * Config returns configuration information about the server
+    */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+        option (google.api.http) = {
+            get : "/v1/featureflags"
+        };
+    }
 }
 
 message AuthenticateRequest {
@@ -251,125 +114,6 @@ message AuthenticateRequest {
 message AuthenticateResponse {
     string token = 1;  // The jwt token that was generated using git provider name and git provider token
 }
-
-message ListApplicationsRequest {
-    string namespace = 1;  // The namespace to look for applications
-}
-
-message ListApplicationsResponse {
-   repeated Application applications = 1; // A list of applications
-}
-
-message GetApplicationRequest {
-    string name      = 1;  // The name of an application
-    string namespace = 2;  // The kubernetes namespace of the application.`
-}
-
-message GetApplicationResponse {
-    Application application = 1;
-}
-
-message AddApplicationRequest {
-    string name       = 1;
-    string namespace  = 2;
-    string path       = 3;
-    string url        = 4;
-    string branch     = 5;
-    bool   autoMerge  = 6;
-    string configRepo = 7;
-}
-
-message AddApplicationResponse {
-    bool        success        = 1;
-    Application application    = 2;
-}
-
-message RemoveApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-    bool   autoMerge = 3;
-}
-
-message RemoveApplicationResponse {
-    bool success = 1;
-    string repoUrl = 2;
-}
-
-message SyncApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-}
-
-message SyncApplicationResponse {
-    bool success = 1;
-}
-
-message Commit {
-    string   hash    = 1;  // The hash of the commit
-    string   date    = 2;  // The date the commit was made.
-    string   author  = 3;  // The author of the commit
-    string   message = 4;  // The commit message
-    string   url     = 5;  // The commit url
-}
-
-message ListCommitsRequest {
-    string name      = 1;  // The application name
-    string namespace = 2;  // The namespace the application is in
-    int32  page_size = 3;
-    // Optional. A pagination token returned from a previous call
-    // that indicates where this listing should continue from.
-    optional int32 page_token = 4;
-}
-
-message ListCommitsResponse {
-    repeated Commit commits = 1; // A list of commits
-    // A pagination token returned from a previous call
-    // that indicates from where listing should continue.
-    int32 next_page_token = 2;
-}
-
-// GroupVersionKind represents an objects Kubernetes API type data
-message GroupVersionKind {
-    string group   = 1;
-    string kind    = 2;
-    string version = 3;
-}
-
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind = 1;
-    string           name             = 2;
-    string           namespace        = 3;
-    string           uid              = 4;
-    string           status           = 5;
-}
-
-message GetReconciledObjectsReq {
-    string   automationName      = 1;
-    string   automationNamespace = 2;
-    AutomationKind automationKind = 3;
-    repeated GroupVersionKind kinds = 4;
-}
-// AutomationKind represents the deployment method used
-enum AutomationKind {
-    Kustomize = 0;
-    Helm      = 1;
-}
-
-message GetReconciledObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
-
-message GetChildObjectsReq {
-    GroupVersionKind groupVersionKind = 1;
-    string           parentUid        = 2;
-}
-
-message GetChildObjectsRes {
-    repeated UnstructuredObject objects = 1;
-}
-
 
 message GetGithubDeviceCodeRequest {
 
@@ -430,4 +174,10 @@ message ValidateProviderTokenRequest {
 
 message ValidateProviderTokenResponse {
     bool valid = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+    map<string, string> flags = 1;
 }

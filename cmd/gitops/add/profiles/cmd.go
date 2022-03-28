@@ -3,10 +3,8 @@ package profiles
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
@@ -14,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -25,7 +22,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-var opts profiles.AddOptions
+var opts profiles.Options
 
 // AddCommand provides support for adding a profile to a cluster.
 func AddCommand() *cobra.Command {
@@ -43,11 +40,12 @@ func AddCommand() *cobra.Command {
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
 	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
-	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of external repository (if any) which will hold automation manifests")
+	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
 	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster to add the profile to")
 	cmd.Flags().StringVar(&opts.ProfilesPort, "profiles-port", server.DefaultPort, "Port the Profiles API is running on")
-	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's default branch")
+	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's branch")
 	cmd.Flags().StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(homedir.HomeDir(), ".kube", "config"), "Absolute path to the kubeconfig file")
+	internal.AddPRFlags(cmd, &opts.HeadBranch, &opts.BaseBranch, &opts.Description, &opts.Message, &opts.Title)
 
 	requiredFlags := []string{"name", "config-repo", "cluster"}
 	for _, f := range requiredFlags {
@@ -61,14 +59,12 @@ func AddCommand() *cobra.Command {
 
 func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		rand.Seed(time.Now().UnixNano())
-
 		log := internal.NewCLILogger(os.Stdout)
-		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		if err := validateAddOptions(opts); err != nil {
+		if err := validateOptions(opts); err != nil {
 			return err
 		}
 
@@ -106,7 +102,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	}
 }
 
-func validateAddOptions(opts profiles.AddOptions) error {
+func validateOptions(opts profiles.Options) error {
 	if models.ApplicationNameTooLong(opts.Name) {
 		return fmt.Errorf("--name value is too long: %s; must be <= %d characters",
 			opts.Name, models.MaxKubernetesResourceNameLength)

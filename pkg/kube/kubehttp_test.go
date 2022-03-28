@@ -8,9 +8,8 @@ import (
 	"os"
 
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,126 +50,6 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(name).To(Equal(testClustername))
-	})
-
-	It("GetClusterStatus", func() {
-		ctx := context.Background()
-		status := k.GetClusterStatus(ctx)
-
-		// To determine cluster status, we check for the wego CRD.
-		// We cannot remove that CRD for tests, so we can only test this
-		// cluster state.
-		Expect(status.String()).To(Equal(kube.GitOpsInstalled.String()))
-	})
-
-	It("FluxPresent", func() {
-		ctx := context.Background()
-
-		exists1, err := k.FluxPresent(ctx)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Flux doesn't exist yet
-		Expect(exists1).To(BeFalse())
-
-		fluxNs := corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: kube.FluxNamespace,
-			},
-		}
-
-		// Create the namespace
-		err = k8sClient.Create(ctx, &fluxNs)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists2, err := k.FluxPresent(ctx)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists2).To(BeTrue())
-	})
-
-	It("NamespacePresent", func() {
-		ctx := context.Background()
-		namespace := "wego-system"
-
-		exists1, err := k.NamespacePresent(ctx, namespace)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Namespace doesn't exist yet
-		Expect(exists1).To(BeFalse())
-
-		ns := corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
-			},
-		}
-
-		// Create the namespace
-		err = k8sClient.Create(ctx, &ns)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists2, err := k.NamespacePresent(ctx, namespace)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists2).To(BeTrue())
-	})
-
-	It("GetApplication", func() {
-		ctx := context.Background()
-		name := "my-app"
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				SourceType:     wego.SourceTypeGit,
-				DeploymentType: wego.DeploymentTypeKustomize,
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		a, err := k.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(a.Name).To(Equal(name))
-	})
-
-	It("SecretPresent", func() {
-		name := "my-secret"
-		ctx := context.Background()
-		secret := corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace.Name},
-		}
-
-		err = k8sClient.Create(ctx, &secret)
-		Expect(err).NotTo(HaveOccurred())
-
-		exists, err := k.SecretPresent(ctx, name, namespace.Name)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(exists).To(BeTrue())
-	})
-
-	It("GetApplications", func() {
-		ctx := context.Background()
-		name := "my-app"
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		list, err := k.GetApplications(ctx, namespace.Name)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(list).To(HaveLen(1))
-		Expect(list[0].Name).To(Equal(name))
 	})
 
 	Describe("Apply", func() {
@@ -223,75 +102,6 @@ metadata:
 		})
 	})
 
-	Describe("Delete", func() {
-		It("delete a manifest", func() {
-			ctx := context.Background()
-			name := "my-app"
-
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					Branch:         "master",
-					Path:           "/.kustomize",
-					DeploymentType: wego.DeploymentTypeKustomize,
-					SourceType:     wego.SourceTypeGit,
-				},
-			}
-			appYaml := fmt.Sprintf(`
-apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: %s
-  namespace: %s
-  spec:
-    branch: master
-    deployment_type: kustomize
-    path: ./kustomize
-    source_type: git
-`, name, namespace.Name)
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			Expect(k.Delete(ctx, []byte(appYaml))).Should(Succeed())
-		})
-
-		It("delete an invalid manifest", func() {
-			ctx := context.Background()
-			appYaml := "invalid"
-
-			err := k.Delete(ctx, []byte(appYaml))
-			Expect(errors.Unwrap(err).Error()).Should(ContainSubstring("failed decoding manifest"))
-		})
-	})
-
-	It("DeleteByName", func() {
-		ctx := context.Background()
-		name := "my-app"
-
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				Branch:         "master",
-				Path:           "/.kustomize",
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			},
-		}
-
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-		Expect(k.DeleteByName(ctx, name, kube.GVRApp, namespace.Name)).Should(Succeed())
-
-		a, err := k.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name})
-		Expect(err).ToNot(HaveOccurred())
-		Expect(a.DeletionTimestamp).ToNot(BeNil())
-	})
 	Describe("Getting client with override kubeconfig", func() {
 		It("valid kubeconfig", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
@@ -361,68 +171,6 @@ metadata:
 		})
 	})
 
-	Describe("GetResouce", func() {
-		It("fetches a k8s resource", func() {
-			ctx := context.Background()
-			name := "my-app"
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			resource := &wego.Application{}
-
-			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(resource.GetName()).To(Equal(name))
-			Expect(resource.Spec.SourceType).To(Equal(wego.SourceTypeGit))
-		})
-	})
-
-	Describe("SetResouce", func() {
-		It("sets a k8s resource", func() {
-			ctx := context.Background()
-			name := "my-app"
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace.Name,
-				},
-				Spec: wego.ApplicationSpec{
-					SourceType:     wego.SourceTypeGit,
-					DeploymentType: wego.DeploymentTypeKustomize,
-				},
-			}
-			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-
-			resource := &wego.Application{}
-
-			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			resource.SetAnnotations(map[string]string{
-				"my-annotation": "note",
-			})
-
-			err = k.SetResource(ctx, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			newResource := &wego.Application{}
-
-			err = k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, newResource)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(newResource.GetAnnotations()["my-annotation"]).To(Equal("note"))
-		})
-	})
-
 	Describe("GetWegoConfig", func() {
 		It("get a wego config in a namespace", func() {
 			ctx := context.Background()
@@ -478,29 +226,6 @@ metadata:
 			Expect(err.Error()).To(ContainSubstring("Wego Config not found"))
 		})
 	})
-
-	Describe("SetWegoConfig", func() {
-		It("set a wego config in a namespace", func() {
-			ctx := context.Background()
-
-			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, namespace.Name)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(cm).ToNot(BeNil())
-
-			wegoConfig, err := k.GetWegoConfig(ctx, namespace.Name)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(wegoConfig.FluxNamespace).To(Equal("foo"))
-		})
-
-		It("fails setting a wego config", func() {
-			ctx := context.Background()
-
-			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, "")
-			Expect(err.Error()).To(ContainSubstring("failed getting weave-gitops configmap"))
-			Expect(cm).To(BeNil())
-		})
-	})
-
 })
 
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {

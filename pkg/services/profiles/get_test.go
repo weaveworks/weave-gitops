@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -154,7 +154,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			Expect(version).To(Equal("6.0.1"))
 		})
 
-		It("it fails to return a list of available profiles from the cluster", func() {
+		It("fails to return a list of available profiles from the cluster", func() {
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapperWithErr("nope"), nil
 			})
@@ -194,6 +194,30 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			})
 			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
+		})
+
+		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
+			badProfileResp := `{
+				"profiles": [
+				  {
+					"name": "podinfo",
+					"helmRepository": {
+						"name": "",
+						"namespace": ""
+					},
+					"availableVersions": [
+					  "6.0.0",
+					  "6.0.1"
+					]
+				  }
+				]
+			  }
+			  `
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(badProfileResp), nil
+			})
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
+			Expect(err).To(MatchError("HelmRepository's name or namespace is empty"))
 		})
 	})
 })

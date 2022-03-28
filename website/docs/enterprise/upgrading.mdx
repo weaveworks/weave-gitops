@@ -12,25 +12,30 @@ import TabItem from "@theme/TabItem";
 
 Make sure the following software is installed before continuing with these instructions:
 
-- `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
+- `gitops` >= 0.6.2 download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
 
-Also `GITHUB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
+Also `GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 :::
 
 Upgrading requires we:
 
-1. Have a cluster with Weave GitOps installed
-2. Install a CAPI provider
-3. Apply the entitlements secret
-4. Upgrade
-5. Check that Weave GitOps Enterprise has been installed
-6. Connect the management cluster up to itself
+import TOCInline from "@theme/TOCInline";
+
+<TOCInline toc={toc[0].children} />
 
 ### 1. Install `gitops` on a new cluster
 
-We'll use `kind` here as an example.
+To get you started in this document we'll cover:
 
-- The `extraMounts` are for the Docker CAPI provider (CAPD)
+- `kind` as our management cluster with the _CAPD_ provider
+- **EKS** as our management cluster with the _CAPA_ provider
+
+However Weave Gitops Enterprise supports any combination of management cluster and CAPI provider.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="kind" label="kind">
+
+- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
 - `extraPortMappings` are for easily accessing NATS and the UI
 
 ```yaml title="kind-config.yaml"
@@ -58,6 +63,58 @@ Fire up cluster
 kind create cluster --config kind-config.yaml
 ```
 
+</TabItem>
+<TabItem value="eks" label="EKS">
+
+#### 1.1 Prepare IAM for installation
+
+The Cluster API needs special permissions in AWS. Use the `clusterawsadm` command below to roll out a CloudStack to installs the permissions into your AWS account. While the CloudStack is bound to a region, the resulting permissions are globally scoped. You can use any AWS Region that you have access to. The `clusterawsadm` command takes an AWSIAMConfiguration file. We have provided a working example for you :
+
+```yaml title="eks-config.yaml"
+apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1beta1
+kind: AWSIAMConfiguration
+spec:
+  bootstrapUser:
+    enable: true
+  eks:
+    iamRoleCreation: false # Set to true if you plan to use the EKSEnableIAM feature flag to enable automatic creation of IAM roles
+    defaultControlPlaneRole:
+      disable: false # Set to false to enable creation of the default control plane role
+    managedMachinePool:
+      disable: false # Set to false to enable creation of the default node pool role
+```
+
+Run `clusterawsadm` command to create the IAM group.
+
+```bash
+$ clusterawsadm bootstrap iam create-cloudformation-stack --config eks-config.yaml --region $REGION
+```
+
+Create an IAM User. This user will be used as a kind of service account. Assign the newly created group to this user. The group name will be something like: `cluster-api-provider-aws-s-AWSIAMGroupBootstrapper-XXXX`. Create a secret for the newly created IAM user.
+
+#### 1.2 Create the cluster
+
+In testing we used the following values
+`$INSTANCESIZE` : t3.large
+`$NUMOFNODES` : 2
+`$MINNODES` : 2
+`$MAXNODES` : 6
+
+```bash
+eksctl create cluster -n "$CLUSTERNAME" -r "$REGION" --nodegroup-name workers -t $INSTANCESIZE --nodes $NUMOFNODES --nodes-min $MINNODES --nodes-max $MAXNODES --ssh-access --alb-ingress-access
+```
+
+#### 1.3 Add cluster to kubeconfig
+
+Once the cluster is created, add the cluster to your `kubeconfig`
+
+```bash
+aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
+```
+
+</TabItem>
+</Tabs>
+
 Create a new repo
 
 ```bash
@@ -69,11 +126,28 @@ git commit --all --message "init commit"
 git push -u origin main
 ```
 
-Install Weave Gitops
+#### Install Weave Gitops
+
+<Tabs groupId="git-host" default>
+<TabItem value="hosted" label="github.com / gitlab.com">
 
 ```bash
 gitops install --config-repo https://github.com/my-org/my-repo
 ```
+
+</TabItem>
+<TabItem value="on-prem" label="GitLab on other domains">
+
+`gitops` doesn't know if other domains are github or gitlab, we can hint it with the `--git-host-types` flag.
+
+```bash
+gitops install \
+  --config-repo https://git.example.com/my-org/my-repo \
+  --git-host-types="git.example.com=gitlab"
+```
+
+</TabItem>
+</Tabs>
 
 ### 2. Install a CAPI provider
 
@@ -84,14 +158,34 @@ The example templates provided in this guide have been tested with `clusterctl` 
 Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
 :::
 
-In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed.
+In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed. See [Cluster API Providers](../cluster-management/cluster-api-providers.mdx) page for more details on providers.
+Here we'll continue with our example instructions for CAPD and CAPA.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="kind" label="CAPD (kind)">
 
 ```
 # Enable support for `ClusterResourceSet`s for automatically installing CNIs
 export EXP_CLUSTER_RESOURCE_SET=true
 
 clusterctl init --infrastructure docker
+
 ```
+
+</TabItem>
+<TabItem value="eks" label="CAPA (EKS)">
+
+```
+export EXP_EKS=true
+export EXP_MACHINE_POOL=true
+export CAPA_EKS_IAM=true
+export EXP_CLUSTER_RESOURCE_SET=true
+
+clusterctl init --infrastructure aws
+```
+
+</TabItem>
+</Tabs>
 
 ### 3. Apply the entitlements secret
 
@@ -101,38 +195,101 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-### 4. Upgrade
+### 4 Configure access for writing to git from the UI
 
-Run the upgrade command specifying the same `--config-repo` used in install and the desired version of Weave GitOps Enterprise.
+<Tabs groupId="git-provider" default>
+<TabItem value="github" label="GitHub">
+GitHub requires no additional configuration for OAuth git access
+</TabItem>
+<TabItem value="gitlab" label="GitLab">
 
-:::caution `https://` url is important
+Create a GitLab OAuth Application that will request `api` permissions to create pull requests on the user's behalf.
+Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
 
-The `--app-config-url` value supplied to the `upgrade` command must be in `https://` format (not `git@github.com:`)
+The application should have at least these scopes:
 
-:::
+- `api`
+- `openid`
+- `email`
+- `profile`
+
+Add callback URLs to the application for each address the UI will be exposed on, e.g.:
+
+- `https://localhost:8000/oauth/gitlab` For port-forwarding and testing
+- `https://git.example.com/oauth/gitlab` For production use
+
+Save your application and take note of the **Client ID** and **Client Secret** and save
+them into the `git-provider-credentials` secret along with:
+
+- `GIT_HOST_TYPES` to tell WGE that the host is gitlab
+- `GITLAB_HOSTNAME` where the OAuth app is hosted
+
+**Replace values** in this snippet and run:
 
 ```bash
-gitops upgrade --config-repo https://github.com/my-org/my-repo --version 0.0.16
+kubectl create secret generic git-provider-credentials --namespace=wego-system \
+  --from-literal="GITLAB_CLIENT_ID=13457" \
+  --from-literal="GITLAB_CLIENT_SECRET=24680" \
+  --from-literal="GITLAB_HOSTNAME=git.example.com" \
+  --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
 ```
-:::note
-You may need to add the `--base` flag to the above command to indicate your local branch name, if it is not set to `main`.
-:::
 
+</TabItem>
+</Tabs>
+
+### 5. Upgrade
+
+<Tabs groupId="git-host" default>
+<TabItem value="hosted" label="github.com / gitlab.com">
+
+```bash
+gitops upgrade --version 0.0.18
+```
+
+</TabItem>
+<TabItem value="on-prem" label="GitLab on other domains">
+
+#### 5.1 Add `known_hosts` for other domains
+
+For hosts other than github.com or gitlab.com we need to retrieve the public ssh keys and save them in a secret. Replace `git.example.com` below with your git host.
+
+```bash
+ssh-keyscan git.example.com > known_hosts
+kubectl create configmap --namespace wego-system ssh-config --from-file=./known_hosts
+```
+
+Install WGE and mount the `known_hosts` file:
+
+```bash
+gitops upgrade \
+  --git-host-types="git.example.com=gitlab" \
+  --version 0.0.18 \
+  --set "config.extraVolumes[0].name=ssh-config" \
+  --set "config.extraVolumes[0].configMap.name=ssh-config" \
+  --set "config.extraVolumeMounts[0].name=ssh-config" \
+  --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" \
+```
+
+</TabItem>
+</Tabs>
 
 A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
 
-### 5. Checking that WGE is installed
+### 6. Checking that WGE is installed
 
 You should now be able to load the WGE UI:
 
 ```bash
-kubectl port-forward --namespace wego-system deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80
+kubectl port-forward --namespace wego-system svc/clusters-service 8000:8000
 ```
 
-The WGE UI should now be accessible at [http://localhost:8000](http://localhost:8000).
+The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
 
-### 6. Connect the management cluster up to itself
+### 7. Connect the management cluster up to itself
 
 _Connecting a cluster_ installs the agent which is responsible for detecting new clusters and reporting their status to the UI. We need to install the agent on our newly created management cluster. Check out [How to: Connect a cluster](../cluster-management/managing-existing-clusters.mdx#how-to-connect-a-cluster). The agent should be loaded onto our new management cluster, give it a name like **Management** and leave the Ingress URL blank.
 
-Head over to [Getting started](../cluster-management/getting-started.mdx) to create your first CAPI Cluster.
+Head over to either:
+
+- [Getting started](../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
+- [Deploying CAPA with EKS](../enterprise/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.

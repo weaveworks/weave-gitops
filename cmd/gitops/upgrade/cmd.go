@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -37,9 +36,11 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
+	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Version, "version", "", "Version of Weave GitOps Enterprise to be installed")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
+	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ClusterPath, "path", "", "The path within the Git repository containing files for the current cluster")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.CommitMessage, "commit-message", "Upgrade to WGE", "The commit message")
 	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set profile values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
@@ -65,15 +66,8 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		upgradeCmdFlags.Namespace = namespace
 
 		log := internal.NewCLILogger(os.Stdout)
-		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
-
-		wegoConfig, err := kubeClient.GetWegoConfig(ctx, namespace)
-		if err != nil {
-			return fmt.Errorf("failed getting wego config")
-		}
-
-		upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

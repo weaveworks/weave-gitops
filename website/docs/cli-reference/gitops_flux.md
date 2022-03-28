@@ -9,7 +9,7 @@ gitops flux [flux commands or flags] [flags]
 ### Examples
 
 ```
-wego flux install -h
+gitops flux install -h
 ```
 
 ### Options

@@ -7,6 +7,7 @@ unset CD_PATH
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}" || exit 1
 
+# shellcheck source=./functions.sh
 . "${SCRIPT_DIR}/functions.sh"
 
 DEP_FILE=${1}
@@ -70,30 +71,37 @@ download_dependency() {
         "${bin_dir}"/stoml "${dependencies_toml}" "${tool}"."${property}"
     }
 
-    local url_and_path
-    local fetch
-    local binarypath
-    local special_tarpath
-    local special_tarpath_url
-    binarypath=$(instantiate_url "$(run_stoml binarypath)")
-    special_tarpath=$(instantiate_url "$(run_stoml special_tarpath)")
-    special_tarpath_url=(${special_tarpath//;/ }) # split out special paths which contain <url>;<path in tarball>
     local tarpath
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
+
+    local special_tarpath
+    special_tarpath=$(instantiate_url "$(run_stoml special_tarpath)")
+
+    local special_tarpath_url
+    # shellcheck disable=SC2206
+    special_tarpath_url=(${special_tarpath//;/ }) # split out special paths which contain <url>;<path in tarball>
+
+    local binarypath
+    binarypath=$(instantiate_url "$(run_stoml binarypath)")
+
+    local checksum_path
+    local url_and_path
     local txtpath
     txtpath=$(instantiate_url "$(run_stoml txtpath)")
+
     local custom_bindir
     custom_bindir=$(run_stoml bindir)
     mkdir -p "${custom_bindir:-$bin_dir}"
-    local checksum_path
-    echo "${tarpath}"
+
     if check_url "${txtpath}"; then
         url_and_path="${txtpath}"
-        checksum_path="${custom_bindir}"/"${tool}_checksum.txt"
+        checksum_path="${custom_bindir}/${tool}_checksum.txt"
 
         do_curl "${checksum_path}" "${url_and_path}"
     fi
 
+    local fetch
+    # shellcheck disable=SC2128
     if check_url "${binarypath}"; then
         url_and_path="${binarypath}"
         fetch=do_curl_binary
@@ -123,3 +131,11 @@ done
 
 echo "Installing golangci-lint"
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.44.0
+
+if [ -z ${SKIP_MKCERT_INSTALLATION+x} ];
+then
+    echo "Installing mkcert "
+    go install filippo.io/mkcert@v1.4.3
+    mkcert -install
+fi
+

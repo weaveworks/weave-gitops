@@ -12,23 +12,39 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
+
+export enum SortType {
+  //sort is unused but having number as index zero makes it a falsy value thus not used as a valid sortType for selecting fields for SortableLabel
+  sort,
+  number,
+  string,
+  date,
+  bool,
+}
+
+type Sorter = (k: any) => any;
+
+export type Field = {
+  label: string;
+  value: string | ((k: any) => string | JSX.Element);
+  sortType?: SortType;
+  sortValue?: Sorter;
+  width?: number;
+  textSearchable?: boolean;
+};
 
 /** DataTable Properties  */
 export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
-  /** A list of objects with two fields: `label`, which is a string representing the column header, and `value`, which can be a string, or a function that extracts the data needed to fill the table cell. */
-  fields: {
-    label: string;
-    value: string | ((k: any) => string | JSX.Element);
-  }[];
+  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
+  fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
-  rows: any[];
-  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. Must be lowercase. */
-  sortFields?: string[];
+  rows?: any[];
+  /** index of field to initially sort against. */
+  defaultSort?: number;
   /** an optional list of string widths for each field/column. */
   widths?: string[];
   /** for passing pagination */
@@ -58,41 +74,72 @@ const TableButton = styled(Button)`
   }
 `;
 
+type Row = any;
+
+function defaultSortFunc(sort: Field): Sorter {
+  return (a: Row) => {
+    return a[sort.value as string];
+  };
+}
+
+export const sortWithType = (rows: Row[], sort: Field) => {
+  const sortFn = sort.sortValue || defaultSortFunc(sort);
+  return (rows || []).sort((a: Row, b: Row) => {
+    switch (sort.sortType) {
+      case SortType.number:
+        return sortFn(a) - sortFn(b);
+
+      case SortType.date:
+        return Date.parse(sortFn(a)) - Date.parse(sortFn(b));
+
+      case SortType.bool:
+        if (sortFn(a) === sortFn(b)) return 0;
+        else if (sortFn(a) === false && sortFn(b) === true) return -1;
+        else return 1;
+
+      default:
+        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
+    }
+  });
+};
+
 /** Form DataTable */
 function UnstyledDataTable({
   className,
   fields,
   rows,
-  sortFields = [],
-  widths,
+  defaultSort = 0,
   children,
 }: Props) {
-  const [sort, setSort] = React.useState(sortFields[0]);
+  const [sort, setSort] = React.useState(fields[defaultSort]);
   const [reverseSort, setReverseSort] = React.useState(false);
-  const sorted = _.sortBy(rows, sort);
+
+  const sorted = sortWithType(rows, sort);
 
   if (reverseSort) {
     sorted.reverse();
   }
 
-  type labelProps = { label: string };
-  function SortableLabel({ label }: labelProps) {
+  type labelProps = {
+    field: Field;
+  };
+  function SortableLabel({ field }: labelProps) {
     return (
       <Flex align start>
         <TableButton
           color="inherit"
           variant="text"
           onClick={() => {
-            setReverseSort(sort === label.toLowerCase() ? !reverseSort : false);
-            setSort(label.toLowerCase());
+            setReverseSort(sort === field ? !reverseSort : false);
+            setSort(field);
           }}
         >
-          <h2 className={sort === label.toLowerCase() && "selected"}>
-            {label}
+          <h2 className={sort.label === field.label ? "selected" : ""}>
+            {field.label}
           </h2>
         </TableButton>
         <Spacer padding="xxs" />
-        {sort === label.toLowerCase() ? (
+        {sort.label === field.label ? (
           <Icon
             type={IconType.ArrowUpwardIcon}
             size="base"
@@ -107,8 +154,8 @@ function UnstyledDataTable({
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {_.map(fields, (f, i) => (
-        <TableCell style={widths && { width: widths[i] }} key={f.label}>
+      {_.map(fields, (f) => (
+        <TableCell style={f.width && { width: `${f.width}%` }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -121,13 +168,12 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f, i) => (
-                <TableCell style={widths && { width: widths[i] }} key={f.label}>
-                  {sortFields.includes(f.label.toLowerCase()) ? (
-                    <SortableLabel label={f.label} />
-                  ) : (
-                    <h2>{f.label}</h2>
-                  )}
+              {_.map(fields, (f) => (
+                <TableCell
+                  style={f.width ? { width: f.width } : {}}
+                  key={f.label}
+                >
+                  <SortableLabel field={f} />
                 </TableCell>
               ))}
             </TableRow>
@@ -162,7 +208,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
@@ -174,8 +220,13 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
-  ${Link} ${Text} {
-    font-size: 14px;
+
+  td {
+    word-break: break-all;
+    word-wrap: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 

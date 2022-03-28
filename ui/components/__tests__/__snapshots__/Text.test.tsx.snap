@@ -4,7 +4,7 @@ exports[`Text snapshots bold 1`] = `
 .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 800;
   text-transform: none;
   font-style: normal;
 }

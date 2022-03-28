@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,15 +13,10 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
-	"github.com/benbjohnson/clock"
-	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	corev1 "k8s.io/api/core/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
+	"github.com/tomwright/dasel"
+	yaml "gopkg.in/yaml.v3"
 
 	validation "k8s.io/apimachinery/pkg/api/validation"
 )
@@ -51,27 +47,6 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 		checkDone)
 
 	return err
-}
-
-func Poll(appClock clock.Clock, intervalDur time.Duration, timeoutDur time.Duration, condition func() (bool, error)) error {
-	timeout := appClock.After(timeoutDur)
-	ticker := appClock.Ticker(intervalDur)
-
-	for {
-		select {
-		case <-timeout:
-			return errors.New("poll timeout")
-		case <-ticker.C:
-			ok, err := condition()
-			if err != nil {
-				return err
-			}
-
-			if ok {
-				return nil
-			}
-		}
-	}
 }
 
 // timedRepeat runs checkDone until a timeout is reached by updating the current time via a specified operation
@@ -141,74 +116,6 @@ func PrintTable(writer io.Writer, header []string, rows [][]string) {
 	table.Render()
 }
 
-func CleanCommitMessage(msg string) string {
-	str := strings.ReplaceAll(msg, "\n", " ")
-	if len(str) > 50 {
-		str = str[:49] + "..."
-	}
-
-	return str
-}
-
-func CleanCommitCreatedAt(createdAt time.Time) string {
-	return createdAt.Format(time.RFC3339)
-}
-
-func ConvertCommitHashToShort(hash string) string {
-	return hash[:7]
-}
-
-func ConvertCommitURLToShort(url string) string {
-	urlArray := strings.SplitAfter(url, "commit/")
-	path := urlArray[0]
-	hash := urlArray[1][:7]
-
-	return path + hash
-}
-
-func CreateRepoSecretName(targetName string, repoURL string) string {
-	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
-}
-
-func StartK8sTestEnvironment() (client.Client, func(), error) {
-	testEnv := &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			"../../manifests/crds",
-			"../../tools/testcrds",
-		},
-	}
-
-	var err error
-
-	cfg, err := testEnv.Start()
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not start testEnv: %w", err)
-	}
-
-	scheme := kube.CreateScheme()
-
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		ClientDisableCacheFor: []client.Object{
-			&wego.Application{},
-			&corev1.Namespace{},
-			&corev1.Secret{},
-		},
-		Scheme: scheme,
-	})
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not create controller manager: %w", err)
-	}
-
-	go func() {
-		err := k8sManager.Start(ctrl.SetupSignalHandler())
-		Expect(err).ToNot(HaveOccurred())
-	}()
-
-	return k8sManager.GetClient(), func() {
-		err := testEnv.Stop()
-		Expect(err).NotTo(HaveOccurred())
-	}, nil
-}
 func MigrateToNewDirStructure(orig string) string {
 	if orig == "" {
 		return orig
@@ -227,4 +134,108 @@ func MigrateToNewDirStructure(orig string) string {
 		// used for paths with apps under clusters
 		return filepath.Join(git.WegoRoot, git.WegoAppDir, f[len(f)-2], f[len(f)-1])
 	}
+}
+
+const (
+	coreManifestCount = 2
+	coreManifestName  = "ww-gitops"
+)
+
+type ConfigStatus int
+
+const (
+	Missing ConfigStatus = iota
+	Partial
+	Embedded
+	Valid
+)
+
+func (cs ConfigStatus) String() string {
+	switch cs {
+	case Missing:
+		return "Missing"
+	case Partial:
+		return "Partial"
+	case Embedded:
+		return "Embedded"
+	case Valid:
+		return "Valid"
+	default:
+		return "UnknownStatus"
+	}
+}
+
+type WalkResult struct {
+	Status ConfigStatus
+	Path   string
+}
+
+func (wr WalkResult) Error() string {
+	return fmt.Sprintf("found %s: with status: %s", wr.Path, wr.Status)
+}
+
+func FindCoreConfig(dir string) WalkResult {
+	err := filepath.WalkDir(dir,
+		func(path string, _ fs.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+
+			if !strings.HasSuffix(path, ".yml") && !strings.HasSuffix(path, ".yaml") {
+				return nil
+			}
+
+			data, err := ioutil.ReadFile(path)
+			if err != nil {
+				return nil
+			}
+
+			r := bytes.NewReader(data)
+			decoder := yaml.NewDecoder(r)
+			docs := []map[string]interface{}{}
+
+			for {
+				var entry map[string]interface{}
+				if err := decoder.Decode(&entry); err == io.EOF {
+					break
+				}
+
+				docs = append(docs, entry)
+			}
+
+			rootNode := dasel.New(docs)
+			foundPartial := false
+
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=HelmRelease)(.metadata.name=%s)", coreManifestName))
+			if err == nil {
+				foundPartial = true
+			}
+
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=GitRepository)(.metadata.name=%s)", coreManifestName))
+			if err != nil {
+				if foundPartial {
+					return WalkResult{Status: Partial, Path: path}
+				}
+
+				return nil
+			}
+
+			// retrieve the number of top-level entries from the file
+			val, err := rootNode.Query(".[#]")
+			if err != nil {
+				return nil
+			}
+
+			if val.InterfaceValue() != coreManifestCount {
+				return WalkResult{Status: Embedded, Path: path}
+			}
+
+			return WalkResult{Status: Valid, Path: path}
+		})
+
+	if val, ok := err.(WalkResult); ok {
+		return val
+	}
+
+	return WalkResult{Status: Missing, Path: ""}
 }

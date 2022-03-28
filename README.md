@@ -55,7 +55,7 @@ Available Commands:
 
 Flags:
   -h, --help               Help for gitops
-      --namespace string   The namespace scope for this operation (default "wego-system").
+      --namespace string   The namespace scope for this operation (default "flux-system").
   -v, --verbose            Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
@@ -70,12 +70,38 @@ To set up a development environment for the CLI
 ### To use an existing environment
 
 1. Install go v1.17
-2. Install [buf](https://github.com/bufbuild/buf)
-3. Run `make all` to install dependencies and build binaries and assets
-4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
-5. Run `./bin/gitops install --config-repo=<repo url>`
-6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `tilt up`
-7. make or make unit-tests to ensure everything built correctly.
+1. Install [buf](https://github.com/bufbuild/buf)
+1. Run `make all` to install dependencies and build binaries and assets
+1. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
+1. Run `flux install -n flux-system`
+1. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
+1. `make` or `make unit-tests` to ensure everything built correctly.
+1. Navigate to http://localhost:9001 in your browser. The login is `dev` with the password `dev`.
+
+### Requirements/tools
+
+This is a list of the tools you may need to install:
+
+* [go](https://go.dev) -- Primary compiler for the CLI.
+* [npm](https://www.npmjs.com/) -- Package manager for UI components.
+* [ginkgo](https://onsi.github.io/ginkgo/) -- A go testing framework.
+* [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
+* [golangci-lint](https://github.com/golangci/golangci-lint/) -- A go linter.
+* [buf](https://buf.build/) -- To generate the protobufs used by the API.
+* [reflex](https://github.com/cespare/reflex) -- A file watcher.
+* [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
+* [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
+* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
+
+Some other tools are installed automatically by the makefile for you:
+
+* [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
+* [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
+
+And some tools that are installed by the `tools/download-deps.sh` script:
+
+* [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
+* [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
 
 ### To use a bootstrapped, ready made environment
 
@@ -129,7 +155,7 @@ For VSCode, use these editor configuration flags:
 To set up a development environment for the UI
 
 1. Install go v1.17
-2. Install Node.js version 14.15.1
+2. Install Node.js version 16.13.2
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
 5. Run `make node_modules`. NOTE: Running `npm install` could leave you unable to pass our ui-tests. If you're getting an error about a git diff in your package.lock, run `rm -rf node_modules && make node_modules`.

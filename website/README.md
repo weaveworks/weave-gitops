@@ -32,4 +32,4 @@ This command generates static content into the `build` directory and can be serv
 
 ## Deployment
 
-Deployment happens automatically (once the tests pass) upon merging to the default branch: see [.github/workflows/documentation.yml](.github/workflows/documentation.yml) for config.
+Deployment happens automatically (once the tests pass) upon merging to the default branch: see [.github/workflows/docs.yml](.github/workflows/docs.yml) for config.

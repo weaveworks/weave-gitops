@@ -1,5 +1,6 @@
 ---
 title: Deploying CAPA with EKS
+hide_title: true
 sidebar_position: 1
 ---
 
@@ -10,9 +11,7 @@ import TierLabel from "../_components/TierLabel";
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-<h1>
-  {frontMatter.title} <TierLabel tiers="enterprise" />
-</h1>
+# Deploying CAPA with EKS <TierLabel tiers="enterprise" />
 
 ## Creating your first CAPA Cluster
 
@@ -22,7 +21,7 @@ Make sure the following software is installed before continuing with these instr
 
 - `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
 - `github cli` >= 2.3.0 [(source)](https://cli.github.com/)
-- `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl) 
+- `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - `eksctl` [(source)](https://github.com/weaveworks/eksctl/releases)
 - `aws cli` [(source)](https://aws.amazon.com/cli/)
 - `clusterclt` >= v1.0.1 [(source)](https://github.com/kubernetes-sigs/cluster-api/releases)
@@ -32,8 +31,7 @@ The `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY` of a user should be configure
 The `GITHUB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 :::
 
-If you've followed the [Upgrade guide](../enterprise/upgrading.mdx) or [Upgrade EKS guide](../enterprise/upgrading-eks.mdx) you should have a management cluster ready to roll.
-
+If you've followed the [Upgrade guide](../enterprise/upgrading.mdx) you should have a management cluster ready to roll.
 
 ### 1. Configure a capi provider
 
@@ -73,4 +71,3 @@ Download the template below to your config repository path, then commit and push
 >
   {CapaTemplate}
 </CodeBlock>
-

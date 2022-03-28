@@ -22,24 +22,6 @@ type ApplicationsClient interface {
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	//
-	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
-	ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error)
-	//
-	// GetApplication returns a given application
-	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
-	//
-	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
-	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
-	//
-	// GetReconciledObjects returns a list of objects that were created as a result of the Application.
-	// This list is derived by looking at the Kustomization that is associated with an Application.
-	// Helm Releases are not currently supported.
-	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsReq, opts ...grpc.CallOption) (*GetReconciledObjectsRes, error)
-	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error)
-	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error)
@@ -62,20 +44,14 @@ type ApplicationsClient interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
-	// AddApplication adds an Application to a cluster via GitOps.
-	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
-	//
-	// RemoveApplication removes an Application from a cluster via GitOps.
-	RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error)
-	//
-	// SyncApplication triggers the Application reconciliation loop.
-	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
-	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
 	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error)
+	//
+	// Config returns configuration information about the server
+	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
 }
 
 type applicationsClient struct {
@@ -89,51 +65,6 @@ func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error) {
-	out := new(ListApplicationsResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListApplications", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error) {
-	out := new(GetApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
-	out := new(ListCommitsResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListCommits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsReq, opts ...grpc.CallOption) (*GetReconciledObjectsRes, error) {
-	out := new(GetReconciledObjectsRes)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetReconciledObjects", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error) {
-	out := new(GetChildObjectsRes)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetChildObjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,33 +107,6 @@ func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeG
 	return out, nil
 }
 
-func (c *applicationsClient) AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error) {
-	out := new(AddApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AddApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error) {
-	out := new(RemoveApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/RemoveApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error) {
-	out := new(SyncApplicationResponse)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/SyncApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
 	out := new(ParseRepoURLResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ParseRepoURL", in, out, opts...)
@@ -221,6 +125,15 @@ func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *Vali
 	return out, nil
 }
 
+func (c *applicationsClient) GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error) {
+	out := new(GetFeatureFlagsResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetFeatureFlags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -228,24 +141,6 @@ type ApplicationsServer interface {
 	//
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
-	//
-	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
-	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
-	//
-	// GetApplication returns a given application
-	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
-	//
-	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
-	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
-	//
-	// GetReconciledObjects returns a list of objects that were created as a result of the Application.
-	// This list is derived by looking at the Kustomization that is associated with an Application.
-	// Helm Releases are not currently supported.
-	GetReconciledObjects(context.Context, *GetReconciledObjectsReq) (*GetReconciledObjectsRes, error)
-	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error)
 	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
@@ -269,20 +164,14 @@ type ApplicationsServer interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
-	// AddApplication adds an Application to a cluster via GitOps.
-	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
-	//
-	// RemoveApplication removes an Application from a cluster via GitOps.
-	RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error)
-	//
-	// SyncApplication triggers the Application reconciliation loop.
-	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
-	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
 	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error)
+	//
+	// Config returns configuration information about the server
+	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -292,21 +181,6 @@ type UnimplementedApplicationsServer struct {
 
 func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
-}
-func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListApplications not implemented")
-}
-func (UnimplementedApplicationsServer) GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
-}
-func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
-}
-func (UnimplementedApplicationsServer) GetReconciledObjects(context.Context, *GetReconciledObjectsReq) (*GetReconciledObjectsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
-}
-func (UnimplementedApplicationsServer) GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubDeviceCode not implemented")
@@ -320,20 +194,14 @@ func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGit
 func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
 }
-func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
-}
-func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveApplication not implemented")
-}
-func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
-}
 func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
 }
 func (UnimplementedApplicationsServer) ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderToken not implemented")
+}
+func (UnimplementedApplicationsServer) GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeatureFlags not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -362,96 +230,6 @@ func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_ListApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListApplicationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).ListApplications(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/ListApplications",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ListApplications(ctx, req.(*ListApplicationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).GetApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetApplication(ctx, req.(*GetApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListCommitsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).ListCommits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/ListCommits",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ListCommits(ctx, req.(*ListCommitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetReconciledObjectsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).GetReconciledObjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetReconciledObjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetReconciledObjects(ctx, req.(*GetReconciledObjectsReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChildObjectsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).GetChildObjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/GetChildObjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetChildObjects(ctx, req.(*GetChildObjectsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -528,60 +306,6 @@ func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_AddApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).AddApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/AddApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).AddApplication(ctx, req.(*AddApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_RemoveApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).RemoveApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/RemoveApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).RemoveApplication(ctx, req.(*RemoveApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).SyncApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/SyncApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).SyncApplication(ctx, req.(*SyncApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ParseRepoURLRequest)
 	if err := dec(in); err != nil {
@@ -618,6 +342,24 @@ func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetFeatureFlags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeatureFlagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetFeatureFlags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetFeatureFlags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetFeatureFlags(ctx, req.(*GetFeatureFlagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -628,26 +370,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _Applications_Authenticate_Handler,
-		},
-		{
-			MethodName: "ListApplications",
-			Handler:    _Applications_ListApplications_Handler,
-		},
-		{
-			MethodName: "GetApplication",
-			Handler:    _Applications_GetApplication_Handler,
-		},
-		{
-			MethodName: "ListCommits",
-			Handler:    _Applications_ListCommits_Handler,
-		},
-		{
-			MethodName: "GetReconciledObjects",
-			Handler:    _Applications_GetReconciledObjects_Handler,
-		},
-		{
-			MethodName: "GetChildObjects",
-			Handler:    _Applications_GetChildObjects_Handler,
 		},
 		{
 			MethodName: "GetGithubDeviceCode",
@@ -666,24 +388,16 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Applications_AuthorizeGitlab_Handler,
 		},
 		{
-			MethodName: "AddApplication",
-			Handler:    _Applications_AddApplication_Handler,
-		},
-		{
-			MethodName: "RemoveApplication",
-			Handler:    _Applications_RemoveApplication_Handler,
-		},
-		{
-			MethodName: "SyncApplication",
-			Handler:    _Applications_SyncApplication_Handler,
-		},
-		{
 			MethodName: "ParseRepoURL",
 			Handler:    _Applications_ParseRepoURL_Handler,
 		},
 		{
 			MethodName: "ValidateProviderToken",
 			Handler:    _Applications_ValidateProviderToken_Handler,
+		},
+		{
+			MethodName: "GetFeatureFlags",
+			Handler:    _Applications_GetFeatureFlags_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

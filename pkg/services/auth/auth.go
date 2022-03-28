@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -73,7 +73,7 @@ type AuthService interface {
 }
 
 type authSvc struct {
-	logger     logger.Logger
+	log        logger.Logger
 	fluxClient flux.Flux
 	// Note that this is a k8s go-client, NOT a wego kube.Kube interface.
 	// That interface wasn't providing any valuable abstraction for this service.
@@ -82,9 +82,9 @@ type authSvc struct {
 }
 
 // NewAuthService constructs an auth service for doing git operations with an authenticated client.
-func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitproviders.GitProvider, l logger.Logger) (AuthService, error) {
+func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitproviders.GitProvider, log logger.Logger) (AuthService, error) {
 	return &authSvc{
-		logger:      l,
+		log:         log,
 		fluxClient:  fluxClient,
 		k8sClient:   k8sClient,
 		gitProvider: provider,
@@ -140,7 +140,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, repo git
 			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster,
 			// or if a cluster was destroyed during development work.
 			// Create and upload a new deploy key.
-			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", secretName.Name)
+			a.log.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", secretName.Name)
 			return a.provisionDeployKey(ctx, secretName, repo)
 		} else if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
@@ -176,7 +176,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, name SecretName, repo 
 		return nil, fmt.Errorf("error storing deploy key: %w", err)
 	}
 
-	a.logger.Println("Deploy key generated and uploaded to git provider")
+	a.log.Println("Deploy key generated and uploaded to git provider")
 
 	return deployKey, nil
 }

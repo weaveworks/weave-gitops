@@ -105,7 +105,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c0 h2 {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
@@ -120,6 +120,14 @@ exports[`DataTable snapshots renders 1`] = `
   background: #f5f5f5;
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
+}
+
+.c0 td {
+  word-break: break-all;
+  word-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 <div
@@ -145,6 +153,7 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
             <div
               className="c1"
@@ -200,19 +209,148 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
-            <h2>
-              Status
-            </h2>
+            <div
+              className="c1"
+            >
+              <button
+                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiButton-label"
+                >
+                  <h2
+                    className=""
+                  >
+                    Status
+                  </h2>
+                </span>
+              </button>
+              <div
+                className="c4"
+              />
+              <div
+                style={
+                  Object {
+                    "width": "16px",
+                  }
+                }
+              />
+            </div>
           </th>
           <th
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
+            style={Object {}}
           >
-            <h2>
-              Last Updated
-            </h2>
+            <div
+              className="c1"
+            >
+              <button
+                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiButton-label"
+                >
+                  <h2
+                    className=""
+                  >
+                    Last Updated
+                  </h2>
+                </span>
+              </button>
+              <div
+                className="c4"
+              />
+              <div
+                style={
+                  Object {
+                    "width": "16px",
+                  }
+                }
+              />
+            </div>
+          </th>
+          <th
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-head"
+            scope="col"
+            style={Object {}}
+          >
+            <div
+              className="c1"
+            >
+              <button
+                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiButton-label"
+                >
+                  <h2
+                    className=""
+                  >
+                    Last Synced At
+                  </h2>
+                </span>
+              </button>
+              <div
+                className="c4"
+              />
+              <div
+                style={
+                  Object {
+                    "width": "16px",
+                  }
+                }
+              />
+            </div>
           </th>
         </tr>
       </thead>
@@ -258,7 +396,18 @@ exports[`DataTable snapshots renders 1`] = `
               className="c7 c8"
               size="normal"
             >
-              2006-01-02T15:04:05-0700
+              2004-01-02T15:04:05-0700
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              3000
             </span>
           </td>
         </tr>
@@ -303,6 +452,17 @@ exports[`DataTable snapshots renders 1`] = `
               2006-01-02T15:04:05-0700
             </span>
           </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              2000
+            </span>
+          </td>
         </tr>
         <tr
           className="MuiTableRow-root"
@@ -342,7 +502,18 @@ exports[`DataTable snapshots renders 1`] = `
               className="c7 c8"
               size="normal"
             >
-              2006-01-02T15:04:05-0700
+              2005-01-02T15:04:05-0700
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              1000
             </span>
           </td>
         </tr>

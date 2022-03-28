@@ -1,0 +1,65 @@
+{{- if .Values.adminUser.create }}
+# This should not be used in production. It is for testing & demo purposes only
+# FIXME issues #1789, #1787, #1671
+# the contents of this file are dependent upon the outcome of several
+# discussions around usage of the admin user. Once those are resolved the
+# configuration here should be brought into line with those outcomes (e.g.
+# names(paces) made configurable, permissions set).
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-test-user-read-resources
+  namespace: flux-system
+subjects:
+  - kind: User
+    name: wego-admin
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-admin-role
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-user-auth
+  namespace: flux-system
+type: Opaque
+data:
+  {{- with .Values.adminUser }}
+  username: {{ .username | b64enc | quote }}
+  {{/*
+    htpasswd returns user-file format, e.g. 'username:passwordhash' so as well
+    as using htpasswd to generate the bcrypt hash we also need to extract the
+    final element before base64 enconding it for k8s (and quoting it b/c yaml)
+  */}}
+   {{- $bcryptPasswordHash := .password | required "You must set a password for this user!" | htpasswd "" }}
+  password: {{ regexSplit ":" $bcryptPasswordHash -1 | last | b64enc | quote }}
+  {{- end }}
+{{- end }}
