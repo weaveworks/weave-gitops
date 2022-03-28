@@ -15,8 +15,8 @@ const (
 
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
-func (as *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNamespaceRequest) (*pb.GetFluxNamespaceResponse, error) {
-	for _, ns := range as.cacheContainer.Namespaces() {
+func (cs *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNamespaceRequest) (*pb.GetFluxNamespaceResponse, error) {
+	for _, ns := range cs.cacheContainer.Namespaces() {
 		instanceLabelMatch := ns.Labels[types.InstanceLabel] == fluxNamespaceInstance
 		partofLabelMatch := ns.Labels[types.PartOfLabel] == fluxNamespacePartOf
 
@@ -28,12 +28,12 @@ func (as *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNames
 	return nil, ErrNamespaceNotFound
 }
 
-func (as *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespacesRequest) (*pb.ListNamespacesResponse, error) {
+func (cs *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespacesRequest) (*pb.ListNamespacesResponse, error) {
 	response := &pb.ListNamespacesResponse{
 		Namespaces: []*pb.Namespace{},
 	}
 
-	for _, ns := range as.cacheContainer.Namespaces() {
+	for _, ns := range cs.cacheContainer.Namespaces() {
 		response.Namespaces = append(response.Namespaces, types.NamespaceToProto(ns))
 	}
 

@@ -8,8 +8,8 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func (as *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoriesRequest) (*pb.ListGitRepositoriesResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoriesRequest) (*pb.ListGitRepositoriesResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -30,8 +30,8 @@ func (as *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 	}, nil
 }
 
-func (as *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -52,8 +52,8 @@ func (as *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 	}, nil
 }
 
-func (as *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -74,8 +74,8 @@ func (as *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 	}, nil
 }
 
-func (as *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
