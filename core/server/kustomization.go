@@ -14,9 +14,7 @@ import (
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	clist := clustersmngr.NewClusteredList(func() *kustomizev1.KustomizationList {
-		return &kustomizev1.KustomizationList{}
-	})
+	clist := &clustersmngr.ClusteredKustomizationList{}
 
 	if err := clustersClient.List(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, err

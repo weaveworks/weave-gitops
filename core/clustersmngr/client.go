@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -116,39 +118,56 @@ type ClusteredObjectList interface {
 	ObjectList(cluster string) client.ObjectList
 }
 
-type ClusteredList[T client.ObjectList] struct {
+var _ ClusteredObjectList = &ClusteredKustomizationList{}
+
+type ClusteredKustomizationList struct {
 	sync.Mutex
 
-	listFactory func() T
-	lists       map[string]T
+	lists map[string]*kustomizev1.KustomizationList
 }
 
-func NewClusteredList[T client.ObjectList](listFactory func() T) *ClusteredList[T] {
-	return &ClusteredList[T]{
-		lists:       make(map[string]T),
-		listFactory: listFactory,
-	}
-}
-
-func (cl *ClusteredList[T]) ObjectList(cluster string) client.ObjectList {
+func (cl *ClusteredKustomizationList) ObjectList(cluster string) client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
-	cl.lists[cluster] = cl.listFactory()
+	if cl.lists == nil {
+		cl.lists = map[string]*kustomizev1.KustomizationList{}
+	}
+
+	cl.lists[cluster] = &kustomizev1.KustomizationList{}
 
 	return cl.lists[cluster]
 }
 
-func (cl *ClusteredList[T]) Lists() map[string]T {
+func (cl *ClusteredKustomizationList) Lists() map[string]*kustomizev1.KustomizationList {
 	cl.Lock()
 	defer cl.Unlock()
 
 	return cl.lists
 }
 
-func (cl *ClusteredList[T]) List(cluster string) T {
+type ClusteredGitRepositoryList struct {
+	sync.Mutex
+
+	lists map[string]*sourcev1.GitRepositoryList
+}
+
+func (cl *ClusteredGitRepositoryList) ObjectList(cluster string) client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
+	if cl.lists == nil {
+		cl.lists = map[string]*sourcev1.GitRepositoryList{}
+	}
+
+	cl.lists[cluster] = &sourcev1.GitRepositoryList{}
+
 	return cl.lists[cluster]
+}
+
+func (cl *ClusteredGitRepositoryList) Lists() map[string]*sourcev1.GitRepositoryList {
+	cl.Lock()
+	defer cl.Unlock()
+
+	return cl.lists
 }

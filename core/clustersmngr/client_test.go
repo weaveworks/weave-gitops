@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -88,20 +88,19 @@ func TestClientGenericList(t *testing.T) {
 	ctx := context.Background()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
-	cklist := clustersmngr.NewClusteredList(func() *kustomizev1.KustomizationList {
-		return &kustomizev1.KustomizationList{}
-	})
+	cklist := &clustersmngr.ClusteredKustomizationList{}
 
 	g.Expect(clustersClient.List(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
-	g.Expect(cklist.List(appName).Items).To(HaveLen(1))
-	g.Expect(cklist.List(appName).Items[0].Name).To(Equal(appName))
+	g.Expect(cklist.Lists()[appName].Items).To(HaveLen(1))
+	g.Expect(cklist.Lists()[appName].Items[0].Name).To(Equal(appName))
 
-	bucket := &sourcev1.Bucket{
+	bucket := &sourcev1.GitRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1.BucketSpec{
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://example.com/repo",
 			SecretRef: &meta.LocalObjectReference{
 				Name: "somesecret",
 			},
@@ -110,13 +109,11 @@ func TestClientGenericList(t *testing.T) {
 
 	g.Expect(k8sEnv.Client.Create(ctx, bucket)).To(Succeed())
 
-	cblist := clustersmngr.NewClusteredList(func() *sourcev1.BucketList {
-		return &sourcev1.BucketList{}
-	})
+	cgrlist := &clustersmngr.ClusteredGitRepositoryList{}
 
-	g.Expect(clustersClient.List(ctx, cblist)).To(Succeed())
-	g.Expect(cblist.List(appName).Items).To(HaveLen(1))
-	g.Expect(cblist.List(appName).Items[0].Name).To(Equal(appName))
+	g.Expect(clustersClient.List(ctx, cgrlist)).To(Succeed())
+	g.Expect(cgrlist.Lists()[appName].Items).To(HaveLen(1))
+	g.Expect(cgrlist.Lists()[appName].Items[0].Name).To(Equal(appName))
 }
 
 func createNamespace(g *GomegaWithT) *corev1.Namespace {
