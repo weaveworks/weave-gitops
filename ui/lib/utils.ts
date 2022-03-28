@@ -1,4 +1,6 @@
 import { toast } from "react-toastify";
+import { computeReady } from "../components/KubeStatusIndicator";
+import { Condition } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
@@ -44,4 +46,10 @@ export function convertGitURLToGitProvider(uri: string) {
 
 export function pageTitleWithAppName(title: string, appName?: string) {
   return `${title}${appName ? ` for ${appName}` : ""}`;
+}
+
+export function statusSortHelper(suspended: boolean, conditions: Condition[]) {
+  if (suspended) return 2;
+  if (computeReady(conditions)) return 3;
+  else return 1;
 }

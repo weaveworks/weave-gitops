@@ -5,12 +5,10 @@ import { Automation } from "../hooks/automations";
 import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
+import { statusSortHelper } from "../lib/utils";
 import DataTable, { Field, SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
-import KubeStatusIndicator, {
-  computeMessage,
-  computeReady,
-} from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 
@@ -96,11 +94,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           />
         ) : null,
       sortType: SortType.number,
-      sortValue: ({ conditions, suspended }) => {
-        if (suspended) return 2;
-        if (computeReady(conditions)) return 3;
-        else return 1;
-      },
+      sortValue: ({ conditions, suspended }) =>
+        statusSortHelper(suspended, conditions),
       width: 7.5,
     },
     {

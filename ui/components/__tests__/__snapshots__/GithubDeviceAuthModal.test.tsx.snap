@@ -107,17 +107,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: space-evenly;
 }
 
-.c8.MuiButton-root {
-  line-height: 1;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.c8.MuiButton-outlined {
-  padding: 8px 12px;
-  border-color: #d8d8d8;
-}
-
 .c7 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 32px;
@@ -146,6 +135,17 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
 
 .c11 .c6 {
   margin-left: 4px;
+}
+
+.c8.MuiButton-root {
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c8.MuiButton-outlined {
+  padding: 8px 12px;
+  border-color: #d8d8d8;
 }
 
 .c0 {
