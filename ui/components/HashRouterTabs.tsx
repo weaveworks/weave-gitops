@@ -6,6 +6,7 @@ import * as React from "react";
 import { HashRouter, Redirect, Route, Switch } from "react-router-dom";
 import styled from "styled-components";
 import Link from "./Link";
+import Spacer from "./Spacer";
 import Text from "./Text";
 
 type Props = {
@@ -89,6 +90,7 @@ function HashRouterTabs({ className, children, defaultPath, history }: Props) {
       </div>
       <div>
         <HashRouter>
+          <Spacer padding="small" />
           <Switch>
             {children}
             <Redirect exact from="/" to={defaultPath} />
