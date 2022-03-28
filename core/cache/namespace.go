@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const pollInteralSeconds = 120
+const pollIntervalSeconds = 120
 
 type namespaceStore struct {
 	client       client.Client
@@ -49,7 +49,7 @@ func (n *namespaceStore) Start(ctx context.Context) {
 	newCtx, n.cancel = context.WithCancel(ctx)
 
 	go func() {
-		ticker := time.NewTicker(pollInteralSeconds * time.Second)
+		ticker := time.NewTicker(pollIntervalSeconds * time.Second)
 
 		defer ticker.Stop()
 
