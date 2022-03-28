@@ -1,5 +1,0 @@
-namespace: flux-system
-image: v0.6.2
-containerRegistry: ghcr.io/weaveworks/wego-app
-adminUsername: YWRtaW4=
-adminPassword:

@@ -155,7 +155,7 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell style={f.width && { width: f.width }} key={f.label}>
+        <TableCell style={f.width && { width: `${f.width}%` }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}

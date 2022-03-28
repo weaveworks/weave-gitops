@@ -33,6 +33,7 @@ export const Content = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
+  height: 100%;
 `;
 
 const Children = styled.div``;
@@ -86,7 +87,7 @@ function Page({
         <TitleBar>
           <Flex align>
             <h2>{title}</h2>
-            <Spacer padding="xs" />
+            <Spacer padding="small" />
             {error ? (
               <Errors error={error} />
             ) : (
@@ -103,6 +104,7 @@ function Page({
 }
 
 export default styled(Page)`
+  height: 100%;
   .MuiAlert-root {
     width: 100%;
   }

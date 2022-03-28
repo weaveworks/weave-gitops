@@ -46,23 +46,23 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         );
       },
       sortValue: ({ name }) => name,
-      width: 64,
+      width: 5,
       textSearchable: true,
     },
     {
       label: "Type",
       value: "type",
-      width: 96,
+      width: 5,
     },
     {
       label: "Namespace",
       value: "namespace",
-      width: 64,
+      width: 5,
     },
     {
       label: "Cluster",
       value: () => "Default",
-      width: 64,
+      width: 5,
     },
     {
       label: "Source",
@@ -83,7 +83,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,
-      width: 160,
+      width: 10,
     },
     {
       label: "Status",
@@ -97,20 +97,20 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         ) : null,
       sortType: SortType.bool,
       sortValue: ({ conditions }) => computeReady(conditions),
-      width: 64,
+      width: 7.5,
     },
     {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
-      width: 360,
+      width: 37.5,
       sortValue: ({ conditions }) => computeMessage(conditions),
     },
     {
       label: "Revision",
       value: "lastAttemptedRevision",
-      width: 72,
+      width: 15,
     },
-    { label: "Last Updated", value: "lastHandledReconciledAt", width: 120 },
+    { label: "Last Updated", value: "lastHandledReconciledAt", width: 10 },
   ];
 
   if (hideSource) fields = _.filter(fields, { label: "Source" });

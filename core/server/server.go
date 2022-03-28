@@ -35,13 +35,14 @@ type coreServer struct {
 }
 
 type CoreServerConfig struct {
-	Logger      logr.Logger
+	log         logr.Logger
 	RestCfg     *rest.Config
 	clusterName string
 }
 
-func NewCoreConfig(cfg *rest.Config, clusterName string) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreServerConfig {
 	return CoreServerConfig{
+		log:         log.WithName("core-server"),
 		RestCfg:     cfg,
 		clusterName: clusterName,
 	}
@@ -52,7 +53,7 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 
 	return &coreServer{
 		k8s:    kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
-		logger: cfg.Logger,
+		logger: cfg.log,
 	}
 }
 

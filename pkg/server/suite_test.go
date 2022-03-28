@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -103,15 +104,16 @@ var _ = BeforeEach(func() {
 	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
 	fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
-	cfg := ApplicationsConfig{
+	cfg := server.ApplicationsConfig{
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    kube.ClusterConfig{},
 	}
-	apps = NewApplicationsServer(&cfg,
-		WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter))
+	apps = server.NewApplicationsServer(&cfg,
+		server.WithClientGetter(fakeClientGetter),
+		server.WithKubeGetter(fakeKubeGetter))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
