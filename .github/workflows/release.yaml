@@ -110,6 +110,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          file: gitops-server.dockerfile
   update-doc-repo-files:
     needs: goreleaser
     runs-on: ubuntu-latest
