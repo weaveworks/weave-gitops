@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Logo snapshots renders 1`] = `
-.c1 {
+.c0 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -13,40 +13,37 @@ exports[`Logo snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
-}
-
-.c0 {
-  padding: 24px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
 }
 
 .c2 {
   padding: 4px;
 }
 
+.c1 {
+  margin-left: 24px;
+  width: 240px;
+}
+
 <div
-  className="c0"
+  className="c0 c1"
 >
-  <div
-    className="c1 "
-  >
-    <img
-      src=""
-    />
-    <div
-      className="c2"
-    />
-    <img
-      src=""
-      style={
-        Object {
-          "height": "90%",
-        }
+  <img
+    src=""
+    style={
+      Object {
+        "height": 56,
       }
-    />
-  </div>
+    }
+  />
+  <div
+    className="c2"
+  />
+  <img
+    src=""
+  />
 </div>
 `;
