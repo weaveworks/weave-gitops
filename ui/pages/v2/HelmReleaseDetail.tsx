@@ -78,7 +78,7 @@ function HelmReleaseDetail({ className, name }: Props) {
           <HashRouterTab name="Events" path="/events">
             <EventsTable
               involvedObject={{
-                kind: "Helm Release",
+                kind: "HelmRelease",
                 name,
                 namespace: helmRelease?.namespace,
               }}
