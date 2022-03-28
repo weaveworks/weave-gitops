@@ -68,7 +68,7 @@ function KustomizationDetail({ className, name }: Props) {
           <HashRouterTab name="Events" path="/events">
             <EventsTable
               involvedObject={{
-                kind: AutomationKind.KustomizationAutomation,
+                kind: "Kustomization",
                 name,
                 namespace: kustomization?.namespace,
               }}
