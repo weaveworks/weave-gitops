@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemIcon, Paper, Slide } from "@material-ui/core";
+import { List, ListItem, ListItemIcon, Slide } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -91,6 +91,7 @@ function UnstyledFilterDialog({
     <SlideContainer>
       <SlideWrapper>
         <Slide direction="left" in={open} mountOnEnter unmountOnExit>
+<<<<<<< HEAD
           <Paper elevation={4}>
             <Flex className={className + " filter-bar"} align start>
               <Spacer padding="medium">
@@ -147,6 +148,59 @@ function UnstyledFilterDialog({
               </Spacer>
             </Flex>
           </Paper>
+=======
+          <Flex className={className + " filter-bar"} align start>
+            <Spacer padding="medium">
+              <Flex wide align between>
+                <Text size="extraLarge" color="neutral30">
+                  Filters
+                </Text>
+                <Button variant="text" color="inherit" onClick={onClose}>
+                  <Icon
+                    type={IconType.ClearIcon}
+                    size="large"
+                    color="neutral30"
+                  />
+                </Button>
+              </Flex>
+              <ControlledForm
+                state={{ values: formState }}
+                onChange={onFormChange}
+              >
+                <List>
+                  {_.map(filterList, (options: string[], header: string) => {
+                    return (
+                      <ListItem key={header}>
+                        <Flex column>
+                          <Text capitalize size="large" color="neutral30">
+                            {header}
+                          </Text>
+                          <List>
+                            {_.map(options, (option: string, index: number) => {
+                              return (
+                                <ListItem key={index}>
+                                  <ListItemIcon>
+                                    <FormCheckbox
+                                      label=""
+                                      name={`${header}${filterSeparator}${option}`}
+                                    />
+                                  </ListItemIcon>
+                                  <Text color="neutral30">
+                                    {_.toString(option)}
+                                  </Text>
+                                </ListItem>
+                              );
+                            })}
+                          </List>
+                        </Flex>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </ControlledForm>
+            </Spacer>
+          </Flex>
+>>>>>>> 4b588120 (corrected filter class)
         </Slide>
       </SlideWrapper>
     </SlideContainer>
@@ -154,9 +208,10 @@ function UnstyledFilterDialog({
 }
 
 export default styled(UnstyledFilterDialog)`
-  .MuiPopover-paper {
+  &.filter-bar {
+    background: ${(props) => props.theme.colors.neutral00};
     min-width: 450px;
-    border-left: 2px solid ${(props) => props.theme.colors.neutral30};
+    border-left: 2px solid ${(props) => props.theme.colors.neutral20};
     padding-left: ${(props) => props.theme.spacing.medium};
   }
   .MuiListItem-gutters {
