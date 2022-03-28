@@ -11,8 +11,8 @@ spec:
         app: wego-app
       {{- if and .Values.tls.localCertFile .Values.tls.localKeyFile }}
       annotations:
-        tls-cert: {{.Files.Get "localhost.pem" | quote }}
-        tls-key: {{.Files.Get "localhost-key.pem" | quote }}
+        tls-cert: {{.Files.Get .Values.tls.localCertFile | quote }}
+        tls-key: {{.Files.Get .Values.tls.localKeyFile | quote }}
       {{ end }}
     spec:
       serviceAccountName: wego-app-service-account
