@@ -56,7 +56,7 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 	k8s := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
 	c, _ := k8s.Client(ctx)
-	cacheContainer := cache.NewContainer(c)
+	cacheContainer := cache.NewContainer(c, cfg.log)
 
 	cacheContainer.Start(ctx)
 

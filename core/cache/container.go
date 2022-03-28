@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,17 +16,19 @@ type StorageType string
 
 type Container struct {
 	namespace namespaceStore
+	logger    logr.Logger
 }
 
 var globalCacheContainer *Container
 
-func NewContainer(crClient client.Client) *Container {
+func NewContainer(crClient client.Client, logger logr.Logger) *Container {
 	if globalCacheContainer != nil {
 		return globalCacheContainer
 	}
 
 	globalCacheContainer = &Container{
-		namespace: newNamespaceStore(crClient),
+		namespace: newNamespaceStore(crClient, logger),
+		logger:    logger,
 	}
 
 	return globalCacheContainer

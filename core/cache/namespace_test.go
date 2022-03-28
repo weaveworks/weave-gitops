@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 func TestContainer_Namespace(t *testing.T) {
@@ -14,12 +15,17 @@ func TestContainer_Namespace(t *testing.T) {
 	ctx := context.Background()
 	k := newFakeKubeClient()
 
-	cacheContainer := cache.NewContainer(k)
+	log, err := logger.New("debug", true)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cacheContainer := cache.NewContainer(k, log)
+
 	cacheContainer.Start(ctx)
+
 	defer cacheContainer.Stop()
 
 	// Global Cache
-	g.Expect(cache.NewContainer(k)).To(Equal(cacheContainer))
+	g.Expect(cache.NewContainer(k, log)).To(Equal(cacheContainer))
 	g.Expect(cache.GlobalContainer()).To(Equal(cacheContainer))
 
 	nsList := cacheContainer.Namespaces()

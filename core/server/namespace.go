@@ -26,7 +26,6 @@ func (as *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNames
 	}
 
 	return nil, ErrNamespaceNotFound
-
 }
 
 func (as *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespacesRequest) (*pb.ListNamespacesResponse, error) {

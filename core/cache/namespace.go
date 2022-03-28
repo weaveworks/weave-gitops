@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -14,14 +14,16 @@ const pollInteralSeconds = 120
 type namespaceStore struct {
 	client       client.Client
 	namespaces   []v1.Namespace
+	logger       logr.Logger
 	forceRefresh chan bool
 	cancel       func()
 }
 
-func newNamespaceStore(c client.Client) namespaceStore {
+func newNamespaceStore(c client.Client, logger logr.Logger) namespaceStore {
 	return namespaceStore{
 		client:       c,
 		namespaces:   []v1.Namespace{},
+		logger:       logger,
 		cancel:       nil,
 		forceRefresh: make(chan bool),
 	}
@@ -56,7 +58,7 @@ func (n *namespaceStore) Start(ctx context.Context) {
 
 			err := n.client.List(newCtx, list)
 			if err != nil {
-				logrus.Infof("poll error: %s", err.Error())
+				n.logger.Error(err, "poll error")
 			}
 
 			newList := []v1.Namespace{}
