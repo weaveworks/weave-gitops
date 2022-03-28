@@ -85,7 +85,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c4 {
-  padding: 8px;
+  padding: 12px;
 }
 
 .c1 {
@@ -99,6 +99,7 @@ exports[`Page snapshots default 1`] = `
   padding-left: 32px;
   padding-top: 24px;
   width: 100%;
+  height: 100%;
 }
 
 .c2 {
@@ -120,6 +121,10 @@ exports[`Page snapshots default 1`] = `
 .c2 h2 {
   margin: 0 !important;
   color: #1a1a1a !important;
+}
+
+.c0 {
+  height: 100%;
 }
 
 .c0 .MuiAlert-root {
