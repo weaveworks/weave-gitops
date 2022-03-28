@@ -114,12 +114,12 @@ type ClusteredList[T client.ObjectList] struct {
 	sync.Mutex
 
 	listFactory func() T
-	Lists       map[string]T
+	lists       map[string]T
 }
 
 func NewClusteredList[T client.ObjectList](listFactory func() T) *ClusteredList[T] {
 	return &ClusteredList[T]{
-		Lists:       make(map[string]T),
+		lists:       make(map[string]T),
 		listFactory: listFactory,
 	}
 }
@@ -128,7 +128,21 @@ func (cl *ClusteredList[T]) ObjectList(cluster string) client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
-	cl.Lists[cluster] = cl.listFactory()
+	cl.lists[cluster] = cl.listFactory()
 
-	return cl.Lists[cluster]
+	return cl.lists[cluster]
+}
+
+func (cl *ClusteredList[T]) Lists() map[string]T {
+	cl.Lock()
+	defer cl.Unlock()
+
+	return cl.lists
+}
+
+func (cl *ClusteredList[T]) List(cluster string) T {
+	cl.Lock()
+	defer cl.Unlock()
+
+	return cl.lists[cluster]
 }

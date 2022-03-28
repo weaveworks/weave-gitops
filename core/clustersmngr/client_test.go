@@ -83,8 +83,8 @@ func TestClientGenericList(t *testing.T) {
 	})
 
 	g.Expect(clustersClient.List(ctx, cklist)).To(Succeed())
-	g.Expect(cklist.Lists["test"].Items).To(HaveLen(1))
-	g.Expect(cklist.Lists["test"].Items[0].Name).To(Equal("test"))
+	g.Expect(cklist.List("test").Items).To(HaveLen(1))
+	g.Expect(cklist.List("test").Items[0].Name).To(Equal("test"))
 
 	bucket := &sourcev1.Bucket{
 		ObjectMeta: v1.ObjectMeta{
@@ -105,6 +105,6 @@ func TestClientGenericList(t *testing.T) {
 	})
 
 	g.Expect(clustersClient.List(ctx, cblist)).To(Succeed())
-	g.Expect(cblist.Lists["test"].Items).To(HaveLen(1))
-	g.Expect(cblist.Lists["test"].Items[0].Name).To(Equal("my-bucket"))
+	g.Expect(cblist.List("test").Items).To(HaveLen(1))
+	g.Expect(cblist.List("test").Items[0].Name).To(Equal("my-bucket"))
 }

@@ -22,7 +22,9 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
 
-	clist := &clustersmngr.ClusteredKustomizationList{}
+	clist := clustersmngr.NewClusteredList(func() *kustomizev1.KustomizationList {
+		return &kustomizev1.KustomizationList{}
+	})
 
 	opts := []client.ListOption{
 		client.InNamespace(msg.Namespace),
@@ -34,7 +36,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	var results []*pb.Kustomization
 
-	for _, l := range clist.Lists {
+	for _, l := range clist.Lists() {
 		for _, kustomization := range l.Items {
 			k, err := types.KustomizationToProto(&kustomization)
 			if err != nil {
