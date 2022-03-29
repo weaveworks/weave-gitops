@@ -157,7 +157,7 @@ func TestBuildConfigWithOptions(t *testing.T) {
 }
 
 var (
-	rfc3339Regexp = `^((\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})$`
+	rfc3339Regexp = `^((\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:?\d{2})$`
 	epochRegexp   = `^((?:(\d+.\d+))?)$`
 )
 

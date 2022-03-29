@@ -3,8 +3,10 @@ package server_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -33,6 +35,8 @@ func TestGetFluxNamespace(t *testing.T) {
 	}
 
 	g.Expect(kClient.Create(ctx, ns)).To(Succeed())
+	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
+	time.Sleep(time.Second)
 
 	defer func() {
 		// Workaround, somehow it does not get deleted with client.Delete().
@@ -49,6 +53,9 @@ func TestGetFluxNamespace(t *testing.T) {
 
 func TestGetFluxNamespace_notFound(t *testing.T) {
 	g := NewGomegaWithT(t)
+
+	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
+	time.Sleep(time.Second)
 
 	ctx := context.Background()
 
@@ -74,6 +81,9 @@ func TestListNamespaces(t *testing.T) {
 	for len(namespaces) < 5 {
 		namespaces = append(namespaces, newNamespace(ctx, kClient, g))
 	}
+
+	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
+	time.Sleep(time.Second)
 
 	res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
 

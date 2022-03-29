@@ -29,4 +29,7 @@ rules:
   - apiGroups: [ "source.toolkit.fluxcd.io" ]
     resources: [ "helmrepositories/finalizers", "helmrepositories/status" ]
     verbs: [ "get" ]
+  - apiGroups: [ "" ]
+    resources: [ "namespaces" ]
+    verbs: [ "get", "list" ]
 {{- end -}}
