@@ -7,11 +7,9 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { statusSortHelper } from "../lib/utils";
 import DataTable, { SortType } from "./DataTable";
-import KubeStatusIndicator, {
-  computeMessage,
-  computeReady,
-} from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import RequestStateHandler from "./RequestStateHandler";
 
 export interface ReconciledVisualizationProps {
@@ -65,8 +63,8 @@ function ReconciledObjectsTable({
                     suspended={u.suspended}
                   />
                 ) : null,
-              sortType: SortType.bool,
-              sortValue: ({ conditions }) => computeReady(conditions),
+              sortType: SortType.number,
+              sortValue: statusSortHelper,
             },
             {
               label: "Message",

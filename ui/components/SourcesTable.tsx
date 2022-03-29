@@ -10,7 +10,7 @@ import {
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
-import { convertGitURLToGitProvider } from "../lib/utils";
+import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, { filterConfigForType } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
@@ -65,6 +65,8 @@ function SourcesTable({ className, sources }: Props) {
                 suspended={s.suspended}
               />
             ),
+            sortType: SortType.number,
+            sortValue: statusSortHelper,
             width: 5,
           },
           {
