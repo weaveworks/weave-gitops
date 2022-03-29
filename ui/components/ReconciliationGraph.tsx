@@ -5,19 +5,16 @@ import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
-import {
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
-import { UnstructuredObjectWithParent } from "../lib/graph";
+import { useGetReconciledObjects } from "../hooks/flux";
+import { UnstructuredObject } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
+import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
+import RequestStateHandler from "./RequestStateHandler";
 
-export interface Props {
-  objects: UnstructuredObjectWithParent[];
-  parentObject: any;
-  parentObjectKind: string;
-  className?: string;
-}
+export type Props = ReconciledVisualizationProps & {
+  parentObject: { name?: string; namespace?: string };
+};
 
 function getStatusIcon(status: string) {
   switch (status) {
@@ -59,13 +56,24 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
 
 function ReconciliationGraph({
   className,
-  objects,
   parentObject,
-  parentObjectKind,
+  automationKind,
+  kinds,
 }: Props) {
+  const {
+    data: objects,
+    error,
+    isLoading,
+  } = useGetReconciledObjects(
+    parentObject.name,
+    parentObject.namespace,
+    automationKind,
+    kinds
+  );
+
   const edges = _.reduce(
     objects,
-    (r, v) => {
+    (r, v: any) => {
       if (v.parentUid) {
         r.push({ source: v.parentUid, target: v.uid });
       } else {
@@ -88,24 +96,26 @@ function ReconciliationGraph({
       label: (u: Props["parentObject"]) =>
         renderToString(
           <NodeHtml
-            object={{ ...u, groupVersionKind: { kind: parentObjectKind } }}
+            object={{ ...u, groupVersionKind: { kind: automationKind } }}
           />
         ),
     },
   ];
 
   return (
-    <div className={className}>
-      <DirectedGraph
-        width="100%"
-        height={640}
-        scale={1}
-        nodes={nodes}
-        edges={edges}
-        labelShape="ellipse"
-        labelType="html"
-      />
-    </div>
+    <RequestStateHandler loading={isLoading} error={error}>
+      <div className={className}>
+        <DirectedGraph
+          width="100%"
+          height={640}
+          scale={1}
+          nodes={nodes}
+          edges={edges}
+          labelShape="ellipse"
+          labelType="html"
+        />
+      </div>
+    </RequestStateHandler>
   );
 }
 
