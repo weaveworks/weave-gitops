@@ -38,8 +38,7 @@ function FluxRuntime({ className }: Props) {
             ),
             label: "Status",
             sortType: SortType.number,
-            sortValue: ({ conditions, suspended }) =>
-              statusSortHelper(suspended, conditions),
+            sortValue: statusSortHelper,
           },
           {
             label: "Cluster",

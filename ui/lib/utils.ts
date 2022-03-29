@@ -48,7 +48,12 @@ export function pageTitleWithAppName(title: string, appName?: string) {
   return `${title}${appName ? ` for ${appName}` : ""}`;
 }
 
-export function statusSortHelper(suspended: boolean, conditions: Condition[]) {
+interface Statusable {
+  conditions: Condition[];
+  suspended: boolean;
+}
+
+export function statusSortHelper({ suspended, conditions }: Statusable) {
   if (suspended) return 2;
   if (computeReady(conditions)) return 3;
   else return 1;

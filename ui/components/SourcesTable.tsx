@@ -66,8 +66,7 @@ function SourcesTable({ className, sources }: Props) {
               />
             ),
             sortType: SortType.number,
-            sortValue: ({ conditions, suspended }) =>
-              statusSortHelper(suspended, conditions),
+            sortValue: statusSortHelper,
             width: 5,
           },
           {

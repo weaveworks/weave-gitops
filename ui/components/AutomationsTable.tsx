@@ -94,8 +94,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           />
         ) : null,
       sortType: SortType.number,
-      sortValue: ({ conditions, suspended }) =>
-        statusSortHelper(suspended, conditions),
+      sortValue: statusSortHelper,
       width: 7.5,
     },
     {

@@ -64,8 +64,7 @@ function ReconciledObjectsTable({
                   />
                 ) : null,
               sortType: SortType.number,
-              sortValue: ({ conditions, suspended }) =>
-                statusSortHelper(suspended, conditions),
+              sortValue: statusSortHelper,
             },
             {
               label: "Message",
