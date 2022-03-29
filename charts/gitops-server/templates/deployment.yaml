@@ -52,9 +52,6 @@ spec:
             - "--tls-private-key-file"
             - "/etc/tls-volume/.key-file"
             {{- end }}
-            {{- if (not (and .Values.serverTLS.useLocalFiles .Values.serverTLS.useSecret) )}}
-            - "--insecure"
-            {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}
