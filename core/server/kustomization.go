@@ -18,7 +18,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return &kustomizev1.KustomizationList{}
 	})
 
-	if err := clustersClient.List(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, err
 	}
 

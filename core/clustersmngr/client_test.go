@@ -60,7 +60,7 @@ func TestClientGet(t *testing.T) {
 	g.Expect(k.Name).To(Equal(appName))
 }
 
-func TestClientList(t *testing.T) {
+func TestClientClusteredList(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
 
@@ -96,7 +96,7 @@ func TestClientList(t *testing.T) {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	g.Expect(clustersClient.List(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
 
 	klist := cklist.Lists()[clusterName].(*kustomizev1.KustomizationList)
 
@@ -122,11 +122,51 @@ func TestClientList(t *testing.T) {
 		return &sourcev1.GitRepositoryList{}
 	})
 
-	g.Expect(clustersClient.List(ctx, cgrlist)).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cgrlist)).To(Succeed())
 
 	glist := cgrlist.Lists()[clusterName].(*sourcev1.GitRepositoryList)
 	g.Expect(glist.Items).To(HaveLen(1))
 	g.Expect(glist.Items[0].Name).To(Equal(appName))
+}
+
+func TestClientList(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := createNamespace(g)
+
+	clusterName := "mycluster"
+	appName := "myapp" + rand.String(5)
+
+	clientsPool := clustersmngr.NewClustersClientsPool()
+
+	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
+		Name:      clusterName,
+		Server:    k8sEnv.Rest.Host,
+		TLSConfig: k8sEnv.Rest.TLSClientConfig,
+	})
+	g.Expect(err).To(BeNil())
+
+	clustersClient := clustersmngr.NewClient(clientsPool)
+
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      appName,
+			Namespace: ns.Name,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+			},
+		},
+	}
+	ctx := context.Background()
+	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
+
+	list := &kustomizev1.KustomizationList{}
+
+	g.Expect(clustersClient.List(ctx, clusterName, list, client.InNamespace(ns.Name))).To(Succeed())
+
+	g.Expect(list.Items).To(HaveLen(1))
+	g.Expect(list.Items[0].Name).To(Equal(appName))
 }
 
 func TestClientCreate(t *testing.T) {

@@ -13,15 +13,26 @@ var (
 	ErrClusterNotFound error = errors.New("cluster not found")
 )
 
+// Client mimics the client interface of controller-runtime as much as possible but adding multi clusters context.
 type Client interface {
+	// Get retrieves an obj for the given object key.
 	Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error
-	List(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error
+	// List retrieves list of objects for a given namespace and list options.
+	List(ctx context.Context, cluster string, list client.ObjectList, opts ...client.ListOption) error
 
+	// Create saves the object obj.
 	Create(ctx context.Context, cluster string, obj client.Object, opts ...client.CreateOption) error
+	// Delete deletes the given obj
 	Delete(ctx context.Context, cluster string, obj client.Object, opts ...client.DeleteOption) error
+	// Update updates the given obj.
 	Update(ctx context.Context, cluster string, obj client.Object, opts ...client.UpdateOption) error
+	// Patch patches the given obj
 	Patch(ctx context.Context, cluster string, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
 
+	// ClusteredList retrieves list of objects for all clusters.
+	ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error
+
+	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
 }
 
@@ -48,7 +59,16 @@ func (c *clustersClient) Get(ctx context.Context, cluster string, key client.Obj
 	return client.Get(ctx, key, obj)
 }
 
-func (c *clustersClient) List(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
+func (c *clustersClient) List(ctx context.Context, cluster string, list client.ObjectList, opts ...client.ListOption) error {
+	client := c.pool.Clients()[cluster]
+	if client == nil {
+		return ErrClusterNotFound
+	}
+
+	return client.List(ctx, list, opts...)
+}
+
+func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
 	wg := sync.WaitGroup{}
 
 	var errs []error
