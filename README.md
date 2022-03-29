@@ -1,6 +1,4 @@
-# weave-gitops
-
-Weave GitOps
+# Weave GitOps - simplifying application operations on Kubernetes with GitOps using Flux 
 
 ![Test status](https://github.com/weaveworks/weave-gitops/actions/workflows/pr.yaml/badge.svg)
 [![LICENSE](https://img.shields.io/github/license/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/blob/master/LICENSE)
@@ -8,14 +6,87 @@ Weave GitOps
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
 
-## Overview
 
-Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters.
-It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
+Weave GitOps is a powerful extension to [Flux](https://fluxcd.io), a leading GitOps engine and CNCF project, which provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams.
 
-## Getting Started
+The web UI surfaces key information to **help application operators easily discover and resolve issues**. The intuitive interface provides a guided experience to **build understanding** and **simplify getting started for new users**; they can easily discover the relationship between Flux objects and navigate to deeper levels of information as required.
 
-### CLI Installation
+Weave GitOps is an open source project sponsored by [Weaveworks](https://weave.works) - the GitOps company, and original creators of [Flux](https://fluxcd.io).
+
+### Why adopt GitOps?
+> "GitOps is the best thing since configuration as code. Git changed how we collaborate, but declarative configuration is the key to dealing with infrastructure at scale, and sets the stage for the next generation of management tools"  
+--<cite>Kelsey Hightower, Staff Developer Advocate, Google. [Source](https://twitter.com/kelseyhightower/status/1164192321891528704?s=20&t=FkRyvLThKm8Ns7yhHh7UQg).</cite>
+
+Adopting GitOps can bring a number of key benefits:
+- Faster and more frequent deployments
+- Easy recovery from failures
+- Improved security and auditability
+
+To learn more about GitOps, check out these resources:
+- [GitOps for absolute beginners](https://go.weave.works/WebContent-EB-GitOps-for-Beginners.html) - eBook from Weaveworks
+- [Guide to GitOps](https://www.weave.works/technologies/gitops/) - from Weaveworks
+- [OpenGitOps](https://opengitops.dev/) - CNCF Sandbox project aiming to define a vendor-neutral, principle-led meaning of GitOps.
+- [gitops.tech](https://www.gitops.tech/) - supported by Innoq
+
+### See Weave GitOps in action
+*Video coming soon!*
+
+## WIP - Quick start
+For a full walkthrough, please check out our [Getting Started guide](https://docs.gitops.weave.works/docs/getting-started).
+
+### Installing Weave GitOps on Kubernetes
+
+1. First, you will need to [install Flux](https://fluxcd.io/docs/installation/).  
+Both Weave GitOps and Flux work on any conformant Kubernetes distribution, for minimum supported versions see the [Flux pre-requisites](https://fluxcd.io/docs/installation/#prerequisites). We highly recommend using `flux bootstrap` to commit the Flux manifests to a Git Repository and have Flux itself be managed through GitOps, however for testing purposes you can simply issue `flux install` to install Flux without storing its manifests in a repository.
+
+2. Configure authentication to the web UI, by either integrating an [OIDC provider](https://docs.gitops.weave.works/docs/next/gitops-dashboard#login-via-an-oidc-provider) or using the [cluster user account](https://docs.gitops.weave.works/docs/next/gitops-dashboard#login-via-a-cluster-user-account).
+
+3. Weave GitOps is available as a Helm Chart and can be installed in the same manner as any other resource with Flux, namely a [Source](https://fluxcd.io/docs/concepts/#sources) and a [reconciliation](https://fluxcd.io/docs/concepts/#reconciliation) object, in our case a [HelmRelease](https://fluxcd.io/docs/components/helm/helmreleases/).  
+Again, we recommend committing the following to a repository being reconciled by Flux, however you can also directly apply the resources to your cluster:
+
+```
+kubectl apply -n flux-system -f - << EOF
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: disable-tls
+  secretRef:
+    name: flux-system
+  url: ssh://git@github.com/weaveworks/weave-gitops
+  ignore: |
+    # exclude all
+    /*
+    # include charts directory
+    !/charts/ 
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: ./charts/weave-gitops
+      sourceRef:
+        kind: GitRepository
+        name: ww-gitops
+  values:
+    image: <image-tag>
+    adminPassword: <password-hashed-with-bcrypt>
+    containerRegistry: <organisation/repository>
+  interval: 1m0s
+EOF
+```
+
+## Installing the GitOps CLI
+
+The `gitops` CLI provides a set of commands to make it easier to interact with Weave GitOps, including both the free open source project, and commercial [Weave GitOps Enterprise](https://www.weave.works/product/gitops-enterprise/) product.
 
 Mac / Linux
 
@@ -25,14 +96,12 @@ sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
 
-Alternatively, users can use Homebrew:
+Homebrew:
 
 ```console
 brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
-
-Please see the [getting started guide](https://docs.gitops.weave.works/docs/getting-started).
 
 ## CLI Reference
 
@@ -44,13 +113,15 @@ Usage:
   gitops [command]
 
 Available Commands:
-  app         Add or status application
-  flux        Use flux commands
+  add         Add a new Weave GitOps resource
+  check       Validates flux compatibility
+  completion  Generate the autocompletion script for the specified shell
+  delete      Delete one or many Weave GitOps resources
+  get         Display one or many Weave GitOps resources
   help        Help about any command
-  install     Install or upgrade Weave GitOps
-  ui          Manages Weave GitOps UI
-  uninstall   Uninstall Weave GitOps
-  version     Display Weave GitOps version
+  update      Update a Weave GitOps resource
+  upgrade     Upgrade to Weave GitOps Enterprise
+  version     Display gitops version
 
 Flags:
   -h, --help               Help for gitops
@@ -60,162 +131,25 @@ Flags:
 Use "gitops [command] --help" for more information about a command.
 ```
 
-For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
-
-## CLI/API development
-
-To set up a development environment for the CLI
-
-### To use an existing environment
-
-1. Install go v1.17
-1. Install [buf](https://github.com/bufbuild/buf)
-1. Run `make all` to install dependencies and build binaries and assets
-1. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
-1. Run `flux install -n flux-system`
-1. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
-1. `make` or `make unit-tests` to ensure everything built correctly.
-1. Navigate to http://localhost:9001 in your browser. The login is `dev` with the password `dev`.
-
-### Requirements/tools
-
-This is a list of the tools you may need to install:
-
-* [go](https://go.dev) -- Primary compiler for the CLI.
-* [npm](https://www.npmjs.com/) -- Package manager for UI components.
-* [ginkgo](https://onsi.github.io/ginkgo/) -- A go testing framework.
-* [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
-* [golangci-lint](https://github.com/golangci/golangci-lint/) -- A go linter.
-* [buf](https://buf.build/) -- To generate the protobufs used by the API.
-* [reflex](https://github.com/cespare/reflex) -- A file watcher.
-* [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
-* [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
-* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
-
-Some other tools are installed automatically by the makefile for you:
-
-* [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
-* [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
-
-And some tools that are installed by the `tools/download-deps.sh` script:
-
-* [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
-* [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
-
-### To use a bootstrapped, ready made environment
-
-1. Install go v1.17
-2. Install [buf](https://github.com/bufbuild/buf)
-3. Run `make all` to install dependencies and build binaries and assets
-4. Run `make cluster-dev` which should install and bring up everything and then start `tilt` to take over monitoring
-
-### Cluster Dev Tips
-
-- You may need to turn off your `kustomize-controller` to prevent it from reconciling your "GitOps RunTime" and over-writing the `wego-app` deployment.
-- Setting the system kustomization to `suspend: true` in the config repo will also keep `kustomize-controller` from fighting with `tilt`. You may need to kill a failing pod after suspending the kustomization.
-
-### Unit testing
-
-We are using [Ginko](https://onsi.github.io/ginkgo/) for our unit tests. To execute the all the unit tests, run `make unit-tests`.
-
-To run a single test, you will need to set the KUBEBUILDER_ASSESTS environment variable to point to the directory containing our mock K8s objects.
-
-```bash
-export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
-go test github.com/weaveworks/weave-gitops/pkg/kube
-```
-
-or
-
-```bash
-export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
-cd pkg/kube
-go test
-```
-
-#### Executing a subset of tests
-
-Ginkgo allows you to run a subset of Describe/Context/It specs. See [Focused Specs](https://onsi.github.io/ginkgo/#focused-specs) for more information
-
-### Setup golangci-lint in your editor
-
-Link for golangci-lint editor integration: https://golangci-lint.run/usage/integrations/
-
-For VSCode, use these editor configuration flags:
-
-```json
-    "go.lintFlags": [
-        "--fast",
-    ],
-```
-
-## UI Development
-
-To set up a development environment for the UI
-
-1. Install go v1.17
-2. Install Node.js version 16.13.2
-3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
-4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
-5. Run `make node_modules`. NOTE: Running `npm install` could leave you unable to pass our ui-tests. If you're getting an error about a git diff in your package.lock, run `rm -rf node_modules && make node_modules`.
-6. Make sure GitOps is installed on a fresh kind cluster for this repo by running `kind delete cluster`, `kind create cluster`, and finally `gitops install`.
-7. To start up the HTTP server with automated re-compliation, run `make api-dev`
-8. Run `npm start` to start the frontend dev server (with hot-reloading)
-
-Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) will get you on the right track!
-
-Run frontend tests with `make ui-test` - update CSS snapshots with `npm run test -- -u`
-
-Check dependency vulnerabilities with `make ui-audit`
-
-To avoid invalidating JWT tokens on every server restart set the `GITOPS_JWT_ENCRYPTION_SECRET` env variable in your shell to use a static encryption secret. Else, a random encryption secret will be used that will change on every server (or pod) restart, thus invalidating any JWTs that were created with the old secret.
-
-### Recommended Snippets
-
-To create a new styled React component (with typescript):
-
-```json
-{
-  "Export Default React Component": {
-    "prefix": "tsx",
-    "body": [
-      "import * as React from 'react';",
-      "import styled from 'styled-components'",
-      "",
-      "type Props = {",
-      "  className?: string",
-      "}",
-      "",
-      "function ${1:} ({ className }: Props) {",
-      "  return (",
-      "    <div className={className}>",
-      "      ${0}",
-      "    </div>",
-      "  );",
-      "}",
-      "",
-      "export default styled(${1:}).attrs({ className: ${1:}.name })``"
-    ],
-    "description": "Create a default-exported, styled React Component."
-  }
-}
-```
-
-## FAQ
-
-Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
+For more information, please see the [docs](https://docs.gitops.weave.works/docs/cli-reference).
 
 ## Contribution
 
 Need help or want to contribute? Please see the links below.
 
-- Getting Started?
-  - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
 - Need help?
-  - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
+  - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself](https://slack.weave.works/) if you haven't joined yet.
 - Have feature proposals or want to contribute?
-  - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
+  - Please create an [issue](https://github.com/weaveworks/weave-gitops/issues).
+  - Check out our [Contributing guide](CONTRIBUTING.md).
+
+## Commercial support
+
+Weaveworks provides [Weave GitOps Enterprise](https://www.weave.works/product/gitops-enterprise/), a continuous operations product that makes it easy to deploy and manage Kubernetes clusters and applications at scale in any environment. The single management console automates trusted application delivery and secure infrastructure operations on premise, in the cloud and at the edge.
+
+To discuss your support needs, please contact us at [sales@weave.works](mailto:sales@weave.works).
 
 ## License scan details
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
+
