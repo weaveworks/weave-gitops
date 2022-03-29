@@ -13,7 +13,7 @@ var (
 	ErrClusterNotFound error = errors.New("cluster not found")
 )
 
-// Client mimics the client interface of controller-runtime as much as possible but adding multi clusters context.
+// Client thin wrapper to the client interface of controller-runtime adding multi clusters context.
 type Client interface {
 	// Get retrieves an obj for the given object key.
 	Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error
