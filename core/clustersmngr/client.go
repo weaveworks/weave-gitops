@@ -6,12 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	appsv1 "k8s.io/api/apps/v1"
-
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -120,158 +114,33 @@ func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.O
 
 type ClusteredObjectList interface {
 	ObjectList(cluster string) client.ObjectList
+	Lists() map[string]interface{}
 }
 
-type ClusteredKustomizationList struct {
+type ClusteredList struct {
 	sync.Mutex
 
-	lists map[string]*kustomizev1.KustomizationList
+	listFactory func() client.ObjectList
+	lists       map[string]interface{}
 }
 
-func (cl *ClusteredKustomizationList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*kustomizev1.KustomizationList{}
+func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
+	return &ClusteredList{
+		listFactory: listFactory,
+		lists:       make(map[string]interface{}),
 	}
-
-	cl.lists[cluster] = &kustomizev1.KustomizationList{}
-
-	return cl.lists[cluster]
 }
 
-func (cl *ClusteredKustomizationList) Lists() map[string]*kustomizev1.KustomizationList {
+func (cl *ClusteredList) ObjectList(cluster string) client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
-	return cl.lists
+	cl.lists[cluster] = cl.listFactory()
+
+	return cl.lists[cluster].(client.ObjectList)
 }
 
-type ClusteredHelmReleaseList struct {
-	sync.Mutex
-
-	lists map[string]*helmv2.HelmReleaseList
-}
-
-func (cl *ClusteredHelmReleaseList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*helmv2.HelmReleaseList{}
-	}
-
-	cl.lists[cluster] = &helmv2.HelmReleaseList{}
-
-	return cl.lists[cluster]
-}
-
-func (cl *ClusteredHelmReleaseList) Lists() map[string]*helmv2.HelmReleaseList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	return cl.lists
-}
-
-type ClusteredGitRepositoryList struct {
-	sync.Mutex
-
-	lists map[string]*sourcev1.GitRepositoryList
-}
-
-func (cl *ClusteredGitRepositoryList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*sourcev1.GitRepositoryList{}
-	}
-
-	cl.lists[cluster] = &sourcev1.GitRepositoryList{}
-
-	return cl.lists[cluster]
-}
-
-func (cl *ClusteredGitRepositoryList) Lists() map[string]*sourcev1.GitRepositoryList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	return cl.lists
-}
-
-type ClusteredHelmRepositoryList struct {
-	sync.Mutex
-
-	lists map[string]*sourcev1.HelmRepositoryList
-}
-
-func (cl *ClusteredHelmRepositoryList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*sourcev1.HelmRepositoryList{}
-	}
-
-	cl.lists[cluster] = &sourcev1.HelmRepositoryList{}
-
-	return cl.lists[cluster]
-}
-
-func (cl *ClusteredHelmRepositoryList) Lists() map[string]*sourcev1.HelmRepositoryList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	return cl.lists
-}
-
-type ClusteredBucketList struct {
-	sync.Mutex
-
-	lists map[string]*sourcev1.BucketList
-}
-
-func (cl *ClusteredBucketList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*sourcev1.BucketList{}
-	}
-
-	cl.lists[cluster] = &sourcev1.BucketList{}
-
-	return cl.lists[cluster]
-}
-
-func (cl *ClusteredBucketList) Lists() map[string]*sourcev1.BucketList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	return cl.lists
-}
-
-type ClusteredDeploymentList struct {
-	sync.Mutex
-
-	lists map[string]*appsv1.DeploymentList
-}
-
-func (cl *ClusteredDeploymentList) ObjectList(cluster string) client.ObjectList {
-	cl.Lock()
-	defer cl.Unlock()
-
-	if cl.lists == nil {
-		cl.lists = map[string]*appsv1.DeploymentList{}
-	}
-
-	cl.lists[cluster] = &appsv1.DeploymentList{}
-
-	return cl.lists[cluster]
-}
-
-func (cl *ClusteredDeploymentList) Lists() map[string]*appsv1.DeploymentList {
+func (cl *ClusteredList) Lists() map[string]interface{} {
 	cl.Lock()
 	defer cl.Unlock()
 

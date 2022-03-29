@@ -14,7 +14,9 @@ import (
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	clist := &clustersmngr.ClusteredKustomizationList{}
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
 
 	if err := clustersClient.List(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, err
@@ -23,7 +25,9 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	var results []*pb.Kustomization
 
 	for _, l := range clist.Lists() {
-		for _, kustomization := range l.Items {
+		list := l.(*kustomizev1.KustomizationList)
+
+		for _, kustomization := range list.Items {
 			k, err := types.KustomizationToProto(&kustomization)
 			if err != nil {
 				return nil, fmt.Errorf("converting items: %w", err)

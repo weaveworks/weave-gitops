@@ -92,13 +92,18 @@ func TestClientList(t *testing.T) {
 	ctx := context.Background()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
-	cklist := &clustersmngr.ClusteredKustomizationList{}
+	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
 
 	g.Expect(clustersClient.List(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
-	g.Expect(cklist.Lists()[clusterName].Items).To(HaveLen(1))
-	g.Expect(cklist.Lists()[clusterName].Items[0].Name).To(Equal(appName))
 
-	bucket := &sourcev1.GitRepository{
+	klist := cklist.Lists()[clusterName].(*kustomizev1.KustomizationList)
+
+	g.Expect(klist.Items).To(HaveLen(1))
+	g.Expect(klist.Items[0].Name).To(Equal(appName))
+
+	gitRepo := &sourcev1.GitRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
@@ -111,13 +116,17 @@ func TestClientList(t *testing.T) {
 		},
 	}
 
-	g.Expect(k8sEnv.Client.Create(ctx, bucket)).To(Succeed())
+	g.Expect(k8sEnv.Client.Create(ctx, gitRepo)).To(Succeed())
 
-	cgrlist := &clustersmngr.ClusteredGitRepositoryList{}
+	cgrlist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &sourcev1.GitRepositoryList{}
+	})
 
 	g.Expect(clustersClient.List(ctx, cgrlist)).To(Succeed())
-	g.Expect(cgrlist.Lists()[clusterName].Items).To(HaveLen(1))
-	g.Expect(cgrlist.Lists()[clusterName].Items[0].Name).To(Equal(appName))
+
+	glist := cgrlist.Lists()[clusterName].(*sourcev1.GitRepositoryList)
+	g.Expect(glist.Items).To(HaveLen(1))
+	g.Expect(glist.Items[0].Name).To(Equal(appName))
 }
 
 func TestClientCreate(t *testing.T) {
