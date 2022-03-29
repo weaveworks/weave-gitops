@@ -14,7 +14,7 @@ export const theme: DefaultTheme = {
   fontSizes: {
     huge: "48px",
     extraLarge: "32px",
-    large: "22px",
+    large: "20px",
     normal: "16px",
     small: "14px",
     tiny: "12px",

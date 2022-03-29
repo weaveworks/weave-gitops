@@ -202,7 +202,7 @@ function UnstyledFilterDialog({
 =======
           <Flex className={className + " filter-bar"} start column>
             <Flex wide align between>
-              <Text size="extraLarge" color="neutral30">
+              <Text size="large" color="neutral30">
                 Filters
               </Text>
               <Button variant="text" color="inherit" onClick={onClose}>
@@ -222,7 +222,7 @@ function UnstyledFilterDialog({
                   return (
                     <ListItem key={header}>
                       <Flex column>
-                        <Text capitalize size="large" color="neutral30">
+                        <Text capitalize size="small" color="neutral30">
                           {header}
                         </Text>
                         <List>
@@ -235,7 +235,7 @@ function UnstyledFilterDialog({
                                     name={`${header}${filterSeparator}${option}`}
                                   />
                                 </ListItemIcon>
-                                <Text color="neutral30">
+                                <Text color="neutral30" size="small">
                                   {_.toString(option)}
                                 </Text>
                               </ListItem>
@@ -260,10 +260,10 @@ function UnstyledFilterDialog({
 export default styled(UnstyledFilterDialog)`
   &.filter-bar {
     background: ${(props) => props.theme.colors.neutral00};
-    min-width: 450px;
+    min-width: 300px;
     border-left: 2px solid ${(props) => props.theme.colors.neutral20};
     padding: ${(props) => props.theme.spacing.medium};
-    padding-left: ${(props) => props.theme.spacing.large};
+    padding-left: ${(props) => props.theme.spacing.xl};
   }
   .MuiListItem-gutters {
     padding-left: 0px;
