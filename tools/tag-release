@@ -230,8 +230,10 @@ def _build_parser():
 
     parser.add_argument(
         "action",
-        choices=["promote", "bump", "minor", "patch"],
-        help="the type of release to tag",
+        nargs="?",
+        choices=["promote", "bump", "minor", "patch", "current"],
+        default="current",
+        help="the type of release to tag (or output the current tag)",
     )
 
     return parser
@@ -294,6 +296,10 @@ if __name__ == "__main__":
     tag_name = get_latest_tag()
     tag = original_tag = parse_tag(tag_name)
     print_err(f"Most recent tag: {original_tag}")
+
+    if args.action == "current":
+        print_err("Run with the `--help` flag for a list of available commands.")
+        sys.exit(0)
 
     try:
         tag = next_tag(original_tag, args.action, abandon=args.abandon, rc=args.rc)
