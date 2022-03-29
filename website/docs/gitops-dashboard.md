@@ -4,12 +4,6 @@ sidebar_position: 4
 hide_title: true
 ---
 
-import TierLabel from "./\_components/TierLabel";
-
-<h1>
-  {frontMatter.title} <TierLabel tiers="All tiers" />
-</h1>
-
 Weave GitOps provides a web UI to help you quickly understand your Application deployments and perform common operations, such as adding a new Application to be deployed to your cluster. The `gitops` binary contains an HTTP server that can be used to start this browser interface as per the instructions below:
 
 To run the dashboard:

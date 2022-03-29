@@ -4,12 +4,6 @@ sidebar_position: 1
 hide_title: true
 ---
 
-import TierLabel from "./_components/TierLabel";
-
-<h1>
-  {frontMatter.title} <TierLabel tiers="All tiers" />
-</h1>
-
 ## Pre-requisites
 
 ### Kubernetes Cluster
