@@ -54,14 +54,18 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 	ctx := context.Background()
 
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
-	k8s := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
-	c, _ := k8s.Client(ctx)
+
+	c, err := client.New(cfg.RestCfg, client.Options{})
+	if err != nil {
+		cfg.log.Error(err, "unable to create new kube client")
+	}
+
 	cacheContainer := cache.NewContainer(c, cfg.log)
 
 	cacheContainer.Start(ctx)
 
 	return &coreServer{
-		k8s:            k8s,
+		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
 		logger:         cfg.log,
 		cacheContainer: cacheContainer,
 	}

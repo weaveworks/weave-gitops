@@ -8,12 +8,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestContainer_Namespace(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
-	k := newFakeKubeClient()
+	k := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 
 	log, err := logger.New("debug", true)
 	g.Expect(err).NotTo(HaveOccurred())
