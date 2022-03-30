@@ -4,6 +4,7 @@ To release a new version of Weave Gitops, you need to:
 - Create the actual release
 - Update the [website](/website) with documentation for the new version
 - Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
+- Update the helm chart version
 - Add a record of the new version in the checkpoint system
 
 # Creating the release
@@ -30,6 +31,12 @@ The go-releaser will spin for a bit, generating a changelog and artifacts.
 
 # Updating the README
 - Once the release is available, change the version in the `curl` command shown in the `CLI Installation` section of the `README.md` in the weave-gitops repository
+- Create a PR and merge when approved
+
+# Updating the helm chart
+- Update the appVersion value in [Chart.yaml](charts/gitops-server/Chart.yaml)
+- Update the image.tag value in [values.yaml](charts/gitops-server/values.yaml)
+- Bump the version value in [Chart.yaml](charts/gitops-server/Chart.yaml)
 - Create a PR and merge when approved
 
 # Record the new version
