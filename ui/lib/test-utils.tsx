@@ -7,7 +7,7 @@ import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import {
-  Applications,
+  GitProviderAuth,
   GetGithubAuthStatusRequest,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeRequest,
@@ -16,7 +16,7 @@ import {
   ParseRepoURLResponse,
   ValidateProviderTokenRequest,
   ValidateProviderTokenResponse,
-} from "./api/applications/applications.pb";
+} from "./api/gitauth/gitauth.pb";
 import {
   Core,
   GetChildObjectsRequest,
@@ -73,7 +73,7 @@ export type ApplicationOverrides = {
 export const createMockClient = (
   ovr: ApplicationOverrides,
   error?: RequestError
-): typeof Applications => {
+): typeof GitProviderAuth => {
   const promisified = _.reduce(
     ovr,
     (result, handlerFn, method) => {
@@ -89,7 +89,7 @@ export const createMockClient = (
     {}
   );
 
-  return promisified as typeof Applications;
+  return promisified as typeof GitProviderAuth;
 };
 
 export function withTheme(element) {

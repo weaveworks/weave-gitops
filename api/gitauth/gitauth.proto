@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package wego_server.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/applications";
+option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/gitauth";
 
 import "google/api/annotations.proto";
 
@@ -10,15 +10,15 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
-      title: "WeGo Applications API",
+      title: "WeGo GitProviderAuth API",
       version: "0.1";
-      description: "The WeGo Applications API handles operations for Weave GitOps Applications";
+      description: "The WeGo GitProviderAuth API handles auth interactions with Git Providers";
     };
     consumes: "application/json";
     produces: "application/json";
 };
 
-service Applications {
+service GitProviderAuth {
     /**
     * Authenticate generates jwt token using git provider name and git provider token arguments
     */

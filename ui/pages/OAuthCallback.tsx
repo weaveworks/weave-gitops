@@ -10,7 +10,7 @@ import { useRequestState } from "../hooks/common";
 import {
   AuthorizeGitlabResponse,
   GitProvider,
-} from "../lib/api/applications/applications.pb";
+} from "../lib/api/gitauth/gitauth.pb";
 import { gitlabOAuthRedirectURI } from "../lib/utils";
 
 type Props = {

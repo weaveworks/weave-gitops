@@ -82,7 +82,7 @@ export type GetFeatureFlagsResponse = {
   flags?: {[key: string]: string}
 }
 
-export class Applications {
+export class GitProviderAuth {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }

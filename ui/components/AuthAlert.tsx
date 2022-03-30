@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { GitProvider } from "../lib/api/applications/applications.pb";
+import { GitProvider } from "../lib/api/gitauth/gitauth.pb";
 import { RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Button from "./Button";

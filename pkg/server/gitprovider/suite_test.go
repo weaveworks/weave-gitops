@@ -1,4 +1,4 @@
-package server_test
+package gitprovider_test
 
 import (
 	"context"
@@ -9,12 +9,12 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	server "github.com/weaveworks/weave-gitops/pkg/server/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -38,8 +38,8 @@ const bufSize = 1024 * 1024
 var lis *bufconn.Listener
 
 var s *grpc.Server
-var apps pb.ApplicationsServer
-var appsClient pb.ApplicationsClient
+var gitAuth pb.GitProviderAuthServer
+var gitAuthClient pb.GitProviderAuthClient
 var conn *grpc.ClientConn
 var err error
 var k8sClient client.Client
@@ -104,17 +104,17 @@ var _ = BeforeEach(func() {
 	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
 	fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
-	cfg := server.ApplicationsConfig{
+	cfg := server.GitAuthConfig{
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    kube.ClusterConfig{},
 	}
-	apps = server.NewApplicationsServer(&cfg,
+	gitAuth = server.NewGitAuthServer(&cfg,
 		server.WithClientGetter(fakeClientGetter),
 		server.WithKubeGetter(fakeKubeGetter))
-	pb.RegisterApplicationsServer(s, apps)
+	pb.RegisterGitProviderAuthServer(s, gitAuth)
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -127,7 +127,7 @@ var _ = BeforeEach(func() {
 
 	Expect(err).NotTo(HaveOccurred())
 
-	appsClient = pb.NewApplicationsClient(conn)
+	gitAuthClient = pb.NewGitProviderAuthClient(conn)
 })
 
 var _ = AfterEach(func() {

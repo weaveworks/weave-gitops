@@ -7,7 +7,7 @@ import CallbackStateContextProvider from "../../contexts/CallbackStateContext";
 import {
   GitProvider,
   ParseRepoURLResponse,
-} from "../../lib/api/applications/applications.pb";
+} from "../../lib/api/gitauth/gitauth.pb";
 import { createMockClient, withContext, withTheme } from "../../lib/test-utils";
 import { PageRoute } from "../../lib/types";
 import { gitlabOAuthRedirectURI } from "../../lib/utils";

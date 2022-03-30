@@ -3,7 +3,7 @@ import { ButtonProps } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { GithubAuthContext } from "../contexts/GithubAuthContext";
-import { GitProvider } from "../lib/api/applications/applications.pb";
+import { GitProvider } from "../lib/api/gitauth/gitauth.pb";
 import Button from "./Button";
 
 type Props = ButtonProps;

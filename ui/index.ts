@@ -11,7 +11,7 @@ import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import FeatureFlagsContextProvider, {
   FeatureFlags,
 } from "./contexts/FeatureFlags";
-import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
+import { GitProviderAuth as applicationsClient } from "./lib/api/gitauth/gitauth.pb";
 import {
   clearCallbackState,
   getCallbackState,

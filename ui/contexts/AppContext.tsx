@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
-import { Applications } from "../lib/api/applications/applications.pb";
+import { GitProviderAuth } from "../lib/api/gitauth/gitauth.pb";
 import { Core } from "../lib/api/core/core.pb";
 import { formatURL } from "../lib/nav";
 import {
@@ -28,7 +28,7 @@ export function defaultLinkResolver(incoming: string): string {
 }
 
 export type AppContextType = {
-  applicationsClient: typeof Applications;
+  applicationsClient: typeof GitProviderAuth;
   api: typeof Core;
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
@@ -54,7 +54,7 @@ export const AppContext = React.createContext<AppContextType>(
 );
 
 export interface AppProps {
-  applicationsClient?: typeof Applications;
+  applicationsClient?: typeof GitProviderAuth;
   coreClient?: typeof Core;
   linkResolver?: LinkResolver;
   children?: any;

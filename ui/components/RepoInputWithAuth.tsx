@@ -6,7 +6,7 @@ import { useDebounce, useRequestState } from "../hooks/common";
 import {
   GitProvider,
   ParseRepoURLResponse,
-} from "../lib/api/applications/applications.pb";
+} from "../lib/api/gitauth/gitauth.pb";
 import Button from "./Button";
 import Flex from "./Flex";
 import GithubAuthButton from "./GithubAuthButton";

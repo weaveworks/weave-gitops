@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
-import { GitProvider } from "../../lib/api/applications/applications.pb";
+import { GitProvider } from "../../lib/api/gitauth/gitauth.pb";
 import { createMockClient, withContext } from "../../lib/test-utils";
 import { GrpcErrorCodes } from "../../lib/types";
 import useAuth, { useIsAuthenticated } from "../gitprovider";

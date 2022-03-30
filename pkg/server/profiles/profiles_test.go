@@ -1,4 +1,4 @@
-package server_test
+package profiles_test
 
 import (
 	"context"
@@ -21,14 +21,14 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache/cachefakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
 var _ = Describe("ProfilesServer", func() {
 	var (
 		fakeCache  *cachefakes.FakeCache
-		s          *server.ProfilesServer
+		s          *profiles.ProfilesServer
 		helmRepo   *sourcev1beta1.HelmRepository
 		kubeClient client.Client
 	)
@@ -47,7 +47,7 @@ var _ = Describe("ProfilesServer", func() {
 		fakeCache = &cachefakes.FakeCache{}
 		fakeClientGetter := kubefakes.NewFakeClientGetter(kubeClient)
 		log, _ := testutils.MakeFakeLogr()
-		s = &server.ProfilesServer{
+		s = &profiles.ProfilesServer{
 			Log:               log,
 			HelmRepoName:      "helmrepo",
 			HelmRepoNamespace: "default",
@@ -134,7 +134,7 @@ var _ = Describe("ProfilesServer", func() {
 							ProfileVersion: profileVersion,
 						})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(resp.ContentType).To(Equal(server.JsonType))
+						Expect(resp.ContentType).To(Equal(profiles.JsonType))
 						valuesResp := &pb.GetProfileValuesResponse{}
 						err = json.Unmarshal(resp.Data, valuesResp)
 						Expect(err).NotTo(HaveOccurred())
@@ -147,14 +147,14 @@ var _ = Describe("ProfilesServer", func() {
 				When("header contains 'application/octet-stream'", func() {
 					It("returns a values file in binary", func() {
 						fakeCache.GetProfileValuesReturns([]byte("values"), nil)
-						ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", server.OctetStreamType))
+						ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", profiles.OctetStreamType))
 
 						resp, err := s.GetProfileValues(ctx, &pb.GetProfileValuesRequest{
 							ProfileName:    profileName,
 							ProfileVersion: profileVersion,
 						})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(resp.ContentType).To(Equal(server.OctetStreamType))
+						Expect(resp.ContentType).To(Equal(profiles.OctetStreamType))
 						Expect(string(resp.Data)).To(Equal("values"))
 					})
 				})

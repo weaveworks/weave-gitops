@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { GitProvider } from "../lib/api/applications/applications.pb";
+import { GitProvider } from "../lib/api/gitauth/gitauth.pb";
 import { RequestError } from "../lib/types";
 
 export default function useCommon() {

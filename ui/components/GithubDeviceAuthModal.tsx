@@ -6,7 +6,7 @@ import useAuth from "../hooks/gitprovider";
 import {
   GetGithubDeviceCodeResponse,
   GitProvider,
-} from "../lib/api/applications/applications.pb";
+} from "../lib/api/gitauth/gitauth.pb";
 import Alert from "./Alert";
 import Button from "./Button";
 import Flex from "./Flex";

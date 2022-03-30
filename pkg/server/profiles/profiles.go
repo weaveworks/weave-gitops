@@ -1,4 +1,4 @@
-package server
+package profiles
 
 import (
 	"context"
@@ -32,14 +32,16 @@ type ProfilesConfig struct {
 	helmRepoName      string
 	helmCache         cache.Cache
 	clusterConfig     kube.ClusterConfig
+	logger            logr.Logger
 }
 
-func NewProfilesConfig(clusterConfig kube.ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(clusterConfig kube.ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string, log logr.Logger) ProfilesConfig {
 	return ProfilesConfig{
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
 		helmCache:         helmCache,
 		clusterConfig:     clusterConfig,
+		logger:            log.WithName("profiles-server"),
 	}
 }
 
@@ -53,12 +55,12 @@ type ProfilesServer struct {
 	ClientGetter      kube.ClientGetter
 }
 
-func NewProfilesServer(log logr.Logger, config ProfilesConfig) pb.ProfilesServer {
+func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
 	configGetter := kube.NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, config.clusterConfig.ClusterName)
 
 	return &ProfilesServer{
-		Log:               log.WithName("profiles-server"),
+		Log:               config.logger,
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		HelmCache:         config.helmCache,

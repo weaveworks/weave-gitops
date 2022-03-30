@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
@@ -27,14 +26,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	gitauth "github.com/weaveworks/weave-gitops/pkg/server/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/server/profiles"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-)
-
-const (
-	// Allowed login requests per second
-	loginRequestRateLimit = 20
 )
 
 // Options contains all the options for the gitops-server command.
@@ -99,19 +95,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	mux := http.NewServeMux()
-
-	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("ok"))
-
-		if err != nil {
-			log.Error(err, "error writing health check")
-		}
-	}))
-
-	assetFS := getAssets()
-	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
 	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
@@ -155,11 +138,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	var authServer *auth.AuthServer
-
-	oidcConfig := options.OIDC
+	var authServerCfg auth.AuthConfig
 
 	if server.AuthEnabled() {
+		oidcConfig := options.OIDC
 		// If OIDC auth secret is found prefer that over CLI parameters
 		var secret corev1.Secret
 		if err := rawClient.Get(cmd.Context(), client.ObjectKey{
@@ -174,63 +156,47 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
-		authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
+		authServerCfg, err = auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
 		if err != nil {
 			return err
 		}
-
-		srv, err := auth.NewAuthServer(cmd.Context(), authCfg)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
-
-		log.Info("Registering auth routes")
-
-		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
-			return fmt.Errorf("failed to register auth routes: %w", err)
-		}
-
-		authServer = srv
 	}
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName)
 
-	appConfig, err := server.DefaultApplicationsConfig(log)
+	gitAuthConfig, err := gitauth.DefaultGitAuthServerConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
+	profilesConfig := profiles.NewProfilesConfig(kube.ClusterConfig{
 		DefaultConfig: rest,
 		ClusterName:   clusterName,
-	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
+	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName, log)
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), log,
+	mux := http.NewServeMux()
+
+	assetFS, err := getAssets(static)
+	if err != nil {
+		return err
+	}
+
+	mux.Handle("/health/", server.Health(log))
+	mux.Handle("/", server.StaticAssets(assetFS, log))
+
+	handlers, err := server.RegisterHandlers(context.Background(), log, mux,
 		&server.Config{
-			AppConfig:        appConfig,
+			GitAuthConfig:    gitAuthConfig,
 			ProfilesConfig:   profilesConfig,
 			CoreServerConfig: coreConfig,
-			AuthServer:       authServer,
+			AuthServerConfig: authServerCfg,
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("could not create handler: %w", err)
+		return err
 	}
 
-	mux.Handle("/v1/", appAndProfilesHandlers)
-
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// Assume anything with a file extension in the name is a static asset.
-		extension := filepath.Ext(req.URL.Path)
-		// We use the golang http.FileServer for static file requests.
-		// This will return a 404 on normal page requests, ie /some-page.
-		// Redirect all non-file requests to index.html, where the JS routing will take over.
-		if extension == "" {
-			redirector(w, req)
-			return
-		}
-		assetHandler.ServeHTTP(w, req)
-	}))
+	mux.Handle("/v1/", handlers)
 
 	addr := net.JoinHostPort(options.Host, options.Port)
 
@@ -301,54 +267,11 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 //go:embed dist/*
 var static embed.FS
 
-func getAssets() fs.FS {
+func getAssets(static fs.FS) (fs.FS, error) {
 	f, err := fs.Sub(static, "dist")
-
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return f
-}
-
-// A redirector ensures that index.html always gets served.
-// The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		indexPage, err := fsys.Open("index.html")
-
-		if err != nil {
-			log.Error(err, "could not open index.html page")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		stat, err := indexPage.Stat()
-		if err != nil {
-			log.Error(err, "could not get index.html stat")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		bt := make([]byte, stat.Size())
-		_, err = indexPage.Read(bt)
-
-		if err != nil {
-			log.Error(err, "could not read index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		_, err = w.Write(bt)
-
-		if err != nil {
-			log.Error(err, "error writing index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-	}
+	return f, nil
 }

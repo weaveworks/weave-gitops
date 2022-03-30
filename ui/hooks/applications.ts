@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { ParseRepoURLResponse } from "../lib/api/applications/applications.pb";
+import { ParseRepoURLResponse } from "../lib/api/gitauth/gitauth.pb";
 import { useRequestState } from "./common";
 
 export function useParseRepoURL(url: string) {

@@ -1,4 +1,4 @@
-package server_test
+package gitprovider_test
 
 import (
 	"context"
@@ -20,11 +20,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	server "github.com/weaveworks/weave-gitops/pkg/server/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
@@ -42,7 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var _ = Describe("ApplicationsServer", func() {
+var _ = Describe("GitProviderAuthServer", func() {
 	var (
 		namespace *corev1.Namespace
 		err       error
@@ -64,7 +64,7 @@ var _ = Describe("ApplicationsServer", func() {
 		expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
-		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+		res, err := gitAuthClient.Authenticate(ctx, &pb.AuthenticateRequest{
 			ProviderName: provider,
 			AccessToken:  token,
 		})
@@ -77,7 +77,7 @@ var _ = Describe("ApplicationsServer", func() {
 		provider := "wrong_provider"
 		token := "token"
 
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+		_, err := gitAuthClient.Authenticate(ctx, &pb.AuthenticateRequest{
 			ProviderName: provider,
 			AccessToken:  token,
 		})
@@ -90,7 +90,7 @@ var _ = Describe("ApplicationsServer", func() {
 		ctx := context.Background()
 		provider := "github"
 
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+		_, err := gitAuthClient.Authenticate(ctx, &pb.AuthenticateRequest{
 			ProviderName: provider,
 			AccessToken:  "",
 		})
@@ -105,7 +105,7 @@ var _ = Describe("ApplicationsServer", func() {
 				return &auth.GithubDeviceCodeResponse{DeviceCode: code}, nil
 			}
 
-			res, err := appsClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
+			res, err := gitAuthClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(res.DeviceCode).To(Equal(code))
@@ -116,7 +116,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ghAuthClient.GetDeviceCodeStub = func() (*auth.GithubDeviceCodeResponse, error) {
 				return nil, someError
 			}
-			_, err := appsClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
+			_, err := gitAuthClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
 			Expect(err).To(HaveOccurred())
 			st, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get grpc status from err")
@@ -130,7 +130,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return "", auth.ErrAuthPending
 			}
-			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			res, err := gitAuthClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
 			Expect(err).To(HaveOccurred())
 			st, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from err")
@@ -143,7 +143,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return token, nil
 			}
-			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			res, err := gitAuthClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
 			Expect(err).NotTo(HaveOccurred())
 
 			verified, err := auth.NewJwtClient(secretKey).VerifyJWT(res.AccessToken)
@@ -156,7 +156,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return "", someErr
 			}
-			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			res, err := gitAuthClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
 			Expect(err).To(HaveOccurred())
 			st, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from err")
@@ -172,7 +172,7 @@ var _ = Describe("ApplicationsServer", func() {
 			name     string
 		}
 		DescribeTable("parses a repo url", func(uri string, e expected) {
-			res, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+			res, err := gitAuthClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
 				Url: uri,
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -193,7 +193,7 @@ var _ = Describe("ApplicationsServer", func() {
 		)
 
 		It("returns an error on an invalid URL", func() {
-			_, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+			_, err := gitAuthClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
 				Url: "not-a  -valid-url",
 			})
 			Expect(err).To(HaveOccurred(), "should have gotten an invalid arg error")
@@ -210,7 +210,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 			glAuthClient.AuthURLReturns(*authUrl, nil)
 
-			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
+			res, err := gitAuthClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
 				RedirectUri: "http://example.com/oauth/fake",
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -226,7 +226,7 @@ var _ = Describe("ApplicationsServer", func() {
 			token := "some-token"
 			glAuthClient.ExchangeCodeReturns(&authtypes.TokenResponseState{AccessToken: token}, nil)
 
-			res, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+			res, err := gitAuthClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
 				RedirectUri: "http://example.com/oauth/callback",
 				Code:        "some-challenge-code",
 			})
@@ -241,7 +241,7 @@ var _ = Describe("ApplicationsServer", func() {
 			e := errors.New("some code exchange error")
 			glAuthClient.ExchangeCodeReturns(nil, e)
 
-			_, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+			_, err := gitAuthClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
 				RedirectUri: "http://example.com/oauth/callback",
 				Code:        "some-challenge-code",
 			})
@@ -255,7 +255,7 @@ var _ = Describe("ApplicationsServer", func() {
 		glAuthClient.ValidateTokenReturns(errResponse)
 		ghAuthClient.ValidateTokenReturns(errResponse)
 
-		res, err := appsClient.ValidateProviderToken(ctx, &pb.ValidateProviderTokenRequest{
+		res, err := gitAuthClient.ValidateProviderToken(ctx, &pb.ValidateProviderTokenRequest{
 			Provider: provider,
 		})
 
@@ -286,7 +286,7 @@ var _ = Describe("ApplicationsServer", func() {
 		Describe("logging", func() {
 			var sink *fakelogr.LogSink
 			var log logr.Logger
-			var appsSrv pb.ApplicationsServer
+			var appsSrv pb.GitProviderAuthServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
 			var err error
@@ -300,17 +300,17 @@ var _ = Describe("ApplicationsServer", func() {
 
 				fakeFactory := &servicesfakes.FakeFactory{}
 
-				cfg := server.ApplicationsConfig{
+				cfg := server.GitAuthConfig{
 					Logger:    log,
 					JwtClient: auth.NewJwtClient(secretKey),
 					Factory:   fakeFactory,
 				}
 
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-				appsSrv = server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
+				appsSrv = server.NewGitAuthServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				err = pb.RegisterGitProviderAuthHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -336,7 +336,7 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 
 			It("logs server errors", func() {
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
+				err = pb.RegisterGitProviderAuthHandlerServer(context.Background(), mux, pb.UnimplementedGitProviderAuthServer{})
 				Expect(err).NotTo(HaveOccurred())
 
 				ts := httptest.NewServer(httpHandler)
@@ -396,12 +396,12 @@ var _ = Describe("ApplicationsServer", func() {
 				factory := &servicesfakes.FakeFactory{}
 				fakeKubeGetter := kubefakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
 
-				appsSrv = server.NewApplicationsServer(
-					&server.ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken},
+				appsSrv = server.NewGitAuthServer(
+					&server.GitAuthConfig{Factory: factory, JwtClient: fakeJWTToken},
 					server.WithKubeGetter(fakeKubeGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				err = pb.RegisterGitProviderAuthHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 
 				ts := httptest.NewServer(httpHandler)
@@ -563,14 +563,14 @@ func TestGetFeatureFlags(t *testing.T) {
 			log, _ := testutils.MakeFakeLogr()
 			mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 
-			cfg := server.ApplicationsConfig{
+			cfg := server.GitAuthConfig{
 				Logger: logr.Discard(),
 			}
 
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
 			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-			appSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
-			err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
+			appSrv := server.NewGitAuthServer(&cfg, server.WithClientGetter(fakeClientGetter))
+			err = pb.RegisterGitProviderAuthHandlerServer(context.Background(), mux, appSrv)
 
 			httpHandler := middleware.WithLogging(log, mux)
 

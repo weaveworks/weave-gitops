@@ -1,13 +1,13 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "WeGo Applications API",
-    "description": "The WeGo Applications API handles operations for Weave GitOps Applications",
+    "title": "WeGo GitProviderAuth API",
+    "description": "The WeGo GitProviderAuth API handles auth interactions with Git Providers",
     "version": "0.1"
   },
   "tags": [
     {
-      "name": "Applications"
+      "name": "GitProviderAuth"
     }
   ],
   "consumes": [
@@ -20,7 +20,7 @@
     "/v1/applications/auth_providers/github": {
       "get": {
         "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
-        "operationId": "Applications_GetGithubDeviceCode",
+        "operationId": "GitProviderAuth_GetGithubDeviceCode",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -36,14 +36,14 @@
           }
         },
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/applications/auth_providers/github/status": {
       "post": {
         "summary": "GetGithubAuthStatus gets the status of the Github device flow authentication requests.\nOnce the user has completed the Github device flow, an access token will be returned.\nThis token will expired in 15 minutes, after which the user will need to complete the flow again\nto do Git Provider operations.",
-        "operationId": "Applications_GetGithubAuthStatus",
+        "operationId": "GitProviderAuth_GetGithubAuthStatus",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -69,14 +69,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/applications/auth_providers/gitlab": {
       "get": {
         "summary": "GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.\nThe user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
-        "operationId": "Applications_GetGitlabAuthURL",
+        "operationId": "GitProviderAuth_GetGitlabAuthURL",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -100,14 +100,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/applications/auth_providers/gitlab/authorize": {
       "post": {
         "summary": "AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.\nThe returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
-        "operationId": "Applications_AuthorizeGitlab",
+        "operationId": "GitProviderAuth_AuthorizeGitlab",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -133,14 +133,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/applications/parse_repo_url": {
       "get": {
         "summary": "ParseRepoURL returns structured data about a git repository URL",
-        "operationId": "Applications_ParseRepoURL",
+        "operationId": "GitProviderAuth_ParseRepoURL",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -164,14 +164,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/applications/validate_token": {
       "post": {
         "summary": "ValidateProviderToken check to see if the git provider token is still valid",
-        "operationId": "Applications_ValidateProviderToken",
+        "operationId": "GitProviderAuth_ValidateProviderToken",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -197,14 +197,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/authenticate/{providerName}": {
       "post": {
         "summary": "Authenticate generates jwt token using git provider name and git provider token arguments",
-        "operationId": "Applications_Authenticate",
+        "operationId": "GitProviderAuth_Authenticate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -241,14 +241,14 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     },
     "/v1/featureflags": {
       "get": {
         "summary": "Config returns configuration information about the server",
-        "operationId": "Applications_GetFeatureFlags",
+        "operationId": "GitProviderAuth_GetFeatureFlags",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -264,7 +264,7 @@
           }
         },
         "tags": [
-          "Applications"
+          "GitProviderAuth"
         ]
       }
     }

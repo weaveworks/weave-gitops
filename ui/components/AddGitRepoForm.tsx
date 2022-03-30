@@ -2,7 +2,7 @@ import { MenuItem } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { GitProvider } from "../lib/api/applications/applications.pb";
+import { GitProvider } from "../lib/api/gitauth/gitauth.pb";
 import { WeGONamespace } from "../lib/types";
 import Button from "./Button";
 import Flex from "./Flex";

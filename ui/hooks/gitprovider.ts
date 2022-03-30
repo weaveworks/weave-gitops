@@ -6,7 +6,7 @@ import {
   GetGithubDeviceCodeResponse,
   GitProvider,
   ValidateProviderTokenResponse,
-} from "../lib/api/applications/applications.pb";
+} from "../lib/api/gitauth/gitauth.pb";
 import { GrpcErrorCodes } from "../lib/types";
 import { poller } from "../lib/utils";
 import { makeHeaders, useRequestState } from "./common";

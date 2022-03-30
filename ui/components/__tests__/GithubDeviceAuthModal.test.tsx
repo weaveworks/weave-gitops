@@ -3,7 +3,7 @@ import "jest-styled-components";
 import * as React from "react";
 import { unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
-import { GitProvider } from "../../lib/api/applications/applications.pb";
+import { GitProvider } from "../../lib/api/gitauth/gitauth.pb";
 import { getProviderToken } from "../../lib/storage";
 import {
   ApplicationOverrides,
