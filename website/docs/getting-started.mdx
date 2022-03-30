@@ -1,0 +1,129 @@
+---
+title: Getting Started
+sidebar_position: 2
+---
+
+This hands-on guide will introduce you to the basics of the GitOps Dashboard web UI, to help you understand the state of your system. Before adding a new application based on this guide from [Flux](https://fluxcd.io/docs/get-started/).
+
+If you haven't already, be sure to check out our [introduction](./intro.md) to Weave GitOps.
+
+This guide assumes that you have already installed Flux and Weave GitOps as described in our [installation](./installation.mdx) doc. Screenshots below show the state of a kind cluster which has only these workloads being reconciled.
+
+## Part 1 - Weave GitOps overview
+
+Intro
+
+### Login to the GitOps Dashboard
+
+1. Expose the service running on the cluster
+```
+kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+```
+
+2. Login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
+
+![Weave GitOps login screen](/img/dashboard-login.png)
+
+###  Applications view
+
+When you login to the dashboard you are brought to the Applications view, which allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
+
+![Applications summary view showing Flux System and Weave GitOps deployments](/img/dashboard-applications-overview.png)
+
+In the above screenshot you can see:
+-  a `Kustomization` called `flux-system`, which was created when Flux was bootstrapped onto the Cluster, and is deploying the GitOps Toolkit controllers. It is also deploying further Flux objects defined in the same repo, so that Flux will deploy additional workloads which includes our Helm Chart for Weave GitOps.
+- a `HelmRelease` called `ww-gitops` which deploys the aforementioned Helm Chart.
+
+This table view shows the reported status so you can understand whether a reconciliation has been successful, and when they have last been updated. You can also see where the Flux objects are deployed and which `Source` object, for example a `GitRepository`, they are reconciling from; clicking the name of the Source it will take you to a detail view for the given source object. The view automatically updates every few seconds so you know the current state of your system.
+
+You can search for and filter objects by `Name` by clicking the magnifying glass, or filter by `Type` by clicking the strawberry icon to its right.
+
+Clicking the Name of an object will take you to a detailed view for the given Kustomization or HelmRelease. Which we will explore in a moment.
+
+### The Sources view
+
+Clicking on Sources in the left hand menu will bring you to the Sources view, which shows the status of resources which are synchronizing content from where you have declared the desired state of your system, for example Git repositories. This shows summary information from `gitrepository`, `helmrepository` and `bucket` objects.
+
+![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-applications-overview.png)
+
+In the above screenshot you can see:
+- a `GitRepository` called `flux-system`, which was created when Flux was bootstrapped onto the Cluster, and contains the manifests for the GitOps Toolkit and Weave GitOps and various Flux objects.
+- a `HelmChart` called `flux-system-ww-gitops`, which is automatically created by Flux when you define a `HelmRelease` to deploy a Helm Chart from a given source.
+- a `HelmRepository` called `ww-gitops` which pulls from the Helm Repository where the Weave GitOps Helm Chart is published.
+
+The table view again shows summary status information so you can see whether Flux has been able to successfully pull from a given source and which specific commit was last detected. It shows key information like the `Interval`, namely how frequently Flux will check for updates in a given source location. You can apply filtering as per the Applications view, can click the `URL` to navigate to a given source i.e. a repository in GitHub, or the `Name` of a `Source` to view more details about it.
+
+
+### The Flux Runtime view
+
+Clicking on `Flux Runtime` provides status on the GitOps engine continuously reconciling your desired and live state. It shows your installed GitOps Toolkit Controllers and their version.
+
+![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-applications-overview.png)
+
+By default `flux bootstrap` will install the following controllers:
+- helm-controller
+- kustomize-controller
+- notification-controller
+- source-controller
+
+For a full description of the controllers, see [GitOps ToolKit components](https://fluxcd.io/docs/components/) in the Flux documentation.
+
+Weave GitOps is an extension to Flux and the pod serving this web application is also viewable as `ww-gitops-weave-gitops`.
+
+From this view you can see whether the controllers are healthy and which version of a given component is currently deployed.
+
+### Exploring the flux-system deployment
+
+Let's explore the `flux-system` kustomization. Navigate back to the `Applications` view and click on the `flux-system` object.
+
+![Application detail view for the flux system kustomization](/img/dashboard-application-flux.png)
+
+After a few moments loading the data, you should see similar to the above screenshot. From here you can see key information about how this resource is defined: which `Source` it is reading from, the latest applied commit, the exact path with the Source repository that is being deployed, and the `Interval` in which Flux will look to reconcile any difference between the declared and live state - i.e. if a kubectl patch had been applied on the cluster, it would effectively be reverted. If a longer error message was being reported by this object, you would be able to see it in its entirety on this page.
+
+Underneath the summary information are three tabs:
+
+- Details (default) is a table view which shows all the Kubernetes objects (including flux objects, deployments, pods, services, etc) managed and deployed through this `kustomization`.
+- Events (shown below) shows any related Kubernetes events to help you diagnose issues and understand health over time.
+- Reconciliation Graph (shown below) provides a directional graph alternative to the Details view to help you understand how the various objects relate to each other.
+
+**Events tab**
+![Application detail view showing events for an object](/img/dashboard-application-events.png)
+
+**Reconciliation Graph tab**
+![Application detail view showing reconciliation graph - a directional graph showing object relationships](/img/dashboard-application-reconciliation.png)
+
+#### Source details view
+Finally lets look at the Source in more detail, click `GitRepository/flux-system` from the summary at the top of the page.
+
+![Source detail view showing details for an object](/img/dashboard-source-flux.png)
+
+As with an Application detail view, you can see key information about how the resource is defined. Then beneath alongside the Events tab, is a Related Automations view. This shows all the `kustomization` objects which have this object as their Source.
+
+
+## Part 2 - Deploying the podinfo application
+
+Now that you have a feel for how to navigate the dashboard. Let's deploy a new application and explore that as well. This section is based on the [Getting Started](https://fluxcd.io/docs/get-started/) guide for Flux itself.
+
+### Add the podinfo repository to Flux
+
+Walkthrough
+
+### Deploy podinfo application
+
+Walkthrough
+
+### View the running application
+
+Walkthrough
+
+### Suspend updates
+
+Walkthrough
+
+### Customize podinfo
+
+Walkthrough
+
+## Next steps
+
+Links
