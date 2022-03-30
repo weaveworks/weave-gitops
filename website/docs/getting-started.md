@@ -1,14 +1,8 @@
 ---
 title: Getting Started
 sidebar_position: 2
-hide_title: true
 ---
 
-import TierLabel from "./\_components/TierLabel";
-
-<h1>
-  {frontMatter.title} <TierLabel tiers="Core" />
-</h1>
 
 **Weave GitOps** makes it easy to get started on your GitOps journey; deploying your Kubernetes workloads in a way which is:
 
