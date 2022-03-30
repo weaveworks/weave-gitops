@@ -2,15 +2,10 @@ package clustersmngr
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-var (
-	ErrClusterNotFound error = errors.New("cluster not found")
 )
 
 // Client thin wrapper to controller-runtime/client  adding multi clusters context.
@@ -36,6 +31,14 @@ type Client interface {
 	ClientsPool() ClientsPool
 }
 
+type ClusterNotFoundError struct {
+	Cluster string
+}
+
+func (e ClusterNotFoundError) Error() string {
+	return fmt.Sprintf("cluster=%s not found", e.Cluster)
+}
+
 type clustersClient struct {
 	pool ClientsPool
 }
@@ -53,7 +56,7 @@ func (c *clustersClient) ClientsPool() ClientsPool {
 func (c *clustersClient) Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.Get(ctx, key, obj)
@@ -62,7 +65,7 @@ func (c *clustersClient) Get(ctx context.Context, cluster string, key client.Obj
 func (c *clustersClient) List(ctx context.Context, cluster string, list client.ObjectList, opts ...client.ListOption) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.List(ctx, list, opts...)
@@ -99,7 +102,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 func (c *clustersClient) Create(ctx context.Context, cluster string, obj client.Object, opts ...client.CreateOption) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.Create(ctx, obj, opts...)
@@ -108,7 +111,7 @@ func (c *clustersClient) Create(ctx context.Context, cluster string, obj client.
 func (c *clustersClient) Delete(ctx context.Context, cluster string, obj client.Object, opts ...client.DeleteOption) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.Delete(ctx, obj, opts...)
@@ -117,7 +120,7 @@ func (c *clustersClient) Delete(ctx context.Context, cluster string, obj client.
 func (c *clustersClient) Update(ctx context.Context, cluster string, obj client.Object, opts ...client.UpdateOption) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.Update(ctx, obj, opts...)
@@ -126,7 +129,7 @@ func (c *clustersClient) Update(ctx context.Context, cluster string, obj client.
 func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.Object, patch client.Patch, opts ...client.PatchOption) error {
 	client := c.pool.Clients()[cluster]
 	if client == nil {
-		return ErrClusterNotFound
+		return ClusterNotFoundError{Cluster: cluster}
 	}
 
 	return client.Patch(ctx, obj, patch, opts...)
