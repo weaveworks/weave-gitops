@@ -1,17 +1,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: GitRepository
+kind: HelmRepository
 metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
   interval: 1m0s
-  ref:
-    branch: jlw-helm-patch
   secretRef:
     name: flux-system
-  url: ssh://git@github.com/weaveworks/weave-gitops
-  ignore: |
-    # exclude all
-    /*
-    # include charts directory
-    !/charts/
+  url: https://ww-helm.com
