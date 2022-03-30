@@ -15,8 +15,8 @@ import (
 type key int
 
 const (
-	// Clusters Clients Pool context key
-	ClustersClientsPoolCtxKey key = iota
+	// Clusters Client context key
+	ClustersClientCtxKey key = iota
 )
 
 var (
@@ -39,6 +39,15 @@ type Cluster struct {
 	TLSConfig rest.TLSClientConfig
 }
 
+// ClusterNotFoundError cluster client can be found in the pool
+type ClusterNotFoundError struct {
+	Cluster string
+}
+
+func (e ClusterNotFoundError) Error() string {
+	return fmt.Sprintf("cluster=%s not found", e.Cluster)
+}
+
 //ClusterFetcher fetches all leaf clusters
 //counterfeiter:generate . ClusterFetcher
 type ClusterFetcher interface {
@@ -49,6 +58,7 @@ type ClusterFetcher interface {
 type ClientsPool interface {
 	Add(user *auth.UserPrincipal, cluster Cluster) error
 	Clients() map[string]client.Client
+	Client(clsuter string) (client.Client, error)
 }
 
 type clientsPool struct {
@@ -89,4 +99,13 @@ func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
 // Clients returns the clusters clients
 func (cp *clientsPool) Clients() map[string]client.Client {
 	return cp.clients
+}
+
+// Client returns the client for the given cluster
+func (cp *clientsPool) Client(name string) (client.Client, error) {
+	if c, found := cp.clients[name]; found && c != nil {
+		return c, nil
+	}
+
+	return nil, ClusterNotFoundError{Cluster: name}
 }

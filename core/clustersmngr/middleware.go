@@ -8,8 +8,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// WithClustersClients creates clusters client for provided user in the context
-func WithClustersClients(clustersFetcher ClusterFetcher, next http.Handler) http.Handler {
+// WithClustersClient creates clusters client for provided user in the context
+func WithClustersClient(clustersFetcher ClusterFetcher, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.Principal(r.Context())
 		if user == nil {
@@ -33,17 +33,19 @@ func WithClustersClients(clustersFetcher ClusterFetcher, next http.Handler) http
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), ClustersClientsPoolCtxKey, clientsPool)
+		clustersClient := NewClient(clientsPool)
+
+		ctx := context.WithValue(r.Context(), ClustersClientCtxKey, clustersClient)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// ClientsPoolFromCtx returns the ClusterClients pool stored in the context
-func ClientsPoolFromCtx(ctx context.Context) ClientsPool {
-	pool, ok := ctx.Value(ClustersClientsPoolCtxKey).(*clientsPool)
+// ClientFromCtx returns the ClusterClient stored in the context
+func ClientFromCtx(ctx context.Context) Client {
+	client, ok := ctx.Value(ClustersClientCtxKey).(*clustersClient)
 	if ok {
-		return pool
+		return client
 	}
 
 	return nil
