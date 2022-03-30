@@ -59,9 +59,7 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 		Insecure:  bucket.Spec.Insecure,
 		Provider:  provider,
 		Region:    bucket.Spec.Region,
-		Interval: &pb.Interval{
-			Minutes: 1,
-		},
+		Interval:  durationToInterval(bucket.Spec.Interval),
 		// SecretRefName: bucket.Spec.SecretRef.Name,
 		Conditions:    mapConditions(bucket.Status.Conditions),
 		Suspended:     bucket.Spec.Suspend,

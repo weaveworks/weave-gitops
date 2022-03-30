@@ -70,3 +70,11 @@ func lastUpdatedAt(obj interface{}) string {
 
 	return ""
 }
+
+func durationToInterval(duration metav1.Duration) *pb.Interval {
+	return &pb.Interval{
+		Hours:   int64(duration.Hours()),
+		Minutes: int64(duration.Minutes()) % 60,
+		Seconds: int64(duration.Seconds()) % 60,
+	}
+}
