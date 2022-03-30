@@ -5,11 +5,11 @@ hide_title: true
 ---
 # Weave GitOps
 
-Weave GitOps is a powerful extension to [Flux](fluxcd.io), a leading GitOps engine and CNCF project, which provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams.
+Weave GitOps is a powerful extension to [Flux](https://fluxcd.io), a leading GitOps engine and CNCF project, which provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams.
 
 The web UI surfaces key information to help application operators easily discover and resolve issues. The intuitive interface provides a guided experience to build understanding and simplify getting started for new users; they can easily discover the relationship between Flux objects and navigate to deeper levels of information as required.
 
-Weave GitOps is an open source project sponsored by [Weaveworks](weave.works) - the GitOps company, and original creators of [Flux](fluxcd.io).
+Weave GitOps is an open source project sponsored by [Weaveworks](https://weave.works) - the GitOps company, and original creators of [Flux](https://fluxcd.io).
 
 ## Why adopt GitOps?
 > "GitOps is the best thing since configuration as code. Git changed how we collaborate, but declarative configuration is the key to dealing with infrastructure at scale, and sets the stage for the next generation of management tools"
