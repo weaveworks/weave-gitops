@@ -14,7 +14,7 @@ Weave GitOps is an open source project sponsored by [Weaveworks](weave.works) - 
 ## Why adopt GitOps?
 > "GitOps is the best thing since configuration as code. Git changed how we collaborate, but declarative configuration is the key to dealing with infrastructure at scale, and sets the stage for the next generation of management tools"
 
-<cite>Kelsey Hightower, Staff Developer Advocate, Google. [Source](https://twitter.com/kelseyhightower/status/1164192321891528704?s=20&t=FkRyvLThKm8Ns7yhHh7UQg).</cite>
+<cite>- Kelsey Hightower, Staff Developer Advocate, Google.</cite><br/><br/>
 
 Adopting GitOps can bring a number of key benefits:
 - Faster and more frequent deployments
