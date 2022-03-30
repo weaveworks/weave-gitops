@@ -1,6 +1,6 @@
 ---
 title: Feedback and Telemetry
-sidebar_position: 8
+sidebar_position: 7
 hide_title: true
 ---
 
