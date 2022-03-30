@@ -1,5 +1,5 @@
 ---
-title: TLS
+title: TLS and certificates
 sidebar_position: 1
 ---
 
