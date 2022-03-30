@@ -239,10 +239,9 @@ jobs:
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   ci-snyk-monitor:
-    name: CI Upload Images
+    name: CI Snyk Monitor
     runs-on: ubuntu-latest
-    # Make sure we only upload images if tests etc have passed
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
     if: github.event_name == 'push'
     strategy:
       matrix:
@@ -250,12 +249,19 @@ jobs:
           - gitops
           - gitops-server
     steps:
+      - name: Download cached docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.docker-image }}
+          path: /tmp
+      - name: Load cached docker image
+        run: docker load --input /tmp/${{ matrix.docker-image }}.tar
       - name: Monitor docker image with Snyk
         uses: snyk/actions/docker@master
         with:
           command: monitor
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
-          args: --file=${{ matrix.docker-image }}.dockerfile --org=product-engineering-ly9
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
+          args: --org=product-engineering-ly9
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       - name: Generate helm template output for snyk to scan
