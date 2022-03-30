@@ -25,7 +25,10 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	var results []*pb.Kustomization
 
 	for _, l := range clist.Lists() {
-		list := l.(*kustomizev1.KustomizationList)
+		list, ok := l.(*kustomizev1.KustomizationList)
+		if !ok {
+			continue
+		}
 
 		for _, kustomization := range list.Items {
 			k, err := types.KustomizationToProto(&kustomization)
