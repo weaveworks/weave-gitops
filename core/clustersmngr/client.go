@@ -13,7 +13,7 @@ var (
 	ErrClusterNotFound error = errors.New("cluster not found")
 )
 
-// Client thin wrapper to the client interface of controller-runtime adding multi clusters context.
+// Client thin wrapper to controller-runtime/client  adding multi clusters context.
 type Client interface {
 	// Get retrieves an obj for the given object key.
 	Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error
@@ -134,20 +134,20 @@ func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.O
 
 type ClusteredObjectList interface {
 	ObjectList(cluster string) client.ObjectList
-	Lists() map[string]interface{}
+	Lists() map[string]client.ObjectList
 }
 
 type ClusteredList struct {
 	sync.Mutex
 
 	listFactory func() client.ObjectList
-	lists       map[string]interface{}
+	lists       map[string]client.ObjectList
 }
 
 func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
 	return &ClusteredList{
 		listFactory: listFactory,
-		lists:       make(map[string]interface{}),
+		lists:       make(map[string]client.ObjectList),
 	}
 }
 
@@ -157,10 +157,10 @@ func (cl *ClusteredList) ObjectList(cluster string) client.ObjectList {
 
 	cl.lists[cluster] = cl.listFactory()
 
-	return cl.lists[cluster].(client.ObjectList)
+	return cl.lists[cluster]
 }
 
-func (cl *ClusteredList) Lists() map[string]interface{} {
+func (cl *ClusteredList) Lists() map[string]client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
