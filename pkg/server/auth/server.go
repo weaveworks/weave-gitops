@@ -161,7 +161,7 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 func (s *AuthServer) OAuth2Flow() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		if !s.oidcEnabled() {
-			http.Error(rw, "oidc provider not configured", http.StatusBadRequest)
+			Error(rw, "oidc provider not configured", http.StatusBadRequest)
 			return
 		}
 
@@ -241,13 +241,13 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		rawIDToken, ok := token.Extra("id_token").(string)
 		if !ok {
-			http.Error(rw, "no id_token in token response", http.StatusInternalServerError)
+			Error(rw, "no id_token in token response", http.StatusInternalServerError)
 			return
 		}
 
 		_, err = s.verifier().Verify(r.Context(), rawIDToken)
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
+			Error(rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -281,7 +281,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		err := json.NewDecoder(r.Body).Decode(&loginRequest)
 		if err != nil {
 			s.Log.Error(err, "Failed to decode from JSON")
-			http.Error(rw, "Failed to read request body.", http.StatusBadRequest)
+			Error(rw, "Failed to read request body.", http.StatusBadRequest)
 
 			return
 		}
@@ -293,7 +293,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			Name:      ClusterUserAuthSecretName,
 		}, &hashedSecret); err != nil {
 			s.Log.Error(err, "Failed to query for the secret")
-			http.Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
+			Error(rw, "Please ensure that a password has been set.", http.StatusBadRequest)
 
 			return
 		}
@@ -366,7 +366,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			AccessToken: c.Value,
 		}))
 		if err != nil {
-			http.Error(rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
+			Error(rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
 			return
 		}
 
@@ -381,7 +381,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
+		Error(rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -394,7 +394,7 @@ func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	nonce, err := generateNonce()
 	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
+		Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -409,7 +409,7 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 		ReturnURL: returnUrl,
 	})
 	if err != nil {
-		http.Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
+		Error(rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -489,4 +489,8 @@ func contains(ss []string, s string) bool {
 	}
 
 	return false
+}
+
+func Error(rw http.ResponseWriter, err string, code int) {
+	http.Error(rw, fmt.Sprintf(`{"message": "%s"}`, err), code)
 }
