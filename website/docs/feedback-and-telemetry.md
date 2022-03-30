@@ -10,7 +10,7 @@ We ❤️ your comments and suggestions as we look to make successfully adopting
 
 - Raise an [issue](https://github.com/weaveworks/weave-gitops/issues)
 - Chat to us in [Slack](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)
-- Set up time with one of our team, [David](https://calendly.com/david-harris-weaveworks) - Product Manager (UK) or [James](https://calendly.com/james-weave-works/product-interview) - Engineering Manager (US - East Coast)
+- Set up time with one of our team: [David](https://calendly.com/david-harris-weaveworks) - Product Manager (UK) or [James](https://calendly.com/james-weave-works/product-interview) - Engineering Manager (US - East Coast)
 - Come along to one of our [events](https://www.meetup.com/Weave-User-Group/)
 
 ## Telemetry
@@ -18,7 +18,7 @@ We ❤️ your comments and suggestions as we look to make successfully adopting
 To help us understand how we can improve your experience with Weave GitOps, and prioritise enhancements, we would like to collect anonymised usage data. Currently, only the `gitops` CLI has any notion of telemetry, however we would like to expand this to Weave GitOps in the future.
 
 ### gitops CLI
-No personally identifiable information is collected, we use [https://github.com/weaveworks/go-checkpoint](https://github.com/weaveworks/go-checkpoint) an implementation based on [https://checkpoint.hashicorp.com/](https://checkpoint.hashicorp.com/) to notify users of newly available updates as well as basic CLI metrics, up to 2 verbs, without any flags or user provided information.
+No personally identifiable information is collected, we use [https://github.com/weaveworks/go-checkpoint](https://github.com/weaveworks/go-checkpoint) an implementation based on [https://checkpoint.hashicorp.com/](https://checkpoint.hashicorp.com/) to notify users of newly available updates, as well as collecting basic CLI metrics, up to 2 verbs, without any flags or user provided information.
 
 For example the command: `gitops add cluster --from-template <template-name> --set key=val --dry-run` 
 Would report the following: `gitops add cluster` alongside:
