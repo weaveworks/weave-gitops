@@ -30,13 +30,3 @@ func withPartOfLabel(name string) matchLabelOptionFn {
 		return "", ""
 	}
 }
-
-func withInstanceLabel(name string) matchLabelOptionFn {
-	return func() (string, string) {
-		if name != "" {
-			return types.InstanceLabel, name
-		}
-
-		return "", ""
-	}
-}

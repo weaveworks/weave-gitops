@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops/core/cache"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
@@ -30,8 +31,9 @@ const temporarilyEmptyAppName = ""
 type coreServer struct {
 	pb.UnimplementedCoreServer
 
-	k8s    kube.ClientGetter
-	logger logr.Logger
+	k8s            kube.ClientGetter
+	cacheContainer *cache.Container
+	logger         logr.Logger
 }
 
 type CoreServerConfig struct {
@@ -49,11 +51,23 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 }
 
 func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
+	ctx := context.Background()
+
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
+	c, err := client.New(cfg.RestCfg, client.Options{})
+	if err != nil {
+		cfg.log.Error(err, "unable to create new kube client")
+	}
+
+	cacheContainer := cache.NewContainer(c, cfg.log)
+
+	cacheContainer.Start(ctx)
+
 	return &coreServer{
-		k8s:    kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
-		logger: cfg.log,
+		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
+		logger:         cfg.log,
+		cacheContainer: cacheContainer,
 	}
 }
 

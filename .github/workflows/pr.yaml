@@ -97,6 +97,19 @@ jobs:
       - run: make fakes
       - name: Check that make fakes has been run
         run: git diff --no-ext-diff --exit-code
+      - uses: snyk/actions/setup@master
+      - name: Look for insecure dependencies or bad licenses
+        uses: snyk/actions/golang@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        with:
+          args: --all-projects --sarif-file-output=snyk.opensource.sarif --org=product-engineering-ly9
+        continue-on-error: true
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.opensource.sarif
+
 
   ci-generate-tag:
     name: CI Generate Image Tag
@@ -135,6 +148,21 @@ jobs:
             FLUX_VERSION=${{ env.FLUX_VERSION }}
             LDFLAGS='${{ env.LDFLAGS }}'
             GIT_COMMIT=${{ github.sha }}
+      - name: Load docker image
+        run: docker load --input /tmp/${{ matrix.docker-image }}.tar
+      - name: Scan docker image for OS insecurities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        with:
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
+          args: --file=${{ matrix.docker-image }}.dockerfile --org=product-engineering-ly9
+          sarif: true
+        continue-on-error: true
+      - name: Upload snyk scan result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
       - name: Cache docker image
         uses: actions/upload-artifact@v2
         with:
@@ -210,11 +238,53 @@ jobs:
         aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
+  ci-snyk-monitor:
+    name: CI Upload Images
+    runs-on: ubuntu-latest
+    # Make sure we only upload images if tests etc have passed
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        docker-image:
+          - gitops
+          - gitops-server
+    steps:
+      - name: Monitor docker image with Snyk
+        uses: snyk/actions/docker@master
+        with:
+          command: monitor
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
+          args: --file=${{ matrix.docker-image }}.dockerfile --org=product-engineering-ly9
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      - name: Generate helm template output for snyk to scan
+        run: helm template charts/weave-gitops --set adminPassword="YWRtaW4K" --output-dir rendered
+      - name: Monitor IaC issues with Snyk
+        uses: snyk/actions/iac@master
+        with:
+          command: monitor
+          file: rendered
+          args: --org=product-engineering-ly9
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+      - name: Monitor dependencies & license problems with Snyk
+        uses: snyk/actions/golang@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        with:
+          args: --all-projects --org=product-engineering-ly9
+
+
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
     name: PR CI Pipeline
     runs-on: ubuntu-latest
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    needs:
+      - ci-go
+      - ci-static
+      - ci-js
+      - ci-build-gitops-image
     if: github.event_name != 'push'
     steps:
       - run: echo "All done"
@@ -226,5 +296,6 @@ jobs:
     needs:
       - ci-upload-images
       - ci-upload-binary
+      - ci-snyk-monitor
     steps:
       - run: echo "All done"

@@ -7,20 +7,34 @@ assignees: ''
 
 ---
 **Question**
-A sentance or two that captures the item we need to research.  Should be in the form of a question.
+<!--
+A short sentence that captures the problem we need to research. Should be in the form of a question.
+-->
 
 **Short description**
-A clear and concise description.  
+<!--
+A clear and concise description of what the problem is.
+-->
+
+**Goal**
+<!--
+A clear statement of what we want to get out of this spike. Stories? Information?
+An either/or decision? etc.
+-->
 
 **Timebox**
+<!--
 The expected time investment.
+-->
 
 ---
 
 **Outcome**
-Writeup your findings here.  Please include the following (if any have been created) :
+<!--
+Write up your findings here.  Please include the following (if any have been created) :
 - Screenshots
 - Design/architecture diagrams
-- WEP 
+- WEP
 - PR/FAQ
+-->
 

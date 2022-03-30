@@ -1,0 +1,32 @@
+name: Helm chart
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'charts/**'
+
+jobs:
+
+  helm-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
+      - name: Generate new chart
+        run: |
+          URL=https://helm.gitops.weave.works
+          mkdir helm-release
+          helm package charts/gitops-server/ -d helm-release
+          curl -O $URL/index.yaml
+          helm repo index helm-release --merge=index.yaml --url=$URL
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
+      - id: upload-file
+        uses: google-github-actions/upload-cloud-storage@v0.4.0
+        with:
+          path: helm-release
+          destination: helm.gitops.weave.works
+          parent: false

@@ -10,6 +10,7 @@ import Interval from "../../components/Interval";
 import Page from "../../components/Page";
 import PageStatus from "../../components/PageStatus";
 import ReconciledObjectsTable from "../../components/ReconciledObjectsTable";
+import ReconciliationGraph from "../../components/ReconciliationGraph";
 import SourceLink from "../../components/SourceLink";
 import Spacer from "../../components/Spacer";
 import { useGetKustomization } from "../../hooks/automations";
@@ -59,19 +60,28 @@ function KustomizationDetail({ className, name }: Props) {
         <HashRouterTabs history={hashHistory} defaultPath="/details">
           <HashRouterTab name="Details" path="/details">
             <ReconciledObjectsTable
-              kinds={kustomization?.inventory}
-              automationName={kustomization?.name}
-              namespace={WeGONamespace}
               automationKind={AutomationKind.KustomizationAutomation}
+              automationName={kustomization?.name}
+              kinds={kustomization?.inventory}
+              namespace={WeGONamespace}
             />
           </HashRouterTab>
           <HashRouterTab name="Events" path="/events">
             <EventsTable
               involvedObject={{
-                kind: AutomationKind.KustomizationAutomation,
+                kind: "Kustomization",
                 name,
                 namespace: kustomization?.namespace,
               }}
+            />
+          </HashRouterTab>
+          <HashRouterTab name="Reconciliation Graph" path="/graph">
+            <ReconciliationGraph
+              automationKind={AutomationKind.KustomizationAutomation}
+              automationName={kustomization?.name}
+              kinds={kustomization?.inventory}
+              parentObject={data?.kustomization}
+              namespace={WeGONamespace}
             />
           </HashRouterTab>
         </HashRouterTabs>

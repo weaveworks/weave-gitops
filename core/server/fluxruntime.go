@@ -24,8 +24,8 @@ var (
 	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
 )
 
-func (as *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
-	k8s, err := as.k8s.Client(ctx)
+func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
+	k8s, err := cs.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}

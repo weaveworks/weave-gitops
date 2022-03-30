@@ -9,7 +9,7 @@ export function useListFluxEvents(namespace, obj: ObjectReference) {
   const { api } = useContext(AppContext);
 
   return useQuery<ListFluxEventsResponse, RequestError>(
-    "events",
+    ["events", obj],
     () =>
       api.ListFluxEvents({
         namespace,

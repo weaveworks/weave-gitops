@@ -1,6 +1,9 @@
+import { createHashHistory } from "history";
 import * as React from "react";
 import styled from "styled-components";
+import EventsTable from "../../components/EventsTable";
 import Flex from "../../components/Flex";
+import HashRouterTabs, { HashRouterTab } from "../../components/HashRouterTabs";
 import Heading from "../../components/Heading";
 import InfoList from "../../components/InfoList";
 import Interval from "../../components/Interval";
@@ -25,9 +28,14 @@ const Info = styled.div`
   padding-bottom: 32px;
 `;
 
+const TabContent = styled.div`
+  margin-top: 52px;
+`;
+
 function HelmReleaseDetail({ className, name }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(name);
   const helmRelease = data?.helmRelease;
+  const hashHistory = createHashHistory();
 
   return (
     <Page loading={isLoading} error={error} className={className} title={name}>
@@ -57,12 +65,27 @@ function HelmReleaseDetail({ className, name }: Props) {
           suspended={helmRelease?.suspended}
         />
       </Flex>
-      <ReconciledObjectsTable
-        kinds={helmRelease?.inventory}
-        automationName={helmRelease?.name}
-        namespace={WeGONamespace}
-        automationKind={AutomationKind.HelmReleaseAutomation}
-      />
+      <TabContent>
+        <HashRouterTabs history={hashHistory} defaultPath="/details">
+          <HashRouterTab name="Details" path="/details">
+            <ReconciledObjectsTable
+              kinds={helmRelease?.inventory}
+              automationName={helmRelease?.name}
+              namespace={WeGONamespace}
+              automationKind={AutomationKind.HelmReleaseAutomation}
+            />
+          </HashRouterTab>
+          <HashRouterTab name="Events" path="/events">
+            <EventsTable
+              involvedObject={{
+                kind: "HelmRelease",
+                name,
+                namespace: helmRelease?.namespace,
+              }}
+            />
+          </HashRouterTab>
+        </HashRouterTabs>
+      </TabContent>
     </Page>
   );
 }

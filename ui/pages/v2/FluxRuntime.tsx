@@ -2,14 +2,13 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import DataTable, { SortType } from "../../components/DataTable";
-import KubeStatusIndicator, {
-  computeReady,
-} from "../../components/KubeStatusIndicator";
+import KubeStatusIndicator from "../../components/KubeStatusIndicator";
 import Link from "../../components/Link";
 import Page from "../../components/Page";
 import Spacer from "../../components/Spacer";
 import { useListFluxRuntimeObjects } from "../../hooks/flux";
 import { Deployment } from "../../lib/api/core/types.pb";
+import { statusSortHelper } from "../../lib/utils";
 
 type Props = {
   className?: string;
@@ -38,8 +37,8 @@ function FluxRuntime({ className }: Props) {
               />
             ),
             label: "Status",
-            sortType: SortType.bool,
-            sortValue: ({ conditions }) => computeReady(conditions),
+            sortType: SortType.number,
+            sortValue: statusSortHelper,
           },
           {
             label: "Cluster",
