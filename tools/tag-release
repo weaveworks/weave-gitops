@@ -30,8 +30,10 @@ def parse_tag(tag_name):
         """,
         re.VERBOSE,
     )
-    if tag_match := pattern.match(tag_name):
-        if rc := tag_match.group("rc"):
+    tag_match = pattern.match(tag_name)
+    if tag_match:
+        rc = tag_match.group("rc")
+        if rc:
             return RCVersion(
                 major=int(tag_match.group("major")),
                 minor=int(tag_match.group("minor")),
