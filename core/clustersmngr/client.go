@@ -134,20 +134,20 @@ func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.O
 
 type ClusteredObjectList interface {
 	ObjectList(cluster string) client.ObjectList
-	Lists() map[string]interface{}
+	Lists() map[string]client.ObjectList
 }
 
 type ClusteredList struct {
 	sync.Mutex
 
 	listFactory func() client.ObjectList
-	lists       map[string]interface{}
+	lists       map[string]client.ObjectList
 }
 
 func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
 	return &ClusteredList{
 		listFactory: listFactory,
-		lists:       make(map[string]interface{}),
+		lists:       make(map[string]client.ObjectList),
 	}
 }
 
@@ -160,7 +160,7 @@ func (cl *ClusteredList) ObjectList(cluster string) client.ObjectList {
 	return cl.lists[cluster].(client.ObjectList)
 }
 
-func (cl *ClusteredList) Lists() map[string]interface{} {
+func (cl *ClusteredList) Lists() map[string]client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
