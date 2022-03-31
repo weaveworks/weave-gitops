@@ -253,6 +253,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -881,6 +887,9 @@
           "type": "boolean"
         },
         "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }

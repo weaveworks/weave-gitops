@@ -21,6 +21,7 @@ import { WeGONamespace } from "../../lib/types";
 
 type Props = {
   name: string;
+  clusterName: string;
   className?: string;
 };
 
@@ -32,8 +33,8 @@ const TabContent = styled.div`
   margin-top: 52px;
 `;
 
-function HelmReleaseDetail({ className, name }: Props) {
-  const { data, isLoading, error } = useGetHelmRelease(name);
+function HelmReleaseDetail({ className, name, clusterName }: Props) {
+  const { data, isLoading, error } = useGetHelmRelease(name, clusterName);
   const helmRelease = data?.helmRelease;
   const hashHistory = createHashHistory();
 
@@ -55,7 +56,7 @@ function HelmReleaseDetail({ className, name }: Props) {
                 />,
               ],
               ["Chart", helmRelease?.helmChart.chart],
-              ["Cluster", "Default"],
+              ["Cluster", helmRelease?.clusterName],
               ["Interval", <Interval interval={helmRelease?.interval} />],
             ]}
           />

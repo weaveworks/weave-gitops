@@ -81,6 +81,7 @@ message HelmRelease {
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
     string    lastUpdatedAt              = 12;
+    string    clusterName                = 13;
 }
 
 message GitRepository {
