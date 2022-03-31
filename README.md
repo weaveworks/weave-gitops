@@ -46,23 +46,14 @@ Again, we recommend committing the following to a repository being reconciled by
 
 ```
 kubectl apply -n flux-system -f - << EOF
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: GitRepository
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
 metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
   interval: 1m0s
-  ref:
-    branch: disable-tls
-  secretRef:
-    name: flux-system
-  url: ssh://git@github.com/weaveworks/weave-gitops
-  ignore: |
-    # exclude all
-    /*
-    # include charts directory
-    !/charts/ 
+  url: https://helm.gitops.weave.works
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -72,16 +63,14 @@ metadata:
 spec:
   chart:
     spec:
-      chart: ./charts/weave-gitops
+      chart: weave-gitops
       sourceRef:
-        kind: GitRepository
+        kind: HelmRepository
         name: ww-gitops
-  values:
-    image: <image-tag>
-    adminPassword: <password-hashed-with-bcrypt>
-    containerRegistry: <organisation/repository>
   interval: 1m0s
-EOF
+  values:
+    additionalArgs:
+    - --insecure
 ```
 
 ## Installing the GitOps CLI
