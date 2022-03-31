@@ -94,8 +94,6 @@ func NewCommand() *cobra.Command {
 
 	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", true, "Enables development mode")
 	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
-	cmd.Flags().MarkHidden("dev-mode")
-	cmd.Flags().MarkHidden("dev-user")
 
 	return cmd
 }
