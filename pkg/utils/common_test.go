@@ -200,15 +200,6 @@ error occurred some error, retrying in 1s
 			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
 		})
 
-		It("finds embedded core configuration in dir containing file with both helm and git repositories", func() {
-			configFile, err := ioutil.ReadFile("testdata/both-helm-and-git-config.yaml")
-			Expect(err).NotTo(HaveOccurred())
-			path := filepath.Join(dir, "config.yaml")
-			Expect(ioutil.WriteFile(path, configFile, 0666)).To(Succeed())
-
-			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
-		})
-
 		It("finds partial core configuration in dir containing file with partial config", func() {
 			partialConfigFile, err := ioutil.ReadFile("testdata/partial-config.yaml")
 			Expect(err).NotTo(HaveOccurred())
@@ -221,17 +212,6 @@ error occurred some error, retrying in 1s
 
 		It("finds core configuration nested in dir containing one (regardless of name)", func() {
 			testConfigFile, err := ioutil.ReadFile("testdata/config.yaml")
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(os.MkdirAll(filepath.Join(dir, "nested"), 0700)).Should(Succeed())
-			renamedConfigFile := filepath.Join(dir, "nested", "sprug.yaml")
-			Expect(ioutil.WriteFile(renamedConfigFile, testConfigFile, 0666)).To(Succeed())
-
-			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Valid, Path: renamedConfigFile}))
-		})
-
-		It("finds helm core configuration nested in dir containing one (regardless of name)", func() {
-			testConfigFile, err := ioutil.ReadFile("testdata/helm-config.yaml")
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(os.MkdirAll(filepath.Join(dir, "nested"), 0700)).Should(Succeed())

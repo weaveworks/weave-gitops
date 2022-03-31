@@ -211,30 +211,26 @@ func FindCoreConfig(dir string) WalkResult {
 				foundPartial = true
 			}
 
-			_, herr := rootNode.QueryMultiple(fmt.Sprintf(".(kind=HelmRepository)(.metadata.name=%s)", coreManifestName))
-			_, gerr := rootNode.QueryMultiple(fmt.Sprintf(".(kind=GitRepository)(.metadata.name=%s)", coreManifestName))
-			switch {
-			case herr != nil && gerr != nil:
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=HelmRepository)(.metadata.name=%s)", coreManifestName))
+			if err != nil {
 				if foundPartial {
 					return WalkResult{Status: Partial, Path: path}
 				}
 
 				return nil
-			case herr == nil && gerr == nil:
-				return WalkResult{Status: Embedded, Path: path}
-			default:
-				// retrieve the number of top-level entries from the file
-				val, err := rootNode.Query(".[#]")
-				if err != nil {
-					return nil
-				}
-
-				if val.InterfaceValue() != coreManifestCount {
-					return WalkResult{Status: Embedded, Path: path}
-				}
-
-				return WalkResult{Status: Valid, Path: path}
 			}
+
+			// retrieve the number of top-level entries from the file
+			val, err := rootNode.Query(".[#]")
+			if err != nil {
+				return nil
+			}
+
+			if val.InterfaceValue() != coreManifestCount {
+				return WalkResult{Status: Embedded, Path: path}
+			}
+
+			return WalkResult{Status: Valid, Path: path}
 		})
 
 	if val, ok := err.(WalkResult); ok {
