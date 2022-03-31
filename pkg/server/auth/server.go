@@ -491,7 +491,7 @@ func contains(ss []string, s string) bool {
 	return false
 }
 
-func JSONError(w http.ResponseWriter, errStr string, code int) {
+func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
@@ -501,6 +501,6 @@ func JSONError(w http.ResponseWriter, errStr string, code int) {
 	}{Message: errStr}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, fmt.Sprintf("failed encoding error message: %s", err), code)
+		log.Error(err, "failed encoding error message", "message", errStr)
 	}
 }
