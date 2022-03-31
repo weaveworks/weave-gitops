@@ -5,7 +5,11 @@ exports[`snapshots renders 1`] = `
   className="sc-bdvvtL jUaaBj"
 >
   <a
+<<<<<<< HEAD
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
+=======
+    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
+>>>>>>> 6e734d90 (snaps and bg)
     href="/applications"
     onClick={[Function]}
   >
@@ -25,7 +29,11 @@ exports[`snapshots renders child route 1`] = `
   className="sc-bdvvtL jUaaBj"
 >
   <a
+<<<<<<< HEAD
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
+=======
+    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
+>>>>>>> 6e734d90 (snaps and bg)
     href="/applications"
     onClick={[Function]}
   >
@@ -52,7 +60,11 @@ exports[`snapshots renders child route 1`] = `
     </svg>
   </div>
   <a
+<<<<<<< HEAD
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
+=======
+    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
+>>>>>>> 6e734d90 (snaps and bg)
     href="/kustomization?name=flux"
     onClick={[Function]}
   >
@@ -72,7 +84,11 @@ exports[`snapshots renders on the root page 1`] = `
   className="sc-bdvvtL jUaaBj"
 >
   <a
+<<<<<<< HEAD
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
+=======
+    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
+>>>>>>> 6e734d90 (snaps and bg)
     href="/"
     onClick={[Function]}
   >
@@ -97,7 +113,11 @@ exports[`snapshots renders on the root page 1`] = `
     </svg>
   </div>
   <a
+<<<<<<< HEAD
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
+=======
+    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
+>>>>>>> 6e734d90 (snaps and bg)
     href="/"
     onClick={[Function]}
   >

@@ -259,7 +259,8 @@ function UnstyledFilterDialog({
 
 export default styled(UnstyledFilterDialog)`
   &.filter-bar {
-    background: ${(props) => props.theme.colors.neutral00};
+    // this bg color factors in the opacity of the content container while keeping the filters opaque
+    background: rgb(250, 250, 250);
     min-width: 300px;
     border-left: 2px solid ${(props) => props.theme.colors.neutral20};
     padding: ${(props) => props.theme.spacing.medium};
