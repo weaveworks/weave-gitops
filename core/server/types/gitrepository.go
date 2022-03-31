@@ -54,11 +54,7 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 			Semver: repository.Spec.Reference.SemVer,
 			Commit: repository.Spec.Reference.Commit,
 		},
-		Interval: &pb.Interval{
-			Hours:   int64(repository.Spec.Interval.Hours()),
-			Minutes: int64(repository.Spec.Interval.Minutes()) % 60,
-			Seconds: int64(repository.Spec.Interval.Seconds()) % 60,
-		},
+		Interval:      durationToInterval(repository.Spec.Interval),
 		Conditions:    mapConditions(repository.Status.Conditions),
 		Suspended:     repository.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(repository),

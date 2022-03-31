@@ -61,11 +61,7 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName stri
 			Kind: kind,
 			Name: kustomization.Spec.SourceRef.Name,
 		},
-		Interval: &pb.Interval{
-			Hours:   int64(kustomization.Spec.Interval.Hours()),
-			Minutes: int64(kustomization.Spec.Interval.Minutes()),
-			Seconds: int64(kustomization.Spec.Interval.Seconds()),
-		},
+		Interval:                durationToInterval(kustomization.Spec.Interval),
 		Conditions:              mapConditions(kustomization.Status.Conditions),
 		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
 		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
