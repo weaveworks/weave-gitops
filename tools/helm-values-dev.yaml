@@ -10,3 +10,6 @@ adminUser:
   create: true
   username: dev
   password: dev
+
+additionalArgs:
+  - "--dev-mode"
