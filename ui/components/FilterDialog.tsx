@@ -120,7 +120,7 @@ function UnstyledFilterDialog({
                             </Text>
                             <List>
                               {_.map(
-                                options,
+                                [...options].sort(),
                                 (option: string, index: number) => {
                                   return (
                                     <ListItem key={index}>
