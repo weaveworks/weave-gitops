@@ -91,6 +91,7 @@ export type HelmRelease = {
   inventory?: GroupVersionKind[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type GitRepository = {

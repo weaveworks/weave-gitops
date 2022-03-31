@@ -60,12 +60,12 @@ export function useGetKustomization(name: string, clusterName = DefaultCluster, 
   );
 }
 
-export function useGetHelmRelease(name: string, namespace = WeGONamespace) {
+export function useGetHelmRelease(name: string, clusterName = DefaultCluster, namespace = WeGONamespace) {
   const { api } = useContext(AppContext);
 
   return useQuery<GetHelmReleaseResponse, RequestError>(
     ["helmrelease", name],
-    () => api.GetHelmRelease({ name, namespace }),
+    () => api.GetHelmRelease({ name, namespace, clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
 }

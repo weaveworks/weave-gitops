@@ -45,7 +45,7 @@ func ProtoToHelmRelease(hr *pb.HelmRelease) v2beta1.HelmRelease {
 	}
 }
 
-func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, inventory []*pb.GroupVersionKind) *pb.HelmRelease {
+func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, inventory []*pb.GroupVersionKind) *pb.HelmRelease {
 	var chartInterval *pb.Interval
 
 	if helmrelease.Spec.Chart.Spec.Interval != nil {
@@ -67,8 +67,9 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, inventory []*pb.GroupV
 				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
-		Inventory:  inventory,
-		Conditions: mapConditions(helmrelease.Status.Conditions),
-		Suspended:  helmrelease.Spec.Suspend,
+		Inventory:   inventory,
+		Conditions:  mapConditions(helmrelease.Status.Conditions),
+		Suspended:   helmrelease.Spec.Suspend,
+		ClusterName: clusterName,
 	}
 }

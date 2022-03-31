@@ -25,6 +25,7 @@ export type ListHelmReleasesResponse = {
 export type GetHelmReleaseRequest = {
   name?: string
   namespace?: string
+  clusterName?: string
 }
 
 export type GetHelmReleaseResponse = {

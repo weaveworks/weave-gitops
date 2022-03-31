@@ -11,6 +11,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -65,8 +66,9 @@ func TestGetHelmRelease(t *testing.T) {
 
 	// Get app from ns1.
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
-		Name:      appName,
-		Namespace: ns1.Name,
+		Name:        appName,
+		Namespace:   ns1.Name,
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -75,8 +77,9 @@ func TestGetHelmRelease(t *testing.T) {
 
 	// Get app from ns2.
 	response, err = c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
-		Name:      appName,
-		Namespace: ns2.Name,
+		Name:        appName,
+		Namespace:   ns2.Name,
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -85,8 +88,9 @@ func TestGetHelmRelease(t *testing.T) {
 
 	// Get app from ns3, should fail.
 	_, err = c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
-		Name:      appName,
-		Namespace: ns3.Name,
+		Name:        appName,
+		Namespace:   ns3.Name,
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).To(HaveOccurred())
@@ -165,8 +169,9 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 	g.Expect(k.Create(ctx, &storageSecret)).To(Succeed())
 
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
-		Name:      appName,
-		Namespace: ns1.Name,
+		Name:        appName,
+		Namespace:   ns1.Name,
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -254,8 +259,9 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 	g.Expect(k.Create(ctx, &storageSecret)).To(Succeed())
 
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
-		Name:      appName,
-		Namespace: ns1.Name,
+		Name:        appName,
+		Namespace:   ns1.Name,
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())

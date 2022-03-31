@@ -13,6 +13,7 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	v1 "k8s.io/api/core/v1"
@@ -20,20 +21,27 @@ import (
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	k8s, err := cs.k8s.Client(ctx)
-	if err != nil {
-		return nil, doClientError(err)
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	l := &helmv2.HelmReleaseList{}
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &helmv2.HelmReleaseList{}
+	})
 
-	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, err
 	}
 
 	var results []*pb.HelmRelease
-	for _, helmRelease := range l.Items {
-		results = append(results, types.HelmReleaseToProto(&helmRelease, []*pb.GroupVersionKind{}))
+
+	for n, l := range clist.Lists() {
+		list, ok := l.(*helmv2.HelmReleaseList)
+		if !ok {
+			continue
+		}
+
+		for _, helmrelease := range list.Items {
+			results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
+		}
 	}
 
 	return &pb.ListHelmReleasesResponse{
@@ -42,28 +50,29 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 }
 
 func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	k8s, err := cs.k8s.Client(ctx)
-	if err != nil {
-		return nil, doClientError(err)
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
 	helmRelease := helmv2.HelmRelease{}
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
 
-	if err = get(ctx, k8s, msg.Name, msg.Namespace, &helmRelease); err != nil {
+	if err := clustersClient.Get(ctx, msg.ClusterName, key, &helmRelease); err != nil {
 		return nil, err
 	}
 
-	inventory, err := getHelmReleaseInventory(ctx, helmRelease, k8s)
+	inventory, err := getHelmReleaseInventory(ctx, helmRelease, clustersClient, msg.ClusterName)
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.GetHelmReleaseResponse{
-		HelmRelease: types.HelmReleaseToProto(&helmRelease, inventory),
+		HelmRelease: types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory),
 	}, err
 }
 
-func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, k8s client.Client) ([]*pb.GroupVersionKind, error) {
+func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
 	storageNamespace := helmRelease.GetNamespace()
 	if helmRelease.Spec.StorageNamespace != "" {
 		storageNamespace = helmRelease.Spec.StorageNamespace
@@ -80,10 +89,14 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 		return nil, nil
 	}
 
-	storageSecret := v1.Secret{}
+	storageSecret := &v1.Secret{}
 	secretName := fmt.Sprintf("sh.helm.release.v1.%s.v%v", storageName, storageVersion)
+	key := client.ObjectKey{
+		Name:      secretName,
+		Namespace: storageNamespace,
+	}
 
-	if err := get(ctx, k8s, secretName, storageNamespace, &storageSecret); err != nil {
+	if err := c.Get(ctx, cluster, key, storageSecret); err != nil {
 		return nil, err
 	}
 

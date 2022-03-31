@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -80,13 +79,6 @@ func list(ctx context.Context, k8s client.Client, appName, namespace string, lis
 	opts = append(opts, extraOpts...)
 	err := k8s.List(ctx, list, opts...)
 	err = wrapK8sAPIError("list resource", err)
-
-	return err
-}
-
-func get(ctx context.Context, k8s client.Client, name, namespace string, obj client.Object) error {
-	err := k8s.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, obj)
-	err = wrapK8sAPIError("get resource", err)
 
 	return err
 }
