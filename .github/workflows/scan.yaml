@@ -23,7 +23,7 @@ jobs:
         with:
           go-version: 1.17.X
       - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@v1
+        uses: fossa-contrib/fossa-action@v1.2.0
         with:
           fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
           github-token: ${{ github.token }}
