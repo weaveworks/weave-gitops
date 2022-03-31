@@ -101,7 +101,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		if principal == nil || err != nil {
-			Error(rw, "Authentication required", http.StatusUnauthorized)
+			JSONError(rw, "Authentication required", http.StatusUnauthorized)
 			return
 		}
 
