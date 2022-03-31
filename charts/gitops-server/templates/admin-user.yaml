@@ -30,7 +30,7 @@ rules:
     resources: ["secrets", "pods" ]
     verbs: [ "get", "list" ]
   - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets", "pods" ]
+    resources: [ "deployments", "replicasets"]
     verbs: [ "get", "list" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
