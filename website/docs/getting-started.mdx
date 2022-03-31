@@ -99,13 +99,79 @@ pip install bcrypt
 python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
 ```
 
-4. Now create a Kubernetes secret to store your chosen username and the password hash:
+you should get a response like:
 
 ```
-kubectl create secret generic admin-password-hash \
+b'$2b$12$FFokfwM/p8RPr0YMTdHWk.MXe3Kg1/UVyj63pT9FU8/mthUjKjm7W'
+```
+
+4. Copy the output from the above command and exit the shell
+
+```
+exit
+```
+
+5. Now create a Kubernetes secret to store your chosen username and the password hash.
+
+Note when you update the password that you only need content between ' marks.
+
+```
+kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
-  --from-literal=username=admin
-  --from-literal=password='<output-from-step-3>'
+  --from-literal=username=admin \
+  --from-literal=password='$2b$12$FFokfwM/p8RPr0YMTdHWk.MXe3Kg1/UVyj63pT9FU8/mthUjKjm7W'
+```
+
+6. Configure RBAC for the admin user
+
+Still in your local clone of `fleet-infra`, create a new YAML file and add the following:
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-test-user-read-resources
+  namespace: flux-system
+subjects:
+  - kind: User
+    name: wego-admin
+    namespace: flux-system
+roleRef:
+  kind: Role
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-admin-role
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+```
+
+7. Commit and push the this file `fleet-infra` repository
+
+```
+git add -A && git commit -m "Add Weave GitOps admin RBAC"
+git push
 ```
 
 ### Install Weave GitOps
@@ -122,7 +188,7 @@ cd fleet-infra
 2. Create a `HelmRepository` Source for Weave GitOps
 
 ```
-flux create source helm ww-gitops 
+flux create source helm ww-gitops \
   --url=https://helm.gitops.weave.works \
   --export > ./clusters/my-cluster/weave-gitops-source.yaml
 ```
@@ -147,26 +213,46 @@ git add -A && git commit -m "Add Weave GitOps HelmRepository"
 git push
 ```
 
-4. Create a local values file for the Weave GitOps Helm Chart
-
-```
-cat > weave-gitops-values.yaml <<EOL
-additional args:
-- --insecure
-rbac:
-  create: true
-EOL
-```
-
-5. Create a `HelmRelease` to deploy Weave GitOps
+4. Create a `HelmRelease` to deploy Weave GitOps
 
 ```
 flux create helmrelease ww-gitops \
   --source=HelmRepository/ww-gitops \
   --chart=weave-gitops \
-  --values=weave-gitops-values-values.yaml \
   --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
 ```
+
+5. Edit the file to add the following values:
+
+```
+  values:
+    additionalArgs:
+    - --insecure
+```
+
+It should now look similar to:
+
+```
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: weave-gitops
+      sourceRef:
+        kind: HelmRepository
+        name: ww-gitops
+  interval: 1m0s
+  values:
+    additionalArgs:
+    - --insecure
+```
+
+
 
 6. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
 
@@ -322,7 +408,6 @@ flux create kustomization podinfo \
   --path="./kustomize" \
   --prune=true \
   --interval=5m \
-  --
   --export > ./clusters/my-cluster/podinfo-kustomization.yaml
 ```
 

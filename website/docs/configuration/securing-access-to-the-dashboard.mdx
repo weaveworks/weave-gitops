@@ -124,9 +124,9 @@ b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
 Now create a Kubernetes secret to store your chosen username and the password hash:
 
 ```sh
-kubectl create secret generic admin-password-hash \
-  --namespace wego-system \
-  --from-literal=username=admin
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
   --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
 ```
 
