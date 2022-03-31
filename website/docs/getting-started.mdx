@@ -1,17 +1,200 @@
 ---
 title: Getting Started
 sidebar_position: 2
+hide_title: true
 ---
 
-This hands-on guide will introduce you to the basics of the GitOps Dashboard web UI, to help you understand the state of your system. Before adding a new application based on this guide from [Flux](https://fluxcd.io/docs/get-started/).
+# Getting Started with Weave GitOps
+
+This hands-on guide will introduce you to the basics of the GitOps Dashboard web UI, to help you understand the state of your system, before deploying a new application to your cluster. It is adapted from this guide - [Flux - Getting Started](https://fluxcd.io/docs/get-started/).
 
 If you haven't already, be sure to check out our [introduction](./intro.md) to Weave GitOps.
 
-This guide assumes that you have already installed Flux and Weave GitOps as described in our [installation](./installation.mdx) doc. Screenshots below show the state of a kind cluster which has only these workloads being reconciled.
+## Before you begin
+
+We will provide a complete walkthrough of getting Flux installed and Weave GitOps configured. However, if you have:
+-  an existing cluster bootstraped Flux 🎉
+-  followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
+
+Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃  
+but note ⚠️ you may need to alter commands where we are committing files to GitHub ⚠️.
+
+To follow along, you will need the following:
+- A Kubernetes cluster - such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/).
+- A [GitHub](https://github.com) account and [personal access token with repo permissions](https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+
+### Install Flux
+
+1. Install the flux CLI
+
+```
+brew install fluxcd/tap/flux
+```
+
+For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
+
+2. Export your credentials 
+
+```
+export GITHUB_TOKEN=<your-token>
+export GITHUB_USER=<your-username>
+```
+
+3. Check your Kubernetes cluster
+
+```
+flux check --pre
+```
+
+The output is similar to:
+```
+► checking prerequisites
+✔ kubernetes 1.22.2 >=1.20.6
+✔ prerequisites checks passed
+```
+
+4. Install Flux onto your cluster with the `flux bootstrap` command
+
+```
+flux bootstrap github \
+  --owner=$GITHUB_USER \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/my-cluster \
+  --personal
+```
+
+Full installation documentation including how to work with other Git providers is available [here](https://fluxcd.io/docs/installation/).
+
+The bootstrap command above does following:
+
+- Creates a git repository fleet-infra on your GitHub account
+- Adds Flux component manifests to the repository
+- Deploys Flux Components to your Kubernetes Cluster
+- Configures Flux components to track the path /clusters/my-cluster/ in the repository
+
+### Configure access to the dashboard
+
+For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
+
+We will generate a bcyrpt hash for your chosen password and store as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one.
+
+1. Run an Alpine Docker image interactively and supply the password of your choice as an environment variable by changing `<your-password>`:
+
+```
+docker run -e CLEAR_PASSWORD="<your-password>" -it alpine
+```
+
+2. Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
+
+```
+apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
+pip install bcrypt
+```
+
+3. Run the following Python script to generate a hash:
+
+```
+python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
+```
+
+4. Now create a Kubernetes secret to store your chosen username and the password hash:
+
+```
+kubectl create secret generic admin-password-hash \
+  --namespace flux-system \
+  --from-literal=username=admin
+  --from-literal=password='<output-from-step-3>'
+```
+
+### Install Weave GitOps
+
+Weave GitOps is installable via a Helm Chart and as such can be managed by Flux. 
+
+1. Clone your git repository where Flux has been bootstrapped.
+
+```
+git clone https://github.com/$GITHUB_USER/fleet-infra
+cd fleet-infra
+```
+
+2. Create a `HelmRepository` Source for Weave GitOps
+
+```
+flux create source helm ww-gitops 
+  --url=https://helm.gitops.weave.works \
+  --export > ./clusters/my-cluster/weave-gitops-source.yaml
+```
+
+The output should be similar to: 
+
+```
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  url: 
+```
+
+3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
+
+```
+git add -A && git commit -m "Add Weave GitOps HelmRepository"
+git push
+```
+
+4. Create a local values file for the Weave GitOps Helm Chart
+
+```
+cat > weave-gitops-values.yaml <<EOL
+additional args:
+- --insecure
+rbac:
+  create: true
+EOL
+```
+
+5. Create a `HelmRelease` to deploy Weave GitOps
+
+```
+flux create helmrelease ww-gitops \
+  --source=HelmRepository/ww-gitops \
+  --chart=weave-gitops \
+  --values=weave-gitops-values-values.yaml \
+  --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
+```
+
+6. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
+
+```
+git add -A && git commit -m "Add Weave GitOps HelmRelease"
+git push
+```
+
+7. Validate that Weave GitOps and Flux are installed
+
+```
+kubectl get pods -n flux-system
+```
+
+You should see something similar to:
+
+```
+NAME                                       READY   STATUS    RESTARTS   AGE
+helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
+kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
+notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
+source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
+ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
+```
 
 ## Part 1 - Weave GitOps overview
 
-Intro
+Weave GitOps provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams. We will now login to the dashboard web UI and start to explore the state of our GitOps deployments.
 
 ### Login to the GitOps Dashboard
 
@@ -20,7 +203,7 @@ Intro
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 
-2. Login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
+2. [Open the dashboad](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
 
 ![Weave GitOps login screen](/img/dashboard-login.png)
 
@@ -100,30 +283,120 @@ Finally lets look at the Source in more detail, click `GitRepository/flux-system
 As with an Application detail view, you can see key information about how the resource is defined. Then beneath alongside the Events tab, is a Related Automations view. This shows all the `kustomization` objects which have this object as their Source.
 
 
-## Part 2 - Deploying the podinfo application
+## Part 2 - Deploying and viewing podinfo application
 
-Now that you have a feel for how to navigate the dashboard. Let's deploy a new application and explore that as well. This section is based on the [Getting Started](https://fluxcd.io/docs/get-started/) guide for Flux itself.
+Now that you have a feel for how to navigate the dashboard. Let's deploy a new application and explore that as well. In this section we will use the [podinfo](https://github.com/stefanprodan/podinfo) sample web application.
 
-### Add the podinfo repository to Flux
+### Deploying podinfo
 
-Walkthrough
+1. Clone or navigate back to your git repository where you have bootstrapped Flux, for example:
 
-### Deploy podinfo application
+```
+git clone https://github.com/$GITHUB_USER/fleet-infra
+cd fleet-infra
+```
 
-Walkthrough
+2. Create a `GitRepository` Source for podinfo
 
-### View the running application
+```
+flux create source git podinfo \
+  --url=https://github.com/stefanprodan/podinfo \
+  --branch=master \
+  --interval=30s \
+  --export > ./clusters/my-cluster/podinfo-source.yaml
+```
 
-Walkthrough
+3. Commit and push the `podinfo-source` to the `fleet-infra` repository
 
-### Suspend updates
+```
+git add -A && git commit -m "Add podinfo source"
+git push
+```
 
-Walkthrough
+4. Create a `kustomization` to build and apply the podinfo manifest
+
+```
+flux create kustomization podinfo \
+  --target-namespace=flux-system \
+  --source=podinfo \
+  --path="./kustomize" \
+  --prune=true \
+  --interval=5m \
+  --
+  --export > ./clusters/my-cluster/podinfo-kustomization.yaml
+```
+
+5. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
+
+```
+git add -A && git commit -m "Add podinfo kustomization"
+git push
+```
+
+### View the application in Weave GitOps
+
+Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back to the [dashboard](http://localhost:9001/) you should see the podinfo application appear.
+
+![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
+
+Click on podinfo and you will see details about the deployment, including that there are 2 replicas available.
+
+![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
 
 ### Customize podinfo
 
-Walkthrough
+To customize a deployment from a repository you don’t control, you can use Flux in-line patches. The following example shows how to use in-line patches to change the podinfo deployment.
 
-## Next steps
+1. Add the following to the field spec of your podinfo-kustomization.yaml file:
 
-Links
+```
+patches:
+    - patch: |-
+        apiVersion: autoscaling/v2beta2
+        kind: HorizontalPodAutoscaler
+        metadata:
+          name: podinfo
+        spec:
+          minReplicas: 3             
+      target:
+        name: podinfo
+        kind: HorizontalPodAutoscaler
+```
+
+2. Commit and push the podinfo-kustomization.yaml changes:
+
+```
+git add -A && git commit -m "Increase podinfo minimum replicas"
+git push
+```
+
+3. Navigate back to the dashboard and you will now see increased replica count and the newly created 3rd pod
+
+![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
+
+
+### Suspend updates
+
+Suspending updates to a kustomization allows you to directly edit objects applied from a kustomization, without your changes being reverted by the state in Git.
+
+To suspend updates for a kustomization, run the command:
+
+```
+flux suspend kustomization podinfo
+```
+
+This shows in the applications view with a yellow warning status indicating it is now suspended
+
+![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
+
+To resume updates run the command 
+
+```
+flux resume kustomization podinfo
+```
+
+## Complete!
+
+Congratulations 🎉🎉🎉  
+
+You've now completed the getting started guide. We would welcome any and all [feedback](./feedback-and-telemetry.md) on your experience.
