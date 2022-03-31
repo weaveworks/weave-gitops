@@ -58,7 +58,7 @@ type ClusterFetcher interface {
 type ClientsPool interface {
 	Add(user *auth.UserPrincipal, cluster Cluster) error
 	Clients() map[string]client.Client
-	Client(clsuter string) (client.Client, error)
+	Client(cluster string) (client.Client, error)
 }
 
 type clientsPool struct {

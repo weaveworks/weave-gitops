@@ -9,7 +9,7 @@ import {
   ListKustomizationsResponse,
 } from "../lib/api/core/core.pb";
 import { Kustomization } from "../lib/api/core/types.pb";
-import { AutomationType, RequestError, WeGONamespace } from "../lib/types";
+import { AutomationType, RequestError, WeGONamespace, DefaultCluster } from "../lib/types";
 
 export type Automation = Kustomization & { type: AutomationType };
 
@@ -50,12 +50,12 @@ export function useListAutomations(namespace = WeGONamespace) {
   );
 }
 
-export function useGetKustomization(name: string, namespace = WeGONamespace) {
+export function useGetKustomization(name: string, clusterName = DefaultCluster, namespace = WeGONamespace) {
   const { api } = useContext(AppContext);
 
   return useQuery<GetKustomizationResponse, RequestError>(
     ["kustomizations", name],
-    () => api.GetKustomization({ name, namespace }),
+    () => api.GetKustomization({ name, namespace, clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
 }

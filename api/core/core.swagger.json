@@ -383,6 +383,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -966,6 +972,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },

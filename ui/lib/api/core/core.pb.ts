@@ -74,6 +74,7 @@ export type ListHelmChartsResponse = {
 export type GetKustomizationRequest = {
   name?: string
   namespace?: string
+  clusterName?: string
 }
 
 export type GetKustomizationResponse = {

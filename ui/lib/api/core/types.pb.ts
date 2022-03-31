@@ -66,6 +66,7 @@ export type Kustomization = {
   lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
   suspended?: boolean
+  clusterName?: string
 }
 
 export type HelmChart = {

@@ -36,7 +36,7 @@ func ProtoToKustomization(kustomization *pb.Kustomization) v1beta2.Kustomization
 	}
 }
 
-func KustomizationToProto(kustomization *v1beta2.Kustomization) (*pb.Kustomization, error) {
+func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName string) (*pb.Kustomization, error) {
 	var kind pb.SourceRef_SourceKind
 
 	switch kustomization.Spec.SourceRef.Kind {
@@ -72,6 +72,7 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization) (*pb.Kustomizati
 		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
 		Inventory:               inv,
 		Suspended:               kustomization.Spec.Suspend,
+		ClusterName:             clusterName,
 	}, nil
 }
 

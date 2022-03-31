@@ -24,14 +24,14 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	var results []*pb.Kustomization
 
-	for _, l := range clist.Lists() {
+	for n, l := range clist.Lists() {
 		list, ok := l.(*kustomizev1.KustomizationList)
 		if !ok {
 			continue
 		}
 
 		for _, kustomization := range list.Items {
-			k, err := types.KustomizationToProto(&kustomization)
+			k, err := types.KustomizationToProto(&kustomization, n)
 			if err != nil {
 				return nil, fmt.Errorf("converting items: %w", err)
 			}
@@ -46,18 +46,19 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 }
 
 func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomizationRequest) (*pb.GetKustomizationResponse, error) {
-	k8s, err := cs.k8s.Client(ctx)
-	if err != nil {
-		return nil, doClientError(err)
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
 	k := &kustomizev1.Kustomization{}
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
 
-	if err := get(ctx, k8s, msg.Name, msg.Namespace, k); err != nil {
+	if err := clustersClient.Get(ctx, msg.ClusterName, key, k); err != nil {
 		return nil, err
 	}
 
-	res, err := types.KustomizationToProto(k)
+	res, err := types.KustomizationToProto(k, msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
 	}

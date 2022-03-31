@@ -34,11 +34,14 @@ import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
 
-function withName(Cmp) {
+function withSearchParams(Cmp) {
   return ({ location: { search }, ...rest }) => {
     const params = qs.parse(search);
 
-    return <Cmp {...rest} name={params.name as string} />;
+    return <Cmp {...rest}
+      name={params.name as string}
+      clusterName={params.clusterName as string}
+    />;
   };
 }
 
@@ -50,34 +53,34 @@ const App = () => (
         <Route
           exact
           path={V2Routes.Kustomization}
-          component={withName(KustomizationDetail)}
+          component={withSearchParams(KustomizationDetail)}
         />
         <Route exact path={V2Routes.Sources} component={Sources} />
         <Route exact path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <Route
           exact
           path={V2Routes.GitRepo}
-          component={withName(GitRepositoryDetail)}
+          component={withSearchParams(GitRepositoryDetail)}
         />
         <Route
           exact
           path={V2Routes.HelmRepo}
-          component={withName(HelmRepositoryDetail)}
+          component={withSearchParams(HelmRepositoryDetail)}
         />
         <Route
           exact
           path={V2Routes.Bucket}
-          component={withName(BucketDetail)}
+          component={withSearchParams(BucketDetail)}
         />
         <Route
           exact
           path={V2Routes.HelmRelease}
-          component={withName(HelmReleaseDetail)}
+          component={withSearchParams(HelmReleaseDetail)}
         />
         <Route
           exact
           path={V2Routes.HelmChart}
-          component={withName(HelmChartDetail)}
+          component={withSearchParams(HelmChartDetail)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />
