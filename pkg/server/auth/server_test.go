@@ -217,7 +217,7 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(string(b)).To(Equal("Failed to read request body.\n"))
+	g.Expect(string(b)).To(ContainSubstring("Failed to read request body."))
 }
 
 func TestSignInNoSecret(t *testing.T) {
