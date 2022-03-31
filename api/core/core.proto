@@ -222,8 +222,9 @@ message ListHelmChartsResponse {
 }
 
 message GetKustomizationRequest {
-    string name      = 1;
-    string namespace = 2;
+    string name        = 1;
+    string namespace   = 2;
+    string clusterName = 3;
 }
 
 message GetKustomizationResponse {

@@ -37,6 +37,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             to={formatURL(route, {
               name: k.name,
               namespace: k.namespace,
+              clusterName: k.clusterName,
             })}
           >
             {k.name}
@@ -59,7 +60,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Cluster",
-      value: () => "Default",
+      value: "clusterName",
       width: 5,
     },
     {

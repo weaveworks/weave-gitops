@@ -19,6 +19,7 @@ import { WeGONamespace } from "../../lib/types";
 
 type Props = {
   name: string;
+  clusterName: string;
   className?: string;
 };
 
@@ -30,8 +31,8 @@ const TabContent = styled.div`
   margin-top: 52px;
 `;
 
-function KustomizationDetail({ className, name }: Props) {
-  const { data, isLoading, error } = useGetKustomization(name);
+function KustomizationDetail({ className, name, clusterName }: Props) {
+  const { data, isLoading, error } = useGetKustomization(name, clusterName);
   const hashHistory = createHashHistory();
   const kustomization = data?.kustomization;
   return (
@@ -44,7 +45,7 @@ function KustomizationDetail({ className, name }: Props) {
             items={[
               ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
               ["Applied Revision", kustomization?.lastAppliedRevision],
-              ["Cluster", "Default"],
+              ["Cluster", kustomization?.clusterName],
               ["Path", kustomization?.path],
               ["Interval", <Interval interval={kustomization?.interval} />],
               ["Last Updated At", kustomization?.lastHandledReconciledAt],
