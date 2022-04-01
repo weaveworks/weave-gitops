@@ -41,6 +41,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - run: make node_modules
+      - name: Check that package.json & package-lock.json were updated in commit
+        run: |
+          echo "Using node.js "$(node --version)
+          echo "Using NPM "$(npm --version)
+          git diff --no-ext-diff --exit-code
       - run: make ui-audit
       - run: make ui
       - run: make ui-lint
