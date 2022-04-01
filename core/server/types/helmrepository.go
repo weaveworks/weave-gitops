@@ -28,13 +28,14 @@ func ProtoToHelmRepository(hr *pb.HelmRepository) v1beta1.HelmRepository {
 	}
 }
 
-func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepository {
+func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository, clusterName string) *pb.HelmRepository {
 	return &pb.HelmRepository{
-		Name:       helmRepository.Name,
-		Namespace:  helmRepository.Namespace,
-		Url:        helmRepository.Spec.URL,
-		Interval:   durationToInterval(helmRepository.Spec.Interval),
-		Conditions: mapConditions(helmRepository.Status.Conditions),
-		Suspended:  helmRepository.Spec.Suspend,
+		Name:        helmRepository.Name,
+		Namespace:   helmRepository.Namespace,
+		Url:         helmRepository.Spec.URL,
+		Interval:    durationToInterval(helmRepository.Spec.Interval),
+		Conditions:  mapConditions(helmRepository.Status.Conditions),
+		Suspended:   helmRepository.Spec.Suspend,
+		ClusterName: clusterName,
 	}
 }

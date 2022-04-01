@@ -32,7 +32,7 @@ func ProtoToHelmChart(chart *pb.HelmChart) v1beta1.HelmChart {
 	}
 }
 
-func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
+func HelmChartToProto(helmchart *v1beta1.HelmChart, clusterName string) *pb.HelmChart {
 	return &pb.HelmChart{
 		Name:      helmchart.Name,
 		Namespace: helmchart.Namespace,
@@ -46,5 +46,6 @@ func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
 		Conditions:    mapConditions(helmchart.Status.Conditions),
 		Suspended:     helmchart.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(helmchart),
+		ClusterName:   clusterName,
 	}
 }

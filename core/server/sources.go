@@ -23,14 +23,14 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 
 	var results []*pb.GitRepository
 
-	for _, l := range clist.Lists() {
+	for n, l := range clist.Lists() {
 		list, ok := l.(*sourcev1.GitRepositoryList)
 		if !ok {
 			continue
 		}
 
 		for _, repository := range list.Items {
-			results = append(results, types.GitRepositoryToProto(&repository))
+			results = append(results, types.GitRepositoryToProto(&repository, n))
 		}
 	}
 
@@ -52,14 +52,14 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 
 	var results []*pb.HelmRepository
 
-	for _, l := range clist.Lists() {
+	for n, l := range clist.Lists() {
 		list, ok := l.(*sourcev1.HelmRepositoryList)
 		if !ok {
 			continue
 		}
 
 		for _, repository := range list.Items {
-			results = append(results, types.HelmRepositoryToProto(&repository))
+			results = append(results, types.HelmRepositoryToProto(&repository, n))
 		}
 	}
 
@@ -81,14 +81,14 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 
 	var results []*pb.HelmChart
 
-	for _, l := range clist.Lists() {
+	for n, l := range clist.Lists() {
 		list, ok := l.(*sourcev1.HelmChartList)
 		if !ok {
 			continue
 		}
 
 		for _, repository := range list.Items {
-			results = append(results, types.HelmChartToProto(&repository))
+			results = append(results, types.HelmChartToProto(&repository, n))
 		}
 	}
 
@@ -110,14 +110,14 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 
 	var results []*pb.Bucket
 
-	for _, l := range clist.Lists() {
+	for n, l := range clist.Lists() {
 		list, ok := l.(*sourcev1.BucketList)
 		if !ok {
 			continue
 		}
 
 		for _, bucket := range list.Items {
-			results = append(results, types.BucketToProto(&bucket))
+			results = append(results, types.BucketToProto(&bucket, n))
 		}
 	}
 

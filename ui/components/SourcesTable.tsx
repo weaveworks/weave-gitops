@@ -77,7 +77,7 @@ function SourcesTable({ className, sources }: Props) {
           },
           {
             label: "Cluster",
-            value: () => "Default",
+            value: (s: Source) => s.clusterName,
             width: 5,
           },
           {

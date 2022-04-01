@@ -24,6 +24,7 @@ function HelmChartDetail({ className, name, namespace }: Props) {
           ["Ref", ch?.sourceRef?.name],
           ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
           ["Interval", <Interval interval={ch?.interval} />],
+          ["Cluster", ch?.clusterName],
           ["Namespace", ch?.namespace],
         ]}
       />

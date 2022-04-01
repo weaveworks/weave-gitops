@@ -69,6 +69,7 @@ message HelmChart {
     repeated  Condition conditions = 7;
     bool      suspended            = 8;
     string    lastUpdatedAt        = 9;
+    string    clusterName          = 10;
 }
 
 message HelmRelease {
@@ -94,6 +95,7 @@ message GitRepository {
     repeated         Condition conditions = 7;
     bool             suspended            = 8;
     string           lastUpdatedAt        = 9;
+    string           clusterName          = 10;
 }
 
 message HelmRepository {
@@ -104,6 +106,7 @@ message HelmRepository {
     repeated Condition conditions = 5;
     bool     suspended            = 6;
     string   lastUpdatedAt        = 7;
+    string   clusterName          = 8;
 }
 
 message Bucket {
@@ -125,6 +128,7 @@ message Bucket {
     string   bucket_name          = 11;
     bool     suspended            = 12;
     string   lastUpdatedAt        = 13;
+    string   clusterName          = 14;
 }
 
 message Deployment {

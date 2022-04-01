@@ -40,7 +40,7 @@ func ProtoToBucket(bucket *pb.Bucket) v1beta1.Bucket {
 	}
 }
 
-func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
+func BucketToProto(bucket *v1beta1.Bucket, clusterName string) *pb.Bucket {
 	var provider pb.Bucket_Provider
 
 	switch bucket.Spec.Provider {
@@ -65,6 +65,7 @@ func BucketToProto(bucket *v1beta1.Bucket) *pb.Bucket {
 		Suspended:     bucket.Spec.Suspend,
 		BucketName:    bucket.Spec.BucketName,
 		LastUpdatedAt: lastUpdatedAt(bucket),
+		ClusterName:   clusterName,
 	}
 
 	if bucket.Spec.SecretRef != nil {
