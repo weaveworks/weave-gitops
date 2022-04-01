@@ -243,44 +243,47 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
     if: github.event_name == 'push'
-    strategy:
-      matrix:
-        docker-image:
-          - gitops
-          - gitops-server
     steps:
+      - uses: actions/checkout@v2
       - name: Download cached docker image
         uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.docker-image }}
+          name: gitops
+          path: /tmp
+      - name: Download cached docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: gitops-server
           path: /tmp
       - name: Load cached docker image
-        run: docker load --input /tmp/${{ matrix.docker-image }}.tar
+        run: docker load --input /tmp/gitops.tar
+      - name: Load cached docker image
+        run: docker load --input /tmp/gitops-server.tar
       - name: Monitor docker image with Snyk
         uses: snyk/actions/docker@master
         with:
           command: monitor
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops:${{ needs.ci-generate-tag.outputs.tag }}"
           args: --org=product-engineering-ly9
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-      - name: Generate helm template output for snyk to scan
-        run: helm template charts/gitops-server --set adminPassword="YWRtaW4K" --output-dir rendered
-      - name: Monitor IaC issues with Snyk
-        uses: snyk/actions/iac@master
+        continue-on-error: true
+      - name: Monitor docker image with Snyk
+        uses: snyk/actions/docker@master
         with:
           command: monitor
-          file: rendered
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops-server:${{ needs.ci-generate-tag.outputs.tag }}"
           args: --org=product-engineering-ly9
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        continue-on-error: true
       - name: Monitor dependencies & license problems with Snyk
         uses: snyk/actions/golang@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
           args: --all-projects --org=product-engineering-ly9
-
+        continue-on-error: true
 
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
