@@ -58,6 +58,7 @@ export type ListBucketsResponse = {
 
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
+  clusterName?: string
 }
 
 export type ListFluxRuntimeObjectsResponse = {
@@ -87,6 +88,7 @@ export type GetReconciledObjectsRequest = {
   namespace?: string
   automationKind?: Gitops_coreV1Types.AutomationKind
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
+  clusterName?: string
 }
 
 export type GetReconciledObjectsResponse = {
@@ -97,6 +99,7 @@ export type GetChildObjectsRequest = {
   groupVersionKind?: Gitops_coreV1Types.GroupVersionKind
   namespace?: string
   parentUid?: string
+  clusterName?: string
 }
 
 export type GetChildObjectsResponse = {

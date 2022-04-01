@@ -35,6 +35,7 @@ export const getChildrenRecursive = async (
   namespace: string,
   result: UnstructuredObjectWithParent[],
   object: UnstructuredObjectWithParent,
+  clusterName: string,
   lookup: any
 ) => {
   result.push(object);
@@ -49,6 +50,7 @@ export const getChildrenRecursive = async (
         parentUid: object.uid,
         namespace,
         groupVersionKind: child,
+        clusterName: clusterName,
       });
 
       for (let q = 0; q < res.objects.length; q++) {
@@ -60,6 +62,7 @@ export const getChildrenRecursive = async (
           namespace,
           result,
           { ...c, parentUid: object.uid },
+          clusterName,
           {
             [child.kind]: child,
           }
@@ -74,12 +77,14 @@ export const getChildren = async (
   client: typeof Core,
   automationName,
   namespace,
-  kinds: GroupVersionKind[]
+  kinds: GroupVersionKind[],
+  clusterName,
 ): Promise<UnstructuredObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     automationName,
     namespace,
     kinds,
+    clusterName,
   });
 
   const result = [];
@@ -91,6 +96,7 @@ export const getChildren = async (
       namespace,
       result,
       obj,
+      clusterName,
       PARENT_CHILD_LOOKUP
     );
   }

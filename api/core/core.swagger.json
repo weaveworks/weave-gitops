@@ -154,6 +154,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -639,6 +645,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -678,6 +687,9 @@
           "type": "string"
         },
         "parentUid": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -737,6 +749,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },

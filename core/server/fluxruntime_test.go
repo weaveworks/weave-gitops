@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -67,6 +68,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		Namespace:      ns.Name,
 		AutomationKind: pb.AutomationKind_KustomizationAutomation,
 		Kinds:          []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
+		ClusterName:    clustersmngr.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -148,6 +150,7 @@ func TestGetChildObjects(t *testing.T) {
 			Version: "v1",
 			Kind:    "ReplicaSet",
 		},
+		ClusterName: clustersmngr.DefaultCluster,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Objects).To(HaveLen(1))

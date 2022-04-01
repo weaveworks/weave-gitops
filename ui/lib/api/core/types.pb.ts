@@ -138,6 +138,7 @@ export type Deployment = {
   conditions?: Condition[]
   images?: string[]
   suspended?: boolean
+  clusterName?: string
 }
 
 export type UnstructuredObject = {
