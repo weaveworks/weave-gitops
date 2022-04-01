@@ -133,6 +133,7 @@ message Deployment {
     repeated Condition conditions = 3;
     repeated string images        = 4;
     bool     suspended            = 5;
+    string   clusterName          = 6;
 }
 
 enum AutomationKind {

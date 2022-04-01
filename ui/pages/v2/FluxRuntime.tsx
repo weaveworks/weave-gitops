@@ -28,7 +28,10 @@ function FluxRuntime({ className }: Props) {
       <DataTable
         defaultSort={2}
         fields={[
-          { value: "name", label: "Name" },
+          {
+            label: "Name",
+            value: "name",
+          },
           {
             value: (v: Deployment) => (
               <KubeStatusIndicator
@@ -37,12 +40,12 @@ function FluxRuntime({ className }: Props) {
               />
             ),
             label: "Status",
-            sortType: SortType.number,
             sortValue: statusSortHelper,
+            sortType: SortType.number,
           },
           {
             label: "Cluster",
-            value: () => "Default",
+            value: "clusterName",
           },
           {
             value: (v: Deployment) => (

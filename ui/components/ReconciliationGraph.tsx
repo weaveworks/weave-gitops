@@ -59,6 +59,7 @@ function ReconciliationGraph({
   parentObject,
   automationKind,
   kinds,
+  clusterName,
 }: Props) {
   const {
     data: objects,
@@ -68,7 +69,8 @@ function ReconciliationGraph({
     parentObject.name,
     parentObject.namespace,
     automationKind,
-    kinds
+    kinds,
+    clusterName
   );
 
   const edges = _.reduce(

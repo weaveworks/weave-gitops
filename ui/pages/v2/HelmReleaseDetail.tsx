@@ -74,6 +74,7 @@ function HelmReleaseDetail({ className, name, clusterName }: Props) {
               automationName={helmRelease?.name}
               namespace={WeGONamespace}
               automationKind={AutomationKind.HelmReleaseAutomation}
+              clusterName={helmRelease?.clusterName}
             />
           </HashRouterTab>
           <HashRouterTab name="Events" path="/events">

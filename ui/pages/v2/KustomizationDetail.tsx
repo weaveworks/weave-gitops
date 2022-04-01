@@ -65,6 +65,7 @@ function KustomizationDetail({ className, name, clusterName }: Props) {
               automationName={kustomization?.name}
               kinds={kustomization?.inventory}
               namespace={WeGONamespace}
+              clusterName={kustomization?.clusterName}
             />
           </HashRouterTab>
           <HashRouterTab name="Events" path="/events">
@@ -83,6 +84,7 @@ function KustomizationDetail({ className, name, clusterName }: Props) {
               kinds={kustomization?.inventory}
               parentObject={data?.kustomization}
               namespace={WeGONamespace}
+              clusterName={kustomization?.clusterName}
             />
           </HashRouterTab>
         </HashRouterTabs>

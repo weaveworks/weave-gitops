@@ -10,6 +10,7 @@ describe("graph lib", () => {
       reconciledObjectKinds: [
         { group: "apps", version: "v1", kind: "Deployment" },
       ],
+      clusterName: "foo",
     };
     const name = "stringly";
     const rsName = name + "-7d9b7454c7";
@@ -75,7 +76,8 @@ describe("graph lib", () => {
       client,
       app.name,
       app.namespace,
-      [{ group: "apps", version: "v1", kind: "Deployment" }]
+      [{ group: "apps", version: "v1", kind: "Deployment" }],
+      app.clusterName
     );
 
     expect(objects.length).toEqual(3);
