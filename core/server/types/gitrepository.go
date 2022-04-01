@@ -43,7 +43,7 @@ func ProtoToGitRepository(repo *pb.GitRepository) *v1beta1.GitRepository {
 	}
 }
 
-func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
+func GitRepositoryToProto(repository *v1beta1.GitRepository, clusterName string) *pb.GitRepository {
 	gr := &pb.GitRepository{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
@@ -58,6 +58,7 @@ func GitRepositoryToProto(repository *v1beta1.GitRepository) *pb.GitRepository {
 		Conditions:    mapConditions(repository.Status.Conditions),
 		Suspended:     repository.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(repository),
+		ClusterName:   clusterName,
 	}
 
 	if repository.Spec.SecretRef != nil {

@@ -33,7 +33,7 @@ function HelmRepositoryDetail({ className, name, namespace }: Props) {
           ],
           ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
           ["Interval", <Interval interval={hr.interval} />],
-          ["Cluster", "Default"],
+          ["Cluster", hr.clusterName],
           ["Namespace", hr.namespace],
         ]}
       />

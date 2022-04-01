@@ -79,6 +79,7 @@ export type HelmChart = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type HelmRelease = {
@@ -104,6 +105,7 @@ export type GitRepository = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type HelmRepository = {
@@ -114,6 +116,7 @@ export type HelmRepository = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type Bucket = {
@@ -130,6 +133,7 @@ export type Bucket = {
   bucketName?: string
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type Deployment = {

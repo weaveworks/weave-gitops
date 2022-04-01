@@ -599,6 +599,9 @@
         },
         "lastUpdatedAt": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -798,6 +801,9 @@
         },
         "lastUpdatedAt": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -864,6 +870,9 @@
           "type": "boolean"
         },
         "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -934,6 +943,9 @@
           "type": "boolean"
         },
         "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
