@@ -180,6 +180,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		if options.DevMode {
+			log.Info("WARNING: dev mode enabled. This should be used for local work only")
 			tsv.SetDevMode(options.DevUser)
 		}
 
