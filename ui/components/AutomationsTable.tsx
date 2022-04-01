@@ -130,5 +130,6 @@ export default styled(AutomationsTable).attrs({
 })`
   ${DataTable} table {
     table-layout: fixed;
+    width: 100%;
   }
 `;

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	fluxNamespacePartOf   = "flux"
+	FluxNamespacePartOf   = "flux"
 	fluxNamespaceInstance = "flux-system"
 )
 
@@ -18,7 +18,7 @@ var ErrNamespaceNotFound = errors.New("namespace not found")
 func (cs *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNamespaceRequest) (*pb.GetFluxNamespaceResponse, error) {
 	for _, ns := range cs.cacheContainer.Namespaces() {
 		instanceLabelMatch := ns.Labels[types.InstanceLabel] == fluxNamespaceInstance
-		partofLabelMatch := ns.Labels[types.PartOfLabel] == fluxNamespacePartOf
+		partofLabelMatch := ns.Labels[types.PartOfLabel] == FluxNamespacePartOf
 
 		if instanceLabelMatch && partofLabelMatch {
 			return &pb.GetFluxNamespaceResponse{Name: ns.Name}, nil
