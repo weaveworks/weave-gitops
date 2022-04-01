@@ -265,7 +265,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
       - name: Generate helm template output for snyk to scan
-        run: helm template charts/weave-gitops --set adminPassword="YWRtaW4K" --output-dir rendered
+        run: helm template charts/gitops-server --set adminPassword="YWRtaW4K" --output-dir rendered
       - name: Monitor IaC issues with Snyk
         uses: snyk/actions/iac@master
         with:
