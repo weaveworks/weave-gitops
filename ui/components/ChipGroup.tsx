@@ -3,7 +3,6 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
-import Spacer from "./Spacer";
 
 export interface Props {
   className?: string;
@@ -20,9 +19,7 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
       {_.map(chips, (chip, index) => {
         return (
           <Flex key={index}>
-            <Spacer padding="xxs" />
             <Chip label={chip} onDelete={() => onChipRemove([chip])} />
-            <Spacer padding="xxs" />
           </Flex>
         );
       })}
@@ -31,4 +28,8 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
   );
 }
 
-export default styled(ChipGroup).attrs({ className: ChipGroup.name })``;
+export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
+  .MuiChip-root {
+    margin-right: ${(props) => props.theme.spacing.xxs};
+  }
+`;
