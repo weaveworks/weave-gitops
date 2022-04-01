@@ -282,6 +282,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
+          command: monitor
           args: --all-projects --org=product-engineering-ly9
         continue-on-error: true
 
