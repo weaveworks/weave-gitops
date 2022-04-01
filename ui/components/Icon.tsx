@@ -20,11 +20,11 @@ import * as React from "react";
 import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/
 //@ts-ignore
-import failedSrc from "url:../images/failed.svg";
+import failedSrc from "../images/failed.svg";
 //@ts-ignore
-import successSrc from "url:../images/success.svg";
+import successSrc from "../images/success.svg";
 //@ts-ignore
-import suspendedSrc from "url:../images/suspended.svg";
+import suspendedSrc from "../images/suspended.svg";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
