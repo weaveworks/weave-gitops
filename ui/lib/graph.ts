@@ -2,6 +2,7 @@
 // with in the context of their parent-child relationships.
 import _ from "lodash";
 import {
+  AutomationKind,
   GroupVersionKind,
   UnstructuredObject,
 } from "./api/core/types.pb";
@@ -77,12 +78,14 @@ export const getChildren = async (
   client: typeof Core,
   automationName,
   namespace,
+  automationKind: AutomationKind,
   kinds: GroupVersionKind[],
   clusterName,
 ): Promise<UnstructuredObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     automationName,
     namespace,
+    automationKind,
     kinds,
     clusterName,
   });

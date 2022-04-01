@@ -31,7 +31,7 @@ export function useGetReconciledObjects(
 
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
-    () => getChildren(api, name, namespace, kinds, clusterName),
+    () => getChildren(api, name, namespace, type, kinds, clusterName),
     { retry: false, refetchOnWindowFocus: false, refetchInterval: 5000 }
   );
 }
