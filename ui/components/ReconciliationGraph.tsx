@@ -16,7 +16,8 @@ export type Props = ReconciledVisualizationProps & {
   parentObject: { name?: string; namespace?: string };
 };
 
-function getStatusIcon(status: string) {
+function getStatusIcon(status: string, suspended: boolean) {
+  if (suspended) return <HourglassFullIcon />;
   switch (status) {
     case "Current":
       return <CheckCircleIcon />;
@@ -25,7 +26,7 @@ function getStatusIcon(status: string) {
       return <HourglassFullIcon />;
 
     case "Failed":
-      return <ErrorIcon color="error" />;
+      return <ErrorIcon />;
 
     default:
       return "";
@@ -39,16 +40,27 @@ type NodeHtmlProps = {
 const NodeHtml = ({ object }: NodeHtmlProps) => {
   return (
     <div className="node">
-      <Flex center wide align className="name">
-        {object.name}
-      </Flex>
-      <Flex center wide align className="kind">
-        <div className="kind-text">{object.groupVersionKind.kind}</div>
-      </Flex>
-      <Flex center wide align>
-        <div className={`status ${object.status}`}>
-          {getStatusIcon(object.status)}
-        </div>
+      <Flex
+        className={`status-line ${
+          object.suspended ? "InProgress" : object.status
+        }`}
+      />
+      <Flex column>
+        <Flex start wide align className="name">
+          {object.name}
+        </Flex>
+        <Flex start wide align className="kind">
+          <div className="kind-text">{object.groupVersionKind.kind}</div>
+        </Flex>
+        <Flex start wide align>
+          <div
+            className={`status ${
+              object.suspended ? "InProgress" : object.status
+            }`}
+          >
+            {getStatusIcon(object.status, object.suspended)}
+          </div>
+        </Flex>
       </Flex>
     </div>
   );
@@ -106,14 +118,14 @@ function ReconciliationGraph({
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <div className={className}>
+      <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
           width="100%"
-          height={640}
+          height="100%"
           scale={1}
           nodes={nodes}
           edges={edges}
-          labelShape="ellipse"
+          labelShape="rect"
           labelType="html"
         />
       </div>
@@ -122,32 +134,16 @@ function ReconciliationGraph({
 }
 
 export default styled(ReconciliationGraph)`
-  ${DirectedGraph} {
-    background-color: white;
-  }
   .node {
     font-size: 16px;
-    /* background-color: white; */
-    width: 125px;
-    height: 125px;
+    height: 200px;
     display: flex;
-    flex-direction: column;
     justify-content: space-evenly;
   }
-  ellipse {
+  rect {
     fill: white;
-    stroke: #13a000;
+    stroke: ${(props) => props.theme.colors.neutral20};
     stroke-width: 3;
-    stroke-dasharray: 266px;
-    filter: drop-shadow(rgb(189, 189, 189) 0px 0px 1px);
-  }
-  .success ellipse {
-    stroke: ${(props) => props.theme.colors.success};
-  }
-  @keyframes rotate {
-    to {
-      stroke-dashoffset: 0;
-    }
   }
   .status .kind {
     color: ${(props) => props.theme.colors.black};
@@ -157,9 +153,28 @@ export default styled(ReconciliationGraph)`
     text-overflow: ellipsis;
     font-size: 14px;
   }
+  .status-line {
+    width: 20px;
+  }
   .Current {
     color: ${(props) => props.theme.colors.success};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.success};
+    }
   }
+  .InProgress {
+    color: ${(props) => props.theme.colors.suspended};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.suspended};
+    }
+  }
+  .Alert {
+    color: ${(props) => props.theme.colors.alert};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.alert};
+    }
+  }
+
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;

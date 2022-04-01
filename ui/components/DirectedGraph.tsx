@@ -14,17 +14,15 @@ type Props<N> = {
   edges: { source: any; target: any }[];
   scale?: number;
   width: number | string;
-  height: number;
+  height: number | string;
   labelType?: "html" | "text";
   labelShape: "rect" | "ellipse";
 };
 
 const SliderFlex = styled(Flex)`
-  position: relative;
   min-height: 200px;
   height: 15vh;
   width: 5%;
-  top: 150px;
 `;
 
 const PercentFlex = styled(Flex)`
@@ -79,7 +77,7 @@ function DirectedGraph<T>({
   }, [nodes, edges]);
 
   return (
-    <Flex className={className}>
+    <Flex width align center className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
         <Slider
@@ -96,6 +94,7 @@ function DirectedGraph<T>({
 }
 
 export default styled(DirectedGraph)`
+  height: 100%;
   overflow: hidden;
   text {
     font-weight: 300;
@@ -109,9 +108,15 @@ export default styled(DirectedGraph)`
   foreignObject {
     display: flex;
     flex-direction: column;
-    width: 125px;
-    height: 125px;
+    width: 600px;
+    height: 200px;
     overflow: visible;
+  }
+  g {
+    &.label {
+      height: 200px;
+      width: 600px;
+    }
   }
 `;
 
@@ -163,8 +168,10 @@ class D3Graph {
         label: n.label(n.data),
         labelType: this.opts.labelType,
         shape: this.opts.labelShape,
-        width: 150,
-        height: 150,
+        width: 550,
+        height: 250,
+        rx: 10,
+        ry: 10,
         labelClass: "node-label",
       });
     });
