@@ -13,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
@@ -246,18 +244,6 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 	}
 }
 
-func createKubeConfig(t *testing.T, cl client.Client, cfg *rest.Config) types.NamespacedName {
-	b := generateKubeConfig(t, "default", cfg)
-	secretName := types.NamespacedName{
-		Namespace: "default",
-		Name:      "test-kubeconfig",
-	}
-
-	writeKubeConfig(t, b, cl, secretName)
-
-	return secretName
-}
-
 func writeKubeConfig(t *testing.T, b []byte, cl client.Client, name types.NamespacedName) {
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -279,61 +265,6 @@ func writeKubeConfig(t *testing.T, b []byte, cl client.Client, name types.Namesp
 	})
 }
 
-func generateKubeConfig(t *testing.T, name string, rc *rest.Config) []byte {
-	t.Helper()
-
-	cluster := clientcmdapi.NewCluster()
-
-	cluster.CertificateAuthorityData = rc.CAData
-	cluster.Server = rc.Host
-
-	authinfo := clientcmdapi.NewAuthInfo()
-	authinfo.AuthProvider = rc.AuthProvider
-	authinfo.ClientCertificateData = rc.CertData
-	authinfo.ClientKeyData = rc.KeyData
-	authinfo.Username = rc.Username
-	authinfo.Password = rc.Password
-	authinfo.Token = rc.BearerToken
-
-	context := clientcmdapi.NewContext()
-	context.Cluster = name
-	context.AuthInfo = name
-
-	clientConfig := clientcmdapi.NewConfig()
-	clientConfig.Clusters[name] = cluster
-	clientConfig.Contexts[name] = context
-	clientConfig.AuthInfos[name] = authinfo
-	clientConfig.CurrentContext = name
-
-	b, err := clientcmd.Write(*clientConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return b
-}
-
-func restConfigFromSecret(ctx context.Context, cl client.Client, name types.NamespacedName) (*rest.Config, error) {
-	var secret corev1.Secret
-	if err := cl.Get(ctx, name, &secret); err != nil {
-		return nil, fmt.Errorf("unable to read KubeConfig secret %q error: %w", name, err)
-	}
-
-	b := secret.Data["kube.config"]
-	if len(b) == 0 {
-		return nil, fmt.Errorf("KubeConfig secret %q doesn't contain a KubeConfig", name)
-	}
-
-	cfg, err := clientcmd.RESTConfigFromKubeConfig(b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse REST Config from secret data: %w", err)
-	}
-
-	cfg.Impersonate = rest.ImpersonationConfig{UserName: userName}
-
-	return cfg, nil
-}
-
 func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) *rest.Config {
 	t.Helper()
 
@@ -346,14 +277,14 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 	}
 
 	createRole(t, adminClient, roleName, rules)
-	secretName := createKubeConfig(t, adminClient, testCfg)
 
-	userCfg, err := restConfigFromSecret(context.Background(), adminClient, secretName)
-	if err != nil {
-		t.Fatal(err)
+	userCfg := *testCfg
+
+	userCfg.Impersonate = rest.ImpersonationConfig{
+		UserName: userName,
 	}
 
-	return userCfg
+	return &userCfg
 }
 
 func removeNs(t *testing.T, k client.Client, ns *corev1.Namespace) {
