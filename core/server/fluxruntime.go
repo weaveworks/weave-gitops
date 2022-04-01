@@ -32,7 +32,9 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 		return &appsv1.DeploymentList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
+	opt := getMatchingLabels(FluxNamespacePartOf)
+
+	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace), opt); err != nil {
 		return nil, err
 	}
 
