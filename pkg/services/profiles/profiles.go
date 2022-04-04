@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -13,21 +12,9 @@ import (
 )
 
 const (
-	// ManifestFileName contains the manifests of all installed Profiles
-	ManifestFileName = "profiles.yaml"
-
 	wegoServiceName = "wego-app"
 	getProfilesPath = "/v1/profiles"
 )
-
-type ProfilesService interface {
-	// Add installs a profile on a cluster
-	Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error
-	// Get lists all the available profiles in a cluster
-	Get(ctx context.Context, opts GetOptions) error
-	// Update updates a profile
-	Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error
-}
 
 type Options struct {
 	Name         string

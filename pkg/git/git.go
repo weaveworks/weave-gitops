@@ -65,15 +65,6 @@ func GetSystemPath(clusterName string) string {
 	return filepath.Join(getClusterPath(clusterName), WegoClusterOSWorkloadDir)
 }
 
-func GetUserPath(clusterName string) string {
-	return filepath.Join(getClusterPath(clusterName), WegoClusterUserWorkloadDir)
-}
-
-// GetSystemQualifiedPath returns the path of the relativePath joined with the cluster's system directory
-func GetSystemQualifiedPath(clusterName string, relativePath string) string {
-	return filepath.Join(GetSystemPath(clusterName), relativePath)
-}
-
 // GetProfilesPath returns the path of the file containing the manifests of installed Profiles
 // joined with the cluster's system directory
 func GetProfilesPath(clusterName, profilesManifestPath string) string {

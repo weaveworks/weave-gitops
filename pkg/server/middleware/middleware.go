@@ -140,10 +140,3 @@ func ExtractProviderToken(ctx context.Context) (*oauth2.Token, error) {
 
 	return vals.ProviderToken, nil
 }
-
-func ContextWithGRPCAuth(ctx context.Context, token string) context.Context {
-	md := metadata.New(map[string]string{GRPCAuthMetadataKey: token})
-	ctx = metadata.NewOutgoingContext(ctx, md)
-
-	return ctx
-}

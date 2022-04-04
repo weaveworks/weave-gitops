@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -216,7 +215,7 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(basicAuthHandler(makeServeMux(), "test", "password"))
 				helmRepo := makeTestHelmRepository(testServer.URL, func(hr *sourcev1beta1.HelmRepository) {
-					hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
+					hr.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: testSecretName,
 					}
 				})

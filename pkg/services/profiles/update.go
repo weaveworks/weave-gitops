@@ -13,8 +13,6 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 )
 
-const UpdateCommitMessage = "Update profile manifests"
-
 // Update updates an installed profile
 func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
