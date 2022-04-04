@@ -34,10 +34,7 @@ The go-releaser will spin for a bit, generating a changelog and artifacts.
 - Create a PR and merge when approved
 
 # Updating the helm chart
-- Update the appVersion value in [Chart.yaml](charts/gitops-server/Chart.yaml)
-- Update the image.tag value in [values.yaml](charts/gitops-server/values.yaml)
-- Bump the version value in [Chart.yaml](charts/gitops-server/Chart.yaml)
-- Create a PR and merge when approved
+- Approve and merge the auto-generated PR if the release is declared satisfactory; otherwise, close the PR
 
 # Record the new version
 - Add a record in the [checkpoint system](https://checkpoint-api.weave.works/admin) to inform users of the new version.  The CLI checks for a more recent version and informs the user where to download it based on this data.
