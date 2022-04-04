@@ -68,7 +68,7 @@ func (n *namespaceStore) Start(ctx context.Context) {
 
 			select {
 			case <-newCtx.Done():
-				break
+				return
 			case <-n.forceRefresh:
 				continue
 			case <-ticker.C:
