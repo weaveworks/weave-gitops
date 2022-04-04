@@ -62,9 +62,14 @@ Use "gitops [command] --help" for more information about a command.
 
 For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
 
-## CLI/API development
+## Development
 
-To set up a development environment for the CLI
+### To use a bootstrapped, ready made environment
+
+1. Install go v1.17
+2. Install [buf](https://github.com/bufbuild/buf)
+3. Run `make all` to install dependencies and build binaries and assets
+4. Run `make cluster-dev` which should install and bring up everything and then start `tilt` to take over monitoring
 
 ### To use an existing environment
 
@@ -81,33 +86,25 @@ To set up a development environment for the CLI
 
 This is a list of the tools you may need to install:
 
-* [go](https://go.dev) -- Primary compiler for the CLI.
-* [npm](https://www.npmjs.com/) -- Package manager for UI components.
-* [ginkgo](https://onsi.github.io/ginkgo/) -- A go testing framework.
-* [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
-* [golangci-lint](https://github.com/golangci/golangci-lint/) -- A go linter.
-* [buf](https://buf.build/) -- To generate the protobufs used by the API.
-* [reflex](https://github.com/cespare/reflex) -- A file watcher.
-* [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
-* [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
-* [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
+- [node](https://nodejs.org/en/) -- JavaScript runtime for building/developing the UI.
+- [ginkgo](https://onsi.github.io/ginkgo/) -- A go testing framework.
+- [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
+- [golangci-lint](https://github.com/golangci/golangci-lint/) -- A go linter.
+- [buf](https://buf.build/) -- To generate the protobufs used by the API.
+- [kind](https://kind.sigs.k8s.io/) -- Run kubernetes clusters in docker for testing.
+- [lcov](https://github.com/linux-test-project/lcov) -- Used for code coverage.
 
 Some other tools are installed automatically by the makefile for you:
 
-* [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
-* [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
+- [go-acc](https://github.com/ory/go-acc) -- Calculates code coverage for go.
+- [gcov2lcov](https://github.com/jandelgado/gcov2lcov) -- Converts output from go-acc to a format lcov understands.
 
 And some tools that are installed by the `tools/download-deps.sh` script:
 
-* [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
-* [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
-
-### To use a bootstrapped, ready made environment
-
-1. Install go v1.17
-2. Install [buf](https://github.com/bufbuild/buf)
-3. Run `make all` to install dependencies and build binaries and assets
-4. Run `make cluster-dev` which should install and bring up everything and then start `tilt` to take over monitoring
+- [envtest](https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest) -- Run a kubernetes control plane locally for testing.
+- [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
+- [flux](https://fluxcd.io/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
+- [helm](https://helm.sh/) -- Templating and package management for Kubernetes
 
 ### Cluster Dev Tips
 

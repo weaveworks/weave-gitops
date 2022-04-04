@@ -68,9 +68,6 @@ fakes: ## Generate testing fakes
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
-api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags "$(LDFLAGS)" cmd/gitops-server/main.go'
-
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
 	./tools/bin/tilt up
 
