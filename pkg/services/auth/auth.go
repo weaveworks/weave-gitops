@@ -3,12 +3,9 @@ package auth
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -21,25 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
-
-// BlockingCLIAuthHandler takes over the terminal experience and returns a token when the user completes the flow.
-type BlockingCLIAuthHandler func(context.Context, io.Writer) (string, error)
-
-func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandler, error) {
-	switch name {
-	case gitproviders.GitProviderGitHub:
-		return NewGithubDeviceFlowHandler(http.DefaultClient), nil
-	case gitproviders.GitProviderGitLab:
-		authFlow, err := NewGitlabAuthFlow(internal.GitlabRedirectUriCLI, http.DefaultClient)
-		if err != nil {
-			return nil, fmt.Errorf("could not create gitlab auth flow for CLI: %w", err)
-		}
-
-		return NewGitlabAuthFlowHandler(http.DefaultClient, authFlow), nil
-	}
-
-	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
-}
 
 type ProviderTokenValidator interface {
 	ValidateToken(ctx context.Context, token string) error

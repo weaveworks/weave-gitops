@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
 )
 
 // GithubDeviceCodeResponse represents response body from the Github API
@@ -170,58 +168,6 @@ func doGithubDeviceAuthRequest(client *http.Client, deviceCode string) (string, 
 
 	// Note p.Error is a string here
 	return "", fmt.Errorf("error doing auth request: %s", p.Error)
-}
-
-const ghBackOffIncrement = (5 * time.Second)
-
-func pollAuthStatus(sleep func(d time.Duration), interval time.Duration, client *http.Client, deviceCode string) (string, error) {
-	retryInterval := interval
-
-	for {
-		sleep(retryInterval)
-
-		authToken, err := doGithubDeviceAuthRequest(client, deviceCode)
-		if err != nil {
-			if err == ErrAuthPending {
-				// This is expected while the user goes to the webpage.
-				continue
-			}
-
-			if err == ErrSlowDown {
-				// Github wants us to add an additional to our interval of 5 seconds if we hit a `slow_down`
-				// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#error-codes-for-the-device-flow
-				retryInterval = retryInterval + ghBackOffIncrement
-
-				continue
-			}
-
-			return "", fmt.Errorf("error fetching auth status: %w", err)
-		}
-
-		return authToken, nil
-	}
-}
-
-// NewGithubDeviceFlowHandler returns a function which will initiate the Github Device Flow for the CLI.
-func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
-	return func(ctx context.Context, w io.Writer) (string, error) {
-		codeRes, err := doGithubCodeRequest(client, GithubOAuthScope)
-		if err != nil {
-			return "", fmt.Errorf("could not do code request: %w", err)
-		}
-
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "Visit this URL to authenticate with Github:\n\n")
-		fmt.Fprintf(w, "%s\n\n", codeRes.VerificationURI)
-		fmt.Fprintf(w, "Type the following code into the page at the URL above: %s\n\n", codeRes.UserCode)
-		fmt.Fprintf(w, "Waiting for authentication flow completion...\n\n")
-
-		// GH complains if you retry RIGHT at the given interval.
-		// We will get a `slow_down` error from the backend without the one second padding.
-		retryInterval := time.Duration(codeRes.Interval) * time.Second
-
-		return pollAuthStatus(time.Sleep, retryInterval, client, codeRes.DeviceCode)
-	}
 }
 
 func parseGitHubError(b []byte, statusCode int) error {
