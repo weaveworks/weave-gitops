@@ -10,17 +10,12 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 const (
 	githubToken = "github-token-123"
 	gitlabToken = "gitlab-token-abc"
 )
-
-func fakeAuthHandlerFuncError(_ gitproviders.GitProviderName) (auth.BlockingCLIAuthHandler, error) {
-	return nil, errors.New("get auth handler goes ka-boom")
-}
 
 func fakeAccountGetterError(_ gitprovider.Client, _ string, _ string) (gitproviders.ProviderAccountType, error) {
 	return gitproviders.AccountTypeOrg, errors.New("ka-boom")
@@ -48,7 +43,7 @@ var _ = Describe("Get git provider", func() {
 	Context("Invalid git provider name", func() {
 		It("invalid token key returns an error", func() {
 			fakeLogger = &loggerfakes.FakeLogger{}
-			client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
+			client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@some-bucket.com/weaveworks/weave-gitops.git")
 
 			provider, err := client.GetProvider(repoUrl, fakeAccountGetterSuccess)
@@ -63,7 +58,7 @@ var _ = Describe("Get git provider", func() {
 		Describe("github token", func() {
 			BeforeEach(func() {
 				fakeLogger = &loggerfakes.FakeLogger{}
-				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
+				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
 			})
 
@@ -87,7 +82,7 @@ var _ = Describe("Get git provider", func() {
 		Describe("gitlab token", func() {
 			BeforeEach(func() {
 				fakeLogger = &loggerfakes.FakeLogger{}
-				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
+				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@gitlab.com/weaveworks/weave-gitops.git")
 			})
 
