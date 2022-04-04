@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16.13.2]
     steps:
       - uses: actions/checkout@v2
       - name: Node modules cache
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.17.5]
     steps:
       - uses: actions/checkout@v2
       - name: Go modules cache
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.17.5]
     steps:
       - uses: actions/checkout@v2
       - name: Setup Go
@@ -221,7 +221,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.17.5
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Clean
