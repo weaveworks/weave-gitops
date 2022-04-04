@@ -20,13 +20,13 @@ function getStatusIcon(status: string, suspended: boolean) {
   if (suspended) return <HourglassFullIcon />;
   switch (status) {
     case "Current":
-      return <CheckCircleIcon />;
+      return <CheckCircleIcon fontSize="large" />;
 
     case "InProgress":
-      return <HourglassFullIcon />;
+      return <HourglassFullIcon fontSize="large" />;
 
     case "Failed":
-      return <ErrorIcon />;
+      return <ErrorIcon fontSize="large" />;
 
     default:
       return "";
@@ -45,14 +45,8 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
           object.suspended ? "InProgress" : object.status
         }`}
       />
-      <Flex column>
+      <Flex column className="nodeText">
         <Flex start wide align className="name">
-          {object.name}
-        </Flex>
-        <Flex start wide align className="kind">
-          <div className="kind-text">{object.groupVersionKind.kind}</div>
-        </Flex>
-        <Flex start wide align>
           <div
             className={`status ${
               object.suspended ? "InProgress" : object.status
@@ -60,6 +54,14 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
           >
             {getStatusIcon(object.status, object.suspended)}
           </div>
+          <div style={{ padding: 4 }} />
+          {object.clusterName}/{object.name}
+        </Flex>
+        <Flex start wide align className="kind">
+          <div className="kind-text">{object.groupVersionKind.kind}</div>
+        </Flex>
+        <Flex start wide align className="kind">
+          <div className="kind-text">{object.namespace}</div>
         </Flex>
       </Flex>
     </div>
@@ -136,26 +138,36 @@ function ReconciliationGraph({
 export default styled(ReconciliationGraph)`
   .node {
     font-size: 16px;
+    width: 650px;
     height: 200px;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: space-between;
   }
+
   rect {
     fill: white;
     stroke: ${(props) => props.theme.colors.neutral20};
     stroke-width: 3;
   }
-  .status .kind {
-    color: ${(props) => props.theme.colors.black};
+  .status {
+    display: flex;
+    align-items: center;
   }
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 14px;
+    font-size: 28px;
   }
   .status-line {
-    width: 20px;
+    width: 2.5%;
+    border-radius: 10px 0px 0px 10px;
   }
+  .nodeText {
+    width: 95%;
+    align-items: flex-start;
+    justify-content: space-evenly;
+  }
+
   .Current {
     color: ${(props) => props.theme.colors.success};
     &.status-line {
@@ -174,19 +186,17 @@ export default styled(ReconciliationGraph)`
       background-color: ${(props) => props.theme.colors.alert};
     }
   }
-
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
-    text-align: center;
+    font-size: 28px;
     white-space: pre-wrap;
+  }
+  .kind {
+    color: ${(props) => props.theme.colors.neutral30};
   }
   .edgePath path {
     stroke: #bdbdbd;
     stroke-width: 1px;
-  }
-  .MuiSvgIcon-root {
-    height: 24px;
-    width: 24px;
   }
 `;

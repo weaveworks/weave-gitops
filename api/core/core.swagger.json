@@ -1187,6 +1187,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "clusterName": {
+          "type": "string"
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

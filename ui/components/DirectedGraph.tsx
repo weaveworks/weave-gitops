@@ -20,8 +20,7 @@ type Props<N> = {
 };
 
 const SliderFlex = styled(Flex)`
-  min-height: 200px;
-  height: 15vh;
+  height: 25%;
   width: 5%;
 `;
 
@@ -77,9 +76,10 @@ function DirectedGraph<T>({
   }, [nodes, edges]);
 
   return (
-    <Flex width align center className={className}>
+    <Flex width className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
+        <Spacer padding="base" />
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
           defaultValue={30}
@@ -108,15 +108,22 @@ export default styled(DirectedGraph)`
   foreignObject {
     display: flex;
     flex-direction: column;
-    width: 600px;
+    width: 650px;
     height: 200px;
     overflow: visible;
   }
-  g {
-    &.label {
-      height: 200px;
-      width: 600px;
-    }
+  .MuiSlider-vertical .MuiSlider-track {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-rail {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-thumb {
+    margin-left: -8px;
+  }
+  .MuiSlider-thumb {
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -168,8 +175,8 @@ class D3Graph {
         label: n.label(n.data),
         labelType: this.opts.labelType,
         shape: this.opts.labelShape,
-        width: 550,
-        height: 250,
+        width: 630,
+        height: 180,
         rx: 10,
         ry: 10,
         labelClass: "node-label",
