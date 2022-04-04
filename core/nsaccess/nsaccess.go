@@ -101,6 +101,8 @@ func userCanUseNamespace(ctx context.Context, cfg *rest.Config, ns corev1.Namesp
 	return hasAllRules(authRes.Status, rules, ns.Name), nil
 }
 
+var allK8sVerbs = []string{"create", "get", "list", "watch", "patch", "delete", "deletecollection"}
+
 // hasAll rules determines if a set of SubjectRulesReview rules match a minimum set of policy rules
 func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1.PolicyRule, ns string) bool {
 	hasAccess := true
@@ -121,7 +123,13 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 				}
 
 				for _, verb := range statusRule.Verbs {
-					derivedAccess[apiGroup][resource][verb] = true
+					if verb == "*" {
+						for _, v := range allK8sVerbs {
+							derivedAccess[apiGroup][resource][v] = true
+						}
+					} else {
+						derivedAccess[apiGroup][resource][verb] = true
+					}
 				}
 			}
 		}

@@ -198,6 +198,42 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 
 		g.Expect(filtered).To(HaveLen(1))
 	})
+	t.Run("works when a user has * permissions on a resource", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		userName = userName + "-" + rand.String(5)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"*"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(1))
+	})
 }
 
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
@@ -242,27 +278,6 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 	if err := cl.Create(context.TODO(), binding); err != nil {
 		t.Fatalf("failed to write role-binding: %s", err)
 	}
-}
-
-func writeKubeConfig(t *testing.T, b []byte, cl client.Client, name types.NamespacedName) {
-	secret := corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: name.Namespace,
-			Name:      name.Name,
-		},
-		Data: map[string][]byte{
-			"kube.config": b,
-		},
-	}
-	if err := cl.Create(context.TODO(), &secret); err != nil {
-		t.Fatalf("failed to write secret: %s", err)
-	}
-
-	t.Cleanup(func() {
-		if err := cl.Delete(context.TODO(), &secret); err != nil {
-			t.Fatalf("failed to delete secret %s: %s", name, err)
-		}
-	})
 }
 
 func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) *rest.Config {

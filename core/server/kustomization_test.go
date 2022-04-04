@@ -133,10 +133,10 @@ func TestGetKustomization(t *testing.T) {
 }
 
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) corev1.Namespace {
-	ns := &corev1.Namespace{}
+	ns := corev1.Namespace{}
 	ns.Name = "kube-test-" + rand.String(5)
 
-	g.Expect(k.Create(ctx, ns)).To(Succeed())
+	g.Expect(k.Create(ctx, &ns)).To(Succeed())
 
-	return *ns
+	return ns
 }
