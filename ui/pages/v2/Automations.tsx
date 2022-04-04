@@ -10,6 +10,7 @@ type Props = {
 
 function Automations({ className }: Props) {
   const { data: automations, error, isLoading } = useListAutomations();
+
   return (
     <Page
       error={error}

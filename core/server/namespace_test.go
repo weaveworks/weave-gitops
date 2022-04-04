@@ -70,33 +70,49 @@ func TestListNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
-
-	kClient, err := client.New(k8sEnv.Rest, client.Options{
+	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	namespaces := []*corev1.Namespace{}
+	namespaces := []corev1.Namespace{}
 	for len(namespaces) < 5 {
-		namespaces = append(namespaces, newNamespace(ctx, kClient, g))
+		namespaces = append(namespaces, newNamespace(ctx, k, g))
 	}
+
+	coreClient := makeGRPCServer(k8sEnv.Rest, t)
 
 	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
 	time.Sleep(time.Second)
 
-	res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
+	t.Run("returns a list of namespaces", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	g.Expect(err).NotTo(HaveOccurred())
+		res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
 
-	// Can't test with HaveLen, because we created a lot of namespaces in previous
-	// test cases and we never clean them up. It would be good, but we don't (yet).
-	for _, ns := range namespaces {
-		g.Expect(namespaceInResponse(res, ns)).To(BeTrue())
-	}
+		g.Expect(err).NotTo(HaveOccurred())
+
+		// Can't test with HaveLen, because we created a lot of namespaces in previous
+		// test cases and we never clean them up. It would be good, but we don't (yet).
+		for _, ns := range namespaces {
+			g.Expect(namespaceInResponse(res, ns)).To(BeTrue())
+		}
+
+	})
+
+	t.Run("returns filtered namespaces", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		filtered := namespaces[:3]
+		nsChecker.FilterAccessibleNamespacesReturns(filtered, nil)
+
+		res, err := coreClient.ListNamespaces(ctx, &pb.ListNamespacesRequest{})
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(res.Namespaces).To(HaveLen(len(filtered)))
+	})
 }
 
-func namespaceInResponse(list *pb.ListNamespacesResponse, ns *corev1.Namespace) bool {
+func namespaceInResponse(list *pb.ListNamespacesResponse, ns corev1.Namespace) bool {
 	for _, item := range list.Namespaces {
 		if item.GetName() == ns.GetName() {
 			return true

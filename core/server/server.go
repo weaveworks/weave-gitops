@@ -7,6 +7,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
@@ -27,18 +29,21 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) e
 
 const temporarilyEmptyAppName = ""
 
+type ClientGetterFn func(ctx context.Context) clustersmngr.Client
 type coreServer struct {
 	pb.UnimplementedCoreServer
 
 	k8s            kube.ClientGetter
 	cacheContainer *cache.Container
 	logger         logr.Logger
+	nsChecker      nsaccess.Checker
 }
 
 type CoreServerConfig struct {
 	log         logr.Logger
 	RestCfg     *rest.Config
 	clusterName string
+	NSAccess    nsaccess.Checker
 }
 
 func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreServerConfig {
@@ -46,6 +51,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 		log:         log.WithName("core-server"),
 		RestCfg:     cfg,
 		clusterName: clusterName,
+		NSAccess:    nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 	}
 }
 
@@ -67,6 +73,7 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
 		logger:         cfg.log,
 		cacheContainer: cacheContainer,
+		nsChecker:      cfg.NSAccess,
 	}
 }
 
