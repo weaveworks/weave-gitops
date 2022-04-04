@@ -110,12 +110,25 @@ tolerations: []
 affinity: {}
 
 serverTLS:
-  # This block is meant to use a secret as a source for the tls info
-  useSecret: false # Use secret to pass in tls info to the gitops server
-  secretName: "" # Specify the secret name that contains certificate and private key info
-  certContentField: "" # Specify the key within the secret that contains the certificate
-  keyContentField: "" # Specify the key within the secret that contains the private key
-  # This block is meant to pass in local files directly to the gitops server
-  useLocalFiles: false # Use local files to pass in tls info to the gitops server
-  localCertFile: "" # Specify the path for the local certificate file (it needs to be relative  to the charts folder)
-  localKeyFile: "" # Specify the path for the local private key file (it needs to be relative  to the charts folder)
+  enable: true
+  secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
+  # Example of tls secret
+  #
+  #  apiVersion: v1
+  #  kind: Secret
+  #  metadata:
+  #    name: my-secret-tls
+  #  type: kubernetes.io/tls
+  #  data:
+  #    # the data is abbreviated in this example
+  #    tls.crt: |
+  #      MIIC2DCCAcCgAwIBAgIBATANBgkqh ...
+  #    tls.key: |
+  #      MIIEpgIBAAKCAQEA7yn3bRHQ5FHMQ ...
+  #
+  # You can also create a tls secre t from files whith this k8s command:
+  # kubectl create secret tls my-tls-secret \
+  #  --cert=path/to/cert/file \
+  #  --key=path/to/key/file
+  #
+  # Reference: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
