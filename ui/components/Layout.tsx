@@ -61,6 +61,7 @@ const AppContainer = styled.div`
   min-height: 100vh;
   margin: 0 auto;
   padding: 0;
+  overflow-x: hidden;
 `;
 
 const NavContainer = styled.div`
@@ -123,7 +124,6 @@ const Main = styled(Flex)`
 const TopToolBar = styled(Flex)`
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
-  flex: 0 1 auto;
 
   ${UserSettings} {
     justify-self: flex-end;

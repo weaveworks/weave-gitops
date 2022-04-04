@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemIcon, Slide } from "@material-ui/core";
+import { List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -14,13 +14,25 @@ export type DialogFormState = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
+  height: 94%;
   width: 0px;
+  left: ${(props) => props.theme.spacing.medium};
+  transition: width 0.5s ease-in-out;
+  &.open {
+    left: 0;
+    margin-right: ${(props) => props.theme.spacing.medium};
+    width: 350px;
+  }
 `;
 
-const SlideWrapper = styled.div`
-  position: absolute;
-  right: 0;
-  top: 0;
+const SlideContent = styled.div`
+  // this bg color factors in the opacity of the content container while keeping the filters opaque
+  background: rgb(250, 250, 250);
+  height: 100%;
+  width: 100%;
+  border-left: 2px solid ${(props) => props.theme.colors.neutral20};
+  padding: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.large};
 `;
 
 export const filterSeparator = ":";
@@ -87,185 +99,56 @@ function UnstyledFilterDialog({
   };
 
   return (
-    <SlideContainer>
-      <SlideWrapper>
-        <Slide direction="left" in={open} mountOnEnter unmountOnExit>
-<<<<<<< HEAD
-<<<<<<< HEAD
-          <Paper elevation={4}>
-            <Flex className={className + " filter-bar"} align start>
-              <Spacer padding="medium">
-                <Flex wide align between>
-                  <Text size="extraLarge" color="neutral30">
-                    Filters
-                  </Text>
-                  <Button variant="text" color="inherit" onClick={onClose}>
-                    <Icon
-                      type={IconType.ClearIcon}
-                      size="large"
-                      color="neutral30"
-                    />
-                  </Button>
-                </Flex>
-                <ControlledForm
-                  state={{ values: formState }}
-                  onChange={onFormChange}
-                >
-                  <List>
-                    {_.map(filterList, (options: string[], header: string) => {
-                      return (
-                        <ListItem key={header}>
-                          <Flex column>
-                            <Text capitalize size="large" color="neutral30">
-                              {header}
-                            </Text>
-                            <List>
-                              {_.map(
-                                _.sortBy(options),
-                                (option: string, index: number) => {
-                                  return (
-                                    <ListItem key={index}>
-                                      <ListItemIcon>
-                                        <FormCheckbox
-                                          label=""
-                                          name={`${header}${filterSeparator}${option}`}
-                                        />
-                                      </ListItemIcon>
-                                      <Text color="neutral30">
-                                        {_.toString(option)}
-                                      </Text>
-                                    </ListItem>
-                                  );
-                                }
-                              )}
-                            </List>
-                          </Flex>
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-                </ControlledForm>
-              </Spacer>
-            </Flex>
-          </Paper>
-=======
-          <Flex className={className + " filter-bar"} align start>
-            <Spacer padding="medium">
-              <Flex wide align between>
-                <Text size="extraLarge" color="neutral30">
-                  Filters
-                </Text>
-                <Button variant="text" color="inherit" onClick={onClose}>
-                  <Icon
-                    type={IconType.ClearIcon}
-                    size="large"
-                    color="neutral30"
-                  />
-                </Button>
-              </Flex>
-              <ControlledForm
-                state={{ values: formState }}
-                onChange={onFormChange}
-              >
-                <List>
-                  {_.map(filterList, (options: string[], header: string) => {
-                    return (
-                      <ListItem key={header}>
-                        <Flex column>
-                          <Text capitalize size="large" color="neutral30">
-                            {header}
-                          </Text>
-                          <List>
-                            {_.map(options, (option: string, index: number) => {
-                              return (
-                                <ListItem key={index}>
-                                  <ListItemIcon>
-                                    <FormCheckbox
-                                      label=""
-                                      name={`${header}${filterSeparator}${option}`}
-                                    />
-                                  </ListItemIcon>
-                                  <Text color="neutral30">
-                                    {_.toString(option)}
-                                  </Text>
-                                </ListItem>
-                              );
-                            })}
-                          </List>
-                        </Flex>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              </ControlledForm>
-            </Spacer>
-=======
-          <Flex className={className + " filter-bar"} start column>
-            <Flex wide align between>
-              <Text size="large" color="neutral30">
-                Filters
-              </Text>
-              <Button variant="text" color="inherit" onClick={onClose}>
-                <Icon
-                  type={IconType.ClearIcon}
-                  size="large"
-                  color="neutral30"
-                />
-              </Button>
-            </Flex>
-            <ControlledForm
-              state={{ values: formState }}
-              onChange={onFormChange}
-            >
-              <List>
-                {_.map(filterList, (options: string[], header: string) => {
-                  return (
-                    <ListItem key={header}>
-                      <Flex column>
-                        <Text capitalize size="small" color="neutral30">
-                          {header}
-                        </Text>
-                        <List>
-                          {_.map(options, (option: string, index: number) => {
-                            return (
-                              <ListItem key={index}>
-                                <ListItemIcon>
-                                  <FormCheckbox
-                                    label=""
-                                    name={`${header}${filterSeparator}${option}`}
-                                  />
-                                </ListItemIcon>
-                                <Text color="neutral30" size="small">
-                                  {_.toString(option)}
-                                </Text>
-                              </ListItem>
-                            );
-                          })}
-                        </List>
-                      </Flex>
-                    </ListItem>
-                  );
-                })}
-              </List>
-            </ControlledForm>
->>>>>>> 4bee3a76 (spacer fix)
+    <SlideContainer className={`${open ? "open" : ""}`}>
+      <SlideContent>
+        <Flex className={className} start column>
+          <Flex wide align between>
+            <Text size="large" color="neutral30">
+              Filters
+            </Text>
+            <Button variant="text" color="inherit" onClick={onClose}>
+              <Icon type={IconType.ClearIcon} size="large" color="neutral30" />
+            </Button>
           </Flex>
->>>>>>> 4b588120 (corrected filter class)
-        </Slide>
-      </SlideWrapper>
+          <ControlledForm state={{ values: formState }} onChange={onFormChange}>
+            <List>
+              {_.map(filterList, (options: string[], header: string) => {
+                return (
+                  <ListItem key={header}>
+                    <Flex column>
+                      <Text capitalize size="small" color="neutral30">
+                        {header}
+                      </Text>
+                      <List>
+                        {_.map(options, (option: string, index: number) => {
+                          return (
+                            <ListItem key={index}>
+                              <ListItemIcon>
+                                <FormCheckbox
+                                  label=""
+                                  name={`${header}${filterSeparator}${option}`}
+                                />
+                              </ListItemIcon>
+                              <Text color="neutral30" size="small">
+                                {_.toString(option)}
+                              </Text>
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Flex>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </ControlledForm>
+        </Flex>
+      </SlideContent>
     </SlideContainer>
   );
 }
 
 export default styled(UnstyledFilterDialog)`
-  &.filter-bar {
-    // this bg color factors in the opacity of the content container while keeping the filters opaque
-    background: rgb(250, 250, 250);
-    min-width: 300px;
-    border-left: 2px solid ${(props) => props.theme.colors.neutral20};
-    padding: ${(props) => props.theme.spacing.medium};
-    padding-left: ${(props) => props.theme.spacing.xl};
-  }
   .MuiListItem-gutters {
     padding-left: 0px;
   }

@@ -164,9 +164,13 @@ function FilterableTable({
     setFilterState({ ...filterState, filters, formState });
   };
 
+  const TableFlex = styled(Flex)`
+    height: 100%;
+  `;
+  console.log(filterDialogOpen);
   return (
-    <div className={className}>
-      <Flex>
+    <div className={className} style={{ height: "100%", width: "100%" }}>
+      <Flex wide>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
@@ -179,7 +183,7 @@ function FilterableTable({
           />
         </Flex>
       </Flex>
-      <Flex>
+      <TableFlex wide>
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
           onClose={() => setFilterDialog(!filterDialogOpen)}
@@ -188,7 +192,7 @@ function FilterableTable({
           formState={filterState.formState}
           open={filterDialogOpen}
         />
-      </Flex>
+      </TableFlex>
     </div>
   );
 }
