@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/
 // @ts-ignore
-import logoSrc from "../images/logo.svg";
+import logoSrc from "url:../images/logo.svg";
 // @ts-ignore
-import titleSrc from "../images/Title.svg";
+import titleSrc from "url:../images/Title.svg";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
 
