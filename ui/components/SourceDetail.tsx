@@ -51,7 +51,7 @@ function SourceDetail({ className, name, info, type }: Props) {
       return false;
     }
 
-    if (a?.sourceRef?.kind == s.type && a?.sourceRef?.name == name) {
+    if (a?.sourceRef?.kind == s.type && a.sourceRef.name == name) {
       return true;
     }
 

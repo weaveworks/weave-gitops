@@ -19,7 +19,7 @@ import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
-  sources?: Source[];
+  sources: Source[];
   appName?: string;
 };
 

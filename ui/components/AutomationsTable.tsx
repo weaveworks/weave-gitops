@@ -14,7 +14,7 @@ import SourceLink from "./SourceLink";
 
 type Props = {
   className?: string;
-  automations?: Automation[];
+  automations: Automation[];
   appName?: string;
   hideSource?: boolean;
 };
@@ -70,8 +70,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         let sourceName;
 
         if (a.type === AutomationType.Kustomization) {
-          sourceKind = a.sourceRef?.kind;
-          sourceName = a.sourceRef?.name;
+          sourceKind = a.sourceRef.kind;
+          sourceName = a.sourceRef.name;
         } else {
           sourceKind = SourceRefSourceKind.HelmChart;
           sourceName = (a as HelmRelease).helmChart.name;

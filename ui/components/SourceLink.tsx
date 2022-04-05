@@ -6,13 +6,10 @@ import Link from "./Link";
 
 type Props = {
   className?: string;
-  sourceRef?: SourceRef;
+  sourceRef: SourceRef;
 };
 
 function SourceLink({ className, sourceRef }: Props) {
-  if (!sourceRef) {
-    return <div />
-  }
   return (
     <Link
       className={className}

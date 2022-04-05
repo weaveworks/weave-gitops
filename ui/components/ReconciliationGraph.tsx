@@ -65,13 +65,13 @@ function ReconciliationGraph({
     data: objects,
     error,
     isLoading,
-  } = parentObject ? useGetReconciledObjects(
-    parentObject?.name,
-    parentObject?.namespace,
+  } = useGetReconciledObjects(
+    parentObject.name,
+    parentObject.namespace,
     automationKind,
     kinds,
     clusterName
-  ) : { data: [], error: null, isLoading: false };
+  );
 
   const edges = _.reduce(
     objects,
