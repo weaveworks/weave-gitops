@@ -66,6 +66,10 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
+.c4 {
+  padding: 12px;
+}
+
 .c5 {
   padding-left: 8px;
 }
@@ -82,10 +86,6 @@ exports[`Page snapshots default 1`] = `
 
 .c5 .MuiCircularProgress-root.out {
   opacity: 0;
-}
-
-.c4 {
-  padding: 12px;
 }
 
 .c1 {
