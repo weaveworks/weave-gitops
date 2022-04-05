@@ -110,8 +110,9 @@ tolerations: []
 affinity: {}
 
 serverTLS:
-  enable: true
-  secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
+  enable: false
+  # secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
+  #
   # Example of tls secret
   #
   #  apiVersion: v1

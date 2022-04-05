@@ -41,6 +41,8 @@ spec:
             - "/etc/tls-volume/tls.crt"
             - "--tls-private-key-file"
             - "/etc/tls-volume/tls.key"
+            {{- else }}
+            - "--insecure"
             {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
