@@ -67,9 +67,10 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
-		Inventory:   inventory,
-		Conditions:  mapConditions(helmrelease.Status.Conditions),
-		Suspended:   helmrelease.Spec.Suspend,
-		ClusterName: clusterName,
+		Inventory:     inventory,
+		Conditions:    mapConditions(helmrelease.Status.Conditions),
+		Suspended:     helmrelease.Spec.Suspend,
+		ClusterName:   clusterName,
+		LastUpdatedAt: lastUpdatedAt(helmrelease),
 	}
 }
