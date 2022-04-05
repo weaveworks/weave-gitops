@@ -7,6 +7,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	managedByWeaveGitops      = "weave-gitops"
+	createdBySourceController = "source-controller"
+)
+
 func getGitopsLabelMap(appName string) map[string]string {
 	labels := map[string]string{
 		ManagedByLabel: managedByWeaveGitops,
