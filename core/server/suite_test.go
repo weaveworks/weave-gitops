@@ -57,7 +57,10 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	}
 	coreCfg.NSAccess = &nsChecker
 
-	core := server.NewCoreServer(coreCfg)
+	core, err := server.NewCoreServer(coreCfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	lis := bufconn.Listen(1024 * 1024)
 

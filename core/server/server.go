@@ -19,8 +19,12 @@ import (
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) error {
-	appsServer := NewCoreServer(cfg)
-	if err := pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
+	appsServer, err := NewCoreServer(cfg)
+	if err != nil {
+		return fmt.Errorf("unable to create new kube client: %w", err)
+	}
+
+	if err = pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
@@ -55,14 +59,14 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 	}
 }
 
-func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
+func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	ctx := context.Background()
 
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
 	c, err := client.New(cfg.RestCfg, client.Options{})
 	if err != nil {
-		cfg.log.Error(err, "unable to create new kube client")
+		return nil, err
 	}
 
 	cacheContainer := cache.NewContainer(c, cfg.log)
@@ -74,7 +78,7 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 		logger:         cfg.log,
 		cacheContainer: cacheContainer,
 		nsChecker:      cfg.NSAccess,
-	}
+	}, nil
 }
 
 func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList, extraOpts ...client.ListOption) error {
