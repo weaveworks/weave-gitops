@@ -18,8 +18,9 @@ message SourceRef {
       HelmRepository = 2;
       HelmChart      = 3;
     };
-    SourceKind kind = 1;
-    string     name = 2;
+    SourceKind kind      = 1;
+    string     name      = 2;
+    string     namespace = 3;
 }
 
 message Condition {

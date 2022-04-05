@@ -1,16 +1,16 @@
-import * as React from "react";
-import styled from "styled-components";
-import { Redirect } from "react-router-dom";
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
-import { theme } from "../lib/theme";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
+import { theme } from "../lib/theme";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${images.signInBackground});

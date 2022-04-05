@@ -32,8 +32,9 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName stri
 		Namespace: kustomization.Namespace,
 		Path:      kustomization.Spec.Path,
 		SourceRef: &pb.SourceRef{
-			Kind: kind,
-			Name: kustomization.Spec.SourceRef.Name,
+			Kind:      kind,
+			Name:      kustomization.Spec.SourceRef.Name,
+			Namespace: kustomization.Spec.SourceRef.Namespace,
 		},
 		Interval:                durationToInterval(kustomization.Spec.Interval),
 		Conditions:              mapConditions(kustomization.Status.Conditions),

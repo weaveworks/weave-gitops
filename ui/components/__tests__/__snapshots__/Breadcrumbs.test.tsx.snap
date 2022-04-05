@@ -2,7 +2,7 @@
 
 exports[`snapshots renders 1`] = `
 <div
-  className="sc-bdvvtL lacWsj"
+  className="sc-bdvvtL jUaaBj"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
@@ -22,7 +22,7 @@ exports[`snapshots renders 1`] = `
 
 exports[`snapshots renders child route 1`] = `
 <div
-  className="sc-bdvvtL lacWsj"
+  className="sc-bdvvtL jUaaBj"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
@@ -38,7 +38,7 @@ exports[`snapshots renders child route 1`] = `
     </span>
   </a>
   <div
-    className="sc-bdvvtL lacWsj sc-dkPtRN hTjxvJ"
+    className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
   >
     <svg
       aria-hidden={true}
@@ -69,7 +69,7 @@ exports[`snapshots renders child route 1`] = `
 
 exports[`snapshots renders on the root page 1`] = `
 <div
-  className="sc-bdvvtL lacWsj"
+  className="sc-bdvvtL jUaaBj"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
@@ -83,7 +83,7 @@ exports[`snapshots renders on the root page 1`] = `
     />
   </a>
   <div
-    className="sc-bdvvtL lacWsj sc-dkPtRN hTjxvJ"
+    className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
   >
     <svg
       aria-hidden={true}

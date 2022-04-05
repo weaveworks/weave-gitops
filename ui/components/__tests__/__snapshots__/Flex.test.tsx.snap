@@ -14,10 +14,6 @@ exports[`Flex snapshots renders 1`] = `
   -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;

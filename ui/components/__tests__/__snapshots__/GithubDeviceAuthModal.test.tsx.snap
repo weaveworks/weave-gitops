@@ -13,10 +13,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
 }
 
 .c2 {
@@ -33,10 +29,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: start;
   height: 150px;
   width: 100%;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
@@ -56,10 +48,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
   -webkit-box-pack: end;
   -webkit-justify-content: flex-end;
   -ms-flex-pack: end;
@@ -79,10 +67,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
@@ -101,10 +85,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
 }
 
 .c7 {

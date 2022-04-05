@@ -55,10 +55,6 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
 }
 
 .c7 {
@@ -93,10 +89,6 @@ exports[`Page snapshots default 1`] = `
   -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
@@ -115,10 +107,6 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
 }
 
 .c14 {
@@ -184,6 +172,8 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
+  padding-right: 32px;
+  width: 100%;
   height: 100%;
 }
 

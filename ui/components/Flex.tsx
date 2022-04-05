@@ -19,7 +19,7 @@ const Styled = (component) => styled(component)`
   ${(props) => props.height && `height: ${props.height};`}
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
-  justify-content: ${(props) => (props.start ? "flex-start" : "space-evenly")};
+  ${({ start }) => start && "justify-content: flex-start"};
   ${({ end }) => end && "justify-content: flex-end"};
   ${({ between }) => between && "justify-content: space-between"};
   ${({ center }) => center && "justify-content: center"};
