@@ -7,24 +7,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	managedByWeaveGitops      = "weave-gitops"
-	createdBySourceController = "source-controller"
-)
-
-func getGitopsLabelMap(appName string) map[string]string {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdBySourceController,
-	}
-
-	if appName != "" {
-		labels[PartOfLabel] = appName
-	}
-
-	return labels
-}
-
 func getSourceKind(kind string) pb.SourceRef_SourceKind {
 	switch kind {
 	case v1beta1.GitRepositoryKind:
