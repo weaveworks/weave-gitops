@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var k8sEnv *testutils.K8sTestEnv
@@ -49,7 +50,16 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 		withClientsPoolInterceptor(cfg, principal),
 	)
 
-	coreCfg := server.NewCoreConfig(logr.Discard(), cfg, "foobar")
+	c, err := client.New(cfg, client.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	coreCfg, err := server.NewCoreConfig(logr.Discard(), cfg, c, "foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
@@ -57,10 +67,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	}
 	coreCfg.NSAccess = &nsChecker
 
-	core, err := server.NewCoreServer(coreCfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	core := server.NewCoreServer(coreCfg)
 
 	lis := bufconn.Listen(1024 * 1024)
 

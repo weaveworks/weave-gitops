@@ -19,12 +19,9 @@ import (
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) error {
-	appsServer, err := NewCoreServer(cfg)
-	if err != nil {
-		return fmt.Errorf("unable to create new kube client: %w", err)
-	}
+	appsServer := NewCoreServer(cfg)
 
-	if err = pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
+	if err := pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
@@ -44,41 +41,38 @@ type coreServer struct {
 }
 
 type CoreServerConfig struct {
-	log         logr.Logger
-	RestCfg     *rest.Config
-	clusterName string
-	NSAccess    nsaccess.Checker
+	log                  logr.Logger
+	RestCfg              *rest.Config
+	ServiceAccountClient client.Client
+	clusterName          string
+	NSAccess             nsaccess.Checker
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, serviceAccountClient client.Client, clusterName string) (CoreServerConfig, error) {
 	return CoreServerConfig{
-		log:         log.WithName("core-server"),
-		RestCfg:     cfg,
-		clusterName: clusterName,
-		NSAccess:    nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
-	}
+		log:                  log.WithName("core-server"),
+		RestCfg:              cfg,
+		ServiceAccountClient: serviceAccountClient,
+		clusterName:          clusterName,
+		NSAccess:             nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+	}, nil
 }
 
-func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
+func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 	ctx := context.Background()
 
-	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
-
-	c, err := client.New(cfg.RestCfg, client.Options{})
-	if err != nil {
-		return nil, err
-	}
-
-	cacheContainer := cache.NewContainer(c, cfg.log)
+	cacheContainer := cache.NewContainer(cfg.ServiceAccountClient, cfg.log)
 
 	cacheContainer.Start(ctx)
+
+	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
 	return &coreServer{
 		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
 		logger:         cfg.log,
 		cacheContainer: cacheContainer,
 		nsChecker:      cfg.NSAccess,
-	}, nil
+	}
 }
 
 func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList, extraOpts ...client.ListOption) error {

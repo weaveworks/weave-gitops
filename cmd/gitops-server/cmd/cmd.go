@@ -193,7 +193,15 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName)
+	c, err := client.New(rest, client.Options{})
+	if err != nil {
+		return fmt.Errorf("could not create kubernetes client: %w", err)
+	}
+
+	coreConfig, err := core.NewCoreConfig(log, rest, c, clusterName)
+	if err != nil {
+		return fmt.Errorf("could not create core config: %w", err)
+	}
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
