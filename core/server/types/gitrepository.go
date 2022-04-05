@@ -1,47 +1,9 @@
 package types
 
 import (
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/source-controller/api/v1beta1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-const (
-	managedByWeaveGitops      = "weave-gitops"
-	createdBySourceController = "source-controller"
-)
-
-func ProtoToGitRepository(repo *pb.GitRepository) *v1beta1.GitRepository {
-	labels := getGitopsLabelMap(repo.Name)
-
-	return &v1beta1.GitRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       v1beta2.KustomizationKind,
-			APIVersion: v1beta2.GroupVersion.Identifier(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      repo.Name,
-			Namespace: repo.Namespace,
-			Labels:    labels,
-		},
-		Spec: v1beta1.GitRepositorySpec{
-			URL: repo.Url,
-			//Interval: intervalDuration(kustomization.Interval),
-			SecretRef: &meta.LocalObjectReference{
-				Name: repo.SecretRef,
-			},
-			Reference: &v1beta1.GitRepositoryRef{
-				Branch: repo.Reference.Branch,
-				Tag:    repo.Reference.Tag,
-				SemVer: repo.Reference.Semver,
-				Commit: repo.Reference.Commit,
-			},
-		},
-		Status: v1beta1.GitRepositoryStatus{},
-	}
-}
 
 func GitRepositoryToProto(repository *v1beta1.GitRepository, clusterName string) *pb.GitRepository {
 	gr := &pb.GitRepository{
