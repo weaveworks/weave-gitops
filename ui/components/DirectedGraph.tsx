@@ -20,6 +20,7 @@ type Props<N> = {
 };
 
 const SliderFlex = styled(Flex)`
+  min-height: 400px;
   height: 25%;
   width: 5%;
 `;

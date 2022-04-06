@@ -38,6 +38,7 @@ type NodeHtmlProps = {
 };
 
 const NodeHtml = ({ object }: NodeHtmlProps) => {
+  console.log(object);
   return (
     <div className="node">
       <Flex
