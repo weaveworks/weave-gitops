@@ -44,8 +44,7 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(30);
-  // console.log(nodes, edges);
+  const [zoomPercent, setZoomPercent] = React.useState(20);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -83,7 +82,7 @@ function DirectedGraph<T>({
         <Spacer padding="base" />
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
-          defaultValue={30}
+          defaultValue={20}
           orientation="vertical"
           aria-label="zoom"
         />
@@ -144,13 +143,13 @@ class D3Graph {
     this.containerEl = element;
     this.svg = d3.select(element);
     this.svg.append("g");
-
+    this.svg.select("g").attr("transform-origin", "30% 15%");
     this.zoom(opts.initialZoom);
   }
 
   zoom(zoomPercent) {
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 30) / 100;
+      e.transform.k = (zoomPercent + 20) / 100;
       this.svg.select("g").attr("transform", e.transform);
     });
 
