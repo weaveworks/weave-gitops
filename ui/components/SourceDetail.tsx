@@ -59,7 +59,7 @@ function SourceDetail({ className, name, info, type }: Props) {
   });
 
   return (
-    <div className={className}>
+    <Flex wide column align className={className}>
       <Flex wide between>
         <div>
           <Heading level={2}>{s.type}</Heading>
@@ -85,7 +85,7 @@ function SourceDetail({ className, name, info, type }: Props) {
           />
         </HashRouterTab>
       </HashRouterTabs>
-    </div>
+    </Flex>
   );
 }
 

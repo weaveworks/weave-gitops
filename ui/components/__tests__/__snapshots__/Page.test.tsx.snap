@@ -13,6 +13,7 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+<<<<<<< HEAD
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
@@ -55,47 +56,63 @@ exports[`Page snapshots default 1`] = `
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
+=======
+  width: 100%;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
+<<<<<<< HEAD
 .c6 {
+=======
+.c3 {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
-}
-
-.c11 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
   width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+<<<<<<< HEAD
+.c11 {
+=======
+.c5 {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
+<<<<<<< HEAD
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
@@ -111,12 +128,30 @@ exports[`Page snapshots default 1`] = `
 
 .c10 ul {
   list-style: none;
+=======
+}
+
+.c8 {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
 }
 
+<<<<<<< HEAD
 .c10 ul li {
   padding: 0 16px;
 }
@@ -135,16 +170,35 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c8 .MuiCircularProgress-root {
+=======
+.c6 {
+  padding: 12px;
+}
+
+.c7 {
+  padding-left: 8px;
+}
+
+.c7 .MuiCircularProgress-root {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   -webkit-transition: opacity 2s;
   transition: opacity 2s;
   margin-bottom: 0;
 }
 
+<<<<<<< HEAD
 .c8 .MuiCircularProgress-root.in {
   opacity: 1;
 }
 
 .c8 .MuiCircularProgress-root.out {
+=======
+.c7 .MuiCircularProgress-root.in {
+  opacity: 1;
+}
+
+.c7 .MuiCircularProgress-root.out {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   opacity: 0;
 }
 
@@ -158,28 +212,56 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
-  width: 100%;
   height: 100%;
 }
 
+<<<<<<< HEAD
 .c9 {
   height: 100%;
 }
 
 .c5 h2 {
+=======
+.c4 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.c4 h2 {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   margin: 0 !important;
   color: #1a1a1a !important;
 }
 
+<<<<<<< HEAD
 .c1 {
   height: 100%;
 }
 
 .c1 .MuiAlert-root {
+=======
+.c2 {
+  height: 100%;
+}
+
+.c2 .MuiAlert-root {
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
   width: 100%;
 }
 
 <div
+<<<<<<< HEAD
   className="c0 c1"
 >
   <div
@@ -197,6 +279,25 @@ exports[`Page snapshots default 1`] = `
         />
         <div
           className="c6 c8"
+=======
+  className="c0 c1 c2"
+>
+  <div
+    className="c3"
+  >
+    <div
+      className="c4"
+    >
+      <div
+        className="c5"
+      >
+        <h2 />
+        <div
+          className="c6"
+        />
+        <div
+          className="c5 c7"
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
         >
           <div
             className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -227,6 +328,7 @@ exports[`Page snapshots default 1`] = `
       </div>
     </div>
     <div
+<<<<<<< HEAD
       className="c2 c9"
     />
   </div>
@@ -235,51 +337,22 @@ exports[`Page snapshots default 1`] = `
   >
     <div
       className="c11"
+=======
+      className="c8"
+    />
+  </div>
+  <footer
+    className="Footer"
+  >
+    Need help? Contact us at
+     
+    <a
+      href="mailto:support@weave.works"
+      target="_blank"
+>>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
     >
-      <ul>
-        <li>
-          © 2021 Weaveworks
-        </li>
-        <li>
-          <span>
-            •
-          </span>
-        </li>
-        <li>
-          <a
-            href="https://www.weave.works/product/gitops-core/"
-            target="_blank"
-          >
-            About
-          </a>
-        </li>
-        <li>
-          <a
-            href="https://docs.gitops.weave.works/"
-            target="_blank"
-          >
-            Docs
-          </a>
-        </li>
-        <li>
-          <a
-            href="https://www.weave.works/help/"
-            target="_blank"
-          >
-            Help
-          </a>
-        </li>
-        <li>
-          <a
-            href="mailto:sales@weave.works"
-            target="_blank"
-          >
-            Commercial Support
-          </a>
-        </li>
-        <li />
-      </ul>
-    </div>
+      support@weave.works
+    </a>
   </footer>
 </div>
 `;
