@@ -15,7 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetReconciledObjects(t *testing.T) {
@@ -23,15 +23,8 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	automationName := "my-automation"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	reconciledObj := appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -62,7 +55,12 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 	}
 
-	g.Expect(k.Create(ctx, &reconciledObj)).Should(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(&reconciledObj, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.GetReconciledObjects(ctx, &pb.GetReconciledObjectsRequest{
 		AutomationName: automationName,
@@ -85,15 +83,8 @@ func TestGetChildObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	automationName := "my-automation"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -119,9 +110,7 @@ func TestGetChildObjects(t *testing.T) {
 			},
 		},
 	}
-	g.Expect(k.Create(ctx, deployment)).Should(Succeed())
-	// Get after Create to get a populated UID
-	g.Expect(k.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment)).To(Succeed())
+	deployment.UID = types.UID("not a uuid")
 
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -141,7 +130,12 @@ func TestGetChildObjects(t *testing.T) {
 		Name:       deployment.Name,
 	}})
 
-	g.Expect(k.Create(ctx, rs)).Should(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(deployment, rs, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
 		ParentUid: string(deployment.UID),
@@ -166,22 +160,22 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
-	g.Expect(err).NotTo(HaveOccurred())
-
 	name := "random-flux-controller"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	fluxDep := newDeployment(name, ns.Name)
 	fluxDep.ObjectMeta.Labels = map[string]string{
 		stypes.PartOfLabel: server.FluxNamespacePartOf,
 	}
-	g.Expect(k.Create(ctx, fluxDep)).To(Succeed())
 
 	otherDep := newDeployment("other-deployment", ns.Name)
-	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
+
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(fluxDep, otherDep, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{Namespace: ns.Name})
 	g.Expect(err).NotTo(HaveOccurred())

@@ -19,7 +19,7 @@ func TestListFluxEvents(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServerWithAPIServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -27,7 +27,8 @@ func TestListFluxEvents(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	eventObjectName := "my-kustomization"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
+	g.Expect(k.Create(ctx, ns)).To(Succeed())
 
 	event := &corev1.Event{
 		ObjectMeta: v1.ObjectMeta{

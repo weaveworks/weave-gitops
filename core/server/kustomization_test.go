@@ -4,19 +4,18 @@ import (
 	"context"
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListKustomizations(t *testing.T) {
@@ -24,15 +23,8 @@ func TestListKustomizations(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	kust := &kustomizev1.Kustomization{
 		Spec: kustomizev1.KustomizationSpec{
@@ -44,7 +36,12 @@ func TestListKustomizations(t *testing.T) {
 	kust.Name = appName
 	kust.Namespace = ns.Name
 
-	g.Expect(k.Create(ctx, kust)).To(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(kust, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
 		Namespace: ns.Name,
@@ -59,15 +56,8 @@ func TestGetKustomization(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	kust := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
@@ -88,13 +78,6 @@ func TestGetKustomization(t *testing.T) {
 	kust.Name = appName
 	kust.Namespace = ns.Name
 
-	opt := []client.PatchOption{
-		client.ForceOwnership,
-		client.FieldOwner("kustomize-controller"),
-	}
-
-	g.Expect(k.Patch(ctx, kust, client.Apply, opt...)).To(Succeed())
-
 	st := kustomizev1.KustomizationStatus{
 		Inventory: &kustomizev1.ResourceInventory{
 			Entries: []kustomizev1.ResourceRef{
@@ -106,10 +89,20 @@ func TestGetKustomization(t *testing.T) {
 		},
 	}
 
-	kust.ManagedFields = nil
 	kust.Status = st
+	kust.ManagedFields = []metav1.ManagedFieldsEntry{
+		{
+			Manager:   "kustomize-controller",
+			Operation: "Apply",
+		},
+	}
 
-	g.Expect(k.Status().Patch(ctx, kust, client.Apply, opt...)).To(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(kust, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	t.Run("gets a kustomization", func(t *testing.T) {
 		res, err := c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: appName, Namespace: ns.Name, ClusterName: clustersmngr.DefaultCluster})
@@ -119,7 +112,7 @@ func TestGetKustomization(t *testing.T) {
 		g.Expect(res.Kustomization.Inventory[0].Group).To(Equal("apps"))
 	})
 	t.Run("returns not found", func(t *testing.T) {
-		_, err = c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: "somename", Namespace: ns.Name, ClusterName: clustersmngr.DefaultCluster})
+		_, err := c.GetKustomization(ctx, &pb.GetKustomizationRequest{Name: "somename", Namespace: ns.Name, ClusterName: clustersmngr.DefaultCluster})
 		g.Expect(err).To(HaveOccurred())
 
 		status, ok := status.FromError(err)
@@ -132,11 +125,9 @@ func TestGetKustomization(t *testing.T) {
 	})
 }
 
-func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) corev1.Namespace {
+func newNamespace() *corev1.Namespace {
 	ns := corev1.Namespace{}
 	ns.Name = "kube-test-" + rand.String(5)
 
-	g.Expect(k.Create(ctx, &ns)).To(Succeed())
-
-	return ns
+	return &ns
 }

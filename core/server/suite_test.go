@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -44,16 +46,68 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
+func makeGRPCServer(c client.Client, t *testing.T) pb.CoreClient {
 	principal := &auth.UserPrincipal{}
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(cfg, principal),
+		withClientsPoolInterceptor(principal, c),
 	)
 
-	c, err := client.New(cfg, client.Options{})
+	coreCfg, err := server.NewCoreConfig(logr.Discard(), &rest.Config{}, c, "foobar")
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	nsChecker = nsaccessfakes.FakeChecker{}
+	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
+		// Pretend the user has access to everything
+		return n, nil
+	}
+	coreCfg.NSAccess = &nsChecker
+
+	core := server.NewCoreServer(coreCfg)
+
+	lis := bufconn.Listen(1024 * 1024)
+
+	pb.RegisterCoreServer(s, core)
+
+	dialer := func(context.Context, string) (net.Conn, error) {
+		return lis.Dial()
+	}
+
+	go func(tt *testing.T) {
+		if err := s.Serve(lis); err != nil {
+			tt.Error(err)
+		}
+	}(t)
+
+	conn, err := grpc.DialContext(
+		context.Background(),
+		"bufnet",
+		grpc.WithContextDialer(dialer),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		s.GracefulStop()
+		conn.Close()
+	})
+
+	return pb.NewCoreClient(conn)
+}
+
+func makeGRPCServerWithAPIServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
+	g := NewGomegaWithT(t)
+
+	principal := &auth.UserPrincipal{}
+	c, err := client.New(cfg, client.Options{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s := grpc.NewServer(
+		withClientsPoolInterceptor(principal, c),
+	)
 
 	coreCfg, err := server.NewCoreConfig(logr.Discard(), cfg, c, "foobar")
 	if err != nil {
@@ -101,21 +155,23 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	return pb.NewCoreClient(conn)
 }
 
-func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
+// Not using a counterfeit: I want the real methods on the provided
+// `client.Client` to be invoked.
+type clientMock struct {
+	client.Client
+}
+
+func (c clientMock) RestConfig() *rest.Config {
+	return &rest.Config{}
+}
+
+func withClientsPoolInterceptor(user *auth.UserPrincipal, client client.Client) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		cluster := clustersmngr.Cluster{
-			Name:        "Default",
-			Server:      config.Host,
-			BearerToken: config.BearerToken,
-			TLSConfig:   config.TLSClientConfig,
-		}
+		clientsPool := clustersmngrfakes.FakeClientsPool{}
+		clientsPool.ClientsReturns(map[string]clustersmngr.ClusterClient{"default": clientMock{client}})
+		clientsPool.ClientReturns(clientMock{client}, nil)
 
-		clientsPool := clustersmngr.NewClustersClientsPool()
-		if err := clientsPool.Add(user, cluster); err != nil {
-			return nil, err
-		}
-
-		clusterClient := clustersmngr.NewClient(clientsPool)
+		clusterClient := clustersmngr.NewClient(&clientsPool)
 
 		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 

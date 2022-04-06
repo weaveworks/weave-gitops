@@ -18,24 +18,24 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListHelmReleases(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
-	newHelmRelease(ctx, appName, ns.Name, k, g)
+	release := newHelmRelease(appName, ns.Name)
+
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(&release, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{
 		Namespace: ns.Name,
@@ -49,20 +49,20 @@ func TestGetHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp" + rand.String(5)
-	ns1 := newNamespace(ctx, k, g)
-	ns2 := newNamespace(ctx, k, g)
-	ns3 := newNamespace(ctx, k, g)
+	ns1 := newNamespace()
+	ns2 := newNamespace()
+	ns3 := newNamespace()
 
-	newHelmRelease(ctx, appName, ns1.Name, k, g)
-	newHelmRelease(ctx, appName, ns2.Name, k, g)
+	release1 := newHelmRelease(appName, ns1.Name)
+	release2 := newHelmRelease(appName, ns2.Name)
+
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(&release1, &release2, ns1, ns2, ns3).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	// Get app from ns1.
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
@@ -100,15 +100,8 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp" + rand.String(5)
-	ns1 := newNamespace(ctx, k, g)
+	ns1 := newNamespace()
 
 	// Create helm release.
 	helmRelease := helmv2.HelmRelease{
@@ -121,7 +114,7 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 			Namespace: ns1.Name,
 		},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 2,
+			LastReleaseRevision: 1,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
@@ -134,18 +127,12 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 			},
 		},
 	}
-
-	opt := []client.PatchOption{
-		client.ForceOwnership,
-		client.FieldOwner("helmrelease-controller"),
+	helmRelease.ManagedFields = []metav1.ManagedFieldsEntry{
+		{
+			Manager:   "helmrealease-controller",
+			Operation: "Apply",
+		},
 	}
-
-	g.Expect(k.Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
-
-	helmRelease.Status.LastReleaseRevision = 1
-	helmRelease.ManagedFields = nil
-
-	g.Expect(k.Status().Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
 
 	// Create helm storage.
 	storage := types.HelmReleaseStorage{
@@ -166,7 +153,13 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 	storageSecret.Data = map[string][]byte{
 		"release": []byte(base64.StdEncoding.EncodeToString(storageData)),
 	}
-	g.Expect(k.Create(ctx, &storageSecret)).To(Succeed())
+
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(&storageSecret, &helmRelease, ns1).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
 		Name:        appName,
@@ -184,15 +177,8 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp" + rand.String(5)
-	ns1 := newNamespace(ctx, k, g)
+	ns1 := newNamespace()
 
 	// Create helm release.
 	helmRelease := helmv2.HelmRelease{
@@ -205,7 +191,7 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 			Namespace: ns1.Name,
 		},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 2,
+			LastReleaseRevision: 1,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
@@ -218,18 +204,12 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 			},
 		},
 	}
-
-	opt := []client.PatchOption{
-		client.ForceOwnership,
-		client.FieldOwner("helmrelease-controller"),
+	helmRelease.ManagedFields = []metav1.ManagedFieldsEntry{
+		{
+			Manager:   "helmrealease-controller",
+			Operation: "Apply",
+		},
 	}
-
-	g.Expect(k.Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
-
-	helmRelease.Status.LastReleaseRevision = 1
-	helmRelease.ManagedFields = nil
-
-	g.Expect(k.Status().Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
 
 	// Create helm storage.
 	storage := types.HelmReleaseStorage{
@@ -256,7 +236,13 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 	storageSecret.Data = map[string][]byte{
 		"release": []byte(base64.StdEncoding.EncodeToString(compressed.Bytes())),
 	}
-	g.Expect(k.Create(ctx, &storageSecret)).To(Succeed())
+
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(&storageSecret, &helmRelease, ns1).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	response, err := c.GetHelmRelease(ctx, &pb.GetHelmReleaseRequest{
 		Name:        appName,
@@ -294,10 +280,7 @@ spec:
 }
 
 func newHelmRelease(
-	ctx context.Context,
 	appName, nsName string,
-	k client.Client,
-	g *GomegaWithT,
 ) helmv2.HelmRelease {
 	release := helmv2.HelmRelease{
 		Spec: helmv2.HelmReleaseSpec{
@@ -313,8 +296,6 @@ func newHelmRelease(
 	}
 	release.Name = appName
 	release.Namespace = nsName
-
-	g.Expect(k.Create(ctx, &release)).To(Succeed())
 
 	return release
 }

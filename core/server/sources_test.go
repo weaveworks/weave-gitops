@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListHelmRepositories(t *testing.T) {
@@ -17,21 +17,19 @@ func TestListHelmRepositories(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	hr := &sourcev1.HelmRepository{}
 	hr.Name = appName
 	hr.Namespace = ns.Name
 
-	g.Expect(k.Create(ctx, hr)).To(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(hr, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListHelmRepositories(ctx, &pb.ListHelmRepositoriesRequest{
 		Namespace: ns.Name,
@@ -46,15 +44,8 @@ func TestListHelmCharts(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	hc := &sourcev1.HelmChart{
 		Spec: sourcev1.HelmChartSpec{
@@ -66,7 +57,12 @@ func TestListHelmCharts(t *testing.T) {
 	hc.Name = appName
 	hc.Namespace = ns.Name
 
-	g.Expect(k.Create(ctx, hc)).To(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(hc, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListHelmCharts(ctx, &pb.ListHelmChartsRequest{
 		Namespace: ns.Name,
@@ -81,15 +77,8 @@ func TestListBuckets(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	ns := newNamespace()
 
 	bucket := &sourcev1.Bucket{
 		Spec: sourcev1.BucketSpec{
@@ -101,7 +90,12 @@ func TestListBuckets(t *testing.T) {
 	bucket.Name = appName
 	bucket.Namespace = ns.Name
 
-	g.Expect(k.Create(ctx, bucket)).To(Succeed())
+	k := fake.NewClientBuilder().
+		WithScheme(kube.CreateScheme()).
+		WithRuntimeObjects(bucket, ns).
+		Build()
+
+	c := makeGRPCServer(k, t)
 
 	res, err := c.ListBuckets(ctx, &pb.ListBucketRequest{
 		Namespace: ns.Name,
