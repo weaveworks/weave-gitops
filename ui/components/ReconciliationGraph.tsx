@@ -139,8 +139,6 @@ function ReconciliationGraph({
     },
   ];
 
-  console.log(nodes);
-
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <div className={className} style={{ height: "100%", width: "100%" }}>

@@ -161,8 +161,8 @@ class D3Graph {
   update(nodes, edges) {
     this.graph
       .setGraph({
-        nodesep: 50,
-        ranksep: 50,
+        nodesep: 100,
+        ranksep: 150,
         rankdir: "TB",
       })
       .setDefaultEdgeLabel(() => {
