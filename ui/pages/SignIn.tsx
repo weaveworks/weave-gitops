@@ -40,10 +40,6 @@ const Logo = styled(Flex)`
   margin-bottom: ${(props) => props.theme.spacing.medium};
 `;
 
-const Action = styled(Flex)`
-  flex-wrap: wrap;
-`;
-
 const Footer = styled(Flex)`
   & img {
     width: 500px;
@@ -95,25 +91,21 @@ function SignIn() {
 
   return (
     <SignInPageWrapper center align column>
-      {error && (
-        <AlertWrapper
-          severity="error"
-          title="Error signin in"
-          message={`${String(error.status)} ${error.statusText}`}
-          center
-        />
-      )}
       <FormWrapper center align wrap>
-        <div
-          style={{
-            paddingTop: theme.spacing.base,
-          }}
-        >
-          <Logo>
+        {error && (
+          <AlertWrapper
+            severity="error"
+            title="Error signin in"
+            message={`${String(error.status)} ${error.statusText}`}
+            center
+          />
+        )}
+        <div>
+          <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
           {flags.OIDC_AUTH ? (
-            <Action>
+            <Flex wide center>
               <Button
                 type="submit"
                 onClick={(e) => {
@@ -123,7 +115,7 @@ function SignIn() {
               >
                 LOGIN WITH OIDC PROVIDER
               </Button>
-            </Action>
+            </Flex>
           ) : null}
           {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />
