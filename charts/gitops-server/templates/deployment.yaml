@@ -36,6 +36,14 @@ spec:
             - "{{ .Release.Namespace }}"
             - "--log-level"
             - "{{ .Values.logLevel }}"
+            {{- if .Values.serverTLS.enable }}
+            - "--tls-cert-file"
+            - "/etc/tls-volume/tls.crt"
+            - "--tls-private-key-file"
+            - "/etc/tls-volume/tls.key"
+            {{- else }}
+            - "--insecure"
+            {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}
@@ -65,6 +73,18 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.serverTLS.enable }}
+          volumeMounts:
+            - name: tls-volume
+              readOnly: true
+              mountPath: "/etc/tls-volume"
+          {{- end }}
+      {{- if .Values.serverTLS.enable }}
+      volumes:
+        - name: tls-volume
+          secret:
+            secretName: {{ .Values.serverTLS.secretName }}
+      {{ end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
