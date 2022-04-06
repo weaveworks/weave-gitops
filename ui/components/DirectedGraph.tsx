@@ -43,9 +43,9 @@ function DirectedGraph<T>({
   labelShape,
 }: Props<T>) {
   const svgRef = React.useRef();
-
   const graphRef = React.useRef<D3Graph>();
   const [zoomPercent, setZoomPercent] = React.useState(30);
+  // console.log(nodes, edges);
 
   React.useEffect(() => {
     if (!svgRef.current) {

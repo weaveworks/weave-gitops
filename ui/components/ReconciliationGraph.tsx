@@ -1,10 +1,14 @@
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import ErrorIcon from "@material-ui/icons/Error";
-import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
+/*eslint import/no-unresolved: [0]*/
+//@ts-ignore
+import failedSrc from "url:../images/failed.svg";
+//@ts-ignore
+import successSrc from "url:../images/success.svg";
+//@ts-ignore
+import suspendedSrc from "url:../images/suspended.svg";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { UnstructuredObject } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
@@ -16,17 +20,22 @@ export type Props = ReconciledVisualizationProps & {
   parentObject: { name?: string; namespace?: string };
 };
 
+const GraphIcon = styled.img`
+  height: 32px;
+  width: 32px;
+`;
+
 function getStatusIcon(status: string, suspended: boolean) {
-  if (suspended) return <HourglassFullIcon />;
+  if (suspended) return <GraphIcon src={suspendedSrc} />;
   switch (status) {
     case "Current":
-      return <CheckCircleIcon fontSize="large" />;
+      return <GraphIcon src={successSrc} />;
 
     case "InProgress":
-      return <HourglassFullIcon fontSize="large" />;
+      return <GraphIcon src={suspendedSrc} />;
 
     case "Failed":
-      return <ErrorIcon fontSize="large" />;
+      return <GraphIcon src={failedSrc} />;
 
     default:
       return "";
@@ -55,7 +64,7 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
             {getStatusIcon(object.status, object.suspended)}
           </div>
           <div style={{ padding: 4 }} />
-          {object.clusterName}/{object.name}
+          {object.name}
         </Flex>
         <Flex start wide align className="kind">
           <div className="kind-text">{object.groupVersionKind.kind}</div>
@@ -180,7 +189,7 @@ export default styled(ReconciliationGraph)`
       background-color: ${(props) => props.theme.colors.suspended};
     }
   }
-  .Alert {
+  .Failed {
     color: ${(props) => props.theme.colors.alert};
     &.status-line {
       background-color: ${(props) => props.theme.colors.alert};
