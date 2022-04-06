@@ -49,10 +49,14 @@ export const TitleBar = styled(Flex)`
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
+<<<<<<< HEAD
     <Flex wide column>
       <Spacer padding="xs" />
+=======
+    <Spacer padding="medium" style={{ width: "100%" }}>
+>>>>>>> e77125ad (fixed error length)
       {_.map(arr, (e, i) => (
-        <Flex key={i} wide>
+        <Flex key={i} wide start>
           <Alert title="Error" message={e?.message} severity="error" />
         </Flex>
       ))}

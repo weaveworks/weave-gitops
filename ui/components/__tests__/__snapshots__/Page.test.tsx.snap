@@ -152,15 +152,29 @@ exports[`Page snapshots default 1`] = `
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .c10 ul li {
   padding: 0 16px;
 }
 
 .c10 a {
+=======
+.c11 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c10 {
+>>>>>>> e77125ad (fixed error length)
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
+<<<<<<< HEAD
 .c7 {
   padding: 12px;
 }
@@ -171,6 +185,16 @@ exports[`Page snapshots default 1`] = `
 
 .c8 .MuiCircularProgress-root {
 =======
+=======
+.c10.title-bar-button {
+  width: 250px;
+}
+
+.c9 {
+  color: #737373;
+}
+
+>>>>>>> e77125ad (fixed error length)
 .c6 {
   padding: 12px;
 }
@@ -342,16 +366,24 @@ exports[`Page snapshots default 1`] = `
     />
   </div>
   <footer
-    className="Footer"
+    className="c9 Footer"
   >
     Need help? Contact us at
      
     <a
+      className="c10"
       href="mailto:support@weave.works"
+      rel="noreferrer"
       target="_blank"
 >>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
     >
-      support@weave.works
+      <span
+        className="c11"
+        color="primary"
+        size="normal"
+      >
+        support@weave.works
+      </span>
     </a>
   </footer>
 </div>
