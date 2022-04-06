@@ -143,7 +143,6 @@ class D3Graph {
     this.containerEl = element;
     this.svg = d3.select(element);
     this.svg.append("g");
-    this.svg.select("g").attr("transform-origin", "30% 15%");
     this.zoom(opts.initialZoom);
   }
 

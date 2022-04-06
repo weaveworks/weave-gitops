@@ -10,14 +10,20 @@ import successSrc from "url:../images/success.svg";
 //@ts-ignore
 import suspendedSrc from "url:../images/suspended.svg";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { UnstructuredObject } from "../lib/api/core/types.pb";
+import { Condition, UnstructuredObject } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
+import { computeReady } from "./KubeStatusIndicator";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
 export type Props = ReconciledVisualizationProps & {
-  parentObject: { name?: string; namespace?: string };
+  parentObject: {
+    name?: string;
+    namespace?: string;
+    conditions?: Condition[];
+    suspended?: boolean;
+  };
 };
 
 const GraphIcon = styled.img`
@@ -109,6 +115,12 @@ function ReconciliationGraph({
     []
   );
 
+  const findParentStatus = (parent) => {
+    if (parent.suspended) return "InProgress";
+    if (computeReady(parent.conditions)) return "Current";
+    return "Failed";
+  };
+
   const nodes = [
     ..._.map(objects, (r) => ({
       id: r.uid,
@@ -117,7 +129,7 @@ function ReconciliationGraph({
     })),
     {
       id: parentObject.name,
-      data: parentObject,
+      data: { ...parentObject, status: findParentStatus(parentObject) },
       label: (u: Props["parentObject"]) =>
         renderToString(
           <NodeHtml
@@ -126,6 +138,8 @@ function ReconciliationGraph({
         ),
     },
   ];
+
+  console.log(nodes);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
