@@ -77,7 +77,7 @@ function DirectedGraph<T>({
   }, [nodes, edges]);
 
   return (
-    <Flex width className={className}>
+    <Flex className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
         <Spacer padding="base" />
