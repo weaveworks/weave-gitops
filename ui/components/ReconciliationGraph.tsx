@@ -197,7 +197,7 @@ export default styled(ReconciliationGraph)`
     color: ${(props) => props.theme.colors.neutral30};
   }
   .edgePath path {
-    stroke: #bdbdbd;
+    stroke: ${(props) => props.theme.colors.neutral30};
     stroke-width: 1px;
   }
 `;
