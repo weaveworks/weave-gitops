@@ -22,10 +22,6 @@ type Container struct {
 var globalCacheContainer *Container
 
 func NewContainer(crClient client.Client, logger logr.Logger) *Container {
-	if globalCacheContainer != nil {
-		return globalCacheContainer
-	}
-
 	globalCacheContainer = &Container{
 		namespace: newNamespaceStore(crClient, logger),
 		logger:    logger,

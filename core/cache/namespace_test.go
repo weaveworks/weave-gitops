@@ -27,8 +27,8 @@ func TestContainer_Namespace(t *testing.T) {
 	defer cacheContainer.Stop()
 
 	// Global Cache
-	g.Expect(cache.NewContainer(k, log)).To(Equal(cacheContainer))
 	g.Expect(cache.GlobalContainer()).To(Equal(cacheContainer))
+	g.Expect(cache.NewContainer(k, log)).ToNot(Equal(cacheContainer))
 
 	nsList := cacheContainer.Namespaces()
 
