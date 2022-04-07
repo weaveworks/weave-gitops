@@ -126,15 +126,11 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
-<<<<<<< HEAD
-.c4 {
+.c7 {
   padding: 12px;
 }
 
-.c5 {
-=======
 .c8 {
->>>>>>> 521e90dd (snap and darker lines)
   padding-left: 8px;
 }
 
@@ -152,15 +148,7 @@ exports[`Page snapshots default 1`] = `
   opacity: 0;
 }
 
-<<<<<<< HEAD
-.c1 {
-=======
-.c7 {
-  padding: 12px;
-}
-
 .c3 {
->>>>>>> 521e90dd (snap and darker lines)
   background-color: rgba(255,255,255,0.75);
   border-radius: 10px;
   box-sizing: border-box;
