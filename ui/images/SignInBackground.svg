@@ -1007,22 +1007,6 @@
 			M3.7,705.6c0,0,342.8-486.5,665.5-359.6c322.7,126.9,281,360.8,449,348c167.9-12.8,327.7-138.4,327.7-138.4"/>
 	</g>
 	<g>
-			<animateTransform
-				attributeType="xml"
-				attributeName="transform"
-				type="translate"
-				dur="10s"
-				values="0,0; -100,-100; 0,0; -100,-150;0,0"
-				repeatCount="indefinite"/>
-			<animateTransform
-				attributeType="xml"
-				attributeName="transform"
-				type="scale"
-				dur='10s'
-				values="1;1.2;1;1.2;1"
-				repeatCount="indefinite"
-				additive="sum"/>
-
 			<radialGradient id="SVGID_00000109728591481849744000000006195669639193821100_" cx="2521.1069" cy="586.6285" r="18.5873" gradientTransform="matrix(-1 0 0 1 3078.5681 0)" gradientUnits="userSpaceOnUse">
 			<stop  offset="0" style="stop-color:#EDDAE8"/>
 			<stop  offset="5.624175e-02" style="stop-color:#CBD4E9"/>
