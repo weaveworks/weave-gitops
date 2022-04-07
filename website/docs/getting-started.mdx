@@ -13,10 +13,10 @@ If you haven't already, be sure to check out our [introduction](./intro.md) to W
 ## Before you begin
 
 We will provide a complete walkthrough of getting Flux installed and Weave GitOps configured. However, if you have:
--  an existing cluster bootstraped Flux 🎉
+-  an existing cluster bootstrapped Flux 🎉
 -  followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
 
-Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃  
+Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃
 but note ⚠️ you may need to alter commands where we are committing files to GitHub ⚠️.
 
 To follow along, you will need the following:
@@ -34,7 +34,7 @@ brew install fluxcd/tap/flux
 
 For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
 
-2. Export your credentials 
+2. Export your credentials
 
 ```
 export GITHUB_TOKEN=<your-token>
@@ -176,7 +176,7 @@ git push
 
 ### Install Weave GitOps
 
-Weave GitOps is installable via a Helm Chart and as such can be managed by Flux. 
+Weave GitOps is installable via a Helm Chart and as such can be managed by Flux.
 
 1. Clone your git repository where Flux has been bootstrapped.
 
@@ -193,7 +193,7 @@ flux create source helm ww-gitops \
   --export > ./clusters/my-cluster/weave-gitops-source.yaml
 ```
 
-The output should be similar to: 
+The output should be similar to:
 
 ```
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -203,7 +203,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m0s
-  url: 
+  url:
 ```
 
 3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
@@ -289,7 +289,7 @@ Weave GitOps provides insights into your application deployments, and makes cont
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 
-2. [Open the dashboad](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
+2. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
 
 ![Weave GitOps login screen](/img/dashboard-login.png)
 
@@ -442,7 +442,7 @@ patches:
         metadata:
           name: podinfo
         spec:
-          minReplicas: 3             
+          minReplicas: 3
       target:
         name: podinfo
         kind: HorizontalPodAutoscaler
@@ -474,7 +474,7 @@ This shows in the applications view with a yellow warning status indicating it i
 
 ![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
 
-To resume updates run the command 
+To resume updates run the command
 
 ```
 flux resume kustomization podinfo
@@ -482,6 +482,6 @@ flux resume kustomization podinfo
 
 ## Complete!
 
-Congratulations 🎉🎉🎉  
+Congratulations 🎉🎉🎉
 
 You've now completed the getting started guide. We would welcome any and all [feedback](./feedback-and-telemetry.md) on your experience.

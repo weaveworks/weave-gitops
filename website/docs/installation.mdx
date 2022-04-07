@@ -19,9 +19,9 @@ Weave GitOps is compatible with conformant Kubernetes distributions which match 
 Weave GitOps is an extension to Flux and therefore requires that Flux has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
 #### Configure access to the GitOps Dashboard web UI
-Weave GitOps includes a web UI which runs on your Kubernetes cluster. In order to allow users to access this, you must first configure an appropriate login mechanism. We support integration with OIDC providers, as well as an admin cluster user for getting started and emergencies. This cluster user can be disabled if preferred. 
+Weave GitOps includes a web UI which runs on your Kubernetes cluster. In order to allow users to access this, you must first configure an appropriate login mechanism. We support integration with OIDC providers, as well as an admin cluster user for getting started and emergencies. This cluster user can be disabled if preferred.
 
-Follow the guide here to appropriately configure access : [Securing access to the dashboard](./configuration/securing-access-to-the-dashboard). 
+Follow the guide here to appropriately configure access : [Securing access to the dashboard](./configuration/securing-access-to-the-dashboard).
 
 ### Install the Helm Chart
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRlease`. To install on your cluster, adjust the following where marked `<UPDATE>` based on the previous step, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
@@ -217,29 +217,6 @@ git commit --all --message "init commit"
 git push -u origin main
 ```
 
-#### Install Weave Gitops
-
-<Tabs groupId="git-host" default>
-<TabItem value="hosted" label="github.com / gitlab.com">
-
-```bash
-gitops install --config-repo https://github.com/my-org/my-repo
-```
-
-</TabItem>
-<TabItem value="on-prem" label="GitLab on other domains">
-
-`gitops` doesn't know if other domains are github or gitlab, we can hint it with the `--git-host-types` flag.
-
-```bash
-gitops install \
-  --config-repo https://git.example.com/my-org/my-repo \
-  --git-host-types="git.example.com=gitlab"
-```
-
-</TabItem>
-</Tabs>
-
 ### 2. Install a CAPI provider
 
 :::note `clusterctl` versions
@@ -371,7 +348,7 @@ A **Pull Request** will be created against your cluster repository. **Review and
 You should now be able to load the WGE UI:
 
 ```bash
-kubectl port-forward --namespace wego-system svc/clusters-service 8000:8000
+kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 ```
 
 The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
@@ -386,7 +363,7 @@ Head over to either:
 - [Deploying CAPA with EKS](./guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
 
 ## AWS Marketplace
-Weave GitOps is also available via the AWS Marketplace. 
+Weave GitOps is also available via the AWS Marketplace.
 
 The following steps will allow you to deploy the Weave GitOps product to an EKS cluster via a Helm Chart.
 
@@ -477,7 +454,7 @@ iam:
   serviceAccounts:
   - metadata:
       name: wego-service-account # Altering this will require a corresponding change in a later command
-      namespace: wego-system
+      namespace: flux-system
     roleOnly: true
     attachPolicy:
       Version: "2012-10-17"
@@ -529,15 +506,15 @@ helm install wego <URL/PATH> \
 Run the following from your workstation:
 
 ```bash
-kubectl get pods -n wego-system
+kubectl get pods -n flux-system
 # you should see something like the following returned
-wego-system          helm-controller-5b96d94c7f-tds9n                    1/1     Running   0          53s
-wego-system          image-automation-controller-5cf75fd555-zqm89        1/1     Running   0          53s
-wego-system          image-reflector-controller-6787985855-l4q4g         1/1     Running   0          53s
-wego-system          kustomize-controller-8467b8b884-x2cpd               1/1     Running   0          53s
-wego-system          notification-controller-55f94bc746-ggmwc            1/1     Running   0          53s
-wego-system          source-controller-78bfb8576-stnr5                   1/1     Running   0          53s
-wego-system          wego-metering-f7jqp                                 1/1     Running   0          53s
+flux-system          helm-controller-5b96d94c7f-tds9n                    1/1     Running   0          53s
+flux-system          image-automation-controller-5cf75fd555-zqm89        1/1     Running   0          53s
+flux-system          image-reflector-controller-6787985855-l4q4g         1/1     Running   0          53s
+flux-system          kustomize-controller-8467b8b884-x2cpd               1/1     Running   0          53s
+flux-system          notification-controller-55f94bc746-ggmwc            1/1     Running   0          53s
+flux-system          source-controller-78bfb8576-stnr5                   1/1     Running   0          53s
+flux-system          wego-metering-f7jqp                                 1/1     Running   0          53s
 ```
 
 Your Weave GitOps installation is now ready!
