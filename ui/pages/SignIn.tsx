@@ -10,15 +10,10 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 import { useFeatureFlags } from "../hooks/featureflags";
-// @ts-ignore
-import SignInBackground from "./../images/SignInBackground.svg";
-// @ts-ignore
-import SignInWheel from "./../images/SignInWheel.svg";
-// @ts-ignore
-import WeaveLogo from "./../images/WeaveLogo.svg";
+import images from "../lib/images";
 
 export const SignInPageWrapper = styled(Flex)`
-  background: url(${SignInBackground});
+  background: url(${images.signInBackground});
   height: 100%;
   width: 100%;
 `;
@@ -115,7 +110,7 @@ function SignIn() {
           }}
         >
           <Logo>
-            <img src={WeaveLogo} />
+            <img src={images.weaveLogo} />
           </Logo>
           {flags.OIDC_AUTH ? (
             <Action>
@@ -198,7 +193,7 @@ function SignIn() {
           </DocsWrapper>
         </div>
         <Footer>
-          <img src={SignInWheel} />
+          <img src={images.signInWheel} />
         </Footer>
       </FormWrapper>
     </SignInPageWrapper>

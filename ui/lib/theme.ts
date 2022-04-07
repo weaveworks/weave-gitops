@@ -2,8 +2,7 @@
 import { createTheme } from "@material-ui/core";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
-//@ts-ignore
-import bg from "../images/General-backgroundok.png";
+import images from "./images";
 
 const baseSpacingNumber = 16;
 
@@ -89,7 +88,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
     min-width: fit-content;
-    background: right bottom url(${bg}) no-repeat fixed ${(props) =>
+    background: right bottom url(${images.bg}) no-repeat fixed ${(props) =>
   props.theme.colors.neutral10}; 
     background-size: 100%;
   }
