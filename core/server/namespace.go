@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
@@ -18,7 +17,7 @@ const (
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
 func (cs *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNamespaceRequest) (*pb.GetFluxNamespaceResponse, error) {
-	for _, ns := range cs.cacheContainer.Namespaces() {
+	for _, ns := range cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster] {
 		instanceLabelMatch := ns.Labels[types.InstanceLabel] == fluxNamespaceInstance
 		partofLabelMatch := ns.Labels[types.PartOfLabel] == FluxNamespacePartOf
 
@@ -37,24 +36,29 @@ func (cs *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespaces
 		return nil, errors.New("getting clients pool from context: pool was nil")
 	}
 
-	namespaces := cs.cacheContainer.Namespaces()
-
 	restCfg, err := client.RestConfig(clustersmngr.DefaultCluster)
 	if err != nil {
 		return nil, err
-	}
-
-	filtered, err := cs.nsChecker.FilterAccessibleNamespaces(ctx, restCfg, namespaces)
-	if err != nil {
-		return nil, fmt.Errorf("filtering namespaces: %w", err)
 	}
 
 	response := &pb.ListNamespacesResponse{
 		Namespaces: []*pb.Namespace{},
 	}
 
-	for _, ns := range filtered {
-		response.Namespaces = append(response.Namespaces, types.NamespaceToProto(ns))
+	for clusterName, nsList := range cs.cacheContainer.Namespaces() {
+		nsList, err := cs.nsChecker.FilterAccessibleNamespaces(ctx, restCfg, nsList)
+		if err != nil {
+			cs.logger.Error(err, "filtering namespaces")
+
+			continue
+		}
+
+		for _, ns := range nsList {
+			response.Namespaces = append(
+				response.Namespaces,
+				types.NamespaceToProto(ns, clusterName),
+			)
+		}
 	}
 
 	return response, nil

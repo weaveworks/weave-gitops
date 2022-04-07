@@ -161,6 +161,7 @@ export type Namespace = {
   status?: string
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
+  clusterName?: string
 }
 
 export type Event = {

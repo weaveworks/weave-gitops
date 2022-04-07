@@ -24,7 +24,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	var results []*pb.Kustomization
 
-	for _, ns := range cs.cacheContainer.Namespaces() {
+	for _, ns := range cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster] {
 		nsResult, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name)
 		if err != nil {
 			cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
