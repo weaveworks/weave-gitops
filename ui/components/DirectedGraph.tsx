@@ -14,17 +14,15 @@ type Props<N> = {
   edges: { source: any; target: any }[];
   scale?: number;
   width: number | string;
-  height: number;
+  height: number | string;
   labelType?: "html" | "text";
   labelShape: "rect" | "ellipse";
 };
 
 const SliderFlex = styled(Flex)`
-  position: relative;
-  min-height: 200px;
-  height: 15vh;
+  min-height: 400px;
+  height: 25%;
   width: 5%;
-  top: 150px;
 `;
 
 const PercentFlex = styled(Flex)`
@@ -45,9 +43,8 @@ function DirectedGraph<T>({
   labelShape,
 }: Props<T>) {
   const svgRef = React.useRef();
-
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(30);
+  const [zoomPercent, setZoomPercent] = React.useState(20);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -82,9 +79,10 @@ function DirectedGraph<T>({
     <Flex className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
+        <Spacer padding="base" />
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
-          defaultValue={30}
+          defaultValue={20}
           orientation="vertical"
           aria-label="zoom"
         />
@@ -96,6 +94,7 @@ function DirectedGraph<T>({
 }
 
 export default styled(DirectedGraph)`
+  height: 100%;
   overflow: hidden;
   text {
     font-weight: 300;
@@ -109,9 +108,22 @@ export default styled(DirectedGraph)`
   foreignObject {
     display: flex;
     flex-direction: column;
-    width: 125px;
-    height: 125px;
+    width: 650px;
+    height: 200px;
     overflow: visible;
+  }
+  .MuiSlider-vertical .MuiSlider-track {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-rail {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-thumb {
+    margin-left: -8px;
+  }
+  .MuiSlider-thumb {
+    width: 24px;
+    height: 24px;
   }
 `;
 
@@ -131,13 +143,12 @@ class D3Graph {
     this.containerEl = element;
     this.svg = d3.select(element);
     this.svg.append("g");
-
     this.zoom(opts.initialZoom);
   }
 
   zoom(zoomPercent) {
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 30) / 100;
+      e.transform.k = (zoomPercent + 20) / 100;
       this.svg.select("g").attr("transform", e.transform);
     });
 
@@ -150,8 +161,8 @@ class D3Graph {
   update(nodes, edges) {
     this.graph
       .setGraph({
-        nodesep: 50,
-        ranksep: 50,
+        nodesep: 100,
+        ranksep: 150,
         rankdir: "TB",
       })
       .setDefaultEdgeLabel(() => {
@@ -163,8 +174,10 @@ class D3Graph {
         label: n.label(n.data),
         labelType: this.opts.labelType,
         shape: this.opts.labelShape,
-        width: 150,
-        height: 150,
+        width: 630,
+        height: 180,
+        rx: 10,
+        ry: 10,
         labelClass: "node-label",
       });
     });

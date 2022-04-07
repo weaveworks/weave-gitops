@@ -133,11 +133,12 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
-			Name:       obj.GetName(),
-			Namespace:  obj.GetNamespace(),
-			Status:     res.Status.String(),
-			Uid:        string(obj.GetUID()),
-			Conditions: mapUnstructuredConditions(res),
+			Name:        obj.GetName(),
+			Namespace:   obj.GetNamespace(),
+			Status:      res.Status.String(),
+			Uid:         string(obj.GetUID()),
+			Conditions:  mapUnstructuredConditions(res),
+			ClusterName: msg.GetClusterName(),
 		})
 	}
 
@@ -184,11 +185,12 @@ Items:
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
-			Name:       obj.GetName(),
-			Namespace:  obj.GetNamespace(),
-			Status:     statusResult.Status.String(),
-			Uid:        string(obj.GetUID()),
-			Conditions: mapUnstructuredConditions(statusResult),
+			Name:        obj.GetName(),
+			Namespace:   obj.GetNamespace(),
+			Status:      statusResult.Status.String(),
+			Uid:         string(obj.GetUID()),
+			Conditions:  mapUnstructuredConditions(statusResult),
+			ClusterName: msg.GetClusterName(),
 		})
 	}
 

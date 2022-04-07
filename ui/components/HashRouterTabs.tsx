@@ -5,6 +5,7 @@ import _ from "lodash";
 import * as React from "react";
 import { HashRouter, Redirect, Route, Switch } from "react-router-dom";
 import styled from "styled-components";
+import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
@@ -65,45 +66,42 @@ function HashRouterTabs({ className, children, defaultPath, history }: Props) {
   }));
 
   return (
-    <div className={className}>
-      <div>
-        <Tabs
-          indicatorColor="primary"
-          value={routesToIndex(routes, history.location.pathname)}
-          onChange={(e, val) => {
-            history.push(_.get(indexToRoute(routes, val), "path"));
-          }}
-        >
-          {_.map(routes, (route, i) => (
-            <Link key={i} href={`#${route.path}`}>
-              <Tab
-                className={activeClassName(route.path, history)}
-                label={
-                  <Text uppercase bold>
-                    {route.name}
-                  </Text>
-                }
-              />
-            </Link>
-          ))}
-        </Tabs>
-      </div>
-      <div>
-        <HashRouter>
-          <Spacer padding="small" />
-          <Switch>
-            {children}
-            <Redirect exact from="/" to={defaultPath} />
-          </Switch>
-        </HashRouter>
-      </div>
-    </div>
+    <Flex wide column start className={className}>
+      <Tabs
+        indicatorColor="primary"
+        value={routesToIndex(routes, history.location.pathname)}
+        onChange={(e, val) => {
+          history.push(_.get(indexToRoute(routes, val), "path"));
+        }}
+      >
+        {_.map(routes, (route, i) => (
+          <Link key={i} href={`#${route.path}`}>
+            <Tab
+              className={activeClassName(route.path, history)}
+              label={
+                <Text uppercase bold>
+                  {route.name}
+                </Text>
+              }
+            />
+          </Link>
+        ))}
+      </Tabs>
+      <HashRouter>
+        <Spacer padding="small" />
+        <Switch>
+          {children}
+          <Redirect exact from="/" to={defaultPath} />
+        </Switch>
+      </HashRouter>
+    </Flex>
   );
 }
 
 export default styled(HashRouterTabs).attrs({
   className: HashRouterTabs.name,
 })`
+  height: 100%;
   .MuiTabs-root ${Link} .active-tab {
     background: ${(props) => props.theme.colors.primary}19;
   }

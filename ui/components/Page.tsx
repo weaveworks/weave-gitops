@@ -22,7 +22,7 @@ export type PageProps = {
   isFetching?: boolean;
 };
 
-export const Content = styled.div`
+export const Content = styled(Flex)`
   background-color: rgba(255, 255, 255, 0.75);
   border-radius: 10px;
   box-sizing: border-box;
@@ -36,13 +36,11 @@ export const Content = styled.div`
   height: 100%;
 `;
 
-const Children = styled.div``;
+const Children = styled(Flex)`
+  height: 100%;
+`;
 
-export const TitleBar = styled.div`
-  align-items: center;
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
+export const TitleBar = styled(Flex)`
   h2 {
     margin: 0 !important;
     color: ${(props) => props.theme.colors.neutral40} !important;
@@ -52,13 +50,15 @@ export const TitleBar = styled.div`
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
-    <Spacer m={["small"]}>
+    <Flex wide column>
+      <Spacer padding="xs" />
       {_.map(arr, (e, i) => (
         <Flex key={i} wide>
           <Alert title="Error" message={e?.message} severity="error" />
         </Flex>
       ))}
-    </Spacer>
+      <Spacer padding="xs" />
+    </Flex>
   );
 }
 
@@ -75,16 +75,16 @@ function Page({
 
   if (loading) {
     return (
-      <Content>
+      <Content wide start column>
         <LoadingPage />
       </Content>
     );
   }
 
   return (
-    <div className={className}>
-      <Content>
-        <TitleBar>
+    <Flex column start className={className}>
+      <Content wide start column>
+        <TitleBar wide start between>
           <Flex align>
             <h2>{title}</h2>
             <Spacer padding="small" />
@@ -93,10 +93,12 @@ function Page({
           {actions}
         </TitleBar>
         {error && <Errors error={error} />}
-        <Children>{children}</Children>
+        <Children column wide start>
+          {children}
+        </Children>
       </Content>
       {settings.renderFooter && <Footer />}
-    </div>
+    </Flex>
   );
 }
 

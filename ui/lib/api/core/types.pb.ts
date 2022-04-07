@@ -153,6 +153,7 @@ export type UnstructuredObject = {
   status?: string
   conditions?: Condition[]
   suspended?: boolean
+  clusterName?: string
 }
 
 export type Namespace = {

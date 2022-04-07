@@ -156,6 +156,7 @@ message UnstructuredObject {
     string           status               = 5;
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
+    string           clusterName          = 8;
 }
 
 message Namespace {

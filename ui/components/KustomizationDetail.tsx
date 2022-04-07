@@ -1,7 +1,7 @@
 import { createHashHistory } from "history";
 import * as React from "react";
 import styled from "styled-components";
-import { Kustomization, AutomationKind } from "../lib/api/core/types.pb";
+import { AutomationKind, Kustomization } from "../lib/api/core/types.pb";
 import { WeGONamespace } from "../lib/types";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -16,9 +16,9 @@ import SourceLink from "./SourceLink";
 import Spacer from "./Spacer";
 
 type Props = {
-  name: string,
-  kustomization?: Kustomization,
-}
+  name: string;
+  kustomization?: Kustomization;
+};
 
 const Info = styled.div`
   padding-bottom: 32px;
@@ -72,7 +72,7 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
               }}
             />
           </HashRouterTab>
-          <HashRouterTab name="Reconciliation Graph" path="/graph">
+          <HashRouterTab name="Graph" path="/graph">
             <ReconciliationGraph
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
