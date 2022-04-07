@@ -13,7 +13,7 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-<<<<<<< HEAD
+  width: 100%;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
@@ -25,9 +25,9 @@ exports[`Page snapshots default 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
   -webkit-align-items: start;
   -webkit-box-align: start;
   -ms-flex-align: start;
@@ -37,6 +37,10 @@ exports[`Page snapshots default 1`] = `
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 }
 
 .c4 {
@@ -47,33 +51,17 @@ exports[`Page snapshots default 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-=======
-  width: 100%;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
 }
 
-<<<<<<< HEAD
-.c6 {
-=======
-.c3 {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -92,11 +80,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-<<<<<<< HEAD
-.c11 {
-=======
-.c5 {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -104,62 +88,40 @@ exports[`Page snapshots default 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
-<<<<<<< HEAD
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 }
 
-.c10 {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  font-size: 14px;
-}
-
-.c10 ul {
-  list-style: none;
-=======
-}
-
-.c8 {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  width: 100%;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-.c10 ul li {
-  padding: 0 16px;
-}
-
-.c10 a {
-=======
-.c11 {
+.c13 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -168,65 +130,47 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c10 {
->>>>>>> e77125ad (fixed error length)
+.c12 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-<<<<<<< HEAD
-.c7 {
-  padding: 12px;
-}
-
-.c8 {
-  padding-left: 8px;
-}
-
-.c8 .MuiCircularProgress-root {
-=======
-=======
-.c10.title-bar-button {
+.c12.title-bar-button {
   width: 250px;
 }
 
-.c9 {
+.c14 {
+  padding-right: 24px;
+  width: 275px;
+}
+
+.c10 {
   color: #737373;
 }
 
->>>>>>> e77125ad (fixed error length)
-.c6 {
+.c5 {
   padding: 12px;
 }
 
-.c7 {
+.c6 {
   padding-left: 8px;
 }
 
-.c7 .MuiCircularProgress-root {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c6 .MuiCircularProgress-root {
   -webkit-transition: opacity 2s;
   transition: opacity 2s;
   margin-bottom: 0;
 }
 
-<<<<<<< HEAD
-.c8 .MuiCircularProgress-root.in {
+.c6 .MuiCircularProgress-root.in {
   opacity: 1;
 }
 
-.c8 .MuiCircularProgress-root.out {
-=======
-.c7 .MuiCircularProgress-root.in {
-  opacity: 1;
-}
-
-.c7 .MuiCircularProgress-root.out {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c6 .MuiCircularProgress-root.out {
   opacity: 0;
 }
 
-.c3 {
+.c1 {
   background-color: rgba(255,255,255,0.75);
   border-radius: 10px;
   box-sizing: border-box;
@@ -239,152 +183,90 @@ exports[`Page snapshots default 1`] = `
   height: 100%;
 }
 
-<<<<<<< HEAD
-.c9 {
+.c8 {
   height: 100%;
 }
 
-.c5 h2 {
-=======
-.c4 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.c4 h2 {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
+.c3 h2 {
   margin: 0 !important;
   color: #1a1a1a !important;
 }
 
-<<<<<<< HEAD
-.c1 {
-  height: 100%;
-}
-
-.c1 .MuiAlert-root {
-=======
-.c2 {
-  height: 100%;
-}
-
-.c2 .MuiAlert-root {
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
-  width: 100%;
-}
-
 <div
-<<<<<<< HEAD
   className="c0 c1"
 >
   <div
     className="c2 c3"
   >
     <div
-      className="c4 c5"
-    >
-      <div
-        className="c6"
-      >
-        <h2 />
-        <div
-          className="c7"
-        />
-        <div
-          className="c6 c8"
-=======
-  className="c0 c1 c2"
->
-  <div
-    className="c3"
-  >
-    <div
       className="c4"
     >
+      <h2 />
       <div
         className="c5"
+      />
+      <div
+        className="c4 c6"
       >
-        <h2 />
         <div
-          className="c6"
-        />
-        <div
-          className="c5 c7"
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
-        >
-          <div
-            className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
-            role="progressbar"
-            style={
-              Object {
-                "height": "16px",
-                "width": "16px",
-              }
+          className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
+          role="progressbar"
+          style={
+            Object {
+              "height": "16px",
+              "width": "16px",
             }
+          }
+        >
+          <svg
+            className="MuiCircularProgress-svg"
+            viewBox="22 22 44 44"
           >
-            <svg
-              className="MuiCircularProgress-svg"
-              viewBox="22 22 44 44"
-            >
-              <circle
-                className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
-                cx={44}
-                cy={44}
-                fill="none"
-                r={20.2}
-                strokeWidth={3.6}
-                style={Object {}}
-              />
-            </svg>
-          </div>
+            <circle
+              className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
+              cx={44}
+              cy={44}
+              fill="none"
+              r={20.2}
+              strokeWidth={3.6}
+              style={Object {}}
+            />
+          </svg>
         </div>
       </div>
     </div>
-    <div
-<<<<<<< HEAD
-      className="c2 c9"
-    />
   </div>
+  <div
+    className="c7 c8"
+  />
   <footer
-    className="c10 Footer"
+    className="c9 c10 Footer"
   >
     <div
       className="c11"
-=======
-      className="c8"
-    />
-  </div>
-  <footer
-    className="c9 Footer"
-  >
-    Need help? Contact us at
-     
-    <a
-      className="c10"
-      href="mailto:support@weave.works"
-      rel="noreferrer"
-      target="_blank"
->>>>>>> bcfec3cd (wow it took a lot to get the footer inside the content container yikes)
     >
-      <span
-        className="c11"
-        color="primary"
-        size="normal"
+      Need help? Contact us at
+       
+      <a
+        className="c12"
+        href="mailto:support@weave.works"
+        rel="noreferrer"
+        target="_blank"
       >
-        support@weave.works
-      </span>
-    </a>
+        <span
+          className="c13"
+          color="primary"
+          size="normal"
+        >
+          support@weave.works
+        </span>
+      </a>
+    </div>
+    <div
+      className="c11 c14"
+    >
+      © 2022 Weaveworks
+    </div>
   </footer>
 </div>
 `;

@@ -49,12 +49,8 @@ export const TitleBar = styled(Flex)`
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
-<<<<<<< HEAD
     <Flex wide column>
       <Spacer padding="xs" />
-=======
-    <Spacer padding="medium" style={{ width: "100%" }}>
->>>>>>> e77125ad (fixed error length)
       {_.map(arr, (e, i) => (
         <Flex key={i} wide start>
           <Alert title="Error" message={e?.message} severity="error" />
@@ -65,14 +61,7 @@ function Errors({ error }) {
   );
 }
 
-function Page({
-  className,
-  children,
-  title,
-  actions,
-  loading,
-  error,
-}: PageProps) {
+function Page({ children, title, actions, loading, error }: PageProps) {
   const { settings } = useCommon();
   const fetching = useIsFetching();
 
@@ -85,23 +74,21 @@ function Page({
   }
 
   return (
-    <Flex column start className={className}>
-      <Content wide start column>
-        <TitleBar wide start between>
-          <Flex align>
-            <h2>{title}</h2>
-            <Spacer padding="small" />
-            <PollingIndicator loading={fetching > 0} />
-          </Flex>
-          {actions}
-        </TitleBar>
-        {error && <Errors error={error} />}
-        <Children column wide align start>
-          {children}
-        </Children>
-      </Content>
+    <Content wide start column>
+      <TitleBar wide start between>
+        <Flex align>
+          <h2>{title}</h2>
+          <Spacer padding="small" />
+          <PollingIndicator loading={fetching > 0} />
+        </Flex>
+        {actions}
+      </TitleBar>
+      {error && <Errors error={error} />}
+      <Children column wide align start>
+        {children}
+      </Children>
       {settings.renderFooter && <Footer />}
-    </Flex>
+    </Content>
   );
 }
 
