@@ -26,7 +26,7 @@ func WithClustersClient(clustersFetcher ClusterFetcher, next http.Handler) http.
 
 		clientsPool := NewClustersClientsPool()
 		for _, c := range clusters {
-			if err := clientsPool.Add(user, c); err != nil {
+			if err := clientsPool.Add(ClientConfigWithUser(user), c); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprintf(w, "failed adding cluster client to the pool: %s", err)
 				return

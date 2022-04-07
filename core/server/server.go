@@ -61,15 +61,12 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	ctx := context.Background()
-
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
-	c, err := client.New(cfg.RestCfg, client.Options{})
+	cacheContainer, err := cache.NewContainer(ctx, cfg.RestCfg, cfg.log)
 	if err != nil {
 		return nil, err
 	}
-
-	cacheContainer := cache.NewContainer(c, cfg.log)
 
 	cacheContainer.Start(ctx)
 
