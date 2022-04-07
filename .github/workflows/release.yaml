@@ -35,9 +35,7 @@ jobs:
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: "Make All"
-        run: |
-          npm i -g npm@8.1.2
-          make all
+        run: make all
       - name: Check Git State
         run: git diff --no-ext-diff --exit-code
       - name: Build Changelog
