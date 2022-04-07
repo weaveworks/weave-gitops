@@ -13,15 +13,18 @@ const RightFoot = styled(Flex)`
   width: 275px;
 `;
 
+const LeftFoot = styled(Flex)`
+  width: 350px;
+`;
 function Footer({ className }: Props) {
   return (
     <Flex as="footer" wide between className={className}>
-      <Flex>
-        Need help? Contact us at{" "}
+      <LeftFoot>
+        Need help? Contact us at
         <Link newTab href="mailto:support@weave.works">
           support@weave.works
         </Link>
-      </Flex>
+      </LeftFoot>
       <RightFoot>
         {process.env.NODE_ENV !== "test" && (
           <Link
