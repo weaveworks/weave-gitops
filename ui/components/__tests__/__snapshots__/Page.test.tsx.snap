@@ -121,7 +121,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-evenly;
 }
 
-.c13 {
+.c14 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -130,18 +130,22 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c12 {
+.c13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c12.title-bar-button {
+.c13.title-bar-button {
   width: 250px;
 }
 
-.c14 {
+.c15 {
   padding-right: 24px;
   width: 275px;
+}
+
+.c12 {
+  width: 350px;
 }
 
 .c10 {
@@ -243,18 +247,17 @@ exports[`Page snapshots default 1`] = `
     className="c9 c10 Footer"
   >
     <div
-      className="c11"
+      className="c11 c12"
     >
       Need help? Contact us at
-       
       <a
-        className="c12"
+        className="c13"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c13"
+          className="c14"
           color="primary"
           size="normal"
         >
@@ -263,7 +266,7 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c11 c14"
+      className="c11 c15"
     >
       © 2022 Weaveworks
     </div>
