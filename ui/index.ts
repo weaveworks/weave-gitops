@@ -16,7 +16,13 @@ import Timestamp from "./components/Timestamp";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
-import { Automation, useListAutomations, useGetKustomization, useGetHelmRelease } from "./hooks/automations";
+import {
+  Automation,
+  useListAutomations,
+  useGetKustomization,
+  useGetHelmRelease,
+} from "./hooks/automations";
+import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListSources } from "./hooks/sources";
 import { useFeatureFlags } from "./hooks/featureflags";
 import FeatureFlagsContextProvider, {
@@ -67,6 +73,7 @@ export {
   SourcesTable,
   theme,
   Timestamp,
+  useIsAuthenticated,
   useListSources,
   useFeatureFlags,
   useGetKustomization,
