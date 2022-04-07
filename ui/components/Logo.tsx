@@ -1,10 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-/*eslint import/no-unresolved: [0]*/
-// @ts-ignore
-import logoSrc from "../images/logo.svg";
-// @ts-ignore
-import titleSrc from "../images/Title.svg";
+import images from "../lib/images";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
 
@@ -15,9 +11,9 @@ type Props = {
 function Logo({ className }: Props) {
   return (
     <Flex className={className} align start>
-      <img src={logoSrc} style={{ height: 56 }} />
+      <img src={images.logoSrc} style={{ height: 56 }} />
       <Spacer padding="xxs" />
-      <img src={titleSrc} />
+      <img src={images.titleSrc} />
     </Flex>
   );
 }
