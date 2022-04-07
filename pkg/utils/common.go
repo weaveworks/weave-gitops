@@ -211,7 +211,7 @@ func FindCoreConfig(dir string) WalkResult {
 				foundPartial = true
 			}
 
-			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=GitRepository)(.metadata.name=%s)", coreManifestName))
+			_, err = rootNode.QueryMultiple(fmt.Sprintf(".(kind=HelmRepository)(.metadata.name=%s)", coreManifestName))
 			if err != nil {
 				if foundPartial {
 					return WalkResult{Status: Partial, Path: path}
