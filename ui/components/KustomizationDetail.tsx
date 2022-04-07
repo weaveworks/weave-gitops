@@ -26,12 +26,14 @@ const Info = styled.div`
 
 const TabContent = styled.div`
   margin-top: 52px;
+  width: 100%;
+  height: 100%;
 `;
 
 export default function KustomizationDetail({ kustomization, name }: Props) {
   const hashHistory = createHashHistory();
   return (
-    <>
+    <Flex wide column height="100%">
       <Spacer padding="xs" />
       <Flex wide between>
         <Info>
@@ -84,6 +86,6 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
           </HashRouterTab>
         </HashRouterTabs>
       </TabContent>
-    </>
+    </Flex>
   );
 }
