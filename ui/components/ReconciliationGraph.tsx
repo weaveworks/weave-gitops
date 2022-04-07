@@ -2,13 +2,7 @@ import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
-/*eslint import/no-unresolved: [0]*/
-//@ts-ignore
-import failedSrc from "url:../images/failed.svg";
-//@ts-ignore
-import successSrc from "url:../images/success.svg";
-//@ts-ignore
-import suspendedSrc from "url:../images/suspended.svg";
+import images from "../lib/images";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { Condition, UnstructuredObject } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
@@ -32,16 +26,16 @@ const GraphIcon = styled.img`
 `;
 
 function getStatusIcon(status: string, suspended: boolean) {
-  if (suspended) return <GraphIcon src={suspendedSrc} />;
+  if (suspended) return <GraphIcon src={images.suspendedSrc} />;
   switch (status) {
     case "Current":
-      return <GraphIcon src={successSrc} />;
+      return <GraphIcon src={images.successSrc} />;
 
     case "InProgress":
-      return <GraphIcon src={suspendedSrc} />;
+      return <GraphIcon src={images.suspendedSrc} />;
 
     case "Failed":
-      return <GraphIcon src={failedSrc} />;
+      return <GraphIcon src={images.failedSrc} />;
 
     default:
       return "";
@@ -94,13 +88,15 @@ function ReconciliationGraph({
     data: objects,
     error,
     isLoading,
-  } = parentObject ? useGetReconciledObjects(
-    parentObject?.name,
-    parentObject?.namespace,
-    automationKind,
-    kinds,
-    clusterName
-  ) : { data: [], error: null, isLoading: false };
+  } = parentObject
+    ? useGetReconciledObjects(
+        parentObject?.name,
+        parentObject?.namespace,
+        automationKind,
+        kinds,
+        clusterName
+      )
+    : { data: [], error: null, isLoading: false };
 
   const edges = _.reduce(
     objects,
