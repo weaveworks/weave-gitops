@@ -117,9 +117,7 @@ const ContentContainer = styled.div`
   padding-left: ${(props) => props.theme.spacing.medium};
 `;
 
-const Main = styled(Flex)`
-  height: 100%;
-`;
+const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
   background-color: ${(props) => props.theme.colors.primary};
@@ -144,7 +142,7 @@ function Layout({ className, children }: Props) {
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>
-        <Main wide>
+        <Main wide tall>
           <NavContainer>
             <NavContent>
               <Tabs
