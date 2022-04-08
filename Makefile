@@ -153,6 +153,7 @@ cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
 	npm run build
 
 node_modules: ## Install node modules
+	rm -rf .parcel-cache
 	npm install-clean
 	npx npm-force-resolutions
 
