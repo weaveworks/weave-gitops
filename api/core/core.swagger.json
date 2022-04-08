@@ -1133,6 +1133,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },

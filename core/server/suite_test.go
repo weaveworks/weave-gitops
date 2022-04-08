@@ -104,7 +104,7 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 		}
 
 		clientsPool := clustersmngr.NewClustersClientsPool()
-		if err := clientsPool.Add(user, cluster); err != nil {
+		if err := clientsPool.Add(clustersmngr.ClientConfigWithUser(user), cluster); err != nil {
 			return nil, err
 		}
 

@@ -56,13 +56,29 @@ type ClusterFetcher interface {
 
 // ClientsPool stores all clients to the leaf clusters
 type ClientsPool interface {
-	Add(user *auth.UserPrincipal, cluster Cluster) error
+	Add(cfg ClusterClientConfig, cluster Cluster) error
 	Clients() map[string]ClusterClient
 	Client(cluster string) (ClusterClient, error)
 }
 
 type clientsPool struct {
 	clients map[string]ClusterClient
+}
+
+type ClusterClientConfig func(Cluster) *rest.Config
+
+func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
+	return func(cluster Cluster) *rest.Config {
+		return &rest.Config{
+			Host:            cluster.Server,
+			BearerToken:     cluster.BearerToken,
+			TLSClientConfig: cluster.TLSConfig,
+			Impersonate: rest.ImpersonationConfig{
+				UserName: user.ID,
+				Groups:   user.Groups,
+			},
+		}
+	}
 }
 
 // NewClustersClientsPool initializes a new ClientsPool
@@ -73,16 +89,8 @@ func NewClustersClientsPool() ClientsPool {
 }
 
 // Add adds a cluster client to the clients pool with the given user impersonation
-func (cp *clientsPool) Add(user *auth.UserPrincipal, cluster Cluster) error {
-	config := &rest.Config{
-		Host:            cluster.Server,
-		BearerToken:     cluster.BearerToken,
-		TLSClientConfig: cluster.TLSConfig,
-		Impersonate: rest.ImpersonationConfig{
-			UserName: user.ID,
-			Groups:   user.Groups,
-		},
-	}
+func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
+	config := cfg(cluster)
 
 	leafClient, err := client.New(config, client.Options{
 		Scheme: scheme,
