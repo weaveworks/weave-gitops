@@ -2,11 +2,13 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 const pollIntervalSeconds = 120
@@ -59,6 +61,10 @@ func (n *namespaceStore) Start(ctx context.Context) {
 
 				err := c.List(newCtx, list)
 				if err != nil {
+					if !apierrors.IsForbidden(err) && !errors.Is(err, context.Canceled) {
+						n.logger.Error(err, "unable to fetch namespaces", "cluster", name)
+					}
+
 					continue
 				}
 

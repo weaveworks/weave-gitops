@@ -11,6 +11,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type defaultClusterNotFound struct{}
+
+func (e defaultClusterNotFound) Error() string {
+	return "default cluster not found"
+}
+
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
@@ -23,6 +29,10 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	}
 
 	var results []*pb.Kustomization
+
+	if _, found := cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster]; !found {
+		return nil, defaultClusterNotFound{}
+	}
 
 	for _, ns := range cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster] {
 		nsResult, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name)
