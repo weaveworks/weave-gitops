@@ -40,7 +40,7 @@ rules:
     verbs: [ "get", "list", "patch" ]
   - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-    verbs: [ "get", "list" ]
+    verbs: [ "get", "list", "patch" ]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
