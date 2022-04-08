@@ -1,5 +1,5 @@
-import { createHashHistory } from "history";
 import * as React from "react";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncAutomation } from "../hooks/automations";
@@ -8,7 +8,6 @@ import { WeGONamespace } from "../lib/types";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import InfoList from "./InfoList";
 import Interval from "./Interval";
@@ -16,6 +15,7 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
+import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Timestamp from "./Timestamp";
 
@@ -37,8 +37,8 @@ const TabContent = styled(Flex)`
 
 function KustomizationDetail({ kustomization, name, className }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
+  const { path } = useRouteMatch();
 
-  const hashHistory = createHashHistory();
   const sync = useSyncAutomation({
     name: kustomization?.name,
     namespace: kustomization?.namespace,
@@ -87,8 +87,8 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
       </Flex>
       <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
       <TabContent>
-        <HashRouterTabs history={hashHistory} defaultPath="/details">
-          <HashRouterTab name="Details" path="/details">
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
             <ReconciledObjectsTable
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
@@ -96,8 +96,8 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
               namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
-          </HashRouterTab>
-          <HashRouterTab name="Events" path="/events">
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
             <EventsTable
               involvedObject={{
                 kind: "Kustomization",
@@ -105,8 +105,8 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
                 namespace: kustomization?.namespace,
               }}
             />
-          </HashRouterTab>
-          <HashRouterTab name="Graph" path="/graph">
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
@@ -115,8 +115,8 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
               namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
-          </HashRouterTab>
-        </HashRouterTabs>
+          </RouterTab>
+        </SubRouterTabs>
       </TabContent>
     </Flex>
   );
