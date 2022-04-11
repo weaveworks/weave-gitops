@@ -99,7 +99,7 @@ function UnstyledFilterDialog({
   };
 
   return (
-    <SlideContainer className={`${open ? "open" : ""}`}>
+    <SlideContainer className={`${open ? "open" : ""}`} data-testid="container">
       <SlideContent>
         <Flex className={className} start column>
           <Flex wide align between>
@@ -149,12 +149,6 @@ function UnstyledFilterDialog({
 }
 
 export default styled(UnstyledFilterDialog)`
-  &.filter-bar {
-    background: ${(props) => props.theme.colors.neutral00};
-    min-width: 450px;
-    border-left: 2px solid ${(props) => props.theme.colors.neutral20};
-    padding-left: ${(props) => props.theme.spacing.medium};
-  }
   .MuiListItem-gutters {
     padding-left: 0px;
   }

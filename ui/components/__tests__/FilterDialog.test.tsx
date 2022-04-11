@@ -18,10 +18,13 @@ describe("FilterDialog", () => {
           filterList={filterList}
           formState={initialFormState(filterList)}
           onFilterSelect={setActiveFilters}
+          open={false}
         />
       )
     );
-    expect(screen.queryByText("Name")).toBeNull();
+    expect(screen.getByTestId("container").getAttribute("class")).not.toContain(
+      "open"
+    );
   });
   it("should reveal filter list when open", () => {
     render(
@@ -34,7 +37,9 @@ describe("FilterDialog", () => {
         />
       )
     );
-    expect(screen.queryByText("Name")).toBeTruthy();
+    expect(screen.getByTestId("container").getAttribute("class")).toContain(
+      "open"
+    );
   });
   it("should return a value when a parameter is clicked", () => {
     const onFilterSelect = jest.fn();
