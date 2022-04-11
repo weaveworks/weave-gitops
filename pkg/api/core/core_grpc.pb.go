@@ -62,6 +62,9 @@ type CoreClient interface {
 	//
 	// ListFluxEvents returns with a list of events based on Flux labels
 	ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error)
+	//
+	// SyncResource forces a reconciliation of a Flux resource
+	SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error)
 }
 
 type coreClient struct {
@@ -198,6 +201,15 @@ func (c *coreClient) ListFluxEvents(ctx context.Context, in *ListFluxEventsReque
 	return out, nil
 }
 
+func (c *coreClient) SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error) {
+	out := new(SyncAutomationResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/SyncAutomation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -246,6 +258,9 @@ type CoreServer interface {
 	//
 	// ListFluxEvents returns with a list of events based on Flux labels
 	ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error)
+	//
+	// SyncResource forces a reconciliation of a Flux resource
+	SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -294,6 +309,9 @@ func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRe
 }
 func (UnimplementedCoreServer) ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxEvents not implemented")
+}
+func (UnimplementedCoreServer) SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncAutomation not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -560,6 +578,24 @@ func _Core_ListFluxEvents_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_SyncAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).SyncAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/SyncAutomation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).SyncAutomation(ctx, req.(*SyncAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -622,6 +658,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxEvents",
 			Handler:    _Core_ListFluxEvents_Handler,
+		},
+		{
+			MethodName: "SyncAutomation",
+			Handler:    _Core_SyncAutomation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

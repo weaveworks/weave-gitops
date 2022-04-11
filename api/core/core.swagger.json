@@ -496,6 +496,39 @@
           "Core"
         ]
       }
+    },
+    "/v1/sync": {
+      "post": {
+        "summary": "SyncResource forces a reconciliation of a Flux resource",
+        "operationId": "Core_SyncAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
     }
   },
   "definitions": {
@@ -1161,8 +1194,34 @@
         },
         "name": {
           "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
+    },
+    "v1SyncAutomationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/definitions/v1AutomationKind"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "withSource": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1SyncAutomationResponse": {
+      "type": "object"
     },
     "v1UnstructuredObject": {
       "type": "object",

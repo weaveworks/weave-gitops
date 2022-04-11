@@ -1,8 +1,11 @@
 import { createHashHistory } from "history";
 import * as React from "react";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
+import { useSyncAutomation } from "../hooks/automations";
 import { AutomationKind, Kustomization } from "../lib/api/core/types.pb";
 import { WeGONamespace } from "../lib/types";
+import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
@@ -13,15 +16,17 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
-import Spacer from "./Spacer";
+import SyncButton from "./SyncButton";
+import Timestamp from "./Timestamp";
 
 type Props = {
   name: string;
   kustomization?: Kustomization;
+  className?: string;
 };
 
 const Info = styled.div`
-  padding-bottom: 32px;
+  margin-bottom: 16px;
 `;
 
 const TabContent = styled(Flex)`
@@ -30,11 +35,25 @@ const TabContent = styled(Flex)`
   height: 100%;
 `;
 
-export default function KustomizationDetail({ kustomization, name }: Props) {
+function KustomizationDetail({ kustomization, name, className }: Props) {
+  const { notifySuccess } = React.useContext(AppContext);
+
   const hashHistory = createHashHistory();
+  const sync = useSyncAutomation({
+    name: kustomization?.name,
+    namespace: kustomization?.namespace,
+    clusterName: kustomization?.clusterName,
+    kind: AutomationKind.KustomizationAutomation,
+  });
+
+  const handleSyncClicked = (opts) => {
+    sync.mutateAsync(opts).then(() => {
+      notifySuccess("Resource synced successfully");
+    });
+  };
+
   return (
-    <Flex wide column height="100%">
-      <Spacer padding="xs" />
+    <div className={className}>
       <Flex wide between>
         <Info>
           <Heading level={2}>{kustomization?.namespace}</Heading>
@@ -45,7 +64,10 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
               ["Cluster", kustomization?.clusterName],
               ["Path", kustomization?.path],
               ["Interval", <Interval interval={kustomization?.interval} />],
-              ["Last Updated At", kustomization?.lastHandledReconciledAt],
+              [
+                "Last Updated At",
+                <Timestamp time={kustomization?.lastHandledReconciledAt} />,
+              ],
             ]}
           />
         </Info>
@@ -54,7 +76,17 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
           suspended={kustomization?.suspended}
         />
       </Flex>
-      <TabContent wide column align>
+      <Flex wide>
+        {sync.isError && (
+          <Alert
+            severity="error"
+            message={sync.error.message}
+            title="Sync Error"
+          />
+        )}
+      </Flex>
+      <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
+      <TabContent>
         <HashRouterTabs history={hashHistory} defaultPath="/details">
           <HashRouterTab name="Details" path="/details">
             <ReconciledObjectsTable
@@ -86,6 +118,14 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
           </HashRouterTab>
         </HashRouterTabs>
       </TabContent>
-    </Flex>
+    </div>
   );
 }
+
+export default styled(KustomizationDetail).attrs({
+  className: KustomizationDetail.name,
+})`
+  ${Alert} {
+    margin-bottom: 16px;
+  }
+`;

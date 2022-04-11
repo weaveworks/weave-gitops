@@ -1,4 +1,9 @@
-import { Condition, Interval, SourceRefSourceKind } from "./api/core/types.pb";
+import {
+  AutomationKind,
+  Condition,
+  Interval,
+  SourceRefSourceKind,
+} from "./api/core/types.pb";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -50,4 +55,11 @@ export interface Source {
 export enum AutomationType {
   Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
+}
+
+export interface Syncable {
+  name?: string;
+  kind?: AutomationKind;
+  namespace?: string;
+  clusterName?: string;
 }

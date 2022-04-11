@@ -33,6 +33,9 @@ type Client interface {
 
 	// RestConfig returns a rest.Config for a given cluster
 	RestConfig(cluster string) (*rest.Config, error)
+
+	// Scoped returns a client that is scoped to a single cluster
+	Scoped(cluster string) (client.Client, error)
 }
 
 type clustersClient struct {
@@ -138,6 +141,15 @@ func (c clustersClient) RestConfig(cluster string) (*rest.Config, error) {
 	}
 
 	return client.RestConfig(), nil
+}
+
+func (c clustersClient) Scoped(cluster string) (client.Client, error) {
+	client, err := c.pool.Client(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 type ClusteredObjectList interface {

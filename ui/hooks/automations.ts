@@ -1,15 +1,23 @@
 import _ from "lodash";
 import { useContext } from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
 import {
   GetHelmReleaseResponse,
   GetKustomizationResponse,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
+  SyncAutomationRequest,
+  SyncAutomationResponse,
 } from "../lib/api/core/core.pb";
 import { Kustomization } from "../lib/api/core/types.pb";
-import { AutomationType, RequestError, WeGONamespace, DefaultCluster } from "../lib/types";
+import {
+  AutomationType,
+  DefaultCluster,
+  RequestError,
+  Syncable,
+  WeGONamespace,
+} from "../lib/types";
 
 export type Automation = Kustomization & { type: AutomationType };
 
@@ -50,7 +58,11 @@ export function useListAutomations(namespace = WeGONamespace) {
   );
 }
 
-export function useGetKustomization(name: string, clusterName = DefaultCluster, namespace = WeGONamespace) {
+export function useGetKustomization(
+  name: string,
+  clusterName = DefaultCluster,
+  namespace = WeGONamespace
+) {
   const { api } = useContext(AppContext);
 
   return useQuery<GetKustomizationResponse, RequestError>(
@@ -60,7 +72,11 @@ export function useGetKustomization(name: string, clusterName = DefaultCluster, 
   );
 }
 
-export function useGetHelmRelease(name: string, clusterName = DefaultCluster, namespace = WeGONamespace) {
+export function useGetHelmRelease(
+  name: string,
+  clusterName = DefaultCluster,
+  namespace = WeGONamespace
+) {
   const { api } = useContext(AppContext);
 
   return useQuery<GetHelmReleaseResponse, RequestError>(
@@ -68,4 +84,15 @@ export function useGetHelmRelease(name: string, clusterName = DefaultCluster, na
     () => api.GetHelmRelease({ name, namespace, clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
+}
+
+export function useSyncAutomation(obj: Syncable) {
+  const { api } = useContext(AppContext);
+  const mutation = useMutation<
+    SyncAutomationResponse,
+    RequestError,
+    SyncAutomationRequest
+  >(({ withSource }) => api.SyncAutomation({ ...obj, withSource }));
+
+  return mutation;
 }

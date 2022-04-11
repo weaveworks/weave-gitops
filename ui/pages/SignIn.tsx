@@ -1,16 +1,16 @@
-import * as React from "react";
-import styled from "styled-components";
-import { Redirect } from "react-router-dom";
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
-import { theme } from "../lib/theme";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
+import { theme } from "../lib/theme";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${images.signInBackground});
@@ -38,10 +38,6 @@ export const FormWrapper = styled(Flex)`
 
 const Logo = styled(Flex)`
   margin-bottom: ${(props) => props.theme.spacing.medium};
-`;
-
-const Action = styled(Flex)`
-  flex-wrap: wrap;
 `;
 
 const Footer = styled(Flex)`
@@ -95,25 +91,21 @@ function SignIn() {
 
   return (
     <SignInPageWrapper center align column>
-      {error && (
-        <AlertWrapper
-          severity="error"
-          title="Error signin in"
-          message={`${String(error.status)} ${error.statusText}`}
-          center
-        />
-      )}
       <FormWrapper center align wrap>
-        <div
-          style={{
-            paddingTop: theme.spacing.base,
-          }}
-        >
-          <Logo>
+        {error && (
+          <AlertWrapper
+            severity="error"
+            title="Error signin in"
+            message={`${String(error.status)} ${error.statusText}`}
+            center
+          />
+        )}
+        <div>
+          <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
           {flags.OIDC_AUTH ? (
-            <Action>
+            <Flex wide center>
               <Button
                 type="submit"
                 onClick={(e) => {
@@ -123,7 +115,7 @@ function SignIn() {
               >
                 LOGIN WITH OIDC PROVIDER
               </Button>
-            </Action>
+            </Flex>
           ) : null}
           {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />

@@ -29,7 +29,7 @@ function EventsTable({
 
   if (isLoading) {
     return (
-      <Flex wide align>
+      <Flex wide center align>
         <CircularProgress />
       </Flex>
     );

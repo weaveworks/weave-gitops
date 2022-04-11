@@ -129,6 +129,17 @@ export type ListFluxEventsResponse = {
   events?: Gitops_coreV1Types.Event[]
 }
 
+export type SyncAutomationRequest = {
+  name?: string
+  namespace?: string
+  kind?: Gitops_coreV1Types.AutomationKind
+  clusterName?: string
+  withSource?: boolean
+}
+
+export type SyncAutomationResponse = {
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -171,5 +182,8 @@ export class Core {
   }
   static ListFluxEvents(req: ListFluxEventsRequest, initReq?: fm.InitReq): Promise<ListFluxEventsResponse> {
     return fm.fetchReq<ListFluxEventsRequest, ListFluxEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static SyncAutomation(req: SyncAutomationRequest, initReq?: fm.InitReq): Promise<SyncAutomationResponse> {
+    return fm.fetchReq<SyncAutomationRequest, SyncAutomationResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
