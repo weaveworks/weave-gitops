@@ -13,24 +13,6 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
   width: 100%;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
@@ -38,7 +20,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c4 {
+.c2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -61,7 +43,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c6 {
+.c4 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -77,6 +59,48 @@ exports[`Page snapshots default 1`] = `
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
+}
+
+.c7 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c9 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 }
 
 .c11 {
@@ -87,68 +111,70 @@ exports[`Page snapshots default 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  width: 100%;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
   -webkit-box-pack: space-evenly;
   -webkit-justify-content: space-evenly;
   -ms-flex-pack: space-evenly;
   justify-content: space-evenly;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
 }
 
-.c10 {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  font-size: 14px;
+.c14 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
 }
 
-.c10 ul {
-  list-style: none;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.c10 ul li {
-  padding: 0 16px;
-}
-
-.c10 a {
+.c13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c7 {
+.c13.title-bar-button {
+  width: 250px;
+}
+
+.c15 {
+  padding-right: 24px;
+  width: 275px;
+}
+
+.c12 {
+  width: 350px;
+}
+
+.c10 {
+  color: #737373;
+}
+
+.c5 {
   padding: 12px;
 }
 
-.c8 {
+.c6 {
   padding-left: 8px;
 }
 
-.c8 .MuiCircularProgress-root {
+.c6 .MuiCircularProgress-root {
   -webkit-transition: opacity 2s;
   transition: opacity 2s;
   margin-bottom: 0;
 }
 
-.c8 .MuiCircularProgress-root.in {
+.c6 .MuiCircularProgress-root.in {
   opacity: 1;
 }
 
-.c8 .MuiCircularProgress-root.out {
+.c6 .MuiCircularProgress-root.out {
   opacity: 0;
 }
 
-.c3 {
+.c1 {
   background-color: rgba(255,255,255,0.75);
   border-radius: 10px;
   box-sizing: border-box;
@@ -158,25 +184,16 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
-  width: 100%;
   height: 100%;
 }
 
-.c9 {
+.c8 {
   height: 100%;
 }
 
-.c5 h2 {
+.c3 h2 {
   margin: 0 !important;
   color: #1a1a1a !important;
-}
-
-.c1 {
-  height: 100%;
-}
-
-.c1 .MuiAlert-root {
-  width: 100%;
 }
 
 <div
@@ -186,99 +203,72 @@ exports[`Page snapshots default 1`] = `
     className="c2 c3"
   >
     <div
-      className="c4 c5"
+      className="c4"
     >
+      <h2 />
       <div
-        className="c6"
+        className="c5"
+      />
+      <div
+        className="c4 c6"
       >
-        <h2 />
         <div
-          className="c7"
-        />
-        <div
-          className="c6 c8"
-        >
-          <div
-            className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
-            role="progressbar"
-            style={
-              Object {
-                "height": "16px",
-                "width": "16px",
-              }
+          className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
+          role="progressbar"
+          style={
+            Object {
+              "height": "16px",
+              "width": "16px",
             }
+          }
+        >
+          <svg
+            className="MuiCircularProgress-svg"
+            viewBox="22 22 44 44"
           >
-            <svg
-              className="MuiCircularProgress-svg"
-              viewBox="22 22 44 44"
-            >
-              <circle
-                className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
-                cx={44}
-                cy={44}
-                fill="none"
-                r={20.2}
-                strokeWidth={3.6}
-                style={Object {}}
-              />
-            </svg>
-          </div>
+            <circle
+              className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
+              cx={44}
+              cy={44}
+              fill="none"
+              r={20.2}
+              strokeWidth={3.6}
+              style={Object {}}
+            />
+          </svg>
         </div>
       </div>
     </div>
-    <div
-      className="c2 c9"
-    />
   </div>
+  <div
+    className="c7 c8"
+  />
   <footer
-    className="c10 Footer"
+    className="c9 c10 Footer"
   >
     <div
-      className="c11"
+      className="c11 c12"
     >
-      <ul>
-        <li>
-          © 2021 Weaveworks
-        </li>
-        <li>
-          <span>
-            •
-          </span>
-        </li>
-        <li>
-          <a
-            href="https://www.weave.works/product/gitops-core/"
-            target="_blank"
-          >
-            About
-          </a>
-        </li>
-        <li>
-          <a
-            href="https://docs.gitops.weave.works/"
-            target="_blank"
-          >
-            Docs
-          </a>
-        </li>
-        <li>
-          <a
-            href="https://www.weave.works/help/"
-            target="_blank"
-          >
-            Help
-          </a>
-        </li>
-        <li>
-          <a
-            href="mailto:sales@weave.works"
-            target="_blank"
-          >
-            Commercial Support
-          </a>
-        </li>
-        <li />
-      </ul>
+      Need help? Contact us at
+      <a
+        className="c13"
+        href="mailto:support@weave.works"
+        rel="noreferrer"
+        target="_blank"
+      >
+        <span
+          className="c14"
+          color="primary"
+          size="normal"
+        >
+          support@weave.works
+        </span>
+      </a>
+    </div>
+    <div
+      className="c11 c15"
+    >
+      © 2022 Weaveworks
     </div>
   </footer>
 </div>

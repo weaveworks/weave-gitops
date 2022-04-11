@@ -32,7 +32,6 @@ export const Content = styled(Flex)`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.medium};
-  width: 100%;
   height: 100%;
 `;
 
@@ -53,7 +52,7 @@ function Errors({ error }) {
     <Flex wide column>
       <Spacer padding="xs" />
       {_.map(arr, (e, i) => (
-        <Flex key={i} wide>
+        <Flex key={i} wide start>
           <Alert title="Error" message={e?.message} severity="error" />
         </Flex>
       ))}
@@ -62,14 +61,7 @@ function Errors({ error }) {
   );
 }
 
-function Page({
-  className,
-  children,
-  title,
-  actions,
-  loading,
-  error,
-}: PageProps) {
+function Page({ children, title, actions, loading, error }: PageProps) {
   const { settings } = useCommon();
   const fetching = useIsFetching();
 
@@ -82,23 +74,21 @@ function Page({
   }
 
   return (
-    <Flex column start className={className}>
-      <Content wide start column>
-        <TitleBar wide start between>
-          <Flex align>
-            <h2>{title}</h2>
-            <Spacer padding="small" />
-            <PollingIndicator loading={fetching > 0} />
-          </Flex>
-          {actions}
-        </TitleBar>
-        {error && <Errors error={error} />}
-        <Children column wide start>
-          {children}
-        </Children>
-      </Content>
+    <Content wide start column>
+      <TitleBar wide start between>
+        <Flex align>
+          <h2>{title}</h2>
+          <Spacer padding="small" />
+          <PollingIndicator loading={fetching > 0} />
+        </Flex>
+        {actions}
+      </TitleBar>
+      {error && <Errors error={error} />}
+      <Children column wide align start>
+        {children}
+      </Children>
       {settings.renderFooter && <Footer />}
-    </Flex>
+    </Content>
   );
 }
 

@@ -104,6 +104,10 @@ exports[`DataTable snapshots renders 1`] = `
   min-width: 0px;
 }
 
+.c0 {
+  width: 100%;
+}
+
 .c0 h2 {
   font-size: 18px;
   font-weight: 600;

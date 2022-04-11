@@ -207,6 +207,7 @@ function UnstyledDataTable({
 }
 
 export const DataTable = styled(UnstyledDataTable)`
+  width: 100%;
   h2 {
     font-size: 18px;
     font-weight: 600;

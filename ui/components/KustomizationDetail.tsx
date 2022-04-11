@@ -24,7 +24,7 @@ const Info = styled.div`
   padding-bottom: 32px;
 `;
 
-const TabContent = styled.div`
+const TabContent = styled(Flex)`
   margin-top: 52px;
   width: 100%;
   height: 100%;
@@ -54,7 +54,7 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
           suspended={kustomization?.suspended}
         />
       </Flex>
-      <TabContent>
+      <TabContent wide column align>
         <HashRouterTabs history={hashHistory} defaultPath="/details">
           <HashRouterTab name="Details" path="/details">
             <ReconciledObjectsTable
