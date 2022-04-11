@@ -10,20 +10,30 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 const (
 	NamespaceStorage StorageType = "namespace"
 )
 
 type StorageType string
 
-type Container struct {
+//counterfeiter:generate . Container
+type Container interface {
+	Start(ctx context.Context)
+	Stop()
+	ForceRefresh(name StorageType)
+	Namespaces() map[string][]v1.Namespace
+}
+
+type container struct {
 	namespace namespaceStore
 	logger    logr.Logger
 }
 
-var globalCacheContainer *Container
+var globalCacheContainer Container
 
-func NewContainer(ctx context.Context, restCfg *rest.Config, logger logr.Logger) (*Container, error) {
+func NewContainer(ctx context.Context, restCfg *rest.Config, logger logr.Logger) (Container, error) {
 	if globalCacheContainer != nil {
 		return globalCacheContainer, nil
 	}
@@ -33,7 +43,7 @@ func NewContainer(ctx context.Context, restCfg *rest.Config, logger logr.Logger)
 		return nil, err
 	}
 
-	globalCacheContainer = &Container{
+	globalCacheContainer = &container{
 		namespace: newNamespaceStore(clusterClient, logger),
 		logger:    logger,
 	}
@@ -41,26 +51,26 @@ func NewContainer(ctx context.Context, restCfg *rest.Config, logger logr.Logger)
 	return globalCacheContainer, nil
 }
 
-func GlobalContainer() *Container {
+func GlobalContainer() Container {
 	return globalCacheContainer
 }
 
-func (c *Container) Start(ctx context.Context) {
+func (c *container) Start(ctx context.Context) {
 	c.namespace.Start(ctx)
 }
 
-func (c *Container) Stop() {
+func (c *container) Stop() {
 	c.namespace.Stop()
 }
 
-func (c *Container) ForceRefresh(name StorageType) {
+func (c *container) ForceRefresh(name StorageType) {
 	switch name {
 	case NamespaceStorage:
 		c.namespace.ForceRefresh()
 	}
 }
 
-func (c *Container) Namespaces() map[string][]v1.Namespace {
+func (c *container) Namespaces() map[string][]v1.Namespace {
 	return c.namespace.Namespaces()
 }
 

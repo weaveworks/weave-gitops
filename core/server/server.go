@@ -38,24 +38,26 @@ type coreServer struct {
 	pb.UnimplementedCoreServer
 
 	k8s            kube.ClientGetter
-	cacheContainer *cache.Container
+	cacheContainer cache.Container
 	logger         logr.Logger
 	nsChecker      nsaccess.Checker
 }
 
 type CoreServerConfig struct {
-	log         logr.Logger
-	RestCfg     *rest.Config
-	clusterName string
-	NSAccess    nsaccess.Checker
+	log            logr.Logger
+	RestCfg        *rest.Config
+	clusterName    string
+	NSAccess       nsaccess.Checker
+	cacheContainer cache.Container
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string) CoreServerConfig {
 	return CoreServerConfig{
-		log:         log.WithName("core-server"),
-		RestCfg:     cfg,
-		clusterName: clusterName,
-		NSAccess:    nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		log:            log.WithName("core-server"),
+		RestCfg:        cfg,
+		clusterName:    clusterName,
+		NSAccess:       nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		cacheContainer: cacheContainer,
 	}
 }
 
@@ -63,17 +65,12 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	ctx := context.Background()
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
-	cacheContainer, err := cache.NewContainer(ctx, cfg.RestCfg, cfg.log)
-	if err != nil {
-		return nil, err
-	}
-
-	cacheContainer.Start(ctx)
+	cfg.cacheContainer.Start(ctx)
 
 	return &coreServer{
 		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
 		logger:         cfg.log,
-		cacheContainer: cacheContainer,
+		cacheContainer: cfg.cacheContainer,
 		nsChecker:      cfg.NSAccess,
 	}, nil
 }
