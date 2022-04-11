@@ -208,11 +208,9 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
-<<<<<<< HEAD
-=======
   padding-right: ${(props) => props.theme.spacing.medium};
->>>>>>> 0d674b88 (massive height changes everywhere and almost made it on the filter table in automations table component)
   h2 {
+    padding: 0;
     font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
