@@ -14,7 +14,7 @@ export type DialogFormState = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
-  height: 94%;
+  height: 100%;
   width: 0px;
   left: ${(props) => props.theme.spacing.medium};
   transition: width 0.5s ease-in-out;

@@ -165,7 +165,7 @@ function FilterableTable({
   };
 
   return (
-    <div className={className} style={{ height: "100%", width: "100%" }}>
+    <Flex className={className} wide tall column>
       <Flex wide>
         <ChipGroup
           chips={chips}
@@ -189,7 +189,7 @@ function FilterableTable({
           open={filterDialogOpen}
         />
       </Flex>
-    </div>
+    </Flex>
   );
 }
 
