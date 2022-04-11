@@ -119,6 +119,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       fields={fields}
       filters={initialFilterState}
       rows={automations}
+      className={className}
     />
   );
 }
