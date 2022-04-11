@@ -44,6 +44,7 @@ export interface Source {
   conditions?: Condition[];
   interval?: Interval;
   suspended?: boolean;
+  clusterName?: string;
 }
 
 export enum AutomationType {

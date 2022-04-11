@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -29,6 +30,9 @@ type Client interface {
 
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
+
+	// RestConfig returns a rest.Config for a given cluster
+	RestConfig(cluster string) (*rest.Config, error)
 }
 
 type clustersClient struct {
@@ -125,6 +129,15 @@ func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.O
 	}
 
 	return client.Patch(ctx, obj, patch, opts...)
+}
+
+func (c clustersClient) RestConfig(cluster string) (*rest.Config, error) {
+	client, err := c.pool.Client(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	return client.RestConfig(), nil
 }
 
 type ClusteredObjectList interface {

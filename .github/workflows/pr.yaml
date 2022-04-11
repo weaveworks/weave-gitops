@@ -41,6 +41,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - run: make node_modules
+      - name: Check that package.json & package-lock.json were updated in commit
+        run: |
+          echo "Using node.js "$(node --version)
+          echo "Using NPM "$(npm --version)
+          git diff --no-ext-diff --exit-code
       - run: make ui-audit
       - run: make ui
       - run: make ui-lint
@@ -216,7 +221,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.17.5
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Clean
@@ -239,42 +244,52 @@ jobs:
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   ci-snyk-monitor:
-    name: CI Upload Images
+    name: CI Snyk Monitor
     runs-on: ubuntu-latest
-    # Make sure we only upload images if tests etc have passed
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
     if: github.event_name == 'push'
-    strategy:
-      matrix:
-        docker-image:
-          - gitops
-          - gitops-server
     steps:
+      - uses: actions/checkout@v2
+      - name: Download cached docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: gitops
+          path: /tmp
+      - name: Download cached docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: gitops-server
+          path: /tmp
+      - name: Load cached docker image
+        run: docker load --input /tmp/gitops.tar
+      - name: Load cached docker image
+        run: docker load --input /tmp/gitops-server.tar
       - name: Monitor docker image with Snyk
         uses: snyk/actions/docker@master
         with:
           command: monitor
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ github.sha }}"
-          args: --file=${{ matrix.docker-image }}.dockerfile --org=product-engineering-ly9
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-      - name: Generate helm template output for snyk to scan
-        run: helm template charts/weave-gitops --set adminPassword="YWRtaW4K" --output-dir rendered
-      - name: Monitor IaC issues with Snyk
-        uses: snyk/actions/iac@master
-        with:
-          command: monitor
-          file: rendered
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops:${{ needs.ci-generate-tag.outputs.tag }}"
           args: --org=product-engineering-ly9
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        continue-on-error: true
+      - name: Monitor docker image with Snyk
+        uses: snyk/actions/docker@master
+        with:
+          command: monitor
+          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops-server:${{ needs.ci-generate-tag.outputs.tag }}"
+          args: --org=product-engineering-ly9
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        continue-on-error: true
       - name: Monitor dependencies & license problems with Snyk
         uses: snyk/actions/golang@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
+          command: monitor
           args: --all-projects --org=product-engineering-ly9
-
+        continue-on-error: true
 
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:

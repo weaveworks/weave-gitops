@@ -7,34 +7,8 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/source-controller/api/v1beta1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
-
-func ProtoToKustomization(kustomization *pb.Kustomization) v1beta2.Kustomization {
-	labels := getGitopsLabelMap(kustomization.Name)
-
-	return v1beta2.Kustomization{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       v1beta2.KustomizationKind,
-			APIVersion: v1beta2.GroupVersion.Identifier(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      kustomization.Name,
-			Namespace: kustomization.Namespace,
-			Labels:    labels,
-		},
-		Spec: v1beta2.KustomizationSpec{
-			Path: kustomization.Path,
-			//Interval: intervalDuration(kustomization.Interval),
-			SourceRef: v1beta2.CrossNamespaceSourceReference{
-				Kind: kustomization.SourceRef.Kind.String(),
-				Name: kustomization.SourceRef.Name,
-			},
-		},
-		Status: v1beta2.KustomizationStatus{},
-	}
-}
 
 func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName string) (*pb.Kustomization, error) {
 	var kind pb.SourceRef_SourceKind

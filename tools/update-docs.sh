@@ -17,7 +17,7 @@ wq!
 EOS
 # create CLI reference
 git rm -f --ignore-unmatch cli-reference.md
-git rm -f --ignore-unmatch cli-reference
+git rm -rf --ignore-unmatch cli-reference
 mkdir -p cli-reference
 cd cli-reference
 ex - _category_.json << EOS

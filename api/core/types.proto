@@ -69,6 +69,7 @@ message HelmChart {
     repeated  Condition conditions = 7;
     bool      suspended            = 8;
     string    lastUpdatedAt        = 9;
+    string    clusterName          = 10;
 }
 
 message HelmRelease {
@@ -81,6 +82,7 @@ message HelmRelease {
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
     string    lastUpdatedAt              = 12;
+    string    clusterName                = 13;
 }
 
 message GitRepository {
@@ -93,6 +95,7 @@ message GitRepository {
     repeated         Condition conditions = 7;
     bool             suspended            = 8;
     string           lastUpdatedAt        = 9;
+    string           clusterName          = 10;
 }
 
 message HelmRepository {
@@ -103,6 +106,7 @@ message HelmRepository {
     repeated Condition conditions = 5;
     bool     suspended            = 6;
     string   lastUpdatedAt        = 7;
+    string   clusterName          = 8;
 }
 
 message Bucket {
@@ -124,6 +128,7 @@ message Bucket {
     string   bucket_name          = 11;
     bool     suspended            = 12;
     string   lastUpdatedAt        = 13;
+    string   clusterName          = 14;
 }
 
 message Deployment {
@@ -132,6 +137,7 @@ message Deployment {
     repeated Condition conditions = 3;
     repeated string images        = 4;
     bool     suspended            = 5;
+    string   clusterName          = 6;
 }
 
 enum AutomationKind {
@@ -150,6 +156,7 @@ message UnstructuredObject {
     string           status               = 5;
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
+    string           clusterName          = 8;
 }
 
 message Namespace {
@@ -157,6 +164,7 @@ message Namespace {
   string status = 2;
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
+  string clusterName = 5;
 }
 
 message Event {

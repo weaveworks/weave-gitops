@@ -7,19 +7,24 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) error {
-	appsServer := NewCoreServer(cfg)
-	if err := pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
+	appsServer, err := NewCoreServer(cfg)
+	if err != nil {
+		return fmt.Errorf("unable to create new kube client: %w", err)
+	}
+
+	if err = pb.RegisterCoreHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
 
@@ -28,18 +33,21 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) e
 
 const temporarilyEmptyAppName = ""
 
+type ClientGetterFn func(ctx context.Context) clustersmngr.Client
 type coreServer struct {
 	pb.UnimplementedCoreServer
 
 	k8s            kube.ClientGetter
 	cacheContainer *cache.Container
 	logger         logr.Logger
+	nsChecker      nsaccess.Checker
 }
 
 type CoreServerConfig struct {
 	log         logr.Logger
 	RestCfg     *rest.Config
 	clusterName string
+	NSAccess    nsaccess.Checker
 }
 
 func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreServerConfig {
@@ -47,20 +55,18 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string) CoreSe
 		log:         log.WithName("core-server"),
 		RestCfg:     cfg,
 		clusterName: clusterName,
+		NSAccess:    nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 	}
 }
 
-func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
+func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	ctx := context.Background()
-
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
-	c, err := client.New(cfg.RestCfg, client.Options{})
+	cacheContainer, err := cache.NewContainer(ctx, cfg.RestCfg, cfg.log)
 	if err != nil {
-		cfg.log.Error(err, "unable to create new kube client")
+		return nil, err
 	}
-
-	cacheContainer := cache.NewContainer(c, cfg.log)
 
 	cacheContainer.Start(ctx)
 
@@ -68,7 +74,8 @@ func NewCoreServer(cfg CoreServerConfig) pb.CoreServer {
 		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
 		logger:         cfg.log,
 		cacheContainer: cacheContainer,
-	}
+		nsChecker:      cfg.NSAccess,
+	}, nil
 }
 
 func list(ctx context.Context, k8s client.Client, appName, namespace string, list client.ObjectList, extraOpts ...client.ListOption) error {
@@ -80,13 +87,6 @@ func list(ctx context.Context, k8s client.Client, appName, namespace string, lis
 	opts = append(opts, extraOpts...)
 	err := k8s.List(ctx, list, opts...)
 	err = wrapK8sAPIError("list resource", err)
-
-	return err
-}
-
-func get(ctx context.Context, k8s client.Client, name, namespace string, obj client.Object) error {
-	err := k8s.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, obj)
-	err = wrapK8sAPIError("get resource", err)
 
 	return err
 }

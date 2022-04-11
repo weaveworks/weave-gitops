@@ -5,8 +5,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func NamespaceToProto(ns corev1.Namespace) *pb.Namespace {
+func NamespaceToProto(ns corev1.Namespace, clusterName string) *pb.Namespace {
 	return &pb.Namespace{
+		ClusterName: clusterName,
 		Name:        ns.GetName(),
 		Status:      ns.Status.String(),
 		Annotations: ns.GetAnnotations(),

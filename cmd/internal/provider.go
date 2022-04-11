@@ -11,18 +11,16 @@ import (
 const missingTokenErr = "the %q environment variable needs to be set to a valid token"
 
 type gitProviderClient struct {
-	authHandlerFunc GetAuthHandler
-	stdout          *os.File
-	lookupEnvFunc   func(key string) (string, bool)
-	log             logger.Logger
+	stdout        *os.File
+	lookupEnvFunc func(key string) (string, bool)
+	log           logger.Logger
 }
 
-func NewGitProviderClient(stdout *os.File, lookupEnvFunc func(key string) (string, bool), authHandlerFunc GetAuthHandler, log logger.Logger) gitproviders.Client {
+func NewGitProviderClient(stdout *os.File, lookupEnvFunc func(key string) (string, bool), log logger.Logger) gitproviders.Client {
 	return &gitProviderClient{
-		stdout:          stdout,
-		lookupEnvFunc:   lookupEnvFunc,
-		authHandlerFunc: authHandlerFunc,
-		log:             log,
+		stdout:        stdout,
+		lookupEnvFunc: lookupEnvFunc,
+		log:           log,
 	}
 }
 

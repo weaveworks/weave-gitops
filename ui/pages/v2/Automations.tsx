@@ -10,6 +10,7 @@ type Props = {
 
 function Automations({ className }: Props) {
   const { data: automations, error, isLoading } = useListAutomations();
+
   return (
     <Page
       error={error}
@@ -24,4 +25,8 @@ function Automations({ className }: Props) {
 
 export default styled(Automations).attrs({
   className: Automations.name,
-})``;
+})`
+  ${AutomationsTable} {
+    margin-top: ${(props) => props.theme.spacing.small};
+  }
+`;

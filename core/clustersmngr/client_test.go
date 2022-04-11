@@ -30,11 +30,14 @@ func TestClientGet(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 
 	g.Expect(err).To(BeNil())
 
@@ -69,11 +72,14 @@ func TestClientClusteredList(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
@@ -138,11 +144,14 @@ func TestClientList(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
@@ -178,11 +187,14 @@ func TestClientCreate(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
@@ -216,11 +228,14 @@ func TestClientDelete(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
@@ -252,11 +267,14 @@ func TestClientUpdate(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)
@@ -293,11 +311,14 @@ func TestClientPatch(t *testing.T) {
 
 	clientsPool := clustersmngr.NewClustersClientsPool()
 
-	err := clientsPool.Add(&auth.UserPrincipal{}, clustersmngr.Cluster{
-		Name:      clusterName,
-		Server:    k8sEnv.Rest.Host,
-		TLSConfig: k8sEnv.Rest.TLSClientConfig,
-	})
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
 	g.Expect(err).To(BeNil())
 
 	clustersClient := clustersmngr.NewClient(clientsPool)

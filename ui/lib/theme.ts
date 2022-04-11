@@ -2,8 +2,7 @@
 import { createTheme } from "@material-ui/core";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
-//@ts-ignore
-import bg from "../images/General-backgroundok.png";
+import images from "./images";
 
 const baseSpacingNumber = 16;
 
@@ -29,6 +28,7 @@ export const theme: DefaultTheme = {
     primary20: "#006B8E",
     success: "#27AE60",
     alert: "#BC381D",
+    suspended: "#f2994a",
     neutral00: "#ffffff",
     neutral10: "#f5f5f5",
     neutral20: "#d8d8d8",
@@ -89,7 +89,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
     min-width: fit-content;
-    background: right bottom url(${bg}) no-repeat fixed ${(props) =>
+    background: right bottom url(${images.bg}) no-repeat fixed ${(props) =>
   props.theme.colors.neutral10}; 
     background-size: 100%;
   }

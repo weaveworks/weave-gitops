@@ -18,6 +18,7 @@ export interface ReconciledVisualizationProps {
   namespace: string;
   automationKind: AutomationKind;
   kinds: GroupVersionKind[];
+  clusterName: string;
 }
 
 function ReconciledObjectsTable({
@@ -26,12 +27,13 @@ function ReconciledObjectsTable({
   namespace,
   automationKind,
   kinds,
+  clusterName,
 }: ReconciledVisualizationProps) {
   const {
     data: objs,
     error,
     isLoading,
-  } = useGetReconciledObjects(automationName, namespace, automationKind, kinds);
+  } = useGetReconciledObjects(automationName, namespace, automationKind, kinds, clusterName);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>

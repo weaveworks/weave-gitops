@@ -74,6 +74,7 @@ service:
   create: true
   type: ClusterIP
   port: 9001
+  annotations: {}
 
 ingress:
   enabled: false
@@ -108,3 +109,28 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+serverTLS:
+  enable: false
+  # secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
+  #
+  # Example of tls secret
+  #
+  #  apiVersion: v1
+  #  kind: Secret
+  #  metadata:
+  #    name: my-secret-tls
+  #  type: kubernetes.io/tls
+  #  data:
+  #    # the data is abbreviated in this example
+  #    tls.crt: |
+  #      MIIC2DCCAcCgAwIBAgIBATANBgkqh ...
+  #    tls.key: |
+  #      MIIEpgIBAAKCAQEA7yn3bRHQ5FHMQ ...
+  #
+  # You can also create a tls secre t from files whith this k8s command:
+  # kubectl create secret tls my-tls-secret \
+  #  --cert=path/to/cert/file \
+  #  --key=path/to/key/file
+  #
+  # Reference: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets

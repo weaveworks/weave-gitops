@@ -1,31 +1,41 @@
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import ErrorIcon from "@material-ui/icons/Error";
-import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
+import images from "../lib/images";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { UnstructuredObject } from "../lib/api/core/types.pb";
+import { Condition, UnstructuredObject } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
+import { computeReady } from "./KubeStatusIndicator";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
 export type Props = ReconciledVisualizationProps & {
-  parentObject: { name?: string; namespace?: string };
+  parentObject: {
+    name?: string;
+    namespace?: string;
+    conditions?: Condition[];
+    suspended?: boolean;
+  };
 };
 
-function getStatusIcon(status: string) {
+const GraphIcon = styled.img`
+  height: 32px;
+  width: 32px;
+`;
+
+function getStatusIcon(status: string, suspended: boolean) {
+  if (suspended) return <GraphIcon src={images.suspendedSrc} />;
   switch (status) {
     case "Current":
-      return <CheckCircleIcon />;
+      return <GraphIcon src={images.successSrc} />;
 
     case "InProgress":
-      return <HourglassFullIcon />;
+      return <GraphIcon src={images.suspendedSrc} />;
 
     case "Failed":
-      return <ErrorIcon color="error" />;
+      return <GraphIcon src={images.failedSrc} />;
 
     default:
       return "";
@@ -39,16 +49,29 @@ type NodeHtmlProps = {
 const NodeHtml = ({ object }: NodeHtmlProps) => {
   return (
     <div className="node">
-      <Flex center wide align className="name">
-        {object.name}
-      </Flex>
-      <Flex center wide align className="kind">
-        <div className="kind-text">{object.groupVersionKind.kind}</div>
-      </Flex>
-      <Flex center wide align>
-        <div className={`status ${object.status}`}>
-          {getStatusIcon(object.status)}
-        </div>
+      <Flex
+        className={`status-line ${
+          object.suspended ? "InProgress" : object.status
+        }`}
+      />
+      <Flex column className="nodeText">
+        <Flex start wide align className="name">
+          <div
+            className={`status ${
+              object.suspended ? "InProgress" : object.status
+            }`}
+          >
+            {getStatusIcon(object.status, object.suspended)}
+          </div>
+          <div style={{ padding: 4 }} />
+          {object.name}
+        </Flex>
+        <Flex start wide align className="kind">
+          <div className="kind-text">{object.groupVersionKind.kind}</div>
+        </Flex>
+        <Flex start wide align className="kind">
+          <div className="kind-text">{object.namespace}</div>
+        </Flex>
       </Flex>
     </div>
   );
@@ -59,17 +82,21 @@ function ReconciliationGraph({
   parentObject,
   automationKind,
   kinds,
+  clusterName,
 }: Props) {
   const {
     data: objects,
     error,
     isLoading,
-  } = useGetReconciledObjects(
-    parentObject.name,
-    parentObject.namespace,
-    automationKind,
-    kinds
-  );
+  } = parentObject
+    ? useGetReconciledObjects(
+        parentObject?.name,
+        parentObject?.namespace,
+        automationKind,
+        kinds,
+        clusterName
+      )
+    : { data: [], error: null, isLoading: false };
 
   const edges = _.reduce(
     objects,
@@ -84,6 +111,12 @@ function ReconciliationGraph({
     []
   );
 
+  const findParentStatus = (parent) => {
+    if (parent.suspended) return "InProgress";
+    if (computeReady(parent.conditions)) return "Current";
+    return "Failed";
+  };
+
   const nodes = [
     ..._.map(objects, (r) => ({
       id: r.uid,
@@ -92,7 +125,7 @@ function ReconciliationGraph({
     })),
     {
       id: parentObject.name,
-      data: parentObject,
+      data: { ...parentObject, status: findParentStatus(parentObject) },
       label: (u: Props["parentObject"]) =>
         renderToString(
           <NodeHtml
@@ -104,14 +137,14 @@ function ReconciliationGraph({
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <div className={className}>
+      <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
           width="100%"
-          height={640}
+          height="100%"
           scale={1}
           nodes={nodes}
           edges={edges}
-          labelShape="ellipse"
+          labelShape="rect"
           labelType="html"
         />
       </div>
@@ -120,56 +153,67 @@ function ReconciliationGraph({
 }
 
 export default styled(ReconciliationGraph)`
-  ${DirectedGraph} {
-    background-color: white;
-  }
   .node {
     font-size: 16px;
-    /* background-color: white; */
-    width: 125px;
-    height: 125px;
+    width: 650px;
+    height: 200px;
     display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
+    justify-content: space-between;
   }
-  ellipse {
+
+  rect {
     fill: white;
-    stroke: #13a000;
+    stroke: ${(props) => props.theme.colors.neutral20};
     stroke-width: 3;
-    stroke-dasharray: 266px;
-    filter: drop-shadow(rgb(189, 189, 189) 0px 0px 1px);
   }
-  .success ellipse {
-    stroke: ${(props) => props.theme.colors.success};
-  }
-  @keyframes rotate {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-  .status .kind {
-    color: ${(props) => props.theme.colors.black};
+  .status {
+    display: flex;
+    align-items: center;
   }
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 14px;
+    font-size: 28px;
   }
+  .status-line {
+    width: 2.5%;
+    border-radius: 10px 0px 0px 10px;
+  }
+  .nodeText {
+    width: 95%;
+    align-items: flex-start;
+    justify-content: space-evenly;
+  }
+
   .Current {
     color: ${(props) => props.theme.colors.success};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.success};
+    }
+  }
+  .InProgress {
+    color: ${(props) => props.theme.colors.suspended};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.suspended};
+    }
+  }
+  .Failed {
+    color: ${(props) => props.theme.colors.alert};
+    &.status-line {
+      background-color: ${(props) => props.theme.colors.alert};
+    }
   }
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
-    text-align: center;
+    font-size: 28px;
     white-space: pre-wrap;
   }
-  .edgePath path {
-    stroke: #bdbdbd;
-    stroke-width: 1px;
+  .kind {
+    color: ${(props) => props.theme.colors.neutral30};
   }
-  .MuiSvgIcon-root {
-    height: 24px;
-    width: 24px;
+  .edgePath path {
+    stroke: ${(props) => props.theme.colors.neutral30};
+    stroke-width: 1px;
   }
 `;

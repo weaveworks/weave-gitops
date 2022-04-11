@@ -5,6 +5,7 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
+import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
@@ -15,16 +16,9 @@ import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
-import LogoutIcon from "@material-ui/icons/ExitToApp";
 import * as React from "react";
 import styled from "styled-components";
-/*eslint import/no-unresolved: [0]*/
-//@ts-ignore
-import failedSrc from "url:../images/failed.svg";
-//@ts-ignore
-import successSrc from "url:../images/success.svg";
-//@ts-ignore
-import suspendedSrc from "url:../images/suspended.svg";
+import images from "../lib/images";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
@@ -123,13 +117,13 @@ function getIcon(i: IconType) {
       return LogoutIcon;
 
     case IconType.SuccessIcon:
-      return () => <img src={successSrc} />;
+      return () => <img src={images.successSrc} />;
 
     case IconType.FailedIcon:
-      return () => <img src={failedSrc} />;
+      return () => <img src={images.failedSrc} />;
 
     case IconType.SuspendedIcon:
-      return () => <img src={suspendedSrc} />;
+      return () => <img src={images.suspendedSrc} />;
 
     default:
       break;

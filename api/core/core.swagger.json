@@ -154,6 +154,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -250,6 +256,12 @@
           },
           {
             "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -587,6 +599,9 @@
         },
         "lastUpdatedAt": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -633,6 +648,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -672,6 +690,9 @@
           "type": "string"
         },
         "parentUid": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -731,6 +752,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -776,6 +800,9 @@
           "type": "boolean"
         },
         "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -844,6 +871,9 @@
         },
         "lastUpdatedAt": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -882,6 +912,9 @@
         },
         "lastUpdatedAt": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -910,6 +943,9 @@
           "type": "boolean"
         },
         "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -1097,6 +1133,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -1151,6 +1190,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "clusterName": {
+          "type": "string"
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

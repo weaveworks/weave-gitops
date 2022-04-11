@@ -1,23 +1,11 @@
 package types
 
 import (
+	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/source-controller/api/v1beta1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func getGitopsLabelMap(appName string) map[string]string {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdBySourceController,
-	}
-
-	if appName != "" {
-		labels[PartOfLabel] = appName
-	}
-
-	return labels
-}
 
 func getSourceKind(kind string) pb.SourceRef_SourceKind {
 	switch kind {
@@ -66,6 +54,8 @@ func lastUpdatedAt(obj interface{}) string {
 		if s.Status.Artifact != nil {
 			return s.Status.Artifact.LastUpdateTime.String()
 		}
+	case *v2beta1.HelmRelease:
+		return s.Status.LastHandledReconcileAt
 	}
 
 	return ""

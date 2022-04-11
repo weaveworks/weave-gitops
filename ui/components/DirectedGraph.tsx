@@ -14,17 +14,15 @@ type Props<N> = {
   edges: { source: any; target: any }[];
   scale?: number;
   width: number | string;
-  height: number;
+  height: number | string;
   labelType?: "html" | "text";
   labelShape: "rect" | "ellipse";
 };
 
 const SliderFlex = styled(Flex)`
-  position: relative;
-  min-height: 200px;
-  height: 15vh;
+  min-height: 400px;
+  height: 25%;
   width: 5%;
-  top: 150px;
 `;
 
 const PercentFlex = styled(Flex)`
@@ -45,8 +43,8 @@ function DirectedGraph<T>({
   labelShape,
 }: Props<T>) {
   const svgRef = React.useRef();
-
-  const [zoomPercent, setZoomPercent] = React.useState(30);
+  const graphRef = React.useRef<D3Graph>();
+  const [zoomPercent, setZoomPercent] = React.useState(20);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -58,62 +56,33 @@ function DirectedGraph<T>({
       return;
     }
 
-    const dagreD3LibRef = dagreD3;
-    const graph = new dagreD3LibRef.graphlib.Graph();
-
-    graph
-      .setGraph({
-        nodesep: 50,
-        ranksep: 50,
-        rankdir: "TB",
-      })
-      .setDefaultEdgeLabel(() => {
-        return {};
-      });
-
-    _.each(nodes, (n) => {
-      graph.setNode(n.id, {
-        label: n.label(n.data),
-        labelType,
-        shape: labelShape,
-        width: 150,
-        height: 150,
-        labelClass: "foo",
-      });
+    const graph = new D3Graph(svgRef.current, {
+      labelShape,
+      labelType,
+      scale,
+      initialZoom: zoomPercent,
     });
+    graph.update(nodes, edges);
+    graph.render();
+    graphRef.current = graph;
+  }, []);
 
-    _.each(edges, (e) => {
-      graph.setEdge(e.source, e.target, { arrowhead: "undirected" });
-    });
+  React.useEffect(() => {
+    graphRef.current.zoom(zoomPercent);
+  }, [zoomPercent]);
 
-    // Create the renderer
-    const render = new dagreD3.render();
+  React.useEffect(() => {
+    graphRef.current.update(nodes, edges);
+  }, [nodes, edges]);
 
-    // Set up an SVG group so that we can translate the final graph.
-    const svg = d3.select(svgRef.current);
-    svg.append("g");
-
-    // Set up zoom support
-    const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 30) / 100;
-      svg.select("g").attr("transform", e.transform);
-    });
-
-    svg
-      .call(zoom)
-      .call(zoom.transform, d3.zoomIdentity.scale(scale))
-      .on("wheel.zoom", null);
-
-    // Run the renderer. This is what draws the final graph.
-    render(d3.select("svg g"), graph);
-  }, [svgRef.current, nodes, edges, zoomPercent]);
   return (
     <Flex className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
+        <Spacer padding="base" />
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
-          defaultValue={30}
+          defaultValue={20}
           orientation="vertical"
           aria-label="zoom"
         />
@@ -125,6 +94,7 @@ function DirectedGraph<T>({
 }
 
 export default styled(DirectedGraph)`
+  height: 100%;
   overflow: hidden;
   text {
     font-weight: 300;
@@ -138,8 +108,87 @@ export default styled(DirectedGraph)`
   foreignObject {
     display: flex;
     flex-direction: column;
-    width: 125px;
-    height: 125px;
+    width: 650px;
+    height: 200px;
     overflow: visible;
   }
+  .MuiSlider-vertical .MuiSlider-track {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-rail {
+    width: 6px;
+  }
+  .MuiSlider-vertical .MuiSlider-thumb {
+    margin-left: -8px;
+  }
+  .MuiSlider-thumb {
+    width: 24px;
+    height: 24px;
+  }
 `;
+
+// D3 doesn't play nicely with React, as they both manipulate the DOM.
+// Since polling was added, we re-render the graph after every poll.
+// Split the D3 graphic logic into a class to avoid resetting transform state on every render.
+class D3Graph {
+  containerEl;
+  svg;
+  graph;
+  opts;
+
+  constructor(element, opts) {
+    const dagreD3LibRef = dagreD3;
+    this.graph = new dagreD3LibRef.graphlib.Graph();
+    this.opts = opts;
+    this.containerEl = element;
+    this.svg = d3.select(element);
+    this.svg.append("g");
+    this.zoom(opts.initialZoom);
+  }
+
+  zoom(zoomPercent) {
+    const zoom = d3.zoom().on("zoom", (e) => {
+      e.transform.k = (zoomPercent + 20) / 100;
+      this.svg.select("g").attr("transform", e.transform);
+    });
+
+    this.svg
+      .call(zoom)
+      .call(zoom.transform, d3.zoomIdentity.scale(zoomPercent))
+      .on("wheel.zoom", null);
+  }
+
+  update(nodes, edges) {
+    this.graph
+      .setGraph({
+        nodesep: 100,
+        ranksep: 150,
+        rankdir: "TB",
+      })
+      .setDefaultEdgeLabel(() => {
+        return {};
+      });
+
+    _.each(nodes, (n) => {
+      this.graph.setNode(n.id, {
+        label: n.label(n.data),
+        labelType: this.opts.labelType,
+        shape: this.opts.labelShape,
+        width: 630,
+        height: 180,
+        rx: 10,
+        ry: 10,
+        labelClass: "node-label",
+      });
+    });
+
+    _.each(edges, (e) => {
+      this.graph.setEdge(e.source, e.target, { arrowhead: "undirected" });
+    });
+  }
+
+  render() {
+    const render = new dagreD3.render();
+    render(d3.select("svg g"), this.graph);
+  }
+}

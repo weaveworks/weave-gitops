@@ -1,15 +1,18 @@
 import _ from "lodash";
 import { getChildren } from "../graph";
 import { createCoreMockClient } from "../test-utils";
+import {AutomationKind} from "../api/core/types.pb";
 
 describe("graph lib", () => {
   it("getChildren", async () => {
     const app = {
       name: "my-app",
       namespace: "my-namespace",
+      automationKind: AutomationKind.HelmReleaseAutomation,
       reconciledObjectKinds: [
         { group: "apps", version: "v1", kind: "Deployment" },
       ],
+      clusterName: "foo",
     };
     const name = "stringly";
     const rsName = name + "-7d9b7454c7";
@@ -75,7 +78,9 @@ describe("graph lib", () => {
       client,
       app.name,
       app.namespace,
-      [{ group: "apps", version: "v1", kind: "Deployment" }]
+      app.automationKind,
+      [{ group: "apps", version: "v1", kind: "Deployment" }],
+      app.clusterName
     );
 
     expect(objects.length).toEqual(3);

@@ -173,8 +173,9 @@ message ListHelmReleasesResponse {
 }
 
 message GetHelmReleaseRequest {
-    string name      = 1;
-    string namespace = 2;
+    string name        = 1;
+    string namespace   = 2;
+    string clusterName = 3;
 }
 
 message GetHelmReleaseResponse {
@@ -206,7 +207,8 @@ message ListBucketsResponse {
 }
 
 message ListFluxRuntimeObjectsRequest {
-    string namespace = 1;
+    string namespace   = 1;
+    string clusterName = 2;
 }
 
 message ListFluxRuntimeObjectsResponse {
@@ -236,6 +238,7 @@ message GetReconciledObjectsRequest {
     string         namespace              = 2;
     AutomationKind automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
+    string         clusterName            = 5;
 }
 
 message GetReconciledObjectsResponse {
@@ -246,6 +249,7 @@ message GetChildObjectsRequest {
     GroupVersionKind groupVersionKind = 1;
     string           namespace        = 2;
     string           parentUid        = 3;
+    string           clusterName      = 4;
 }
 
 message GetChildObjectsResponse {

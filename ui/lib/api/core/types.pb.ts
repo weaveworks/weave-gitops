@@ -79,6 +79,7 @@ export type HelmChart = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type HelmRelease = {
@@ -91,6 +92,7 @@ export type HelmRelease = {
   inventory?: GroupVersionKind[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type GitRepository = {
@@ -103,6 +105,7 @@ export type GitRepository = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type HelmRepository = {
@@ -113,6 +116,7 @@ export type HelmRepository = {
   conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type Bucket = {
@@ -129,6 +133,7 @@ export type Bucket = {
   bucketName?: string
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
 }
 
 export type Deployment = {
@@ -137,6 +142,7 @@ export type Deployment = {
   conditions?: Condition[]
   images?: string[]
   suspended?: boolean
+  clusterName?: string
 }
 
 export type UnstructuredObject = {
@@ -147,6 +153,7 @@ export type UnstructuredObject = {
   status?: string
   conditions?: Condition[]
   suspended?: boolean
+  clusterName?: string
 }
 
 export type Namespace = {
@@ -154,6 +161,7 @@ export type Namespace = {
   status?: string
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
+  clusterName?: string
 }
 
 export type Event = {

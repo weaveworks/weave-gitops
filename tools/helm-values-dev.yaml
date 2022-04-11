@@ -11,5 +11,8 @@ adminUser:
   username: dev
   password: dev
 
+serverTLS:
+  enable: false
+
 additionalArgs:
   - "--dev-mode"

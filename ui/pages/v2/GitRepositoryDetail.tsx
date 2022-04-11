@@ -31,7 +31,7 @@ function GitRepositoryDetail({ className, name, namespace }: Props) {
           ],
           ["Ref", s.reference.branch],
           ["Last Updated", <Timestamp time={s.lastUpdatedAt} />],
-          ["Cluster", "Default"],
+          ["Cluster", s.clusterName],
           ["Namespace", s.namespace],
         ]}
       />

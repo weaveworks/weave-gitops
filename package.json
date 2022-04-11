@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.7.0-rc3",
+  "version": "0.7.0-rc12",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -94,6 +94,7 @@
     "@parcel/config-default": "^2.3.2",
     "@parcel/optimizer-data-url": "^2.3.2",
     "@parcel/transformer-inline-string": "^2.3.2",
+    "@parcel/transformer-svg-react": "^2.3.2",
     "@parcel/transformer-typescript-tsc": "^2.3.2",
     "@storybook/addon-actions": "^6.3.12",
     "@storybook/addon-essentials": "^6.4.14",

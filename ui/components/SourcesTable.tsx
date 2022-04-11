@@ -19,7 +19,7 @@ import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
-  sources: Source[];
+  sources?: Source[];
   appName?: string;
 };
 
@@ -77,7 +77,7 @@ function SourcesTable({ className, sources }: Props) {
           },
           {
             label: "Cluster",
-            value: () => "Default",
+            value: (s: Source) => s.clusterName,
             width: 5,
           },
           {
@@ -154,5 +154,8 @@ function SourcesTable({ className, sources }: Props) {
 export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
   table {
     table-layout: fixed;
+  }
+  ${FilterableTable} {
+    margin-top: ${(props) => props.theme.spacing.small};
   }
 `;

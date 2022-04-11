@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/upgrade"
 )
 
@@ -69,7 +68,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 
-		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
 		gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 			ConfigRepo: upgradeCmdFlags.ConfigRepo,
