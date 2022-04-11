@@ -18,7 +18,13 @@ const SlideContainer = styled.div`
   width: 0px;
   left: ${(props) => props.theme.spacing.medium};
   transition: width 0.5s ease-in-out;
+  ${Icon} {
+    display: none;
+  }
   &.open {
+    ${Icon} {
+      display: block;
+    }
     left: 0;
     margin-right: ${(props) => props.theme.spacing.medium};
     width: 350px;
