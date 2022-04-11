@@ -45,6 +45,36 @@ func TestListHelmReleases(t *testing.T) {
 	g.Expect(res.HelmReleases[0].Name).To(Equal(appName))
 }
 
+func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+
+	c := makeGRPCServer(k8sEnv.Rest, t)
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	existingHelmReleaseNo := func() int {
+		res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
+		g.Expect(err).NotTo(HaveOccurred())
+
+		return len(res.HelmReleases)
+	}()
+
+	appName := "myapp"
+	ns := newNamespace(ctx, k, g)
+
+	newHelmRelease(ctx, appName, ns.Name, k, g)
+
+	updateNamespaceCache()
+
+	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.HelmReleases).To(HaveLen(existingHelmReleaseNo + 1))
+}
+
 func TestGetHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()

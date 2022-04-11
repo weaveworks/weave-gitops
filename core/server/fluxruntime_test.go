@@ -190,6 +190,48 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
 }
 
+func TestListFluxRuntimeObjects_inMultipleNamespaces(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c := makeGRPCServer(k8sEnv.Rest, t)
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	existingDeploymentsNo := func() int {
+		res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
+		g.Expect(err).NotTo(HaveOccurred())
+
+		return len(res.Deployments)
+	}()
+
+	name := "random-flux-controller"
+	ns := newNamespace(ctx, k, g)
+	ns2 := newNamespace(ctx, k, g)
+
+	fluxDep := newDeployment(name, ns.Name)
+	fluxDep.ObjectMeta.Labels = map[string]string{
+		stypes.PartOfLabel: server.FluxNamespacePartOf,
+	}
+	g.Expect(k.Create(ctx, fluxDep)).To(Succeed())
+
+	otherDep := newDeployment(name, ns2.Name)
+	otherDep.ObjectMeta.Labels = map[string]string{
+		stypes.PartOfLabel: server.FluxNamespacePartOf,
+	}
+	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
+
+	updateNamespaceCache()
+
+	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Deployments).To(HaveLen(existingDeploymentsNo + 2))
+	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
+}
+
 func newDeployment(name, ns string) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{

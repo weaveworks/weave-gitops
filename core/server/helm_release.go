@@ -21,27 +21,20 @@ import (
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &helmv2.HelmReleaseList{}
-	})
-
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace)); err != nil {
+	res, err := cs.listObjects(ctx, msg.Namespace, listHelmReleasesInNamespace)
+	if err != nil {
 		return nil, err
 	}
 
 	var results []*pb.HelmRelease
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*helmv2.HelmReleaseList)
+	for _, object := range res {
+		obj, ok := object.(*pb.HelmRelease)
 		if !ok {
-			continue
+			return nil, nil
 		}
 
-		for _, helmrelease := range list.Items {
-			results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
-		}
+		results = append(results, obj)
 	}
 
 	return &pb.ListHelmReleasesResponse{
@@ -156,4 +149,33 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 	}
 
 	return gvk, nil
+}
+
+func listHelmReleasesInNamespace(
+	ctx context.Context,
+	clustersClient clustersmngr.Client,
+	namespace string,
+) ([]interface{}, error) {
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &helmv2.HelmReleaseList{}
+	})
+
+	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
+		return nil, err
+	}
+
+	var results []interface{}
+
+	for n, l := range clist.Lists() {
+		list, ok := l.(*helmv2.HelmReleaseList)
+		if !ok {
+			continue
+		}
+
+		for _, helmrelease := range list.Items {
+			results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
+		}
+	}
+
+	return results, nil
 }

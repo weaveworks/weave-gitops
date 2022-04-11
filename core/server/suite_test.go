@@ -5,8 +5,10 @@ import (
 	"net"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
@@ -114,4 +116,9 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 
 		return handler(ctx, req)
 	})
+}
+
+func updateNamespaceCache() {
+	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
+	time.Sleep(time.Millisecond * 100)
 }
