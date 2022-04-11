@@ -59,7 +59,7 @@ function SourceDetail({ className, name, info, type }: Props) {
   });
 
   return (
-    <Flex wide column align className={className}>
+    <Flex wide tall column align className={className}>
       <Flex wide between>
         <div>
           <Heading level={2}>{s.type}</Heading>

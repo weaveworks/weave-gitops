@@ -16,8 +16,11 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
+<<<<<<< HEAD
 import SyncButton from "./SyncButton";
 import Timestamp from "./Timestamp";
+=======
+>>>>>>> b4e773db (adding tall where tall was short)
 
 type Props = {
   name: string;
@@ -53,8 +56,7 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
   };
 
   return (
-    <Flex wide tall column>
-      <Spacer padding="xs" />
+    <Flex wide tall column align>
       <Flex wide between>
         <Info>
           <Heading level={2}>{kustomization?.namespace}</Heading>
