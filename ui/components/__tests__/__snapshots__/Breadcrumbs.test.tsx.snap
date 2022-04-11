@@ -2,14 +2,14 @@
 
 exports[`snapshots renders 1`] = `
 <div
+<<<<<<< HEAD
   className="sc-bdvvtL jUaaBj"
+=======
+  className="sc-bdvvtL goAlmQ"
+>>>>>>> 2abfcd2b (updated tests)
 >
   <a
-<<<<<<< HEAD
-    className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
-=======
-    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
->>>>>>> 6e734d90 (snaps and bg)
+    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
     href="/applications"
     onClick={[Function]}
   >
@@ -26,14 +26,14 @@ exports[`snapshots renders 1`] = `
 
 exports[`snapshots renders child route 1`] = `
 <div
+<<<<<<< HEAD
   className="sc-bdvvtL jUaaBj"
+=======
+  className="sc-bdvvtL goAlmQ"
+>>>>>>> 2abfcd2b (updated tests)
 >
   <a
-<<<<<<< HEAD
-    className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
-=======
-    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
->>>>>>> 6e734d90 (snaps and bg)
+    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
     href="/applications"
     onClick={[Function]}
   >
@@ -46,7 +46,11 @@ exports[`snapshots renders child route 1`] = `
     </span>
   </a>
   <div
+<<<<<<< HEAD
     className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
+=======
+    className="sc-bdvvtL goAlmQ sc-dkPtRN hTjxvJ"
+>>>>>>> 2abfcd2b (updated tests)
   >
     <svg
       aria-hidden={true}
@@ -60,11 +64,7 @@ exports[`snapshots renders child route 1`] = `
     </svg>
   </div>
   <a
-<<<<<<< HEAD
-    className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
-=======
-    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
->>>>>>> 6e734d90 (snaps and bg)
+    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
     href="/kustomization?name=flux"
     onClick={[Function]}
   >
@@ -81,14 +81,14 @@ exports[`snapshots renders child route 1`] = `
 
 exports[`snapshots renders on the root page 1`] = `
 <div
+<<<<<<< HEAD
   className="sc-bdvvtL jUaaBj"
+=======
+  className="sc-bdvvtL goAlmQ"
+>>>>>>> 2abfcd2b (updated tests)
 >
   <a
-<<<<<<< HEAD
-    className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
-=======
-    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
->>>>>>> 6e734d90 (snaps and bg)
+    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
     href="/"
     onClick={[Function]}
   >
@@ -99,7 +99,11 @@ exports[`snapshots renders on the root page 1`] = `
     />
   </a>
   <div
+<<<<<<< HEAD
     className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
+=======
+    className="sc-bdvvtL goAlmQ sc-dkPtRN hTjxvJ"
+>>>>>>> 2abfcd2b (updated tests)
   >
     <svg
       aria-hidden={true}
@@ -113,11 +117,7 @@ exports[`snapshots renders on the root page 1`] = `
     </svg>
   </div>
   <a
-<<<<<<< HEAD
-    className="sc-eCImPb sc-jRQBWg FjdOF fzVcqy"
-=======
-    className="sc-hKwDye sc-eCImPb kCA-dBN eGkDTD"
->>>>>>> 6e734d90 (snaps and bg)
+    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
     href="/"
     onClick={[Function]}
   >

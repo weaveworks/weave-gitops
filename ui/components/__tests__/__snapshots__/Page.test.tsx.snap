@@ -13,6 +13,7 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  height: 100%;
   width: 100%;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
@@ -20,7 +21,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c2 {
+.c3 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -43,7 +44,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c4 {
+.c5 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -57,26 +58,7 @@ exports[`Page snapshots default 1`] = `
   align-items: center;
 }
 
-.c7 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.c9 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -95,7 +77,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c11 {
+.c10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -109,7 +91,7 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c14 {
+.c13 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -118,47 +100,47 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c13 {
+.c12 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c13.title-bar-button {
+.c12.title-bar-button {
   width: 250px;
 }
 
-.c15 {
+.c14 {
   padding-right: 24px;
   width: 275px;
 }
 
-.c12 {
+.c11 {
   width: 350px;
 }
 
-.c10 {
+.c9 {
   color: #737373;
 }
 
-.c5 {
+.c6 {
   padding: 12px;
 }
 
-.c6 {
+.c7 {
   padding-left: 8px;
 }
 
-.c6 .MuiCircularProgress-root {
+.c7 .MuiCircularProgress-root {
   -webkit-transition: opacity 2s;
   transition: opacity 2s;
   margin-bottom: 0;
 }
 
-.c6 .MuiCircularProgress-root.in {
+.c7 .MuiCircularProgress-root.in {
   opacity: 1;
 }
 
-.c6 .MuiCircularProgress-root.out {
+.c7 .MuiCircularProgress-root.out {
   opacity: 0;
 }
 
@@ -172,35 +154,38 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
+<<<<<<< HEAD
   padding-right: 32px;
   width: 100%;
   height: 100%;
+=======
+>>>>>>> 2abfcd2b (updated tests)
 }
 
-.c8 {
-  height: 100%;
-}
-
-.c3 h2 {
+.c4 h2 {
   margin: 0 !important;
   color: #1a1a1a !important;
 }
 
+.c2 .MuiAlert-root {
+  width: 100%;
+}
+
 <div
-  className="c0 c1"
+  className="c0 c1 c2"
 >
   <div
-    className="c2 c3"
+    className="c3 c4"
   >
     <div
-      className="c4"
+      className="c5"
     >
       <h2 />
       <div
-        className="c5"
+        className="c6"
       />
       <div
-        className="c4 c6"
+        className="c5 c7"
       >
         <div
           className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -231,23 +216,23 @@ exports[`Page snapshots default 1`] = `
     </div>
   </div>
   <div
-    className="c7 c8"
+    className="c0"
   />
   <footer
-    className="c9 c10 Footer"
+    className="c8 c9 Footer"
   >
     <div
-      className="c11 c12"
+      className="c10 c11"
     >
       Need help? Contact us at
       <a
-        className="c13"
+        className="c12"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c14"
+          className="c13"
           color="primary"
           size="normal"
         >
@@ -256,7 +241,7 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c11 c15"
+      className="c10 c14"
     >
       © 2022 Weaveworks
     </div>

@@ -102,13 +102,17 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
+  padding-right: 24px;
 }
 
 .c0 h2 {
+  padding: 0;
   font-size: 18px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .c0 .MuiTableRow-root {
