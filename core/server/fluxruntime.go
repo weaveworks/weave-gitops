@@ -26,49 +26,20 @@ var (
 )
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &appsv1.DeploymentList{}
-	})
-
-	opt := getMatchingLabels(FluxNamespacePartOf)
-
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(msg.Namespace), opt); err != nil {
+	res, err := cs.listObjects(ctx, msg.Namespace, listFluxRuntimeObjectsInNamespace)
+	if err != nil {
 		return nil, err
 	}
 
 	var results []*pb.Deployment
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*appsv1.DeploymentList)
+	for _, object := range res {
+		obj, ok := object.(*pb.Deployment)
 		if !ok {
-			continue
+			return nil, nil
 		}
 
-		for _, d := range list.Items {
-			r := &pb.Deployment{
-				Name:        d.Name,
-				Namespace:   d.Namespace,
-				Conditions:  []*pb.Condition{},
-				ClusterName: n,
-			}
-
-			for _, cond := range d.Status.Conditions {
-				r.Conditions = append(r.Conditions, &pb.Condition{
-					Message: cond.Message,
-					Reason:  cond.Reason,
-					Status:  string(cond.Status),
-					Type:    string(cond.Type),
-				})
-			}
-
-			for _, img := range d.Spec.Template.Spec.Containers {
-				r.Images = append(r.Images, img.Image)
-			}
-
-			results = append(results, r)
-		}
+		results = append(results, obj)
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results}, nil
@@ -205,4 +176,54 @@ func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
 	}
 
 	return conds
+}
+
+func listFluxRuntimeObjectsInNamespace(
+	ctx context.Context,
+	clustersClient clustersmngr.Client,
+	namespace string,
+) ([]interface{}, error) {
+	results := []interface{}{}
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &appsv1.DeploymentList{}
+	})
+
+	opt := getMatchingLabels(FluxNamespacePartOf)
+
+	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace), opt); err != nil {
+		return results, err
+	}
+
+	for n, l := range clist.Lists() {
+		list, ok := l.(*appsv1.DeploymentList)
+		if !ok {
+			continue
+		}
+
+		for _, d := range list.Items {
+			r := &pb.Deployment{
+				Name:        d.Name,
+				Namespace:   d.Namespace,
+				Conditions:  []*pb.Condition{},
+				ClusterName: n,
+			}
+
+			for _, cond := range d.Status.Conditions {
+				r.Conditions = append(r.Conditions, &pb.Condition{
+					Message: cond.Message,
+					Reason:  cond.Reason,
+					Status:  string(cond.Status),
+					Type:    string(cond.Type),
+				})
+			}
+
+			for _, img := range d.Spec.Template.Spec.Containers {
+				r.Images = append(r.Images, img.Image)
+			}
+
+			results = append(results, r)
+		}
+	}
+
+	return results, nil
 }
