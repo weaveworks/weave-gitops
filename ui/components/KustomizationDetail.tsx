@@ -125,6 +125,8 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
 export default styled(KustomizationDetail).attrs({
   className: KustomizationDetail.name,
 })`
+  width: 100%;
+
   ${Alert} {
     margin-bottom: 16px;
   }
