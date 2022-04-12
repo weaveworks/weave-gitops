@@ -27,7 +27,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  height: 150px;
   width: 100%;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
@@ -35,7 +34,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: center;
 }
 
-.c12 {
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -54,26 +53,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: flex-end;
 }
 
-.c4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.c9 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -87,7 +67,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: center;
 }
 
-.c7 {
+.c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 32px;
   font-weight: 400;
@@ -95,35 +75,35 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c11 svg {
+.c10 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c11.downward {
+.c10.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c11.upward {
+.c10.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c11 .c6 {
+.c10 .c5 {
   margin-left: 4px;
 }
 
-.c8.MuiButton-root {
+.c7.MuiButton-root {
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
 }
 
-.c8.MuiButton-outlined {
+.c7.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
@@ -149,11 +129,11 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   transform: translate(0,50%);
 }
 
-.c5 {
+.c4 {
   padding: 8px 0;
 }
 
-.c3 .c10 {
+.c3 .c9 {
   margin-left: 8px;
 }
 
@@ -200,20 +180,20 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
           class="c3"
         >
           <div
-            class="c4 c5"
+            class="c2 c4"
           >
             <span
-              class="c6 c7"
+              class="c5 c6"
             />
           </div>
           <div
-            class="c4 c5"
+            class="c2 c4"
           >
             <a
               target="_blank"
             >
               <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-outlined c8 MuiButton-outlinedPrimary MuiButton-disableElevation"
+                class="MuiButtonBase-root MuiButton-root MuiButton-outlined c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
                 tabindex="0"
                 type="button"
               >
@@ -224,7 +204,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
                     class="MuiButton-startIcon MuiButton-iconSizeMedium"
                   >
                     <div
-                      class="c9 c10 c11"
+                      class="c8 c9 c10"
                     >
                       <svg
                         aria-hidden="true"
@@ -247,16 +227,16 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
             </a>
           </div>
           <div
-            class="c4 c5"
+            class="c2 c4"
           />
         </div>
       </div>
     </div>
     <div
-      class="c12"
+      class="c11"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-text c8 MuiButton-colorInherit MuiButton-disableElevation"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text c7 MuiButton-colorInherit MuiButton-disableElevation"
         tabindex="0"
         type="button"
       >

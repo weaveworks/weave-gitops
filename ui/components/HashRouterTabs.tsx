@@ -66,7 +66,7 @@ function HashRouterTabs({ className, children, defaultPath, history }: Props) {
   }));
 
   return (
-    <Flex wide column start className={className}>
+    <Flex wide tall column start className={className}>
       <Tabs
         indicatorColor="primary"
         value={routesToIndex(routes, history.location.pathname)}
@@ -101,7 +101,6 @@ function HashRouterTabs({ className, children, defaultPath, history }: Props) {
 export default styled(HashRouterTabs).attrs({
   className: HashRouterTabs.name,
 })`
-  height: 100%;
   .MuiTabs-root ${Link} .active-tab {
     background: ${(props) => props.theme.colors.primary}19;
   }

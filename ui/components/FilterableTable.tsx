@@ -165,8 +165,8 @@ function FilterableTable({
   };
 
   return (
-    <div className={className}>
-      <Flex>
+    <Flex className={className} wide tall column>
+      <Flex wide>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
@@ -179,7 +179,7 @@ function FilterableTable({
           />
         </Flex>
       </Flex>
-      <Flex>
+      <Flex wide tall>
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
           onClose={() => setFilterDialog(!filterDialogOpen)}
@@ -189,7 +189,7 @@ function FilterableTable({
           open={filterDialogOpen}
         />
       </Flex>
-    </div>
+    </Flex>
   );
 }
 

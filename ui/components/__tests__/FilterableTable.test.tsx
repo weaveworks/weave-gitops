@@ -110,8 +110,8 @@ describe("FilterableTable", () => {
       withTheme(<FilterableTable fields={fields} rows={rows} filters={{}} />)
     );
 
-    expect(screen.queryByText("slick")).toBeTruthy();
-    expect(screen.queryByText("cool")).toBeTruthy();
+    expect(screen.queryAllByText("slick")).toBeTruthy();
+    expect(screen.queryAllByText("cool")).toBeTruthy();
   });
   it("should filter rows", () => {
     render(
@@ -124,8 +124,8 @@ describe("FilterableTable", () => {
       )
     );
 
-    expect(screen.queryByText("slick")).toBeTruthy();
-    expect(screen.queryByText("cool")).toBeFalsy();
+    expect(screen.queryAllByText("slick")[0]).toBeTruthy();
+    expect(screen.queryAllByText("cool")[0]).toBeFalsy();
   });
   it("should filter on click", () => {
     const initialFilterState = {

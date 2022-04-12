@@ -208,11 +208,15 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
+  padding-right: ${(props) => props.theme.spacing.medium};
   h2 {
+    padding: 0;
     font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .MuiTableRow-root {
     transition: background 0.5s ease-in-out;

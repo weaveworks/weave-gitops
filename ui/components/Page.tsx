@@ -37,9 +37,7 @@ export const Content = styled(Flex)`
   height: 100%;
 `;
 
-const Children = styled(Flex)`
-  height: 100%;
-`;
+const Children = styled(Flex)``;
 
 export const TitleBar = styled(Flex)`
   h2 {
@@ -63,20 +61,27 @@ function Errors({ error }) {
   );
 }
 
-function Page({ children, title, actions, loading, error }: PageProps) {
+function Page({
+  children,
+  title,
+  actions,
+  loading,
+  error,
+  className,
+}: PageProps) {
   const { settings } = useCommon();
   const fetching = useIsFetching();
 
   if (loading) {
     return (
-      <Content wide start column>
+      <Content wide tall start column>
         <LoadingPage />
       </Content>
     );
   }
 
   return (
-    <Content wide start column>
+    <Content wide tall start column className={className}>
       <TitleBar wide start between>
         <Flex align>
           <h2>{title}</h2>
@@ -86,16 +91,16 @@ function Page({ children, title, actions, loading, error }: PageProps) {
         {actions}
       </TitleBar>
       {error && <Errors error={error} />}
-      <Children column wide align start>
+      <Children column wide tall start>
         {children}
       </Children>
+
       {settings.renderFooter && <Footer />}
     </Content>
   );
 }
 
 export default styled(Page)`
-  height: 100%;
   .MuiAlert-root {
     width: 100%;
   }

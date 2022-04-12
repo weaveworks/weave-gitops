@@ -53,7 +53,7 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
   };
 
   return (
-    <div className={className}>
+    <Flex wide tall column align className={className}>
       <Flex wide between>
         <Info>
           <Heading level={2}>{kustomization?.namespace}</Heading>
@@ -118,7 +118,7 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
           </HashRouterTab>
         </HashRouterTabs>
       </TabContent>
-    </div>
+    </Flex>
   );
 }
 

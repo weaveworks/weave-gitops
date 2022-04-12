@@ -57,7 +57,7 @@ export default function HelmReleaseDetail({
   };
 
   return (
-    <div className={className}>
+    <Flex wide tall column align>
       <Flex wide between>
         <Info>
           <Heading level={2}>{helmRelease?.namespace}</Heading>
@@ -115,6 +115,6 @@ export default function HelmReleaseDetail({
           </HashRouterTab>
         </HashRouterTabs>
       </TabContent>
-    </div>
+    </Flex>
   );
 }

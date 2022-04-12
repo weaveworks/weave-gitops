@@ -13,7 +13,7 @@ type Props = {
 function SyncButton({ className, loading, onClick }: Props) {
   const [withSource, setWithSource] = React.useState(true);
   return (
-    <Flex align start className={className}>
+    <Flex wide align start className={className}>
       <Button
         style={{ marginRight: 8 }}
         loading={loading}

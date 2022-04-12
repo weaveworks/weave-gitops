@@ -14,8 +14,6 @@ import { theme } from "../lib/theme";
 
 export const SignInPageWrapper = styled(Flex)`
   background: url(${images.signInBackground});
-  height: 100%;
-  width: 100%;
 `;
 
 export const FormWrapper = styled(Flex)`
@@ -90,7 +88,7 @@ function SignIn() {
   }, []);
 
   return (
-    <SignInPageWrapper center align column>
+    <SignInPageWrapper tall wide center align column>
       <FormWrapper center align wrap>
         {error && (
           <AlertWrapper

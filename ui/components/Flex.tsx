@@ -16,7 +16,7 @@ const Styled = (component) => styled(component)`
   display: flex;
   flex-direction: ${(props) => (props.column ? "column" : "row")};
   align-items: ${(props) => (props.align ? "center" : "start")};
-  ${(props) => props.height && `height: ${props.height};`}
+  ${({ tall }) => tall && `height: 100%`};
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
   ${({ start }) => start && "justify-content: flex-start"};

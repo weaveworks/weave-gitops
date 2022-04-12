@@ -115,13 +115,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <div className={className}>
-      <FilterableTable
-        fields={fields}
-        filters={initialFilterState}
-        rows={automations}
-      />
-    </div>
+    <FilterableTable
+      fields={fields}
+      filters={initialFilterState}
+      rows={automations}
+      className={className}
+    />
   );
 }
 
