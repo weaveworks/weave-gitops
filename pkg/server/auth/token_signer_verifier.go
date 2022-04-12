@@ -30,9 +30,11 @@ type TokenSignerVerifier interface {
 type HMACTokenSignerVerifier struct {
 	expireAfter time.Duration
 	hmacSecret  []byte
+
+	devUser string
 }
 
-func NewHMACTokenSignerVerifier(expireAfter time.Duration) (TokenSignerVerifier, error) {
+func NewHMACTokenSignerVerifier(expireAfter time.Duration) (*HMACTokenSignerVerifier, error) {
 	hmacSecret := make([]byte, 64)
 
 	_, err := rand.Read(hmacSecret)
@@ -62,6 +64,19 @@ func (sv *HMACTokenSignerVerifier) Sign() (string, error) {
 }
 
 func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, error) {
+	if sv.devUser != "" {
+		claims := AdminClaims{
+			StandardClaims: jwt.StandardClaims{
+				IssuedAt:  time.Now().UTC().Unix(),
+				ExpiresAt: time.Now().Add(sv.expireAfter).UTC().Unix(),
+				NotBefore: time.Now().UTC().Unix(),
+				Subject:   sv.devUser,
+			},
+		}
+
+		return &claims, nil
+	}
+
 	token, err := jwt.ParseWithClaims(tokenString, &AdminClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -79,4 +94,8 @@ func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, err
 	} else {
 		return nil, errors.New("invalid token")
 	}
+}
+
+func (sv *HMACTokenSignerVerifier) SetDevMode(user string) {
+	sv.devUser = user
 }

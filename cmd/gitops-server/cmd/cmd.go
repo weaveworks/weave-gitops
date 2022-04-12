@@ -55,6 +55,8 @@ type Options struct {
 	TLSKeyFile                    string
 	Insecure                      bool
 	MTLS                          bool
+	DevMode                       bool
+	DevUser                       string
 }
 
 var options Options
@@ -89,6 +91,9 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+
+	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", true, "Enables development mode")
+	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
 
 	return cmd
 }
@@ -172,6 +177,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
 		if err != nil {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
+		}
+
+		if options.DevMode {
+			log.Info("WARNING: dev mode enabled. This should be used for local work only")
+			tsv.SetDevMode(options.DevUser)
 		}
 
 		authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
