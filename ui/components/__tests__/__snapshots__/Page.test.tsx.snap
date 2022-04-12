@@ -91,7 +91,16 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c13 {
+.c11 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c14 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -100,30 +109,29 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c12 {
+.c13 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c12.title-bar-button {
+.c13.title-bar-button {
   width: 250px;
-}
-
-.c14 {
-  padding-right: 24px;
-  width: 275px;
-}
-
-.c11 {
-  width: 350px;
-}
-
-.c9 {
-  color: #737373;
 }
 
 .c6 {
   padding: 12px;
+}
+
+.c12 {
+  padding: 4px;
+}
+
+.c15 {
+  padding-right: 24px;
+}
+
+.c9 {
+  color: #737373;
 }
 
 .c7 {
@@ -154,12 +162,9 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
-<<<<<<< HEAD
   padding-right: 32px;
   width: 100%;
   height: 100%;
-=======
->>>>>>> 2abfcd2b (updated tests)
 }
 
 .c4 h2 {
@@ -222,17 +227,26 @@ exports[`Page snapshots default 1`] = `
     className="c8 c9 Footer"
   >
     <div
-      className="c10 c11"
+      className="c10"
     >
-      Need help? Contact us at
-      <a
+      <span
+        className="c11"
+        color="neutral30"
+        size="normal"
+      >
+        Need help? Contact us at
+      </span>
+      <div
         className="c12"
+      />
+      <a
+        className="c13"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c13"
+          className="c14"
           color="primary"
           size="normal"
         >
@@ -241,9 +255,18 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c10 c14"
+      className="c10 c15"
     >
-      © 2022 Weaveworks
+      <div
+        className="c12"
+      />
+      <span
+        className="c11"
+        color="neutral30"
+        size="normal"
+      >
+        © 2022 Weaveworks
+      </span>
     </div>
   </footer>
 </div>

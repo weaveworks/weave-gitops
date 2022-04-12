@@ -32,12 +32,9 @@ export const Content = styled(Flex)`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.medium};
-<<<<<<< HEAD
   padding-right: ${(props) => props.theme.spacing.large};
   width: 100%;
   height: 100%;
-=======
->>>>>>> f40965d9 (tall prop)
 `;
 
 const Children = styled(Flex)``;
