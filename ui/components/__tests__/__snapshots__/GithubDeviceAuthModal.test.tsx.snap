@@ -53,30 +53,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: flex-end;
 }
 
-<<<<<<< HEAD
-.c4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
-.c9 {
-=======
 .c8 {
->>>>>>> 2abfcd2b (updated tests)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;

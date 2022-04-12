@@ -2,11 +2,7 @@
 
 exports[`snapshots renders 1`] = `
 <div
-<<<<<<< HEAD
-  className="sc-bdvvtL jUaaBj"
-=======
-  className="sc-bdvvtL goAlmQ"
->>>>>>> 2abfcd2b (updated tests)
+  className="sc-bdvvtL dVdTOU"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
@@ -26,11 +22,7 @@ exports[`snapshots renders 1`] = `
 
 exports[`snapshots renders child route 1`] = `
 <div
-<<<<<<< HEAD
-  className="sc-bdvvtL jUaaBj"
-=======
-  className="sc-bdvvtL goAlmQ"
->>>>>>> 2abfcd2b (updated tests)
+  className="sc-bdvvtL dVdTOU"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
@@ -46,11 +38,7 @@ exports[`snapshots renders child route 1`] = `
     </span>
   </a>
   <div
-<<<<<<< HEAD
-    className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
-=======
-    className="sc-bdvvtL goAlmQ sc-dkPtRN hTjxvJ"
->>>>>>> 2abfcd2b (updated tests)
+    className="sc-bdvvtL dVdTOU sc-dkPtRN hTjxvJ"
   >
     <svg
       aria-hidden={true}
@@ -81,11 +69,7 @@ exports[`snapshots renders child route 1`] = `
 
 exports[`snapshots renders on the root page 1`] = `
 <div
-<<<<<<< HEAD
-  className="sc-bdvvtL jUaaBj"
-=======
-  className="sc-bdvvtL goAlmQ"
->>>>>>> 2abfcd2b (updated tests)
+  className="sc-bdvvtL dVdTOU"
 >
   <a
     className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
@@ -99,11 +83,7 @@ exports[`snapshots renders on the root page 1`] = `
     />
   </a>
   <div
-<<<<<<< HEAD
-    className="sc-bdvvtL jUaaBj sc-dkPtRN hTjxvJ"
-=======
-    className="sc-bdvvtL goAlmQ sc-dkPtRN hTjxvJ"
->>>>>>> 2abfcd2b (updated tests)
+    className="sc-bdvvtL dVdTOU sc-dkPtRN hTjxvJ"
   >
     <svg
       aria-hidden={true}
