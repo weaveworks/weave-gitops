@@ -11,6 +11,7 @@ import FilterDialog, {
 } from "./FilterDialog";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
+import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 
 type Props = {
@@ -27,6 +28,27 @@ export function filterConfigForType(rows) {
     rows,
     (r, v) => {
       const t = v.type;
+
+      if (!_.includes(r, t)) {
+        r.push(t);
+      }
+
+      return r;
+    },
+    []
+  );
+
+  return { type: typeFilterConfig };
+}
+
+export function filterConfigForStatus(rows) {
+  const typeFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      let t;
+      if (v.suspended) t = "Suspended";
+      else if (computeReady(v.status)) t = "Ready";
+      else t = "Failed";
 
       if (!_.includes(r, t)) {
         r.push(t);
