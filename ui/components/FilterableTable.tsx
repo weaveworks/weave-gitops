@@ -1,6 +1,8 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { AutomationType } from "../lib/types";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
@@ -23,11 +25,11 @@ type Props = {
   onDialogClose?: () => void;
 };
 
-export function filterConfigForType(rows) {
+export function filterConfigForString(rows, key: string) {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
-      const t = v.type;
+      const t = v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -38,28 +40,52 @@ export function filterConfigForType(rows) {
     []
   );
 
-  return { type: typeFilterConfig };
+  return { [key]: typeFilterConfig };
 }
 
 export function filterConfigForStatus(rows) {
-  const typeFilterConfig = _.reduce(
+  const statusFilterConfig = _.reduce(
     rows,
     (r, v) => {
       let t;
       if (v.suspended) t = "Suspended";
-      else if (computeReady(v.status)) t = "Ready";
+      else if (computeReady(v.conditions)) t = "Ready";
       else t = "Failed";
-
       if (!_.includes(r, t)) {
         r.push(t);
       }
-
       return r;
     },
     []
   );
 
-  return { type: typeFilterConfig };
+  return { status: statusFilterConfig };
+}
+
+export function filterConfigForSource(rows) {
+  const sourceFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      let t;
+      let sourceKind;
+      let sourceName;
+
+      if (v.type === AutomationType.Kustomization) {
+        sourceKind = v.sourceRef?.kind;
+        sourceName = v.sourceRef?.name;
+      } else {
+        sourceKind = SourceRefSourceKind.HelmChart;
+        sourceName = (v as HelmRelease).helmChart.name;
+      }
+      if (!_.includes(r, t)) {
+        r.push(`${sourceKind}/${sourceName}`);
+      }
+      return r;
+    },
+    []
+  );
+
+  return { source: sourceFilterConfig };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -71,7 +97,28 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
     let ok = false;
 
     _.each(filters, (vals, key) => {
-      const value = r[key];
+      let value;
+      //status
+      if (key === "status") {
+        if (r["suspended"]) value = "Suspended";
+        else if (computeReady(r["conditions"])) value = "Ready";
+        else value = "Failed";
+      }
+      //source
+      else if (key === "source") {
+        let sourceKind;
+        let sourceName;
+        if (r["type"] === AutomationType.Kustomization) {
+          sourceKind = r["sourceRef"]?.kind;
+          sourceName = r["sourceRef"]?.name;
+        } else {
+          sourceKind = SourceRefSourceKind.HelmChart;
+          sourceName = (r as HelmRelease).helmChart.name;
+        }
+        value = `${sourceKind}/${sourceName}`;
+      }
+      //string
+      else value = r[key];
 
       if (_.includes(vals, value)) {
         ok = true;

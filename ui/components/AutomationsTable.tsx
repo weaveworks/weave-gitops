@@ -8,8 +8,9 @@ import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, { Field, SortType } from "./DataTable";
 import FilterableTable, {
+  filterConfigForSource,
   filterConfigForStatus,
-  filterConfigForType,
+  filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -24,7 +25,10 @@ type Props = {
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
   const initialFilterState = {
-    ...filterConfigForType(automations),
+    ...filterConfigForString(automations, "type"),
+    ...filterConfigForString(automations, "namespace"),
+    ...filterConfigForString(automations, "cluster"),
+    ...filterConfigForSource(automations),
     ...filterConfigForStatus(automations),
   };
 
