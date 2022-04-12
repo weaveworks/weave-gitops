@@ -111,7 +111,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: gitops-server.dockerfile
-        env: LDFLAGS=""
   update-doc-repo-files:
     needs: goreleaser
     runs-on: ubuntu-latest
