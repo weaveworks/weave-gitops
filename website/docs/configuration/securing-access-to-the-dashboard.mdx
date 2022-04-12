@@ -11,7 +11,7 @@ There are 2 supported methods for logging in to the dashboard:
 
 The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
 
-:::note FEATURE TOGGLE 
+:::note FEATURE TOGGLE
 The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
@@ -58,13 +58,11 @@ kubectl create secret generic oidc-auth \
   --from-literal=tokenDuration=<token-duration>
 ```
 
-Running `gitops ui run` should now load the dashboard and show the option to login via your OIDC provider.
-
 Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. Follow the instructions in the [RBAC authorization](#rbac-authorization) section in order to configure RBAC correctly.
 
 </TabItem>
 <TabItem value="Weave-Gitops-Enterprise" label="Weave GitOps Enterprise">
-Weave GitOps Enterprise builds upon the Weave GitOps functionality that allows users to secure the dashboard and use RBAC to control access. <br/><br/> 
+Weave GitOps Enterprise builds upon the Weave GitOps functionality that allows users to secure the dashboard and use RBAC to control access. <br/><br/>
 
 
 #### Configuration
@@ -90,7 +88,7 @@ gitops upgrade --config-repo https://github.com/my-org/ my-repo --version 0.0.16
 
 The `<Weave GitOps Enterprise callback URL>` should be set to the URL that the dashboard is hosted at, postfixed with `/oauth2/callback`. For example: https://gitops.example.com/oauth2/callback.
 
-:::note UPDATING OIDC CONFIGURATION 
+:::note UPDATING OIDC CONFIGURATION
 If you need to change the OIDC configuration after running `gitops upgrade`, update the corresponding `HelmRelease` manifest for Weave GitOps Enterprise in the git repository.
 :::
 

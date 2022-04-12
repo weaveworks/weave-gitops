@@ -7,7 +7,7 @@ WEAVE_GITOPS_DOC_REPO=$2
 cd $WEAVE_GITOPS_DOC_REPO/docs
 yarn install
 # update version information
-ex - installation.md << EOS
+ex - installation.mdx << EOS
 /download\/
 %s,download/\(.*\)/,download/${GITOPS_VERSION}/,
 /Current Version

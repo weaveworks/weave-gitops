@@ -222,46 +222,14 @@ flux create helmrelease ww-gitops \
   --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
 ```
 
-5. Edit the file to add the following values:
-
-```
-  values:
-    additionalArgs:
-    - --insecure
-```
-
-It should now look similar to:
-
-```
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: ww-gitops
-  namespace: flux-system
-spec:
-  chart:
-    spec:
-      chart: weave-gitops
-      sourceRef:
-        kind: HelmRepository
-        name: ww-gitops
-  interval: 1m0s
-  values:
-    additionalArgs:
-    - --insecure
-```
-
-
-
-6. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
+5. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
 
 ```
 git add -A && git commit -m "Add Weave GitOps HelmRelease"
 git push
 ```
 
-7. Validate that Weave GitOps and Flux are installed
+6. Validate that Weave GitOps and Flux are installed
 
 ```
 kubectl get pods -n flux-system
