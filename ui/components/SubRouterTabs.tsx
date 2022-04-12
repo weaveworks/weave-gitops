@@ -90,4 +90,8 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
   );
 }
 
-export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })``;
+export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
+  .active-tab {
+    background: ${(props) => props.theme.colors.primary}19;
+  }
+`;

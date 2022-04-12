@@ -50,12 +50,14 @@ function EventsTable({
         {
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
+          width: 25,
         },
-        { value: "message", label: "Message" },
-        { value: "component", label: "Component" },
+        { value: "message", label: "Message", width: 25 },
+        { value: "component", label: "Component", width: 25 },
         {
           label: "Timestamp",
           value: (e: Event) => <Timestamp time={e.timestamp} />,
+          width: 25,
         },
       ]}
       rows={data.events}
@@ -63,4 +65,8 @@ function EventsTable({
   );
 }
 
-export default styled(EventsTable).attrs({ className: EventsTable.name })``;
+export default styled(EventsTable).attrs({ className: EventsTable.name })`
+  td {
+    max-width: 1024px;
+  }
+`;
