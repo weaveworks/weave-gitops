@@ -32,8 +32,6 @@ export const Content = styled(Flex)`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-top: ${(props) => props.theme.spacing.medium};
-  width: 100%;
-  height: 100%;
 `;
 
 const Children = styled(Flex)``;

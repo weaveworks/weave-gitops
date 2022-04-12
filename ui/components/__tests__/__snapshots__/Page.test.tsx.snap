@@ -162,8 +162,6 @@ exports[`Page snapshots default 1`] = `
   padding-bottom: 24px;
   padding-left: 32px;
   padding-top: 24px;
-  width: 100%;
-  height: 100%;
 }
 
 .c4 h2 {
