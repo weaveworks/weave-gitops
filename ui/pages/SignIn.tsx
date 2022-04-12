@@ -1,8 +1,11 @@
+// @ts-nocheck
 import * as React from "react";
 import styled from "styled-components";
+import Lottie from "react-lottie-player";
 import { Redirect } from "react-router-dom";
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import SignInBackground from "../images/SignInBackground.json";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
@@ -11,12 +14,6 @@ import { Auth } from "../contexts/AuthContext";
 import { theme } from "../lib/theme";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
-
-export const SignInPageWrapper = styled(Flex)`
-  background: url(${images.signInBackground});
-  height: 100%;
-  width: 100%;
-`;
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -65,6 +62,23 @@ const DocsWrapper = styled(Flex)`
   }
 `;
 
+const SignInPageWrapper = () => (
+  <Flex
+    center
+    align
+    column
+    style={{ position: "absolute", height: "100%", width: "100%" }}
+  >
+    <Lottie
+      loop
+      animationData={SignInBackground}
+      play
+      style={{ width: "100%", height: "100%", zIndex: 2 }}
+      resizeMode="cover"
+    />
+  </Flex>
+);
+
 function SignIn() {
   const flags = useFeatureFlags();
 
@@ -94,7 +108,7 @@ function SignIn() {
   }, []);
 
   return (
-    <SignInPageWrapper center align column>
+    <SignInPageWrapper>
       {error && (
         <AlertWrapper
           severity="error"
