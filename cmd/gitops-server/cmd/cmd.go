@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	corecache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
@@ -203,7 +204,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName)
+	cache, err := corecache.NewContainer(context.Background(), rest, log)
+	if err != nil {
+		return fmt.Errorf("could not create cache container: %w", err)
+	}
+
+	coreConfig := core.NewCoreConfig(log, rest, cache, clusterName)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {

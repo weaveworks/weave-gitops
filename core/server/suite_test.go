@@ -51,7 +51,12 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 		withClientsPoolInterceptor(cfg, principal),
 	)
 
-	coreCfg := server.NewCoreConfig(logr.Discard(), cfg, "foobar")
+	container, err := cache.NewContainer(context.Background(), cfg, logr.Discard())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	coreCfg := server.NewCoreConfig(logr.Discard(), cfg, container, "foobar")
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
