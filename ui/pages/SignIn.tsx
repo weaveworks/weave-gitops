@@ -88,7 +88,7 @@ function SignIn() {
   }, []);
 
   return (
-    <SignInPageWrapper center align column>
+    <SignInPageWrapper tall wide center align column>
       <FormWrapper center align wrap>
         {error && (
           <AlertWrapper
