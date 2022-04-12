@@ -1,50 +1,7 @@
 ---
-title: GitOps Dashboard
-sidebar_position: 4
-hide_title: true
+title: Securing access to the dashboard
+sidebar_position: 0
 ---
-
-import TierLabel from "./\_components/TierLabel";
-
-<h1>
-  {frontMatter.title} <TierLabel tiers="All tiers" />
-</h1>
-
-Weave GitOps provides a web UI to help you quickly understand your Application deployments and perform common operations, such as adding a new Application to be deployed to your cluster. The `gitops` binary contains an HTTP server that can be used to start this browser interface as per the instructions below:
-
-To run the dashboard:
-
-```shell
-$ gitops ui run
-INFO[0000] Opening browser at https://0.0.0.0:9001/
-INFO[0000] Serving on 0.0.0.0:9001
-Opening in existing browser session.
-```
-
-Your browser should open to the Weave GitOps UI:
-
-![Weave GitOps UI](/img/wego_ui.png)
-
-## What information can I discover about my Applications?
-
-Applications being managed by Weave GitOps are displayed in a list. Clicking the name of an Application allows you to view more details including:
-
-- It's name, deployment type (Kustomize or Helm), URL for the source repository being synchronized to the cluster and the specific Path within the repository where we are looking for deployment manifests.
-- A reconciliation graph detailing the on-cluster components which have been created as a result of the deployment.
-- Information from Flux regarding the state of the reconciliation
-- A list of the 10 most recent commits to the source git repository helping you to verify which change has been applied to the cluster. This includes a hyperlink back to your git provider for each commit.
-
-## TLS configuration
-
-By default the dashboard will listen on 0.0.0.0:9001 with TLS enabled. A self-signed certificate and key pair are generated when the server starts.
-As the certificate is _self-signed_, Chrome and other browser will show a warning you will have to click through to view the dashboard.
-
-| Parameter           | Type   | Description                                                     | Default |
-| ------------------- | ------ | --------------------------------------------------------------- | ------- |
-| `--no-tls`          | bool   | Disable TLS, access the dashboard on default port via http      | false   |
-| `--tls-private-key` | string | Filename for the TLS certficate, in-memory generated if omitted |         |
-| `--tls-cert-file`   | string | Filename for the TLS key, in-memory generated if omitted        |         |
-| `--host`            | string | Host to listen on                                               | 0.0.0.0 |
 
 ## Dashboard Login
 
@@ -54,16 +11,20 @@ There are 2 supported methods for logging in to the dashboard:
 
 The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
 
-:::note FEATURE TOGGLE 
+:::note FEATURE TOGGLE
 The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
 ```sh
 export WEAVE_GITOPS_AUTH_ENABLED=true
 ```
 :::
 
-### Login via an OIDC provider
+## Login via an OIDC provider
 
-#### Securing the dashboard using OIDC and Kubernetes RBAC
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs groupId="Weave GitOps tier" default>
+<TabItem value="Weave-GitOps" label="Weave GitOps">
 
 You may decide to give your engineering teams access to the dashboard, in order to view and manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
 
@@ -97,11 +58,44 @@ kubectl create secret generic oidc-auth \
   --from-literal=tokenDuration=<token-duration>
 ```
 
-Running `gitops ui run` should now load the dashboard and show the option to login via your OIDC provider.
-
 Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. Follow the instructions in the [RBAC authorization](#rbac-authorization) section in order to configure RBAC correctly.
 
-### Login via a cluster user account
+</TabItem>
+<TabItem value="Weave-Gitops-Enterprise" label="Weave GitOps Enterprise">
+Weave GitOps Enterprise builds upon the Weave GitOps functionality that allows users to secure the dashboard and use RBAC to control access. <br/><br/>
+
+
+#### Configuration
+
+Before enabling this feature, you need to add a secret in the `wego-system` namespace containing the `clientId` and `clientSecret` for the client app used. Ensure that your OIDC issuer provider has been setup correctly with the same client app details.
+
+```sh
+kubectl create secret generic client-credentials \
+  --namespace wego-system \
+  --from-literal=clientId=<client-id> \
+  --from-literal=clientSecret=<client-secret>
+```
+
+Once the secret has been added to the cluster, run the `gitops upgrade` command and set the following OIDC parameters accordingly:
+
+```sh
+gitops upgrade --config-repo https://github.com/my-org/ my-repo --version 0.0.16 \
+  --set config.oidc.enabled=true \
+  --set config.oidc.clientCredentialsSecret=client-credentials \
+  --set config.oidc.issuerURL=<URL of the OIDC issuer> \
+  --set config.oidc.redirectURL=<Weave GitOps Enterprise callback URL>
+```
+
+The `<Weave GitOps Enterprise callback URL>` should be set to the URL that the dashboard is hosted at, postfixed with `/oauth2/callback`. For example: https://gitops.example.com/oauth2/callback.
+
+:::note UPDATING OIDC CONFIGURATION
+If you need to change the OIDC configuration after running `gitops upgrade`, update the corresponding `HelmRelease` manifest for Weave GitOps Enterprise in the git repository.
+:::
+
+</TabItem>
+</Tabs>
+
+## Login via a cluster user account
 
 Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
 
@@ -128,15 +122,15 @@ b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
 Now create a Kubernetes secret to store your chosen username and the password hash:
 
 ```sh
-kubectl create secret generic admin-password-hash \
-  --namespace wego-system \
-  --from-literal=username=admin
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
   --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
 ```
 
 You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.
 
-### RBAC authorization
+## RBAC authorization
 
 Both login methods work with standard Kubernetes RBAC. The following roles represent the minimal set of permissions needed to view applications, commits and profiles from the dashboard:
 
@@ -255,7 +249,3 @@ kubectl auth can-i list apps --as "admin" --namespace wego-system
 ```
 
 For more information about RBAC authorization visit the [Kubernetes reference documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
-
-## Future development
-
-The GitOps Dashboard is under active development, watch this space for exciting new features.

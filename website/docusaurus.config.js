@@ -42,12 +42,6 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "intro",
-          position: "left",
-          label: "Introduction",
-        },
-        {
-          type: "doc",
           docId: "installation",
           position: "left",
           label: "Installation",
@@ -57,12 +51,6 @@ module.exports = {
           docId: "getting-started",
           position: "left",
           label: "Getting Started",
-        },
-        {
-          type: "doc",
-          docId: "aws-marketplace",
-          position: "left",
-          label: "AWS Marketplace",
         },
         {
           type: "docsVersionDropdown",

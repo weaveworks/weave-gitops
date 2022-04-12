@@ -11,6 +11,6 @@ Kubernetes version and number of nodes and provides details about the GitOps ope
 on those clusters, such as Git repositories and recent commits. Additionally, it
 aggregates Prometheus alerts to assist with troubleshooting.
 
-## Upgrading to Weave Gitops Enterprise
+## How to purchase
 
-Get in touch with sales@weave.works!
+Get in touch with sales@weave.works to discuss your needs.
