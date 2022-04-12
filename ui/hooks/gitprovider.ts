@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import {
   GetGithubAuthStatusResponse,
@@ -21,10 +21,15 @@ export function useIsAuthenticated() {
     isAuthenticated: error ? false : res?.valid,
     loading,
     error,
-    req: (provider: GitProvider) => {
-      const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-      req(applicationsClient.ValidateProviderToken({ provider }, { headers }));
-    },
+    req: useCallback(
+      (provider: GitProvider) => {
+        const headers = makeHeaders(_.bind(getProviderToken, this, provider));
+        req(
+          applicationsClient.ValidateProviderToken({ provider }, { headers })
+        );
+      },
+      [makeHeaders, getProviderToken, applicationsClient.ValidateProviderToken]
+    ),
   };
 }
 

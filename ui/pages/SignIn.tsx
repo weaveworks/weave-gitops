@@ -73,7 +73,10 @@ const SignInPageWrapper = () => (
       loop
       animationData={SignInBackground}
       play
-      style={{ width: "100%", height: "100%", zIndex: 2 }}
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
       resizeMode="cover"
     />
   </Flex>
