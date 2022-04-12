@@ -1,7 +1,9 @@
+// @ts-nocheck
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "../components/Flex";
-import Page from "../components/Page";
+import Lottie from "react-lottie-player";
+import Content from "../components/Page";
+import error404 from "../images/error404.json";
 
 type Props = {
   className?: string;
@@ -10,11 +12,9 @@ type Props = {
 
 function ErrorPage({ className }: Props) {
   return (
-    <Page className={className} title="Error">
-      <Flex wide center>
-        <h2>404</h2>
-      </Flex>
-    </Page>
+    <Content>
+      <Lottie loop animationData={error404} play style={{ height: 650 }} />
+    </Content>
   );
 }
 
