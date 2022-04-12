@@ -1,0 +1,77 @@
+---
+title: CAPI Templates
+sidebar_position: 3
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# CAPI Templates <TierLabel tiers="enterprise" />
+
+## How to: Add a CAPI Template
+
+CAPI Templates objects need to be wrapped with the `CAPITemplate` custom resource and then loaded into the management cluster.
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-development
+spec:
+  description: This is the std. CAPD template
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+  resourcetemplates:
+    # Template objects go here
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+```
+
+### Resource templates - `spec.resourcetemplates`
+
+Add the list of objects to be rendered out to the `spec.resourcetemplates` section.
+
+Under each resource template, annotations can be added for easier UI navigation. Use `capi.weave.works/display-name` to describe the annotation. For example:
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: Cluster
+metadata:
+  name: "${CLUSTER_NAME}"
+  annotations:
+    capi.weave.works/display-name: ClusterName
+```
+
+This will result in showing `ClusterName` as the display name for the cluster name text field as opposed to the template parameter $CLUSTER_NAME, when the template is rendered in the UI.
+
+### Parameter metadata - `spec.params`
+
+You can provide additional metadata about the parameters to the templates in the `spec.params` section.
+
+- `name`: The variable name within the resource templates
+- `descripton`: Description of the parameter. This will be rendered in the UI and CLI
+- `options`: The list of possible values this parameter can be set to.
+
+### Loading the template into the cluster
+
+Load templates into the cluster by adding them to your flux managed git repository or by apply directly with
+`kubectl apply -f capi-template.yaml`
+
+Weave GitOps will search for templates in the `default` namespace. This can be changed by configuring the `config.capi.namespace` value in the helm chart.
+
+## Full CAPD docker template example
+
+This example works with the CAPD provider, see [Cluster API Providers](cluster-api-providers.mdx).
+
+import CodeBlock from "@theme/CodeBlock";
+import CapdTemplate from "!!raw-loader!./assets/templates/capd-template.yaml";
+
+<CodeBlock
+  title=".weave-gitops/apps/capi/templates/capd-template.yaml"
+  className="language-yaml"
+>
+  {CapdTemplate}
+</CodeBlock>
