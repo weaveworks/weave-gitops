@@ -22,6 +22,7 @@ import {
   useGetKustomization,
   useGetHelmRelease,
 } from "./hooks/automations";
+import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListSources } from "./hooks/sources";
 import { useFeatureFlags } from "./hooks/featureflags";
@@ -79,6 +80,7 @@ export {
   useGetKustomization,
   useGetHelmRelease,
   useListAutomations,
+  useListFluxRuntimeObjects,
   UserSettings,
   V2Routes,
 };
