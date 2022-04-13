@@ -32,7 +32,7 @@ ARG GIT_COMMIT="_unset_"
 ARG LDFLAGS="-X localbuild=true"
 
 # ignore the index.html dependency (which it otherwise would because node_modules is missing)
-RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make -o cmd/gitops-server/cmd/dist/index.html gitops-server
+RUN LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make -o cmd/gitops-server/cmd/dist/index.html gitops-server
 
 #  Distroless
 FROM gcr.io/distroless/base as runtime
