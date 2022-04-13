@@ -18,7 +18,7 @@ func TestGetFluxNamespace(t *testing.T) {
 
 	ctx := context.Background()
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	kClient, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -33,7 +33,7 @@ func TestGetFluxNamespace(t *testing.T) {
 	}
 
 	g.Expect(kClient.Create(ctx, ns)).To(Succeed())
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	defer func() {
 		// Workaround, somehow it does not get deleted with client.Delete().
@@ -51,11 +51,10 @@ func TestGetFluxNamespace(t *testing.T) {
 func TestGetFluxNamespace_notFound(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	updateNamespaceCache()
-
 	ctx := context.Background()
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
+	updateNamespaceCache(cfg)
 
 	_, err := coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
 	g.Expect(err).To(HaveOccurred())
@@ -76,9 +75,9 @@ func TestListNamespaces(t *testing.T) {
 		namespaces = append(namespaces, newNamespace(ctx, k, g))
 	}
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	t.Run("returns a list of namespaces", func(t *testing.T) {
 		g := NewGomegaWithT(t)

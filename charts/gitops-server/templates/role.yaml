@@ -25,7 +25,10 @@ rules:
   # helm repository rules for...?
   - apiGroups: [ "source.toolkit.fluxcd.io" ]
     resources: [ "helmrepositories" ]
-    verbs: [ "get", "list", "watch" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+  - apiGroups: [ "gitops.weave.works" ]
+    resources: [ "gitopsclusters" ]
+    verbs: [ "list" ]
   - apiGroups: [ "source.toolkit.fluxcd.io" ]
     resources: [ "helmrepositories/finalizers", "helmrepositories/status" ]
     verbs: [ "get" ]

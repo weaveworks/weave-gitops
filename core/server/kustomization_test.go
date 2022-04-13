@@ -24,7 +24,7 @@ func TestListKustomizations(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -59,7 +59,7 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -88,7 +88,7 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 
 	g.Expect(k.Create(ctx, kust)).To(Succeed())
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -100,7 +100,7 @@ func TestGetKustomization(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),

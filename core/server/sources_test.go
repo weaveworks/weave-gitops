@@ -17,7 +17,7 @@ func TestListHelmRepositories(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -46,7 +46,7 @@ func TestListHelmRepositories_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -69,7 +69,7 @@ func TestListHelmRepositories_inMultipleNamespaces(t *testing.T) {
 
 	g.Expect(k.Create(ctx, hr)).To(Succeed())
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListHelmRepositories(ctx, &pb.ListHelmRepositoriesRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -81,7 +81,7 @@ func TestListHelmCharts(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -116,7 +116,7 @@ func TestListHelmCharts_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -145,7 +145,7 @@ func TestListHelmCharts_inMultipleNamespaces(t *testing.T) {
 
 	g.Expect(k.Create(ctx, hc)).To(Succeed())
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListHelmCharts(ctx, &pb.ListHelmChartsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -157,7 +157,7 @@ func TestListBuckets(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -192,7 +192,7 @@ func TestListBuckets_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -221,7 +221,7 @@ func TestListBuckets_inMultipleNamespaces(t *testing.T) {
 
 	g.Expect(k.Create(ctx, bucket)).To(Succeed())
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListBuckets(ctx, &pb.ListBucketRequest{})
 	g.Expect(err).NotTo(HaveOccurred())

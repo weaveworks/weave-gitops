@@ -44,18 +44,21 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
+func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreServerConfig) {
 	principal := &auth.UserPrincipal{}
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(cfg, principal),
 	)
 
-	container, err := cache.NewContainer(context.Background(), cfg, logr.Discard())
-	if err != nil {
-		t.Fatal(err)
-	}
+	log := logr.Discard()
+	cacheContainer := cache.NewContainer(
+		log,
+		cache.WithSimpleCaches(
+			cache.WithNamespaceCache(cfg),
+		),
+	)
 
-	coreCfg := server.NewCoreConfig(logr.Discard(), cfg, container, "foobar")
+	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar")
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
@@ -97,7 +100,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 		conn.Close()
 	})
 
-	return pb.NewCoreClient(conn)
+	return pb.NewCoreClient(conn), coreCfg
 }
 
 func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
@@ -122,6 +125,6 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 	})
 }
 
-func updateNamespaceCache() {
-	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
+func updateNamespaceCache(cfg server.CoreServerConfig) {
+	_ = cfg.CacheContainer.ForceRefresh(cache.NamespaceStorage)
 }

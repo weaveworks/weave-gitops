@@ -204,12 +204,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	cache, err := corecache.NewContainer(context.Background(), rest, log)
-	if err != nil {
-		return fmt.Errorf("could not create cache container: %w", err)
-	}
+	cacheContainer := corecache.NewContainer(
+		log,
+		corecache.WithSimpleCaches(
+			corecache.WithNamespaceCache(rest),
+		),
+	)
 
-	coreConfig := core.NewCoreConfig(log, rest, cache, clusterName)
+	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {

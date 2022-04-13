@@ -25,7 +25,7 @@ func TestListHelmReleases(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -49,7 +49,7 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -68,7 +68,7 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 
 	newHelmRelease(ctx, appName, ns.Name, k, g)
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -79,7 +79,7 @@ func TestGetHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -130,7 +130,7 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -214,7 +214,7 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
