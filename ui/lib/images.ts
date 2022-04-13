@@ -1,18 +1,18 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import bg from "data-url:../images/General-backgroundok.png";
-import failedSrc from "data-url:../images/failed.svg";
-import fancyCardBackground from "data-url:../images/fancy-card-background.svg";
-import fancyCardBackgroundBlue from "data-url:../images/fancy-card-background-blue.svg";
-import fancyCardBackgroundOrange from "data-url:../images/fancy-card-background-orange.svg";
-import logoSrc from "data-url:../images/logo.svg";
-import signInBackground from "data-url:../images/SignInBackground.svg";
-import signInWheel from "data-url:../images/SignInWheel.svg";
-import successSrc from "data-url:../images/success.svg";
-import suspendedSrc from "data-url:../images/suspended.svg";
-import titleSrc from "data-url:../images/Title.svg";
-import weaveLogo from "data-url:../images/WeaveLogo.svg";
+import failedSrc from "url:../images/failed.svg";
+import fancyCardBackgroundBlue from "url:../images/fancy-card-background-blue.svg";
+import fancyCardBackgroundOrange from "url:../images/fancy-card-background-orange.svg";
+import fancyCardBackground from "url:../images/fancy-card-background.svg";
+import bg from "url:../images/General-backgroundok.png";
+import logoSrc from "url:../images/logo.svg";
+import signInBackground from "url:../images/SignInBackground.svg";
+import signInWheel from "url:../images/SignInWheel.svg";
+import successSrc from "url:../images/success.svg";
+import suspendedSrc from "url:../images/suspended.svg";
+import titleSrc from "url:../images/Title.svg";
+import weaveLogo from "url:../images/WeaveLogo.svg";
 
 export default {
   bg,
