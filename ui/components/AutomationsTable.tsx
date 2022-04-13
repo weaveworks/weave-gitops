@@ -27,7 +27,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   const initialFilterState = {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
-    ...filterConfigForString(automations, "cluster"),
+    ...filterConfigForString(automations, "clusterName"),
     ...filterConfigForSource(automations),
     ...filterConfigForStatus(automations),
   };
