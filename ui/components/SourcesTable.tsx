@@ -32,6 +32,7 @@ function SourcesTable({ className, sources }: Props) {
 
   return (
     <FilterableTable
+      className={className}
       filters={initialFilterState}
       rows={sources}
       dialogOpen={filterDialogOpen}
