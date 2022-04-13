@@ -4,43 +4,83 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/cache"
-	"github.com/weaveworks/weave-gitops/core/logger"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 func TestContainer_Namespace(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	log, err := logger.New("debug", true)
-	g.Expect(err).NotTo(HaveOccurred())
+	log := logr.Discard()
 
-	cacheContainer, err := cache.NewContainer(ctx, k8sEnv.Rest, log)
-	g.Expect(err).NotTo(HaveOccurred())
+	opts := cache.WithSimpleCaches(cache.WithNamespaceCache(k8sEnv.Rest))
+	cacheContainer := cache.NewContainer(log, opts)
 
 	cacheContainer.Start(ctx)
 
 	defer cacheContainer.Stop()
 
-	// Global Cache
-	g.Expect(cache.NewContainer(ctx, k8sEnv.Rest, log)).To(Equal(cacheContainer))
-	g.Expect(cache.GlobalContainer()).To(Equal(cacheContainer))
+	g.Expect(cacheContainer.ForceRefresh(cache.NamespaceStorage)).To(Succeed())
 
-	cacheContainer.ForceRefresh(cache.NamespaceStorage)
+	objs, err := cacheContainer.List(cache.NamespaceStorage)
+	g.Expect(err).NotTo(HaveOccurred())
 
-	nsList := cacheContainer.Namespaces()
+	nsList, ok := objs.(map[string][]v1.Namespace)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(nsList).To(HaveLen(1))
+
 	initialDefault := len(nsList["Default"])
 
-	g.Expect(nsList).To(HaveLen(1))
-
 	newNamespace(ctx, "cache-container", g)
 	newNamespace(ctx, "cache-container", g)
 
-	cacheContainer.ForceRefresh(cache.NamespaceStorage)
+	g.Expect(cacheContainer.ForceRefresh(cache.NamespaceStorage)).To(Succeed())
 
-	nsList = cacheContainer.Namespaces()
+	g.Eventually(func(g Gomega) int {
+		objs, err := cacheContainer.List(cache.NamespaceStorage)
+		g.Expect(err).NotTo(HaveOccurred())
+		nsList, ok := objs.(map[string][]v1.Namespace)
+		g.Expect(ok).To(BeTrue())
 
-	g.Expect(nsList).To(HaveLen(1))
-	g.Expect(nsList["Default"]).To(HaveLen(initialDefault + 2))
+		return len(nsList["Default"])
+	}).Should(Equal(initialDefault + 2))
+}
+
+func TestContainer_NamespaceWithClusterSync(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+
+	log := logr.Discard()
+
+	opts := cache.WithSyncedCaches(
+		cache.WithNamespaceCache(k8sEnv.Rest),
+		withFakeClusterCache(k8sEnv.Rest),
+	)
+	cacheContainer := cache.NewContainer(log, opts)
+
+	cacheContainer.Start(ctx)
+
+	defer cacheContainer.Stop()
+
+	g.Expect(cacheContainer.ForceRefresh(cache.NamespaceStorage)).To(Succeed())
+
+	objs, err := cacheContainer.List(cache.NamespaceStorage)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	nsList, ok := objs.(map[string][]v1.Namespace)
+	g.Expect(ok).To(BeTrue())
+	g.Expect(nsList).To(HaveLen(3))
+}
+
+func newNamespace(ctx context.Context, prefix string, g *GomegaWithT) *v1.Namespace {
+	ns := &v1.Namespace{}
+	ns.Name = prefix + "kube-test-" + rand.String(5)
+
+	g.Expect(k8sEnv.Client.Create(ctx, ns)).To(Succeed())
+
+	return ns
 }

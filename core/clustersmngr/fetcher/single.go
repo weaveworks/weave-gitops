@@ -1,27 +1,26 @@
-package clustersmngr
+package fetcher
 
 import (
 	"context"
 
+	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/client-go/rest"
 )
-
-const DefaultCluster = "Default"
 
 type singleClusterFetcher struct {
 	restConfig *rest.Config
 }
 
-func NewSingleClusterFetcher(config *rest.Config) (ClusterFetcher, error) {
+func NewSingleClusterFetcher(config *rest.Config) (mngr.ClusterFetcher, error) {
 	return singleClusterFetcher{
 		restConfig: config,
 	}, nil
 }
 
-func (cf singleClusterFetcher) Fetch(ctx context.Context) ([]Cluster, error) {
-	return []Cluster{
+func (cf singleClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
+	return []mngr.Cluster{
 		{
-			Name:        DefaultCluster,
+			Name:        mngr.DefaultCluster,
 			Server:      cf.restConfig.Host,
 			BearerToken: cf.restConfig.BearerToken,
 			TLSConfig:   cf.restConfig.TLSClientConfig,

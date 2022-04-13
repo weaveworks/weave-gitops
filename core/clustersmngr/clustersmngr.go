@@ -17,6 +17,7 @@ type key int
 const (
 	// Clusters Client context key
 	ClustersClientCtxKey key = iota
+	DefaultCluster           = "Default"
 )
 
 var (

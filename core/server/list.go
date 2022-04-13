@@ -30,7 +30,12 @@ func (cs *coreServer) listObjects(
 
 	var results []interface{}
 
-	nsList, found := cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster]
+	namespaces, err := cs.namespaces()
+	if err != nil {
+		return nil, err
+	}
+
+	nsList, found := namespaces[clustersmngr.DefaultCluster]
 	if !found {
 		return nil, defaultClusterNotFound{}
 	}

@@ -23,7 +23,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -85,7 +85,7 @@ func TestGetChildObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -166,7 +166,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -195,7 +195,7 @@ func TestListFluxRuntimeObjects_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(k8sEnv.Rest, t)
+	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -223,7 +223,7 @@ func TestListFluxRuntimeObjects_inMultipleNamespaces(t *testing.T) {
 	}
 	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
 
-	updateNamespaceCache()
+	updateNamespaceCache(cfg)
 
 	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())

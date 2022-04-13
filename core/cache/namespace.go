@@ -8,31 +8,45 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/rest"
 )
 
-const pollIntervalSeconds = 120
+const NamespaceStorage StorageType = "namespace"
 
 type namespaceStore struct {
-	client     clustersmngr.Client
+	logger      logr.Logger
+	restCfg     *rest.Config
+	clusterChan <-chan mngr.Cluster
+
 	namespaces map[string][]v1.Namespace
-	logger     logr.Logger
-	lock       sync.Mutex
-	cancel     func()
+
+	lock     sync.Mutex
+	cancel   func()
+	interval time.Duration
 }
 
-func newNamespaceStore(c clustersmngr.Client, logger logr.Logger) namespaceStore {
-	return namespaceStore{
-		client:     c,
-		namespaces: map[string][]v1.Namespace{},
-		logger:     logger,
-		lock:       sync.Mutex{},
-		cancel:     nil,
+func WithNamespaceCache(cfg *rest.Config) WithCacheFunc {
+	return func(l logr.Logger, syncChan chan mngr.Cluster) (StorageType, Cache) {
+		return NamespaceStorage, newNamespaceStore(l, cfg, syncChan)
 	}
 }
 
-func (n *namespaceStore) Namespaces() map[string][]v1.Namespace {
+func newNamespaceStore(logger logr.Logger, restCfg *rest.Config, clusterChan <-chan mngr.Cluster) *namespaceStore {
+	return &namespaceStore{
+		logger:      logger.WithName("namespace-cache"),
+		restCfg:     restCfg,
+		clusterChan: clusterChan,
+		namespaces:  map[string][]v1.Namespace{},
+		cancel:      nil,
+		lock:        sync.Mutex{},
+		interval:    DefaultPollIntervalSeconds,
+	}
+}
+
+func (n *namespaceStore) List() interface{} {
 	return n.namespaces
 }
 
@@ -42,6 +56,7 @@ func (n *namespaceStore) ForceRefresh() {
 
 func (n *namespaceStore) Stop() {
 	if n.cancel != nil {
+		n.logger.Info("stopping namespace cache")
 		n.cancel()
 	}
 }
@@ -51,8 +66,10 @@ func (n *namespaceStore) Start(ctx context.Context) {
 
 	newCtx, n.cancel = context.WithCancel(ctx)
 
+	n.logger.Info("starting namespace cache")
+
 	go func() {
-		ticker := time.NewTicker(pollIntervalSeconds * time.Second)
+		ticker := time.NewTicker(n.interval * time.Second)
 
 		defer ticker.Stop()
 
@@ -73,11 +90,26 @@ func (n *namespaceStore) update(ctx context.Context) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 
-	for name, c := range n.client.ClientsPool().Clients() {
+	clientsPool := clustersmngr.NewClustersClientsPool()
+
+	if err := clientsPool.Add(clientConfig(n.restCfg), addSelf(n.restCfg)); err != nil {
+		n.logger.Error(err, "unable to create client for home cluster")
+	}
+
+	if n.clusterChan != nil {
+		for cluster := range n.clusterChan {
+			if err := clientsPool.Add(clientConfig(n.restCfg), cluster); err != nil {
+				n.logger.Error(err, "unable to create client for cluster", "cluster", cluster.Name)
+
+				continue
+			}
+		}
+	}
+
+	for name, c := range clientsPool.Clients() {
 		list := &v1.NamespaceList{}
 
-		err := c.List(ctx, list)
-		if err != nil {
+		if err := c.List(ctx, list); err != nil {
 			if !apierrors.IsForbidden(err) && !errors.Is(err, context.Canceled) {
 				n.logger.Error(err, "unable to fetch namespaces", "cluster", name)
 			}
@@ -89,5 +121,20 @@ func (n *namespaceStore) update(ctx context.Context) {
 		newList = append(newList, list.Items...)
 
 		n.namespaces[name] = newList
+	}
+}
+
+func clientConfig(restCfg *rest.Config) clustersmngr.ClusterClientConfig {
+	return func(cluster clustersmngr.Cluster) *rest.Config {
+		return restCfg
+	}
+}
+
+func addSelf(restCfg *rest.Config) mngr.Cluster {
+	return mngr.Cluster{
+		Name:        mngr.DefaultCluster,
+		Server:      restCfg.Host,
+		BearerToken: restCfg.BearerToken,
+		TLSConfig:   restCfg.TLSClientConfig,
 	}
 }
