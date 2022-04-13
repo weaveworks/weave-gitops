@@ -88,6 +88,11 @@ export function formStateToFilters(values: DialogFormState): FilterConfig {
   return out;
 }
 
+const convertHeaders = (header: string) => {
+  if (header === "clusterName") return "cluster";
+  return header;
+};
+
 /** Form Filter Bar */
 function UnstyledFilterDialog({
   className,
@@ -123,7 +128,7 @@ function UnstyledFilterDialog({
                   <ListItem key={header}>
                     <Flex column>
                       <Text capitalize size="small" color="neutral30">
-                        {header}
+                        {convertHeaders(header)}
                       </Text>
                       <List>
                         {_.map(options, (option: string, index: number) => {

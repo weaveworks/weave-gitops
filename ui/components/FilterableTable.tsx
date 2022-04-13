@@ -1,8 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
-import { AutomationType } from "../lib/types";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
@@ -50,7 +48,7 @@ export function filterConfigForStatus(rows) {
       let t;
       if (v.suspended) t = "Suspended";
       else if (computeReady(v.conditions)) t = "Ready";
-      else t = "Failed";
+      else t = "Not Ready";
       if (!_.includes(r, t)) {
         r.push(t);
       }
@@ -60,32 +58,6 @@ export function filterConfigForStatus(rows) {
   );
 
   return { status: statusFilterConfig };
-}
-
-export function filterConfigForSource(rows) {
-  const sourceFilterConfig = _.reduce(
-    rows,
-    (r, v) => {
-      let t;
-      let sourceKind;
-      let sourceName;
-
-      if (v.type === AutomationType.Kustomization) {
-        sourceKind = v.sourceRef?.kind;
-        sourceName = v.sourceRef?.name;
-      } else {
-        sourceKind = SourceRefSourceKind.HelmChart;
-        sourceName = (v as HelmRelease).helmChart.name;
-      }
-      if (!_.includes(r, t)) {
-        r.push(`${sourceKind}/${sourceName}`);
-      }
-      return r;
-    },
-    []
-  );
-
-  return { source: sourceFilterConfig };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -102,20 +74,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
       if (key === "status") {
         if (r["suspended"]) value = "Suspended";
         else if (computeReady(r["conditions"])) value = "Ready";
-        else value = "Failed";
-      }
-      //source
-      else if (key === "source") {
-        let sourceKind;
-        let sourceName;
-        if (r["type"] === AutomationType.Kustomization) {
-          sourceKind = r["sourceRef"]?.kind;
-          sourceName = r["sourceRef"]?.name;
-        } else {
-          sourceKind = SourceRefSourceKind.HelmChart;
-          sourceName = (r as HelmRelease).helmChart.name;
-        }
-        value = `${sourceKind}/${sourceName}`;
+        else value = "Not Ready";
       }
       //string
       else value = r[key];

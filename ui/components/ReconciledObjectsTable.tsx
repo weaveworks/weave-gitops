@@ -8,10 +8,13 @@ import {
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import DataTable, { SortType } from "./DataTable";
+import { SortType } from "./DataTable";
+import FilterableTable, {
+  filterConfigForStatus,
+  filterConfigForString,
+} from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import RequestStateHandler from "./RequestStateHandler";
-
 export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
@@ -41,9 +44,16 @@ function ReconciledObjectsTable({
     clusterName
   );
 
+  const initialFilterState = {
+    ...filterConfigForString(objs, "type"),
+    ...filterConfigForString(objs, "namespace"),
+    ...filterConfigForStatus(objs),
+  };
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <DataTable
+      <FilterableTable
+        filters={initialFilterState}
         className={className}
         fields={[
           {

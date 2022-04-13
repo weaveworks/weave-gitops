@@ -8,7 +8,6 @@ import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, { Field, SortType } from "./DataTable";
 import FilterableTable, {
-  filterConfigForSource,
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
@@ -28,7 +27,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
     ...filterConfigForString(automations, "clusterName"),
-    ...filterConfigForSource(automations),
     ...filterConfigForStatus(automations),
   };
 

@@ -5,7 +5,8 @@ import React from "react";
 import { withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
-  filterConfigForType,
+  filterConfigForStatus,
+  filterConfigForString,
   filterRows,
 } from "../FilterableTable";
 
@@ -22,24 +23,68 @@ describe("FilterableTable", () => {
       name: "cool",
       type: "foo",
       success: false,
+      suspended: true,
+      conditions: [
+        {
+          message:
+            "Applied revision: main/8868a29b71c008c06549052389f3d762d5fbf821",
+          reason: "ReconciliationSucceeded",
+          status: "True",
+          timestamp: "2022-04-13 20:23:15 +0000 UTC",
+          type: "Ready",
+        },
+      ],
       count: 1,
     },
     {
       name: "slick",
       type: "foo",
       success: true,
+      suspended: false,
+      conditions: [
+        {
+          message:
+            "Applied revision: main/8868a29b71c008c06549052389f3d762d5fbf821",
+          reason: "ReconciliationSucceeded",
+          status: "True",
+          timestamp: "2022-04-13 20:23:15 +0000 UTC",
+          type: "Ready",
+        },
+      ],
       count: 2,
     },
     {
       name: "neat",
       type: "bar",
       success: false,
+      suspended: false,
+      conditions: [
+        {
+          message:
+            "Applied revision: main/8868a29b71c008c06549052389f3d762d5fbf821",
+          reason: "ArtifactFailed",
+          status: "False",
+          timestamp: "2022-04-13 20:23:15 +0000 UTC",
+          type: "Ready",
+        },
+      ],
       count: 500,
     },
     {
       name: "rad",
       type: "baz",
       success: false,
+      suspended: false,
+      conditions: [
+        {
+          message:
+            "Applied revision: main/8868a29b71c008c06549052389f3d762d5fbf821",
+          reason: "ArtifactFailed",
+          status: "False",
+          timestamp: "2022-04-13 20:23:15 +0000 UTC",
+          type: "Ready",
+        },
+      ],
       count: 500,
     },
   ];
@@ -129,7 +174,7 @@ describe("FilterableTable", () => {
   });
   it("should filter on click", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
     render(
       withTheme(
@@ -164,9 +209,49 @@ describe("FilterableTable", () => {
     const chip2 = screen.getByText("type:baz");
     expect(chip2).toBeTruthy();
   });
+  it("should filter by status", () => {
+    const initialFilterState = {
+      ...filterConfigForStatus(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const checkbox1 = document.getElementById(
+      "status:Ready"
+    ) as HTMLInputElement;
+    fireEvent.click(checkbox1);
+
+    const tableRows = document.querySelectorAll("tbody tr");
+
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain("slick");
+
+    const chip1 = screen.getByText("status:Ready");
+    expect(chip1).toBeTruthy();
+
+    const checkbox2 = document.getElementById(
+      "status:Suspended"
+    ) as HTMLInputElement;
+    fireEvent.click(checkbox2);
+
+    const tableRows2 = document.querySelectorAll("tbody tr");
+    expect(tableRows2).toHaveLength(2);
+    expect(tableRows2[0].innerHTML).toContain("cool");
+
+    const chip2 = screen.getByText("status:Suspended");
+    expect(chip2).toBeTruthy();
+  });
   it("should remove a param when a single chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
     render(
       withTheme(
@@ -202,7 +287,7 @@ describe("FilterableTable", () => {
   });
   it("should clear filtering when the `clear all` chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
     render(
       withTheme(
@@ -243,7 +328,7 @@ describe("FilterableTable", () => {
 
   it("should add a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
     render(
       withTheme(
@@ -265,7 +350,7 @@ describe("FilterableTable", () => {
   });
   it("should remove a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
     render(
       withTheme(
@@ -290,7 +375,7 @@ describe("FilterableTable", () => {
   });
   it("filters by a text field", () => {
     const initialFilterState = {
-      ...filterConfigForType(rows),
+      ...filterConfigForString(rows, "type"),
     };
 
     render(
@@ -318,7 +403,7 @@ describe("FilterableTable", () => {
           fields={fields}
           rows={rows}
           filters={{
-            ...filterConfigForType(rows),
+            ...filterConfigForString(rows, "type"),
           }}
           dialogOpen
         />
@@ -343,7 +428,7 @@ describe("FilterableTable", () => {
           fields={fields}
           rows={rows}
           filters={{
-            ...filterConfigForType(rows),
+            ...filterConfigForString(rows, "type"),
           }}
           dialogOpen
         />

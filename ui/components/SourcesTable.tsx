@@ -32,7 +32,7 @@ function SourcesTable({ className, sources }: Props) {
   const initialFilterState = {
     ...filterConfigForString(sources, "type"),
     ...filterConfigForStatus(sources),
-    ...filterConfigForString(sources, "reference"),
+    ...filterConfigForString(sources, "clusterName"),
   };
 
   return (
