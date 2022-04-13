@@ -7,10 +7,14 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import AutomationsTable from "./components/AutomationsTable";
-import SourceDetail from "./components/SourceDetail";
-import SourcesTable from "./components/SourcesTable";
-import KustomizationDetail from "./components/KustomizationDetail";
+import BucketDetail from "./components/BucketDetail";
+import FluxRuntime from "./components/FluxRuntime";
+import GitRepositoryDetail from "./components/GitRepositoryDetail";
+import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
+import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
+import KustomizationDetail from "./components/KustomizationDetail";
+import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
 import AppContextProvider from "./contexts/AppContext";
@@ -49,17 +53,22 @@ export {
   AuthCheck,
   Automation,
   AutomationsTable,
+  BucketDetail,
   Button,
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
   FeatureFlagsContextProvider,
   FeatureFlags,
+  FluxRuntime,
   Footer,
   getCallbackState,
   getProviderToken,
   GithubDeviceAuthModal,
+  GitRepositoryDetail,
+  HelmChartDetail,
   HelmReleaseDetail,
+  HelmRepositoryDetail,
   Icon,
   IconType,
   Interval,
@@ -69,7 +78,6 @@ export {
   OAuthCallback,
   RepoInputWithAuth,
   SignIn,
-  SourceDetail,
   SourceRefSourceKind,
   SourcesTable,
   theme,
