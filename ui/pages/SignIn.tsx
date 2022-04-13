@@ -1,19 +1,21 @@
-// @ts-nocheck
-import * as React from "react";
-import styled from "styled-components";
-import Lottie from "react-lottie-player";
-import { Redirect } from "react-router-dom";
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
-import SignInBackground from "../images/SignInBackground.json";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
-import { theme } from "../lib/theme";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
+import { theme } from "../lib/theme";
+
+export const SignInPageWrapper = styled(Flex)`
+  background: url(${images.signInBackground});
+  height: 100%;
+`;
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -37,10 +39,6 @@ const Logo = styled(Flex)`
   margin-bottom: ${(props) => props.theme.spacing.medium};
 `;
 
-const Action = styled(Flex)`
-  flex-wrap: wrap;
-`;
-
 const Footer = styled(Flex)`
   & img {
     width: 500px;
@@ -61,25 +59,6 @@ const DocsWrapper = styled(Flex)`
     color: ${({ theme }) => theme.colors.primary};
   }
 `;
-
-const SignInPageWrapper = () => (
-  <Flex
-    center
-    align
-    column
-    style={{ position: "absolute", height: "100%", width: "100%" }}
-  >
-    <Lottie
-      loop
-      animationData={SignInBackground}
-      play
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
-    />
-  </Flex>
-);
 
 function SignIn() {
   const flags = useFeatureFlags();
@@ -110,26 +89,22 @@ function SignIn() {
   }, []);
 
   return (
-    <SignInPageWrapper>
-      {error && (
-        <AlertWrapper
-          severity="error"
-          title="Error signin in"
-          message={`${String(error.status)} ${error.statusText}`}
-          center
-        />
-      )}
+    <SignInPageWrapper tall wide center align column>
       <FormWrapper center align wrap>
-        <div
-          style={{
-            paddingTop: theme.spacing.base,
-          }}
-        >
-          <Logo>
+        {error && (
+          <AlertWrapper
+            severity="error"
+            title="Error signin in"
+            message={`${String(error.status)} ${error.statusText}`}
+            center
+          />
+        )}
+        <div>
+          <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
           {flags.OIDC_AUTH ? (
-            <Action>
+            <Flex wide center>
               <Button
                 type="submit"
                 onClick={(e) => {
@@ -139,7 +114,7 @@ function SignIn() {
               >
                 LOGIN WITH OIDC PROVIDER
               </Button>
-            </Action>
+            </Flex>
           ) : null}
           {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />
