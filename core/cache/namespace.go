@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -14,20 +15,20 @@ import (
 const pollIntervalSeconds = 120
 
 type namespaceStore struct {
-	client       clustersmngr.Client
-	namespaces   map[string][]v1.Namespace
-	logger       logr.Logger
-	forceRefresh chan bool
-	cancel       func()
+	client     clustersmngr.Client
+	namespaces map[string][]v1.Namespace
+	logger     logr.Logger
+	lock       sync.Mutex
+	cancel     func()
 }
 
 func newNamespaceStore(c clustersmngr.Client, logger logr.Logger) namespaceStore {
 	return namespaceStore{
-		client:       c,
-		namespaces:   map[string][]v1.Namespace{},
-		logger:       logger,
-		cancel:       nil,
-		forceRefresh: make(chan bool),
+		client:     c,
+		namespaces: map[string][]v1.Namespace{},
+		logger:     logger,
+		lock:       sync.Mutex{},
+		cancel:     nil,
 	}
 }
 
@@ -36,7 +37,7 @@ func (n *namespaceStore) Namespaces() map[string][]v1.Namespace {
 }
 
 func (n *namespaceStore) ForceRefresh() {
-	n.forceRefresh <- true
+	n.update(context.Background())
 }
 
 func (n *namespaceStore) Stop() {
@@ -56,32 +57,37 @@ func (n *namespaceStore) Start(ctx context.Context) {
 		defer ticker.Stop()
 
 		for {
-			for name, c := range n.client.ClientsPool().Clients() {
-				list := &v1.NamespaceList{}
-
-				err := c.List(newCtx, list)
-				if err != nil {
-					if !apierrors.IsForbidden(err) && !errors.Is(err, context.Canceled) {
-						n.logger.Error(err, "unable to fetch namespaces", "cluster", name)
-					}
-
-					continue
-				}
-
-				newList := []v1.Namespace{}
-				newList = append(newList, list.Items...)
-
-				n.namespaces[name] = newList
-			}
+			n.update(newCtx)
 
 			select {
 			case <-newCtx.Done():
 				break
-			case <-n.forceRefresh:
-				continue
 			case <-ticker.C:
 				continue
 			}
 		}
 	}()
+}
+
+func (n *namespaceStore) update(ctx context.Context) {
+	n.lock.Lock()
+	defer n.lock.Unlock()
+
+	for name, c := range n.client.ClientsPool().Clients() {
+		list := &v1.NamespaceList{}
+
+		err := c.List(ctx, list)
+		if err != nil {
+			if !apierrors.IsForbidden(err) && !errors.Is(err, context.Canceled) {
+				n.logger.Error(err, "unable to fetch namespaces", "cluster", name)
+			}
+
+			continue
+		}
+
+		newList := []v1.Namespace{}
+		newList = append(newList, list.Items...)
+
+		n.namespaces[name] = newList
+	}
 }

@@ -3,7 +3,6 @@ package cache_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/cache"
@@ -39,7 +38,6 @@ func TestContainer_Namespace(t *testing.T) {
 	newNamespace(ctx, "cache-container", g)
 
 	cacheContainer.ForceRefresh(cache.NamespaceStorage)
-	time.Sleep(time.Millisecond * 200)
 
 	nsList = cacheContainer.Namespaces()
 
