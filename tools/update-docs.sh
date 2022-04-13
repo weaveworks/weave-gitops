@@ -1,3 +1,4 @@
+#!/bin/bash
 # Note that GITOPS_VERSION and ALGOLIA_API_KEY environment variables must be set
 # before running this script
 
@@ -25,5 +26,4 @@ ${WEAVE_GITOPS_BINARY} docs
 git add *.md
 # create versioned docs
 cd $WEAVE_GITOPS_DOC_REPO
-version_number=$(cut -f2 -d'v' <<< $GITOPS_VERSION)
-npm run docusaurus docs:version $version_number
+npm run docusaurus docs:version $GITOPS_VERSION
