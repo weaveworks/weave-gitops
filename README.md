@@ -37,30 +37,48 @@ Please see the [getting started guide](https://docs.gitops.weave.works/docs/gett
 ## CLI Reference
 
 ```console
-Weave GitOps
 Command line utility for managing Kubernetes applications via GitOps.
 
 Usage:
   gitops [command]
 
+Examples:
+
+  # Get verbose output for any gitops command
+  gitops [command] -v, --verbose
+
+  # Get help for gitops add cluster command
+  gitops add cluster -h
+  gitops help add cluster
+
+  # Get the version of gitops along with commit, branch, and flux version
+  gitops version
+
+  To learn more, you can find our documentation at https://docs.gitops.weave.works/
+
+
 Available Commands:
-  app         Add or status application
-  flux        Use flux commands
+  add         Add a new Weave GitOps resource
+  check       Validates flux compatibility
+  completion  Generate the autocompletion script for the specified shell
+  delete      Delete one or many Weave GitOps resources
+  get         Display one or many Weave GitOps resources
   help        Help about any command
-  install     Install or upgrade Weave GitOps
-  ui          Manages Weave GitOps UI
-  uninstall   Uninstall Weave GitOps
-  version     Display Weave GitOps version
+  update      Update a Weave GitOps resource
+  upgrade     Upgrade to Weave GitOps Enterprise
+  version     Display gitops version
 
 Flags:
-  -h, --help               Help for gitops
-      --namespace string   The namespace scope for this operation (default "flux-system").
-  -v, --verbose            Enable verbose output
+  -e, --endpoint string            The Weave GitOps Enterprise HTTP API endpoint
+  -h, --help                       help for gitops
+      --insecure-skip-tls-verify   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
+      --namespace string           The namespace scope for this operation (default "flux-system")
+  -v, --verbose                    Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
 ```
 
-For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
+For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference/gitops)
 
 ## CLI/API development
 
