@@ -61,7 +61,7 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
   }));
 
   return (
-    <Flex wide column start className={className}>
+    <Flex wide tall column start className={className}>
       <Tabs
         indicatorColor="primary"
         value={routesToIndex(routes, window.location.pathname)}
