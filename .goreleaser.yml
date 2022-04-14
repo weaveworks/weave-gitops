@@ -22,16 +22,8 @@ builds:
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime={{.Date}}
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch={{ .Env.BRANCH}}
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit={{.Commit}}
-        - -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion={{ .Env.FLUX_VERSION }}
       env:
         - CGO_ENABLED=0
-      hooks:
-        pre:
-          - curl -L https://github.com/fluxcd/flux2/releases/download/v{{.Env.FLUX_VERSION}}/flux_{{.Env.FLUX_VERSION}}_{{.Os}}_{{.Arch}}.tar.gz -o flux-tar.gz
-          - tar -xvzf flux-tar.gz
-          - mkdir -p ./pkg/flux/bin
-          - mv ./flux ./pkg/flux/bin/flux
-          - rm flux-tar.gz
     id: linux-amd64
     goos:
       - linux
