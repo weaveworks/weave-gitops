@@ -170,7 +170,7 @@ function UnstyledDataTable({
             <TableRow>
               {_.map(fields, (f) => (
                 <TableCell
-                  style={f.width ? { width: f.width } : {}}
+                  style={f.width ? { width: `${f.width}%` } : {}}
                   key={f.label}
                 >
                   <SortableLabel field={f} />

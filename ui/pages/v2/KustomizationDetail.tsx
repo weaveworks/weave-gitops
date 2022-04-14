@@ -9,6 +9,7 @@ type Props = {
   clusterName: string;
   className?: string;
 };
+
 function KustomizationDetail({ className, name, clusterName }: Props) {
   const { data, isLoading, error } = useGetKustomization(name, clusterName);
   const kustomization = data?.kustomization;

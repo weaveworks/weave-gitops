@@ -1,3 +1,4 @@
+import _ from "lodash";
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
@@ -6,9 +7,10 @@ import { NoNamespace, PageRoute, V2Routes } from "./types";
 // This keeps the nav element highlighted if we are on a child page.
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
 export const getParentNavValue = (
-  currentPage: any
+  path: string
 ): PageRoute | V2Routes | boolean => {
-  switch (currentPage) {
+  const [, currentPage] = _.split(path, "/");
+  switch (`/${currentPage}`) {
     case V2Routes.Automations:
     case V2Routes.Kustomization:
     case V2Routes.HelmRelease:

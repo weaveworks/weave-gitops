@@ -1,5 +1,5 @@
-import { createHashHistory } from "history";
 import * as React from "react";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncAutomation } from "../hooks/automations";
@@ -11,13 +11,13 @@ import {
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import InfoList from "./InfoList";
 import Interval from "./Interval";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import SourceLink from "./SourceLink";
+import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 
 type Props = {
@@ -40,8 +40,8 @@ export default function HelmReleaseDetail({
   helmRelease,
   className,
 }: Props) {
+  const { path } = useRouteMatch();
   const { notifySuccess } = React.useContext(AppContext);
-  const hashHistory = createHashHistory();
   const sync = useSyncAutomation({
     name: helmRelease?.name,
     namespace: helmRelease?.namespace,
@@ -93,16 +93,16 @@ export default function HelmReleaseDetail({
       </Flex>
       <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
       <TabContent>
-        <HashRouterTabs history={hashHistory} defaultPath="/details">
-          <HashRouterTab name="Details" path="/details">
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
             <ReconciledObjectsTable
               kinds={helmRelease?.inventory}
               automationName={helmRelease?.name}
               automationKind={AutomationKind.HelmReleaseAutomation}
               clusterName={helmRelease?.clusterName}
             />
-          </HashRouterTab>
-          <HashRouterTab name="Events" path="/events">
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
             <EventsTable
               involvedObject={{
                 kind: "HelmRelease",
@@ -110,8 +110,8 @@ export default function HelmReleaseDetail({
                 namespace: helmRelease?.namespace,
               }}
             />
-          </HashRouterTab>
-        </HashRouterTabs>
+          </RouterTab>
+        </SubRouterTabs>
       </TabContent>
     </Flex>
   );
