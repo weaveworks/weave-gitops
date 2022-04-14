@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncAutomation } from "../hooks/automations";
 import { AutomationKind, Kustomization } from "../lib/api/core/types.pb";
-import { WeGONamespace } from "../lib/types";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -93,7 +92,6 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
               kinds={kustomization?.inventory}
-              namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
           </HashRouterTab>
@@ -112,7 +110,6 @@ function KustomizationDetail({ kustomization, name, className }: Props) {
               automationName={kustomization?.name}
               kinds={kustomization?.inventory}
               parentObject={kustomization}
-              namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
           </HashRouterTab>

@@ -7,6 +7,7 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { NoNamespace } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, { SortType } from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
@@ -15,7 +16,7 @@ import RequestStateHandler from "./RequestStateHandler";
 export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
-  namespace: string;
+  namespace?: string;
   automationKind: AutomationKind;
   kinds: GroupVersionKind[];
   clusterName: string;
@@ -24,7 +25,7 @@ export interface ReconciledVisualizationProps {
 function ReconciledObjectsTable({
   className,
   automationName,
-  namespace,
+  namespace = NoNamespace,
   automationKind,
   kinds,
   clusterName,

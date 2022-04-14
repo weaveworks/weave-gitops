@@ -9,11 +9,11 @@ import {
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { SourceRefSourceKind } from "../lib/api/core/types.pb";
-import { RequestError, Source, WeGONamespace } from "../lib/types";
+import { NoNamespace, RequestError, Source } from "../lib/types";
 
 export function useListSources(
   appName?: string,
-  namespace: string = WeGONamespace
+  namespace: string = NoNamespace
 ) {
   const { api } = useContext(AppContext);
 
