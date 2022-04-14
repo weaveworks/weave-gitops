@@ -87,14 +87,12 @@ function SignIn() {
   }, []);
 
   return (
-    <Flex tall wide center align column>
+    <Flex center>
       <Lottie
         loop
         animationData={error404}
         play
         style={{
-          width: "100%",
-          height: "100%",
           position: "absolute",
           zIndex: -999,
         }}
@@ -104,8 +102,8 @@ function SignIn() {
         align
         wrap
         style={{
+          top: "50%",
           zIndex: 10000,
-          opacity: 0.95,
         }}
       >
         {error && (
