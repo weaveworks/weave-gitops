@@ -1,21 +1,19 @@
+// @ts-nocheck
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
+import Lottie from "react-lottie-player";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
+import error404 from "../images/error404.json";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
-
-export const SignInPageWrapper = styled(Flex)`
-  background: url(${images.signInBackground});
-  height: 100%;
-`;
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -89,8 +87,27 @@ function SignIn() {
   }, []);
 
   return (
-    <SignInPageWrapper tall wide center align column>
-      <FormWrapper center align wrap>
+    <Flex tall wide center align column>
+      <Lottie
+        loop
+        animationData={error404}
+        play
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          zIndex: -999,
+        }}
+      />
+      <FormWrapper
+        center
+        align
+        wrap
+        style={{
+          zIndex: 10000,
+          opacity: 0.95,
+        }}
+      >
         {error && (
           <AlertWrapper
             severity="error"
@@ -187,7 +204,7 @@ function SignIn() {
           <img src={images.signInWheel} />
         </Footer>
       </FormWrapper>
-    </SignInPageWrapper>
+    </Flex>
   );
 }
 
