@@ -17,7 +17,7 @@ type (
 	StorageType string
 	// CacheCollection is a map of cache type to cache interface held
 	// in the container.
-	CacheCollection map[StorageType]Cache
+	CacheCollection []cacheInfo
 )
 
 // CacheNotFoundErr cache cannot be found in the collection
@@ -53,6 +53,11 @@ type Cache interface {
 	// List will return the objects from the cache. The returned value is
 	// an interface{} which MUST be type-checked by the caller.
 	List() interface{}
+}
+
+type cacheInfo struct {
+	StorageType StorageType
+	Cache       Cache
 }
 
 // NewContainer returns a new cache container. The caches in the container
@@ -99,11 +104,11 @@ func With(l logr.Logger, cachesFn CachesFunc) CacheCollection {
 		clusterChan = make(chan mngr.Cluster)
 	}
 
-	caches := make(CacheCollection, len(options))
+	caches := make(CacheCollection, 0)
 
 	for _, opt := range options {
 		name, store := opt(l, clusterChan)
-		caches[name] = store
+		caches = append(caches, cacheInfo{StorageType: name, Cache: store})
 	}
 
 	return caches
@@ -111,43 +116,45 @@ func With(l logr.Logger, cachesFn CachesFunc) CacheCollection {
 
 // Start starts all caches in the container
 func (c *container) Start(ctx context.Context) {
-	for _, cache := range c.caches {
-		cache.Start(ctx)
+	for _, item := range c.caches {
+		item.Cache.Start(ctx)
 	}
 }
 
 // Stop stops all caches in the container
 func (c *container) Stop() {
-	for _, cache := range c.caches {
-		cache.Stop()
+	for _, item := range c.caches {
+		item.Cache.Stop()
 	}
 }
 
 // ForceRefresh forces all caches in the container to refresh. If a name
 // is given then only that cache is refreshed
 func (c *container) ForceRefresh(name StorageType) error {
-	if name == "" {
-		for _, cache := range c.caches {
-			cache.ForceRefresh()
+	for _, item := range c.caches {
+		if name != "" && name == item.StorageType {
+			item.Cache.ForceRefresh()
+
+			return nil
+		} else if name == "" {
+			item.Cache.ForceRefresh()
 		}
-
-		return nil
 	}
 
-	if cache, ok := c.caches[name]; ok {
-		cache.ForceRefresh()
-
-		return nil
+	if name != "" {
+		return CacheNotFoundErr{name}
 	}
 
-	return CacheNotFoundErr{name}
+	return nil
 }
 
 // List returns all cached objects from the named cache. The caller MUST
 // check the type of the returned value.
 func (c *container) List(name StorageType) (interface{}, error) {
-	if cache, ok := c.caches[name]; ok {
-		return cache.List(), nil
+	for _, item := range c.caches {
+		if item.StorageType == name {
+			return item.Cache.List(), nil
+		}
 	}
 
 	return nil, CacheNotFoundErr{name}

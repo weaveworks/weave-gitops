@@ -57,8 +57,8 @@ func TestContainer_NamespaceWithClusterSync(t *testing.T) {
 	log := logr.Discard()
 
 	opts := cache.WithSyncedCaches(
-		cache.WithNamespaceCache(k8sEnv.Rest),
 		withFakeClusterCache(k8sEnv.Rest),
+		cache.WithNamespaceCache(k8sEnv.Rest),
 	)
 	cacheContainer := cache.NewContainer(log, opts)
 
