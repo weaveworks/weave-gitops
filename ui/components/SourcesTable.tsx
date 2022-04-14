@@ -12,7 +12,10 @@ import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, { filterConfigForType } from "./FilterableTable";
+import FilterableTable, {
+  filterConfigForStatus,
+  filterConfigForString,
+} from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -27,11 +30,14 @@ function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
 
   const initialFilterState = {
-    ...filterConfigForType(sources),
+    ...filterConfigForString(sources, "type"),
+    ...filterConfigForStatus(sources),
+    ...filterConfigForString(sources, "clusterName"),
   };
 
   return (
     <FilterableTable
+      className={className}
       filters={initialFilterState}
       rows={sources}
       dialogOpen={filterDialogOpen}

@@ -11,6 +11,7 @@ import FilterDialog, {
 } from "./FilterDialog";
 import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
+import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 
 type Props = {
@@ -22,11 +23,11 @@ type Props = {
   onDialogClose?: () => void;
 };
 
-export function filterConfigForType(rows) {
+export function filterConfigForString(rows, key: string) {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
-      const t = v.type;
+      const t = v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -37,7 +38,26 @@ export function filterConfigForType(rows) {
     []
   );
 
-  return { type: typeFilterConfig };
+  return { [key]: typeFilterConfig };
+}
+
+export function filterConfigForStatus(rows) {
+  const statusFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      let t;
+      if (v.suspended) t = "Suspended";
+      else if (computeReady(v.conditions)) t = "Ready";
+      else t = "Not Ready";
+      if (!_.includes(r, t)) {
+        r.push(t);
+      }
+      return r;
+    },
+    []
+  );
+
+  return { status: statusFilterConfig };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -49,7 +69,15 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
     let ok = false;
 
     _.each(filters, (vals, key) => {
-      const value = r[key];
+      let value;
+      //status
+      if (key === "status") {
+        if (r["suspended"]) value = "Suspended";
+        else if (computeReady(r["conditions"])) value = "Ready";
+        else value = "Not Ready";
+      }
+      //string
+      else value = r[key];
 
       if (_.includes(vals, value)) {
         ok = true;
