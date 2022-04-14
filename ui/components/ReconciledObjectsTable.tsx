@@ -45,7 +45,6 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfigForString(objs, "type"),
     ...filterConfigForString(objs, "namespace"),
     ...filterConfigForStatus(objs),
   };
