@@ -75,7 +75,10 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        getUserInfo().then(() => history.push("/"));
+        getUserInfo().then(() => {
+          setError(null);
+          history.push("/");
+        });
       })
       .finally(() => setLoading(false));
   }, []);
