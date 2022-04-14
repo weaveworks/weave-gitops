@@ -15,5 +15,4 @@ serverTLS:
   enable: false
 
 additionalArgs:
-  - "--dev-mode=true"
-  - "--dev-user=limited"
+  - "--dev-mode"
