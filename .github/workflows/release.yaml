@@ -66,14 +66,17 @@ jobs:
           ignorePreReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Include brew publishing
+        run: cat .goreleaser.brew.yml >> .goreleaser.yml
+        if: ${{ !contains(github.event.inputs.version, '-') }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          args: release --rm-dist --release-notes=${{ runner.temp }}/changelog.md
+          args: release --rm-dist --skip-validate --release-notes=${{ runner.temp }}/changelog.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOT_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          BOT_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
