@@ -108,6 +108,7 @@ func With(l logr.Logger, cachesFn CachesFunc) CacheCollection {
 
 	for _, opt := range options {
 		name, store := opt(l, clusterChan)
+
 		caches = append(caches, cacheInfo{StorageType: name, Cache: store})
 	}
 
