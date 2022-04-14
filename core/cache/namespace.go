@@ -68,20 +68,23 @@ func (n *namespaceStore) Start(ctx context.Context) {
 
 	n.logger.Info("starting namespace cache")
 
+	// Force load namespaces on startup.
+	n.update(newCtx)
+
 	go func() {
 		ticker := time.NewTicker(n.interval * time.Second)
 
 		defer ticker.Stop()
 
 		for {
-			n.update(newCtx)
-
 			select {
 			case <-newCtx.Done():
 				break
 			case <-ticker.C:
 				continue
 			}
+
+			n.update(newCtx)
 		}
 	}()
 }
