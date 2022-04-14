@@ -7,12 +7,12 @@ WEAVE_GITOPS_DOC_REPO=$2
 cd $WEAVE_GITOPS_DOC_REPO/docs
 yarn install
 # update version information
+sed -i
 ex - installation.mdx << EOS
 /download\/
-%s,download/\(.*\)/,download/${GITOPS_VERSION}/,
+%s,download/\([^/]*\)/,download/${GITOPS_VERSION}/,
 /Current Version
-.,+4! ${WEAVE_GITOPS_BINARY} version
-+5d
+.,+3! ${WEAVE_GITOPS_BINARY} version
 wq!
 EOS
 # create CLI reference
@@ -20,15 +20,7 @@ git rm -f --ignore-unmatch cli-reference.md
 git rm -rf --ignore-unmatch cli-reference
 mkdir -p cli-reference
 cd cli-reference
-ex - _category_.json << EOS
-1i
-{
-  "label": "CLI Reference",
-  "position": 3
-}
-.
-wq!
-EOS
+git checkout _category_.json
 ${WEAVE_GITOPS_BINARY} docs
 git add *.md
 # create versioned docs
