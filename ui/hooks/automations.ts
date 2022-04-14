@@ -14,14 +14,14 @@ import { Kustomization } from "../lib/api/core/types.pb";
 import {
   AutomationType,
   DefaultCluster,
+  NoNamespace,
   RequestError,
   Syncable,
-  WeGONamespace,
 } from "../lib/types";
 
 export type Automation = Kustomization & { type: AutomationType };
 
-export function useListAutomations(namespace = WeGONamespace) {
+export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(AppContext);
 
   return useQuery<Automation[], RequestError>(
@@ -61,7 +61,7 @@ export function useListAutomations(namespace = WeGONamespace) {
 export function useGetKustomization(
   name: string,
   clusterName = DefaultCluster,
-  namespace = WeGONamespace
+  namespace = NoNamespace
 ) {
   const { api } = useContext(AppContext);
 
@@ -75,7 +75,7 @@ export function useGetKustomization(
 export function useGetHelmRelease(
   name: string,
   clusterName = DefaultCluster,
-  namespace = WeGONamespace
+  namespace = NoNamespace
 ) {
   const { api } = useContext(AppContext);
 

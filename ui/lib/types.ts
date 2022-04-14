@@ -41,6 +41,7 @@ export enum V2Routes {
 
 export const WeGONamespace = "flux-system";
 export const DefaultCluster = "Default";
+export const NoNamespace = "";
 
 export interface Source {
   name?: string;

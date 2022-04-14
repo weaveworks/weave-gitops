@@ -2,7 +2,11 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
-import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import {
+  HelmRelease,
+  Kustomization,
+  SourceRefSourceKind,
+} from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
@@ -14,6 +18,7 @@ import FilterableTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -115,7 +120,13 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       value: "lastAttemptedRevision",
       width: 15,
     },
-    { label: "Last Updated", value: "lastHandledReconciledAt", width: 10 },
+    {
+      label: "Last Updated",
+      value: (a: Automation) => (
+        <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
+      ),
+      width: 10,
+    },
   ];
 
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");

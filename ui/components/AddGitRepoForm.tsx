@@ -3,7 +3,7 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { GitProvider } from "../lib/api/applications/applications.pb";
-import { WeGONamespace } from "../lib/types";
+import { NoNamespace } from "../lib/types";
 import Button from "./Button";
 import Flex from "./Flex";
 import Form from "./Form";
@@ -21,7 +21,7 @@ type Props = {
 const initialState = () => ({
   provider: "",
   name: "",
-  namespace: WeGONamespace,
+  namespace: NoNamespace,
   publicRepo: "true",
   intervalMinutes: 3,
   intervalSeconds: 0,

@@ -61,6 +61,7 @@ function SourcesTable({ className, sources }: Props) {
           textSearchable: true,
         },
         { label: "Type", value: "type", width: 5 },
+        { label: "Namespace", value: "namespace", width: 5 },
         {
           label: "Status",
           value: (s: Source) => (

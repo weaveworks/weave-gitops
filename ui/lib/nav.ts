@@ -1,6 +1,6 @@
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
-import { PageRoute, V2Routes, WeGONamespace } from "./types";
+import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
@@ -47,7 +47,7 @@ export const formatURL = (page: string, query: any = {}) => {
 export const formatSourceURL = (
   kind: SourceRefSourceKind,
   name: string,
-  namespace: string = WeGONamespace
+  namespace: string = NoNamespace
 ) => {
   return formatURL(sourceTypeToRoute(kind), { name, namespace });
 };

@@ -8,7 +8,6 @@ import {
   HelmRelease,
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
-import { WeGONamespace } from "../lib/types";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -57,7 +56,7 @@ export default function HelmReleaseDetail({
   };
 
   return (
-    <Flex wide tall column align>
+    <Flex className={className} wide tall column align>
       <Flex wide between>
         <Info>
           <Heading level={2}>{helmRelease?.namespace}</Heading>
@@ -99,7 +98,6 @@ export default function HelmReleaseDetail({
             <ReconciledObjectsTable
               kinds={helmRelease?.inventory}
               automationName={helmRelease?.name}
-              namespace={WeGONamespace}
               automationKind={AutomationKind.HelmReleaseAutomation}
               clusterName={helmRelease?.clusterName}
             />
