@@ -1,12 +1,12 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
-import { AppContext } from "../contexts/AppContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListFluxEventsResponse } from "../lib/api/core/core.pb";
 import { ObjectReference } from "../lib/api/core/types.pb";
 import { RequestError } from "../lib/types";
 
 export function useListFluxEvents(namespace, obj: ObjectReference) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxEventsResponse, RequestError>(
     ["events", obj],

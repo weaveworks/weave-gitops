@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
-import { AppContext } from "../contexts/AppContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListFluxRuntimeObjectsResponse } from "../lib/api/core/core.pb";
 import {
   AutomationKind,
@@ -14,7 +14,7 @@ export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
   namespace = NoNamespace
 ) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
@@ -30,7 +30,7 @@ export function useGetReconciledObjects(
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster
 ) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],

@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { useContext } from "react";
 import { useQuery } from "react-query";
-import { AppContext } from "../contexts/AppContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListBucketsResponse,
   ListGitRepositoriesResponse,
@@ -15,7 +15,7 @@ export function useListSources(
   appName?: string,
   namespace: string = NoNamespace
 ) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<Source[], RequestError>(
     "sources",
