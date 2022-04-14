@@ -15,7 +15,7 @@ const DefaultPollIntervalSeconds = 120
 type (
 	// StorageType is the name of the cache, eg NamespaceStorage
 	StorageType string
-	// CacheCollection is a map of cache type to cache interface held
+	// CacheCollection is a list of cache info held
 	// in the container.
 	CacheCollection []cacheInfo
 )
