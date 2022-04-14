@@ -98,12 +98,12 @@ const App = () => (
 export default function AppContainer() {
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <AppContextProvider renderFooter coreClient={Core}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <Fonts />
-            <GlobalStyle />
-            <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <Fonts />
+          <GlobalStyle />
+          <Router>
+            <AppContextProvider renderFooter coreClient={Core}>
               <FeatureFlagsContextProvider>
                 <AuthContextProvider>
                   <Switch>
@@ -118,10 +118,10 @@ export default function AppContainer() {
                   </Switch>
                 </AuthContextProvider>
               </FeatureFlagsContextProvider>
-            </Router>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </AppContextProvider>
+            </AppContextProvider>
+          </Router>
+        </ThemeProvider>
+      </QueryClientProvider>
     </MuiThemeProvider>
   );
 }
