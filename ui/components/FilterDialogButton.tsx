@@ -13,7 +13,7 @@ function FilterDialogButton({ className, dialogOpen, ...rest }: Props) {
   return (
     <Button
       {...rest}
-      className={className + dialogOpen && "MuiButton-selected"}
+      className={className}
       variant={dialogOpen ? "contained" : "text"}
       color="inherit"
     >
