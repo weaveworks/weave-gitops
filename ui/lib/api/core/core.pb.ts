@@ -6,12 +6,19 @@
 
 import * as fm from "../../fetch.pb"
 import * as Gitops_coreV1Types from "./types.pb"
+export type Pagination = {
+  pageSize?: number
+  pageToken?: string
+}
+
 export type ListKustomizationsRequest = {
   namespace?: string
+  pagination?: Pagination
 }
 
 export type ListKustomizationsResponse = {
   kustomizations?: Gitops_coreV1Types.Kustomization[]
+  nextPageToken?: string
 }
 
 export type ListHelmReleasesRequest = {
