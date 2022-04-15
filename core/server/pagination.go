@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	v1 "k8s.io/api/core/v1"
@@ -24,7 +25,6 @@ func NewPagination(namespaceList []v1.Namespace, pageParams *pb.Pagination, getR
 }
 
 func (p *Pagination) GetNextPage() (string, error) {
-
 	newPageToken := ""
 	currentNamespaceIndex := 0
 	currentK8sPageToken := ""
@@ -32,10 +32,12 @@ func (p *Pagination) GetNextPage() (string, error) {
 
 	if p.pageParams.PageToken != "" {
 		var pageTokenInfo types.PageTokenInfo
+
 		err := decodeFromBase64(&pageTokenInfo, p.pageParams.PageToken)
 		if err != nil {
 			return "", fmt.Errorf("error decoding next token %w", err)
 		}
+
 		currentNamespaceIndex = pageTokenInfo.NamespaceIndex
 		currentK8sPageToken = pageTokenInfo.K8sPageToken
 	}
@@ -47,7 +49,6 @@ func (p *Pagination) GetNextPage() (string, error) {
 		}
 
 		itemsLeft = itemsLeft - pageLen
-
 		globalNamespaceIndex := nsIndex + currentNamespaceIndex
 
 		if nextPageToken != "" {
@@ -58,6 +59,7 @@ func (p *Pagination) GetNextPage() (string, error) {
 
 			break
 		}
+
 		if itemsLeft == 0 {
 			newPageToken, err = getPageTokenInfoBase64(globalNamespaceIndex+1, "", p.namespaceList[globalNamespaceIndex+1].Name)
 			if err != nil {
