@@ -4,11 +4,19 @@ import * as React from "react";
 import styled from "styled-components";
 import { Button, Icon, IconType } from "..";
 
-type Props = ButtonProps;
+interface Props extends ButtonProps {
+  className: string;
+  dialogOpen: boolean;
+}
 
-function FilterDialogButton({ className, ...rest }: Props) {
+function FilterDialogButton({ className, dialogOpen, ...rest }: Props) {
   return (
-    <Button {...rest} className={className} variant="text" color="inherit">
+    <Button
+      {...rest}
+      className={className + dialogOpen && "MuiButton-selected"}
+      variant={dialogOpen ? "contained" : "text"}
+      color="inherit"
+    >
       <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
     </Button>
   );
