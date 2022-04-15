@@ -11,12 +11,12 @@ type Props = {
 
 function SourceLink({ className, sourceRef }: Props) {
   if (!sourceRef) {
-    return <div />
+    return <div />;
   }
   return (
     <Link
       className={className}
-      to={formatSourceURL(sourceRef.kind, sourceRef.name)}
+      to={formatSourceURL(sourceRef.kind, sourceRef.name, sourceRef.namespace)}
     >
       {sourceRef.kind}/{sourceRef.name}
     </Link>

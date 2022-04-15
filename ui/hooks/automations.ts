@@ -60,8 +60,9 @@ export function useListAutomations(namespace = NoNamespace) {
 
 export function useGetKustomization(
   name: string,
-  clusterName = DefaultCluster,
-  namespace = NoNamespace
+
+  namespace = NoNamespace,
+  clusterName = DefaultCluster
 ) {
   const { api } = useContext(AppContext);
 
@@ -74,8 +75,8 @@ export function useGetKustomization(
 
 export function useGetHelmRelease(
   name: string,
-  clusterName = DefaultCluster,
-  namespace = NoNamespace
+  namespace = NoNamespace,
+  clusterName = DefaultCluster
 ) {
   const { api } = useContext(AppContext);
 
