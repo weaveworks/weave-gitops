@@ -41,7 +41,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return nil, defaultClusterNotFound{}
 	}
 
-	newPageToken := ""
+	newNextPageToken := ""
 
 	// TODO: Once the UI handles pagination we can remove this if block.
 	// It was left like that so the UI doesn't brake with backend pagination changes
@@ -57,56 +57,30 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 			results = append(results, nsResult...)
 		}
 	} else {
-		var namespaceStartIndex = 0
-		k8sPageToken := ""
 
-		itemsLeft := msg.Pagination.PageSize
-
-		if msg.Pagination.PageToken != "" {
-			var pageTokenInfo types.PageTokenInfo
-			err := decodeFromBase64(&pageTokenInfo, msg.Pagination.PageToken)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding next token %w", err)
-			}
-			namespaceStartIndex = pageTokenInfo.NamespaceIndex
-			k8sPageToken = pageTokenInfo.K8sPageToken
-		}
-
-		for cNsIndex, ns := range nsList[namespaceStartIndex:] {
-			nsResult, nextPageToken, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name, itemsLeft, k8sPageToken)
-			if err != nil {
-				cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
-
-				continue
-			}
-
-			results = append(results, nsResult...)
-
-			itemsLeft = itemsLeft - int32(len(nsResult))
-
-			if nextPageToken != "" {
-				newPageToken, err = getPageTokenInfoBase64(cNsIndex+namespaceStartIndex, nextPageToken, ns.Name)
+		newNextPageToken, err = NewPagination(
+			nsList,
+			msg.Pagination,
+			func(namespace string, limit int32, pageToken string) (string, int32, error) {
+				nsResult, nextK8sPageToken, err := listKustomizationsInNamespace(ctx, clustersClient, namespace, limit, pageToken)
 				if err != nil {
-					return nil, err
+					cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", namespace))
+					return "", 0, err
 				}
 
-				break
-			}
-			if itemsLeft == 0 {
-				newPageToken, err = getPageTokenInfoBase64(cNsIndex+namespaceStartIndex+1, "", nsList[cNsIndex+namespaceStartIndex+1].Name)
-				if err != nil {
-					return nil, err
-				}
+				results = append(results, nsResult...)
 
-				break
-			}
+				return nextK8sPageToken, int32(len(nsResult)), nil
+			}).GetNextPage()
+		if err != nil {
+			return nil, err
 		}
 
 	}
 
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
-		NextPageToken:  newPageToken,
+		NextPageToken:  newNextPageToken,
 	}, nil
 }
 
