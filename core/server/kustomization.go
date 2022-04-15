@@ -41,15 +41,6 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return nil, defaultClusterNotFound{}
 	}
 
-	//for nsID, ns := range nsList {
-	//	fmt.Println("nsID", nsID, "NS", ns.Name)
-	//}
-	//fmt.Println("PaginationObject", msg.Pagination)
-	//if msg.Pagination != nil {
-	//	fmt.Println("Request PageSize", msg.Pagination.PageSize)
-	//	fmt.Println("Request PageToken", msg.Pagination.PageToken)
-	//}
-
 	newPageToken := ""
 
 	// TODO: Once the UI handles pagination we can remove this if block.
@@ -77,38 +68,23 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 			if err != nil {
 				return nil, fmt.Errorf("error decoding next token %w", err)
 			}
-			//fmt.Printf("NextToken received encoded => %+v\n", msg.Pagination.PageToken)
-			//fmt.Printf("NextToken received decoded => %+v\n", pageTokenInfo)
 			namespaceStartIndex = pageTokenInfo.NamespaceIndex
 			k8sPageToken = pageTokenInfo.K8sPageToken
 		}
 
 		for cNsIndex, ns := range nsList[namespaceStartIndex:] {
-			//fmt.Println("Querying NS", ns.Name, "NSindex", cNsIndex, "Nk8spageTOKEN", k8sPageToken)
 			nsResult, nextPageToken, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name, itemsLeft, k8sPageToken)
 			if err != nil {
 				cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
 
 				continue
 			}
-			//fmt.Println("Next k8s Page Token", nextPageToken, "len", len(nsResult))
-
-			//for _, ns := range nsResult {
-			//	fmt.Println("\tNS", ns.Name)
-			//}
 
 			results = append(results, nsResult...)
 
 			itemsLeft = itemsLeft - int32(len(nsResult))
 
 			if nextPageToken != "" {
-				//fmt.Println("CASE", "if nextPageToken != \"\" {")
-				//data, err := base64.RawStdEncoding.DecodeString(nextPageToken)
-				//if err != nil {
-				//	return nil, err
-				//}
-				//fmt.Println("K8S next token encoded", nextPageToken)
-				//fmt.Println("K8S next token decoded", string(data))
 				newPageToken, err = getPageTokenInfoBase64(cNsIndex+namespaceStartIndex, nextPageToken, ns.Name)
 				if err != nil {
 					return nil, err
@@ -117,7 +93,6 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 				break
 			}
 			if itemsLeft == 0 {
-				//fmt.Println("if itemsLeft == 0 {")
 				newPageToken, err = getPageTokenInfoBase64(cNsIndex+namespaceStartIndex+1, "", nsList[cNsIndex+namespaceStartIndex+1].Name)
 				if err != nil {
 					return nil, err

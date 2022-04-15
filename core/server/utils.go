@@ -41,8 +41,5 @@ func getPageTokenInfoBase64(namespaceIndex int, k8sNextToken string, namespace s
 		return "", err
 	}
 
-	//	fmt.Printf("NextToken(decoded) %+v\n", nextTokenInfo)
-	//	fmt.Println("NextToken(encoded)", nextToken)
-
 	return nextToken, nil
 }
