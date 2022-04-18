@@ -32,4 +32,5 @@ export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
   .MuiChip-root {
     margin-right: ${(props) => props.theme.spacing.xxs};
   }
+  margin: 4px 0;
 `;

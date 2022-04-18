@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Button } from "..";
+import { IconButton } from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Input from "./Input";
@@ -15,7 +15,7 @@ const Expander = styled(({ expanded, className, children }) => (
 ))`
   width: 0px;
   transition: width 0.3s ease-in-out;
-
+  margin-left: 4px;
   &.expanded {
     width: 200px;
   }
@@ -46,7 +46,7 @@ function SearchField({ className, onSubmit }: Props) {
 
   return (
     <Flex align className={className}>
-      <Button
+      <IconButton
         onClick={handleExpand}
         className={className}
         variant="text"
@@ -57,7 +57,7 @@ function SearchField({ className, onSubmit }: Props) {
           size="medium"
           color={expanded ? "primary" : "neutral30"}
         />
-      </Button>
+      </IconButton>
       <Expander expanded={expanded}>
         <form onSubmit={handleSubmit}>
           <Input
