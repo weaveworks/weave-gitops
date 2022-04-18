@@ -6,16 +6,26 @@ import { useGetKustomization } from "../../hooks/automations";
 
 type Props = {
   name: string;
+  namespace?: string;
   clusterName: string;
   className?: string;
 };
 
-function KustomizationDetail({ className, name, clusterName }: Props) {
-  const { data, isLoading, error } = useGetKustomization(name, clusterName);
+function KustomizationDetail({
+  className,
+  name,
+  namespace,
+  clusterName,
+}: Props) {
+  const { data, isLoading, error } = useGetKustomization(
+    name,
+    namespace,
+    clusterName
+  );
   const kustomization = data?.kustomization;
   return (
     <Page loading={isLoading} error={error} className={className} title={name}>
-      <KustomizationComponent kustomization={kustomization} name={name} />
+      <KustomizationComponent kustomization={kustomization} />
     </Page>
   );
 }

@@ -38,13 +38,7 @@ function withSearchParams(Cmp) {
   return ({ location: { search }, ...rest }) => {
     const params = qs.parse(search);
 
-    return (
-      <Cmp
-        {...rest}
-        name={params.name as string}
-        clusterName={params.clusterName as string}
-      />
-    );
+    return <Cmp {...rest} {...params} />;
   };
 }
 
