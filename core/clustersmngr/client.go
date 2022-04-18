@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -39,12 +40,14 @@ type Client interface {
 }
 
 type clustersClient struct {
-	pool ClientsPool
+	pool       ClientsPool
+	namespaces map[string][]v1.Namespace
 }
 
-func NewClient(clientsPool ClientsPool) Client {
+func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Client {
 	return &clustersClient{
-		pool: clientsPool,
+		pool:       clientsPool,
+		namespaces: namespaces,
 	}
 }
 

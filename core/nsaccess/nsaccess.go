@@ -135,6 +135,8 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 		}
 	}
 
+	fmt.Println("derivedaccess", derivedAccess)
+
 Rules:
 	for _, rule := range rules {
 		for _, apiGroup := range rule.APIGroups {

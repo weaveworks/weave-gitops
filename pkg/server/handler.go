@@ -49,7 +49,7 @@ func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handle
 			return nil, fmt.Errorf("failed fetching clusters: %w", err)
 		}
 
-		httpHandler = clustersmngr.WithClustersClient(clustersFetcher, httpHandler)
+		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, clustersFetcher, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 	}
 

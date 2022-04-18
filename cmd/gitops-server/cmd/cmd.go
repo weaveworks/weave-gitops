@@ -21,7 +21,10 @@ import (
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	corecache "github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
@@ -211,7 +214,15 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		),
 	)
 
-	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName)
+	fetcher, err := fetcher.NewSingleClusterFetcher(rest)
+	if err != nil {
+		return err
+	}
+
+	clusterClientsFactory := clustersmngr.NewClientFactory(rawClient, fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clusterClientsFactory.Start(context.TODO())
+
+	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {

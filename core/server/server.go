@@ -51,15 +51,17 @@ type CoreServerConfig struct {
 	clusterName    string
 	NSAccess       nsaccess.Checker
 	CacheContainer cache.Container
+	ClientsFactory *clustersmngr.ClientsFactory
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string, clusterClientFactory *clustersmngr.ClientsFactory) CoreServerConfig {
 	return CoreServerConfig{
 		log:            log.WithName("core-server"),
 		RestCfg:        cfg,
 		clusterName:    clusterName,
 		NSAccess:       nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		CacheContainer: cacheContainer,
+		ClientsFactory: clusterClientFactory,
 	}
 }
 
