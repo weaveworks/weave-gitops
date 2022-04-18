@@ -8,7 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/cache"
 	v1 "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestContainer_Namespace(t *testing.T) {
@@ -35,8 +37,11 @@ func TestContainer_Namespace(t *testing.T) {
 
 	initialDefault := len(nsList["Default"])
 
-	newNamespace(ctx, "cache-container", g)
-	newNamespace(ctx, "cache-container", g)
+	ns1 := newNamespace(ctx, "cache-container", g)
+	ns2 := newNamespace(ctx, "cache-container", g)
+
+	defer deleteNamespace(ctx, k8sEnv.Client, g, ns1.Name)
+	defer deleteNamespace(ctx, k8sEnv.Client, g, ns2.Name)
 
 	g.Expect(cacheContainer.ForceRefresh(cache.NamespaceStorage)).To(Succeed())
 
@@ -83,4 +88,11 @@ func newNamespace(ctx context.Context, prefix string, g *GomegaWithT) *v1.Namesp
 	g.Expect(k8sEnv.Client.Create(ctx, ns)).To(Succeed())
 
 	return ns
+}
+
+func deleteNamespace(ctx context.Context, k client.Client, g *GomegaWithT, nsName string) {
+	ns := v1.Namespace{}
+	ns.Name = nsName
+
+	g.Expect(k.Delete(ctx, &ns)).To(Succeed())
 }

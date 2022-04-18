@@ -95,6 +95,10 @@ func TestGetHelmRelease(t *testing.T) {
 	ns2 := newNamespace(ctx, k, g)
 	ns3 := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns1.Name)
+	defer deleteNamespace(ctx, k, g, ns2.Name)
+	defer deleteNamespace(ctx, k, g, ns3.Name)
+
 	newHelmRelease(ctx, appName, ns1.Name, k, g)
 	newHelmRelease(ctx, appName, ns2.Name, k, g)
 
@@ -143,6 +147,8 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 
 	appName := "myapp" + rand.String(5)
 	ns1 := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns1.Name)
 
 	// Create helm release.
 	helmRelease := helmv2.HelmRelease{
@@ -227,6 +233,8 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 
 	appName := "myapp" + rand.String(5)
 	ns1 := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns1.Name)
 
 	// Create helm release.
 	helmRelease := helmv2.HelmRelease{
