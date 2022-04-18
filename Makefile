@@ -94,7 +94,7 @@ gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
 #	Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
-	git clean -x -d --force
+	git clean -x -d --force --exclude .idea
 
 fmt: ## Run go fmt against code
 	go fmt ./...
