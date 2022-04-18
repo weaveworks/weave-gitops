@@ -196,7 +196,7 @@ function FilterableTable({
 
   return (
     <Flex className={className} wide tall column>
-      <Flex wide column>
+      <Flex wide align>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
