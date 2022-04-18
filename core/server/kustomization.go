@@ -58,9 +58,10 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		}
 	} else {
 
-		newNextPageToken, err = NewPagination(
+		newNextPageToken, err = GetNextPage(
 			nsList,
-			msg.Pagination,
+			msg.Pagination.PageSize,
+			msg.Pagination.PageToken,
 			func(namespace string, limit int32, pageToken string) (string, int32, error) {
 				nsResult, nextK8sPageToken, err := listKustomizationsInNamespace(ctx, clustersClient, namespace, limit, pageToken)
 				if err != nil {
@@ -71,7 +72,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 				results = append(results, nsResult...)
 
 				return nextK8sPageToken, int32(len(nsResult)), nil
-			}).GetNextPage()
+			})
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +145,6 @@ func listKustomizationsInNamespace(
 		}
 
 		nextPageToken = list.GetContinue()
-		fmt.Println("list.GetContinue()", list.GetContinue())
 	}
 
 	return results, nextPageToken, nil

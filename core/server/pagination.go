@@ -1,17 +1,12 @@
 package server
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"strings"
 
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	v1 "k8s.io/api/core/v1"
 )
 
-type pageTokenInfo struct {
+type PageTokenInfo struct {
 	NamespaceIndex int    `json:"namespace_index"`
 	Namespace      string `json:"namespace"`
 	K8sPageToken   string `json:"k8s_page_token"`
@@ -19,30 +14,16 @@ type pageTokenInfo struct {
 
 type getRawPageData func(namespace string, limit int32, pageToken string) (string, int32, error)
 
-type pagination struct {
-	namespaceList []v1.Namespace
-	getRawPage    getRawPageData
-	pageParams    *pb.Pagination
-}
-
-func NewPagination(namespaceList []v1.Namespace, pageParams *pb.Pagination, getRawPage getRawPageData) *pagination {
-	return &pagination{
-		namespaceList: namespaceList,
-		pageParams:    pageParams,
-		getRawPage:    getRawPage,
-	}
-}
-
-func (p *pagination) GetNextPage() (string, error) {
+func GetNextPage(namespaceList []v1.Namespace, pageSize int32, pageToken string, getRawPage getRawPageData) (string, error) {
 	newPageToken := ""
 	currentNamespaceIndex := 0
 	currentK8sPageToken := ""
-	itemsLeft := p.pageParams.PageSize
+	itemsLeft := pageSize
 
-	if p.pageParams.PageToken != "" {
-		var pageTokenInfo pageTokenInfo
+	if pageToken != "" {
+		var pageTokenInfo PageTokenInfo
 
-		err := decodeFromBase64(&pageTokenInfo, p.pageParams.PageToken)
+		err := decodeFromBase64(&pageTokenInfo, pageToken)
 		if err != nil {
 			return "", fmt.Errorf("error decoding next token %w", err)
 		}
@@ -51,8 +32,8 @@ func (p *pagination) GetNextPage() (string, error) {
 		currentK8sPageToken = pageTokenInfo.K8sPageToken
 	}
 
-	for nsIndex, ns := range p.namespaceList[currentNamespaceIndex:] {
-		nextPageToken, pageLen, err := p.getRawPage(ns.Name, itemsLeft, currentK8sPageToken)
+	for nsIndex, ns := range namespaceList[currentNamespaceIndex:] {
+		nextPageToken, pageLen, err := getRawPage(ns.Name, itemsLeft, currentK8sPageToken)
 		if err != nil {
 			continue
 		}
@@ -69,8 +50,8 @@ func (p *pagination) GetNextPage() (string, error) {
 			break
 		}
 
-		if itemsLeft == 0 {
-			newPageToken, err = getPageTokenInfoBase64(globalNamespaceIndex+1, "", p.namespaceList[globalNamespaceIndex+1].Name)
+		if itemsLeft == 0 && globalNamespaceIndex+1 < len(namespaceList) {
+			newPageToken, err = getPageTokenInfoBase64(globalNamespaceIndex+1, "", namespaceList[globalNamespaceIndex+1].Name)
 			if err != nil {
 				return "", err
 			}
@@ -83,7 +64,7 @@ func (p *pagination) GetNextPage() (string, error) {
 }
 
 func getPageTokenInfoBase64(namespaceIndex int, k8sNextToken string, namespace string) (string, error) {
-	nextTokenInfo := pageTokenInfo{
+	nextTokenInfo := PageTokenInfo{
 		NamespaceIndex: namespaceIndex,
 		K8sPageToken:   k8sNextToken,
 		Namespace:      namespace,
@@ -95,22 +76,4 @@ func getPageTokenInfoBase64(namespaceIndex int, k8sNextToken string, namespace s
 	}
 
 	return nextToken, nil
-}
-
-func decodeFromBase64(v interface{}, enc string) error {
-	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
-}
-
-func encodeToBase64(v interface{}) (string, error) {
-	var buf bytes.Buffer
-	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
-
-	err := json.NewEncoder(encoder).Encode(v)
-	if err != nil {
-		return "", err
-	}
-
-	encoder.Close()
-
-	return buf.String(), nil
 }
