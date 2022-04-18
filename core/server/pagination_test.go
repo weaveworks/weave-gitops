@@ -65,34 +65,28 @@ func TestPagination(t *testing.T) {
 
 	// NextPageToken values
 	tables := []struct {
-		Namespace      string
-		NamespaceIndex int
-		EmptyK8sToken  bool
+		Namespace     string
+		EmptyK8sToken bool
 	}{
 		{
-			Namespace:      "ns1",
-			NamespaceIndex: 4, // This is going to be the initial index as there are other namespaces like default, kube-node-lease, kube-public and kube-system
-			EmptyK8sToken:  false,
+			Namespace:     "ns1",
+			EmptyK8sToken: false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
-			EmptyK8sToken:  true,
+			Namespace:     "ns3",
+			EmptyK8sToken: true,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
-			EmptyK8sToken:  false,
+			Namespace:     "ns3",
+			EmptyK8sToken: false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
-			EmptyK8sToken:  false,
+			Namespace:     "ns3",
+			EmptyK8sToken: false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
-			EmptyK8sToken:  true,
+			Namespace:     "ns3",
+			EmptyK8sToken: true,
 		},
 	}
 
@@ -108,30 +102,24 @@ func TestPagination(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(res.Kustomizations).To(HaveLen(int(pageSize)))
 
-		expectedNextPageToken := server.PageTokenInfo{
-			Namespace:      table.Namespace,
-			NamespaceIndex: table.NamespaceIndex,
-		}
-
 		if ind == len(tables)-1 {
 			g.Expect(res.NextPageToken).To(BeEmpty())
 		} else {
-			checkPageTokenInfo(g, res.NextPageToken, expectedNextPageToken, table.EmptyK8sToken)
+			checkPageTokenInfo(g, res.NextPageToken, table.Namespace, table.EmptyK8sToken)
 		}
 
 		previousNextPageToken = res.NextPageToken
 	}
 }
 
-func checkPageTokenInfo(g *WithT, actualNextPageToken string, expectedPageInfo server.PageTokenInfo, expectedEmptyK8sPage bool) {
+func checkPageTokenInfo(g *WithT, actualNextPageToken string, expectedNamespace string, expectedEmptyK8sPage bool) {
 	var actualNextPageInfo server.PageTokenInfo
 
 	err := decodeFromBase64(&actualNextPageInfo, actualNextPageToken)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
 
-	g.Expect(actualNextPageInfo.Namespace).Should(MatchRegexp(fmt.Sprintf("%s*", expectedPageInfo.Namespace)))
-	g.Expect(actualNextPageInfo.NamespaceIndex).Should(Equal(expectedPageInfo.NamespaceIndex))
+	g.Expect(actualNextPageInfo.Namespace).Should(MatchRegexp(fmt.Sprintf("%s*", expectedNamespace)))
 	g.Expect(actualNextPageInfo.K8sPageToken == "").Should(Equal(expectedEmptyK8sPage))
 }
 
