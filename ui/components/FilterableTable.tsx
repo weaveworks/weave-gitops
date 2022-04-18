@@ -1,6 +1,7 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
@@ -9,8 +10,8 @@ import FilterDialog, {
   formStateToFilters,
   initialFormState,
 } from "./FilterDialog";
-import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 import Spacer from "./Spacer";
@@ -195,7 +196,7 @@ function FilterableTable({
 
   return (
     <Flex className={className} wide tall column>
-      <Flex wide>
+      <Flex wide align>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
@@ -203,10 +204,14 @@ function FilterableTable({
         />
         <Flex align wide end>
           <SearchField onSubmit={handleTextSearchSubmit} />
-          <FilterDialogButton
-            dialogOpen={filterDialogOpen}
+          <IconButton
             onClick={() => setFilterDialogOpen(!filterDialogOpen)}
-          />
+            className={className}
+            variant={filterDialogOpen ? "contained" : "text"}
+            color="inherit"
+          >
+            <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
+          </IconButton>
           <Spacer padding="xs" />
         </Flex>
       </Flex>

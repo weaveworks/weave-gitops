@@ -44,4 +44,16 @@ const Button = styled(UnstyledButton)`
   }
 `;
 
+export const IconButton = styled(UnstyledButton)`
+  &.MuiButton-root {
+    border-radius: 50%;
+    min-width: 48px;
+    height: 48px;
+    padding: 0;
+  }
+  &.MuiButton-text {
+    padding: 0;
+  }
+`;
+
 export default Button;
