@@ -207,7 +207,7 @@ function FilterableTable({
           <IconButton
             onClick={() => setFilterDialogOpen(!filterDialogOpen)}
             className={className}
-            variant={dialogOpen ? "contained" : "text"}
+            variant={filterDialogOpen ? "contained" : "text"}
             color="inherit"
           >
             <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />

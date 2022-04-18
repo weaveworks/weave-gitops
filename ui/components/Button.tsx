@@ -49,6 +49,7 @@ export const IconButton = styled(UnstyledButton)`
     border-radius: 50%;
     min-width: 48px;
     height: 48px;
+    padding: 0;
   }
   &.MuiButton-text {
     padding: 0;
