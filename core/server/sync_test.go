@@ -36,6 +36,8 @@ func TestSync(t *testing.T) {
 	name := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	gitRepo := makeGitRepo(name, ns)
 
 	kust := makeKustomization(name, ns, gitRepo)

@@ -27,6 +27,8 @@ func TestListHelmRepositories(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	hr := &sourcev1.HelmRepository{}
 	hr.Name = appName
 	hr.Namespace = ns.Name
@@ -63,6 +65,8 @@ func TestListHelmRepositories_inMultipleNamespaces(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	hr := &sourcev1.HelmRepository{}
 	hr.Name = appName
 	hr.Namespace = ns.Name
@@ -90,6 +94,8 @@ func TestListHelmCharts(t *testing.T) {
 
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	hc := &sourcev1.HelmChart{
 		Spec: sourcev1.HelmChartSpec{
@@ -133,6 +139,8 @@ func TestListHelmCharts_inMultipleNamespaces(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	hc := &sourcev1.HelmChart{
 		Spec: sourcev1.HelmChartSpec{
 			SourceRef: sourcev1.LocalHelmChartSourceReference{
@@ -166,6 +174,8 @@ func TestListBuckets(t *testing.T) {
 
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	bucket := &sourcev1.Bucket{
 		Spec: sourcev1.BucketSpec{
@@ -208,6 +218,8 @@ func TestListBuckets_inMultipleNamespaces(t *testing.T) {
 
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	bucket := &sourcev1.Bucket{
 		Spec: sourcev1.BucketSpec{

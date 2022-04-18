@@ -33,6 +33,9 @@ func TestGetFluxNamespace(t *testing.T) {
 	}
 
 	g.Expect(kClient.Create(ctx, ns)).To(Succeed())
+
+	defer deleteNamespace(ctx, kClient, g, ns.Name)
+
 	updateNamespaceCache(cfg)
 
 	defer func() {
@@ -74,6 +77,12 @@ func TestListNamespaces(t *testing.T) {
 	for len(namespaces) < 5 {
 		namespaces = append(namespaces, newNamespace(ctx, k, g))
 	}
+
+	defer func() {
+		for _, ns := range namespaces {
+			deleteNamespace(ctx, k, g, ns.Name)
+		}
+	}()
 
 	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
 

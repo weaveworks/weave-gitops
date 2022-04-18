@@ -29,6 +29,8 @@ func TestListFluxEvents(t *testing.T) {
 	eventObjectName := "my-kustomization"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	event := &corev1.Event{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      fmt.Sprintf("%s.16da7d2e2c5b0930", eventObjectName),

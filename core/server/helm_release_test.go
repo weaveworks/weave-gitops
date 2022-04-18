@@ -35,6 +35,8 @@ func TestListHelmReleases(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	defer deleteNamespace(ctx, k, g, ns.Name)
+
 	newHelmRelease(ctx, appName, ns.Name, k, g)
 
 	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{
@@ -65,6 +67,8 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
+
+	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	newHelmRelease(ctx, appName, ns.Name, k, g)
 
