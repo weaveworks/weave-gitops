@@ -13,6 +13,7 @@ import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
 import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
+import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -144,7 +145,7 @@ function FilterableTable({
   filters,
   dialogOpen,
 }: Props) {
-  const [filterDialogOpen, setFilterDialog] = React.useState(dialogOpen);
+  const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters,
     formState: initialFormState(filters),
@@ -203,14 +204,15 @@ function FilterableTable({
         <Flex align wide end>
           <SearchField onSubmit={handleTextSearchSubmit} />
           <FilterDialogButton
-            onClick={() => setFilterDialog(!filterDialogOpen)}
+            dialogOpen={filterDialogOpen}
+            onClick={() => setFilterDialogOpen(!filterDialogOpen)}
           />
+          <Spacer padding="xs" />
         </Flex>
       </Flex>
       <Flex wide tall>
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
-          onClose={() => setFilterDialog(!filterDialogOpen)}
           onFilterSelect={handleFilterSelect}
           filterList={filters}
           formState={filterState.formState}

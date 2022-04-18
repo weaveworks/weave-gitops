@@ -2,11 +2,9 @@ import { List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
 import ControlledForm from "./ControlledForm";
 import Flex from "./Flex";
 import FormCheckbox from "./FormCheckbox";
-import Icon, { IconType } from "./Icon";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
@@ -17,16 +15,11 @@ const SlideContainer = styled.div`
   height: 100%;
   width: 0px;
   left: ${(props) => props.theme.spacing.medium};
-  transition: width 0.5s ease-in-out;
-  ${Icon} {
-    display: none;
-  }
+  transition-property: width, left;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
   &.open {
-    ${Icon} {
-      display: block;
-    }
     left: 0;
-    margin-right: ${(props) => props.theme.spacing.medium};
     width: 350px;
   }
 `;
@@ -65,7 +58,7 @@ export interface Props {
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
   formState: DialogFormState;
-  onClose?: () => void;
+
   open?: boolean;
 }
 
@@ -99,7 +92,7 @@ function UnstyledFilterDialog({
   onFilterSelect,
   filterList,
   formState,
-  onClose,
+
   open,
 }: Props) {
   const onFormChange = (name: string, value: any) => {
@@ -113,13 +106,10 @@ function UnstyledFilterDialog({
     <SlideContainer className={`${open ? "open" : ""}`} data-testid="container">
       <SlideContent>
         <Flex className={className} start column>
-          <Flex wide align between>
+          <Flex wide align start>
             <Text size="large" color="neutral30">
               Filters
             </Text>
-            <Button variant="text" color="inherit" onClick={onClose}>
-              <Icon type={IconType.ClearIcon} size="large" color="neutral30" />
-            </Button>
           </Flex>
           <ControlledForm state={{ values: formState }} onChange={onFormChange}>
             <List>
