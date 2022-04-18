@@ -35,6 +35,10 @@ const SlideContent = styled.div`
 `;
 
 export const filterSeparator = ":";
+export const allTag = "all";
+export const createAllTag = (str: string) => {
+  return `${str}${filterSeparator}${allTag}`;
+};
 
 export function initialFormState(cfg: FilterConfig) {
   return _.reduce(
@@ -58,7 +62,6 @@ export interface Props {
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
   formState: DialogFormState;
-
   open?: boolean;
 }
 
@@ -92,16 +95,24 @@ function UnstyledFilterDialog({
   onFilterSelect,
   filterList,
   formState,
-
   open,
 }: Props) {
   const onFormChange = (name: string, value: any) => {
+    //check all
+    if (_.includes(name, allTag)) {
+      const [header] = name.split(filterSeparator);
+      _.each(filterList[header], (option) => {
+        const key = `${header}${filterSeparator}${option}`;
+        formState[key] = value;
+      });
+      formState[createAllTag(header)] = value;
+    }
+    //regular
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
       onFilterSelect(formStateToFilters(next), next);
     }
   };
-
   return (
     <SlideContainer className={`${open ? "open" : ""}`} data-testid="container">
       <SlideContent>
@@ -116,28 +127,36 @@ function UnstyledFilterDialog({
               {_.map(filterList, (options: string[], header: string) => {
                 return (
                   <ListItem key={header}>
-                    <Flex column>
-                      <Text capitalize size="small" color="neutral30">
-                        {convertHeaders(header)}
-                      </Text>
-                      <List>
-                        {_.map(options, (option: string, index: number) => {
-                          return (
-                            <ListItem key={index}>
-                              <ListItemIcon>
-                                <FormCheckbox
-                                  label=""
-                                  name={`${header}${filterSeparator}${option}`}
-                                />
-                              </ListItemIcon>
-                              <Text color="neutral30" size="small">
-                                {_.toString(option)}
-                              </Text>
-                            </ListItem>
-                          );
-                        })}
-                      </List>
-                    </Flex>
+                    <List>
+                      <ListItem key={header}>
+                        <ListItemIcon>
+                          <FormCheckbox label="" name={createAllTag(header)} />
+                        </ListItemIcon>
+                        <Text
+                          capitalize
+                          size="small"
+                          color="neutral30"
+                          semiBold
+                        >
+                          {convertHeaders(header)}
+                        </Text>
+                      </ListItem>
+                      {_.map(options, (option: string, index: number) => {
+                        return (
+                          <ListItem key={index}>
+                            <ListItemIcon>
+                              <FormCheckbox
+                                label=""
+                                name={`${header}${filterSeparator}${option}`}
+                              />
+                            </ListItemIcon>
+                            <Text color="neutral40" size="small">
+                              {_.toString(option)}
+                            </Text>
+                          </ListItem>
+                        );
+                      })}
+                    </List>
                   </ListItem>
                 );
               })}
