@@ -87,7 +87,7 @@ function SignIn() {
   }, []);
 
   return (
-    <Flex center>
+    <Flex tall wide center align column>
       <Lottie
         loop
         animationData={error404}
