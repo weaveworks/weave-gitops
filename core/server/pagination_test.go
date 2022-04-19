@@ -133,7 +133,6 @@ func TestPagination(t *testing.T) {
 	g.Expect(err).ShouldNot(HaveOccurred())
 	g.Expect(actualNextPageInfo.Namespace).ShouldNot(MatchRegexp("^00"))
 	g.Expect(strconv.Itoa(actualNextPageInfo.NamespaceIndex)).ShouldNot(MatchRegexp("[0-2]"))
-
 }
 
 func checkPageTokenInfo(g *WithT, actualNextPageToken string, expectedPageInfo server.PageTokenInfo, expectedEmptyK8sPage bool) {
