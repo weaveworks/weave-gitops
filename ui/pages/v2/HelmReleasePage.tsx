@@ -11,7 +11,7 @@ type Props = {
   className?: string;
 };
 
-function HelmReleaseDetail({ className, name, namespace, clusterName }: Props) {
+function HelmReleasePage({ className, name, namespace, clusterName }: Props) {
   const { data, isLoading, error } = useGetHelmRelease(
     name,
     namespace,
@@ -30,6 +30,6 @@ function HelmReleaseDetail({ className, name, namespace, clusterName }: Props) {
   );
 }
 
-export default styled(HelmReleaseDetail).attrs({
-  className: HelmReleaseDetail.name,
+export default styled(HelmReleasePage).attrs({
+  className: HelmReleasePage.name,
 })``;

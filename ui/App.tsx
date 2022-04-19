@@ -28,9 +28,9 @@ import BucketDetail from "./pages/v2/BucketDetail";
 import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
-import HelmReleaseDetail from "./pages/v2/HelmReleaseDetail";
+import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
-import KustomizationDetail from "./pages/v2/KustomizationDetail";
+import KustomizationPage from "./pages/v2/KustomizationPage";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -50,7 +50,7 @@ const App = () => (
         <Route exact path={V2Routes.Automations} component={Automations} />
         <Route
           path={V2Routes.Kustomization}
-          component={withSearchParams(KustomizationDetail)}
+          component={withSearchParams(KustomizationPage)}
         />
         <Route path={V2Routes.Sources} component={Sources} />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
@@ -69,9 +69,8 @@ const App = () => (
           component={withSearchParams(BucketDetail)}
         />
         <Route
-          exact
           path={V2Routes.HelmRelease}
-          component={withSearchParams(HelmReleaseDetail)}
+          component={withSearchParams(HelmReleasePage)}
         />
         <Route
           exact
