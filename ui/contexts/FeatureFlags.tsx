@@ -1,5 +1,4 @@
 import * as React from "react";
-import { RequestError } from "../lib/types";
 import { AppContext } from "./AppContext";
 
 // Taken straight from the TS docs:
@@ -17,7 +16,7 @@ type FeatureFlags = {
 export type Flags = OptionsFlags<FeatureFlags>;
 
 export type FeatureFlagsContextType = {
-  flags: Flags;
+  data: Flags;
   loading: boolean;
   error: any;
 };
@@ -41,7 +40,7 @@ export default function FeatureFlagsContextProvider({ children }) {
   }, []);
 
   return (
-    <FeatureFlags.Provider value={{ flags: data?.flags, loading, error }}>
+    <FeatureFlags.Provider value={{ data: data?.flags, loading, error }}>
       {children}
     </FeatureFlags.Provider>
   );

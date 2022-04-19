@@ -2,15 +2,16 @@ import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
+import Lottie from "react-lottie-player";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
-import SignInBackground from "../components/SignInBackground";
 import { Auth } from "../contexts/AuthContext";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 import { useFeatureFlags } from "../hooks/featureflags";
+import SignInBackground from "../images/SignInBackground.json";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
 
@@ -175,7 +176,18 @@ function SignIn() {
         width: "100vw",
       }}
     >
-      <SignInBackground />
+      <Lottie
+        play
+        loop
+        animationData={SignInBackground}
+        rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          zIndex: -999,
+        }}
+      />
       {authError && (
         <AlertWrapper
           severity="error"
