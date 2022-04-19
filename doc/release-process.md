@@ -1,43 +1,19 @@
 # Weave Gitops Release Process
 
 To release a new version of Weave Gitops, you need to:
-- Create the actual release
-- Update the [website](/website) with documentation for the new version
-- Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
-- Update the helm chart version
+- Decide on a new release number. We use e.g. `v1.2.3-rc.4` for
+  pre-releases, and e.g. `v1.2.3` for releases.
+- Go to [the action to prepare a release](https://github.com/weaveworks/weave-gitops/actions/workflows/prepare-release.yaml)
+  and click "Run workflow". In the popup, enter the version number you
+  want and kick it off.
+- Wait for the action to finish (1-5 minutes, depending on if it's an
+  RC or not).
+- Review the PR. Don't forget to check out the docs staging site!
+- If everything looks good, approve the PR. This will kick off the
+  release job.
+- Wait for the action to finish (~20 minutes), at which point the PR
+  will be merged automatically.
 - Add a record of the new version in the checkpoint system
-
-# Creating the release
-- In the terminal on main branch run `./tools/tag-release.sh <arg>`
-  - Args for tag-release.sh are:
-    - -d Dry run
-    - -M for a major release candidate
-    - -m for a minor release candidate
-    - -p for a patch release candidate
-    - -c for creating a new release candidate build
-    - -r for a full release
-- A release candidate is needed to do a full release. First create a release candidate (example patch release candidate `./tools/tag-release.sh -p`)
-- Update `package.json` and `package-lock.json` . These changes must be on `main` before creating a release.
-  - Update the package.json `version` field to reflect the new version.
-  - Run `npm ci` to update the file `package-lock.json`.
-- After a release candidate is created and the package files are updated, a full release can be made with `./tools/tag-release.sh -r`
-
-- _note: a dry run can be run to show what tag will be created by adding `-d` example: `./tools/tag-release.sh -p -d`_
-
-The go-releaser will spin for a bit, generating a changelog and artifacts.
-
-# Updating the website
-- Approve and merge the auto-generated PR if the release is declared satisfactory; otherwise, close the PR
-
-# Updating the README
-- Once the release is available, change the version in the `curl` command shown in the `CLI Installation` section of the `README.md` in the weave-gitops repository
-- Create a PR and merge when approved
-
-# Updating the helm chart
-- Update the appVersion value in [Chart.yaml](charts/gitops-server/Chart.yaml)
-- Update the image.tag value in [values.yaml](charts/gitops-server/values.yaml)
-- Bump the version value in [Chart.yaml](charts/gitops-server/Chart.yaml)
-- Create a PR and merge when approved
 
 # Record the new version
 - Add a record in the [checkpoint system](https://checkpoint-api.weave.works/admin) to inform users of the new version.  The CLI checks for a more recent version and informs the user where to download it based on this data.
@@ -52,4 +28,18 @@ The go-releaser will spin for a bit, generating a changelog and artifacts.
     ```
   - _note: A Weaveworks employee must perform this step_
 
-That's it!
+# Technical details
+There's 2 jobs, prepare-release and release. prepare-release is only
+triggered manually, release is triggered whenever the state of a
+branch called `release/something` turns approved.
+
+The prepare job always updates the javascript package version. It only
+updates the docs and the helm chart if what we're releasing looks like
+a stable release.
+
+The release job tags the PR itself, builds binaries and images, and
+then merges the PR. This means that we already have binaries and
+images available by the time the docs and the helm chart is merged and
+uploaded. However, that means that since the tag sits on a non-main
+branch, we have to merge (no rebase, no squash), or the ref won't be
+traceable form main.
