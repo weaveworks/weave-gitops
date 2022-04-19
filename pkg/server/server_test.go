@@ -46,19 +46,13 @@ var _ = Describe("ApplicationsServer", func() {
 	var (
 		namespace *corev1.Namespace
 		err       error
-		ctx       context.Context
 	)
 
 	BeforeEach(func() {
-		ctx = context.Background()
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
-		err = k8sClient.Create(ctx, namespace)
+		err = k8sClient.Create(context.Background(), namespace)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
-	})
-
-	AfterEach(func() {
-		Expect(k8sClient.Delete(ctx, namespace)).To(Succeed())
 	})
 
 	It("Authorize", func() {
