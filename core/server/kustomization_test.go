@@ -34,8 +34,6 @@ func TestListKustomizations(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	defer deleteNamespace(ctx, k, g, ns.Name)
-
 	kust := &kustomizev1.Kustomization{
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
