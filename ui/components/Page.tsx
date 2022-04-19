@@ -43,7 +43,7 @@ export const TitleBar = styled(Flex)`
   }
 `;
 
-function Errors({ error }) {
+export function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
     <Flex wide column>
