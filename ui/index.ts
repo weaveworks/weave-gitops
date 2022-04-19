@@ -18,6 +18,7 @@ import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
 import AppContextProvider from "./contexts/AppContext";
+import CoreClientContextProvider from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import {
@@ -58,6 +59,7 @@ export {
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
+  CoreClientContextProvider,
   FeatureFlagsContextProvider,
   FeatureFlags,
   FluxRuntime,
