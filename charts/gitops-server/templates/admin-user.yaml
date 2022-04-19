@@ -44,6 +44,7 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
+{{- if .Values.adminUser.createSecret }}
 ---
 apiVersion: v1
 kind: Secret
@@ -56,4 +57,5 @@ data:
   username: {{ .username | b64enc | quote }}
   password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
   {{- end }}
+{{- end }}
 {{- end }}
