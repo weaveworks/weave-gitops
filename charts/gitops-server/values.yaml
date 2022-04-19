@@ -52,10 +52,9 @@ adminUser:
   create: false
   # Set the username and password, these will be stored in a secret in k8s.
   username: gitops-test-user
-  # The password will be hashed using the bcrypt algorithm.
-  # It should not be stored in plain-text so is best passed using a set flag:
-  # --set adminUser.password="My $uper secure password that is not this $tring"
-  # password:
+  # This needs to have been hashed using the bcrypt algorithm.
+  # e.g. go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli
+  # passwordHash:
 
 podAnnotations: {}
 
