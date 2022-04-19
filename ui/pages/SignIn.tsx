@@ -61,15 +61,16 @@ const DocsWrapper = styled(Flex)`
 function SignIn() {
   const flags = useFeatureFlags();
 
-  const { loading } = React.useContext(FeatureFlags);
+  const { loading, error } = React.useContext(FeatureFlags);
 
   if (flags.WEAVE_GITOPS_AUTH_ENABLED === false) {
     return <Redirect to="applications" />;
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error } = React.useContext(Auth);
+  const { signIn } = React.useContext(Auth);
   const authLoading = React.useContext(Auth).loading;
+  const authError = React.useContext(Auth).error;
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -83,8 +84,16 @@ function SignIn() {
 
   const handleUserPassSubmit = () => signIn({ username, password });
 
-  const t = (
+  const authOptions = (
     <>
+      {error && (
+        <Alert
+          severity="error"
+          title="Error retrieving auth setup details"
+          message={String(error)}
+          center
+        />
+      )}
       {flags.OIDC_AUTH ? (
         <Flex wide center>
           <Button
@@ -157,11 +166,11 @@ function SignIn() {
   return (
     <Flex tall wide center align column>
       <SignInBackground />
-      {error && (
+      {authError && (
         <AlertWrapper
           severity="error"
           title="Error signin in"
-          message={`${String(error.status)} ${error.statusText}`}
+          message={`${String(authError.status)} ${authError.statusText}`}
           center
         />
       )}
@@ -177,7 +186,7 @@ function SignIn() {
           <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
-          {loading ? <LoadingPage /> : t}
+          {loading ? <LoadingPage /> : authOptions}
           <DocsWrapper center align>
             Need help? Have a look at the&nbsp;
             <a
