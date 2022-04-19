@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -36,9 +37,9 @@ func TestPagination(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	testingKustomizations := map[string]int{
-		"ns1": 4,
-		"ns2": 2,
-		"ns3": 9,
+		"000-ns1": 4,
+		"001-ns2": 2,
+		"002-ns3": 9,
 	}
 
 	for nsName, kustomizationsSize := range testingKustomizations {
@@ -70,28 +71,28 @@ func TestPagination(t *testing.T) {
 		EmptyK8sToken  bool
 	}{
 		{
-			Namespace:      "ns1",
-			NamespaceIndex: 4, // This is going to be the initial index as there are other namespaces like default, kube-node-lease, kube-public and kube-system
+			Namespace:      "000-ns1",
+			NamespaceIndex: 0, // This is going to be the initial index as there are other namespaces like default, kube-node-lease, kube-public and kube-system
 			EmptyK8sToken:  false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
+			Namespace:      "002-ns3",
+			NamespaceIndex: 2,
 			EmptyK8sToken:  true,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
+			Namespace:      "002-ns3",
+			NamespaceIndex: 2,
 			EmptyK8sToken:  false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
+			Namespace:      "002-ns3",
+			NamespaceIndex: 2,
 			EmptyK8sToken:  false,
 		},
 		{
-			Namespace:      "ns3",
-			NamespaceIndex: 6,
+			Namespace:      "002-ns3",
+			NamespaceIndex: 2,
 			EmptyK8sToken:  true,
 		},
 	}
@@ -113,14 +114,26 @@ func TestPagination(t *testing.T) {
 			NamespaceIndex: table.NamespaceIndex,
 		}
 
-		if ind == len(tables)-1 {
-			g.Expect(res.NextPageToken).To(BeEmpty())
-		} else {
+		// Do not validate next token in the last expected page
+		// There will be namespaces from other tests that we don't need
+		// to test against.
+		if ind != len(tables)-1 {
 			checkPageTokenInfo(g, res.NextPageToken, expectedNextPageToken, table.EmptyK8sToken)
 		}
 
 		previousNextPageToken = res.NextPageToken
 	}
+
+	// If this is the last page then just check that the namespace info
+	// in the token doesn't match the current testing namespaces
+	var actualNextPageInfo server.PageTokenInfo
+
+	err = decodeFromBase64(&actualNextPageInfo, previousNextPageToken)
+
+	g.Expect(err).ShouldNot(HaveOccurred())
+	g.Expect(actualNextPageInfo.Namespace).ShouldNot(MatchRegexp("^00"))
+	g.Expect(strconv.Itoa(actualNextPageInfo.NamespaceIndex)).ShouldNot(MatchRegexp("[0-2]"))
+
 }
 
 func checkPageTokenInfo(g *WithT, actualNextPageToken string, expectedPageInfo server.PageTokenInfo, expectedEmptyK8sPage bool) {
