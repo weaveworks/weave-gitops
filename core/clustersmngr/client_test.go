@@ -24,8 +24,6 @@ func TestClientGet(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
 
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
-
 	clusterName := "mycluster"
 
 	appName := "myapp" + rand.String(5)
@@ -68,8 +66,6 @@ func TestClientGet(t *testing.T) {
 func TestClientClusteredList(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
-
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
 
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
@@ -143,8 +139,6 @@ func TestClientList(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
 
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
-
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
@@ -188,8 +182,6 @@ func TestClientCreate(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
 
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
-
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
@@ -231,8 +223,6 @@ func TestClientDelete(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
 
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
-
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
@@ -271,8 +261,6 @@ func TestClientDelete(t *testing.T) {
 func TestClientUpdate(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
-
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
 
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
@@ -317,8 +305,6 @@ func TestClientUpdate(t *testing.T) {
 func TestClientPatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
-
-	defer deleteNamespace(context.Background(), k8sEnv.Client, g, ns.Name)
 
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
@@ -373,11 +359,4 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	g.Expect(k8sEnv.Client.Create(context.Background(), ns)).To(Succeed())
 
 	return ns
-}
-
-func deleteNamespace(ctx context.Context, k client.Client, g *GomegaWithT, nsName string) {
-	ns := corev1.Namespace{}
-	ns.Name = nsName
-
-	g.Expect(k.Delete(ctx, &ns)).To(Succeed())
 }
