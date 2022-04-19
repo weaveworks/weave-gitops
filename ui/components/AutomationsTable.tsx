@@ -93,7 +93,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             sourceRef={{
               kind: sourceKind,
               name: sourceName,
-              namespace: a.sourceRef.namespace,
+              namespace: a.sourceRef?.namespace,
             }}
           />
         );
