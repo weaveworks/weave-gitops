@@ -498,7 +498,8 @@ func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) 
 
 	response := struct {
 		Message string `json:"message"`
-	}{Message: errStr}
+		Code    int    `json:"code"`
+	}{Message: errStr, Code: code}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error(err, "failed encoding error message", "message", errStr)

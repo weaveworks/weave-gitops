@@ -67,7 +67,7 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, setError, loading } = React.useContext(Auth);
+  const { signIn, error, loading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -80,12 +80,6 @@ function SignIn() {
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
-
-  React.useEffect(() => {
-    return () => {
-      setError(null);
-    };
-  }, []);
 
   return (
     <SignInPageWrapper tall wide center align column>
