@@ -109,6 +109,7 @@ function UnstyledFilterDialog({
     }
     //regular
     if (onFilterSelect) {
+      //todo: add check of header to see if top level should become checked or unchecked
       const next = { ...formState, [name]: value };
       onFilterSelect(formStateToFilters(next), next);
     }
