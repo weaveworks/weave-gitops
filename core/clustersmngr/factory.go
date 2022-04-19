@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -13,6 +14,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	userNamespaceTTL = 1 * time.Hour
 )
 
 type ClientsFactory struct {
@@ -25,9 +30,9 @@ type ClientsFactory struct {
 	clustersNsMutex    sync.RWMutex
 	clustersNamespaces map[string][]v1.Namespace
 
-	userNssMutex    sync.RWMutex
-	usersNamespaces map[string]map[string][]v1.Namespace
-	nsChecker       nsaccess.Checker
+	usersNamespaces *UsersNamespaces
+
+	nsChecker nsaccess.Checker
 
 	logger logr.Logger
 }
@@ -39,7 +44,7 @@ func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker
 		nsChecker:          nsChecker,
 		clusters:           []Cluster{},
 		clustersNamespaces: map[string][]v1.Namespace{},
-		usersNamespaces:    map[string]map[string][]v1.Namespace{},
+		usersNamespaces:    &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
 		logger:             logger,
 	}
 }
@@ -126,13 +131,10 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 }
 
 func (cf *ClientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
-	// if nss, ok := cf.usersNamespaces[user.ID]; ok {
-	// 	return nss
-	// }
-
-	cf.userNssMutex.Lock()
-	cf.usersNamespaces[user.ID] = map[string][]v1.Namespace{}
-	cf.userNssMutex.Unlock()
+	userNamespaces := cf.usersNamespaces.GetAll(user, cf.clusters)
+	if len(userNamespaces) > 0 {
+		return userNamespaces
+	}
 
 	wg := sync.WaitGroup{}
 
@@ -151,16 +153,13 @@ func (cf *ClientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 				//todo: log error
 			}
 
-			fmt.Println("---------------------------------------------", filteredNs)
-			cf.userNssMutex.Lock()
-			cf.usersNamespaces[user.ID][cluster.Name] = filteredNs
-			cf.userNssMutex.Unlock()
+			cf.usersNamespaces.Set(user, cluster.Name, filteredNs)
 		}(cluster)
 	}
 
 	wg.Wait()
 
-	return cf.usersNamespaces[user.ID]
+	return cf.usersNamespaces.GetAll(user, cf.clusters)
 }
 
 func impersonatedConfig(cluster Cluster, user *auth.UserPrincipal) *rest.Config {
@@ -187,4 +186,36 @@ func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
 	}
 
 	return clients, nil
+}
+
+type UsersNamespaces struct {
+	Cache *ttlcache.Cache
+}
+
+func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
+}
+
+func (un *UsersNamespaces) Get(user *auth.UserPrincipal, cluster string) ([]v1.Namespace, bool) {
+	if val, found := un.Cache.Get(un.cacheKey(user, cluster)); found {
+		return val.([]v1.Namespace), true
+	}
+
+	return []v1.Namespace{}, false
+}
+
+func (un *UsersNamespaces) Set(user *auth.UserPrincipal, cluster string, nsList []v1.Namespace) {
+	un.Cache.Set(un.cacheKey(user, cluster), nsList, userNamespaceTTL)
+}
+
+func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []Cluster) map[string][]v1.Namespace {
+	namespaces := map[string][]v1.Namespace{}
+
+	for _, cluster := range clusters {
+		if nsList, found := un.Get(user, cluster.Name); found {
+			namespaces[cluster.Name] = nsList
+		}
+	}
+
+	return namespaces
 }

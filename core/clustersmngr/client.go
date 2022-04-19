@@ -74,6 +74,13 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 }
 
 func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
+	for cluster, nss := range c.namespaces {
+		fmt.Println("Cluster: ", cluster)
+
+		for _, n := range nss {
+			fmt.Println("   ", n.Name)
+		}
+	}
 	wg := sync.WaitGroup{}
 
 	var errs []error
