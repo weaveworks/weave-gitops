@@ -31,11 +31,11 @@ The `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY` of a user should be configure
 The `GITHUB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 :::
 
-If you've followed the [Upgrade steps](../installation#weave-gitops-enterprise) in the [Installation guide](../installation) you should have a management cluster ready to roll.
+If you've followed the [Upgrade steps](installation.mdx#weave-gitops-enterprise) in the [Installation guide](installation.mdx) you should have a management cluster ready to roll.
 
 ### 1. Configure a capi provider
 
-See [Cluster API Providers](../cluster-management/cluster-api-providers.mdx) page for more details on providers. He're we'll continue with `eks` and `capa` as an example.
+See [Cluster API Providers](cluster-management/cluster-api-providers.mdx) page for more details on providers. He're we'll continue with `eks` and `capa` as an example.
 
 ```bash
 # Enable support for `ClusterResourceSet`s for automatically installing CNIs
@@ -49,7 +49,7 @@ clusterctl init --infrastructure aws
 
 ### 2. Add a template
 
-See [CAPI Templates](../cluster-management/templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
+See [CAPI Templates](cluster-management/templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
 
 import CapaTemplate from "!!raw-loader!./assets/templates/capa-template.yaml";
 
