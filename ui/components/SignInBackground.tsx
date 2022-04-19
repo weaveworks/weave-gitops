@@ -6,9 +6,9 @@ import SignInBackground from "../images/SignInBackground.json";
 const SignInbackground = () => {
   return (
     <Lottie
+      autoplay
       loop
       animationData={SignInBackground}
-      play
       style={{
         width: "100%",
         position: "absolute",
