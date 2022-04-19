@@ -40,9 +40,6 @@ var _ = Describe("auth", func() {
 		namespace.Name = "kube-test-" + rand.String(5)
 		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	})
-	AfterEach(func() {
-		Expect(k8sClient.Delete(context.Background(), namespace)).To(Succeed())
-	})
 	Describe("AuthService", func() {
 		var (
 			ctx        context.Context
