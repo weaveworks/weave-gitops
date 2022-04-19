@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListFluxEvents } from "../hooks/events";
 import { Event, ObjectReference } from "../lib/api/core/types.pb";
-import { WeGONamespace } from "../lib/types";
+import { NoNamespace } from "../lib/types";
 import Alert from "./Alert";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
@@ -19,7 +19,7 @@ type Props = {
 
 function EventsTable({
   className,
-  namespace = WeGONamespace,
+  namespace = NoNamespace,
   involvedObject,
 }: Props) {
   const { data, isLoading, error } = useListFluxEvents(
@@ -29,7 +29,7 @@ function EventsTable({
 
   if (isLoading) {
     return (
-      <Flex wide align>
+      <Flex wide center align>
         <CircularProgress />
       </Flex>
     );
@@ -50,12 +50,14 @@ function EventsTable({
         {
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
+          width: 25,
         },
-        { value: "message", label: "Message" },
-        { value: "component", label: "Component" },
+        { value: "message", label: "Message", width: 25 },
+        { value: "component", label: "Component", width: 25 },
         {
           label: "Timestamp",
           value: (e: Event) => <Timestamp time={e.timestamp} />,
+          width: 25,
         },
       ]}
       rows={data.events}
@@ -63,4 +65,8 @@ function EventsTable({
   );
 }
 
-export default styled(EventsTable).attrs({ className: EventsTable.name })``;
+export default styled(EventsTable).attrs({ className: EventsTable.name })`
+  td {
+    max-width: 1024px;
+  }
+`;

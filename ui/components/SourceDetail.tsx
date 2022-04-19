@@ -1,6 +1,6 @@
-import { createHashHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { useListSources } from "../hooks/sources";
@@ -9,11 +9,12 @@ import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import InfoList, { InfoField } from "./InfoList";
+import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
+import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 
 type Props = {
   className?: string;
@@ -27,6 +28,7 @@ type Props = {
 function SourceDetail({ className, name, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
+  const { path } = useRouteMatch();
 
   if (isLoading) {
     return <LoadingPage />;
@@ -59,7 +61,7 @@ function SourceDetail({ className, name, info, type }: Props) {
   });
 
   return (
-    <Flex wide column align className={className}>
+    <Flex wide tall column align className={className}>
       <Flex wide between>
         <div>
           <Heading level={2}>{s.type}</Heading>
@@ -70,11 +72,11 @@ function SourceDetail({ className, name, info, type }: Props) {
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
       )}
-      <HashRouterTabs history={createHashHistory()} defaultPath="/automations">
-        <HashRouterTab name="Related Automations" path="/automations">
+      <SubRouterTabs rootPath={`${path}/automations`}>
+        <RouterTab name="Relevant Automations" path={`${path}/automations`}>
           <AutomationsTable automations={relevantAutomations} hideSource />
-        </HashRouterTab>
-        <HashRouterTab name="Events" path="/events">
+        </RouterTab>
+        <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
             namespace={s.namespace}
             involvedObject={{
@@ -83,15 +85,21 @@ function SourceDetail({ className, name, info, type }: Props) {
               namespace: s.namespace,
             }}
           />
-        </HashRouterTab>
-      </HashRouterTabs>
+        </RouterTab>
+      </SubRouterTabs>
     </Flex>
   );
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
   padding-top: ${(props) => props.theme.spacing.xs};
+  width: 100%;
+
   ${InfoList} {
     margin-bottom: 60px;
+  }
+
+  .MuiTabs-root ${Link} .active-tab {
+    background: ${(props) => props.theme.colors.primary}19;
   }
 `;

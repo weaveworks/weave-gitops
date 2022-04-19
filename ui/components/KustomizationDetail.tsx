@@ -1,11 +1,12 @@
-import { createHashHistory } from "history";
 import * as React from "react";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
+import { useSyncAutomation } from "../hooks/automations";
 import { AutomationKind, Kustomization } from "../lib/api/core/types.pb";
-import { WeGONamespace } from "../lib/types";
+import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import HashRouterTabs, { HashRouterTab } from "./HashRouterTabs";
 import Heading from "./Heading";
 import InfoList from "./InfoList";
 import Interval from "./Interval";
@@ -13,15 +14,17 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
-import Spacer from "./Spacer";
+import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import SyncButton from "./SyncButton";
+import Timestamp from "./Timestamp";
 
 type Props = {
-  name: string;
   kustomization?: Kustomization;
+  className?: string;
 };
 
 const Info = styled.div`
-  padding-bottom: 32px;
+  margin-bottom: 16px;
 `;
 
 const TabContent = styled(Flex)`
@@ -30,11 +33,25 @@ const TabContent = styled(Flex)`
   height: 100%;
 `;
 
-export default function KustomizationDetail({ kustomization, name }: Props) {
-  const hashHistory = createHashHistory();
+function KustomizationDetail({ kustomization, className }: Props) {
+  const { notifySuccess } = React.useContext(AppContext);
+  const { path } = useRouteMatch();
+
+  const sync = useSyncAutomation({
+    name: kustomization?.name,
+    namespace: kustomization?.namespace,
+    clusterName: kustomization?.clusterName,
+    kind: AutomationKind.KustomizationAutomation,
+  });
+
+  const handleSyncClicked = (opts) => {
+    sync.mutateAsync(opts).then(() => {
+      notifySuccess("Resource synced successfully");
+    });
+  };
+
   return (
-    <Flex wide column height="100%">
-      <Spacer padding="xs" />
+    <Flex wide tall column align className={className}>
       <Flex wide between>
         <Info>
           <Heading level={2}>{kustomization?.namespace}</Heading>
@@ -45,7 +62,10 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
               ["Cluster", kustomization?.clusterName],
               ["Path", kustomization?.path],
               ["Interval", <Interval interval={kustomization?.interval} />],
-              ["Last Updated At", kustomization?.lastHandledReconciledAt],
+              [
+                "Last Updated At",
+                <Timestamp time={kustomization?.lastHandledReconciledAt} />,
+              ],
             ]}
           />
         </Info>
@@ -54,38 +74,57 @@ export default function KustomizationDetail({ kustomization, name }: Props) {
           suspended={kustomization?.suspended}
         />
       </Flex>
-      <TabContent wide column align>
-        <HashRouterTabs history={hashHistory} defaultPath="/details">
-          <HashRouterTab name="Details" path="/details">
+      <Flex wide>
+        {sync.isError && (
+          <Alert
+            severity="error"
+            message={sync.error.message}
+            title="Sync Error"
+          />
+        )}
+      </Flex>
+      <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
+      <TabContent>
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
             <ReconciledObjectsTable
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
               kinds={kustomization?.inventory}
-              namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
-          </HashRouterTab>
-          <HashRouterTab name="Events" path="/events">
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
             <EventsTable
+              namespace={kustomization?.namespace}
               involvedObject={{
                 kind: "Kustomization",
-                name,
+                name: kustomization?.name,
                 namespace: kustomization?.namespace,
               }}
             />
-          </HashRouterTab>
-          <HashRouterTab name="Graph" path="/graph">
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
               kinds={kustomization?.inventory}
               parentObject={kustomization}
-              namespace={WeGONamespace}
               clusterName={kustomization?.clusterName}
             />
-          </HashRouterTab>
-        </HashRouterTabs>
+          </RouterTab>
+        </SubRouterTabs>
       </TabContent>
     </Flex>
   );
 }
+
+export default styled(KustomizationDetail).attrs({
+  className: KustomizationDetail.name,
+})`
+  width: 100%;
+
+  ${Alert} {
+    margin-bottom: 16px;
+  }
+`;

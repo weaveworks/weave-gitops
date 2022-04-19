@@ -17,7 +17,17 @@ const (
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
 func (cs *coreServer) GetFluxNamespace(ctx context.Context, msg *pb.GetFluxNamespaceRequest) (*pb.GetFluxNamespaceResponse, error) {
-	for _, ns := range cs.cacheContainer.Namespaces()[clustersmngr.DefaultCluster] {
+	namespaces, err := cs.namespaces()
+	if err != nil {
+		return nil, err
+	}
+
+	nsList, found := namespaces[clustersmngr.DefaultCluster]
+	if !found {
+		return nil, defaultClusterNotFound{}
+	}
+
+	for _, ns := range nsList {
 		instanceLabelMatch := ns.Labels[types.InstanceLabel] == fluxNamespaceInstance
 		partofLabelMatch := ns.Labels[types.PartOfLabel] == FluxNamespacePartOf
 
@@ -45,7 +55,12 @@ func (cs *coreServer) ListNamespaces(ctx context.Context, msg *pb.ListNamespaces
 		Namespaces: []*pb.Namespace{},
 	}
 
-	for clusterName, nsList := range cs.cacheContainer.Namespaces() {
+	namespaces, err := cs.namespaces()
+	if err != nil {
+		return nil, err
+	}
+
+	for clusterName, nsList := range namespaces {
 		nsList, err := cs.nsChecker.FilterAccessibleNamespaces(ctx, restCfg, nsList)
 		if err != nil {
 			cs.logger.Error(err, "filtering namespaces")

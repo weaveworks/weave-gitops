@@ -8,9 +8,12 @@ import {
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
-import { RequestError, WeGONamespace, DefaultCluster } from "../lib/types";
+import { DefaultCluster, NoNamespace, RequestError } from "../lib/types";
 
-export function useListFluxRuntimeObjects(clusterName = DefaultCluster, namespace = WeGONamespace) {
+export function useListFluxRuntimeObjects(
+  clusterName = DefaultCluster,
+  namespace = NoNamespace
+) {
   const { api } = useContext(AppContext);
 
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
@@ -25,7 +28,7 @@ export function useGetReconciledObjects(
   namespace: string,
   type: AutomationKind,
   kinds: GroupVersionKind[],
-  clusterName = DefaultCluster,
+  clusterName = DefaultCluster
 ) {
   const { api } = useContext(AppContext);
 

@@ -31,10 +31,6 @@ exports[`DataTable snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
 }
 
 .c8 {
@@ -106,13 +102,17 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
+  padding-right: 24px;
 }
 
 .c0 h2 {
+  padding: 0;
   font-size: 18px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .c0 .MuiTableRow-root {

@@ -2,15 +2,23 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
-import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import {
+  HelmRelease,
+  Kustomization,
+  SourceRefSourceKind,
+} from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, { Field, SortType } from "./DataTable";
-import FilterableTable, { filterConfigForType } from "./FilterableTable";
+import FilterableTable, {
+  filterConfigForStatus,
+  filterConfigForString,
+} from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -21,7 +29,10 @@ type Props = {
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
   const initialFilterState = {
-    ...filterConfigForType(automations),
+    ...filterConfigForString(automations, "type"),
+    ...filterConfigForString(automations, "namespace"),
+    ...filterConfigForString(automations, "clusterName"),
+    ...filterConfigForStatus(automations),
   };
 
   let fields: Field[] = [
@@ -78,7 +89,13 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         }
 
         return (
-          <SourceLink sourceRef={{ kind: sourceKind, name: sourceName }} />
+          <SourceLink
+            sourceRef={{
+              kind: sourceKind,
+              name: sourceName,
+              namespace: a.sourceRef.namespace,
+            }}
+          />
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,
@@ -109,19 +126,24 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       value: "lastAttemptedRevision",
       width: 15,
     },
-    { label: "Last Updated", value: "lastHandledReconciledAt", width: 10 },
+    {
+      label: "Last Updated",
+      value: (a: Automation) => (
+        <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
+      ),
+      width: 10,
+    },
   ];
 
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <div className={className}>
-      <FilterableTable
-        fields={fields}
-        filters={initialFilterState}
-        rows={automations}
-      />
-    </div>
+    <FilterableTable
+      fields={fields}
+      filters={initialFilterState}
+      rows={automations}
+      className={className}
+    />
   );
 }
 

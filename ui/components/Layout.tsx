@@ -61,6 +61,7 @@ const AppContainer = styled.div`
   min-height: 100vh;
   margin: 0 auto;
   padding: 0;
+  overflow-x: hidden;
 `;
 
 const NavContainer = styled.div`
@@ -116,14 +117,11 @@ const ContentContainer = styled.div`
   padding-left: ${(props) => props.theme.spacing.medium};
 `;
 
-const Main = styled(Flex)`
-  height: 100%;
-`;
+const Main = styled(Flex)``;
 
 const TopToolBar = styled(Flex)`
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
-  flex: 0 1 auto;
 
   ${UserSettings} {
     justify-self: flex-end;
@@ -144,7 +142,7 @@ function Layout({ className, children }: Props) {
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>
-        <Main wide>
+        <Main wide tall>
           <NavContainer>
             <NavContent>
               <Tabs

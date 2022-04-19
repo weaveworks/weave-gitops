@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	corecache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
@@ -55,6 +56,8 @@ type Options struct {
 	TLSKeyFile                    string
 	Insecure                      bool
 	MTLS                          bool
+	DevMode                       bool
+	DevUser                       string
 }
 
 var options Options
@@ -89,6 +92,9 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+
+	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", true, "Enables development mode")
+	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
 
 	return cmd
 }
@@ -174,6 +180,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not create HMAC token signer: %w", err)
 		}
 
+		if options.DevMode {
+			log.Info("WARNING: dev mode enabled. This should be used for local work only")
+			tsv.SetDevMode(options.DevUser)
+		}
+
 		authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
 		if err != nil {
 			return err
@@ -193,7 +204,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName)
+	cacheContainer := corecache.NewContainer(
+		log,
+		corecache.WithSimpleCaches(
+			corecache.WithNamespaceCache(rest),
+		),
+	)
+
+	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {

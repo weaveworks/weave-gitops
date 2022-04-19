@@ -17,6 +17,7 @@ type key int
 const (
 	// Clusters Client context key
 	ClustersClientCtxKey key = iota
+	DefaultCluster           = "Default"
 )
 
 var (
@@ -55,6 +56,7 @@ type ClusterFetcher interface {
 }
 
 // ClientsPool stores all clients to the leaf clusters
+//counterfeiter:generate . ClientsPool
 type ClientsPool interface {
 	Add(cfg ClusterClientConfig, cluster Cluster) error
 	Clients() map[string]ClusterClient

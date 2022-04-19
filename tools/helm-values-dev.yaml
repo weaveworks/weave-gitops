@@ -13,3 +13,6 @@ adminUser:
 
 serverTLS:
   enable: false
+
+additionalArgs:
+  - "--dev-mode"

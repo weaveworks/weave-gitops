@@ -1,6 +1,7 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
@@ -9,9 +10,11 @@ import FilterDialog, {
   formStateToFilters,
   initialFormState,
 } from "./FilterDialog";
-import FilterDialogButton from "./FilterDialogButton";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
+import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
+import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -22,11 +25,11 @@ type Props = {
   onDialogClose?: () => void;
 };
 
-export function filterConfigForType(rows) {
+export function filterConfigForString(rows, key: string) {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
-      const t = v.type;
+      const t = v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -37,7 +40,26 @@ export function filterConfigForType(rows) {
     []
   );
 
-  return { type: typeFilterConfig };
+  return { [key]: typeFilterConfig };
+}
+
+export function filterConfigForStatus(rows) {
+  const statusFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      let t;
+      if (v.suspended) t = "Suspended";
+      else if (computeReady(v.conditions)) t = "Ready";
+      else t = "Not Ready";
+      if (!_.includes(r, t)) {
+        r.push(t);
+      }
+      return r;
+    },
+    []
+  );
+
+  return { status: statusFilterConfig };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -49,7 +71,15 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
     let ok = false;
 
     _.each(filters, (vals, key) => {
-      const value = r[key];
+      let value;
+      //status
+      if (key === "status") {
+        if (r["suspended"]) value = "Suspended";
+        else if (computeReady(r["conditions"])) value = "Ready";
+        else value = "Not Ready";
+      }
+      //string
+      else value = r[key];
 
       if (_.includes(vals, value)) {
         ok = true;
@@ -116,7 +146,7 @@ function FilterableTable({
   filters,
   dialogOpen,
 }: Props) {
-  const [filterDialogOpen, setFilterDialog] = React.useState(dialogOpen);
+  const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters,
     formState: initialFormState(filters),
@@ -165,8 +195,8 @@ function FilterableTable({
   };
 
   return (
-    <div className={className}>
-      <Flex>
+    <Flex className={className} wide tall column>
+      <Flex wide align>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
@@ -174,22 +204,27 @@ function FilterableTable({
         />
         <Flex align wide end>
           <SearchField onSubmit={handleTextSearchSubmit} />
-          <FilterDialogButton
-            onClick={() => setFilterDialog(!filterDialogOpen)}
-          />
+          <IconButton
+            onClick={() => setFilterDialogOpen(!filterDialogOpen)}
+            className={className}
+            variant={filterDialogOpen ? "contained" : "text"}
+            color="inherit"
+          >
+            <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
+          </IconButton>
+          <Spacer padding="xs" />
         </Flex>
       </Flex>
-      <Flex>
+      <Flex wide tall>
         <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
-          onClose={() => setFilterDialog(!filterDialogOpen)}
           onFilterSelect={handleFilterSelect}
           filterList={filters}
           formState={filterState.formState}
           open={filterDialogOpen}
         />
       </Flex>
-    </div>
+    </Flex>
   );
 }
 

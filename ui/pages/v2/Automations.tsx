@@ -25,8 +25,4 @@ function Automations({ className }: Props) {
 
 export default styled(Automations).attrs({
   className: Automations.name,
-})`
-  ${AutomationsTable} {
-    margin-top: ${(props) => props.theme.spacing.small};
-  }
-`;
+})``;

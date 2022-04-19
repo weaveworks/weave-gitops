@@ -154,6 +154,15 @@ service Core {
             get: "/v1/events"
         };
     }
+    /*
+     * SyncResource forces a reconciliation of a Flux resource
+     */
+    rpc SyncAutomation(SyncAutomationRequest) returns (SyncAutomationResponse) {
+        option (google.api.http) = {
+            post: "/v1/sync"
+            body: "*"
+        };
+    }
 }
 
 message ListKustomizationsRequest {
@@ -275,4 +284,15 @@ message ListFluxEventsRequest {
 
 message ListFluxEventsResponse {
     repeated Event events = 1;
+}
+
+message SyncAutomationRequest {
+    string         name        = 1;
+    string         namespace   = 2;
+    AutomationKind kind        = 3;
+    string         clusterName = 4;
+    bool           withSource  = 5;
+}
+
+message SyncAutomationResponse {
 }

@@ -8,9 +8,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/helm/helm/pkg/chartutil"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/reference"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -29,7 +27,7 @@ const (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . eventRecorder
 type eventRecorder interface {
-	EventInfof(object corev1.ObjectReference, metadata map[string]string, reason string, messageFmt string, args ...interface{}) error
+	AnnotatedEventf(object runtime.Object, annotations map[string]string, eventtype, reason string, messageFmt string, args ...interface{})
 }
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
@@ -166,21 +164,12 @@ func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepo
 		return
 	}
 
-	objRef, err := reference.GetReference(r.Scheme, hr)
-	if err != nil {
-		log.Error(err, "unable to get reference")
-		return
-	}
-
 	var meta map[string]string
 	if hr.Status.Artifact.Revision != "" {
 		meta = map[string]string{"revision": hr.Status.Artifact.Revision}
 	}
 
-	if err := r.ExternalEventRecorder.EventInfof(*objRef, meta, severity, "New version available for profile %s with version %s", profileName, version); err != nil {
-		log.Error(err, "unable to send event")
-		return
-	}
+	r.ExternalEventRecorder.AnnotatedEventf(hr, meta, severity, "", "New version available for profile %s with version %s", profileName, version)
 }
 
 // checkForNewVersion uses existing data to determine if there are newer versions in the incoming data

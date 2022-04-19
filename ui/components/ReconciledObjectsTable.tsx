@@ -7,15 +7,19 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { NoNamespace } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
-import DataTable, { SortType } from "./DataTable";
+import { SortType } from "./DataTable";
+import FilterableTable, {
+  filterConfigForStatus,
+  filterConfigForString,
+} from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import RequestStateHandler from "./RequestStateHandler";
-
 export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
-  namespace: string;
+  namespace?: string;
   automationKind: AutomationKind;
   kinds: GroupVersionKind[];
   clusterName: string;
@@ -24,7 +28,7 @@ export interface ReconciledVisualizationProps {
 function ReconciledObjectsTable({
   className,
   automationName,
-  namespace,
+  namespace = NoNamespace,
   automationKind,
   kinds,
   clusterName,
@@ -41,9 +45,15 @@ function ReconciledObjectsTable({
     clusterName
   );
 
+  const initialFilterState = {
+    ...filterConfigForString(objs, "namespace"),
+    ...filterConfigForStatus(objs),
+  };
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <DataTable
+      <FilterableTable
+        filters={initialFilterState}
         className={className}
         fields={[
           {

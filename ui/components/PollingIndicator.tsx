@@ -14,11 +14,19 @@ function PollingIndicator({ className, loading }: Props) {
   const [visible, setVisible] = React.useState(false);
 
   React.useEffect(() => {
-    loading
-      ? setVisible(true)
-      : setTimeout(() => {
-          setVisible(false);
-        }, 1000);
+    let timeout;
+
+    if (loading) {
+      setVisible(true);
+    } else {
+      timeout = setTimeout(() => {
+        setVisible(false);
+      }, 1000);
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [loading]);
 
   return (

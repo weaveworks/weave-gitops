@@ -1,4 +1,9 @@
-import { Condition, Interval, SourceRefSourceKind } from "./api/core/types.pb";
+import {
+  AutomationKind,
+  Condition,
+  Interval,
+  SourceRefSourceKind,
+} from "./api/core/types.pb";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -36,6 +41,7 @@ export enum V2Routes {
 
 export const WeGONamespace = "flux-system";
 export const DefaultCluster = "Default";
+export const NoNamespace = "";
 
 export interface Source {
   name?: string;
@@ -50,4 +56,11 @@ export interface Source {
 export enum AutomationType {
   Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
+}
+
+export interface Syncable {
+  name?: string;
+  kind?: AutomationKind;
+  namespace?: string;
+  clusterName?: string;
 }

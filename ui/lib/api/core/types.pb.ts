@@ -31,6 +31,7 @@ export type Interval = {
 export type SourceRef = {
   kind?: SourceRefSourceKind
   name?: string
+  namespace?: string
 }
 
 export type Condition = {

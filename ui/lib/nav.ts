@@ -1,14 +1,16 @@
+import _ from "lodash";
 import qs from "query-string";
 import { SourceRefSourceKind } from "./api/core/types.pb";
-import { PageRoute, V2Routes, WeGONamespace } from "./types";
+import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
 export const getParentNavValue = (
-  currentPage: any
+  path: string
 ): PageRoute | V2Routes | boolean => {
-  switch (currentPage) {
+  const [, currentPage] = _.split(path, "/");
+  switch (`/${currentPage}`) {
     case V2Routes.Automations:
     case V2Routes.Kustomization:
     case V2Routes.HelmRelease:
@@ -47,7 +49,7 @@ export const formatURL = (page: string, query: any = {}) => {
 export const formatSourceURL = (
   kind: SourceRefSourceKind,
   name: string,
-  namespace: string = WeGONamespace
+  namespace: string = NoNamespace
 ) => {
   return formatURL(sourceTypeToRoute(kind), { name, namespace });
 };

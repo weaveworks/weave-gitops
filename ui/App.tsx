@@ -38,10 +38,7 @@ function withSearchParams(Cmp) {
   return ({ location: { search }, ...rest }) => {
     const params = qs.parse(search);
 
-    return <Cmp {...rest}
-      name={params.name as string}
-      clusterName={params.clusterName as string}
-    />;
+    return <Cmp {...rest} {...params} />;
   };
 }
 
@@ -51,14 +48,12 @@ const App = () => (
       <Switch>
         <Route exact path={V2Routes.Automations} component={Automations} />
         <Route
-          exact
           path={V2Routes.Kustomization}
           component={withSearchParams(KustomizationDetail)}
         />
-        <Route exact path={V2Routes.Sources} component={Sources} />
-        <Route exact path={V2Routes.FluxRuntime} component={FluxRuntime} />
+        <Route path={V2Routes.Sources} component={Sources} />
+        <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <Route
-          exact
           path={V2Routes.GitRepo}
           component={withSearchParams(GitRepositoryDetail)}
         />

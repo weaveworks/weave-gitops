@@ -3,10 +3,8 @@ package server_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -20,7 +18,7 @@ func TestGetFluxNamespace(t *testing.T) {
 
 	ctx := context.Background()
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
 	kClient, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
@@ -35,8 +33,7 @@ func TestGetFluxNamespace(t *testing.T) {
 	}
 
 	g.Expect(kClient.Create(ctx, ns)).To(Succeed())
-	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
-	time.Sleep(time.Second)
+	updateNamespaceCache(cfg)
 
 	defer func() {
 		// Workaround, somehow it does not get deleted with client.Delete().
@@ -54,12 +51,10 @@ func TestGetFluxNamespace(t *testing.T) {
 func TestGetFluxNamespace_notFound(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
-	time.Sleep(time.Second)
-
 	ctx := context.Background()
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
+	updateNamespaceCache(cfg)
 
 	_, err := coreClient.GetFluxNamespace(ctx, &pb.GetFluxNamespaceRequest{})
 	g.Expect(err).To(HaveOccurred())
@@ -80,10 +75,9 @@ func TestListNamespaces(t *testing.T) {
 		namespaces = append(namespaces, newNamespace(ctx, k, g))
 	}
 
-	coreClient := makeGRPCServer(k8sEnv.Rest, t)
+	coreClient, cfg := makeGRPCServer(k8sEnv.Rest, t)
 
-	cache.GlobalContainer().ForceRefresh(cache.NamespaceStorage)
-	time.Sleep(time.Second)
+	updateNamespaceCache(cfg)
 
 	t.Run("returns a list of namespaces", func(t *testing.T) {
 		g := NewGomegaWithT(t)

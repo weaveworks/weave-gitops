@@ -1,13 +1,10 @@
-import { List, ListItem, ListItemIcon, Paper, Slide } from "@material-ui/core";
+import { List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
 import ControlledForm from "./ControlledForm";
 import Flex from "./Flex";
 import FormCheckbox from "./FormCheckbox";
-import Icon, { IconType } from "./Icon";
-import Spacer from "./Spacer";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
@@ -15,13 +12,26 @@ export type DialogFormState = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
+  height: 100%;
   width: 0px;
+  left: ${(props) => props.theme.spacing.medium};
+  transition-property: width, left;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+  &.open {
+    left: 0;
+    width: 350px;
+  }
 `;
 
-const SlideWrapper = styled.div`
-  position: absolute;
-  right: 0;
-  top: 0;
+const SlideContent = styled.div`
+  // this bg color factors in the opacity of the content container while keeping the filters opaque
+  background: rgb(250, 250, 250);
+  height: 100%;
+  width: 100%;
+  border-left: 2px solid ${(props) => props.theme.colors.neutral20};
+  padding: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.large};
 `;
 
 export const filterSeparator = ":";
@@ -48,7 +58,7 @@ export interface Props {
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
   formState: DialogFormState;
-  onClose?: () => void;
+
   open?: boolean;
 }
 
@@ -71,13 +81,18 @@ export function formStateToFilters(values: DialogFormState): FilterConfig {
   return out;
 }
 
+const convertHeaders = (header: string) => {
+  if (header === "clusterName") return "cluster";
+  return header;
+};
+
 /** Form Filter Bar */
 function UnstyledFilterDialog({
   className,
   onFilterSelect,
   filterList,
   formState,
-  onClose,
+
   open,
 }: Props) {
   const onFormChange = (name: string, value: any) => {
@@ -88,77 +103,53 @@ function UnstyledFilterDialog({
   };
 
   return (
-    <SlideContainer>
-      <SlideWrapper>
-        <Slide direction="left" in={open} mountOnEnter unmountOnExit>
-          <Paper elevation={4}>
-            <Flex className={className + " filter-bar"} align start>
-              <Spacer padding="medium">
-                <Flex wide align between>
-                  <Text size="extraLarge" color="neutral30">
-                    Filters
-                  </Text>
-                  <Button variant="text" color="inherit" onClick={onClose}>
-                    <Icon
-                      type={IconType.ClearIcon}
-                      size="large"
-                      color="neutral30"
-                    />
-                  </Button>
-                </Flex>
-                <ControlledForm
-                  state={{ values: formState }}
-                  onChange={onFormChange}
-                >
-                  <List>
-                    {_.map(filterList, (options: string[], header: string) => {
-                      return (
-                        <ListItem key={header}>
-                          <Flex column>
-                            <Text capitalize size="large" color="neutral30">
-                              {header}
-                            </Text>
-                            <List>
-                              {_.map(
-                                _.sortBy(options),
-                                (option: string, index: number) => {
-                                  return (
-                                    <ListItem key={index}>
-                                      <ListItemIcon>
-                                        <FormCheckbox
-                                          label=""
-                                          name={`${header}${filterSeparator}${option}`}
-                                        />
-                                      </ListItemIcon>
-                                      <Text color="neutral30">
-                                        {_.toString(option)}
-                                      </Text>
-                                    </ListItem>
-                                  );
-                                }
-                              )}
-                            </List>
-                          </Flex>
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-                </ControlledForm>
-              </Spacer>
-            </Flex>
-          </Paper>
-        </Slide>
-      </SlideWrapper>
+    <SlideContainer className={`${open ? "open" : ""}`} data-testid="container">
+      <SlideContent>
+        <Flex className={className} start column>
+          <Flex wide align start>
+            <Text size="large" color="neutral30">
+              Filters
+            </Text>
+          </Flex>
+          <ControlledForm state={{ values: formState }} onChange={onFormChange}>
+            <List>
+              {_.map(filterList, (options: string[], header: string) => {
+                return (
+                  <ListItem key={header}>
+                    <Flex column>
+                      <Text capitalize size="small" color="neutral30">
+                        {convertHeaders(header)}
+                      </Text>
+                      <List>
+                        {_.map(options, (option: string, index: number) => {
+                          return (
+                            <ListItem key={index}>
+                              <ListItemIcon>
+                                <FormCheckbox
+                                  label=""
+                                  name={`${header}${filterSeparator}${option}`}
+                                />
+                              </ListItemIcon>
+                              <Text color="neutral30" size="small">
+                                {_.toString(option)}
+                              </Text>
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Flex>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </ControlledForm>
+        </Flex>
+      </SlideContent>
     </SlideContainer>
   );
 }
 
 export default styled(UnstyledFilterDialog)`
-  .MuiPopover-paper {
-    min-width: 450px;
-    border-left: 2px solid ${(props) => props.theme.colors.neutral30};
-    padding-left: ${(props) => props.theme.spacing.medium};
-  }
   .MuiListItem-gutters {
     padding-left: 0px;
   }

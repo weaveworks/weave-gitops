@@ -97,7 +97,7 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 
 	if w.notificationAddress != "" {
 		var err error
-		if eventRecorder, err = events.NewRecorder(w.notificationAddress, controllerName); err != nil {
+		if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, w.notificationAddress, controllerName); err != nil {
 			ctrl.Log.Error(err, "unable to create event recorder")
 			return err
 		}
