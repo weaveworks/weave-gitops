@@ -33,8 +33,6 @@ func TestGetReconciledObjects(t *testing.T) {
 	automationName := "my-automation"
 	ns := newNamespace(ctx, k, g)
 
-	defer deleteNamespace(ctx, k, g, ns.Name)
-
 	reconciledObj := appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-deployment",
@@ -96,8 +94,6 @@ func TestGetChildObjects(t *testing.T) {
 
 	automationName := "my-automation"
 	ns := newNamespace(ctx, k, g)
-
-	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -178,8 +174,6 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	name := "random-flux-controller"
 	ns := newNamespace(ctx, k, g)
 
-	defer deleteNamespace(ctx, k, g, ns.Name)
-
 	fluxDep := newDeployment(name, ns.Name)
 	fluxDep.ObjectMeta.Labels = map[string]string{
 		stypes.PartOfLabel: server.FluxNamespacePartOf,
@@ -216,10 +210,6 @@ func TestListFluxRuntimeObjects_inMultipleNamespaces(t *testing.T) {
 	name := "random-flux-controller"
 	ns := newNamespace(ctx, k, g)
 	ns2 := newNamespace(ctx, k, g)
-
-	defer deleteNamespace(ctx, k, g, ns.Name)
-
-	defer deleteNamespace(ctx, k, g, ns2.Name)
 
 	fluxDep := newDeployment(name, ns.Name)
 	fluxDep.ObjectMeta.Labels = map[string]string{

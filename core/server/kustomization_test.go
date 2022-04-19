@@ -76,8 +76,6 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	defer deleteNamespace(ctx, k, g, ns.Name)
-
 	kust := &kustomizev1.Kustomization{
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
@@ -111,8 +109,6 @@ func TestGetKustomization(t *testing.T) {
 
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
-
-	defer deleteNamespace(ctx, k, g, ns.Name)
 
 	kust := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
@@ -184,11 +180,4 @@ func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) corev1.N
 	g.Expect(k.Create(ctx, &ns)).To(Succeed())
 
 	return ns
-}
-
-func deleteNamespace(ctx context.Context, k client.Client, g *GomegaWithT, nsName string) {
-	ns := corev1.Namespace{}
-	ns.Name = nsName
-
-	g.Expect(k.Delete(ctx, &ns)).To(Succeed())
 }
