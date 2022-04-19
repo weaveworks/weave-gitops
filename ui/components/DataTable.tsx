@@ -56,7 +56,6 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
 
 const TableButton = styled(Button)`
   &.MuiButton-root {
-    padding: 0;
     margin: 0;
     text-transform: none;
   }
@@ -204,7 +203,7 @@ export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
   overflow-x: scroll;
   h2 {
-    padding: 0;
+    padding: ${(props) => props.theme.spacing.xs};
     font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
@@ -218,6 +217,9 @@ export const DataTable = styled(UnstyledDataTable)`
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
+  }
+  th {
+    padding: 0;
   }
 
   td {
