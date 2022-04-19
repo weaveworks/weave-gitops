@@ -72,7 +72,7 @@ func TestPagination(t *testing.T) {
 	}{
 		{
 			Namespace:      "000-ns1",
-			NamespaceIndex: 0, // This is going to be the initial index as there are other namespaces like default, kube-node-lease, kube-public and kube-system
+			NamespaceIndex: 0,
 			EmptyK8sToken:  false,
 		},
 		{
