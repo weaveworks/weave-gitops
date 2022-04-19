@@ -1,0 +1,84 @@
+name: prepare-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 'v1.2.3-rc.4')"
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: weaveworks/wego-app
+
+jobs:
+  release-tasks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Unshallow
+        run: |
+          git fetch --prune --unshallow
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.5
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.13.2
+      - name: Set up environment vars
+        run: |
+          echo "BRANCH=releases/${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          GITOPS_VERSION=$(echo ${{ github.event.inputs.version }} | tr -d v)
+          echo "GITOPS_VERSION=$GITOPS_VERSION" >> $GITHUB_ENV
+          git config user.name weave-gitops-bot
+          git config user.email weave-gitops-bot@weave.works
+
+      - name: Update npm package version
+        run: |
+          jq '.version = "'$GITOPS_VERSION'"' < package.json > package-new.json
+          mv package-new.json package.json
+          npm ci
+          git commit -am "Update javascript library version to $GITOPS_VERSION"
+
+      - name: Update docs version
+        env:
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          GA_KEY: ${{ secrets.GA_KEY }}
+        run: |
+          VERSION=${{ github.event.inputs.version }} make bin/gitops
+          tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
+          git add website
+          git commit -m "Update docs for release $GITOPS_VERSION"
+        if: ${{ !contains(github.event.inputs.version, '-') }}
+
+      - name: Update README
+        run: |
+          sed -i 's#\(weave-gitops/releases/download/\)[^/]\+\(/gitops-\)#\1${{ github.event.inputs.version }}\2#' README.md
+          git commit -am "Update README to point download link to $GITOPS_VERSION"
+        if: ${{ !contains(github.event.inputs.version, '-') }}
+
+      - name: Update Chart
+        run: |
+          # Increment the micro chart version
+          NEW_CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml | awk -F. -v OFS=. '{ $3++; print }')
+          yq e '.appVersion = "${{ github.event.inputs.version }}"' -i charts/gitops-server/Chart.yaml
+          yq e '.version = "'$NEW_CHART_VERSION'"' -i charts/gitops-server/Chart.yaml
+          yq e '.image.tag = "${{ github.event.inputs.version }}"' -i charts/gitops-server/values.yaml
+
+          git commit -am "Update helm chart to $NEW_CHART_VERSION to use gitops $GITOPS_VERSION"
+        if: ${{ !contains(github.event.inputs.version, '-') }}
+
+      - name: Create Pull Request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          author: weave-gitops-bot <weave-gitops-bot@weave.works>
+          signoff: true
+          committer: GitHub <noreply@github.com>
+          branch: ${{ env.BRANCH }}
+          base: main
+          title: "Updates for ${{ env.GITOPS_VERSION }}"
+          body: "Update version references to ${{ env.GITOPS_VERSION }}"

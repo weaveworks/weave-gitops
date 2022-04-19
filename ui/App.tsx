@@ -15,6 +15,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
+import CoreClientContextProvider from "./contexts/CoreClientContext";
 import FeatureFlagsContextProvider from "./contexts/FeatureFlags";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
@@ -92,30 +93,32 @@ const App = () => (
 export default function AppContainer() {
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <AppContextProvider renderFooter coreClient={Core}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <Fonts />
-            <GlobalStyle />
-            <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <Fonts />
+          <GlobalStyle />
+          <Router>
+            <AppContextProvider renderFooter>
               <FeatureFlagsContextProvider>
                 <AuthContextProvider>
-                  <Switch>
-                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                    <Route component={SignIn} exact path="/sign_in" />
-                    <Route path="*">
-                      {/* Check we've got a logged in user otherwise redirect back to signin */}
-                      <AuthCheck>
-                        <App />
-                      </AuthCheck>
-                    </Route>
-                  </Switch>
+                  <CoreClientContextProvider api={Core}>
+                    <Switch>
+                      {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                      <Route component={SignIn} exact path="/sign_in" />
+                      <Route path="*">
+                        {/* Check we've got a logged in user otherwise redirect back to signin */}
+                        <AuthCheck>
+                          <App />
+                        </AuthCheck>
+                      </Route>
+                    </Switch>
+                  </CoreClientContextProvider>
                 </AuthContextProvider>
               </FeatureFlagsContextProvider>
-            </Router>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </AppContextProvider>
+            </AppContextProvider>
+          </Router>
+        </ThemeProvider>
+      </QueryClientProvider>
     </MuiThemeProvider>
   );
 }

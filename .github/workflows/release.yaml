@@ -1,17 +1,36 @@
 name: release
 
 on:
-  push:
-    tags:
-      - "v*"
+  pull_request_review:
+    types:
+      - submitted
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: weaveworks/wego-app
 
 jobs:
+  tag-release:
+    if: github.event.review.state == 'approved' && startsWith(github.event.pull_request.head.ref, 'releases/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Find release version
+        id: release-version
+        run: |
+          version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          echo "::set-output name=version::$version"
+      - name: Set tag
+        run: |
+          git config user.name weave-gitops-bot
+          git config user.email weave-gitops-bot@weave.works
+          git tag -a ${{ steps.release-version.outputs.version }} -m ${{ steps.release-version.outputs.version }}
+          git push origin tag ${{ steps.release-version.outputs.version }}
+
   goreleaser:
     runs-on: ubuntu-latest
+    needs: tag-release
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,7 +49,7 @@ jobs:
       - name: Set env var
         run: |
           make -B dependencies
-          echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
@@ -59,6 +78,7 @@ jobs:
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
+
   publish_npm_package:
     needs: goreleaser
     runs-on: ubuntu-latest
@@ -111,40 +131,23 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: gitops-server.dockerfile
-  update-doc-repo-files:
-    needs: goreleaser
+
+  merge-pr:
     runs-on: ubuntu-latest
+    needs:
+      - tag-release
+      - goreleaser
+      - publish_npm_package
+      - build-and-push-image
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Unshallow
+      - name: "Merge release"
         run: |
-          git fetch --prune --unshallow
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17.5
-      - name: Create GitOps binary
-        run: |
-          make all
-      - name: Set up environment vars
-        run: |
-          echo "BRANCH=release-doc-updates-$$" >> $GITHUB_ENV
-          echo "GITOPS_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-      - name: Update with new version
-        env:
-          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
-          GA_KEY: ${{ secrets.GA_KEY }}
-        run: |
-          bash tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          committer: GitHub <noreply@github.com>
-          author: weave-test-user <weave-test-user@example.com>
-          signoff: true
-          branch: ${{ env.BRANCH }}
-          base: main
-          title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
-          body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
+          curl --request PUT \
+            --url https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge \
+            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "merge_method": "merge"
+              }'
