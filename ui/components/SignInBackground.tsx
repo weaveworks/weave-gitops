@@ -6,7 +6,7 @@ import SignInBackground from "../images/SignInBackground.json";
 const SignInbackground = () => {
   return (
     <Lottie
-      autoPlay
+      play
       loop
       animationData={SignInBackground}
       style={{
