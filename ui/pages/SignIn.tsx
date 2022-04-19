@@ -164,7 +164,17 @@ function SignIn() {
   );
 
   return (
-    <Flex tall wide center align column>
+    <Flex
+      tall
+      wide
+      center
+      align
+      column
+      style={{
+        height: "100vh",
+        width: "100vw",
+      }}
+    >
       <SignInBackground />
       {authError && (
         <AlertWrapper
