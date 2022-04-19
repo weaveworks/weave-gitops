@@ -69,7 +69,6 @@ const App = () => (
           component={withSearchParams(BucketDetail)}
         />
         <Route
-          exact
           path={V2Routes.HelmRelease}
           component={withSearchParams(HelmReleaseDetail)}
         />
