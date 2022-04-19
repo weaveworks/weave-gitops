@@ -65,7 +65,7 @@ func TestPagination(t *testing.T) {
 	var pageSize int32 = 3
 
 	// NextPageToken values
-	tables := []struct {
+	nextPagesInfo := []struct {
 		Namespace      string
 		NamespaceIndex int
 		EmptyK8sToken  bool
@@ -99,7 +99,7 @@ func TestPagination(t *testing.T) {
 
 	var previousNextPageToken string
 
-	for ind, table := range tables {
+	for ind, expectedNextPageInfo := range nextPagesInfo {
 		res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
 			Pagination: &pb.Pagination{
 				PageSize:  pageSize,
@@ -110,15 +110,15 @@ func TestPagination(t *testing.T) {
 		g.Expect(res.Kustomizations).To(HaveLen(int(pageSize)))
 
 		expectedNextPageToken := server.PageTokenInfo{
-			Namespace:      table.Namespace,
-			NamespaceIndex: table.NamespaceIndex,
+			Namespace:      expectedNextPageInfo.Namespace,
+			NamespaceIndex: expectedNextPageInfo.NamespaceIndex,
 		}
 
 		// Do not validate next token in the last expected page
 		// There will be namespaces from other tests that we don't need
 		// to test against.
-		if ind != len(tables)-1 {
-			checkPageTokenInfo(g, res.NextPageToken, expectedNextPageToken, table.EmptyK8sToken)
+		if ind != len(nextPagesInfo)-1 {
+			checkPageTokenInfo(g, res.NextPageToken, expectedNextPageToken, expectedNextPageInfo.EmptyK8sToken)
 		}
 
 		previousNextPageToken = res.NextPageToken
