@@ -169,10 +169,7 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell
-                  style={f.width ? { width: `${f.width}%` } : {}}
-                  key={f.label}
-                >
+                <TableCell key={f.label}>
                   <SortableLabel field={f} />
                 </TableCell>
               ))}
@@ -209,6 +206,7 @@ function UnstyledDataTable({
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
   padding-right: ${(props) => props.theme.spacing.medium};
+  overflow-x: scroll;
   h2 {
     padding: 0;
     font-size: 18px;
