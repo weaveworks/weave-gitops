@@ -31,7 +31,6 @@ export type Field = {
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
   sortValue?: Sorter;
-  width?: number;
   textSearchable?: boolean;
 };
 
@@ -45,8 +44,6 @@ export interface Props {
   rows?: any[];
   /** index of field to initially sort against. */
   defaultSort?: number;
-  /** an optional list of string widths for each field/column. */
-  widths?: string[];
   /** for passing pagination */
   children?: any;
 }
@@ -155,7 +152,7 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell style={f.width && { width: `${f.width}%` }} key={f.label}>
+        <TableCell key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -205,7 +202,6 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
-  padding-right: ${(props) => props.theme.spacing.medium};
   overflow-x: scroll;
   h2 {
     padding: 0;

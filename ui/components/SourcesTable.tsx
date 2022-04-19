@@ -57,11 +57,10 @@ function SourcesTable({ className, sources }: Props) {
           ),
           sortType: SortType.string,
           sortValue: (s: Source) => s.name || "",
-          width: 5,
           textSearchable: true,
         },
-        { label: "Type", value: "type", width: 5 },
-        { label: "Namespace", value: "namespace", width: 5 },
+        { label: "Type", value: "type" },
+        { label: "Namespace", value: "namespace" },
         {
           label: "Status",
           value: (s: Source) => (
@@ -73,18 +72,14 @@ function SourcesTable({ className, sources }: Props) {
           ),
           sortType: SortType.number,
           sortValue: statusSortHelper,
-          width: 5,
         },
         {
           label: "Message",
           value: (s) => computeMessage(s.conditions),
-
-          width: 45,
         },
         {
           label: "Cluster",
           value: (s: Source) => s.clusterName,
-          width: 5,
         },
         {
           label: "URL",
@@ -92,7 +87,6 @@ function SourcesTable({ className, sources }: Props) {
             let text;
             let url;
             let link = false;
-
             switch (s.type) {
               case SourceRefSourceKind.GitRepository:
                 text = (s as GitRepository).url;
@@ -113,7 +107,6 @@ function SourcesTable({ className, sources }: Props) {
                 link = true;
                 break;
             }
-
             return link ? (
               <Link newTab href={url}>
                 {text}
@@ -122,7 +115,6 @@ function SourcesTable({ className, sources }: Props) {
               text
             );
           },
-          width: 25,
         },
         {
           label: "Reference",
@@ -134,30 +126,22 @@ function SourcesTable({ className, sources }: Props) {
               repo?.reference?.commit ||
               repo?.reference?.tag ||
               repo?.reference?.semver;
-
             return isGit ? ref : "-";
           },
-          width: 5,
         },
         {
           label: "Interval",
           value: (s: Source) => showInterval(s.interval),
-          width: 5,
         },
         {
           label: "Last Updated",
           value: (s: Source) => (
             <Timestamp time={(s as GitRepository).lastUpdatedAt} />
           ),
-          width: 5,
         },
       ]}
     />
   );
 }
 
-export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
-  table {
-    table-layout: fixed;
-  }
-`;
+export default styled(SourcesTable).attrs({ className: SourcesTable.name })``;

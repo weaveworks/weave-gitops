@@ -102,7 +102,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
-  padding-right: 24px;
+  overflow-x: scroll;
 }
 
 .c0 h2 {
@@ -157,7 +157,6 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
-            style={Object {}}
           >
             <div
               className="c1"
@@ -213,7 +212,6 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
-            style={Object {}}
           >
             <div
               className="c1"
@@ -262,7 +260,6 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
-            style={Object {}}
           >
             <div
               className="c1"
@@ -311,7 +308,6 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
-            style={Object {}}
           >
             <div
               className="c1"
