@@ -76,13 +76,10 @@ func GetNextPage(namespaceList []v1.Namespace, pageSize int32, pageToken string,
 
 			break
 		}
-
-		// If we haven't fetched the items requested in PageSize we need to keep fetching from the next namespace
-	}
+	} // If we haven't fetched the items requested in PageSize we need to keep fetching from the next namespace
 	// At this point it doesn't matter the value of newPageToken
 	// If it is empty it means there are no more namespaces to fetch from
 	// and we have fetched all the resources we could.
-
 	return newPageToken, nil
 }
 
