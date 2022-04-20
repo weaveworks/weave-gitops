@@ -17,24 +17,6 @@ func WithClustersClient(clientsFactory *ClientsFactory, clustersFetcher ClusterF
 			return
 		}
 
-		// clusters, err := clustersFetcher.Fetch(r.Context())
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusInternalServerError)
-		// 	fmt.Fprintln(w, "failed fetching clusters list: %w", err)
-		// 	return
-		// }
-
-		// clientsPool := NewClustersClientsPool()
-		// for _, c := range clusters {
-		// 	if err := clientsPool.Add(ClientConfigWithUser(user), c); err != nil {
-		// 		w.WriteHeader(http.StatusInternalServerError)
-		// 		fmt.Fprintf(w, "failed adding cluster client to the pool: %s", err)
-		// 		return
-		// 	}
-		// }
-
-		// clustersClient := NewClient(clientsPool)
-
 		client, err := clientsFactory.GetUserClient(r.Context(), user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
