@@ -68,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Include brew publishing
         run: cat .goreleaser.brew.yml >> .goreleaser.yml
-        if: ${{ !contains(github.event.inputs.version, '-') }}
+        if: ${{ !contains(github.event.pull_request.head.ref, '-') }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
