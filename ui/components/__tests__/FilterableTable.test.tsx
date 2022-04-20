@@ -280,10 +280,9 @@ describe("FilterableTable", () => {
 
     // Should return to all rows being shown
     const tableRows2 = document.querySelectorAll("tbody tr");
-    expect(tableRows2).toHaveLength(rows.length);
-
     expect(screen.queryByText("type:foo")).toBeFalsy();
     expect(screen.queryByText("Clear All")).toBeFalsy();
+    expect(tableRows2).toHaveLength(rows.length);
   });
   it("should clear filtering when the `clear all` chip is clicked", () => {
     const initialFilterState = {

@@ -14,10 +14,10 @@ export interface Props {
 }
 
 function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
+  chips = chips.filter((chip) => !chip.includes("all"));
   return (
     <Flex className={className} align start>
       {_.map(chips, (chip, index) => {
-        if (_.includes(chip, "all")) return;
         return (
           <Flex key={index}>
             <Chip label={chip} onDelete={() => onChipRemove([chip])} />
