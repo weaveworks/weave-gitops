@@ -23,18 +23,15 @@ const (
 type ClientsFactory struct {
 	hubClient       client.Client
 	clustersFetcher ClusterFetcher
+	nsChecker       nsaccess.Checker
+	log             logr.Logger
 
-	clustersMutex sync.Mutex
-	clusters      []Cluster
-
-	clustersNsMutex    sync.RWMutex
-	clustersNamespaces map[string][]v1.Namespace
-
+	// list of clusters returned by the clusters fetcher
+	clusters *Clusters
+	// the lists of all namespaces of each cluster
+	clustersNamespaces *ClustersNamespaces
+	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
-
-	nsChecker nsaccess.Checker
-
-	logger logr.Logger
 }
 
 func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) *ClientsFactory {
@@ -42,18 +39,16 @@ func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker
 		hubClient:          hubClient,
 		clustersFetcher:    fetcher,
 		nsChecker:          nsChecker,
-		clusters:           []Cluster{},
-		clustersNamespaces: map[string][]v1.Namespace{},
+		clusters:           &Clusters{},
+		clustersNamespaces: &ClustersNamespaces{},
 		usersNamespaces:    &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
-		logger:             logger,
+		log:                logger,
 	}
 }
 
-func (cf *ClientsFactory) Start(ctx context.Context) error {
+func (cf *ClientsFactory) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
-
-	return nil
 }
 
 func (cf *ClientsFactory) watchClusters(ctx context.Context) {
@@ -63,22 +58,19 @@ func (cf *ClientsFactory) watchClusters(ctx context.Context) {
 			return false, fmt.Errorf("failed to fetch clusters: %w", err)
 		}
 
-		cf.clustersMutex.Lock()
-		cf.clusters = clusters
-		cf.clustersMutex.Unlock()
+		cf.clusters.Set(clusters)
 
 		return true, nil
 	}); err != nil {
-		// TODO: log error
-		return
+		cf.log.Error(err, "failed pooling clusters")
 	}
 }
 
 func (cf *ClientsFactory) watchNamespaces(ctx context.Context) {
 	if err := wait.PollImmediateInfinite(30*time.Second, func() (bool, error) {
-		clients, err := clientsForClusters(cf.clusters)
+		clients, err := clientsForClusters(cf.clusters.Get())
 		if err != nil {
-			cf.logger.Error(err, "failed to create clients for", "clusters", cf.clusters)
+			cf.log.Error(err, "failed to create clients for", "clusters", cf.clusters.Get())
 			return false, err
 		}
 
@@ -93,12 +85,10 @@ func (cf *ClientsFactory) watchNamespaces(ctx context.Context) {
 				nsList := &v1.NamespaceList{}
 
 				if err := c.List(ctx, nsList); err != nil {
-					cf.logger.Error(err, "failed listing namespaces", "cluster", clusterName)
+					cf.log.Error(err, "failed listing namespaces", "cluster", clusterName)
 				}
 
-				cf.clustersNsMutex.Lock()
-				cf.clustersNamespaces[clusterName] = nsList.Items
-				cf.clustersNsMutex.Unlock()
+				cf.clustersNamespaces.Set(clusterName, nsList.Items)
 			}(clusterName, c)
 		}
 
@@ -106,14 +96,14 @@ func (cf *ClientsFactory) watchNamespaces(ctx context.Context) {
 
 		return false, nil
 	}); err != nil {
-		cf.logger.Error(err, "failed pooling namespaces")
+		cf.log.Error(err, "failed pooling namespaces")
 	}
 }
 
 func (cf *ClientsFactory) GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	pool := NewClustersClientsPool()
 
-	for _, cluster := range cf.clusters {
+	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
 			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 		}
@@ -131,26 +121,24 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 }
 
 func (cf *ClientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
-	userNamespaces := cf.usersNamespaces.GetAll(user, cf.clusters)
+	userNamespaces := cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 	if len(userNamespaces) > 0 {
 		return userNamespaces
 	}
 
 	wg := sync.WaitGroup{}
 
-	for _, cluster := range cf.clusters {
+	for _, cluster := range cf.clusters.Get() {
 		wg.Add(1)
 
 		go func(cluster Cluster) {
 			defer wg.Done()
 
-			cf.clustersNsMutex.RLock()
-			clusterNs := cf.clustersNamespaces[cluster.Name]
-			cf.clustersNsMutex.RUnlock()
+			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
 
 			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, impersonatedConfig(cluster, user), clusterNs)
 			if err != nil {
-				//todo: log error
+				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.Name, "user", user.ID)
 			}
 
 			cf.usersNamespaces.Set(user, cluster.Name, filteredNs)
@@ -159,7 +147,7 @@ func (cf *ClientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 
 	wg.Wait()
 
-	return cf.usersNamespaces.GetAll(user, cf.clusters)
+	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
 
 func impersonatedConfig(cluster Cluster, user *auth.UserPrincipal) *rest.Config {
@@ -179,7 +167,7 @@ func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
 	for _, cluster := range clusters {
 		c, err := client.New(restConfigFromCluster(cluster), client.Options{})
 		if err != nil {
-			//todo: log error
+			return nil, fmt.Errorf("failed creating client for cluster %s: %w", cluster.Name, err)
 		}
 
 		clients[cluster.Name] = c
@@ -188,12 +176,50 @@ func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
 	return clients, nil
 }
 
-type UsersNamespaces struct {
-	Cache *ttlcache.Cache
+type Clusters struct {
+	sync.RWMutex
+	clusters []Cluster
 }
 
-func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
-	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
+func (c *Clusters) Set(clusters []Cluster) {
+	c.Lock()
+	defer c.Unlock()
+
+	c.clusters = clusters
+}
+
+func (c *Clusters) Get() []Cluster {
+	c.Lock()
+	defer c.Unlock()
+
+	return c.clusters
+}
+
+type ClustersNamespaces struct {
+	sync.RWMutex
+	namespaces map[string][]v1.Namespace
+}
+
+func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
+	cn.Lock()
+	defer cn.Unlock()
+
+	if cn.namespaces == nil {
+		cn.namespaces = make(map[string][]v1.Namespace)
+	}
+
+	cn.namespaces[cluster] = namespaces
+}
+
+func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
+	cn.Lock()
+	defer cn.Unlock()
+
+	return cn.namespaces[cluster]
+}
+
+type UsersNamespaces struct {
+	Cache *ttlcache.Cache
 }
 
 func (un *UsersNamespaces) Get(user *auth.UserPrincipal, cluster string) ([]v1.Namespace, bool) {
@@ -218,4 +244,8 @@ func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []Cluster) 
 	}
 
 	return namespaces
+}
+
+func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
 }
