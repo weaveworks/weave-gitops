@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/stretchr/testify/assert"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"

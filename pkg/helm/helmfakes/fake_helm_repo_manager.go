@@ -5,17 +5,17 @@ import (
 	"context"
 	"sync"
 
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 )
 
 type FakeHelmRepoManager struct {
-	GetValuesFileStub        func(context.Context, *v1beta1.HelmRepository, *helm.ChartReference, string) ([]byte, error)
+	GetValuesFileStub        func(context.Context, *v1beta2.HelmRepository, *helm.ChartReference, string) ([]byte, error)
 	getValuesFileMutex       sync.RWMutex
 	getValuesFileArgsForCall []struct {
 		arg1 context.Context
-		arg2 *v1beta1.HelmRepository
+		arg2 *v1beta2.HelmRepository
 		arg3 *helm.ChartReference
 		arg4 string
 	}
@@ -27,11 +27,11 @@ type FakeHelmRepoManager struct {
 		result1 []byte
 		result2 error
 	}
-	ListChartsStub        func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)
+	ListChartsStub        func(context.Context, *v1beta2.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)
 	listChartsMutex       sync.RWMutex
 	listChartsArgsForCall []struct {
 		arg1 context.Context
-		arg2 *v1beta1.HelmRepository
+		arg2 *v1beta2.HelmRepository
 		arg3 helm.ChartPredicate
 	}
 	listChartsReturns struct {
@@ -46,12 +46,12 @@ type FakeHelmRepoManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeHelmRepoManager) GetValuesFile(arg1 context.Context, arg2 *v1beta1.HelmRepository, arg3 *helm.ChartReference, arg4 string) ([]byte, error) {
+func (fake *FakeHelmRepoManager) GetValuesFile(arg1 context.Context, arg2 *v1beta2.HelmRepository, arg3 *helm.ChartReference, arg4 string) ([]byte, error) {
 	fake.getValuesFileMutex.Lock()
 	ret, specificReturn := fake.getValuesFileReturnsOnCall[len(fake.getValuesFileArgsForCall)]
 	fake.getValuesFileArgsForCall = append(fake.getValuesFileArgsForCall, struct {
 		arg1 context.Context
-		arg2 *v1beta1.HelmRepository
+		arg2 *v1beta2.HelmRepository
 		arg3 *helm.ChartReference
 		arg4 string
 	}{arg1, arg2, arg3, arg4})
@@ -74,13 +74,13 @@ func (fake *FakeHelmRepoManager) GetValuesFileCallCount() int {
 	return len(fake.getValuesFileArgsForCall)
 }
 
-func (fake *FakeHelmRepoManager) GetValuesFileCalls(stub func(context.Context, *v1beta1.HelmRepository, *helm.ChartReference, string) ([]byte, error)) {
+func (fake *FakeHelmRepoManager) GetValuesFileCalls(stub func(context.Context, *v1beta2.HelmRepository, *helm.ChartReference, string) ([]byte, error)) {
 	fake.getValuesFileMutex.Lock()
 	defer fake.getValuesFileMutex.Unlock()
 	fake.GetValuesFileStub = stub
 }
 
-func (fake *FakeHelmRepoManager) GetValuesFileArgsForCall(i int) (context.Context, *v1beta1.HelmRepository, *helm.ChartReference, string) {
+func (fake *FakeHelmRepoManager) GetValuesFileArgsForCall(i int) (context.Context, *v1beta2.HelmRepository, *helm.ChartReference, string) {
 	fake.getValuesFileMutex.RLock()
 	defer fake.getValuesFileMutex.RUnlock()
 	argsForCall := fake.getValuesFileArgsForCall[i]
@@ -113,12 +113,12 @@ func (fake *FakeHelmRepoManager) GetValuesFileReturnsOnCall(i int, result1 []byt
 	}{result1, result2}
 }
 
-func (fake *FakeHelmRepoManager) ListCharts(arg1 context.Context, arg2 *v1beta1.HelmRepository, arg3 helm.ChartPredicate) ([]*profiles.Profile, error) {
+func (fake *FakeHelmRepoManager) ListCharts(arg1 context.Context, arg2 *v1beta2.HelmRepository, arg3 helm.ChartPredicate) ([]*profiles.Profile, error) {
 	fake.listChartsMutex.Lock()
 	ret, specificReturn := fake.listChartsReturnsOnCall[len(fake.listChartsArgsForCall)]
 	fake.listChartsArgsForCall = append(fake.listChartsArgsForCall, struct {
 		arg1 context.Context
-		arg2 *v1beta1.HelmRepository
+		arg2 *v1beta2.HelmRepository
 		arg3 helm.ChartPredicate
 	}{arg1, arg2, arg3})
 	stub := fake.ListChartsStub
@@ -140,13 +140,13 @@ func (fake *FakeHelmRepoManager) ListChartsCallCount() int {
 	return len(fake.listChartsArgsForCall)
 }
 
-func (fake *FakeHelmRepoManager) ListChartsCalls(stub func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)) {
+func (fake *FakeHelmRepoManager) ListChartsCalls(stub func(context.Context, *v1beta2.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)) {
 	fake.listChartsMutex.Lock()
 	defer fake.listChartsMutex.Unlock()
 	fake.ListChartsStub = stub
 }
 
-func (fake *FakeHelmRepoManager) ListChartsArgsForCall(i int) (context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) {
+func (fake *FakeHelmRepoManager) ListChartsArgsForCall(i int) (context.Context, *v1beta2.HelmRepository, helm.ChartPredicate) {
 	fake.listChartsMutex.RLock()
 	defer fake.listChartsMutex.RUnlock()
 	argsForCall := fake.listChartsArgsForCall[i]
