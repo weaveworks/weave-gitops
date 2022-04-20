@@ -1,5 +1,5 @@
 [flux]
-version="0.24.1"
+version="0.29.5"
 special_tarpath="https://github.com/fluxcd/flux2/releases/download/v${version}/flux_${version}_${goos}_${goarch}.tar.gz;flux"
 
 [envtest]
