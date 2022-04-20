@@ -20,35 +20,30 @@ func (e defaultClusterNotFound) Error() string {
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	if msg.Namespace != "" {
-		res, err := listKustomizationsInNamespace(ctx, clustersClient, msg.Namespace)
-
-		return &pb.ListKustomizationsResponse{
-			Kustomizations: res,
-		}, err
-	}
-
 	var results []*pb.Kustomization
 
-	namespaces, err := cs.namespaces()
-	if err != nil {
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
+
+	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
 		return nil, err
 	}
 
-	nsList, found := namespaces[clustersmngr.DefaultCluster]
-	if !found {
-		return nil, defaultClusterNotFound{}
-	}
-
-	for _, ns := range nsList {
-		nsResult, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name)
-		if err != nil {
-			cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
-
+	for n, l := range clist.Lists() {
+		list, ok := l.(*kustomizev1.KustomizationList)
+		if !ok {
 			continue
 		}
 
-		results = append(results, nsResult...)
+		for _, kustomization := range list.Items {
+			k, err := types.KustomizationToProto(&kustomization, n)
+			if err != nil {
+				return nil, fmt.Errorf("converting items: %w", err)
+			}
+
+			results = append(results, k)
+		}
 	}
 
 	return &pb.ListKustomizationsResponse{
@@ -75,38 +70,4 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 	}
 
 	return &pb.GetKustomizationResponse{Kustomization: res}, nil
-}
-
-func listKustomizationsInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]*pb.Kustomization, error) {
-	var results []*pb.Kustomization
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &kustomizev1.KustomizationList{}
-	})
-
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
-	}
-
-	for n, l := range clist.Lists() {
-		list, ok := l.(*kustomizev1.KustomizationList)
-		if !ok {
-			continue
-		}
-
-		for _, kustomization := range list.Items {
-			k, err := types.KustomizationToProto(&kustomization, n)
-			if err != nil {
-				return results, fmt.Errorf("converting items: %w", err)
-			}
-
-			results = append(results, k)
-		}
-	}
-
-	return results, nil
 }

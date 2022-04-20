@@ -74,29 +74,24 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 }
 
 func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
-	for cluster, nss := range c.namespaces {
-		fmt.Println("Cluster: ", cluster)
-
-		for _, n := range nss {
-			fmt.Println("   ", n.Name)
-		}
-	}
 	wg := sync.WaitGroup{}
 
 	var errs []error
 
-	for clusterName, c := range c.pool.Clients() {
-		wg.Add(1)
+	for clusterName, cc := range c.pool.Clients() {
+		for _, ns := range c.namespaces[clusterName] {
+			wg.Add(1)
 
-		go func(clusterName string, c client.Client) {
-			defer wg.Done()
+			go func(clusterName string, c client.Client, optsWithNamespace ...client.ListOption) {
+				defer wg.Done()
 
-			list := clist.ObjectList(clusterName)
+				list := clist.ObjectList(clusterName)
 
-			if err := c.List(ctx, list, opts...); err != nil {
-				errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
-			}
-		}(clusterName, c)
+				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
+					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
+				}
+			}(clusterName, cc, append(opts, client.InNamespace(ns.Name))...)
+		}
 	}
 
 	wg.Wait()
