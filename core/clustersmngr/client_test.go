@@ -42,7 +42,7 @@ func TestClientGet(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -87,7 +87,7 @@ func TestClientClusteredList(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -163,7 +163,7 @@ func TestClientList(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -210,7 +210,7 @@ func TestClientCreate(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -255,7 +255,7 @@ func TestClientDelete(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -298,7 +298,7 @@ func TestClientUpdate(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
@@ -346,7 +346,7 @@ func TestClientPatch(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	nsMap := map[string][]corev1.Namespace{
-		clusterName: []corev1.Namespace{*ns},
+		clusterName: {*ns},
 	}
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)

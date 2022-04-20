@@ -14,6 +14,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -35,7 +36,9 @@ func TestStartServer(t *testing.T) {
 	ctx := context.Background()
 	log := logr.Discard()
 	cacheContainer := &cachefakes.FakeContainer{}
-	cfg := server.NewCoreConfig(log, &rest.Config{}, cacheContainer, "test-cluster")
+	clientFactory := &clustersmngrfakes.FakeClientsFactory{}
+
+	cfg := server.NewCoreConfig(log, &rest.Config{}, cacheContainer, "test-cluster", clientFactory)
 	svc, err := server.NewCoreServer(cfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -61,7 +64,7 @@ func TestStartServer(t *testing.T) {
 	clientsPool.ClientsReturns(map[string]clustersmngr.ClusterClient{"default": clientMock{client}})
 	clientsPool.ClientReturns(clientMock{client}, nil)
 
-	clusterClient := clustersmngr.NewClient(&clientsPool)
+	clusterClient := clustersmngr.NewClient(&clientsPool, map[string][]v1.Namespace{})
 	ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 
 	resp, err := svc.ListKustomizations(ctx, &pb.ListKustomizationsRequest{

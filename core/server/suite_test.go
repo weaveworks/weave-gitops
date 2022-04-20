@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -57,8 +58,9 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 			cache.WithNamespaceCache(cfg),
 		),
 	)
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
-	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar")
+	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar", clientsFactory)
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
@@ -117,7 +119,7 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 			return nil, err
 		}
 
-		clusterClient := clustersmngr.NewClient(clientsPool)
+		clusterClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
 		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 

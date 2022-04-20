@@ -11,15 +11,22 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	v1 "k8s.io/api/core/v1"
 )
 
 func TestWithClustersClientMiddleware(t *testing.T) {
+	g := NewGomegaWithT(t)
+
 	cluster := makeLeafCluster(t)
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
-	g := NewGomegaWithT(t)
+	clientsPool := clustersmngr.NewClustersClientsPool()
+	g.Expect(clientsPool.Add(clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}), cluster)).To(Succeed())
+
+	client := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clientsFactory.GetUserClientReturns(client, nil)
 
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	middleware := func(next http.Handler) http.Handler {

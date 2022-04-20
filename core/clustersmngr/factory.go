@@ -25,9 +25,13 @@ const (
 // ClientsFactory is a factory for creating clients for clusters
 //counterfeiter:generate . ClientsFactory
 type ClientsFactory interface {
+	// GetUserClient returns the clusters client for the given user
 	GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// UpdateClusters updates the clusters list
 	UpdateClusters(ctx context.Context) error
+	// UpdateNamespaces updates the namespaces all namespaces for all clusters
 	UpdateNamespaces(ctx context.Context) error
+	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
 }
 
