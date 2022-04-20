@@ -98,22 +98,43 @@ function UnstyledFilterDialog({
   open,
 }: Props) {
   const onFormChange = (name: string, value: any) => {
-    //check all
+    const [header] = name.split(filterSeparator);
+
+    //check all input
     if (_.includes(name, allTag)) {
-      const [header] = name.split(filterSeparator);
       _.each(filterList[header], (option) => {
         const key = `${header}${filterSeparator}${option}`;
         formState[key] = value;
       });
       formState[createAllTag(header)] = value;
+
+      //standard input
+    } else {
+      //check if this change means all normal boxes are checked or unchecked (meaning we should toggle the header box)
+      let allEqual = true;
+      let allEqualBool;
+      for (let i = 0; i < filterList[header].length; i++) {
+        const key = `${header}${filterSeparator}${filterList[header][i]}`;
+        if (i === 0) {
+          //set whether we're checking if all are true or false
+          allEqualBool = formState[key];
+        } else {
+          if (formState[key] !== allEqualBool) {
+            allEqual = false;
+            return;
+          }
+        }
+      }
+      if (allEqual) formState[createAllTag(header)] = value;
     }
-    //regular
+
+    //actually set filters
     if (onFilterSelect) {
-      //todo: add check of header to see if top level should become checked or unchecked
       const next = { ...formState, [name]: value };
       onFilterSelect(formStateToFilters(next), next);
     }
   };
+
   return (
     <SlideContainer className={`${open ? "open" : ""}`} data-testid="container">
       <SlideContent>
