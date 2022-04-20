@@ -1,0 +1,37 @@
+{
+  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu-20.04",
+  "settings": {
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    }
+  },
+  "containerEnv": {
+    "ALGOLIA_API_KEY": "fakekey",
+    "GA_KEY": "fakekey"
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "orta.vscode-jest",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "forwardPorts": [8080],
+  "containerUser": "vscode",
+  "postStartCommand": "nohup bash -c 'yarn start --port 8080 &'",
+  "waitFor": "postStartCommand",
+  "features": {
+    "node": {
+      "version": "14"
+    },
+    "github-cli": "latest"
+  }
+}
