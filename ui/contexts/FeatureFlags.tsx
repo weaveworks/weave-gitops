@@ -18,7 +18,7 @@ export type Flags = OptionsFlags<FeatureFlags>;
 export type FeatureFlagsContextType = {
   data: Flags;
   loading: boolean;
-  error: any;
+  error: Error;
 };
 
 export const FeatureFlags =
