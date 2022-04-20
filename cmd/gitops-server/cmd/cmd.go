@@ -96,7 +96,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", true, "Enables development mode")
+	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
 	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
 
 	return cmd

@@ -21,7 +21,7 @@ Weave GitOps is an extension to Flux and therefore requires that Flux has alread
 #### Configure access to the GitOps Dashboard web UI
 Weave GitOps includes a web UI which runs on your Kubernetes cluster. In order to allow users to access this, you must first configure an appropriate login mechanism. We support integration with OIDC providers, as well as an admin cluster user for getting started and emergencies. This cluster user can be disabled if preferred.
 
-Follow the guide here to appropriately configure access : [Securing access to the dashboard](./configuration/securing-access-to-the-dashboard).
+Follow the guide here to appropriately configure access : [Securing access to the dashboard](configuration/securing-access-to-the-dashboard.mdx).
 
 ### Install the Helm Chart
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRlease`. To install on your cluster, adjust the following where marked `<UPDATE>` based on the previous step, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
@@ -68,7 +68,7 @@ Windows support is a [planned enhancement](https://github.com/weaveworks/weave-g
 To install the `gitops` CLI, please follow the following steps:
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.7.0/tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.7.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

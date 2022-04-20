@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { useContext } from "react";
 import { useMutation, useQuery } from "react-query";
-import { AppContext } from "../contexts/AppContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   GetHelmReleaseResponse,
   GetKustomizationResponse,
@@ -22,7 +22,7 @@ import {
 export type Automation = Kustomization & { type: AutomationType };
 
 export function useListAutomations(namespace = NoNamespace) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<Automation[], RequestError>(
     "automations",
@@ -60,10 +60,11 @@ export function useListAutomations(namespace = NoNamespace) {
 
 export function useGetKustomization(
   name: string,
-  clusterName = DefaultCluster,
-  namespace = NoNamespace
+
+  namespace = NoNamespace,
+  clusterName = DefaultCluster
 ) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<GetKustomizationResponse, RequestError>(
     ["kustomizations", name],
@@ -74,10 +75,10 @@ export function useGetKustomization(
 
 export function useGetHelmRelease(
   name: string,
-  clusterName = DefaultCluster,
-  namespace = NoNamespace
+  namespace = NoNamespace,
+  clusterName = DefaultCluster
 ) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<GetHelmReleaseResponse, RequestError>(
     ["helmrelease", name],
@@ -87,7 +88,7 @@ export function useGetHelmRelease(
 }
 
 export function useSyncAutomation(obj: Syncable) {
-  const { api } = useContext(AppContext);
+  const { api } = useContext(CoreClientContext);
   const mutation = useMutation<
     SyncAutomationResponse,
     RequestError,

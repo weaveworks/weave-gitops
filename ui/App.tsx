@@ -15,6 +15,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
+import CoreClientContextProvider from "./contexts/CoreClientContext";
 import FeatureFlagsContextProvider from "./contexts/FeatureFlags";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
@@ -27,9 +28,9 @@ import BucketDetail from "./pages/v2/BucketDetail";
 import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
-import HelmReleaseDetail from "./pages/v2/HelmReleaseDetail";
+import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
-import KustomizationDetail from "./pages/v2/KustomizationDetail";
+import KustomizationPage from "./pages/v2/KustomizationPage";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -38,13 +39,7 @@ function withSearchParams(Cmp) {
   return ({ location: { search }, ...rest }) => {
     const params = qs.parse(search);
 
-    return (
-      <Cmp
-        {...rest}
-        name={params.name as string}
-        clusterName={params.clusterName as string}
-      />
-    );
+    return <Cmp {...rest} {...params} />;
   };
 }
 
@@ -55,7 +50,7 @@ const App = () => (
         <Route exact path={V2Routes.Automations} component={Automations} />
         <Route
           path={V2Routes.Kustomization}
-          component={withSearchParams(KustomizationDetail)}
+          component={withSearchParams(KustomizationPage)}
         />
         <Route path={V2Routes.Sources} component={Sources} />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
@@ -74,9 +69,8 @@ const App = () => (
           component={withSearchParams(BucketDetail)}
         />
         <Route
-          exact
           path={V2Routes.HelmRelease}
-          component={withSearchParams(HelmReleaseDetail)}
+          component={withSearchParams(HelmReleasePage)}
         />
         <Route
           exact
@@ -98,30 +92,32 @@ const App = () => (
 export default function AppContainer() {
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <AppContextProvider renderFooter coreClient={Core}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <Fonts />
-            <GlobalStyle />
-            <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <Fonts />
+          <GlobalStyle />
+          <Router>
+            <AppContextProvider renderFooter>
               <FeatureFlagsContextProvider>
                 <AuthContextProvider>
-                  <Switch>
-                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                    <Route component={SignIn} exact path="/sign_in" />
-                    <Route path="*">
-                      {/* Check we've got a logged in user otherwise redirect back to signin */}
-                      <AuthCheck>
-                        <App />
-                      </AuthCheck>
-                    </Route>
-                  </Switch>
+                  <CoreClientContextProvider api={Core}>
+                    <Switch>
+                      {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                      <Route component={SignIn} exact path="/sign_in" />
+                      <Route path="*">
+                        {/* Check we've got a logged in user otherwise redirect back to signin */}
+                        <AuthCheck>
+                          <App />
+                        </AuthCheck>
+                      </Route>
+                    </Switch>
+                  </CoreClientContextProvider>
                 </AuthContextProvider>
               </FeatureFlagsContextProvider>
-            </Router>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </AppContextProvider>
+            </AppContextProvider>
+          </Router>
+        </ThemeProvider>
+      </QueryClientProvider>
     </MuiThemeProvider>
   );
 }

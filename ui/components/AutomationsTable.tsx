@@ -89,7 +89,13 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         }
 
         return (
-          <SourceLink sourceRef={{ kind: sourceKind, name: sourceName }} />
+          <SourceLink
+            sourceRef={{
+              kind: sourceKind,
+              name: sourceName,
+              namespace: a.sourceRef?.namespace,
+            }}
+          />
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,

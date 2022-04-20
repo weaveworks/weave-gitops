@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
-import { Core } from "../lib/api/core/core.pb";
 import { formatURL } from "../lib/nav";
 import {
   clearCallbackState,
@@ -29,7 +28,6 @@ export function defaultLinkResolver(incoming: string): string {
 
 export type AppContextType = {
   applicationsClient: typeof Applications;
-  api: typeof Core;
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
@@ -55,7 +53,6 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   applicationsClient?: typeof Applications;
-  coreClient?: typeof Core;
   linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
@@ -93,7 +90,6 @@ export default function AppContextProvider({
 
   const value: AppContextType = {
     applicationsClient,
-    api: props.coreClient,
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,

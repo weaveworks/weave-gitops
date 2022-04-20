@@ -97,26 +97,14 @@ If you need to change the OIDC configuration after running `gitops upgrade`, upd
 
 ## Login via a cluster user account
 
-Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one:
+Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one:
 
 Run an Alpine Docker image interactively and supply the password of your choice as an environment variable:
 
 ```sh
-docker run -e CLEAR_PASSWORD="super secret password" -it alpine
-```
-
-Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
-
-```sh
-apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
-pip install bcrypt
-```
-
-Run the following Python script to generate a hash:
-
-```sh
-python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
-b'$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+PASSWORD="<your password>"
+docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
 Now create a Kubernetes secret to store your chosen username and the password hash:
@@ -125,7 +113,7 @@ Now create a Kubernetes secret to store your chosen username and the password ha
 kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
   --from-literal=username=admin \
-  --from-literal=password='$2b$12$nLfl7lKBiYzgAN2aI3ii6exZSZ9KRsj18C7CEWY8kscj9.c6bRXim'
+  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
 ```
 
 You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.

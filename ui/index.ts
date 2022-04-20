@@ -7,13 +7,19 @@ import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import UserSettings from "./components/UserSettings";
 import AutomationsTable from "./components/AutomationsTable";
-import SourceDetail from "./components/SourceDetail";
-import SourcesTable from "./components/SourcesTable";
-import KustomizationDetail from "./components/KustomizationDetail";
+import BucketDetail from "./components/BucketDetail";
+import FluxRuntime from "./components/FluxRuntime";
+import GitRepositoryDetail from "./components/GitRepositoryDetail";
+import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
+import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
+import KustomizationDetail from "./components/KustomizationDetail";
+import Page from "./components/Page";
+import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
 import AppContextProvider from "./contexts/AppContext";
+import CoreClientContextProvider from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import {
@@ -22,6 +28,7 @@ import {
   useGetKustomization,
   useGetHelmRelease,
 } from "./hooks/automations";
+import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListSources } from "./hooks/sources";
 import { useFeatureFlags } from "./hooks/featureflags";
@@ -48,17 +55,23 @@ export {
   AuthCheck,
   Automation,
   AutomationsTable,
+  BucketDetail,
   Button,
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
+  CoreClientContextProvider,
   FeatureFlagsContextProvider,
   FeatureFlags,
+  FluxRuntime,
   Footer,
   getCallbackState,
   getProviderToken,
   GithubDeviceAuthModal,
+  GitRepositoryDetail,
+  HelmChartDetail,
   HelmReleaseDetail,
+  HelmRepositoryDetail,
   Icon,
   IconType,
   Interval,
@@ -66,9 +79,9 @@ export {
   LoadingPage,
   muiTheme,
   OAuthCallback,
+  Page,
   RepoInputWithAuth,
   SignIn,
-  SourceDetail,
   SourceRefSourceKind,
   SourcesTable,
   theme,
@@ -79,6 +92,7 @@ export {
   useGetKustomization,
   useGetHelmRelease,
   useListAutomations,
+  useListFluxRuntimeObjects,
   UserSettings,
   V2Routes,
 };

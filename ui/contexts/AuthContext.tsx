@@ -3,10 +3,12 @@ import { Redirect, useHistory } from "react-router-dom";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { AppContext } from "./AppContext";
 
-const USER_INFO = "/oauth2/userinfo";
-const SIGN_IN = "/oauth2/sign_in";
-const LOG_OUT = "/oauth2/logout";
-const AUTH_PATH_SIGNIN = "/sign_in";
+export enum AuthRoutes {
+  USER_INFO = "/oauth2/userinfo",
+  SIGN_IN = "/oauth2/sign_in",
+  LOG_OUT = "/oauth2/logout",
+  AUTH_PATH_SIGNIN = "/sign_in",
+}
 
 interface AuthCheckProps {
   children: any;
@@ -34,7 +36,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   }
 
   // User appears not be logged in, off to signin
-  return <Redirect to={AUTH_PATH_SIGNIN} />;
+  return <Redirect to={AuthRoutes.AUTH_PATH_SIGNIN} />;
 };
 
 export type AuthContext = {
@@ -66,7 +68,7 @@ export default function AuthContextProvider({ children }) {
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
-    request(SIGN_IN, {
+    request(AuthRoutes.SIGN_IN, {
       method: "POST",
       body: JSON.stringify(data),
     })
@@ -75,14 +77,17 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        getUserInfo().then(() => history.push("/"));
+        getUserInfo().then(() => {
+          setError(null);
+          history.push("/");
+        });
       })
       .finally(() => setLoading(false));
   }, []);
 
   const getUserInfo = React.useCallback(() => {
     setLoading(true);
-    return request(USER_INFO)
+    return request(AuthRoutes.USER_INFO)
       .then((response) => {
         if (response.status === 400 || response.status === 401) {
           setUserInfo(null);
@@ -97,7 +102,7 @@ export default function AuthContextProvider({ children }) {
 
   const logOut = React.useCallback(() => {
     setLoading(true);
-    request(LOG_OUT, {
+    request(AuthRoutes.LOG_OUT, {
       method: "POST",
     })
       .then((response) => {

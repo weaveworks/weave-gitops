@@ -29,6 +29,13 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 	testCfg, err := testEnv.Start()
 	g.Expect(err).NotTo(HaveOccurred())
 
+	defer func() {
+		err := testEnv.Stop()
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
 	adminClient, err := client.New(testCfg, client.Options{
 		Scheme: kube.CreateScheme(),
 	})
