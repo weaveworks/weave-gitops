@@ -19,7 +19,7 @@ const SlideContainer = styled.div`
   transition-duration: 0.5s;
   transition-timing-function: ease-in-out;
   &.open {
-    left: 0;
+    left: 0px;
     width: 350px;
   }
 `;

@@ -29,9 +29,12 @@ export const Content = styled(Flex)`
   margin: 0 auto;
   min-width: 1260px;
   min-height: 480px;
+  max-width: 100%;
   padding-bottom: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.large};
+  padding-left: ${(props) => props.theme.spacing.medium};
+  padding-right: ${(props) => props.theme.spacing.medium};
   padding-top: ${(props) => props.theme.spacing.medium};
+  overflow: hidden;
 `;
 
 const Children = styled(Flex)``;

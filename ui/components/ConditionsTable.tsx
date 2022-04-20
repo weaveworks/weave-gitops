@@ -24,7 +24,6 @@ function ConditionsTable({ className, conditions }: Props) {
       ]}
       rows={conditions}
       className={className}
-      widths={["10%", "10%", "25%", "55%"]}
     />
   );
 }
