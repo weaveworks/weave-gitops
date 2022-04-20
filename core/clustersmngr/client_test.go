@@ -41,7 +41,11 @@ func TestClientGet(t *testing.T) {
 
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -82,7 +86,11 @@ func TestClientClusteredList(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -154,7 +162,11 @@ func TestClientList(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -197,7 +209,11 @@ func TestClientCreate(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -238,7 +254,11 @@ func TestClientDelete(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -277,7 +297,11 @@ func TestClientUpdate(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
@@ -321,7 +345,11 @@ func TestClientPatch(t *testing.T) {
 	)
 	g.Expect(err).To(BeNil())
 
-	clustersClient := clustersmngr.NewClient(clientsPool)
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: []corev1.Namespace{*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{

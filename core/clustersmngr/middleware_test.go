@@ -17,6 +17,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	cluster := makeLeafCluster(t)
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
 	g := NewGomegaWithT(t)
 
@@ -31,7 +32,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 		})
 	}(defaultHandler)
 
-	middleware = clustersmngr.WithClustersClient(clustersFetcher, middleware)
+	middleware = clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, middleware)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
@@ -46,8 +47,9 @@ func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
 
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns(nil, errors.New("error"))
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
-	middleware := clustersmngr.WithClustersClient(clustersFetcher, defaultHandler)
+	middleware := clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)

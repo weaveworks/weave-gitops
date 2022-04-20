@@ -16,11 +16,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 const (
 	userNamespaceTTL = 1 * time.Hour
 )
 
-type ClientsFactory struct {
+// ClientsFactory is a factory for creating clients for clusters
+//counterfeiter:generate . ClientsFactory
+type ClientsFactory interface {
+	GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	UpdateClusters(ctx context.Context) error
+	UpdateNamespaces(ctx context.Context) error
+	Start(ctx context.Context)
+}
+
+type clientsFactory struct {
 	hubClient       client.Client
 	clustersFetcher ClusterFetcher
 	nsChecker       nsaccess.Checker
@@ -34,8 +45,8 @@ type ClientsFactory struct {
 	usersNamespaces *UsersNamespaces
 }
 
-func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) *ClientsFactory {
-	return &ClientsFactory{
+func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
+	return &clientsFactory{
 		hubClient:          hubClient,
 		clustersFetcher:    fetcher,
 		nsChecker:          nsChecker,
@@ -46,19 +57,16 @@ func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker
 	}
 }
 
-func (cf *ClientsFactory) Start(ctx context.Context) {
+func (cf *clientsFactory) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
 }
 
-func (cf *ClientsFactory) watchClusters(ctx context.Context) {
+func (cf *clientsFactory) watchClusters(ctx context.Context) {
 	if err := wait.PollImmediateInfinite(30*time.Second, func() (bool, error) {
-		clusters, err := cf.clustersFetcher.Fetch(ctx)
-		if err != nil {
-			return false, fmt.Errorf("failed to fetch clusters: %w", err)
+		if err := cf.UpdateClusters(ctx); err != nil {
+			return false, err
 		}
-
-		cf.clusters.Set(clusters)
 
 		return true, nil
 	}); err != nil {
@@ -66,33 +74,22 @@ func (cf *ClientsFactory) watchClusters(ctx context.Context) {
 	}
 }
 
-func (cf *ClientsFactory) watchNamespaces(ctx context.Context) {
+func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
+	clusters, err := cf.clustersFetcher.Fetch(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to fetch clusters: %w", err)
+	}
+
+	cf.clusters.Set(clusters)
+
+	return nil
+}
+
+func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 	if err := wait.PollImmediateInfinite(30*time.Second, func() (bool, error) {
-		clients, err := clientsForClusters(cf.clusters.Get())
-		if err != nil {
-			cf.log.Error(err, "failed to create clients for", "clusters", cf.clusters.Get())
+		if err := cf.UpdateNamespaces(ctx); err != nil {
 			return false, err
 		}
-
-		wg := sync.WaitGroup{}
-
-		for clusterName, c := range clients {
-			wg.Add(1)
-
-			go func(clusterName string, c client.Client) {
-				defer wg.Done()
-
-				nsList := &v1.NamespaceList{}
-
-				if err := c.List(ctx, nsList); err != nil {
-					cf.log.Error(err, "failed listing namespaces", "cluster", clusterName)
-				}
-
-				cf.clustersNamespaces.Set(clusterName, nsList.Items)
-			}(clusterName, c)
-		}
-
-		wg.Wait()
 
 		return false, nil
 	}); err != nil {
@@ -100,7 +97,37 @@ func (cf *ClientsFactory) watchNamespaces(ctx context.Context) {
 	}
 }
 
-func (cf *ClientsFactory) GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
+	clients, err := clientsForClusters(cf.clusters.Get())
+	if err != nil {
+		cf.log.Error(err, "failed to create clients for", "clusters", cf.clusters.Get())
+		return err
+	}
+
+	wg := sync.WaitGroup{}
+
+	for clusterName, c := range clients {
+		wg.Add(1)
+
+		go func(clusterName string, c client.Client) {
+			defer wg.Done()
+
+			nsList := &v1.NamespaceList{}
+
+			if err := c.List(ctx, nsList); err != nil {
+				cf.log.Error(err, "failed listing namespaces", "cluster", clusterName)
+			}
+
+			cf.clustersNamespaces.Set(clusterName, nsList.Items)
+		}(clusterName, c)
+	}
+
+	wg.Wait()
+
+	return nil
+}
+
+func (cf *clientsFactory) GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	pool := NewClustersClientsPool()
 
 	for _, cluster := range cf.clusters.Get() {
@@ -120,7 +147,7 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 	}
 }
 
-func (cf *ClientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
+func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
 	userNamespaces := cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 	if len(userNamespaces) > 0 {
 		return userNamespaces

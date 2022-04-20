@@ -51,10 +51,10 @@ type CoreServerConfig struct {
 	clusterName    string
 	NSAccess       nsaccess.Checker
 	CacheContainer cache.Container
-	ClientsFactory *clustersmngr.ClientsFactory
+	ClientsFactory clustersmngr.ClientsFactory
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string, clusterClientFactory *clustersmngr.ClientsFactory) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string, clusterClientFactory clustersmngr.ClientsFactory) CoreServerConfig {
 	return CoreServerConfig{
 		log:            log.WithName("core-server"),
 		RestCfg:        cfg,
