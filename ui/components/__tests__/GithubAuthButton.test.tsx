@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom";
+import "jest-canvas-mock";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "jest-styled-components";
 import * as React from "react";
