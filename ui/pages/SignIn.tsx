@@ -85,6 +85,22 @@ function SignIn() {
 
   const handleUserPassSubmit = () => signIn({ username, password });
 
+  const AnimatedBackground = () => (
+    <Lottie
+      play
+      loop={false}
+      speed={0.3}
+      animationData={SignInBackground}
+      rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        zIndex: -999,
+      }}
+    />
+  );
+
   const authOptions = (
     <>
       {error && (
@@ -176,19 +192,7 @@ function SignIn() {
         width: "100vw",
       }}
     >
-      <Lottie
-        play
-        loop={false}
-        speed={0.3}
-        animationData={SignInBackground}
-        rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
-        style={{
-          width: "100%",
-          height: "100%",
-          position: "absolute",
-          zIndex: -999,
-        }}
-      />
+      <AnimatedBackground />
       {authError && (
         <AlertWrapper
           severity="error"
