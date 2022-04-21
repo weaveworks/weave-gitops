@@ -194,34 +194,36 @@ func listFluxRuntimeObjectsInNamespace(
 		return results, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*appsv1.DeploymentList)
-		if !ok {
-			continue
-		}
-
-		for _, d := range list.Items {
-			r := &pb.Deployment{
-				Name:        d.Name,
-				Namespace:   d.Namespace,
-				Conditions:  []*pb.Condition{},
-				ClusterName: n,
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*appsv1.DeploymentList)
+			if !ok {
+				continue
 			}
 
-			for _, cond := range d.Status.Conditions {
-				r.Conditions = append(r.Conditions, &pb.Condition{
-					Message: cond.Message,
-					Reason:  cond.Reason,
-					Status:  string(cond.Status),
-					Type:    string(cond.Type),
-				})
-			}
+			for _, d := range list.Items {
+				r := &pb.Deployment{
+					Name:        d.Name,
+					Namespace:   d.Namespace,
+					Conditions:  []*pb.Condition{},
+					ClusterName: n,
+				}
 
-			for _, img := range d.Spec.Template.Spec.Containers {
-				r.Images = append(r.Images, img.Image)
-			}
+				for _, cond := range d.Status.Conditions {
+					r.Conditions = append(r.Conditions, &pb.Condition{
+						Message: cond.Message,
+						Reason:  cond.Reason,
+						Status:  string(cond.Status),
+						Type:    string(cond.Type),
+					})
+				}
 
-			results = append(results, r)
+				for _, img := range d.Spec.Template.Spec.Containers {
+					r.Images = append(r.Images, img.Image)
+				}
+
+				results = append(results, r)
+			}
 		}
 	}
 

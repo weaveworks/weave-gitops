@@ -85,11 +85,14 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 			go func(clusterName string, c client.Client, optsWithNamespace ...client.ListOption) {
 				defer wg.Done()
 
-				list := clist.ObjectList(clusterName)
+				list := clist.NewList(clusterName)
 
 				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
 					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
 				}
+
+				clist.AddObjectList(clusterName, list)
+
 			}(clusterName, cc, append(opts, client.InNamespace(ns.Name))...)
 		}
 	}
@@ -158,34 +161,37 @@ func (c clustersClient) Scoped(cluster string) (client.Client, error) {
 }
 
 type ClusteredObjectList interface {
-	ObjectList(cluster string) client.ObjectList
-	Lists() map[string]client.ObjectList
+	NewList(cluster string) client.ObjectList
+	AddObjectList(cluster string, list client.ObjectList)
+	Lists() map[string][]client.ObjectList
 }
 
 type ClusteredList struct {
 	sync.Mutex
 
 	listFactory func() client.ObjectList
-	lists       map[string]client.ObjectList
+	lists       map[string][]client.ObjectList
 }
 
 func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
 	return &ClusteredList{
 		listFactory: listFactory,
-		lists:       make(map[string]client.ObjectList),
+		lists:       make(map[string][]client.ObjectList),
 	}
 }
 
-func (cl *ClusteredList) ObjectList(cluster string) client.ObjectList {
+func (cl *ClusteredList) NewList(cluster string) client.ObjectList {
+	return cl.listFactory()
+}
+
+func (cl *ClusteredList) AddObjectList(cluster string, list client.ObjectList) {
 	cl.Lock()
 	defer cl.Unlock()
 
-	cl.lists[cluster] = cl.listFactory()
-
-	return cl.lists[cluster]
+	cl.lists[cluster] = append(cl.lists[cluster], list)
 }
 
-func (cl *ClusteredList) Lists() map[string]client.ObjectList {
+func (cl *ClusteredList) Lists() map[string][]client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 

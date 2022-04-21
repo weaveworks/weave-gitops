@@ -30,19 +30,21 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return nil, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*kustomizev1.KustomizationList)
-		if !ok {
-			continue
-		}
-
-		for _, kustomization := range list.Items {
-			k, err := types.KustomizationToProto(&kustomization, n)
-			if err != nil {
-				return nil, fmt.Errorf("converting items: %w", err)
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*kustomizev1.KustomizationList)
+			if !ok {
+				continue
 			}
 
-			results = append(results, k)
+			for _, kustomization := range list.Items {
+				k, err := types.KustomizationToProto(&kustomization, n)
+				if err != nil {
+					return nil, fmt.Errorf("converting items: %w", err)
+				}
+
+				results = append(results, k)
+			}
 		}
 	}
 

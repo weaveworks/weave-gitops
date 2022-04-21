@@ -21,21 +21,21 @@ import (
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listHelmReleasesInNamespace)
-	if err != nil {
-		return nil, err
-	}
+	// res, err := cs.listObjects(ctx, msg.Namespace, listHelmReleasesInNamespace)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	var results []*pb.HelmRelease
 
-	for _, object := range res {
-		obj, ok := object.(*pb.HelmRelease)
-		if !ok {
-			return nil, nil
-		}
+	// for _, object := range res {
+	// 	obj, ok := object.(*pb.HelmRelease)
+	// 	if !ok {
+	// 		return nil, nil
+	// 	}
 
-		results = append(results, obj)
-	}
+	// 	results = append(results, obj)
+	// }
 
 	return &pb.ListHelmReleasesResponse{
 		HelmReleases: results,
@@ -166,14 +166,16 @@ func listHelmReleasesInNamespace(
 
 	var results []interface{}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*helmv2.HelmReleaseList)
-		if !ok {
-			continue
-		}
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*helmv2.HelmReleaseList)
+			if !ok {
+				continue
+			}
 
-		for _, helmrelease := range list.Items {
-			results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
+			for _, helmrelease := range list.Items {
+				results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
+			}
 		}
 	}
 

@@ -2,10 +2,12 @@ package server_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -46,11 +48,6 @@ func TestMain(m *testing.M) {
 }
 
 func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreServerConfig) {
-	principal := &auth.UserPrincipal{}
-	s := grpc.NewServer(
-		withClientsPoolInterceptor(cfg, principal),
-	)
-
 	log := logr.Discard()
 	cacheContainer := cache.NewContainer(
 		log,
@@ -58,14 +55,19 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 			cache.WithNamespaceCache(cfg),
 		),
 	)
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
-	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar", clientsFactory)
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
 		return n, nil
 	}
+
+	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
+	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
+
+	clientsFactory := clustersmngr.NewClientFactory(k8sEnv.Client, fetcher, &nsChecker, log)
+
+	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker
 
 	core, err := server.NewCoreServer(coreCfg)
@@ -74,6 +76,11 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	}
 
 	lis := bufconn.Listen(1024 * 1024)
+
+	principal := &auth.UserPrincipal{}
+	s := grpc.NewServer(
+		withClientsPoolInterceptor(clientsFactory, cfg, principal),
+	)
 
 	pb.RegisterCoreServer(s, core)
 
@@ -105,21 +112,39 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	return pb.NewCoreClient(conn), coreCfg
 }
 
-func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
+func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		cluster := clustersmngr.Cluster{
-			Name:        "Default",
-			Server:      config.Host,
-			BearerToken: config.BearerToken,
-			TLSConfig:   config.TLSClientConfig,
-		}
 
-		clientsPool := clustersmngr.NewClustersClientsPool()
-		if err := clientsPool.Add(clustersmngr.ClientConfigWithUser(user), cluster); err != nil {
+		// hubClient, err := client.New(config, client.Options{
+		// 	Scheme: kube.CreateScheme(),
+		// })
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		list := kustomizev1.KustomizationList{}
+
+		// if err := hubClient.List(context.TODO(), &list); err != nil {
+		// 	return nil, err
+		// }
+
+		if err := clientsFactory.UpdateClusters(ctx); err != nil {
+			return nil, err
+		}
+		if err := clientsFactory.UpdateNamespaces(ctx); err != nil {
 			return nil, err
 		}
 
-		clusterClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+		clusterClient, err := clientsFactory.GetUserClient(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := clusterClient.List(context.TODO(), "Default", &list); err != nil {
+			return nil, err
+		}
+
+		fmt.Println(list)
 
 		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 
@@ -129,4 +154,13 @@ func withClientsPoolInterceptor(config *rest.Config, user *auth.UserPrincipal) g
 
 func updateNamespaceCache(cfg server.CoreServerConfig) {
 	_ = cfg.CacheContainer.ForceRefresh(cache.NamespaceStorage)
+}
+
+func restConfigToCluster(cfg *rest.Config) clustersmngr.Cluster {
+	return clustersmngr.Cluster{
+		Name:        "Default",
+		Server:      cfg.Host,
+		BearerToken: cfg.BearerToken,
+		TLSConfig:   cfg.TLSClientConfig,
+	}
 }

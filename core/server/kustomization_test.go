@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -34,6 +35,8 @@ func TestListKustomizations(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
+	fmt.Println("CreatedNs", ns.Name)
+
 	kust := &kustomizev1.Kustomization{
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
@@ -46,9 +49,7 @@ func TestListKustomizations(t *testing.T) {
 
 	g.Expect(k.Create(ctx, kust)).To(Succeed())
 
-	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
-		Namespace: ns.Name,
-	})
+	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Kustomizations).To(HaveLen(1))
 	g.Expect(res.Kustomizations[0].Name).To(Equal(appName))

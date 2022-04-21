@@ -228,25 +228,25 @@ func (c *Clusters) Get() []Cluster {
 
 type ClustersNamespaces struct {
 	sync.RWMutex
-	namespaces map[string][]v1.Namespace
+	Namespaces map[string][]v1.Namespace
 }
 
 func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
 	cn.Lock()
 	defer cn.Unlock()
 
-	if cn.namespaces == nil {
-		cn.namespaces = make(map[string][]v1.Namespace)
+	if cn.Namespaces == nil {
+		cn.Namespaces = make(map[string][]v1.Namespace)
 	}
 
-	cn.namespaces[cluster] = namespaces
+	cn.Namespaces[cluster] = namespaces
 }
 
 func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
 	cn.Lock()
 	defer cn.Unlock()
 
-	return cn.namespaces[cluster]
+	return cn.Namespaces[cluster]
 }
 
 type UsersNamespaces struct {

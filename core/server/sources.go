@@ -112,14 +112,16 @@ func listGitRepositoriesInNamespace(
 		return results, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*sourcev1.GitRepositoryList)
-		if !ok {
-			continue
-		}
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*sourcev1.GitRepositoryList)
+			if !ok {
+				continue
+			}
 
-		for _, repository := range list.Items {
-			results = append(results, types.GitRepositoryToProto(&repository, n))
+			for _, repository := range list.Items {
+				results = append(results, types.GitRepositoryToProto(&repository, n))
+			}
 		}
 	}
 
@@ -140,14 +142,16 @@ func listHelmRepositoriesInNamespace(
 		return results, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*sourcev1.HelmRepositoryList)
-		if !ok {
-			continue
-		}
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*sourcev1.HelmRepositoryList)
+			if !ok {
+				continue
+			}
 
-		for _, repository := range list.Items {
-			results = append(results, types.HelmRepositoryToProto(&repository, n))
+			for _, repository := range list.Items {
+				results = append(results, types.HelmRepositoryToProto(&repository, n))
+			}
 		}
 	}
 
@@ -168,14 +172,16 @@ func listHelmChartsInNamespace(
 		return results, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*sourcev1.HelmChartList)
-		if !ok {
-			continue
-		}
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*sourcev1.HelmChartList)
+			if !ok {
+				continue
+			}
 
-		for _, repository := range list.Items {
-			results = append(results, types.HelmChartToProto(&repository, n))
+			for _, repository := range list.Items {
+				results = append(results, types.HelmChartToProto(&repository, n))
+			}
 		}
 	}
 
@@ -196,14 +202,16 @@ func listBucketsInNamespace(
 		return results, err
 	}
 
-	for n, l := range clist.Lists() {
-		list, ok := l.(*sourcev1.BucketList)
-		if !ok {
-			continue
-		}
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*sourcev1.BucketList)
+			if !ok {
+				continue
+			}
 
-		for _, repository := range list.Items {
-			results = append(results, types.BucketToProto(&repository, n))
+			for _, repository := range list.Items {
+				results = append(results, types.BucketToProto(&repository, n))
+			}
 		}
 	}
 
