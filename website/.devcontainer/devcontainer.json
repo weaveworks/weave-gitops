@@ -26,6 +26,7 @@
   ],
   "forwardPorts": [8080],
   "containerUser": "vscode",
+  "postCreateCommand": "yarn install",
   "postStartCommand": "nohup bash -c 'yarn start --port 8080 &'",
   "waitFor": "postStartCommand",
   "features": {
