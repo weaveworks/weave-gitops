@@ -30,7 +30,7 @@
   "waitFor": "postStartCommand",
   "features": {
     "node": {
-      "version": "14"
+      "version": "15.6.1"
     },
     "github-cli": "latest"
   }
