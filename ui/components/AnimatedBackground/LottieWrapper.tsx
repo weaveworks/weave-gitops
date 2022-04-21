@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import Lottie from "react-lottie-player";
+import LottiePlayerLight from "react-lottie-player/dist/LottiePlayerLight";
 
-const AnimatedBackground = () => {
+const LottieWrapper = () => {
   const [animationData, setAnimationData] = useState<any>();
 
   useEffect(() => {
-    import(`../images/SignInBackground.json`).then(setAnimationData);
+    import(`../../images/SignInBackground.json`).then(setAnimationData);
   }, []);
 
   return (
-    <Lottie
+    <LottiePlayerLight
       play
       loop={false}
       speed={0.3}
       animationData={animationData}
-      renderer="canvas"
+      // renderer="canvas"
       rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
       style={{
         width: "100%",
@@ -25,4 +25,4 @@ const AnimatedBackground = () => {
     />
   );
 };
-export default AnimatedBackground;
+export default LottieWrapper;
