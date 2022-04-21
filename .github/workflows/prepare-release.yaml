@@ -82,5 +82,5 @@ jobs:
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
           body: "Update version references to ${{ env.GITOPS_VERSION }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          labels: "exclude from release notes"
