@@ -101,7 +101,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .c0 h2 {
