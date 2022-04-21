@@ -23,6 +23,9 @@ yarn start
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
 
+## Vscode Devcontainer for Docs
+If you are using Vscode/docker and navigate to the website directory you may be prompted that there is an included container. This utilises [devcontainers](https://code.visualstudio.com/docs/remote/containers) to provide a clean environment with the tooling necessary to supplement the docsite. The devcontainer will automatically start a copy of the docs localhost:8080 and run in the background in parallel to the native dev build on port 3000.
+
 ## Build
 
 ```console
