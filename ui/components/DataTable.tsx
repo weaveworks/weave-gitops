@@ -201,7 +201,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
-  overflow-x: scroll;
+  overflow-x: auto;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
     font-size: 18px;
