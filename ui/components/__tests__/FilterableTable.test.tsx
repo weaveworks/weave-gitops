@@ -249,6 +249,57 @@ describe("FilterableTable", () => {
     const chip2 = screen.getByText("status:Suspended");
     expect(chip2).toBeTruthy();
   });
+  it("should select/deselect all when category checkbox is clicked", () => {
+    const initialFilterState = {
+      ...filterConfigForStatus(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+
+    const checkbox1 = document.getElementById("status") as HTMLInputElement;
+    fireEvent.click(checkbox1);
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(4);
+    let checkbox2 = document.getElementById("status:Ready");
+    expect(checkbox2).toHaveProperty("checked", true);
+    fireEvent.click(checkbox1);
+    expect(tableRows).toHaveLength(4);
+    checkbox2 = document.getElementById("status:Ready");
+    expect(checkbox2).toHaveProperty("checked", false);
+  });
+  it("should change select all box status when other checkboxes effect state", () => {
+    const initialFilterState = {
+      ...filterConfigForStatus(rows),
+    };
+    render(
+      withTheme(
+        <FilterableTable
+          fields={fields}
+          rows={rows}
+          filters={initialFilterState}
+          dialogOpen
+        />
+      )
+    );
+    const checkbox1 = document.getElementById("status") as HTMLInputElement;
+    fireEvent.click(checkbox1);
+    let checkbox2 = document.getElementById("status:Ready");
+    fireEvent.click(checkbox2);
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(3);
+    expect(checkbox1).toHaveProperty("checked", false);
+    checkbox2 = document.getElementById("status:Ready");
+    fireEvent.click(checkbox2);
+    expect(checkbox1).toHaveProperty("checked", true);
+  });
   it("should remove a param when a single chip is clicked", () => {
     const initialFilterState = {
       ...filterConfigForString(rows, "type"),
