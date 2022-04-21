@@ -8,8 +8,6 @@ const AnimatedBackground = () => {
     import(`../images/SignInBackground.json`).then(setAnimationData);
   }, []);
 
-  // if (!animationData) return <div>Loading...</div>;
-
   return (
     <Lottie
       play

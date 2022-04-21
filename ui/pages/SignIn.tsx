@@ -2,16 +2,15 @@ import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
-import Lottie from "react-lottie-player";
 import styled from "styled-components";
 import Alert from "../components/Alert";
+import AnimatedBackground from "../components/AnimatedBackground";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 import { useFeatureFlags } from "../hooks/featureflags";
-import SignInBackground from "../images/SignInBackground.json";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
 
@@ -69,7 +68,11 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error: authError, loading: authLoading } = React.useContext(Auth);
+  const {
+    signIn,
+    error: authError,
+    loading: authLoading,
+  } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -82,22 +85,6 @@ function SignIn() {
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
-
-  const AnimatedBackground = () => (
-    <Lottie
-      play
-      loop={false}
-      speed={0.3}
-      animationData={SignInBackground}
-      rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        zIndex: -999,
-      }}
-    />
-  );
 
   const authOptions = (
     <>
