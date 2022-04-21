@@ -20,8 +20,6 @@ func (e defaultClusterNotFound) Error() string {
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	var results []*pb.Kustomization
-
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
@@ -30,6 +28,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return nil, err
 	}
 
+	var results []*pb.Kustomization
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*kustomizev1.KustomizationList)

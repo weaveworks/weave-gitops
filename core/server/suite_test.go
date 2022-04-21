@@ -2,12 +2,10 @@ package server_test
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"os"
 	"testing"
 
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -114,19 +112,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-
-		// hubClient, err := client.New(config, client.Options{
-		// 	Scheme: kube.CreateScheme(),
-		// })
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		list := kustomizev1.KustomizationList{}
-
-		// if err := hubClient.List(context.TODO(), &list); err != nil {
-		// 	return nil, err
-		// }
+		// list := kustomizev1.KustomizationList{}
 
 		if err := clientsFactory.UpdateClusters(ctx); err != nil {
 			return nil, err
@@ -140,11 +126,9 @@ func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, conf
 			return nil, err
 		}
 
-		if err := clusterClient.List(context.TODO(), "Default", &list); err != nil {
-			return nil, err
-		}
-
-		fmt.Println(list)
+		// if err := clusterClient.List(context.TODO(), "Default", &list); err != nil {
+		// 	return nil, err
+		// }
 
 		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 

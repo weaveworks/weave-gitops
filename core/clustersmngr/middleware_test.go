@@ -49,12 +49,12 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
 
-func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
+func TestWithClustersClientsMiddlewareFailsToGetUserClient(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	clustersFetcher.FetchReturns(nil, errors.New("error"))
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clientsFactory.GetUserClientReturns(nil, errors.New("error"))
 
 	middleware := clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)

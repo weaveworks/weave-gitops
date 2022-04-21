@@ -148,6 +148,8 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 		Host:            cluster.Server,
 		BearerToken:     cluster.BearerToken,
 		TLSClientConfig: cluster.TLSConfig,
+		QPS:             1000,
+		Burst:           2000,
 	}
 }
 

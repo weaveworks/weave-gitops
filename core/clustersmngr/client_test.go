@@ -112,7 +112,7 @@ func TestClientClusteredList(t *testing.T) {
 
 	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
 
-	klist := cklist.Lists()[clusterName].(*kustomizev1.KustomizationList)
+	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 
 	g.Expect(klist.Items).To(HaveLen(1))
 	g.Expect(klist.Items[0].Name).To(Equal(appName))
@@ -138,7 +138,7 @@ func TestClientClusteredList(t *testing.T) {
 
 	g.Expect(clustersClient.ClusteredList(ctx, cgrlist)).To(Succeed())
 
-	glist := cgrlist.Lists()[clusterName].(*sourcev1.GitRepositoryList)
+	glist := cgrlist.Lists()[clusterName][0].(*sourcev1.GitRepositoryList)
 	g.Expect(glist.Items).To(HaveLen(1))
 	g.Expect(glist.Items[0].Name).To(Equal(appName))
 }
