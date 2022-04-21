@@ -178,7 +178,8 @@ function SignIn() {
     >
       <Lottie
         play
-        loop
+        loop={false}
+        speed={0.3}
         animationData={SignInBackground}
         rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
         style={{
