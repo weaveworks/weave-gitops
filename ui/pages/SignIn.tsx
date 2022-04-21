@@ -69,9 +69,7 @@ function SignIn() {
   }
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn } = React.useContext(Auth);
-  const authLoading = React.useContext(Auth).loading;
-  const authError = React.useContext(Auth).error;
+  const { signIn, error: authError, loading: authLoading } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
