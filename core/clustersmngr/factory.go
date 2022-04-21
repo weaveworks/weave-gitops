@@ -31,6 +31,9 @@ type ClientsFactory interface {
 	UpdateClusters(ctx context.Context) error
 	// UpdateNamespaces updates the namespaces all namespaces for all clusters
 	UpdateNamespaces(ctx context.Context) error
+
+	GetServerClient(ctx context.Context) (Client, error)
+	GetClustersNamespaces() map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
 }
@@ -143,6 +146,22 @@ func (cf *clientsFactory) GetUserClient(ctx context.Context, user *auth.UserPrin
 	return NewClient(pool, cf.userNsList(ctx, user)), nil
 }
 
+func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
+	pool := NewClustersClientsPool()
+
+	for _, cluster := range cf.clusters.Get() {
+		if err := pool.Add(restConfigFromCluster, cluster); err != nil {
+			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
+		}
+	}
+
+	return NewClient(pool, cf.clustersNamespaces.namespaces), nil
+}
+
+func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
+	return cf.clustersNamespaces.namespaces
+}
+
 func restConfigFromCluster(cluster Cluster) *rest.Config {
 	return &rest.Config{
 		Host:            cluster.Server,
@@ -230,25 +249,25 @@ func (c *Clusters) Get() []Cluster {
 
 type ClustersNamespaces struct {
 	sync.RWMutex
-	Namespaces map[string][]v1.Namespace
+	namespaces map[string][]v1.Namespace
 }
 
 func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
 	cn.Lock()
 	defer cn.Unlock()
 
-	if cn.Namespaces == nil {
-		cn.Namespaces = make(map[string][]v1.Namespace)
+	if cn.namespaces == nil {
+		cn.namespaces = make(map[string][]v1.Namespace)
 	}
 
-	cn.Namespaces[cluster] = namespaces
+	cn.namespaces[cluster] = namespaces
 }
 
 func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
 	cn.Lock()
 	defer cn.Unlock()
 
-	return cn.Namespaces[cluster]
+	return cn.namespaces[cluster]
 }
 
 type UsersNamespaces struct {

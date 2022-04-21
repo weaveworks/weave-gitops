@@ -11,107 +11,17 @@ import (
 )
 
 func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoriesRequest) (*pb.ListGitRepositoriesResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listGitRepositoriesInNamespace)
-	if err != nil {
-		return nil, err
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	var results []*pb.GitRepository
-
-	for _, object := range res {
-		obj, ok := object.(*pb.GitRepository)
-		if !ok {
-			return nil, nil
-		}
-
-		results = append(results, obj)
-	}
-
-	return &pb.ListGitRepositoriesResponse{
-		GitRepositories: results,
-	}, nil
-}
-
-func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listHelmRepositoriesInNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []*pb.HelmRepository
-
-	for _, object := range res {
-		obj, ok := object.(*pb.HelmRepository)
-		if !ok {
-			return nil, nil
-		}
-
-		results = append(results, obj)
-	}
-
-	return &pb.ListHelmRepositoriesResponse{
-		HelmRepositories: results,
-	}, nil
-}
-
-func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listHelmChartsInNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []*pb.HelmChart
-
-	for _, object := range res {
-		obj, ok := object.(*pb.HelmChart)
-		if !ok {
-			return nil, nil
-		}
-
-		results = append(results, obj)
-	}
-
-	return &pb.ListHelmChartsResponse{
-		HelmCharts: results,
-	}, nil
-}
-
-func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listBucketsInNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []*pb.Bucket
-
-	for _, object := range res {
-		obj, ok := object.(*pb.Bucket)
-		if !ok {
-			return nil, nil
-		}
-
-		results = append(results, obj)
-	}
-
-	return &pb.ListBucketsResponse{
-		Buckets: results,
-	}, nil
-}
-
-func listGitRepositoriesInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]interface{}, error) {
-	results := []interface{}{}
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.GitRepositoryList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
+	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+		return nil, err
 	}
 
+	var results []*pb.GitRepository
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.GitRepositoryList)
@@ -125,23 +35,23 @@ func listGitRepositoriesInNamespace(
 		}
 	}
 
-	return results, nil
+	return &pb.ListGitRepositoriesResponse{
+		GitRepositories: results,
+	}, nil
 }
 
-func listHelmRepositoriesInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]interface{}, error) {
-	results := []interface{}{}
+func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
+
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.HelmRepositoryList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
+	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+		return nil, err
 	}
 
+	var results []*pb.HelmRepository
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.HelmRepositoryList)
@@ -155,23 +65,23 @@ func listHelmRepositoriesInNamespace(
 		}
 	}
 
-	return results, nil
+	return &pb.ListHelmRepositoriesResponse{
+		HelmRepositories: results,
+	}, nil
 }
 
-func listHelmChartsInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]interface{}, error) {
-	results := []interface{}{}
+func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
+
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.HelmChartList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
+	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+		return nil, err
 	}
 
+	var results []*pb.HelmChart
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.HelmChartList)
@@ -185,21 +95,21 @@ func listHelmChartsInNamespace(
 		}
 	}
 
-	return results, nil
+	return &pb.ListHelmChartsResponse{
+		HelmCharts: results,
+	}, nil
 }
 
-func listBucketsInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]interface{}, error) {
-	results := []interface{}{}
+func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
+
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.BucketList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
+	var results []*pb.Bucket
+	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+		return nil, err
 	}
 
 	for n, lists := range clist.Lists() {
@@ -215,5 +125,7 @@ func listBucketsInNamespace(
 		}
 	}
 
-	return results, nil
+	return &pb.ListBucketsResponse{
+		Buckets: results,
+	}, nil
 }

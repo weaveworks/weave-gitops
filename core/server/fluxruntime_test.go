@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -171,10 +172,17 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
+	fluxNs := &v1.Namespace{}
+	fluxNs.Name = "flux-ns"
+	fluxNs.Labels = map[string]string{
+		stypes.PartOfLabel: server.FluxNamespacePartOf,
+	}
+	g.Expect(k.Create(ctx, fluxNs)).To(Succeed())
+
 	name := "random-flux-controller"
 	ns := newNamespace(ctx, k, g)
 
-	fluxDep := newDeployment(name, ns.Name)
+	fluxDep := newDeployment(name, fluxNs.Name)
 	fluxDep.ObjectMeta.Labels = map[string]string{
 		stypes.PartOfLabel: server.FluxNamespacePartOf,
 	}
@@ -183,52 +191,10 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	otherDep := newDeployment("other-deployment", ns.Name)
 	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
 
-	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{Namespace: ns.Name})
-	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(res.Deployments).To(HaveLen(1), "expected only deployments with the part-of label to be returned")
-	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
-}
-
-func TestListFluxRuntimeObjects_inMultipleNamespaces(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	ctx := context.Background()
-
-	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
-
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
-	g.Expect(err).NotTo(HaveOccurred())
-
-	existingDeploymentsNo := func() int {
-		res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
-		g.Expect(err).NotTo(HaveOccurred())
-
-		return len(res.Deployments)
-	}()
-
-	name := "random-flux-controller"
-	ns := newNamespace(ctx, k, g)
-	ns2 := newNamespace(ctx, k, g)
-
-	fluxDep := newDeployment(name, ns.Name)
-	fluxDep.ObjectMeta.Labels = map[string]string{
-		stypes.PartOfLabel: server.FluxNamespacePartOf,
-	}
-	g.Expect(k.Create(ctx, fluxDep)).To(Succeed())
-
-	otherDep := newDeployment(name, ns2.Name)
-	otherDep.ObjectMeta.Labels = map[string]string{
-		stypes.PartOfLabel: server.FluxNamespacePartOf,
-	}
-	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
-
-	updateNamespaceCache(cfg)
-
 	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(res.Deployments).To(HaveLen(existingDeploymentsNo + 2))
+	g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
 	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
 }
 

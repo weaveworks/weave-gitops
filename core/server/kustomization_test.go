@@ -65,13 +65,13 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	releasesFound := 0
+	resourcesFound := 0
 	for _, r := range res.Kustomizations {
 		if r.Name == appName1 || r.Name == appName2 {
-			releasesFound++
+			resourcesFound++
 		}
 	}
-	g.Expect(releasesFound).To(Equal(2))
+	g.Expect(resourcesFound).To(Equal(2))
 }
 
 func TestGetKustomization(t *testing.T) {

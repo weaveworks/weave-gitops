@@ -43,6 +43,7 @@ type coreServer struct {
 	cacheContainer cache.Container
 	logger         logr.Logger
 	nsChecker      nsaccess.Checker
+	clientsFactory clustersmngr.ClientsFactory
 }
 
 type CoreServerConfig struct {
@@ -76,6 +77,7 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 		logger:         cfg.log,
 		cacheContainer: cfg.CacheContainer,
 		nsChecker:      cfg.NSAccess,
+		clientsFactory: cfg.ClientsFactory,
 	}, nil
 }
 
