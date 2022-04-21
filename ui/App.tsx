@@ -59,12 +59,10 @@ const App = () => (
           component={withSearchParams(GitRepositoryDetail)}
         />
         <Route
-          exact
           path={V2Routes.HelmRepo}
           component={withSearchParams(HelmRepositoryDetail)}
         />
         <Route
-          exact
           path={V2Routes.Bucket}
           component={withSearchParams(BucketDetail)}
         />
@@ -73,7 +71,6 @@ const App = () => (
           component={withSearchParams(HelmReleasePage)}
         />
         <Route
-          exact
           path={V2Routes.HelmChart}
           component={withSearchParams(HelmChartDetail)}
         />
