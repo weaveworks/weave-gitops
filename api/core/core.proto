@@ -165,12 +165,19 @@ service Core {
     }
 }
 
+message Pagination {
+    int32 page_size = 1;
+    string page_token = 2;
+}
+
 message ListKustomizationsRequest {
     string namespace = 1;
+    Pagination pagination = 2;
 }
 
 message ListKustomizationsResponse {
     repeated Kustomization kustomizations = 1;
+    string next_page_token = 2;
 }
 
 message ListHelmReleasesRequest {

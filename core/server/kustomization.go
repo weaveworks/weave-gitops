@@ -20,8 +20,9 @@ func (e defaultClusterNotFound) Error() string {
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
-	if msg.Namespace != "" {
-		res, err := listKustomizationsInNamespace(ctx, clustersClient, msg.Namespace)
+	// TODO: Implement pagination for cases when the filter namespace is not empty
+	if msg.Namespace != "" && msg.Pagination == nil {
+		res, _, err := listKustomizationsInNamespace(ctx, clustersClient, msg.Namespace, 0, "")
 
 		return &pb.ListKustomizationsResponse{
 			Kustomizations: res,
@@ -40,19 +41,47 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return nil, defaultClusterNotFound{}
 	}
 
-	for _, ns := range nsList {
-		nsResult, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name)
-		if err != nil {
-			cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
+	newNextPageToken := ""
 
-			continue
+	// TODO: Once the UI handles pagination we can remove this if block.
+	// It was left like that so the UI doesn't brake with backend pagination changes
+	if msg.Pagination == nil {
+		for _, ns := range nsList {
+			nsResult, _, err := listKustomizationsInNamespace(ctx, clustersClient, ns.Name, 0, "")
+			if err != nil {
+				cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", ns.Name))
+
+				continue
+			}
+
+			results = append(results, nsResult...)
+		}
+	} else {
+
+		newNextPageToken, err = GetNextPage(
+			nsList,
+			msg.Pagination.PageSize,
+			msg.Pagination.PageToken,
+			func(namespace string, limit int32, pageToken string) (string, int32, error) {
+				nsResult, nextK8sPageToken, err := listKustomizationsInNamespace(ctx, clustersClient, namespace, limit, pageToken)
+				if err != nil {
+					cs.logger.Error(err, fmt.Sprintf("unable to list kustomizations in namespace: %s", namespace))
+					return "", 0, err
+				}
+
+				results = append(results, nsResult...)
+
+				return nextK8sPageToken, int32(len(nsResult)), nil
+			})
+		if err != nil {
+			return nil, err
 		}
 
-		results = append(results, nsResult...)
 	}
 
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
+		NextPageToken:  newNextPageToken,
 	}, nil
 }
 
@@ -81,16 +110,24 @@ func listKustomizationsInNamespace(
 	ctx context.Context,
 	clustersClient clustersmngr.Client,
 	namespace string,
-) ([]*pb.Kustomization, error) {
+	limit int32,
+	pageToken string,
+) ([]*pb.Kustomization, string, error) {
 	var results []*pb.Kustomization
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace)); err != nil {
-		return results, err
+	if err := clustersClient.ClusteredList(ctx, clist,
+		client.InNamespace(namespace),
+		client.Limit(limit),
+		client.Continue(pageToken),
+	); err != nil {
+		return results, "", err
 	}
+
+	nextPageToken := ""
 
 	for n, l := range clist.Lists() {
 		list, ok := l.(*kustomizev1.KustomizationList)
@@ -101,12 +138,14 @@ func listKustomizationsInNamespace(
 		for _, kustomization := range list.Items {
 			k, err := types.KustomizationToProto(&kustomization, n)
 			if err != nil {
-				return results, fmt.Errorf("converting items: %w", err)
+				return results, "", fmt.Errorf("converting items: %w", err)
 			}
 
 			results = append(results, k)
 		}
+
+		nextPageToken = list.GetContinue()
 	}
 
-	return results, nil
+	return results, nextPageToken, nil
 }
