@@ -31,6 +31,7 @@ function SourcesTable({ className, sources }: Props) {
 
   const initialFilterState = {
     ...filterConfigForString(sources, "type"),
+    ...filterConfigForString(sources, "namespace"),
     ...filterConfigForStatus(sources),
     ...filterConfigForString(sources, "clusterName"),
   };

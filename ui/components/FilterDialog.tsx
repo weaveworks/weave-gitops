@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemIcon } from "@material-ui/core";
+import { Checkbox, List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -35,10 +35,6 @@ const SlideContent = styled.div`
 `;
 
 export const filterSeparator = ":";
-export const allTag = "all";
-export const createAllTag = (str: string) => {
-  return `${str}${filterSeparator}${allTag}`;
-};
 
 export function initialFormState(cfg: FilterConfig) {
   return _.reduce(
@@ -53,6 +49,57 @@ export function initialFormState(cfg: FilterConfig) {
     {}
   );
 }
+
+const FilterSection = ({ header, options, formState, onSectionSelect }) => {
+  const [all, setAll] = React.useState(false);
+  React.useEffect(() => {
+    const allChecked = _.chain(formState)
+      // get all relevant keys' current value
+      .keys()
+      .filter((key) => _.includes(key, header))
+      .every((key) => formState[key])
+      .value();
+    setAll(allChecked);
+  }, [formState]);
+
+  const handleChange = () => {
+    const optionKeys = _.map(options, (option) => [
+      `${header}${filterSeparator}${option}`,
+      !all,
+    ]);
+    onSectionSelect(_.fromPairs(optionKeys));
+  };
+
+  return (
+    <ListItem>
+      <List>
+        <ListItem>
+          <ListItemIcon>
+            <Checkbox checked={all} onChange={handleChange} />
+          </ListItemIcon>
+          <Text capitalize size="small" color="neutral30" semiBold>
+            {convertHeaders(header)}
+          </Text>
+        </ListItem>
+        {_.map(options, (option: string, index: number) => {
+          return (
+            <ListItem key={index}>
+              <ListItemIcon>
+                <FormCheckbox
+                  label=""
+                  name={`${header}${filterSeparator}${option}`}
+                />
+              </ListItemIcon>
+              <Text color="neutral40" size="small">
+                {_.toString(option)}
+              </Text>
+            </ListItem>
+          );
+        })}
+      </List>
+    </ListItem>
+  );
+};
 
 /** Filter Bar Properties */
 export interface Props {
@@ -88,7 +135,7 @@ const convertHeaders = (header: string) => {
   if (header === "clusterName") return "cluster";
   return header;
 };
-
+type sectionSelectObject = { [header: string]: boolean };
 /** Form Filter Bar */
 function UnstyledFilterDialog({
   className,
@@ -97,38 +144,13 @@ function UnstyledFilterDialog({
   formState,
   open,
 }: Props) {
-  const onFormChange = (name: string, value: any) => {
-    const [header] = name.split(filterSeparator);
-
-    //check all input
-    if (_.includes(name, allTag)) {
-      _.each(filterList[header], (option) => {
-        const key = `${header}${filterSeparator}${option}`;
-        formState[key] = value;
-      });
-      formState[createAllTag(header)] = value;
-
-      //standard input
-    } else {
-      //check if this change means all normal boxes are checked or unchecked (meaning we should toggle the header box)
-      let allEqual = true;
-      let allEqualBool;
-      for (let i = 0; i < filterList[header].length; i++) {
-        const key = `${header}${filterSeparator}${filterList[header][i]}`;
-        if (i === 0) {
-          //set whether we're checking if all are true or false
-          allEqualBool = formState[key];
-        } else {
-          if (formState[key] !== allEqualBool) {
-            allEqual = false;
-            return;
-          }
-        }
-      }
-      if (allEqual) formState[createAllTag(header)] = value;
+  const onSectionSelect = (object: sectionSelectObject) => {
+    if (onFilterSelect) {
+      const next = { ...formState, ...object };
+      onFilterSelect(formStateToFilters(next), next);
     }
-
-    //actually set filters
+  };
+  const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
       onFilterSelect(formStateToFilters(next), next);
@@ -148,38 +170,13 @@ function UnstyledFilterDialog({
             <List>
               {_.map(filterList, (options: string[], header: string) => {
                 return (
-                  <ListItem key={header}>
-                    <List>
-                      <ListItem key={header}>
-                        <ListItemIcon>
-                          <FormCheckbox label="" name={createAllTag(header)} />
-                        </ListItemIcon>
-                        <Text
-                          capitalize
-                          size="small"
-                          color="neutral30"
-                          semiBold
-                        >
-                          {convertHeaders(header)}
-                        </Text>
-                      </ListItem>
-                      {_.map(options, (option: string, index: number) => {
-                        return (
-                          <ListItem key={index}>
-                            <ListItemIcon>
-                              <FormCheckbox
-                                label=""
-                                name={`${header}${filterSeparator}${option}`}
-                              />
-                            </ListItemIcon>
-                            <Text color="neutral40" size="small">
-                              {_.toString(option)}
-                            </Text>
-                          </ListItem>
-                        );
-                      })}
-                    </List>
-                  </ListItem>
+                  <FilterSection
+                    key={header}
+                    header={header}
+                    options={options}
+                    formState={formState}
+                    onSectionSelect={onSectionSelect}
+                  />
                 );
               })}
             </List>

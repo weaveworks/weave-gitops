@@ -14,7 +14,6 @@ export interface Props {
 }
 
 function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
-  chips = chips.filter((chip) => !chip.includes("all"));
   return (
     <Flex className={className} align start>
       {_.map(chips, (chip, index) => {
