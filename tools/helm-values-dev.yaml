@@ -1,18 +1,16 @@
 ---
 image:
   tag: latest
+  pullPolicy: Always
   repository: localhost:5001/weaveworks/wego-app
 
 logLevel: debug
-enableLogin: true
 
 adminUser:
   create: true
   username: dev
-  password: dev
-
-serverTLS:
-  enable: false
+  # 'dev'
+  passwordHash: $2y$10$pcy9FV0WMQZUHFDcud8JuecIxlUS/Eh9X.iitZtJEYYHUhKyzlJYm
 
 additionalArgs:
   - "--dev-mode"
