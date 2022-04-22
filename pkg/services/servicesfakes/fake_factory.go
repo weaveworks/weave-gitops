@@ -12,11 +12,11 @@ import (
 )
 
 type FakeFactory struct {
-	GetGitClientsStub        func(context.Context, kube.Kube, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)
+	GetGitClientsStub        func(context.Context, *kube.KubeHTTP, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 	getGitClientsMutex       sync.RWMutex
 	getGitClientsArgsForCall []struct {
 		arg1 context.Context
-		arg2 kube.Kube
+		arg2 *kube.KubeHTTP
 		arg3 gitproviders.Client
 		arg4 services.GitConfigParams
 	}
@@ -34,12 +34,12 @@ type FakeFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFactory) GetGitClients(arg1 context.Context, arg2 kube.Kube, arg3 gitproviders.Client, arg4 services.GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
+func (fake *FakeFactory) GetGitClients(arg1 context.Context, arg2 *kube.KubeHTTP, arg3 gitproviders.Client, arg4 services.GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
 	fake.getGitClientsMutex.Lock()
 	ret, specificReturn := fake.getGitClientsReturnsOnCall[len(fake.getGitClientsArgsForCall)]
 	fake.getGitClientsArgsForCall = append(fake.getGitClientsArgsForCall, struct {
 		arg1 context.Context
-		arg2 kube.Kube
+		arg2 *kube.KubeHTTP
 		arg3 gitproviders.Client
 		arg4 services.GitConfigParams
 	}{arg1, arg2, arg3, arg4})
@@ -62,13 +62,13 @@ func (fake *FakeFactory) GetGitClientsCallCount() int {
 	return len(fake.getGitClientsArgsForCall)
 }
 
-func (fake *FakeFactory) GetGitClientsCalls(stub func(context.Context, kube.Kube, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)) {
+func (fake *FakeFactory) GetGitClientsCalls(stub func(context.Context, *kube.KubeHTTP, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)) {
 	fake.getGitClientsMutex.Lock()
 	defer fake.getGitClientsMutex.Unlock()
 	fake.GetGitClientsStub = stub
 }
 
-func (fake *FakeFactory) GetGitClientsArgsForCall(i int) (context.Context, kube.Kube, gitproviders.Client, services.GitConfigParams) {
+func (fake *FakeFactory) GetGitClientsArgsForCall(i int) (context.Context, *kube.KubeHTTP, gitproviders.Client, services.GitConfigParams) {
 	fake.getGitClientsMutex.RLock()
 	defer fake.getGitClientsMutex.RUnlock()
 	argsForCall := fake.getGitClientsArgsForCall[i]

@@ -48,20 +48,12 @@ const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/c
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 const WegoEnterpriseName string = "weave-gitops-enterprise.yaml"
 
-func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
-	kube, kubeClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error creating client for cluster %v", err)
-	}
-
-	return upgrade(ctx, upgradeValues, kube, gitClient, kubeClient, gitProvider, logger, w)
+func Upgrade(ctx context.Context, kubeClient *kube.KubeHTTP, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
+	return upgrade(ctx, upgradeValues, kubeClient, gitClient, gitProvider, logger, w)
 }
 
-func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
-	cname, err := kube.GetClusterName(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get cluster name: %w", err)
-	}
+func upgrade(ctx context.Context, uv UpgradeValues, kubeClient *kube.KubeHTTP, gitClient git.Git, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
+	cname := kubeClient.ClusterName
 
 	resources, err := makeHelmResources(uv.Namespace, uv.Version, cname, uv.ConfigRepo, uv.Values)
 	if err != nil {
@@ -299,7 +291,7 @@ func upgradeGitManifests(gitClient git.Git, repoDir, clusterPath, cname, wegoEnt
 	return nil
 }
 
-func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
+func getBasicAuth(ctx context.Context, kubeClient *kube.KubeHTTP, ns string) error {
 	deployKeySecret := &corev1.Secret{}
 
 	err := kubeClient.Get(ctx, client.ObjectKey{

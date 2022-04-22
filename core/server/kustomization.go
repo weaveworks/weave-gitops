@@ -49,6 +49,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
+		// NextPageToken:  newNextPageToken, // todo handle pagination
 	}, nil
 }
 

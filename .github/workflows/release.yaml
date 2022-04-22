@@ -13,6 +13,8 @@ jobs:
   tag-release:
     if: github.event.review.state == 'approved' && startsWith(github.event.pull_request.head.ref, 'releases/')
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release-version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -66,14 +68,17 @@ jobs:
           ignorePreReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Include brew publishing
+        run: cat .goreleaser.brew.yml >> .goreleaser.yml
+        if: ${{ !contains(github.event.pull_request.head.ref, '-') }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          args: release --rm-dist --release-notes=${{ runner.temp }}/changelog.md
+          args: release --rm-dist --skip-validate --release-notes=${{ runner.temp }}/changelog.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOT_TOKEN: ${{ secrets.WEAVEWORKSBOT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          BOT_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
@@ -95,7 +100,9 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-and-push-image:
-    needs: goreleaser
+    needs:
+      - goreleaser
+      - tag-release
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -119,8 +126,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
+            type=raw,value=${{ needs.tag-release.outputs.version }}
+            type=semver,pattern={{version}},value=${{ needs.tag-release.outputs.version }}
           flavor: |
             latest=true
       - name: Build and push Docker image

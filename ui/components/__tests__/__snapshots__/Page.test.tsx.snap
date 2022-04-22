@@ -159,9 +159,12 @@ exports[`Page snapshots default 1`] = `
   margin: 0 auto;
   min-width: 1260px;
   min-height: 480px;
+  max-width: 100%;
   padding-bottom: 24px;
-  padding-left: 32px;
+  padding-left: 24px;
+  padding-right: 24px;
   padding-top: 24px;
+  overflow: hidden;
 }
 
 .c4 h2 {

@@ -7,16 +7,13 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
-	testClustername = "test-cluster"
-	k8sClient       client.Client
-	k               kube.Kube
-	k8sTestEnv      *testutils.K8sTestEnv
+	k8sClient  client.Client
+	k8sTestEnv *testutils.K8sTestEnv
 )
 
 func TestKube(t *testing.T) {

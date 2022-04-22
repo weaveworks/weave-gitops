@@ -50,14 +50,12 @@ function EventsTable({
         {
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
-          width: 25,
         },
-        { value: "message", label: "Message", width: 25 },
-        { value: "component", label: "Component", width: 25 },
+        { value: "message", label: "Message" },
+        { value: "component", label: "Component" },
         {
           label: "Timestamp",
           value: (e: Event) => <Timestamp time={e.timestamp} />,
-          width: 25,
         },
       ]}
       rows={data.events}

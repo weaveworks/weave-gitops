@@ -169,7 +169,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	fluxNs := &v1.Namespace{}

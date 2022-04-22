@@ -31,7 +31,6 @@ export type Field = {
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
   sortValue?: Sorter;
-  width?: number;
   textSearchable?: boolean;
 };
 
@@ -45,8 +44,6 @@ export interface Props {
   rows?: any[];
   /** index of field to initially sort against. */
   defaultSort?: number;
-  /** an optional list of string widths for each field/column. */
-  widths?: string[];
   /** for passing pagination */
   children?: any;
 }
@@ -59,7 +56,6 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
 
 const TableButton = styled(Button)`
   &.MuiButton-root {
-    padding: 0;
     margin: 0;
     text-transform: none;
   }
@@ -155,7 +151,7 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell style={f.width && { width: `${f.width}%` }} key={f.label}>
+        <TableCell key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -169,10 +165,7 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell
-                  style={f.width ? { width: `${f.width}%` } : {}}
-                  key={f.label}
-                >
+                <TableCell key={f.label}>
                   <SortableLabel field={f} />
                 </TableCell>
               ))}
@@ -208,9 +201,9 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
-  padding-right: ${(props) => props.theme.spacing.medium};
+  overflow-x: auto;
   h2 {
-    padding: 0;
+    padding: ${(props) => props.theme.spacing.xs};
     font-size: 18px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
@@ -224,6 +217,9 @@ export const DataTable = styled(UnstyledDataTable)`
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
+  }
+  th {
+    padding: 0;
   }
 
   td {
