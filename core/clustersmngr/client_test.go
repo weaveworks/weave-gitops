@@ -2,6 +2,7 @@ package clustersmngr_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -141,6 +142,84 @@ func TestClientClusteredList(t *testing.T) {
 	glist := cgrlist.Lists()[clusterName][0].(*sourcev1.GitRepositoryList)
 	g.Expect(glist.Items).To(HaveLen(1))
 	g.Expect(glist.Items[0].Name).To(Equal(appName))
+}
+
+func TestClientClusteredListPagination(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	ns1 := createNamespace(g)
+	ns2 := createNamespace(g)
+
+	clusterName := "mycluster"
+
+	createKust := func(name string, nsName string) {
+		kust := &kustomizev1.Kustomization{
+			ObjectMeta: v1.ObjectMeta{
+				Name:      name,
+				Namespace: nsName,
+			},
+			Spec: kustomizev1.KustomizationSpec{
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
+					Kind: "GitRepository",
+				},
+			},
+		}
+		ctx := context.Background()
+		g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
+	}
+
+	// Create 2 kustomizations in 2 namespaces
+	for i := 0; i < 2; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		createKust(appName, ns1.Name)
+	}
+	for i := 0; i < 1; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		createKust(appName, ns2.Name)
+	}
+
+	clientsPool := clustersmngr.NewClustersClientsPool()
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
+	g.Expect(err).To(BeNil())
+
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: {*ns1, *ns2},
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+
+	// First request comes with no continue token
+	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(""))).To(Succeed())
+	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(2))
+	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
+	g.Expect(klist.Items).To(HaveLen(1))
+	continueToken := cklist.GetContinue()
+
+	// Second request comes with the continue token
+	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(1))
+	klist0 := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
+	g.Expect(klist0.Items).To(HaveLen(1))
+	continueToken = cklist.GetContinue()
+
+	// Third request comes with an empty namespaces continue token
+	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(0))
 }
 
 func TestClientList(t *testing.T) {
