@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/names"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -24,7 +24,7 @@ type ProviderTokenValidator interface {
 }
 
 type SecretName struct {
-	Name      models.GeneratedSecretName
+	Name      names.GeneratedSecretName
 	Namespace string
 }
 
@@ -101,7 +101,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
 func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	secretName := SecretName{
-		Name:      models.CreateRepoSecretName(repo),
+		Name:      names.CreateRepoSecretName(repo),
 		Namespace: namespace,
 	}
 

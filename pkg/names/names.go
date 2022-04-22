@@ -1,4 +1,4 @@
-package models
+package names
 
 import (
 	"crypto/md5"
@@ -8,19 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
-const (
-	MaxKubernetesResourceNameLength = 63
-
-	AppCRDPath              = "wego-system.yaml"
-	RuntimePath             = "gitops-runtime.yaml"
-	SourcePath              = "flux-source-resource.yaml"
-	SystemKustResourcePath  = "flux-system-kustomization-resource.yaml"
-	UserKustResourcePath    = "flux-user-kustomization-resource.yaml"
-	SystemKustomizationPath = "kustomization.yaml"
-	WegoAppPath             = "wego-app.yaml"
-	WegoConfigPath          = "wego-config.yaml"
-	WegoProfilesPath        = "profiles.yaml"
-)
+const MaxKubernetesResourceNameLength = 63
 
 func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())

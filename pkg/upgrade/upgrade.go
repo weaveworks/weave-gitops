@@ -20,7 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/names"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
@@ -158,7 +158,7 @@ func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, err
 		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
 	}
 
-	gitRepositoryName := models.CreateClusterSourceName(normalizedURL)
+	gitRepositoryName := names.CreateClusterSourceName(normalizedURL)
 
 	appsCapiKustomization := &kustomizev2.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
