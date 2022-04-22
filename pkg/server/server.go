@@ -50,7 +50,6 @@ type applicationServer struct {
 	ghAuthClient auth.GithubAuthClient
 	glAuthClient auth.GitlabAuthClient
 	clientGetter kube.ClientGetter
-	kubeGetter   kube.KubeGetter
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -68,11 +67,9 @@ type ApplicationsConfig struct {
 func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
 	configGetter := kube.NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, cfg.ClusterConfig.ClusterName)
-	kubeGetter := kube.NewDefaultKubeGetter(configGetter, cfg.ClusterConfig.ClusterName)
 
 	args := &ApplicationsOptions{
 		ClientGetter: clientGetter,
-		KubeGetter:   kubeGetter,
 	}
 
 	for _, setter := range setters {
@@ -86,7 +83,6 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		ghAuthClient: cfg.GithubAuthClient,
 		glAuthClient: cfg.GitlabAuthClient,
 		clientGetter: args.ClientGetter,
-		kubeGetter:   args.KubeGetter,
 	}
 }
 

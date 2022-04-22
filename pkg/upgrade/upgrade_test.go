@@ -13,12 +13,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -30,7 +29,6 @@ func TestUpgradeDryRun(t *testing.T) {
 		return &mockPullRequest{}, nil
 	}
 	logger := &loggerfakes.FakeLogger{}
-	k := &kubefakes.FakeKube{}
 
 	var output bytes.Buffer
 
@@ -42,7 +40,7 @@ func TestUpgradeDryRun(t *testing.T) {
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
 		DryRun:        true,
-	}, k, gitClient, kubeClient, gitProvider, logger, &output)
+	}, kubeClient, gitClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
 	assert.Contains(t, output.String(), "kind: HelmRelease")
@@ -71,7 +69,6 @@ func TestUpgrade(t *testing.T) {
 		return &mockPullRequest{}, nil
 	}
 	logger := &loggerfakes.FakeLogger{}
-	k := &kubefakes.FakeKube{}
 
 	var output bytes.Buffer
 
@@ -82,7 +79,7 @@ func TestUpgrade(t *testing.T) {
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
-	}, k, gitClient, kubeClient, gitProvider, logger, &output)
+	}, kubeClient, gitClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
 }
@@ -164,7 +161,7 @@ func TestMakeHelmResources(t *testing.T) {
 // helpers
 //
 
-func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+func makeClient(t *testing.T, clusterState ...runtime.Object) *kube.KubeHTTP {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -173,10 +170,13 @@ func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	err := schemeBuilder.AddToScheme(scheme)
 	assert.NoError(t, err)
 
-	return fake.NewClientBuilder().
-		WithScheme(scheme).
-		WithRuntimeObjects(clusterState...).
-		Build()
+	return &kube.KubeHTTP{
+		Client: fake.NewClientBuilder().
+			WithScheme(scheme).
+			WithRuntimeObjects(clusterState...).
+			Build(),
+		ClusterName: "foo",
+	}
 }
 
 func createSecret(opts ...func(*corev1.Secret)) *corev1.Secret {

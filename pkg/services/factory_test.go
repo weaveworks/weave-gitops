@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 )
 
@@ -16,7 +16,7 @@ var _ = Describe("Services factory", func() {
 	var fakeFlux *fluxfakes.FakeFlux
 	var fakeLog *loggerfakes.FakeLogger
 	var fakeClient *gitprovidersfakes.FakeClient
-	var fakeKube *kubefakes.FakeKube
+	var fakeKube *kube.KubeHTTP
 	var factory Factory
 
 	BeforeEach(func() {
@@ -24,7 +24,7 @@ var _ = Describe("Services factory", func() {
 		fakeFlux = &fluxfakes.FakeFlux{}
 		fakeClient = &gitprovidersfakes.FakeClient{}
 		fakeLog = &loggerfakes.FakeLogger{}
-		fakeKube = &kubefakes.FakeKube{}
+		fakeKube = &kube.KubeHTTP{}
 
 		factory = NewFactory(fakeFlux, fakeLog)
 	})
