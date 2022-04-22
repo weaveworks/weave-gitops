@@ -1,4 +1,3 @@
-import _ from "lodash";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Core } from "../lib/api/core/core.pb";
@@ -23,8 +22,8 @@ export default function CoreClientContextProvider({ api, children }: Props) {
 
   //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
-    if (typeof api[method] != 'function') {
-      continue
+    if (typeof api[method] != "function") {
+      continue;
     }
     wrapped[method] = (req, initReq) => {
       return api[method](req, initReq).catch((err) => {
