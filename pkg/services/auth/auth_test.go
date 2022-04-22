@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/names"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo/v2"
@@ -43,14 +43,14 @@ var _ = Describe("auth", func() {
 	Describe("AuthService", func() {
 		var (
 			ctx        context.Context
-			secretName models.GeneratedSecretName
+			secretName names.GeneratedSecretName
 			gp         gitprovidersfakes.FakeGitProvider
 			as         AuthService
 			fluxClient flux.Flux
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = models.CreateRepoSecretName(configRepoUrl)
+			secretName = names.CreateRepoSecretName(configRepoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			gp = gitprovidersfakes.FakeGitProvider{}
 			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil)

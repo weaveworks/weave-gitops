@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 	"sigs.k8s.io/yaml"
@@ -76,7 +75,7 @@ var _ = Describe("Update Profile(s)", func() {
 							)
 							r, _ := yaml.Marshal(existingRelease)
 							content := string(r)
-							path := git.GetProfilesPath("prod", models.WegoProfilesPath)
+							path := git.GetProfilesPath("prod", profiles.ManifestFileName)
 							gitProviders.GetRepoDirFilesReturns([]*gitprovider.CommitFile{{
 								Path:    &path,
 								Content: &content,
@@ -192,7 +191,7 @@ var _ = Describe("Update Profile(s)", func() {
 							)
 							r, _ := yaml.Marshal(existingRelease)
 							content := string(r)
-							path := git.GetProfilesPath("prod", models.WegoProfilesPath)
+							path := git.GetProfilesPath("prod", profiles.ManifestFileName)
 							gitProviders.GetRepoDirFilesReturns([]*gitprovider.CommitFile{{
 								Path:    &path,
 								Content: &content,
@@ -212,7 +211,7 @@ var _ = Describe("Update Profile(s)", func() {
 						)
 						r, _ := yaml.Marshal(existingRelease)
 						content := string(r)
-						path := git.GetProfilesPath("prod", models.WegoProfilesPath)
+						path := git.GetProfilesPath("prod", profiles.ManifestFileName)
 						gitProviders.GetRepoDirFilesReturns([]*gitprovider.CommitFile{{
 							Path:    &path,
 							Content: &content,
@@ -226,7 +225,7 @@ var _ = Describe("Update Profile(s)", func() {
 				When("the file containing the HelmRelease contains something other than a HelmRelease", func() {
 					It("returns an error", func() {
 						content := "content"
-						path := git.GetProfilesPath("prod", models.WegoProfilesPath)
+						path := git.GetProfilesPath("prod", profiles.ManifestFileName)
 						gitProviders.GetRepoDirFilesReturns([]*gitprovider.CommitFile{{
 							Path:    &path,
 							Content: &content,

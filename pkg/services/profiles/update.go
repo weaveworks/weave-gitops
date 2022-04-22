@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -54,10 +53,10 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 
 	content, err := updateHelmRelease(files, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
-		return fmt.Errorf("failed to update HelmRelease for profile '%s' in %s: %w", opts.Name, models.WegoProfilesPath, err)
+		return fmt.Errorf("failed to update HelmRelease for profile '%s' in %s: %w", opts.Name, ManifestFileName, err)
 	}
 
-	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
+	path := git.GetProfilesPath(opts.Cluster, ManifestFileName)
 
 	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, prInfo(opts, "update", defaultBranch, gitprovider.CommitFile{
 		Path:    &path,
@@ -91,9 +90,9 @@ func (s *ProfilesSvc) printUpdateSummary(opts Options) {
 }
 
 func updateHelmRelease(files []*gitprovider.CommitFile, name, version, cluster, ns string) (string, error) {
-	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(cluster, models.WegoProfilesPath))
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(cluster, ManifestFileName))
 	if fileContent == "" {
-		return "", fmt.Errorf("failed to find installed profiles in '%s'", git.GetProfilesPath(cluster, models.WegoProfilesPath))
+		return "", fmt.Errorf("failed to find installed profiles in '%s'", git.GetProfilesPath(cluster, ManifestFileName))
 	}
 
 	existingReleases, err := helm.SplitHelmReleaseYAML([]byte(fileContent))
