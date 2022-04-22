@@ -1,8 +1,12 @@
 package clustersmngr
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
@@ -78,11 +82,31 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 
 	var errs []error
 
+	paginationInfo := &PaginationInfo{}
+
+	continueToken := extractContinueToken(opts...)
+	if continueToken != "" {
+		if err := decodeFromBase64(paginationInfo, continueToken); err != nil {
+			return fmt.Errorf("failed decoding pagination info: %w", err)
+		}
+	}
+
 	for clusterName, cc := range c.pool.Clients() {
 		for _, ns := range c.namespaces[clusterName] {
-			wg.Add(1)
+			listOpts := append(opts, client.InNamespace(ns.Name))
 
-			go func(clusterName string, c client.Client, optsWithNamespace ...client.ListOption) {
+			nsContinueToken := paginationInfo.Get(clusterName, ns.Name)
+
+			// a prior request has been made so this one comes with a previous token,
+			// but if the namespace token is empty we ignore it because all items have been returned.
+			if continueToken != "" && nsContinueToken == "" {
+				continue
+			}
+
+			listOpts = append(listOpts, client.Continue(nsContinueToken))
+
+			wg.Add(1)
+			go func(clusterName string, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
 				defer wg.Done()
 
 				list := clist.NewList(clusterName)
@@ -91,9 +115,11 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
 				}
 
+				paginationInfo.Set(clusterName, nsName, list.GetContinue())
+
 				clist.AddObjectList(clusterName, list)
 
-			}(clusterName, cc, append(opts, client.InNamespace(ns.Name))...)
+			}(clusterName, ns.Name, cc, listOpts...)
 		}
 	}
 
@@ -103,7 +129,27 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 		return fmt.Errorf("failed to list resources: %s", errs)
 	}
 
+	continueToken, err := encodeToBase64(paginationInfo)
+	if err != nil {
+		return fmt.Errorf("failed encoding pagination info: %w", err)
+	}
+
+	clist.SetContinue(continueToken)
+
 	return nil
+}
+
+func extractContinueToken(opts ...client.ListOption) string {
+	for _, o := range opts {
+		switch v := o.(type) {
+		case client.Continue:
+			return string(v)
+		default:
+			continue
+		}
+	}
+
+	return ""
 }
 
 func (c *clustersClient) Create(ctx context.Context, cluster string, obj client.Object, opts ...client.CreateOption) error {
@@ -164,13 +210,19 @@ type ClusteredObjectList interface {
 	NewList(cluster string) client.ObjectList
 	AddObjectList(cluster string, list client.ObjectList)
 	Lists() map[string][]client.ObjectList
+
+	// GetContinue returns the continue token
+	GetContinue() string
+	// SetContinue sets the continue token
+	SetContinue(continueToken string)
 }
 
 type ClusteredList struct {
 	sync.Mutex
 
-	listFactory func() client.ObjectList
-	lists       map[string][]client.ObjectList
+	listFactory   func() client.ObjectList
+	lists         map[string][]client.ObjectList
+	continueToken string
 }
 
 func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
@@ -196,4 +248,69 @@ func (cl *ClusteredList) Lists() map[string][]client.ObjectList {
 	defer cl.Unlock()
 
 	return cl.lists
+}
+
+func (cl *ClusteredList) GetContinue() string {
+	return cl.continueToken
+}
+
+func (cl *ClusteredList) SetContinue(continueToken string) {
+	cl.continueToken = continueToken
+}
+
+type PaginationInfo struct {
+	sync.Mutex
+	ContinueTokens map[string]map[string]string
+}
+
+func (pi *PaginationInfo) Set(cluster string, namespace string, token string) {
+	pi.Lock()
+	defer pi.Unlock()
+
+	if pi.ContinueTokens == nil {
+		pi.ContinueTokens = make(map[string]map[string]string)
+	}
+
+	if pi.ContinueTokens[cluster] == nil {
+		pi.ContinueTokens[cluster] = make(map[string]string)
+	}
+
+	pi.ContinueTokens[cluster][namespace] = token
+}
+
+func (pi *PaginationInfo) Get(cluster string, namespace string) string {
+	pi.Lock()
+	defer pi.Unlock()
+
+	if pi.ContinueTokens == nil {
+		return ""
+	}
+
+	if pi.ContinueTokens[cluster] == nil {
+		return ""
+	}
+
+	if val, ok := pi.ContinueTokens[cluster][namespace]; ok {
+		return val
+	}
+
+	return ""
+}
+
+func decodeFromBase64(v interface{}, enc string) error {
+	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
+}
+
+func encodeToBase64(v interface{}) (string, error) {
+	var buf bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+
+	err := json.NewEncoder(encoder).Encode(v)
+	if err != nil {
+		return "", err
+	}
+
+	encoder.Close()
+
+	return buf.String(), nil
 }

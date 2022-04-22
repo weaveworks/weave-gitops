@@ -24,7 +24,13 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		return &kustomizev1.KustomizationList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	opts := []client.ListOption{}
+	if msg.Pagination != nil {
+		opts = append(opts, client.Limit(msg.Pagination.PageSize))
+		opts = append(opts, client.Continue(msg.Pagination.PageToken))
+	}
+
+	if err := clustersClient.ClusteredList(ctx, clist, opts...); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +55,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
-		// NextPageToken:  newNextPageToken, // todo handle pagination
+		NextPageToken:  clist.GetContinue(),
 	}, nil
 }
 

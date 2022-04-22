@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -72,6 +73,56 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 		}
 	}
 	g.Expect(resourcesFound).To(Equal(2))
+}
+
+func TestListKustomizationPagination(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ns1 := newNamespace(ctx, k, g)
+	for i := 0; i < 2; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		newKustomization(ctx, appName, ns1.Name, k, g)
+	}
+
+	ns2 := newNamespace(ctx, k, g)
+	for i := 0; i < 2; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		newKustomization(ctx, appName, ns2.Name, k, g)
+	}
+
+	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize: 1,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(2))
+
+	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize:  1,
+			PageToken: res.NextPageToken,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(2))
+
+	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize:  1,
+			PageToken: res.NextPageToken,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(0))
 }
 
 func TestGetKustomization(t *testing.T) {
