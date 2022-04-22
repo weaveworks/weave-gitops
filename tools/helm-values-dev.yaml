@@ -9,7 +9,8 @@ enableLogin: true
 adminUser:
   create: true
   username: dev
-  password: dev
+  # 'dev'
+  passwordHash: $2y$10$pcy9FV0WMQZUHFDcud8JuecIxlUS/Eh9X.iitZtJEYYHUhKyzlJYm
 
 serverTLS:
   enable: false
