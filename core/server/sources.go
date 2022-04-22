@@ -22,6 +22,7 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 	}
 
 	var results []*pb.GitRepository
+
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.GitRepositoryList)
@@ -52,6 +53,7 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 	}
 
 	var results []*pb.HelmRepository
+
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.HelmRepositoryList)
@@ -82,6 +84,7 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 	}
 
 	var results []*pb.HelmChart
+
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*sourcev1.HelmChartList)
@@ -108,6 +111,7 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 	})
 
 	var results []*pb.Bucket
+
 	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
 		return nil, err
 	}

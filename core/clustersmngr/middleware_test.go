@@ -20,6 +20,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	cluster := makeLeafCluster(t)
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
+
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
 	clientsPool := clustersmngr.NewClustersClientsPool()

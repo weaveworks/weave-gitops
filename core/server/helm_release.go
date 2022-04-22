@@ -32,6 +32,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 	}
 
 	var results []*pb.HelmRelease
+
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*helmv2.HelmReleaseList)
@@ -43,7 +44,6 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 				results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
 			}
 		}
-
 	}
 
 	return &pb.ListHelmReleasesResponse{

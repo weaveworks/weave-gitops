@@ -85,11 +85,13 @@ func TestListGitRepositories_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resourcesFound := 0
+
 	for _, r := range res.GitRepositories {
 		if r.Name == appName1 || r.Name == appName2 {
 			resourcesFound++
 		}
 	}
+
 	g.Expect(resourcesFound).To(Equal(2))
 }
 
@@ -123,11 +125,13 @@ func TestListHelmRepositories_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resourcesFound := 0
+
 	for _, r := range res.HelmRepositories {
 		if r.Name == appName1 || r.Name == appName2 {
 			resourcesFound++
 		}
 	}
+
 	g.Expect(resourcesFound).To(Equal(2))
 }
 
@@ -188,11 +192,13 @@ func TestListHelmCharts_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resourcesFound := 0
+
 	for _, r := range res.HelmCharts {
 		if r.Name == appName1 || r.Name == appName2 {
 			resourcesFound++
 		}
 	}
+
 	g.Expect(resourcesFound).To(Equal(2))
 }
 
@@ -253,11 +259,13 @@ func TestListBuckets_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resourcesFound := 0
+
 	for _, r := range res.Buckets {
 		if r.Name == appName1 || r.Name == appName2 {
 			resourcesFound++
 		}
 	}
+
 	g.Expect(resourcesFound).To(Equal(2))
 }
 
@@ -271,6 +279,7 @@ func newGitRepo(ctx context.Context, name, namespace string, k client.Client, g 
 	repo.Name = name
 	repo.Namespace = namespace
 	g.Expect(k.Create(ctx, repo)).To(Succeed())
+
 	return repo
 }
 

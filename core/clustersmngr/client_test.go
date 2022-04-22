@@ -173,6 +173,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 		appName := "myapp-" + strconv.Itoa(i)
 		createKust(appName, ns1.Name)
 	}
+
 	for i := 0; i < 1; i++ {
 		appName := "myapp-" + strconv.Itoa(i)
 		createKust(appName, ns2.Name)
@@ -202,6 +203,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(2))
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist.Items).To(HaveLen(1))
+
 	continueToken := cklist.GetContinue()
 
 	// Second request comes with the continue token
@@ -212,6 +214,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(1))
 	klist0 := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist0.Items).To(HaveLen(1))
+
 	continueToken = cklist.GetContinue()
 
 	// Third request comes with an empty namespaces continue token

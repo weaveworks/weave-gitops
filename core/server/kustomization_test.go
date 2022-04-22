@@ -67,11 +67,13 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resourcesFound := 0
+
 	for _, r := range res.Kustomizations {
 		if r.Name == appName1 || r.Name == appName2 {
 			resourcesFound++
 		}
 	}
+
 	g.Expect(resourcesFound).To(Equal(2))
 }
 
@@ -89,12 +91,14 @@ func TestListKustomizationPagination(t *testing.T) {
 	existingKust := existingKustomizationCount(g)
 
 	ns1 := newNamespace(ctx, k, g)
+
 	for i := 0; i < 2; i++ {
 		appName := "myapp-" + strconv.Itoa(i)
 		newKustomization(ctx, appName, ns1.Name, k, g)
 	}
 
 	ns2 := newNamespace(ctx, k, g)
+
 	for i := 0; i < 2; i++ {
 		appName := "myapp-" + strconv.Itoa(i)
 		newKustomization(ctx, appName, ns2.Name, k, g)

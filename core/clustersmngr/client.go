@@ -106,6 +106,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 			listOpts = append(listOpts, client.Continue(nsContinueToken))
 
 			wg.Add(1)
+
 			go func(clusterName string, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
 				defer wg.Done()
 
@@ -118,7 +119,6 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 				paginationInfo.Set(clusterName, nsName, list.GetContinue())
 
 				clist.AddObjectList(clusterName, list)
-
 			}(clusterName, ns.Name, cc, listOpts...)
 		}
 	}

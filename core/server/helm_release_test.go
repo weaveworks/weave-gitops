@@ -68,11 +68,13 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	releasesFound := 0
+
 	for _, r := range res.HelmReleases {
 		if r.Name == appName1 || r.Name == appName2 {
 			releasesFound++
 		}
 	}
+
 	g.Expect(releasesFound).To(Equal(2))
 }
 
