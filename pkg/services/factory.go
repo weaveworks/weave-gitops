@@ -17,7 +17,7 @@ import (
 
 // Factory provides helpers for generating various WeGO service objects at runtime.
 type Factory interface {
-	GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error)
+	GetGitClients(ctx context.Context, kubeClient *kube.KubeHTTP, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 }
 
 type GitConfigParams struct {
@@ -40,7 +40,7 @@ func NewFactory(fluxClient flux.Flux, log logger.Logger) Factory {
 	}
 }
 
-func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
+func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient *kube.KubeHTTP, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
 	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
@@ -59,7 +59,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 	return client, authSvc.GetGitProvider(), nil
 }
 
-func (f *defaultFactory) getAuthService(kubeClient kube.Kube, normalizedUrl gitproviders.RepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
+func (f *defaultFactory) getAuthService(kubeClient *kube.KubeHTTP, normalizedUrl gitproviders.RepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error
@@ -75,5 +75,5 @@ func (f *defaultFactory) getAuthService(kubeClient kube.Kube, normalizedUrl gitp
 		}
 	}
 
-	return auth.NewAuthService(f.fluxClient, kubeClient.Raw(), gitProvider, f.log)
+	return auth.NewAuthService(f.fluxClient, kubeClient, gitProvider, f.log)
 }

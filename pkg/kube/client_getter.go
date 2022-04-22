@@ -37,7 +37,7 @@ func NewDefaultClientGetter(configGetter ConfigGetter, clusterName string, schem
 func (g *DefaultClientGetter) Client(ctx context.Context) (client.Client, error) {
 	config := g.configGetter.Config(ctx)
 
-	_, rawClient, err := NewKubeHTTPClientWithConfig(config, g.clusterName, g.schemeBuilder...)
+	rawClient, err := NewKubeHTTPClientWithConfig(config, g.clusterName, g.schemeBuilder...)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}

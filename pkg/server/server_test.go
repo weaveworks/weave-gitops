@@ -394,11 +394,9 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				factory := &servicesfakes.FakeFactory{}
-				fakeKubeGetter := kubefakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
 
 				appsSrv = server.NewApplicationsServer(
-					&server.ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken},
-					server.WithKubeGetter(fakeKubeGetter))
+					&server.ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
