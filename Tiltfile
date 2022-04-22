@@ -7,7 +7,15 @@ local_resource(
         './cmd',
         './pkg',
         './core',
-        './charts',
+        './api',
+    ]
+)
+
+local_resource(
+    'ui-server',
+    'make ui',
+    deps=[
+        './ui',
     ]
 )
 
@@ -34,4 +42,4 @@ def helmfiles(chart, values):
 k8s_yaml(helmfiles('./charts/gitops-server', './tools/helm-values-dev.yaml'))
 k8s_yaml(helmfiles('./tools/charts/dev', './tools/charts/dev/values.yaml'))
 
-k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server'])
+k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server', 'ui-server'])

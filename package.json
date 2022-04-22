@@ -4,7 +4,7 @@
   "description": "Weave GitOps core",
   "targets": {
     "default": {
-      "distDir": "cmd/gitops-server/cmd/dist",
+      "distDir": "bin/dist",
       "source": "ui/index.html",
       "sourceMap": false
     },
