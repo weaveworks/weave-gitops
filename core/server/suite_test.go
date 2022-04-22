@@ -119,7 +119,7 @@ func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, conf
 			return nil, err
 		}
 
-		clusterClient, err := clientsFactory.GetUserClient(ctx, user)
+		clusterClient, err := clientsFactory.GetImpersonatedClient(ctx, user)
 		if err != nil {
 			return nil, err
 		}

@@ -27,7 +27,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	g.Expect(clientsPool.Add(clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}), cluster)).To(Succeed())
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
-	clientsFactory.GetUserClientReturns(client, nil)
+	clientsFactory.GetImpersonatedClientReturns(client, nil)
 
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	middleware := func(next http.Handler) http.Handler {
@@ -50,12 +50,12 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
 
-func TestWithClustersClientsMiddlewareFailsToGetUserClient(t *testing.T) {
+func TestWithClustersClientsMiddlewareFailsToGetImpersonatedClient(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
-	clientsFactory.GetUserClientReturns(nil, errors.New("error"))
+	clientsFactory.GetImpersonatedClientReturns(nil, errors.New("error"))
 
 	middleware := clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)

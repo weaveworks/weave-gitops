@@ -16,7 +16,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func TestGetUserClient(t *testing.T) {
+func TestGetImpersonatedClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 	ctx := context.Background()
@@ -37,7 +37,7 @@ func TestGetUserClient(t *testing.T) {
 	err = clientsFactory.UpdateNamespaces(ctx)
 	g.Expect(err).To(BeNil())
 
-	_, err = clientsFactory.GetUserClient(ctx, &auth.UserPrincipal{ID: "user-id"})
+	_, err = clientsFactory.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: "user-id"})
 	g.Expect(err).To(BeNil())
 
 	t.Run("checks all namespaces in the cluster when through the filtering", func(t *testing.T) {

@@ -21,6 +21,20 @@ type FakeClientsFactory struct {
 	getClustersNamespacesReturnsOnCall map[int]struct {
 		result1 map[string][]v1.Namespace
 	}
+	GetImpersonatedClientStub        func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)
+	getImpersonatedClientMutex       sync.RWMutex
+	getImpersonatedClientArgsForCall []struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
+	}
+	getImpersonatedClientReturns struct {
+		result1 clustersmngr.Client
+		result2 error
+	}
+	getImpersonatedClientReturnsOnCall map[int]struct {
+		result1 clustersmngr.Client
+		result2 error
+	}
 	GetServerClientStub        func(context.Context) (clustersmngr.Client, error)
 	getServerClientMutex       sync.RWMutex
 	getServerClientArgsForCall []struct {
@@ -31,20 +45,6 @@ type FakeClientsFactory struct {
 		result2 error
 	}
 	getServerClientReturnsOnCall map[int]struct {
-		result1 clustersmngr.Client
-		result2 error
-	}
-	GetUserClientStub        func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)
-	getUserClientMutex       sync.RWMutex
-	getUserClientArgsForCall []struct {
-		arg1 context.Context
-		arg2 *auth.UserPrincipal
-	}
-	getUserClientReturns struct {
-		result1 clustersmngr.Client
-		result2 error
-	}
-	getUserClientReturnsOnCall map[int]struct {
 		result1 clustersmngr.Client
 		result2 error
 	}
@@ -132,6 +132,71 @@ func (fake *FakeClientsFactory) GetClustersNamespacesReturnsOnCall(i int, result
 	}{result1}
 }
 
+func (fake *FakeClientsFactory) GetImpersonatedClient(arg1 context.Context, arg2 *auth.UserPrincipal) (clustersmngr.Client, error) {
+	fake.getImpersonatedClientMutex.Lock()
+	ret, specificReturn := fake.getImpersonatedClientReturnsOnCall[len(fake.getImpersonatedClientArgsForCall)]
+	fake.getImpersonatedClientArgsForCall = append(fake.getImpersonatedClientArgsForCall, struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
+	}{arg1, arg2})
+	stub := fake.GetImpersonatedClientStub
+	fakeReturns := fake.getImpersonatedClientReturns
+	fake.recordInvocation("GetImpersonatedClient", []interface{}{arg1, arg2})
+	fake.getImpersonatedClientMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientsFactory) GetImpersonatedClientCallCount() int {
+	fake.getImpersonatedClientMutex.RLock()
+	defer fake.getImpersonatedClientMutex.RUnlock()
+	return len(fake.getImpersonatedClientArgsForCall)
+}
+
+func (fake *FakeClientsFactory) GetImpersonatedClientCalls(stub func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)) {
+	fake.getImpersonatedClientMutex.Lock()
+	defer fake.getImpersonatedClientMutex.Unlock()
+	fake.GetImpersonatedClientStub = stub
+}
+
+func (fake *FakeClientsFactory) GetImpersonatedClientArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
+	fake.getImpersonatedClientMutex.RLock()
+	defer fake.getImpersonatedClientMutex.RUnlock()
+	argsForCall := fake.getImpersonatedClientArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClientsFactory) GetImpersonatedClientReturns(result1 clustersmngr.Client, result2 error) {
+	fake.getImpersonatedClientMutex.Lock()
+	defer fake.getImpersonatedClientMutex.Unlock()
+	fake.GetImpersonatedClientStub = nil
+	fake.getImpersonatedClientReturns = struct {
+		result1 clustersmngr.Client
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientsFactory) GetImpersonatedClientReturnsOnCall(i int, result1 clustersmngr.Client, result2 error) {
+	fake.getImpersonatedClientMutex.Lock()
+	defer fake.getImpersonatedClientMutex.Unlock()
+	fake.GetImpersonatedClientStub = nil
+	if fake.getImpersonatedClientReturnsOnCall == nil {
+		fake.getImpersonatedClientReturnsOnCall = make(map[int]struct {
+			result1 clustersmngr.Client
+			result2 error
+		})
+	}
+	fake.getImpersonatedClientReturnsOnCall[i] = struct {
+		result1 clustersmngr.Client
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeClientsFactory) GetServerClient(arg1 context.Context) (clustersmngr.Client, error) {
 	fake.getServerClientMutex.Lock()
 	ret, specificReturn := fake.getServerClientReturnsOnCall[len(fake.getServerClientArgsForCall)]
@@ -191,71 +256,6 @@ func (fake *FakeClientsFactory) GetServerClientReturnsOnCall(i int, result1 clus
 		})
 	}
 	fake.getServerClientReturnsOnCall[i] = struct {
-		result1 clustersmngr.Client
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeClientsFactory) GetUserClient(arg1 context.Context, arg2 *auth.UserPrincipal) (clustersmngr.Client, error) {
-	fake.getUserClientMutex.Lock()
-	ret, specificReturn := fake.getUserClientReturnsOnCall[len(fake.getUserClientArgsForCall)]
-	fake.getUserClientArgsForCall = append(fake.getUserClientArgsForCall, struct {
-		arg1 context.Context
-		arg2 *auth.UserPrincipal
-	}{arg1, arg2})
-	stub := fake.GetUserClientStub
-	fakeReturns := fake.getUserClientReturns
-	fake.recordInvocation("GetUserClient", []interface{}{arg1, arg2})
-	fake.getUserClientMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeClientsFactory) GetUserClientCallCount() int {
-	fake.getUserClientMutex.RLock()
-	defer fake.getUserClientMutex.RUnlock()
-	return len(fake.getUserClientArgsForCall)
-}
-
-func (fake *FakeClientsFactory) GetUserClientCalls(stub func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)) {
-	fake.getUserClientMutex.Lock()
-	defer fake.getUserClientMutex.Unlock()
-	fake.GetUserClientStub = stub
-}
-
-func (fake *FakeClientsFactory) GetUserClientArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
-	fake.getUserClientMutex.RLock()
-	defer fake.getUserClientMutex.RUnlock()
-	argsForCall := fake.getUserClientArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeClientsFactory) GetUserClientReturns(result1 clustersmngr.Client, result2 error) {
-	fake.getUserClientMutex.Lock()
-	defer fake.getUserClientMutex.Unlock()
-	fake.GetUserClientStub = nil
-	fake.getUserClientReturns = struct {
-		result1 clustersmngr.Client
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeClientsFactory) GetUserClientReturnsOnCall(i int, result1 clustersmngr.Client, result2 error) {
-	fake.getUserClientMutex.Lock()
-	defer fake.getUserClientMutex.Unlock()
-	fake.GetUserClientStub = nil
-	if fake.getUserClientReturnsOnCall == nil {
-		fake.getUserClientReturnsOnCall = make(map[int]struct {
-			result1 clustersmngr.Client
-			result2 error
-		})
-	}
-	fake.getUserClientReturnsOnCall[i] = struct {
 		result1 clustersmngr.Client
 		result2 error
 	}{result1, result2}
@@ -420,10 +420,10 @@ func (fake *FakeClientsFactory) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.getClustersNamespacesMutex.RLock()
 	defer fake.getClustersNamespacesMutex.RUnlock()
+	fake.getImpersonatedClientMutex.RLock()
+	defer fake.getImpersonatedClientMutex.RUnlock()
 	fake.getServerClientMutex.RLock()
 	defer fake.getServerClientMutex.RUnlock()
-	fake.getUserClientMutex.RLock()
-	defer fake.getUserClientMutex.RUnlock()
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	fake.updateClustersMutex.RLock()

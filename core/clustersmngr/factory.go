@@ -25,14 +25,15 @@ const (
 // ClientsFactory is a factory for creating clients for clusters
 //counterfeiter:generate . ClientsFactory
 type ClientsFactory interface {
-	// GetUserClient returns the clusters client for the given user
-	GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// GetImpersonatedClient returns the clusters client for the given user
+	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
 	// UpdateClusters updates the clusters list
 	UpdateClusters(ctx context.Context) error
 	// UpdateNamespaces updates the namespaces all namespaces for all clusters
 	UpdateNamespaces(ctx context.Context) error
-
+	// GetServerClient returns the cluster client with gitops server permissions
 	GetServerClient(ctx context.Context) (Client, error)
+	// GetClustersNamespaces returns the namespaces for all clusters
 	GetClustersNamespaces() map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
@@ -134,7 +135,7 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 	return nil
 }
 
-func (cf *clientsFactory) GetUserClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	pool := NewClustersClientsPool()
 
 	for _, cluster := range cf.clusters.Get() {
