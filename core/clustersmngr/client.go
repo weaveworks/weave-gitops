@@ -14,7 +14,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Client thin wrapper to controller-runtime/client  adding multi clusters context.
+// Client is wrapper to controller-runtime/client adding multi clusters context.
+// it contains the list of clusters and namespaces the user has access to allowing
+// cross cluster/namespace querying
 type Client interface {
 	// Get retrieves an obj for the given object key.
 	Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error
@@ -30,7 +32,11 @@ type Client interface {
 	// Patch patches the given obj
 	Patch(ctx context.Context, cluster string, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
 
-	// ClusteredList retrieves list of objects for all clusters.
+	// ClusteredList loops through the list of clusters and namespaces the client has access and
+	// queries the list of objects for each of them in parallel.
+	// This method supports pagination with a caveat, the client.Limit passed will be multiplied
+	// by the number of clusters and namespaces, we decided to do this to avoid the complex coordination
+	// that would be required to make sure the number of items returned match the limit passed.
 	ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error
 
 	// ClientsPool returns the clients pool.
@@ -110,7 +116,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 			go func(clusterName string, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
 				defer wg.Done()
 
-				list := clist.NewList(clusterName)
+				list := clist.NewList()
 
 				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
 					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
@@ -206,14 +212,17 @@ func (c clustersClient) Scoped(cluster string) (client.Client, error) {
 	return client, nil
 }
 
+// ClusteredObjectList represents the returns of the lists of all clusters and namespaces user could query
 type ClusteredObjectList interface {
-	NewList(cluster string) client.ObjectList
+	// NewList is a factory that returns a new concrete list being queried
+	NewList() client.ObjectList
+	// AddObjectList adds a result list of objects to the lists map
 	AddObjectList(cluster string, list client.ObjectList)
+	// Lists returns the map of lists from all clusters
 	Lists() map[string][]client.ObjectList
-
-	// GetContinue returns the continue token
+	// GetContinue returns the continue token used for pagination
 	GetContinue() string
-	// SetContinue sets the continue token
+	// SetContinue sets the continue token used for pagination
 	SetContinue(continueToken string)
 }
 
@@ -232,7 +241,7 @@ func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList 
 	}
 }
 
-func (cl *ClusteredList) NewList(cluster string) client.ObjectList {
+func (cl *ClusteredList) NewList() client.ObjectList {
 	return cl.listFactory()
 }
 

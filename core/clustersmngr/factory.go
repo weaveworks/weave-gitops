@@ -19,7 +19,9 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 const (
-	userNamespaceTTL = 1 * time.Hour
+	userNamespaceTTL        = 1 * time.Hour
+	watchClustersFrequency  = 30 * time.Second
+	watchNamespaceFrequency = 30 * time.Second
 )
 
 // ClientsFactory is a factory for creating clients for clusters
@@ -71,7 +73,7 @@ func (cf *clientsFactory) Start(ctx context.Context) {
 }
 
 func (cf *clientsFactory) watchClusters(ctx context.Context) {
-	if err := wait.PollImmediateInfinite(30*time.Second, func() (bool, error) {
+	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			return false, err
 		}
@@ -94,7 +96,7 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 }
 
 func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
-	if err := wait.PollImmediateInfinite(30*time.Second, func() (bool, error) {
+	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
 			return false, err
 		}
@@ -168,8 +170,8 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 		Host:            cluster.Server,
 		BearerToken:     cluster.BearerToken,
 		TLSClientConfig: cluster.TLSConfig,
-		QPS:             1000,
-		Burst:           2000,
+		QPS:             ClientQPS,
+		Burst:           ClientBurst,
 	}
 }
 
