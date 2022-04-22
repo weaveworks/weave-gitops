@@ -10,7 +10,6 @@ import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
-import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -62,11 +61,10 @@ const AppContainer = styled.div`
   min-height: 100vh;
   margin: 0 auto;
   padding: 0;
-  overflow-x: hidden;
 `;
 
 const NavContainer = styled.div`
-  width: 240px;
+  min-width: 200px;
   height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
   background-color: ${(props) => props.theme.colors.neutral00};
@@ -125,7 +123,6 @@ const Main = styled(Flex)``;
 const TopToolBar = styled(Flex)`
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
-
   ${UserSettings} {
     justify-self: flex-end;
     margin-left: auto;
@@ -141,7 +138,7 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-          <Spacer padding="xs" />
+
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>

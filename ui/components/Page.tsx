@@ -10,6 +10,7 @@ import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
 import PollingIndicator from "./PollingIndicator";
 import Spacer from "./Spacer";
+import Text from "./Text";
 
 export type PageProps = {
   className?: string;
@@ -40,10 +41,8 @@ export const Content = styled(Flex)`
 const Children = styled(Flex)``;
 
 export const TitleBar = styled(Flex)`
-  h2 {
-    margin: 0 !important;
-    color: ${(props) => props.theme.colors.neutral40} !important;
-  }
+  //matches nav tabs
+  line-height: 1.75;
 `;
 
 function Errors({ error }) {
@@ -84,7 +83,9 @@ function Page({
     <Content wide tall start column className={className}>
       <TitleBar wide start between>
         <Flex align>
-          <h2>{title}</h2>
+          <Text semiBold size="large">
+            {title}
+          </Text>
           <Spacer padding="small" />
           <PollingIndicator loading={fetching > 0} />
         </Flex>
