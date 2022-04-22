@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import LottiePlayerLight from "react-lottie-player/dist/LottiePlayerLight";
+import Lottie from "react-lottie-player/dist/LottiePlayerLight";
 
 const LottieWrapper = () => {
   const [animationData, setAnimationData] = useState<any>();
@@ -9,7 +9,7 @@ const LottieWrapper = () => {
   }, []);
 
   return (
-    <LottiePlayerLight
+    <Lottie
       play
       loop={false}
       speed={0.3}

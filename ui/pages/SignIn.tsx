@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import AnimatedBackground from "../components/AnimatedBackground";
+import LottieWrapper from "../components/AnimatedBackground/LottieWrapper";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
@@ -178,6 +179,7 @@ function SignIn() {
       }}
     >
       <AnimatedBackground />
+      {/* <LottieWrapper /> */}
       {authError && (
         <AlertWrapper
           severity="error"
