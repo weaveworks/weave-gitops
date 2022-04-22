@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"embed"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -12,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"syscall"
 	"time"
@@ -316,15 +316,13 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	return srv.ListenAndServeTLS(options.TLSCertFile, options.TLSKeyFile)
 }
 
-//go:embed dist/*
-var static embed.FS
-
 func getAssets() fs.FS {
-	f, err := fs.Sub(static, "dist")
-
+	exec, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
+
+	f := os.DirFS(path.Join(path.Dir(exec), "dist"))
 
 	return f
 }

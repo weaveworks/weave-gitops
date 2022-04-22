@@ -22,8 +22,10 @@ COPY Makefile /app/
 WORKDIR /app
 COPY go.* /app/
 RUN go mod download
-COPY --from=ui /home/app/cmd/gitops-server/cmd/dist/ /app/cmd/gitops-server/cmd/dist/
-COPY . /app
+COPY core /app/core
+COPY pkg /app/pkg
+COPY cmd /app/cmd
+COPY api /app/api
 
 # These are ARGS are defined here to minimise cache misses
 # (cf. https://docs.docker.com/engine/reference/builder/#impact-on-build-caching)
@@ -31,11 +33,11 @@ COPY . /app
 ARG GIT_COMMIT="_unset_"
 ARG LDFLAGS="-X localbuild=true"
 
-# ignore the index.html dependency (which it otherwise would because node_modules is missing)
-RUN LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make -o cmd/gitops-server/cmd/dist/index.html gitops-server
+RUN LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
 FROM gcr.io/distroless/base as runtime
+COPY --from=ui /home/app/bin/dist/ /dist/
 COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 
