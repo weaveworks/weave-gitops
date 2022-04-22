@@ -112,8 +112,6 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// list := kustomizev1.KustomizationList{}
-
 		if err := clientsFactory.UpdateClusters(ctx); err != nil {
 			return nil, err
 		}
@@ -125,10 +123,6 @@ func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, conf
 		if err != nil {
 			return nil, err
 		}
-
-		// if err := clusterClient.List(context.TODO(), "Default", &list); err != nil {
-		// 	return nil, err
-		// }
 
 		ctx = context.WithValue(ctx, clustersmngr.ClustersClientCtxKey, clusterClient)
 

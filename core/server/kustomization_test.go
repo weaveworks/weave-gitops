@@ -86,6 +86,8 @@ func TestListKustomizationPagination(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
+	existingKust := existingKustomizationCount(g)
+
 	ns1 := newNamespace(ctx, k, g)
 	for i := 0; i < 2; i++ {
 		appName := "myapp-" + strconv.Itoa(i)
@@ -104,7 +106,7 @@ func TestListKustomizationPagination(t *testing.T) {
 		},
 	})
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(res.Kustomizations).To(HaveLen(2))
+	g.Expect(res.Kustomizations).To(HaveLen(existingKust + 2))
 
 	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
 		Pagination: &pb.Pagination{
@@ -226,4 +228,11 @@ func newKustomization(ctx context.Context, appName, nsName string, k client.Clie
 	g.Expect(k.Create(ctx, kust)).To(Succeed())
 
 	return kust
+}
+
+func existingKustomizationCount(g *GomegaWithT) int {
+	nsList := &kustomizev1.KustomizationList{}
+	g.Expect(k8sEnv.Client.List(context.Background(), nsList)).To(Succeed())
+
+	return len(nsList.Items)
 }
