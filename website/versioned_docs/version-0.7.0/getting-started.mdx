@@ -75,7 +75,6 @@ The bootstrap command above does following:
 - Configures Flux components to track the path /clusters/my-cluster/ in the repository
 
 ### Configure access to the dashboard
-
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
 We will generate a bcyrpt hash for your chosen password and store as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Go Docker image to generate one.
@@ -92,71 +91,19 @@ cd fleet-infra
 ```
 PASSWORD="<your password>"
 docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
-$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-3. Now create a Kubernetes secret to store your chosen username and the password hash.
-
-Note when you update the password that you only need content between ' marks.
-
+3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
 ```
-kubectl create secret generic cluster-user-auth \
-  --namespace flux-system \
-  --from-literal=username=admin \
-  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+# weave-gitops-values.yaml
+adminUser:
+  passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-4. Configure RBAC for the admin user
-
-Still in your local clone of `fleet-infra`, create a new YAML file in the `my-cluster` directory and add the following:
-
-```
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: wego-test-user-read-resources
-  namespace: flux-system
-subjects:
-  - kind: User
-    name: wego-admin
-    namespace: flux-system
-roleRef:
-  kind: Role
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: wego-admin-role
-  namespace: flux-system
-rules:
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-```
-
-7. Commit and push the this file `fleet-infra` repository
-
-```
-git add -A && git commit -m "Add Weave GitOps admin RBAC"
-git push
-```
+:::info
+Storing a hash of a password is relatively safe for demo and testing purposes but it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+:::
 
 ### Install Weave GitOps
 
@@ -203,6 +150,7 @@ git push
 flux create helmrelease ww-gitops \
   --source=HelmRepository/ww-gitops \
   --chart=weave-gitops \
+  --values=<path to weave-gitops-values.yaml> \
   --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
 ```
 
@@ -245,7 +193,7 @@ kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 
 ![Weave GitOps login screen](/img/dashboard-login.png)
 
-###  Applications view
+### Applications view
 
 When you login to the dashboard you are brought to the Applications view, which allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
 
@@ -436,4 +384,4 @@ flux resume kustomization podinfo
 
 Congratulations 🎉🎉🎉
 
-You've now completed the getting started guide. We would welcome any and all [feedback](./feedback-and-telemetry.md) on your experience.
+You've now completed the getting started guide. We would welcome any and all [feedback](feedback-and-telemetry.md) on your experience.
