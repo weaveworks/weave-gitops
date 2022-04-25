@@ -42,6 +42,7 @@ export default styled(PageStatus).attrs({ className: PageStatus.name })`
   bottom: ${(props) => props.theme.spacing.large};
   padding: ${(props) => props.theme.spacing.small};
   color: ${(props) => props.theme.colors.neutral30};
+  overflow: hidden;
   &.error-border {
     border: 1px solid ${(props) => props.theme.colors.neutral20};
     border-radius: 10px;
