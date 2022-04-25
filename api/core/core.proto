@@ -173,6 +173,15 @@ service Core {
             get: "/v1/version"
         };
     }
+
+    /**
+    * GetFeatureFlags returns configuration information about the server
+    */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+        option (google.api.http) = {
+            get : "/v1/featureflags"
+        };
+    }
 }
 
 message Pagination {
@@ -317,4 +326,10 @@ message GetVersionRequest {}
 
 message GetVersionResponse {
     map<string, string> version = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+    map<string, string> flags = 1;
 }
