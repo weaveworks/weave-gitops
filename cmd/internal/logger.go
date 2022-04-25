@@ -3,8 +3,12 @@ package internal
 import (
 	"fmt"
 	"io"
+	"log"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type CLILogger struct {
@@ -15,6 +19,15 @@ func NewCLILogger(writer io.Writer) logger.Logger {
 	return CLILogger{
 		stdout: writer,
 	}
+}
+
+func Logr() logr.Logger {
+	l, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("Couldn't set up logger: %v", err)
+	}
+
+	return zapr.NewLogger(l)
 }
 
 func (l CLILogger) Println(format string, a ...interface{}) {

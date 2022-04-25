@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
@@ -30,10 +30,10 @@ type GitConfigParams struct {
 
 type defaultFactory struct {
 	fluxClient flux.Flux
-	log        logger.Logger
+	log        logr.Logger
 }
 
-func NewFactory(fluxClient flux.Flux, log logger.Logger) Factory {
+func NewFactory(fluxClient flux.Flux, log logr.Logger) Factory {
 	return &defaultFactory{
 		fluxClient: fluxClient,
 		log:        log,

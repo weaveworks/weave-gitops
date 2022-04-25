@@ -26,7 +26,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	serverauth "github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"github.com/weaveworks/weave-gitops/pkg/server/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -108,7 +107,7 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           log.WithName("app-server"),
-		Factory:          services.NewFactory(fluxClient, internal.NewApiLogger(log.WithName("services"))),
+		Factory:          services.NewFactory(fluxClient, log.WithName("services")),
 		JwtClient:        jwtClient,
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),

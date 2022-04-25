@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/names"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -11,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -57,7 +57,7 @@ var _ = Describe("auth", func() {
 			fluxClient = flux.New(&actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
-				log:         &loggerfakes.FakeLogger{}, //Stay silent in tests.
+				log:         logr.Discard(), //Stay silent in tests.
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
 				gitProvider: &gp,
