@@ -77,7 +77,7 @@ The bootstrap command above does following:
 ### Configure access to the dashboard
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
-We will generate a bcyrpt hash for your chosen password and store as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one.
+We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one.
 
 1. Clone your git repository where Flux has been bootstrapped (you could skip this step if you performed previous steps in this doc).
 
