@@ -3,11 +3,12 @@ package profiles
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -94,12 +95,14 @@ func prInfo(opts Options, action, defaultBranch string, commitFile gitprovider.C
 		title = opts.Title
 	}
 
-	description := fmt.Sprintf("%s manifest for %s profile", strings.Title(action), opts.Name)
+	titleCaser := cases.Title(language.AmericanEnglish)
+
+	description := fmt.Sprintf("%s manifest for %s profile", titleCaser.String(action), opts.Name)
 	if opts.Description != "" {
 		description = opts.Description
 	}
 
-	commitMessage := fmt.Sprintf("%s profile manifests", strings.Title(action))
+	commitMessage := fmt.Sprintf("%s profile manifests", titleCaser.String(action))
 	if opts.Message != "" {
 		commitMessage = opts.Message
 	}

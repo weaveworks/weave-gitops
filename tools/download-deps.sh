@@ -130,7 +130,7 @@ for tool in $tools; do
 done
 
 echo "Installing golangci-lint"
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.44.0
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.45.2
 
 if [ -z ${SKIP_MKCERT_INSTALLATION+x} ];
 then

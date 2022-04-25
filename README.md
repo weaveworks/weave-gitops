@@ -86,7 +86,7 @@ To set up a development environment for the CLI
 
 ### To use an existing environment
 
-1. Install go v1.17
+1. Install go v1.18
 1. Install [buf](https://github.com/bufbuild/buf)
 1. Run `make all` to install dependencies and build binaries and assets
 1. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
@@ -122,7 +122,7 @@ And some tools that are installed by the `tools/download-deps.sh` script:
 
 ### To use a bootstrapped, ready made environment
 
-1. Install go v1.17
+1. Install go v1.18
 2. Install [buf](https://github.com/bufbuild/buf)
 3. Run `make all` to install dependencies and build binaries and assets
 4. Run `make cluster-dev` which should install and bring up everything and then start `tilt` to take over monitoring
@@ -171,7 +171,7 @@ For VSCode, use these editor configuration flags:
 
 To set up a development environment for the UI
 
-1. Install go v1.17
+1. Install go v1.18
 2. Install Node.js version 16.13.2
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
