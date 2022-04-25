@@ -214,13 +214,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		),
 	)
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(rest)
-	if err != nil {
-		return err
-	}
+	ctx := context.Background()
+
+	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
 	clusterClientsFactory := clustersmngr.NewClientFactory(rawClient, fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
-	clusterClientsFactory.Start(context.TODO())
+	clusterClientsFactory.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)
 
@@ -234,7 +233,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		ClusterName:   clusterName,
 	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), log,
+	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
 			AppConfig:        appConfig,
 			ProfilesConfig:   profilesConfig,
@@ -282,7 +281,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	defer func() {
 		cancel()

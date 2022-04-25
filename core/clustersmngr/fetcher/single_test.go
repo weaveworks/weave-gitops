@@ -17,8 +17,7 @@ func TestSingleFetcher(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(config)
-	g.Expect(err).To(BeNil())
+	fetcher := fetcher.NewSingleClusterFetcher(config)
 
 	clusters, err := fetcher.Fetch(context.TODO())
 	g.Expect(err).To(BeNil())

@@ -44,10 +44,7 @@ func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handle
 	httpHandler := middleware.WithLogging(log, mux)
 
 	if AuthEnabled() {
-		clustersFetcher, err := fetcher.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
-		if err != nil {
-			return nil, fmt.Errorf("failed fetching clusters: %w", err)
-		}
+		clustersFetcher := fetcher.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
 
 		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, clustersFetcher, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
