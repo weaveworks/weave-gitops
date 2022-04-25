@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	core "github.com/weaveworks/weave-gitops/core/server"
-	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
@@ -51,11 +50,6 @@ func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handle
 
 		httpHandler = clustersmngr.WithClustersClient(clustersFetcher, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
-	}
-
-	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)
-	if err := pbapp.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
-		return nil, fmt.Errorf("could not register application: %w", err)
 	}
 
 	profilesSrv := NewProfilesServer(log, cfg.ProfilesConfig)
