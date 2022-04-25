@@ -166,8 +166,8 @@ service Core {
 }
 
 message Pagination {
-    int32 page_size = 1;
-    string page_token = 2;
+    int32 pageSize = 1;
+    string pageToken = 2;
 }
 
 message ListKustomizationsRequest {
@@ -177,7 +177,7 @@ message ListKustomizationsRequest {
 
 message ListKustomizationsResponse {
     repeated Kustomization kustomizations = 1;
-    string next_page_token = 2;
+    string nextPageToken = 2;
 }
 
 message ListHelmReleasesRequest {
@@ -185,7 +185,7 @@ message ListHelmReleasesRequest {
 }
 
 message ListHelmReleasesResponse {
-    repeated HelmRelease helm_releases = 1;
+    repeated HelmRelease helmReleases = 1;
 }
 
 message GetHelmReleaseRequest {
@@ -195,7 +195,7 @@ message GetHelmReleaseRequest {
 }
 
 message GetHelmReleaseResponse {
-    HelmRelease helm_release = 1;
+    HelmRelease helmRelease = 1;
 }
 
 message ListGitRepositoriesRequest {
@@ -203,7 +203,7 @@ message ListGitRepositoriesRequest {
 }
 
 message ListGitRepositoriesResponse {
-    repeated GitRepository git_repositories = 1;
+    repeated GitRepository gitRepositories = 1;
 }
 
 message ListHelmRepositoriesRequest {
@@ -211,7 +211,7 @@ message ListHelmRepositoriesRequest {
 }
 
 message ListHelmRepositoriesResponse {
-    repeated HelmRepository helm_repositories = 1;
+    repeated HelmRepository helmRepositories = 1;
 }
 
 message ListBucketRequest {
@@ -236,7 +236,7 @@ message ListHelmChartsRequest {
 }
 
 message ListHelmChartsResponse {
-    repeated HelmChart helm_charts = 1;
+    repeated HelmChart helmCharts = 1;
 }
 
 message GetKustomizationRequest {
