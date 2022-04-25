@@ -41,7 +41,6 @@ var s *grpc.Server
 var apps pb.ApplicationsServer
 var appsClient pb.ApplicationsClient
 var conn *grpc.ClientConn
-var err error
 var k8sClient client.Client
 var scheme *apiruntime.Scheme
 var ghAuthClient *authfakes.FakeGithubAuthClient
@@ -59,6 +58,7 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 var _ = BeforeSuite(func() {
 	scheme = kube.CreateScheme()
 
+	var err error
 	env, err = testutils.StartK8sTestEnvironment([]string{
 		"../../manifests/crds",
 		"../../tools/testcrds",
@@ -112,8 +112,8 @@ var _ = BeforeEach(func() {
 	}()
 
 	ctx := context.Background()
+	var err error
 	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 	Expect(err).NotTo(HaveOccurred())
 
 	appsClient = pb.NewApplicationsClient(conn)
