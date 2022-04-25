@@ -70,4 +70,6 @@ function UserSettings({ className }: { className?: string }) {
   );
 }
 
-export default styled(UserSettings)``;
+export default styled(UserSettings)`
+  padding-right: ${(props) => props.theme.spacing.small};
+`;
