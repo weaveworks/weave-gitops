@@ -2,17 +2,14 @@ package server_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -35,9 +32,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -351,7 +346,7 @@ var _ = Describe("ApplicationsServer", func() {
 				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
 				Expect(err).NotTo(HaveOccurred())
 
-				path := "/v1/featureflags"
+				path := "/v1/applications/parse_repo_url"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
@@ -370,12 +365,12 @@ var _ = Describe("ApplicationsServer", func() {
 				// This is the meat of this test case.
 				// Check that the same error passed by kubeClient is logged.
 				Expect(msg).To(Equal(middleware.ServerErrorText))
-				Expect(err.Error()).To(ContainSubstring("GetFeatureFlags not implemented"))
+				Expect(err.Error()).To(ContainSubstring("ParseRepoURL not implemented"))
 			})
 
 			It("logs ok requests", func() {
 				// A valid URL for our server
-				path := "/v1/featureflags"
+				path := "/v1/applications/parse_repo_url?url=https://github.com/user/repo.git"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
@@ -455,140 +450,4 @@ func contextWithAuth(ctx context.Context) context.Context {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx
-}
-
-func TestGetFeatureFlags(t *testing.T) {
-	type Data struct {
-		Flags map[string]string
-	}
-
-	tests := []struct {
-		name     string
-		envSet   func()
-		envUnset func()
-		state    []client.Object
-		result   map[string]string
-	}{
-		{
-			name: "Auth enabled",
-			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-			},
-			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-			},
-			state: []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "true",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name: "Auth disabled",
-			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "false")
-			},
-			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-			},
-			state: []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "false",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name:     "Auth not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name:     "Cluster auth secret set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "true",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name:     "Cluster auth secret not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name:     "OIDC secret set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "true",
-			},
-		},
-		{
-			name:     "OIDC secret not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			log, _ := testutils.MakeFakeLogr()
-			mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-
-			cfg := server.ApplicationsConfig{
-				Logger: log,
-			}
-
-			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
-			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-			appSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
-			err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
-			Expect(err).NotTo(HaveOccurred())
-
-			httpHandler := middleware.WithLogging(log, mux)
-
-			ts := httptest.NewServer(httpHandler)
-			defer ts.Close()
-
-			path := "/v1/featureflags"
-			url := ts.URL + path
-
-			tt.envSet()
-			defer tt.envUnset()
-
-			res, err := http.Get(url)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.StatusCode).To(Equal(http.StatusOK))
-
-			var data Data
-			Expect(json.NewDecoder(res.Body).Decode(&data)).To(Succeed())
-			Expect(tt.result).To(Equal(data.Flags))
-		})
-	}
 }

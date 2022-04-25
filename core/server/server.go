@@ -63,14 +63,24 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Conta
 	}
 }
 
-func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
+func NewCoreServer(cfg CoreServerConfig, setters ...CoreOption) (pb.CoreServer, error) {
 	ctx := context.Background()
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
 	cfg.CacheContainer.Start(ctx)
 
+	clientGetter := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
+
+	args := &CoreOptions{
+		ClientGetter: clientGetter,
+	}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
 	return &coreServer{
-		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
+		k8s:            args.ClientGetter,
 		logger:         cfg.log,
 		cacheContainer: cfg.CacheContainer,
 		nsChecker:      cfg.NSAccess,
