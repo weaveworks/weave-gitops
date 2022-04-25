@@ -57,6 +57,7 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
+  min-width: 1024px;
   max-width: 100vw;
   min-height: 100vh;
   margin: 0 auto;
@@ -138,7 +139,6 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>

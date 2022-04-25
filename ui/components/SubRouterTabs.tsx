@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
 import Link from "./Link";
+import Spacer from "./Spacer";
 import Text from "./Text";
 
 type Props = {
@@ -82,6 +83,7 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
           />
         ))}
       </Tabs>
+      <Spacer padding="xs" />
       <Switch>
         {children}
         <Redirect from="*" to={formatURL(rootPath, query)} />

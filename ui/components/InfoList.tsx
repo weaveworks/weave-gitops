@@ -25,9 +25,6 @@ const InfoList = styled(
     );
   }
 )`
-  table {
-    border-spacing: 0;
-  }
   tbody tr td:first-child {
     min-width: 200px;
   }

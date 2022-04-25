@@ -28,7 +28,6 @@ export const Content = styled(Flex)`
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  min-width: 1260px;
   min-height: 480px;
   max-width: 100%;
   padding-bottom: ${(props) => props.theme.spacing.medium};
