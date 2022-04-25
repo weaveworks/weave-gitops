@@ -74,11 +74,11 @@ message HelmChart {
 }
 
 message HelmRelease {
-    string    release_name               = 1;
+    string    releaseName                = 1;
     string    namespace                  = 2;
     string    name                       = 3;
     Interval  interval                   = 4;
-    HelmChart helm_chart                 = 5;
+    HelmChart helmChart                  = 5;
     repeated  Condition conditions       = 6;
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
@@ -126,7 +126,7 @@ message Bucket {
     string   secretRefName        = 8;
     int32    timeout              = 9;
     repeated Condition conditions = 10;
-    string   bucket_name          = 11;
+    string   bucketName           = 11;
     bool     suspended            = 12;
     string   lastUpdatedAt        = 13;
     string   clusterName          = 14;
