@@ -15,7 +15,6 @@ GOARCH=$(shell which go > /dev/null && go env GOARCH)
 LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
-				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
 
 # Docker args
@@ -224,9 +223,6 @@ tls-files:
 # These echo commands exist to make it easier to pass stuff around github actions
 echo-ldflags:
 	@echo $(LDFLAGS)
-
-echo-flux-version:
-	@echo $(FLUX_VERSION)
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
