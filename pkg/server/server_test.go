@@ -19,7 +19,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/assert"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -45,61 +44,66 @@ import (
 var _ = Describe("ApplicationsServer", func() {
 	var (
 		namespace *corev1.Namespace
-		err       error
+		ctx       context.Context
 	)
 
 	BeforeEach(func() {
+		ctx = context.Background()
+
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
-		err = k8sClient.Create(context.Background(), namespace)
-		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
+		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	})
 
-	It("Authorize", func() {
-		ctx := context.Background()
-		provider := "github"
-		token := "token"
+	Describe("Authenticate", func() {
+		var (
+			token    string
+			provider string
+		)
 
-		jwtClient := auth.NewJwtClient(secretKey)
-		expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
-		Expect(err).NotTo(HaveOccurred())
-
-		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  token,
-		})
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(res.Token).To(Equal(expectedToken))
-	})
-	It("Authorize fails on wrong provider", func() {
-		ctx := context.Background()
-		provider := "wrong_provider"
-		token := "token"
-
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  token,
+		BeforeEach(func() {
+			token = "token"
+			provider = "github"
 		})
 
-		Expect(err.Error()).To(ContainSubstring(server.ErrBadProvider.Error()))
-		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
+		It("succeeds on happy path", func() {
+			jwtClient := auth.NewJwtClient(secretKey)
+			expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
+			Expect(err).NotTo(HaveOccurred())
 
-	})
-	It("Authorize fails on empty provider token", func() {
-		ctx := context.Background()
-		provider := "github"
+			res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+				ProviderName: provider,
+				AccessToken:  token,
+			})
+			Expect(err).NotTo(HaveOccurred())
 
-		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
-			ProviderName: provider,
-			AccessToken:  "",
+			Expect(res.Token).To(Equal(expectedToken))
 		})
 
-		Expect(err).Should(testutils.MatchGRPCError(codes.InvalidArgument, server.ErrEmptyAccessToken))
+		It("fails when given an unsupported provider", func() {
+			provider := "wrong_provider"
+
+			_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+				ProviderName: provider,
+				AccessToken:  token,
+			})
+
+			Expect(err.Error()).To(ContainSubstring(server.ErrBadProvider.Error()))
+			Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
+		})
+
+		It("fails when the provider token is empty", func() {
+			_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+				ProviderName: provider,
+				AccessToken:  "",
+			})
+
+			Expect(err).Should(testutils.MatchGRPCError(codes.InvalidArgument, server.ErrEmptyAccessToken))
+		})
 	})
+
 	Describe("GetGithubDeviceCode", func() {
 		It("returns a device code", func() {
-			ctx := context.Background()
 			code := "123-456"
 			ghAuthClient.GetDeviceCodeStub = func() (*auth.GithubDeviceCodeResponse, error) {
 				return &auth.GithubDeviceCodeResponse{DeviceCode: code}, nil
@@ -110,8 +114,8 @@ var _ = Describe("ApplicationsServer", func() {
 
 			Expect(res.DeviceCode).To(Equal(code))
 		})
+
 		It("returns an error when github returns an error", func() {
-			ctx := context.Background()
 			someError := errors.New("some gh error")
 			ghAuthClient.GetDeviceCodeStub = func() (*auth.GithubDeviceCodeResponse, error) {
 				return nil, someError
@@ -126,19 +130,19 @@ var _ = Describe("ApplicationsServer", func() {
 
 	Describe("GetGithubAuthStatus", func() {
 		It("returns an ErrAuthPending when the user is not yet authenticated", func() {
-			ctx := context.Background()
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return "", auth.ErrAuthPending
 			}
 			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
 			Expect(err).To(HaveOccurred())
+			Expect(res).To(BeNil())
+
 			st, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from err")
 			Expect(st.Message()).To(ContainSubstring(auth.ErrAuthPending.Error()))
-			Expect(res).To(BeNil())
 		})
+
 		It("retuns a jwt if the user has authenticated", func() {
-			ctx := context.Background()
 			token := "abc123def456"
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return token, nil
@@ -150,18 +154,19 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(verified.ProviderToken).To(Equal(token))
 		})
+
 		It("returns an error other than ErrAuthPending", func() {
-			ctx := context.Background()
 			someErr := errors.New("some other err")
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return "", someErr
 			}
 			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
 			Expect(err).To(HaveOccurred())
+			Expect(res).To(BeNil())
+
 			st, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from err")
 			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
-			Expect(res).To(BeNil())
 		})
 	})
 
@@ -197,11 +202,13 @@ var _ = Describe("ApplicationsServer", func() {
 				Url: "not-a  -valid-url",
 			})
 			Expect(err).To(HaveOccurred(), "should have gotten an invalid arg error")
+
 			s, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from error")
 			Expect(s.Code()).To(Equal(codes.InvalidArgument))
 		})
 	})
+
 	Describe("GetGitlabAuthURL", func() {
 		It("returns the gitlab url", func() {
 			urlString := "http://gitlab.com/oauth/authorize"
@@ -237,6 +244,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 			Expect(claims.ProviderToken).To(Equal(token))
 		})
+
 		It("returns an error if the exchange fails", func() {
 			e := errors.New("some code exchange error")
 			glAuthClient.ExchangeCodeReturns(nil, e)
@@ -251,7 +259,8 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(err.Error()).To(ContainSubstring(e.Error()))
 		})
 	})
-	DescribeTable("ValidateProviderToken", func(provider pb.GitProvider, ctx context.Context, errResponse error, expectedCode codes.Code, valid bool) {
+
+	DescribeTable("ValidateProviderToken", func(provider pb.GitProvider, ctx context.Context, errResponse error, expectedCode codes.Code) {
 		glAuthClient.ValidateTokenReturns(errResponse)
 		ghAuthClient.ValidateTokenReturns(errResponse)
 
@@ -268,56 +277,59 @@ var _ = Describe("ApplicationsServer", func() {
 		}
 
 		Expect(err).NotTo(HaveOccurred())
-
-		if valid {
-			// Note that res is nil when there is an error.
-			// Only check a field in `res` when valid, else this will panic
-			Expect(res.Valid).To(BeTrue())
-		}
+		Expect(res.Valid).To(BeTrue())
 	},
-		Entry("bad gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
-		Entry("good gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), nil, codes.OK, true),
-		Entry("bad github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
-		Entry("good github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), nil, codes.OK, true),
-		Entry("no gitops jwt", pb.GitProvider_GitHub, context.Background(), errors.New("unauth error"), codes.Unauthenticated, false),
+		Entry("bad gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument),
+		Entry("good gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), nil, codes.OK),
+		Entry("bad github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument),
+		Entry("good github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), nil, codes.OK),
+		Entry("no gitops jwt", pb.GitProvider_GitHub, context.Background(), errors.New("unauth error"), codes.Unauthenticated),
 	)
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
-			var sink *fakelogr.LogSink
-			var log logr.Logger
-			var appsSrv pb.ApplicationsServer
-			var mux *runtime.ServeMux
-			var httpHandler http.Handler
-			var err error
+			var (
+				sink      *fakelogr.LogSink
+				mux       *runtime.ServeMux
+				ts        *httptest.Server
+				jwtClient auth.JWTClient
+			)
 
 			BeforeEach(func() {
-				log, sink = testutils.MakeFakeLogr()
-				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
+				jwtClient = auth.NewJwtClient(secretKey)
+			})
+
+			JustBeforeEach(func() {
+				var log logr.Logger
+
+				log, sink = testutils.MakeFakeLogr()
+				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := server.ApplicationsConfig{
 					Logger:    log,
-					JwtClient: auth.NewJwtClient(secretKey),
+					JwtClient: jwtClient,
 					Factory:   fakeFactory,
 				}
 
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-				appsSrv = server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
+				appsSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				httpHandler := middleware.WithLogging(log, mux)
+				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
+
+				ts = httptest.NewServer(httpHandler)
+			})
+
+			AfterEach(func() {
+				ts.Close()
 			})
 
 			It("logs invalid requests", func() {
-				ts := httptest.NewServer(httpHandler)
-				defer ts.Close()
-
 				// Test a 404 here
 				path := "/foo"
 				url := ts.URL + path
@@ -336,11 +348,8 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 
 			It("logs server errors", func() {
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
+				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
 				Expect(err).NotTo(HaveOccurred())
-
-				ts := httptest.NewServer(httpHandler)
-				defer ts.Close()
 
 				path := "/v1/featureflags"
 				url := ts.URL + path
@@ -365,9 +374,6 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 
 			It("logs ok requests", func() {
-				ts := httptest.NewServer(httpHandler)
-				defer ts.Close()
-
 				// A valid URL for our server
 				path := "/v1/featureflags"
 				url := ts.URL + path
@@ -387,46 +393,40 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 			})
 
-			It("Authorize fails generating jwt token", func() {
-				fakeJWTToken := &authfakes.FakeJWTClient{}
-				fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
-					return "", fmt.Errorf("some error")
-				}
+			When("when genertaing a JWT token fails", func() {
+				BeforeEach(func() {
+					fakeJWTToken := &authfakes.FakeJWTClient{}
+					fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
+						return "", fmt.Errorf("some error")
+					}
 
-				factory := &servicesfakes.FakeFactory{}
+					jwtClient = fakeJWTToken
+				})
 
-				appsSrv = server.NewApplicationsServer(
-					&server.ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken})
-				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
-				Expect(err).NotTo(HaveOccurred())
+				It("cannot authorize", func() {
+					// A valid URL for our server
+					path := "/v1/authenticate/github"
+					url := ts.URL + path
 
-				ts := httptest.NewServer(httpHandler)
-				defer ts.Close()
+					res, err := http.Post(url, "application/json", strings.NewReader(`{"accessToken":"sometoken"}`))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
 
-				// A valid URL for our server
-				path := "/v1/authenticate/github"
-				url := ts.URL + path
+					bts, err := ioutil.ReadAll(res.Body)
+					Expect(err).NotTo(HaveOccurred())
 
-				res, err := http.Post(url, "application/json", strings.NewReader(`{"accessToken":"sometoken"}`))
-				Expect(err).NotTo(HaveOccurred())
-				Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
+					Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))
 
-				bts, err := ioutil.ReadAll(res.Body)
-				Expect(err).NotTo(HaveOccurred())
+					Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
+					_, msg, _ := sink.InfoArgsForCall(0)
+					Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
 
-				Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))
+					vals := sink.WithValuesArgsForCall(0)
+					list := formatLogVals(vals)
 
-				Expect(sink.InfoCallCount()).To(BeNumerically(">", 0))
-				_, msg, _ := sink.InfoArgsForCall(0)
-				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
-
-				vals := sink.WithValuesArgsForCall(0)
-				list := formatLogVals(vals)
-
-				expectedStatus := strconv.Itoa(res.StatusCode)
-				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
+					expectedStatus := strconv.Itoa(res.StatusCode)
+					Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
+				})
 			})
 		})
 	})
@@ -562,13 +562,14 @@ func TestGetFeatureFlags(t *testing.T) {
 			mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 
 			cfg := server.ApplicationsConfig{
-				Logger: logr.Discard(),
+				Logger: log,
 			}
 
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
 			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
 			appSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
-			err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
+			err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
+			Expect(err).NotTo(HaveOccurred())
 
 			httpHandler := middleware.WithLogging(log, mux)
 
@@ -582,13 +583,12 @@ func TestGetFeatureFlags(t *testing.T) {
 			defer tt.envUnset()
 
 			res, err := http.Get(url)
-			assert.NoError(t, err)
-			assert.Equal(t, http.StatusOK, res.StatusCode)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 			var data Data
-			err = json.NewDecoder(res.Body).Decode(&data)
-			assert.NoError(t, err)
-			assert.Equal(t, data.Flags, tt.result)
+			Expect(json.NewDecoder(res.Body).Decode(&data)).To(Succeed())
+			Expect(tt.result).To(Equal(data.Flags))
 		})
 	}
 }
