@@ -4,10 +4,8 @@ import Interval from "../components/Interval";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import {
-  HelmRepository,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { HelmRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { convertGitURLToGitProvider } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -26,8 +24,8 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
       info={(hr: HelmRepository = {}) => [
         [
           "URL",
-          <Link newTab href={hr.url}>
-            {hr.url}
+          <Link newTab href={convertGitURLToGitProvider(hr.url)}>
+            {convertGitURLToGitProvider(hr.url)}
           </Link>,
         ],
         ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
@@ -39,4 +37,6 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
   );
 }
 
-export default styled(HelmRepositoryDetail).attrs({ className: HelmRepositoryDetail.name })``;
+export default styled(HelmRepositoryDetail).attrs({
+  className: HelmRepositoryDetail.name,
+})``;
