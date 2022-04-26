@@ -27,7 +27,7 @@ gitops get clusters`,
 	cmd.AddCommand(templates.TemplateCommand(endpoint, client))
 	cmd.AddCommand(credentials.CredentialCommand(endpoint, client))
 	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
-	cmd.AddCommand(profiles.Cmd)
+	cmd.AddCommand(profiles.ProfilesCommand(endpoint, client))
 
 	return cmd
 }

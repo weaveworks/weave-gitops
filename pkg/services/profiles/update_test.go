@@ -37,7 +37,7 @@ var _ = Describe("Update Profile(s)", func() {
 		clientSet = fake.NewSimpleClientset()
 		fakeLogger = &loggerfakes.FakeLogger{}
 		fakePR = &fakegitprovider.PullRequest{}
-		profilesSvc = profiles.NewService(clientSet, fakeLogger)
+		profilesSvc = profiles.NewService(fakeLogger)
 
 		updateOptions = profiles.Options{
 			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",

@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net/url"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/kubernetes"
-
-	"github.com/gogo/protobuf/jsonpb"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller"
 )
+
+type ProfilesRetriever interface {
+	Source() string
+	RetrieveProfiles() (*pb.GetProfilesResponse, error)
+}
 
 type GetOptions struct {
 	Name      string
@@ -24,43 +24,25 @@ type GetOptions struct {
 	Port      string
 }
 
-// Get returns a list of available profiles.
-func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
-	profiles, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer) error {
+	profiles, err := r.RetrieveProfiles()
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
-	printProfiles(profiles, opts.Writer)
+	printProfiles(profiles, w)
 
 	return nil
 }
 
-func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
-	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, "https", servicePort, getProfilesPath, clientset)
-	if err != nil {
-		return nil, err
-	}
-
-	profiles := &pb.GetProfilesResponse{}
-	err = jsonpb.UnmarshalString(string(resp), profiles)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return profiles, nil
-}
-
 // GetProfile returns a single available profile.
-func (s *ProfilesSvc) GetProfile(ctx context.Context, opts GetOptions) (*pb.Profile, string, error) {
-	s.Logger.Actionf("getting available profiles in %s/%s", opts.Cluster, opts.Namespace)
+func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts GetOptions) (*pb.Profile, string, error) {
+	s.Logger.Actionf("getting available profiles from %s", r.Source())
 
-	profilesList, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+	profilesList, err := r.RetrieveProfiles()
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
-
 	var version string
 
 	for _, p := range profilesList.Profiles {
@@ -116,22 +98,4 @@ func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {
 			fmt.Fprintln(w, "")
 		}
 	}
-}
-
-func kubernetesDoRequest(ctx context.Context, namespace, serviceName, scheme, servicePort, path string, clientset kubernetes.Interface) ([]byte, error) {
-	u, err := url.Parse(path)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := clientset.CoreV1().Services(namespace).ProxyGet(scheme, serviceName, servicePort, u.String(), nil).DoRaw(ctx)
-	if err != nil {
-		if se, ok := err.(*errors.StatusError); ok {
-			return nil, fmt.Errorf("failed to make GET request to service %s/%s path %q status code: %d", namespace, serviceName, path, int(se.Status().Code))
-		}
-
-		return nil, fmt.Errorf("failed to make GET request to service %s/%s path %q: %w", namespace, serviceName, path, err)
-	}
-
-	return data, nil
 }

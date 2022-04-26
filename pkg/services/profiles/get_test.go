@@ -64,7 +64,7 @@ var _ = Describe("Get Profile(s)", func() {
 		buffer = gbytes.NewBuffer()
 		clientSet = fake.NewSimpleClientset()
 		fakeLogger = &loggerfakes.FakeLogger{}
-		profilesSvc = profiles.NewService(clientSet, fakeLogger)
+		profilesSvc = profiles.NewService(fakeLogger)
 	})
 
 	Context("Get", func() {

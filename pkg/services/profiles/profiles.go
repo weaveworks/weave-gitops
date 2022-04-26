@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -43,22 +42,21 @@ type Options struct {
 	Message      string
 	Title        string
 	Description  string
+	Endpoint     string
 }
 
 type ProfilesSvc struct {
-	ClientSet kubernetes.Interface
-	Logger    logger.Logger
+	Logger logger.Logger
 }
 
-func NewService(clientSet kubernetes.Interface, log logger.Logger) *ProfilesSvc {
+func NewService(log logger.Logger) *ProfilesSvc {
 	return &ProfilesSvc{
-		ClientSet: clientSet,
-		Logger:    log,
+		Logger: log,
 	}
 }
 
-func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, opts GetOptions) (types.NamespacedName, string, error) {
-	availableProfile, version, err := s.GetProfile(ctx, opts)
+func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, r ProfilesRetriever, opts GetOptions) (types.NamespacedName, string, error) {
+	availableProfile, version, err := s.GetProfile(ctx, r, opts)
 	if err != nil {
 		return types.NamespacedName{}, "", fmt.Errorf("failed to get profiles from cluster: %w", err)
 	}
