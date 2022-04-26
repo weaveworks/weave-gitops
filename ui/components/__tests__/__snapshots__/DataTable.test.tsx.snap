@@ -110,8 +110,6 @@ exports[`DataTable snapshots renders 1`] = `
   font-weight: 600;
   color: #737373;
   margin: 0px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .c0 .MuiTableRow-root {
@@ -130,11 +128,8 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c0 td {
-  word-break: break-all;
   word-wrap: break-word;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 <div
