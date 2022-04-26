@@ -23,7 +23,7 @@ function GitRepositoryDetail({ name, namespace, className }: Props) {
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(s.url)}>
-            {convertGitURLToGitProvider(s.url)}
+            {s.url}
           </Link>,
         ],
         ["Ref", s.reference.branch],
