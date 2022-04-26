@@ -5,7 +5,6 @@ import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { HelmRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
-import { convertGitURLToGitProvider } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -24,8 +23,8 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
       info={(hr: HelmRepository = {}) => [
         [
           "URL",
-          <Link newTab href={convertGitURLToGitProvider(hr.url)}>
-            {convertGitURLToGitProvider(hr.url)}
+          <Link newTab href={hr.url}>
+            {hr.url}
           </Link>,
         ],
         ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
