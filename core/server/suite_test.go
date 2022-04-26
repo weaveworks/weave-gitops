@@ -63,7 +63,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
 
-	clientsFactory := clustersmngr.NewClientFactory(k8sEnv.Client, fetcher, &nsChecker, log)
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log)
 
 	coreCfg := server.NewCoreConfig(log, cfg, cacheContainer, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker

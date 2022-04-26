@@ -28,10 +28,7 @@ var (
 )
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
-	sc, err := cs.clientsFactory.GetServerClient(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("could not get server client: %w", err)
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
 	var results []*pb.Deployment
 
@@ -43,7 +40,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 		list := &appsv1.DeploymentList{}
 
-		if err := sc.List(ctx, clusterName, list, client.InNamespace(fluxNs.Name)); err != nil {
+		if err := clustersClient.List(ctx, clusterName, list, client.InNamespace(fluxNs.Name)); err != nil {
 			return nil, fmt.Errorf("could not list deployments in namespace %s: %w", fluxNs.Name, err)
 		}
 

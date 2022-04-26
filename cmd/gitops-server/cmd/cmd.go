@@ -218,7 +218,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(rawClient, fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clusterClientsFactory.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)

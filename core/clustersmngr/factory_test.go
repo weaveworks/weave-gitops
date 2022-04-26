@@ -26,7 +26,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(k8sEnv.Client, clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
