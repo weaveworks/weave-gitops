@@ -54,7 +54,7 @@ type clientsFactory struct {
 	usersNamespaces *UsersNamespaces
 }
 
-func NewClientFactory(hubClient client.Client, fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
+func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
 	return &clientsFactory{
 		clustersFetcher:    fetcher,
 		nsChecker:          nsChecker,
