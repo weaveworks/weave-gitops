@@ -78,7 +78,7 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 
 		return true, nil
 	}); err != nil {
-		cf.log.Error(err, "failed pooling clusters")
+		cf.log.Error(err, "failed polling clusters")
 	}
 }
 
