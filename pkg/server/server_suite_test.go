@@ -41,11 +41,8 @@ var s *grpc.Server
 var apps pb.ApplicationsServer
 var appsClient pb.ApplicationsClient
 var conn *grpc.ClientConn
-var err error
 var k8sClient client.Client
-var testClustername = "test-cluster"
 var scheme *apiruntime.Scheme
-var k kube.Kube
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
 var glAuthClient *authfakes.FakeGitlabAuthClient
@@ -61,6 +58,7 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 var _ = BeforeSuite(func() {
 	scheme = kube.CreateScheme()
 
+	var err error
 	env, err = testutils.StartK8sTestEnvironment([]string{
 		"../../manifests/crds",
 		"../../tools/testcrds",
@@ -83,13 +81,6 @@ var _ = BeforeEach(func() {
 	rand.Seed(time.Now().UnixNano())
 	secretKey = rand.String(20)
 
-	k = &kube.KubeHTTP{
-		Client:      k8sClient,
-		ClusterName: testClustername,
-		DynClient:   env.DynClient,
-		RestMapper:  k8sClient.RESTMapper(),
-	}
-
 	gitProvider = &gitprovidersfakes.FakeGitProvider{}
 	gitProvider.GetDefaultBranchReturns("main", nil)
 
@@ -102,7 +93,6 @@ var _ = BeforeEach(func() {
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
 	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
-	fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
 	cfg := server.ApplicationsConfig{
 		Factory:          fakeFactory,
@@ -112,8 +102,7 @@ var _ = BeforeEach(func() {
 		ClusterConfig:    kube.ClusterConfig{},
 	}
 	apps = server.NewApplicationsServer(&cfg,
-		server.WithClientGetter(fakeClientGetter),
-		server.WithKubeGetter(fakeKubeGetter))
+		server.WithClientGetter(fakeClientGetter))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
@@ -123,8 +112,8 @@ var _ = BeforeEach(func() {
 	}()
 
 	ctx := context.Background()
+	var err error
 	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 	Expect(err).NotTo(HaveOccurred())
 
 	appsClient = pb.NewApplicationsClient(conn)

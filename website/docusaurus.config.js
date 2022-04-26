@@ -10,6 +10,7 @@ module.exports = {
   favicon: "img/favicon_150px.png",
   organizationName: "weaveworks", // Usually your GitHub org/user name.
   projectName: "weave-gitops", // Usually your repo name.
+  trailingSlash: true,
   plugins: [
     () => ({
       // Load yaml files as blobs

@@ -77,8 +77,10 @@ jobs:
         with:
           author: weave-gitops-bot <weave-gitops-bot@weave.works>
           signoff: true
-          committer: GitHub <noreply@github.com>
+          committer: weave-gitops-bot <weave-gitops-bot@weave.works>
           branch: ${{ env.BRANCH }}
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
           body: "Update version references to ${{ env.GITOPS_VERSION }}"
+          token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          labels: "exclude from release notes"

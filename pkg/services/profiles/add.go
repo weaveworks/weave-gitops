@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -56,14 +55,14 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get files in '%s' for config repository %q: %s", git.GetSystemPath(opts.Cluster), configRepoURL, err)
 	}
 
-	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath))
+	fileContent := getGitCommitFileContent(files, git.GetProfilesPath(opts.Cluster, ManifestFileName))
 
 	content, err := addHelmRelease(helmRepo, fileContent, opts.Name, opts.Version, opts.Cluster, opts.Namespace)
 	if err != nil {
-		return fmt.Errorf("failed to add HelmRelease for profile '%s' to %s: %w", opts.Name, models.WegoProfilesPath, err)
+		return fmt.Errorf("failed to add HelmRelease for profile '%s' to %s: %w", opts.Name, ManifestFileName, err)
 	}
 
-	path := git.GetProfilesPath(opts.Cluster, models.WegoProfilesPath)
+	path := git.GetProfilesPath(opts.Cluster, ManifestFileName)
 	pr, err := gitProvider.CreatePullRequest(ctx, configRepoURL, prInfo(opts, "add", defaultBranch, gitprovider.CommitFile{
 		Path:    &path,
 		Content: &content,

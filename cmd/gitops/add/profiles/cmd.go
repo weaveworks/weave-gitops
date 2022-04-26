@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/names"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -82,7 +82,7 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("error initializing kubernetes client: %w", err)
 		}
 
-		kubeClient, _, err := kube.NewKubeHTTPClient()
+		kubeClient, err := kube.NewKubeHTTPClient()
 		if err != nil {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
@@ -102,9 +102,9 @@ func addProfileCmdRunE() func(*cobra.Command, []string) error {
 }
 
 func validateOptions(opts profiles.Options) error {
-	if models.ApplicationNameTooLong(opts.Name) {
+	if names.ApplicationNameTooLong(opts.Name) {
 		return fmt.Errorf("--name value is too long: %s; must be <= %d characters",
-			opts.Name, models.MaxKubernetesResourceNameLength)
+			opts.Name, names.MaxKubernetesResourceNameLength)
 	}
 
 	if opts.Version != "latest" {

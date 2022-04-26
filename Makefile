@@ -68,9 +68,6 @@ fakes: ## Generate testing fakes
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
-api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -R 'node_modules' -s -- sh -c 'go run -ldflags "$(LDFLAGS)" cmd/gitops-server/main.go'
-
 cluster-dev: ## Start tilt to do development with wego-app running on the cluster
 	./tools/bin/tilt up
 
@@ -78,9 +75,8 @@ clean-dev-cluster:
 	kind delete cluster --name kind && docker rm -f kind-registry
 
 ##@ Build
-# In addition to the main file depend on all go files and any other files in
-# the cmd directory (e.g. dist, on the assumption that there won't be many)
-bin/%: cmd/%/main.go $(shell find . -name "*.go") $(shell find cmd -type f)
+# In addition to the main file depend on all go files
+bin/%: cmd/%/main.go $(shell find . -name "*.go")
 ifdef DEBUG
 		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $@ $(GO_BUILD_OPTS) $<
 else
@@ -89,7 +85,7 @@ endif
 
 gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 
-gitops-server: cmd/gitops-server/cmd/dist/index.html bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
+gitops-server: bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
@@ -147,9 +143,7 @@ docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 ##@ UI
 # Build the UI for embedding
-ui: cmd/gitops-server/cmd/dist/index.html ## Build the UI
-
-cmd/gitops-server/cmd/dist/index.html: node_modules $(shell find ui -type f)
+ui: node_modules $(shell find ui -type f) ## Build the UI
 	npm run build
 
 node_modules: ## Install node modules

@@ -56,7 +56,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("couldn't read namespace flag: %v", err)
 		}
 
-		kubeClient, _, err := kube.NewKubeHTTPClient()
+		kubeClient, err := kube.NewKubeHTTPClient()
 		if err != nil {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
@@ -81,6 +81,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		return upgrade.Upgrade(
 			ctx,
+			kubeClient,
 			gitClient,
 			gitProvider,
 			upgradeCmdFlags,

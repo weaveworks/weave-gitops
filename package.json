@@ -1,10 +1,10 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.7.0",
+  "version": "0.7.1-rc.3",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
-      "distDir": "cmd/gitops-server/cmd/dist",
+      "distDir": "bin/dist",
       "source": "ui/index.html",
       "sourceMap": false
     },

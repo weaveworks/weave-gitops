@@ -10,7 +10,7 @@ import {
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
-import DataTable, { Field, SortType } from "./DataTable";
+import { Field, SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
@@ -56,23 +56,19 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         );
       },
       sortValue: ({ name }) => name,
-      width: 5,
       textSearchable: true,
     },
     {
       label: "Type",
       value: "type",
-      width: 5,
     },
     {
       label: "Namespace",
       value: "namespace",
-      width: 5,
     },
     {
       label: "Cluster",
       value: "clusterName",
-      width: 5,
     },
     {
       label: "Source",
@@ -93,13 +89,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             sourceRef={{
               kind: sourceKind,
               name: sourceName,
-              namespace: a.sourceRef.namespace,
+              namespace: a.sourceRef?.namespace,
             }}
           />
         );
       },
       sortValue: (a: Automation) => a.sourceRef?.name,
-      width: 10,
     },
     {
       label: "Status",
@@ -113,25 +108,21 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         ) : null,
       sortType: SortType.number,
       sortValue: statusSortHelper,
-      width: 7.5,
     },
     {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
-      width: 37.5,
       sortValue: ({ conditions }) => computeMessage(conditions),
     },
     {
       label: "Revision",
       value: "lastAttemptedRevision",
-      width: 15,
     },
     {
       label: "Last Updated",
       value: (a: Automation) => (
         <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
       ),
-      width: 10,
     },
   ];
 
@@ -149,9 +140,4 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
 export default styled(AutomationsTable).attrs({
   className: AutomationsTable.name,
-})`
-  ${DataTable} table {
-    table-layout: fixed;
-    width: 100%;
-  }
-`;
+})``;

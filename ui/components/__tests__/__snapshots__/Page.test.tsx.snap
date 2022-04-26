@@ -58,7 +58,7 @@ exports[`Page snapshots default 1`] = `
   align-items: center;
 }
 
-.c8 {
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -77,7 +77,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c10 {
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -91,7 +91,15 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c11 {
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c12 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -100,7 +108,7 @@ exports[`Page snapshots default 1`] = `
   color: #737373;
 }
 
-.c14 {
+.c15 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -109,46 +117,46 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c13 {
+.c14 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c13.title-bar-button {
+.c14.title-bar-button {
   width: 250px;
 }
 
-.c6 {
+.c7 {
   padding: 12px;
 }
 
-.c12 {
+.c13 {
   padding: 4px;
 }
 
-.c15 {
+.c16 {
   padding-right: 24px;
 }
 
-.c9 {
+.c10 {
   color: #737373;
 }
 
-.c7 {
+.c8 {
   padding-left: 8px;
 }
 
-.c7 .MuiCircularProgress-root {
+.c8 .MuiCircularProgress-root {
   -webkit-transition: opacity 2s;
   transition: opacity 2s;
   margin-bottom: 0;
 }
 
-.c7 .MuiCircularProgress-root.in {
+.c8 .MuiCircularProgress-root.in {
   opacity: 1;
 }
 
-.c7 .MuiCircularProgress-root.out {
+.c8 .MuiCircularProgress-root.out {
   opacity: 0;
 }
 
@@ -157,16 +165,17 @@ exports[`Page snapshots default 1`] = `
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  min-width: 1260px;
   min-height: 480px;
+  max-width: 100%;
   padding-bottom: 24px;
-  padding-left: 32px;
+  padding-left: 24px;
+  padding-right: 24px;
   padding-top: 24px;
+  overflow: hidden;
 }
 
-.c4 h2 {
-  margin: 0 !important;
-  color: #1a1a1a !important;
+.c4 {
+  line-height: 1.75;
 }
 
 .c2 .MuiAlert-root {
@@ -182,12 +191,15 @@ exports[`Page snapshots default 1`] = `
     <div
       className="c5"
     >
-      <h2 />
-      <div
+      <span
         className="c6"
+        size="large"
       />
       <div
-        className="c5 c7"
+        className="c7"
+      />
+      <div
+        className="c5 c8"
       >
         <div
           className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -221,29 +233,29 @@ exports[`Page snapshots default 1`] = `
     className="c0"
   />
   <footer
-    className="c8 c9 Footer"
+    className="c9 c10 Footer"
   >
     <div
-      className="c10"
+      className="c11"
     >
       <span
-        className="c11"
+        className="c12"
         color="neutral30"
         size="normal"
       >
         Need help? Contact us at
       </span>
       <div
-        className="c12"
+        className="c13"
       />
       <a
-        className="c13"
+        className="c14"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c14"
+          className="c15"
           color="primary"
           size="normal"
         >
@@ -252,13 +264,13 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c10 c15"
+      className="c11 c16"
     >
       <div
-        className="c12"
+        className="c13"
       />
       <span
-        className="c11"
+        className="c12"
         color="neutral30"
         size="normal"
       >

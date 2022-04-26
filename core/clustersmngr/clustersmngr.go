@@ -17,7 +17,12 @@ type key int
 const (
 	// Clusters Client context key
 	ClustersClientCtxKey key = iota
-	DefaultCluster           = "Default"
+	// DefaultCluster name
+	DefaultCluster = "Default"
+	// ClientQPS is the QPS to use while creating the k8s clients
+	ClientQPS = 1000
+	// ClientBurst is the burst to use while creating the k8s clients
+	ClientBurst = 2000
 )
 
 var (
@@ -79,6 +84,8 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 				UserName: user.ID,
 				Groups:   user.Groups,
 			},
+			QPS:   ClientQPS,
+			Burst: ClientBurst,
 		}
 	}
 }

@@ -90,6 +90,7 @@ function KustomizationDetail({ kustomization, className }: Props) {
             <ReconciledObjectsTable
               automationKind={AutomationKind.KustomizationAutomation}
               automationName={kustomization?.name}
+              namespace={kustomization?.namespace}
               kinds={kustomization?.inventory}
               clusterName={kustomization?.clusterName}
             />

@@ -7,7 +7,15 @@ local_resource(
         './cmd',
         './pkg',
         './core',
-        './charts',
+        './api',
+    ]
+)
+
+local_resource(
+    'ui-server',
+    'make ui',
+    deps=[
+        './ui',
     ]
 )
 
@@ -18,7 +26,9 @@ docker_build_with_restart(
         './bin',
     ],
     dockerfile="dev.dockerfile",
-    entrypoint='/app/build/gitops-server --log-level=debug --insecure',
+    entrypoint="/app/build/gitops-server --log-level=debug --insecure --dev-mode --dev-user {dev_user}".format(
+        dev_user=os.getenv("DEV_USER", "wego-admin")
+    ),
     live_update=[
         sync('./bin', '/app/build'),
     ],
@@ -30,5 +40,6 @@ def helmfiles(chart, values):
 	return local('./tools/bin/helm template dev {c} -f {v}'.format(c=chart, v=values))
 
 k8s_yaml(helmfiles('./charts/gitops-server', './tools/helm-values-dev.yaml'))
+k8s_yaml(helmfiles('./tools/charts/dev', './tools/charts/dev/values.yaml'))
 
-k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server'])
+k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server', 'ui-server'])

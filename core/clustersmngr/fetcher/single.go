@@ -11,10 +11,10 @@ type singleClusterFetcher struct {
 	restConfig *rest.Config
 }
 
-func NewSingleClusterFetcher(config *rest.Config) (mngr.ClusterFetcher, error) {
+func NewSingleClusterFetcher(config *rest.Config) mngr.ClusterFetcher {
 	return singleClusterFetcher{
 		restConfig: config,
-	}, nil
+	}
 }
 
 func (cf singleClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {

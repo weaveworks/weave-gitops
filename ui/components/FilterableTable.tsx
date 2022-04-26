@@ -14,7 +14,6 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
-import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
@@ -212,7 +211,6 @@ function FilterableTable({
           >
             <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
           </IconButton>
-          <Spacer padding="xs" />
         </Flex>
       </Flex>
       <Flex wide tall>

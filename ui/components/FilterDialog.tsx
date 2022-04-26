@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemIcon } from "@material-ui/core";
+import { Checkbox, List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -19,7 +19,7 @@ const SlideContainer = styled.div`
   transition-duration: 0.5s;
   transition-timing-function: ease-in-out;
   &.open {
-    left: 0;
+    left: 0px;
     width: 350px;
   }
 `;
@@ -50,6 +50,57 @@ export function initialFormState(cfg: FilterConfig) {
   );
 }
 
+const FilterSection = ({ header, options, formState, onSectionSelect }) => {
+  const [all, setAll] = React.useState(false);
+  React.useEffect(() => {
+    const allChecked = _.chain(formState)
+      // get all relevant keys' current value
+      .keys()
+      .filter((key) => _.includes(key, header))
+      .every((key) => formState[key])
+      .value();
+    setAll(allChecked);
+  }, [formState]);
+
+  const handleChange = () => {
+    const optionKeys = _.map(options, (option) => [
+      `${header}${filterSeparator}${option}`,
+      !all,
+    ]);
+    onSectionSelect(_.fromPairs(optionKeys));
+  };
+
+  return (
+    <ListItem>
+      <List>
+        <ListItem>
+          <ListItemIcon>
+            <Checkbox checked={all} onChange={handleChange} id={header} />
+          </ListItemIcon>
+          <Text capitalize size="small" color="neutral30" semiBold>
+            {convertHeaders(header)}
+          </Text>
+        </ListItem>
+        {_.map(options, (option: string, index: number) => {
+          return (
+            <ListItem key={index}>
+              <ListItemIcon>
+                <FormCheckbox
+                  label=""
+                  name={`${header}${filterSeparator}${option}`}
+                />
+              </ListItemIcon>
+              <Text color="neutral40" size="small">
+                {_.toString(option)}
+              </Text>
+            </ListItem>
+          );
+        })}
+      </List>
+    </ListItem>
+  );
+};
+
 /** Filter Bar Properties */
 export interface Props {
   className?: string;
@@ -58,7 +109,6 @@ export interface Props {
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
   formState: DialogFormState;
-
   open?: boolean;
 }
 
@@ -85,16 +135,21 @@ const convertHeaders = (header: string) => {
   if (header === "clusterName") return "cluster";
   return header;
 };
-
+type sectionSelectObject = { [header: string]: boolean };
 /** Form Filter Bar */
 function UnstyledFilterDialog({
   className,
   onFilterSelect,
   filterList,
   formState,
-
   open,
 }: Props) {
+  const onSectionSelect = (object: sectionSelectObject) => {
+    if (onFilterSelect) {
+      const next = { ...formState, ...object };
+      onFilterSelect(formStateToFilters(next), next);
+    }
+  };
   const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
@@ -115,30 +170,13 @@ function UnstyledFilterDialog({
             <List>
               {_.map(filterList, (options: string[], header: string) => {
                 return (
-                  <ListItem key={header}>
-                    <Flex column>
-                      <Text capitalize size="small" color="neutral30">
-                        {convertHeaders(header)}
-                      </Text>
-                      <List>
-                        {_.map(options, (option: string, index: number) => {
-                          return (
-                            <ListItem key={index}>
-                              <ListItemIcon>
-                                <FormCheckbox
-                                  label=""
-                                  name={`${header}${filterSeparator}${option}`}
-                                />
-                              </ListItemIcon>
-                              <Text color="neutral30" size="small">
-                                {_.toString(option)}
-                              </Text>
-                            </ListItem>
-                          );
-                        })}
-                      </List>
-                    </Flex>
-                  </ListItem>
+                  <FilterSection
+                    key={header}
+                    header={header}
+                    options={options}
+                    formState={formState}
+                    onSectionSelect={onSectionSelect}
+                  />
                 );
               })}
             </List>

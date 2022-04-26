@@ -23,10 +23,10 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
     return children;
   }
 
-  const { loading, userInfo } = React.useContext(Auth);
+  const { userInfo } = React.useContext(Auth);
 
   // Wait until userInfo is loaded before showing signin or app content
-  if (loading) {
+  if (!userInfo) {
     return Loader ? <Loader /> : null;
   }
 

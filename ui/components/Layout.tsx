@@ -10,7 +10,6 @@ import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import Link from "./Link";
 import Logo from "./Logo";
-import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -58,14 +57,15 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
+  min-width: 1024px;
+  max-width: 100vw;
   min-height: 100vh;
   margin: 0 auto;
   padding: 0;
-  overflow-x: hidden;
 `;
 
 const NavContainer = styled.div`
-  width: 240px;
+  min-width: 200px;
   height: 100%;
   margin-top: ${(props) => props.theme.spacing.medium};
   background-color: ${(props) => props.theme.colors.neutral00};
@@ -110,11 +110,13 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  max-width: 100%;
   height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
+  overflow: hidden;
 `;
 
 const Main = styled(Flex)``;
@@ -122,7 +124,6 @@ const Main = styled(Flex)``;
 const TopToolBar = styled(Flex)`
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
-
   ${UserSettings} {
     justify-self: flex-end;
     margin-left: auto;
@@ -138,7 +139,6 @@ function Layout({ className, children }: Props) {
       <AppContainer>
         <TopToolBar start align wide>
           <Logo />
-          <Spacer padding="xs" />
           <Breadcrumbs />
           {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
         </TopToolBar>

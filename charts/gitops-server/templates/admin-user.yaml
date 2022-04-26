@@ -44,6 +44,7 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
+{{- if .Values.adminUser.createSecret }}
 ---
 apiVersion: v1
 kind: Secret
@@ -54,12 +55,7 @@ type: Opaque
 data:
   {{- with .Values.adminUser }}
   username: {{ .username | b64enc | quote }}
-  {{/*
-    htpasswd returns user-file format, e.g. 'username:passwordhash' so as well
-    as using htpasswd to generate the bcrypt hash we also need to extract the
-    final element before base64 enconding it for k8s (and quoting it b/c yaml)
-  */}}
-   {{- $bcryptPasswordHash := .password | required "You must set a password for this user!" | htpasswd "" }}
-  password: {{ regexSplit ":" $bcryptPasswordHash -1 | last | b64enc | quote }}
+  password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
   {{- end }}
+{{- end }}
 {{- end }}

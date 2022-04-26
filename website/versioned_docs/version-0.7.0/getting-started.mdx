@@ -75,104 +75,35 @@ The bootstrap command above does following:
 - Configures Flux components to track the path /clusters/my-cluster/ in the repository
 
 ### Configure access to the dashboard
-
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
-We will generate a bcyrpt hash for your chosen password and store as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses an Alpine Docker image to generate one.
+We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one.
 
-1. Run an Alpine Docker image interactively and supply the password of your choice as an environment variable by changing `<your-password>`:
-
-```
-docker run -e CLEAR_PASSWORD="<your-password>" -it alpine
-```
-
-2. Once inside the shell environment of the Alpine image, install the bcrypt library dependencies as well as the bcrypt library itself:
+1. Clone your git repository where Flux has been bootstrapped (you could skip this step if you performed previous steps in this doc).
 
 ```
-apk add --update musl-dev gcc libffi-dev python3 python3-dev py3-pip
-pip install bcrypt
+git clone https://github.com/$GITHUB_USER/fleet-infra
+cd fleet-infra
 ```
 
-3. Run the following Python script to generate a hash:
+2. Generate the password using a golang image:
 
 ```
-python3 -c 'import bcrypt, os; print(bcrypt.hashpw(os.getenv("CLEAR_PASSWORD").encode(), bcrypt.gensalt()))'
+PASSWORD="<your password>"
+docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-you should get a response like:
-
+3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
 ```
-b'$2b$12$FFokfwM/p8RPr0YMTdHWk.MXe3Kg1/UVyj63pT9FU8/mthUjKjm7W'
-```
-
-4. Copy the output from the above command and exit the shell
-
-```
-exit
+# weave-gitops-values.yaml
+adminUser:
+  passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-5. Now create a Kubernetes secret to store your chosen username and the password hash.
-
-Note when you update the password that you only need content between ' marks.
-
-```
-kubectl create secret generic cluster-user-auth \
-  --namespace flux-system \
-  --from-literal=username=admin \
-  --from-literal=password='$2b$12$FFokfwM/p8RPr0YMTdHWk.MXe3Kg1/UVyj63pT9FU8/mthUjKjm7W'
-```
-
-6. Configure RBAC for the admin user
-
-Still in your local clone of `fleet-infra`, create a new YAML file and add the following:
-
-```
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: wego-test-user-read-resources
-  namespace: flux-system
-subjects:
-  - kind: User
-    name: wego-admin
-    namespace: flux-system
-roleRef:
-  kind: Role
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: wego-admin-role
-  namespace: flux-system
-rules:
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-```
-
-7. Commit and push the this file `fleet-infra` repository
-
-```
-git add -A && git commit -m "Add Weave GitOps admin RBAC"
-git push
-```
+:::info
+Storing a hash of a password is relatively safe for demo and testing purposes but it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+:::
 
 ### Install Weave GitOps
 
@@ -193,7 +124,7 @@ flux create source helm ww-gitops \
   --export > ./clusters/my-cluster/weave-gitops-source.yaml
 ```
 
-The output should be similar to:
+The generated file should look like this:
 
 ```
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -203,7 +134,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m0s
-  url:
+  url: https://helm.gitops.weave.works
 ```
 
 3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
@@ -219,6 +150,7 @@ git push
 flux create helmrelease ww-gitops \
   --source=HelmRepository/ww-gitops \
   --chart=weave-gitops \
+  --values=<path to weave-gitops-values.yaml> \
   --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
 ```
 
@@ -261,7 +193,7 @@ kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 
 ![Weave GitOps login screen](/img/dashboard-login.png)
 
-###  Applications view
+### Applications view
 
 When you login to the dashboard you are brought to the Applications view, which allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
 
@@ -452,4 +384,4 @@ flux resume kustomization podinfo
 
 Congratulations 🎉🎉🎉
 
-You've now completed the getting started guide. We would welcome any and all [feedback](./feedback-and-telemetry.md) on your experience.
+You've now completed the getting started guide. We would welcome any and all [feedback](feedback-and-telemetry.md) on your experience.

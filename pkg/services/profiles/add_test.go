@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 
@@ -182,7 +181,7 @@ var _ = Describe("Add", func() {
 				)
 				r, _ := yaml.Marshal(existingRelease)
 				content := string(r)
-				path := git.GetProfilesPath("prod", models.WegoProfilesPath)
+				path := git.GetProfilesPath("prod", profiles.ManifestFileName)
 				gitProviders.GetRepoDirFilesReturns([]*gitprovider.CommitFile{{
 					Path:    &path,
 					Content: &content,

@@ -2,18 +2,13 @@ package kube_test
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
@@ -23,93 +18,38 @@ import (
 var _ = Describe("KubeHTTP", func() {
 	var (
 		namespace *corev1.Namespace
-		err       error
 	)
 
-	var _ = BeforeEach(func() {
+	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
-		err = k8sClient.Create(context.Background(), namespace)
-		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
-
-		k = &kube.KubeHTTP{
-			Client:      k8sTestEnv.Client,
-			DynClient:   k8sTestEnv.DynClient,
-			RestMapper:  k8sTestEnv.RestMapper,
-			ClusterName: testClustername,
-		}
+		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	})
 
 	AfterEach(func() {
-		err = k8sClient.Delete(context.Background(), namespace)
-		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
-	})
-
-	It("GetClusterName", func() {
-		name, err := k.GetClusterName(context.Background())
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(name).To(Equal(testClustername))
-	})
-
-	Describe("Apply", func() {
-		It("applies a namespaced manifest", func() {
-			ctx := context.Background()
-			name := "my-app"
-
-			kust := fmt.Sprintf(`
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  name: %s
-  namespace: %s
-spec:
-  interval: 1m0s
-  prune: true
-  validation: client
-  sourceRef:
-    name: foo
-    kind: GitRepository
-`, name, namespace.Name)
-			Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
-
-			kustObj := &kustomizev2.Kustomization{}
-			err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(kustObj.Name).To(Equal(name))
-		})
-
-		It("applies a cluster wide manifest", func() {
-			ctx := context.Background()
-			namespace := `
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: foo
-`
-
-			Expect(k.Apply(ctx, []byte(namespace), "")).Should(Succeed())
-		})
-		It("fails to apply invalid manifest", func() {
-			ctx := context.Background()
-
-			kust := "invalid yaml"
-
-			err := k.Apply(ctx, []byte(kust), namespace.Name)
-
-			Expect(errors.Unwrap(err).Error()).Should(ContainSubstring("failed decoding manifest"))
-		})
+		Expect(k8sClient.Delete(context.Background(), namespace)).To(Succeed())
 	})
 
 	Describe("Getting client with override kubeconfig", func() {
-		It("valid kubeconfig", func() {
-			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
-			origkc := os.Getenv("KUBECONFIG")
-			defer os.Setenv("KUBECONFIG", origkc)
-			dir, err := ioutil.TempDir("", "kube-http-test-")
+		var (
+			origkc string
+			dir    string
+		)
+
+		BeforeEach(func() {
+			origkc = os.Getenv("KUBECONFIG")
+
+			var err error
+			dir, err = ioutil.TempDir("", "kube-http-test-")
 			Expect(err).ToNot(HaveOccurred())
-			defer os.RemoveAll(dir)
+		})
+
+		AfterEach(func() {
+			os.Setenv("KUBECONFIG", origkc)
+			Expect(os.RemoveAll(dir)).To(Succeed())
+		})
+
+		It("valid kubeconfig", func() {
 			tests := []struct {
 				name        string
 				expName     string
@@ -122,108 +62,57 @@ metadata:
 				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo"},
 				{"cluster_name", "cluster-name", "cluster_name"},
 			}
+
 			for _, test := range tests {
 				createKubeconfig(test.name, test.clusterName, dir, true)
+
+				kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+
 				_, cname, err := kube.RestConfig()
-				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config")
+				Expect(err).NotTo(HaveOccurred(), "Failed to get a kube config")
 
 				Expect(cname).To(Equal(test.expName))
 			}
-
 		})
+
 		It("errors when pointing at a missing kubeconfig file", func() {
-			t, err := ioutil.TempFile("", "not_a_kubeconfig")
+			t, err := ioutil.TempFile(dir, "not_a_kubeconfig")
 			Expect(err).ToNot(HaveOccurred())
-			defer os.Remove(t.Name())
-			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
-			origkc := os.Getenv("KUBECONFIG")
-			defer os.Setenv("KUBECONFIG", origkc)
-			os.Setenv("KUBECONFIG", t.Name())
-			_, _, err = kube.RestConfig()
-			Expect(err).To(HaveOccurred(), "Should receive an error about invalid kubeconfig ")
 
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+
+			os.Setenv("KUBECONFIG", t.Name())
+
+			_, _, err = kube.RestConfig()
+			Expect(err).To(HaveOccurred())
 		})
+
 		It("errors when no current_context set in kubeconfig file", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
-			origkc := os.Getenv("KUBECONFIG")
-			defer os.Setenv("KUBECONFIG", origkc)
-			dir, err := ioutil.TempDir("", "kube-http-test-")
-			Expect(err).ToNot(HaveOccurred())
-			defer os.RemoveAll(dir)
+
 			createKubeconfig("foo", "bar", dir, false)
-			_, _, err = kube.RestConfig()
-			Expect(err).To(HaveOccurred(), "Should receive an error about no current context ")
+
+			_, _, err := kube.RestConfig()
+			Expect(err).To(HaveOccurred())
 		})
+
 		It("returns a sensisble clusterName inCluster", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, nil }
+
 			_, clusterName, err := kube.RestConfig()
 			Expect(err).ToNot(HaveOccurred())
+
 			Expect(clusterName).To(Equal("default"))
 		})
+
 		It("derives the clusterName from the env inCluster", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, nil }
-			origcn := os.Getenv("CLUSTER_NAME")
-			defer os.Setenv("CLUSTER_NAME", origcn)
 			os.Setenv("CLUSTER_NAME", "foo")
+
 			_, clusterName, err := kube.RestConfig()
 			Expect(err).ToNot(HaveOccurred())
+
 			Expect(clusterName).To(Equal("foo"))
-		})
-	})
-
-	Describe("GetWegoConfig", func() {
-		It("get a wego config in a namespace", func() {
-			ctx := context.Background()
-			name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace.Name}
-			cm := &corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "ConfigMap",
-					APIVersion: corev1.SchemeGroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name.Name,
-					Namespace: name.Namespace,
-				},
-				Data: map[string]string{
-					"config": "FluxNamespace: flux-system",
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, cm)).Should(Succeed())
-
-			wegoConfig, err := k.GetWegoConfig(ctx, name.Namespace)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(wegoConfig.FluxNamespace).To(Equal("flux-system"))
-		})
-
-		It("get the first wego config in all namespacee", func() {
-			ctx := context.Background()
-
-			name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace.Name}
-			cm := &corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "ConfigMap",
-					APIVersion: corev1.SchemeGroupVersion.String(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name.Name,
-					Namespace: name.Namespace,
-				},
-				Data: map[string]string{
-					"config": "FluxNamespace: flux-system",
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, cm)).Should(Succeed())
-
-			wegoConfig, err := k.GetWegoConfig(ctx, "")
-			Expect(err).NotTo(HaveOccurred())
-			Expect(wegoConfig.FluxNamespace).To(Equal("flux-system"))
-		})
-
-		It("fails getting config map", func() {
-			_, err := k.GetWegoConfig(context.Background(), "foo")
-			Expect(err.Error()).To(ContainSubstring("Wego Config not found"))
 		})
 	})
 })
@@ -231,6 +120,8 @@ metadata:
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
 	f, err := ioutil.TempFile(dir, "test.kubeconfig")
 	Expect(err).ToNot(HaveOccurred())
+
+	defer f.Close()
 
 	c := clientcmdapi.Config{}
 
@@ -242,10 +133,12 @@ func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
 	c.Kind = "Config"
 	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: name, Context: clientcmdapi.Context{Cluster: clusterName}})
 	c.Clusters = append(c.Clusters, clientcmdapi.NamedCluster{Name: clusterName, Cluster: clientcmdapi.Cluster{Server: "127.0.0.1"}})
+
 	kubeconfig, err := kyaml.Marshal(&c)
 	Expect(err).ToNot(HaveOccurred())
+
 	_, err = f.Write(kubeconfig)
 	Expect(err).ToNot(HaveOccurred())
-	f.Close()
+
 	os.Setenv("KUBECONFIG", f.Name())
 }

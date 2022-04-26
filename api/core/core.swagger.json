@@ -358,6 +358,19 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1132,6 +1145,9 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        },
+        "nextPageToken": {
+          "type": "string"
         }
       }
     },
@@ -1182,6 +1198,18 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageToken": {
           "type": "string"
         }
       }

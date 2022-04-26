@@ -1,0 +1,19 @@
+brews:
+  - tap:
+      owner: weaveworks
+      name: homebrew-tap
+    commit_author:
+      name: weave-gitops-bot
+      email: weave-gitops-bot@weave.works
+    folder: Formula
+    homepage: "https://docs.gitops.weave.works/docs/getting-started"
+    description: "GitOps support for Kubernetes"
+    install: |
+        bin.install "gitops"
+        # Install bash completion
+        output = Utils.popen_read("#{bin}/gitops completion bash")
+        (bash_completion/"gitops").write output
+
+        # Install zsh completion
+        output = Utils.popen_read("#{bin}/gitops completion zsh")
+        (zsh_completion/"_gitops").write output

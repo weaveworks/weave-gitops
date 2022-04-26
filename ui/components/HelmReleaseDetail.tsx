@@ -35,11 +35,7 @@ const TabContent = styled.div`
   margin-top: 52px;
 `;
 
-export default function HelmReleaseDetail({
-  name,
-  helmRelease,
-  className,
-}: Props) {
+function HelmReleaseDetail({ name, helmRelease, className }: Props) {
   const { path } = useRouteMatch();
   const { notifySuccess } = React.useContext(AppContext);
   const sync = useSyncAutomation({
@@ -56,7 +52,7 @@ export default function HelmReleaseDetail({
   };
 
   return (
-    <Flex className={className} wide tall column align>
+    <div className={className}>
       <Flex wide between>
         <Info>
           <Heading level={2}>{helmRelease?.namespace}</Heading>
@@ -113,6 +109,16 @@ export default function HelmReleaseDetail({
           </RouterTab>
         </SubRouterTabs>
       </TabContent>
-    </Flex>
+    </div>
   );
 }
+
+export default styled(HelmReleaseDetail).attrs({
+  className: HelmReleaseDetail.name,
+})`
+  width: 100%;
+
+  ${Alert} {
+    margin-bottom: 16px;
+  }
+`;

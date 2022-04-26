@@ -11,12 +11,7 @@ type Props = {
   className?: string;
 };
 
-function KustomizationDetail({
-  className,
-  name,
-  namespace,
-  clusterName,
-}: Props) {
+function KustomizationPage({ className, name, namespace, clusterName }: Props) {
   const { data, isLoading, error } = useGetKustomization(
     name,
     namespace,
@@ -30,6 +25,6 @@ function KustomizationDetail({
   );
 }
 
-export default styled(KustomizationDetail).attrs({
-  className: KustomizationDetail.name,
+export default styled(KustomizationPage).attrs({
+  className: KustomizationPage.name,
 })``;

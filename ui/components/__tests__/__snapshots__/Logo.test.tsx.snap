@@ -9,41 +9,89 @@ exports[`Logo snapshots renders 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
 .c2 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c2.title-bar-button {
+  width: 250px;
+}
+
+.c5 {
   padding: 4px;
 }
 
 .c1 {
-  margin-left: 24px;
-  width: 240px;
+  padding-left: 24px;
+  width: 224px;
 }
 
 <div
   className="c0 c1"
 >
-  <img
-    src=""
-    style={
-      Object {
-        "height": 56,
-      }
-    }
-  />
-  <div
+  <a
     className="c2"
-  />
-  <img
-    src=""
-  />
+    href="/applications"
+    onClick={[Function]}
+  >
+    <span
+      className="c3"
+      color="primary"
+      size="normal"
+    >
+      <div
+        className="c4"
+      >
+        <img
+          src=""
+          style={
+            Object {
+              "height": 56,
+            }
+          }
+        />
+        <div
+          className="c5"
+        />
+        <img
+          src=""
+        />
+      </div>
+    </span>
+  </a>
 </div>
 `;
