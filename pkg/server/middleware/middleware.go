@@ -44,7 +44,7 @@ func WithGrpcErrorLogging(log logr.Logger) runtime.ServeMuxOption {
 
 // WithLogging adds basic logging for HTTP requests.
 // Note that this accepts a grpc-gateway ServeMux instead of an http.Handler.
-func WithLogging(log logr.Logger, mux *runtime.ServeMux) http.Handler {
+func WithLogging(log logr.Logger, mux *runtime.ServeMux, secure bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		recorder := &statusRecorder{
 			ResponseWriter: w,
@@ -52,7 +52,7 @@ func WithLogging(log logr.Logger, mux *runtime.ServeMux) http.Handler {
 		}
 		mux.ServeHTTP(recorder, r)
 
-		l := log.WithValues("uri", r.RequestURI, "status", recorder.Status)
+		l := log.WithValues("uri", r.RequestURI, "status", recorder.Status, "tls-secured", secure)
 
 		if recorder.Status < 400 {
 			l.V(logger.LogLevelDebug).Info(RequestOkText)

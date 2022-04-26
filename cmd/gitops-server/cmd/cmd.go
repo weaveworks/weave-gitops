@@ -100,7 +100,7 @@ func NewCommand() *cobra.Command {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-	log, err := logger.New(options.LogLevel, options.Insecure)
+	log, err := logger.New(options.LogLevel, options.DevMode)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		if options.DevMode {
-			log.Info("WARNING: dev mode enabled. This should be used for local work only")
+			log.Info("WARNING: dev mode enabled. Authentication will be bypassed in some instances. This should be used for LOCAL WORK ONLY.")
+			os.Setenv(server.DevModeFeatureFlag, "true")
 			tsv.SetDevMode(options.DevUser)
 		}
 
@@ -286,7 +287,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	if options.Insecure {
-		log.Info("TLS connections disabled")
+		log.Info(
+			"WARNING: TLS connections disabled by the `--insecure` flag. All data INCLUDING AUTH TOKENS will be transmitted without encryption.")
+		os.Setenv(server.TlsDisabledFeatureFlag, "true")
+
 		return srv.ListenAndServe()
 	}
 

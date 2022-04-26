@@ -227,7 +227,9 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFlagsRequest) (*pb.GetFeatureFlagsResponse, error) {
 	flags := make(map[string]string)
 
-	flags["WEAVE_GITOPS_AUTH_ENABLED"] = os.Getenv("WEAVE_GITOPS_AUTH_ENABLED")
+	flags[AuthEnabledFeatureFlag] = os.Getenv(AuthEnabledFeatureFlag)
+	flags[TlsDisabledFeatureFlag] = os.Getenv(TlsDisabledFeatureFlag)
+	flags[DevModeFeatureFlag] = os.Getenv(DevModeFeatureFlag)
 
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
@@ -242,12 +244,12 @@ func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeat
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			flags["CLUSTER_USER_AUTH"] = "false"
+			flags[ClusterUserAuthFlag] = "false"
 		} else {
 			s.log.Error(err, "could not get secret for cluster user")
 		}
 	} else {
-		flags["CLUSTER_USER_AUTH"] = "true"
+		flags[ClusterUserAuthFlag] = "true"
 	}
 
 	err = cl.Get(ctx, client.ObjectKey{
@@ -257,12 +259,12 @@ func (s *applicationServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeat
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			flags["OIDC_AUTH"] = "false"
+			flags[OidcAuthFlag] = "false"
 		} else {
 			s.log.Error(err, "could not get secret for oidc")
 		}
 	} else {
-		flags["OIDC_AUTH"] = "true"
+		flags[OidcAuthFlag] = "true"
 	}
 
 	return &pb.GetFeatureFlagsResponse{

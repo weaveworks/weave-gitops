@@ -19,6 +19,10 @@ import (
 
 const (
 	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
+	TlsDisabledFeatureFlag = "WEAVE_GITOPS_TLS_DISABLED"
+	DevModeFeatureFlag     = "WEAVE_GITOPS_DEV_MODE_ENABLED"
+	ClusterUserAuthFlag    = "CLUSTER_USER_AUTH"
+	OidcAuthFlag           = "OIDC_AUTH"
 )
 
 var (
@@ -31,6 +35,10 @@ func AuthEnabled() bool {
 	return os.Getenv(AuthEnabledFeatureFlag) == "true"
 }
 
+func TlsEnabled() bool {
+	return os.Getenv(TlsDisabledFeatureFlag) != "true"
+}
+
 type Config struct {
 	AppConfig        *ApplicationsConfig
 	AppOptions       []ApplicationsOption
@@ -41,7 +49,7 @@ type Config struct {
 
 func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handler, error) {
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-	httpHandler := middleware.WithLogging(log, mux)
+	httpHandler := middleware.WithLogging(log, mux, TlsEnabled())
 
 	if AuthEnabled() {
 		clustersFetcher, err := fetcher.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)

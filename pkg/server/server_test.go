@@ -318,7 +318,7 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
 				appsSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler := middleware.WithLogging(log, mux)
+				httpHandler := middleware.WithLogging(log, mux, true)
 				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -458,10 +458,6 @@ func contextWithAuth(ctx context.Context) context.Context {
 }
 
 func TestGetFeatureFlags(t *testing.T) {
-	type Data struct {
-		Flags map[string]string
-	}
-
 	tests := []struct {
 		name     string
 		envSet   func()
@@ -472,31 +468,35 @@ func TestGetFeatureFlags(t *testing.T) {
 		{
 			name: "Auth enabled",
 			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
+				os.Setenv(server.AuthEnabledFeatureFlag, "true")
 			},
 			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+				os.Unsetenv(server.AuthEnabledFeatureFlag)
 			},
 			state: []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "true",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "true",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
 			name: "Auth disabled",
 			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "false")
+				os.Setenv(server.AuthEnabledFeatureFlag, "false")
 			},
 			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
+				os.Unsetenv(server.AuthEnabledFeatureFlag)
 			},
 			state: []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "false",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "false",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
@@ -505,9 +505,11 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
@@ -516,9 +518,11 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "true",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "true",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
@@ -527,9 +531,11 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
@@ -538,9 +544,11 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "true",
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "true",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
 		{
@@ -549,11 +557,51 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "",
 			},
 		},
+		{
+			name: "TLS disabled",
+			envSet: func() {
+				os.Setenv(server.TlsDisabledFeatureFlag, "true")
+			},
+			envUnset: func() {
+				os.Unsetenv(server.TlsDisabledFeatureFlag)
+			},
+			state: []client.Object{},
+			result: map[string]string{
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "true",
+				server.DevModeFeatureFlag:     "",
+			},
+		},
+		{
+			name: "dev mode enabled",
+			envSet: func() {
+				os.Setenv(server.DevModeFeatureFlag, "true")
+			},
+			envUnset: func() {
+				os.Unsetenv(server.DevModeFeatureFlag)
+			},
+			state: []client.Object{},
+			result: map[string]string{
+				server.AuthEnabledFeatureFlag: "",
+				server.ClusterUserAuthFlag:    "false",
+				server.OidcAuthFlag:           "false",
+				server.TlsDisabledFeatureFlag: "",
+				server.DevModeFeatureFlag:     "true",
+			},
+		},
+	}
+
+	type Data struct {
+		Flags map[string]string
 	}
 
 	for _, tt := range tests {
@@ -571,7 +619,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 			Expect(err).NotTo(HaveOccurred())
 
-			httpHandler := middleware.WithLogging(log, mux)
+			httpHandler := middleware.WithLogging(log, mux, true)
 
 			ts := httptest.NewServer(httpHandler)
 			defer ts.Close()
