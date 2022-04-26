@@ -73,7 +73,7 @@ function SourceDetail({ className, name, info, type }: Props) {
         <Alert severity="error" title="Error" message={error.message} />
       )}
       <SubRouterTabs rootPath={`${path}/automations`}>
-        <RouterTab name="Relevant Automations" path={`${path}/automations`}>
+        <RouterTab name="Automations" path={`${path}/automations`}>
           <AutomationsTable automations={relevantAutomations} hideSource />
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
