@@ -10,7 +10,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 )
 
 var _ = Describe("Test common utils", func() {
@@ -81,84 +80,6 @@ var _ = Describe("Test common utils", func() {
 error occurred some error, retrying in 1s
 `))
 		})
-	})
-
-	Describe("CaptureStdout", func() {
-		It("captures whatever is printed out to stdout in the callback", func() {
-			var d = func() {
-				fmt.Fprintf(os.Stdout, "my output")
-			}
-
-			stdout := CaptureStdout(d)
-			Expect(stdout).To(Equal("my output"))
-		})
-	})
-
-	Describe("Test file and folder common utils", func() {
-		var td string
-
-		BeforeEach(func() {
-			var err error
-			td, err = ioutil.TempDir("", "common_test-")
-			Expect(err).NotTo(HaveOccurred())
-		})
-
-		AfterEach(func() {
-			Expect(os.RemoveAll(td)).To(Succeed())
-		})
-
-		It("can check to see if a file exists or not", func() {
-			// Existing file
-			tempFile, err := ioutil.TempFile(td, "subfile")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(Exists(tempFile.Name())).To(BeTrue())
-
-			// Not existing file
-			Expect(os.Remove(tempFile.Name())).To(Succeed())
-			Expect(Exists(tempFile.Name())).To(BeFalse())
-		})
-
-		It("can check to see if a folder exists or not", func() {
-			// Existing folder
-			tempFolder, err := ioutil.TempDir(td, "subfolder")
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(Exists(tempFolder)).To(BeTrue())
-
-			// Not existing folder
-			Expect(os.Remove(tempFolder)).ShouldNot(HaveOccurred())
-			Expect(Exists(tempFolder)).To(BeFalse())
-		})
-	})
-
-	Describe("MigrateToNewDirStructure", func() {
-		newStructure := filepath.Join(git.WegoRoot, git.WegoAppDir)
-
-		DescribeTable("correctly translates multiple paths into new structure", func(oldPath, newPath string) {
-			Expect(MigrateToNewDirStructure(oldPath)).To(Equal(newPath))
-		},
-			Entry("does not move random paths", "foo", "foo"),
-			Entry("does not fail on empty paths", "", ""),
-			Entry(
-				"migrates from apps",
-				filepath.Join("apps", "foo", "foo.yaml"),
-				filepath.Join(newStructure, "foo", "foo.yaml"),
-			),
-			Entry(
-				"migrates from .wego/apps",
-				filepath.Join(".wego", "apps", "foo", "foo.yaml"),
-				filepath.Join(newStructure, "foo", "foo.yaml"),
-			),
-			Entry(
-				"migrates from under clusters",
-				filepath.Join("targets", "mycluster", "foo", "deploy.yaml"),
-				filepath.Join(newStructure, "foo", "deploy.yaml"),
-			),
-			Entry(
-				"migrates from under .wego clusters",
-				filepath.Join(".wego", "targets", "mycluster", "foo", "source.yaml"),
-				filepath.Join(newStructure, "foo", "source.yaml"),
-			),
-		)
 	})
 
 	Describe("FindCoreConfig", func() {

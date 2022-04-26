@@ -31,7 +31,6 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
-	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.18.1
 	github.com/ory/go-acc v0.2.6
