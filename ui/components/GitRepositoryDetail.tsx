@@ -3,10 +3,8 @@ import styled from "styled-components";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import {
-  GitRepository,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { GitRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { convertGitURLToGitProvider } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -24,7 +22,7 @@ function GitRepositoryDetail({ name, namespace, className }: Props) {
       info={(s: GitRepository) => [
         [
           "URL",
-          <Link newTab href={s.url}>
+          <Link newTab href={convertGitURLToGitProvider(s.url)}>
             {s.url}
           </Link>,
         ],
@@ -37,4 +35,6 @@ function GitRepositoryDetail({ name, namespace, className }: Props) {
   );
 }
 
-export default styled(GitRepositoryDetail).attrs({ className: GitRepositoryDetail.name })``;
+export default styled(GitRepositoryDetail).attrs({
+  className: GitRepositoryDetail.name,
+})``;
