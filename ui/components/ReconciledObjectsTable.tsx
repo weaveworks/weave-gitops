@@ -79,6 +79,7 @@ function ReconciledObjectsTable({
                 <KubeStatusIndicator
                   conditions={u.conditions}
                   suspended={u.suspended}
+                  short
                 />
               ) : null,
             sortType: SortType.number,
@@ -89,6 +90,7 @@ function ReconciledObjectsTable({
             value: (u: UnstructuredObject) => _.first(u.conditions)?.message,
             sortType: SortType.string,
             sortValue: ({ conditions }) => computeMessage(conditions),
+            maxWidth: 200,
           },
         ]}
         rows={objs}

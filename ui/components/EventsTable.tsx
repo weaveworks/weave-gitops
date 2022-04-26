@@ -48,7 +48,7 @@ function EventsTable({
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
         },
-        { value: "message", label: "Message" },
+        { value: "message", label: "Message", maxWidth: 200 },
         { value: "component", label: "Component" },
         {
           label: "Timestamp",

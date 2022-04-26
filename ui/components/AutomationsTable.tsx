@@ -113,6 +113,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
       sortValue: ({ conditions }) => computeMessage(conditions),
+      maxWidth: 200,
     },
     {
       label: "Revision",

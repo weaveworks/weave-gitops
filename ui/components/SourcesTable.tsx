@@ -77,6 +77,7 @@ function SourcesTable({ className, sources }: Props) {
         {
           label: "Message",
           value: (s) => computeMessage(s.conditions),
+          maxWidth: 200,
         },
         {
           label: "Cluster",
