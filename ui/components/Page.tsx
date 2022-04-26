@@ -68,7 +68,6 @@ function Page({ children, loading, error, className }: PageProps) {
       <Children column wide tall start>
         {children}
       </Children>
-
       {settings.renderFooter && <Footer />}
     </Content>
   );

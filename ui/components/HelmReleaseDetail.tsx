@@ -26,10 +26,6 @@ type Props = {
   className?: string;
 };
 
-const Info = styled.div`
-  padding-bottom: 32px;
-`;
-
 const TabContent = styled.div`
   margin-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
