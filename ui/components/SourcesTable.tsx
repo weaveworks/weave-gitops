@@ -59,6 +59,7 @@ function SourcesTable({ className, sources }: Props) {
           sortType: SortType.string,
           sortValue: (s: Source) => s.name || "",
           textSearchable: true,
+          maxWidth: 200,
         },
         { label: "Type", value: "type" },
         { label: "Namespace", value: "namespace" },
@@ -117,6 +118,7 @@ function SourcesTable({ className, sources }: Props) {
               text
             );
           },
+          maxWidth: 200,
         },
         {
           label: "Reference",

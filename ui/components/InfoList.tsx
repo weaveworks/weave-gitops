@@ -29,6 +29,9 @@ const InfoList = styled(
   tbody tr td:first-child {
     min-width: 200px;
   }
+  td {
+    word-break: break-all;
+  }
   tr {
     height: 16px;
   }

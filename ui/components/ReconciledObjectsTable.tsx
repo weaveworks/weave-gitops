@@ -59,6 +59,7 @@ function ReconciledObjectsTable({
           {
             value: "name",
             label: "Name",
+            maxWidth: 200,
           },
           {
             label: "Type",

@@ -7,9 +7,10 @@ import Link from "./Link";
 type Props = {
   className?: string;
   sourceRef?: SourceRef;
+  short?: boolean;
 };
 
-function SourceLink({ className, sourceRef }: Props) {
+function SourceLink({ className, sourceRef, short }: Props) {
   if (!sourceRef) {
     return <div />;
   }
@@ -18,7 +19,7 @@ function SourceLink({ className, sourceRef }: Props) {
       className={className}
       to={formatSourceURL(sourceRef.kind, sourceRef.name, sourceRef.namespace)}
     >
-      {sourceRef.kind}/{sourceRef.name}
+      {!short && sourceRef.kind}/{sourceRef.name}
     </Link>
   );
 }
