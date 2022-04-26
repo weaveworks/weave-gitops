@@ -43,6 +43,7 @@ type coreServer struct {
 	cacheContainer cache.Container
 	logger         logr.Logger
 	nsChecker      nsaccess.Checker
+	clientsFactory clustersmngr.ClientsFactory
 }
 
 type CoreServerConfig struct {
@@ -51,15 +52,17 @@ type CoreServerConfig struct {
 	clusterName    string
 	NSAccess       nsaccess.Checker
 	CacheContainer cache.Container
+	ClientsFactory clustersmngr.ClientsFactory
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, cacheContainer cache.Container, clusterName string, clusterClientFactory clustersmngr.ClientsFactory) CoreServerConfig {
 	return CoreServerConfig{
 		log:            log.WithName("core-server"),
 		RestCfg:        cfg,
 		clusterName:    clusterName,
 		NSAccess:       nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		CacheContainer: cacheContainer,
+		ClientsFactory: clusterClientFactory,
 	}
 }
 
@@ -74,6 +77,7 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 		logger:         cfg.log,
 		cacheContainer: cfg.CacheContainer,
 		nsChecker:      cfg.NSAccess,
+		clientsFactory: cfg.ClientsFactory,
 	}, nil
 }
 

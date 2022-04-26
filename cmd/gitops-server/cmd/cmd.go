@@ -21,7 +21,10 @@ import (
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	corecache "github.com/weaveworks/weave-gitops/core/cache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
@@ -211,7 +214,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		),
 	)
 
-	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName)
+	ctx := context.Background()
+
+	fetcher := fetcher.NewSingleClusterFetcher(rest)
+
+	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clusterClientsFactory.Start(ctx)
+
+	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
@@ -223,7 +233,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		ClusterName:   clusterName,
 	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), log,
+	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
 			AppConfig:        appConfig,
 			ProfilesConfig:   profilesConfig,
@@ -271,7 +281,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	defer func() {
 		cancel()

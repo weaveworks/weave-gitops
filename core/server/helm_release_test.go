@@ -37,9 +37,7 @@ func TestListHelmReleases(t *testing.T) {
 
 	newHelmRelease(ctx, appName, ns.Name, k, g)
 
-	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{
-		Namespace: ns.Name,
-	})
+	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.HelmReleases).To(HaveLen(1))
 	g.Expect(res.HelmReleases[0].Name).To(Equal(appName))
@@ -49,30 +47,35 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
-	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	existingHelmReleaseNo := func() int {
-		res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
-		g.Expect(err).NotTo(HaveOccurred())
+	appName1 := "myapp-1"
+	ns1 := newNamespace(ctx, k, g)
 
-		return len(res.HelmReleases)
-	}()
+	newHelmRelease(ctx, appName1, ns1.Name, k, g)
 
-	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
+	appName2 := "myapp-2"
+	ns2 := newNamespace(ctx, k, g)
 
-	newHelmRelease(ctx, appName, ns.Name, k, g)
-
-	updateNamespaceCache(cfg)
+	newHelmRelease(ctx, appName2, ns2.Name, k, g)
 
 	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.HelmReleases).To(HaveLen(existingHelmReleaseNo + 1))
+
+	releasesFound := 0
+
+	for _, r := range res.HelmReleases {
+		if r.Name == appName1 || r.Name == appName2 {
+			releasesFound++
+		}
+	}
+
+	g.Expect(releasesFound).To(Equal(2))
 }
 
 func TestGetHelmRelease(t *testing.T) {

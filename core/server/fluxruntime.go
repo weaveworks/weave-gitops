@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -15,6 +16,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -26,23 +28,58 @@ var (
 )
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
-	res, err := cs.listObjects(ctx, msg.Namespace, listFluxRuntimeObjectsInNamespace)
-	if err != nil {
-		return nil, err
-	}
+	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
 	var results []*pb.Deployment
 
-	for _, object := range res {
-		obj, ok := object.(*pb.Deployment)
-		if !ok {
-			return nil, nil
+	for clusterName, nss := range cs.clientsFactory.GetClustersNamespaces() {
+		fluxNs := filterFluxNamespace(nss)
+		if fluxNs == nil {
+			return nil, fmt.Errorf("could not find flux namespace in cluster %s", clusterName)
 		}
 
-		results = append(results, obj)
+		list := &appsv1.DeploymentList{}
+
+		if err := clustersClient.List(ctx, clusterName, list, client.InNamespace(fluxNs.Name)); err != nil {
+			return nil, fmt.Errorf("could not list deployments in namespace %s: %w", fluxNs.Name, err)
+		}
+
+		for _, d := range list.Items {
+			r := &pb.Deployment{
+				Name:        d.Name,
+				Namespace:   d.Namespace,
+				Conditions:  []*pb.Condition{},
+				ClusterName: clusterName,
+			}
+
+			for _, cond := range d.Status.Conditions {
+				r.Conditions = append(r.Conditions, &pb.Condition{
+					Message: cond.Message,
+					Reason:  cond.Reason,
+					Status:  string(cond.Status),
+					Type:    string(cond.Type),
+				})
+			}
+
+			for _, img := range d.Spec.Template.Spec.Containers {
+				r.Images = append(r.Images, img.Image)
+			}
+
+			results = append(results, r)
+		}
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results}, nil
+}
+
+func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
+	for _, ns := range nss {
+		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
+			return &ns
+		}
+	}
+
+	return nil
 }
 
 func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
@@ -176,54 +213,4 @@ func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
 	}
 
 	return conds
-}
-
-func listFluxRuntimeObjectsInNamespace(
-	ctx context.Context,
-	clustersClient clustersmngr.Client,
-	namespace string,
-) ([]interface{}, error) {
-	results := []interface{}{}
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &appsv1.DeploymentList{}
-	})
-
-	opt := getMatchingLabels(FluxNamespacePartOf)
-
-	if err := clustersClient.ClusteredList(ctx, clist, client.InNamespace(namespace), opt); err != nil {
-		return results, err
-	}
-
-	for n, l := range clist.Lists() {
-		list, ok := l.(*appsv1.DeploymentList)
-		if !ok {
-			continue
-		}
-
-		for _, d := range list.Items {
-			r := &pb.Deployment{
-				Name:        d.Name,
-				Namespace:   d.Namespace,
-				Conditions:  []*pb.Condition{},
-				ClusterName: n,
-			}
-
-			for _, cond := range d.Status.Conditions {
-				r.Conditions = append(r.Conditions, &pb.Condition{
-					Message: cond.Message,
-					Reason:  cond.Reason,
-					Status:  string(cond.Status),
-					Type:    string(cond.Type),
-				})
-			}
-
-			for _, img := range d.Spec.Template.Spec.Containers {
-				r.Images = append(r.Images, img.Image)
-			}
-
-			results = append(results, r)
-		}
-	}
-
-	return results, nil
 }

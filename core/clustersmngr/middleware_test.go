@@ -11,14 +11,23 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	v1 "k8s.io/api/core/v1"
 )
 
 func TestWithClustersClientMiddleware(t *testing.T) {
+	g := NewGomegaWithT(t)
+
 	cluster := makeLeafCluster(t)
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
 
-	g := NewGomegaWithT(t)
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+
+	clientsPool := clustersmngr.NewClustersClientsPool()
+	g.Expect(clientsPool.Add(clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}), cluster)).To(Succeed())
+
+	client := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clientsFactory.GetImpersonatedClientReturns(client, nil)
 
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	middleware := func(next http.Handler) http.Handler {
@@ -31,7 +40,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 		})
 	}(defaultHandler)
 
-	middleware = clustersmngr.WithClustersClient(clustersFetcher, middleware)
+	middleware = clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, middleware)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
@@ -41,13 +50,14 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
 
-func TestWithClustersClientsMiddlewareFailsToFetchCluster(t *testing.T) {
+func TestWithClustersClientsMiddlewareFailsToGetImpersonatedClient(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
 	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	clustersFetcher.FetchReturns(nil, errors.New("error"))
+	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clientsFactory.GetImpersonatedClientReturns(nil, errors.New("error"))
 
-	middleware := clustersmngr.WithClustersClient(clustersFetcher, defaultHandler)
+	middleware := clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, defaultHandler)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
