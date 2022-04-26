@@ -20,6 +20,7 @@ function BucketDetail({ name, namespace, className }: Props) {
       type={SourceRefSourceKind.Bucket}
       // Guard against an undefined bucket with a default empty object
       info={(b: Bucket = {}) => [
+        ["Type", SourceRefSourceKind.Bucket],
         ["Endpoint", b.endpoint],
         ["Bucket Name", b.name],
         ["Last Updated", <Timestamp time={b.lastUpdatedAt} />],

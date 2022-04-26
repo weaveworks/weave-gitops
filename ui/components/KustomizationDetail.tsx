@@ -7,7 +7,6 @@ import { AutomationKind, Kustomization } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import Heading from "./Heading";
 import InfoList from "./InfoList";
 import Interval from "./Interval";
 import PageStatus from "./PageStatus";
@@ -23,12 +22,8 @@ type Props = {
   className?: string;
 };
 
-const Info = styled.div`
-  margin-bottom: 16px;
-`;
-
 const TabContent = styled(Flex)`
-  margin-top: 52px;
+  margin-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
   height: 100%;
 `;
@@ -51,38 +46,32 @@ function KustomizationDetail({ kustomization, className }: Props) {
   };
 
   return (
-    <Flex wide tall column align className={className}>
-      <Flex wide between>
-        <Info>
-          <Heading level={2}>{kustomization?.namespace}</Heading>
-          <InfoList
-            items={[
-              ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
-              ["Applied Revision", kustomization?.lastAppliedRevision],
-              ["Cluster", kustomization?.clusterName],
-              ["Path", kustomization?.path],
-              ["Interval", <Interval interval={kustomization?.interval} />],
-              [
-                "Last Updated At",
-                <Timestamp time={kustomization?.lastHandledReconciledAt} />,
-              ],
-            ]}
-          />
-        </Info>
-        <PageStatus
-          conditions={kustomization?.conditions}
-          suspended={kustomization?.suspended}
+    <Flex wide tall column className={className}>
+      {sync.isError && (
+        <Alert
+          severity="error"
+          message={sync.error.message}
+          title="Sync Error"
         />
-      </Flex>
-      <Flex wide>
-        {sync.isError && (
-          <Alert
-            severity="error"
-            message={sync.error.message}
-            title="Sync Error"
-          />
-        )}
-      </Flex>
+      )}
+      <PageStatus
+        conditions={kustomization?.conditions}
+        suspended={kustomization?.suspended}
+      />
+      <InfoList
+        items={[
+          ["Namespace", kustomization?.namespace],
+          ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
+          ["Applied Revision", kustomization?.lastAppliedRevision],
+          ["Cluster", kustomization?.clusterName],
+          ["Path", kustomization?.path],
+          ["Interval", <Interval interval={kustomization?.interval} />],
+          [
+            "Last Updated At",
+            <Timestamp time={kustomization?.lastHandledReconciledAt} />,
+          ],
+        ]}
+      />
       <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>

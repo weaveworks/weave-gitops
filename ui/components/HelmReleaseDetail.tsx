@@ -11,7 +11,6 @@ import {
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import Heading from "./Heading";
 import InfoList from "./InfoList";
 import Interval from "./Interval";
 import PageStatus from "./PageStatus";
@@ -32,28 +31,34 @@ const Info = styled.div`
 `;
 
 const TabContent = styled.div`
-  margin-top: 52px;
+  margin-top: ${(props) => props.theme.spacing.medium};
+  width: 100%;
+  height: 100%;
 `;
 
-function helmChartLink(helmRelease : HelmRelease) {
+function helmChartLink(helmRelease: HelmRelease) {
   if (helmRelease.helmChartName === "") {
-    return (<SourceLink
-      sourceRef={{
-        kind: SourceRefSourceKind.HelmChart,
+    return (
+      <SourceLink
+        sourceRef={{
+          kind: SourceRefSourceKind.HelmChart,
           name: helmRelease?.helmChart.chart,
-      }}
-      />)
+        }}
+      />
+    );
   }
 
-  const [ns, name] = helmRelease.helmChartName.split("/")
+  const [ns, name] = helmRelease.helmChartName.split("/");
 
-  return (<SourceLink
-    sourceRef={{
-      kind: SourceRefSourceKind.HelmChart,
+  return (
+    <SourceLink
+      sourceRef={{
+        kind: SourceRefSourceKind.HelmChart,
         name: name,
         namespace: ns,
-    }}
-    />)
+      }}
+    />
+  );
 }
 
 function HelmReleaseDetail({ name, helmRelease, className }: Props) {
@@ -73,36 +78,27 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
   };
 
   return (
-    <div className={className}>
-      <Flex wide between>
-        <Info>
-          <Heading level={2}>{helmRelease?.namespace}</Heading>
-          <InfoList
-            items={[
-              [
-                "Source",
-                helmChartLink(helmRelease),
-              ],
-              ["Chart", helmRelease?.helmChart.chart],
-              ["Cluster", helmRelease?.clusterName],
-              ["Interval", <Interval interval={helmRelease?.interval} />],
-            ]}
-          />
-        </Info>
-        <PageStatus
-          conditions={helmRelease?.conditions}
-          suspended={helmRelease?.suspended}
+    <Flex wide tall column className={className}>
+      {sync.isError && (
+        <Alert
+          severity="error"
+          message={sync.error.message}
+          title="Sync Error"
         />
-      </Flex>
-      <Flex wide>
-        {sync.isError && (
-          <Alert
-            severity="error"
-            message={sync.error.message}
-            title="Sync Error"
-          />
-        )}
-      </Flex>
+      )}
+      <PageStatus
+        conditions={helmRelease?.conditions}
+        suspended={helmRelease?.suspended}
+      />
+      <InfoList
+        items={[
+          ["Namespace", helmRelease?.namespace],
+          ["Source", helmChartLink(helmRelease)],
+          ["Chart", helmRelease?.helmChart.chart],
+          ["Cluster", helmRelease?.clusterName],
+          ["Interval", <Interval interval={helmRelease?.interval} />],
+        ]}
+      />
       <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>
@@ -125,7 +121,7 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
           </RouterTab>
         </SubRouterTabs>
       </TabContent>
-    </div>
+    </Flex>
   );
 }
 
