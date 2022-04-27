@@ -1,5 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
@@ -154,6 +155,8 @@ function FilterableTable({
   let filtered = filterRows(rows, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
+  const history = useHistory();
+  const location = useLocation();
 
   const handleChipRemove = (chips: string[]) => {
     const next = {
@@ -190,6 +193,13 @@ function FilterableTable({
   };
 
   const handleFilterSelect = (filters, formState) => {
+    let url = "";
+    _.each(formState, (value, key) => {
+      if (value) {
+        url += `${key}_`;
+      }
+    });
+    history.replace(location.pathname + encodeURIComponent(url));
     setFilterState({ ...filterState, filters, formState });
   };
 
