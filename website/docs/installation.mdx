@@ -63,29 +63,6 @@ spec:
   url: https://helm.gitops.weave.works
 ```
 
-## Installing the gitops CLI
-
-The `gitops` command line interface provides a set of commands to make it easier to interact with Weave GitOps, including both the free open source project, and commercial Weave GitOps Enterprise product. It is currently supported on Mac (x86 and Arm), and Linux including WSL.
-
-Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
-
-To install the `gitops` CLI, please follow the following steps:
-
-```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/gitops /usr/local/bin
-gitops version
-```
-
-You should see:
-
-```console
-Current Version: v0.8.0
-GitCommit: 79fc7cc8
-BuildTime: 2022-04-29_13:53:43
-Branch: releases/v0.8.0
-```
-
 ## Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
 Weave Gitops Enterprise (WGE) provides ops teams with an easy way to assess the
@@ -101,11 +78,7 @@ import TabItem from "@theme/TabItem";
 
 :::note BEFORE YOU START
 
-Make sure the following software is installed before continuing with these instructions:
-
-- `gitops` 0.6.2 download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
-
-Also `GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
+`GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 :::
 
 To upgrade to Weave GitOps Enterprise
@@ -207,16 +180,7 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 </TabItem>
 </Tabs>
 
-Create a new repo
-
-```bash
-gh repo create my-management-cluster --private --confirm
-cd my-management-cluster
-echo "# my-management-cluster" > README.md
-git add README.md
-git commit --all --message "init commit"
-git push -u origin main
-```
+DO FLUX bootstrap
 
 ### 2. Install a CAPI provider
 
@@ -264,7 +228,21 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-### 4 Configure access for writing to git from the UI
+CONFIGURE THE HELM repository and HELM chart
+
+### 3.5 Configure repository paths
+
+#### `values.config.capi.repositoryPath`
+By default, WGE will create new clusters in the `clusters/management/clusters` path.
+This can be configured with `values.config.capi.repositoryPath`.
+For example you might what to change it to `clusters/my-cluster/cluster` if you configured flux to reconcile `./clusters/my-cluster` instead.
+
+#### `values.config.capi.repositoryClustersPath`
+The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
+By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
+
+### 4. Configure access for writing to git from the UI
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
@@ -305,6 +283,34 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 
 </TabItem>
 </Tabs>
+
+### 5.5 Configure password and add rolebindings for the 
+
+TODO: configure password
+
+By default a user `WegoAdmin` is used when you login. 
+
+import CodeBlock from "@theme/CodeBlock";
+import ExampleAdminRolebinding from "!!raw-loader!./assets/example-enterprise-rolebindings.yaml";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/management/rbac/admin-rolebindings.yaml{" "}
+      {window.location.protocol}
+      //{window.location.host}
+      {require("./assets/example-enterprise-rolebindings.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/management/rbac/admin-rolebindings.yaml"
+  className="language-yaml"
+>
+  {ExampleAdminRolebinding}
+</CodeBlock>
 
 ### 5. Upgrade
 
