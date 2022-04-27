@@ -291,26 +291,6 @@ jobs:
           args: --all-projects --org=product-engineering-ly9
         continue-on-error: true
 
-  notify-failure:
-    name: Send Slack alert
-    needs:
-      - ci-go
-      - ci-static
-      - ci-js
-      - ci-build-gitops-image
-      - ci-upload-images
-      - ci-upload-binary
-    if: ${{ failure() && (github.event_name == 'push') }}
-    steps:
-      uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
-      with:
-        slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
-        message: |
-          CI failed on main at commit ${{ github.sha }} from ${{ github.actor }}.
-        channel: proj-core-reloaded
-        color: red
-        verbose: true
-
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
     name: PR CI Pipeline
@@ -334,3 +314,21 @@ jobs:
       - ci-snyk-monitor
     steps:
       - run: echo "All done"
+
+  notify-failure:
+    name: Notify Slack on Failure
+    runs-on: ubuntu-latest
+    needs:
+      - finish-ci-merge
+    if: ${{ failure() }}
+    steps:
+    - name: Send alert
+      if: github.event_name == 'push'
+      uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+      with:
+        slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
+        message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
+        channel: proj-core-reloaded
+        color: red
+        verbose: false
+
