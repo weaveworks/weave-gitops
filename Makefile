@@ -42,7 +42,7 @@ endif
 ##@ Default target
 all: gitops gitops-server ## Install dependencies and build Gitops binary. targets: gitops gitops-server
 
-TEST_TO_RUN?=./...
+TEST_TO_RUN?=./gitops/... ./gitops-server/... ./common/... ./for-enterprise/...
 ##@ Test
 unit-tests: dependencies ## Run unit tests
 	@go install github.com/onsi/ginkgo/v2/ginkgo

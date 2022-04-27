@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package wego_profiles.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops/pkg/api/profiles";
+option go_package = "github.com/weaveworks/weave-gitops/gitops/pkg/api/profiles";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";

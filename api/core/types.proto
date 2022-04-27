@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package gitops_core.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops/core/api";
+option go_package = "github.com/weaveworks/weave-gitops/gitops-server/core/api";
 
 message Interval {
     int64 hours = 1;
