@@ -439,7 +439,7 @@ func (c *AuthServer) createCookie(name, value string, expires time.Duration) *ht
 		Path:     "/",
 		Expires:  time.Now().UTC().Add(expires),
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 	}
 
 	return cookie
