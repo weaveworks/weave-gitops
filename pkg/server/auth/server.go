@@ -23,6 +23,9 @@ const (
 	LoginUsername             string = "username"
 	ClusterUserAuthSecretName string = "cluster-user-auth"
 	OIDCAuthSecretName        string = "oidc-auth"
+
+	DefaultIDTokenDuration    time.Duration = time.Hour
+	DefaultStateTokenDuration time.Duration = time.Minute * 5
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -72,7 +75,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
 	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
 	if err != nil {
-		tokenDuration = time.Hour
+		tokenDuration = DefaultIDTokenDuration
 	}
 
 	cfg.TokenDuration = tokenDuration
@@ -247,13 +250,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 		}
 
 		// Issue ID token cookie
-		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
-
-		// Some OIDC providers may not include a refresh token
-		if token.RefreshToken != "" {
-			// Issue refresh token cookie
-			http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
-		}
+		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken, s.config.TokenDuration))
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -315,7 +312,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
+		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed, s.config.TokenDuration))
 		rw.WriteHeader(http.StatusOK)
 	}
 }
@@ -416,7 +413,7 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	authCodeUrl := c.oauth2Config(scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, c.createCookie(StateCookieName, state))
+	http.SetCookie(rw, c.createCookie(StateCookieName, state, DefaultStateTokenDuration))
 
 	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
 }
@@ -435,12 +432,12 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 	}
 }
 
-func (c *AuthServer) createCookie(name, value string) *http.Cookie {
+func (c *AuthServer) createCookie(name, value string, expires time.Duration) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(c.config.TokenDuration),
+		Expires:  time.Now().UTC().Add(expires),
 		HttpOnly: true,
 		Secure:   false,
 	}
