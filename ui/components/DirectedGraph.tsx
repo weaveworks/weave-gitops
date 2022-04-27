@@ -20,7 +20,9 @@ type Props<N> = {
 };
 
 const SliderFlex = styled(Flex)`
+  padding-top: ${(props) => props.theme.spacing.base};
   min-height: 400px;
+  min-width: 60px;
   height: 25%;
   width: 5%;
 `;
@@ -79,7 +81,6 @@ function DirectedGraph<T>({
     <Flex className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
-        <Spacer padding="base" />
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
           defaultValue={20}
@@ -119,7 +120,7 @@ export default styled(DirectedGraph)`
     width: 6px;
   }
   .MuiSlider-vertical .MuiSlider-thumb {
-    margin-left: -8px;
+    margin-left: -9px;
   }
   .MuiSlider-thumb {
     width: 24px;
