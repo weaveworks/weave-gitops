@@ -19,7 +19,8 @@ function SourceLink({ className, sourceRef, short }: Props) {
       className={className}
       to={formatSourceURL(sourceRef.kind, sourceRef.name, sourceRef.namespace)}
     >
-      {!short && sourceRef.kind}/{sourceRef.name}
+      {!short && sourceRef.kind + "/"}
+      {sourceRef.name}
     </Link>
   );
 }

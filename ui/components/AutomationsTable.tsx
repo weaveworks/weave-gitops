@@ -57,7 +57,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       },
       sortValue: ({ name }) => name,
       textSearchable: true,
-      maxWidth: 200,
+      maxWidth: 600,
     },
     {
       label: "Type",
@@ -115,7 +115,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
       sortValue: ({ conditions }) => computeMessage(conditions),
-      maxWidth: 200,
+      maxWidth: 600,
     },
     {
       label: "Revision",

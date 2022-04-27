@@ -59,7 +59,7 @@ function SourcesTable({ className, sources }: Props) {
           sortType: SortType.string,
           sortValue: (s: Source) => s.name || "",
           textSearchable: true,
-          maxWidth: 200,
+          maxWidth: 600,
         },
         { label: "Type", value: "type" },
         { label: "Namespace", value: "namespace" },
@@ -78,7 +78,7 @@ function SourcesTable({ className, sources }: Props) {
         {
           label: "Message",
           value: (s) => computeMessage(s.conditions),
-          maxWidth: 200,
+          maxWidth: 600,
         },
         {
           label: "Cluster",
@@ -118,7 +118,7 @@ function SourcesTable({ className, sources }: Props) {
               text
             );
           },
-          maxWidth: 200,
+          maxWidth: 600,
         },
         {
           label: "Reference",

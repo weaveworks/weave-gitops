@@ -59,7 +59,7 @@ function ReconciledObjectsTable({
           {
             value: "name",
             label: "Name",
-            maxWidth: 200,
+            maxWidth: 600,
           },
           {
             label: "Type",
@@ -91,7 +91,7 @@ function ReconciledObjectsTable({
             value: (u: UnstructuredObject) => _.first(u.conditions)?.message,
             sortType: SortType.string,
             sortValue: ({ conditions }) => computeMessage(conditions),
-            maxWidth: 200,
+            maxWidth: 600,
           },
         ]}
         rows={objs}
