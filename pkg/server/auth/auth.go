@@ -84,9 +84,8 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 	multi := MultiAuthPrincipal{adminAuth}
 
 	if srv.oidcEnabled() {
-		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
 		cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-		multi = append(multi, headerAuth, cookieAuth)
+		multi = append(multi, cookieAuth)
 	}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {

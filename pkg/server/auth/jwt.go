@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
@@ -43,45 +42,6 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 	}
 
 	return parseJWTToken(r.Context(), pg.verifier, cookie.Value)
-}
-
-// JWTAuthorizationHeaderPrincipalGetter inspects the Authorization
-// header (bearer token) for a JWT token and returns a principal
-// object.
-type JWTAuthorizationHeaderPrincipalGetter struct {
-	log      logr.Logger
-	verifier *oidc.IDTokenVerifier
-}
-
-func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier) PrincipalGetter {
-	return &JWTAuthorizationHeaderPrincipalGetter{
-		log:      log,
-		verifier: verifier,
-	}
-}
-
-func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from auth header")
-
-	header := r.Header.Get("Authorization")
-	if header == "" {
-		return nil, nil
-	}
-
-	return parseJWTToken(r.Context(), pg.verifier, extractToken(header))
-}
-
-func extractToken(s string) string {
-	parts := strings.Split(s, " ")
-	if len(parts) != 2 {
-		return ""
-	}
-
-	if strings.TrimSpace(parts[0]) != "Bearer" {
-		return ""
-	}
-
-	return strings.TrimSpace(parts[1])
 }
 
 func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDToken string) (*UserPrincipal, error) {

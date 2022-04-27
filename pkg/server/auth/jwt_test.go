@@ -44,34 +44,6 @@ func TestJWTCookiePrincipalGetter(t *testing.T) {
 	}
 }
 
-func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
-	privKey := testutils.MakeRSAPrivateKey(t)
-	authTests := []struct {
-		name          string
-		authorization string
-		want          *auth.UserPrincipal
-	}{
-		{"JWT ID Token", "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"), &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"testing"}}},
-		{"no auth header value", "", nil},
-	}
-
-	srv := testutils.MakeKeysetServer(t, privKey)
-	keySet := oidc.NewRemoteKeySet(oidc.ClientContext(context.TODO(), srv.Client()), srv.URL)
-	verifier := oidc.NewVerifier("http://127.0.0.1:5556/dex", keySet, &oidc.Config{ClientID: "test-service"})
-
-	for _, tt := range authTests {
-		t.Run(tt.name, func(t *testing.T) {
-			principal, err := auth.NewJWTAuthorizationHeaderPrincipalGetter(logr.Discard(), verifier).Principal(makeAuthenticatedRequest(tt.authorization))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
-				t.Fatalf("failed to get principal:\n%s", diff)
-			}
-		})
-	}
-}
-
 func makeCookieRequest(cookieName, token string) *http.Request {
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	if token != "" {
@@ -79,15 +51,6 @@ func makeCookieRequest(cookieName, token string) *http.Request {
 			Name:  cookieName,
 			Value: token,
 		})
-	}
-
-	return req
-}
-
-func makeAuthenticatedRequest(token string) *http.Request {
-	req := httptest.NewRequest("GET", "http://example.com/", nil)
-	if token != "" {
-		req.Header.Set("Authorization", token)
 	}
 
 	return req
