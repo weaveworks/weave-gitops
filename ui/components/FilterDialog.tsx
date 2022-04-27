@@ -1,7 +1,6 @@
 import { Checkbox, List, ListItem, ListItemIcon } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import ControlledForm from "./ControlledForm";
 import Flex from "./Flex";
@@ -35,7 +34,7 @@ const SlideContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
 `;
 
-export const filterSeparator = " - ";
+export const filterSeparator = ":";
 
 export function initialFormState(cfg: FilterConfig) {
   const allFilters = _.reduce(
@@ -50,19 +49,20 @@ export function initialFormState(cfg: FilterConfig) {
     {}
   );
 
-  const search = useLocation().search;
   return allFilters;
 }
 
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
   const [all, setAll] = React.useState(false);
   React.useEffect(() => {
+    console.log(formState);
     const allChecked = _.chain(formState)
       // get all relevant keys' current value
       .keys()
       .filter((key) => _.includes(key, header))
       .every((key) => formState[key])
       .value();
+    console.log(allChecked);
     setAll(allChecked);
   }, [formState]);
 
