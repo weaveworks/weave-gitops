@@ -9,7 +9,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -44,9 +43,7 @@ func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handle
 	httpHandler := middleware.WithLogging(log, mux)
 
 	if AuthEnabled() {
-		clustersFetcher := fetcher.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
-
-		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, clustersFetcher, httpHandler)
+		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 	}
 

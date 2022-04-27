@@ -11,12 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type defaultClusterNotFound struct{}
-
-func (e defaultClusterNotFound) Error() string {
-	return "default cluster not found"
-}
-
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
 	clustersClient := clustersmngr.ClientFromCtx(ctx)
 
