@@ -20,6 +20,10 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
+const (
+	FluxNamespacePartOf = "flux"
+)
+
 var (
 	KustomizeNameKey      = fmt.Sprintf("%s/name", kustomizev1.GroupVersion.Group)
 	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev1.GroupVersion.Group)

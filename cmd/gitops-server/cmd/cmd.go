@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	corecache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -207,13 +206,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	cacheContainer := corecache.NewContainer(
-		log,
-		corecache.WithSimpleCaches(
-			corecache.WithNamespaceCache(rest),
-		),
-	)
-
 	ctx := context.Background()
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
@@ -221,7 +213,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clusterClientsFactory.Start(ctx)
 
-	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)
+	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
