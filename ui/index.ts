@@ -18,6 +18,7 @@ import Page from "./components/Page";
 import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
+import DataTable, { Field, SortType } from "./components/DataTable";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
@@ -61,8 +62,10 @@ export {
   clearCallbackState,
   coreClient,
   CoreClientContextProvider,
+  DataTable,
   FeatureFlagsContextProvider,
   FeatureFlags,
+  Field,
   FluxRuntime,
   Footer,
   getCallbackState,
@@ -82,6 +85,7 @@ export {
   Page,
   RepoInputWithAuth,
   SignIn,
+  SortType,
   SourceRefSourceKind,
   SourcesTable,
   theme,
