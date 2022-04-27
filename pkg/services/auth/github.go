@@ -78,7 +78,7 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 
 	if res.StatusCode != http.StatusOK {
 		// err is falsey even on 4XX or 5XX
-		return nil, parseGitHubError(rb, res.StatusCode)
+		return nil, ParseGitHubError(rb, res.StatusCode)
 	}
 
 	return rb, nil
@@ -170,7 +170,7 @@ func doGithubDeviceAuthRequest(client *http.Client, deviceCode string) (string, 
 	return "", fmt.Errorf("error doing auth request: %s", p.Error)
 }
 
-func parseGitHubError(b []byte, statusCode int) error {
+func ParseGitHubError(b []byte, statusCode int) error {
 	var gerr GitHubError
 	if err := json.Unmarshal(b, &gerr); err != nil {
 		return fmt.Errorf("failed to unmarshal GitHub error: %w", err)
