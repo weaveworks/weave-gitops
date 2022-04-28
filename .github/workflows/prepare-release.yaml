@@ -95,17 +95,21 @@ jobs:
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
           body: |
-           Breaking changes: Describe any breaking changes here, or delete this block
+           ## ⚠️ Breaking changes
+           Describe any breaking changes here, or delete this block
 
-           Action required: Describe any user facing actions here, or delete this block.
+           ## ✍️ Action required
+           Describe any user facing actions here, or delete this block.
 
-           Features and improvements: Describe any user facing changes here, or delete this block.
+           ## 💸 Features and improvements
+           Describe any user facing changes here, or delete this block.
 
            Examples of user facing changes:
              - API changes
              - Bug fixes
              - Any changes in behaviour
              - Changes requiring upgrade notices or deprecation warning
+
            ${{ steps.github_release.outputs.changelog }}
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           labels: "exclude from release notes"
@@ -116,5 +120,5 @@ jobs:
             --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
             --header 'content-type: application/json' \
             --data '{
-                "body": "To change the release notes, edit the pull request description. As soon as you approve the PR, the release will start, and will be automatically merged when finished"
+                "body": "To change the release notes, edit the pull request description.\n\nAs soon as you approve the PR, the release will start, and will be automatically merged when finished"
               }'
