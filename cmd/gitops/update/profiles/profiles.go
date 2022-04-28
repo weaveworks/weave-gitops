@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 )
@@ -40,7 +39,6 @@ func UpdateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
 	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
 	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster where the profile is installed")
-	cmd.Flags().StringVar(&opts.ProfilesPort, "profiles-port", server.DefaultPort, "Port the Profiles API is running on")
 	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops update profile' will merge automatically into the repository's branch")
 	internal.AddPRFlags(cmd, &opts.HeadBranch, &opts.BaseBranch, &opts.Description, &opts.Message, &opts.Title)
 
@@ -71,8 +69,7 @@ func updateProfileCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		endpointWithPort := fmt.Sprintf("%s:%s", *endpoint, opts.ProfilesPort)
-		r, err := adapters.NewHttpClient(endpointWithPort, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}

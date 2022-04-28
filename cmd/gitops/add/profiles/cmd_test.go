@@ -36,7 +36,7 @@ var _ = Describe("Add a Profile", func() {
 	When("flags are not valid", func() {
 		It("fails if --name, --cluster, or --config-repo are not provided", func() {
 			cmd.SetArgs([]string{
-				"add", "profile",
+				"add", "profile", "--endpoint", "localhost:8080",
 			})
 
 			err := cmd.Execute()
@@ -49,6 +49,7 @@ var _ = Describe("Add a Profile", func() {
 				"--name", "a234567890123456789012345678901234567890123456789012345678901234",
 				"--cluster", "cluster",
 				"--config-repo", "config-repo",
+				"--endpoint", "localhost:8080",
 			})
 			err := cmd.Execute()
 			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
@@ -61,6 +62,7 @@ var _ = Describe("Add a Profile", func() {
 				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
 				"--cluster", "prod",
 				"--version", "&%*/v",
+				"--endpoint", "localhost:8080",
 			})
 
 			err := cmd.Execute()

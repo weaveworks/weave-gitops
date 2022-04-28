@@ -8,6 +8,7 @@ import (
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ProfilesRetriever interface {
@@ -27,6 +28,9 @@ type GetOptions struct {
 func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer) error {
 	profiles, err := r.RetrieveProfiles()
 	if err != nil {
+		if e, ok := err.(*errors.StatusError); ok {
+			return fmt.Errorf("unable to retrieve profiles from %q: status code %d", r.Source(), e.ErrStatus.Code)
+		}
 		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
@@ -43,6 +47,7 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 	if err != nil {
 		return nil, "", fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
+
 	var version string
 
 	for _, p := range profilesList.Profiles {

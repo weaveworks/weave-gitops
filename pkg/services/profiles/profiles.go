@@ -14,9 +14,6 @@ import (
 const (
 	// ManifestFileName contains the manifests of all installed Profiles
 	ManifestFileName = "profiles.yaml"
-
-	wegoServiceName = "wego-app"
-	getProfilesPath = "/v1/profiles"
 )
 
 type ProfilesService interface {

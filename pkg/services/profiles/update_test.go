@@ -16,9 +16,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/fake"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
 )
 
 var updateOptions profiles.Options
@@ -27,14 +24,12 @@ var _ = Describe("Update Profile(s)", func() {
 	var (
 		gitProviders *gitprovidersfakes.FakeGitProvider
 		profilesSvc  *profiles.ProfilesSvc
-		clientSet    *fake.Clientset
 		fakeLogger   *loggerfakes.FakeLogger
 		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
-		clientSet = fake.NewSimpleClientset()
 		fakeLogger = &loggerfakes.FakeLogger{}
 		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(fakeLogger)
@@ -59,11 +54,7 @@ var _ = Describe("Update Profile(s)", func() {
 		})
 
 		When("the version and HelmRepository name and namespace were discovered", func() {
-			BeforeEach(func() {
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
-			})
+			client := NewFakeHTTPClient(getProfilesResp, nil)
 
 			When("the file containing the HelmReleases is not empty", func() {
 				When("a matching HelmRelease is found", func() {
@@ -91,7 +82,7 @@ var _ = Describe("Update Profile(s)", func() {
 								WebURL: "url",
 							})
 							gitProviders.CreatePullRequestReturns(fakePR, nil)
-							Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).To(Succeed())
+							Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).To(Succeed())
 							Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 							_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 							Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
@@ -122,7 +113,7 @@ var _ = Describe("Update Profile(s)", func() {
 									WebURL: "url",
 								})
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
-								Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).To(Succeed())
+								Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).To(Succeed())
 								Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 								_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 								Expect(repoURL.String()).To(Equal("ssh://git@github.com/owner/config-repo.git"))
@@ -144,7 +135,7 @@ var _ = Describe("Update Profile(s)", func() {
 								})
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
 								updateOptions.AutoMerge = true
-								Expect(profilesSvc.Update(context.TODO(), gitProviders, updateOptions)).Should(Succeed())
+								Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).Should(Succeed())
 								Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 							})
 
@@ -156,7 +147,7 @@ var _ = Describe("Update Profile(s)", func() {
 									gitProviders.CreatePullRequestReturns(fakePR, nil)
 									gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
 									updateOptions.AutoMerge = true
-									err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+									err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 									Expect(err).To(MatchError("error auto-merging PR: err"))
 								})
 							})
@@ -169,7 +160,7 @@ var _ = Describe("Update Profile(s)", func() {
 									WebURL: "url",
 								})
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
-								err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+								err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 								Expect(err).To(BeNil())
 							})
 						})
@@ -177,7 +168,7 @@ var _ = Describe("Update Profile(s)", func() {
 						When("the PR fails to be merged", func() {
 							It("returns an error", func() {
 								gitProviders.CreatePullRequestReturns(nil, fmt.Errorf("err"))
-								err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+								err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 								Expect(err).To(MatchError("failed to create pull request: err"))
 							})
 						})
@@ -197,7 +188,7 @@ var _ = Describe("Update Profile(s)", func() {
 								Content: &content,
 							}}, nil)
 
-							err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+							err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 							Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: version 6.0.1 of HelmRelease 'prod-podinfo' already installed in namespace 'weave-system'"))
 						})
 					})
@@ -217,7 +208,7 @@ var _ = Describe("Update Profile(s)", func() {
 							Content: &content,
 						}}, nil)
 
-						err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+						err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 						Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: failed to find HelmRelease 'prod-podinfo' in namespace 'weave-system'"))
 					})
 				})
@@ -231,7 +222,7 @@ var _ = Describe("Update Profile(s)", func() {
 							Content: &content,
 						}}, nil)
 
-						err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+						err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 						Expect(err).To(MatchError("failed to update HelmRelease for profile 'podinfo' in profiles.yaml: error splitting into YAML: error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type v2beta1.HelmRelease"))
 					})
 				})
@@ -240,7 +231,7 @@ var _ = Describe("Update Profile(s)", func() {
 					It("returns an error", func() {
 						gitProviders.GetRepoDirFilesReturns(makeTestFiles(), nil)
 
-						err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+						err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 						Expect(err).To(MatchError(ContainSubstring("failed to find installed profiles in '.weave-gitops/clusters/prod/system/profiles.yaml'")))
 
 						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
@@ -251,19 +242,15 @@ var _ = Describe("Update Profile(s)", func() {
 
 		Context("it fails to discover the HelmRepository name and namespace", func() {
 			It("fails if it's unable to list available profiles from the cluster", func() {
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapperWithErr("nope"), nil
-				})
-				err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
-				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: failed to make GET request to service weave-system/wego-app path \"/v1/profiles\": nope"))
+				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
+				err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
 			})
 
 			It("fails to find an available profile with the given version", func() {
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
+				client := NewFakeHTTPClient(getProfilesResp, nil)
 				updateOptions.Version = "7.0.0"
-				err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+				err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
 			})
 		})
@@ -277,13 +264,13 @@ var _ = Describe("Update Profile(s)", func() {
 				Cluster:    "prod",
 			}
 
-			err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+			err := profilesSvc.Update(context.TODO(), nil, gitProviders, updateOptions)
 			Expect(err).To(MatchError(ContainSubstring("failed to parse url: could not get provider name from URL {http:/-*wrong-url-827")))
 		})
 
 		It("fails if the config repo does not exist", func() {
 			gitProviders.RepositoryExistsReturns(false, nil)
-			err := profilesSvc.Update(context.TODO(), gitProviders, updateOptions)
+			err := profilesSvc.Update(context.TODO(), nil, gitProviders, updateOptions)
 			Expect(err).To(MatchError("repository \"ssh://git@github.com/owner/config-repo.git\" could not be found"))
 			Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 		})

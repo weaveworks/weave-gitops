@@ -20,7 +20,6 @@ require (
 	github.com/go-logr/zapr v1.2.2
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gofrs/flock v0.8.1
-	github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.7
 	github.com/google/uuid v1.3.0
@@ -65,6 +64,7 @@ require (
 
 require (
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 )

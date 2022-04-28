@@ -15,9 +15,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/fake"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
 	"sigs.k8s.io/yaml"
 )
 
@@ -27,14 +24,12 @@ var _ = Describe("Add", func() {
 	var (
 		gitProviders *gitprovidersfakes.FakeGitProvider
 		profilesSvc  *profiles.ProfilesSvc
-		clientSet    *fake.Clientset
 		fakeLogger   *loggerfakes.FakeLogger
 		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
-		clientSet = fake.NewSimpleClientset()
 		fakeLogger = &loggerfakes.FakeLogger{}
 		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(fakeLogger)
@@ -51,13 +46,12 @@ var _ = Describe("Add", func() {
 	When("the config repository exists", func() {
 		When("the version and HelmRepository name and namespace were discovered", func() {
 			When("the HelmRelease was appended to profiles.yaml", func() {
+				client := NewFakeHTTPClient(getProfilesResp, nil)
+
 				BeforeEach(func() {
 					gitProviders.RepositoryExistsReturns(true, nil)
 					gitProviders.GetDefaultBranchReturns("main", nil)
 					gitProviders.GetRepoDirFilesReturns(makeTestFiles(), nil)
-					clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-						return true, newFakeResponseWrapper(getProfilesResp), nil
-					})
 				})
 
 				It("creates a helm release with the latest available version of the profile via a PR", func() {
@@ -65,7 +59,7 @@ var _ = Describe("Add", func() {
 						WebURL: "url",
 					})
 					gitProviders.CreatePullRequestReturns(fakePR, nil)
-					Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+					Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
 					Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 					Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 					Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
@@ -100,7 +94,7 @@ var _ = Describe("Add", func() {
 						})
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
 
-						Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+						Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
 						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
@@ -125,7 +119,7 @@ var _ = Describe("Add", func() {
 						})
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
 						addOptions.AutoMerge = true
-						Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+						Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
 						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
@@ -139,7 +133,7 @@ var _ = Describe("Add", func() {
 							gitProviders.CreatePullRequestReturns(fakePR, nil)
 							gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
 							addOptions.AutoMerge = true
-							err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+							err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 							Expect(err).To(MatchError("error auto-merging PR: err"))
 						})
 					})
@@ -152,7 +146,7 @@ var _ = Describe("Add", func() {
 							WebURL: "url",
 						})
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
-						err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+						err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
@@ -163,7 +157,7 @@ var _ = Describe("Add", func() {
 				When("it fails to create a pull request to write the helm release to the config repo", func() {
 					It("returns an error", func() {
 						gitProviders.CreatePullRequestReturns(nil, fmt.Errorf("err"))
-						err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+						err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 						Expect(err).To(MatchError("failed to create pull request: err"))
 					})
 				})
@@ -171,6 +165,8 @@ var _ = Describe("Add", func() {
 		})
 
 		When("profiles.yaml contains a HelmRelease with the same name in that namespace", func() {
+			client := NewFakeHTTPClient(getProfilesResp, nil)
+
 			BeforeEach(func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
 				gitProviders.GetDefaultBranchReturns("main", nil)
@@ -186,13 +182,10 @@ var _ = Describe("Add", func() {
 					Path:    &path,
 					Content: &content,
 				}}, nil)
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
 			})
 
 			It("fails to append the new HelmRelease to profiles.yaml", func() {
-				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+				err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 				Expect(err).To(MatchError("failed to add HelmRelease for profile 'podinfo' to profiles.yaml: found another HelmRelease for profile 'podinfo' in namespace weave-system"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 				Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
@@ -202,21 +195,17 @@ var _ = Describe("Add", func() {
 		Context("it fails to discover the HelmRepository name and namespace", func() {
 			It("fails if it's unable to list available profiles from the cluster", func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapperWithErr("nope"), nil
-				})
-				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: failed to make GET request to service weave-system/wego-app path \"/v1/profiles\": nope"))
+				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
+				err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 			})
 
 			It("fails to find an available profile with the given version", func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
+				client := NewFakeHTTPClient(getProfilesResp, nil)
 				addOptions.Version = "7.0.0"
-				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+				err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 			})
@@ -231,13 +220,13 @@ var _ = Describe("Add", func() {
 				Cluster:    "prod",
 			}
 
-			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			err := profilesSvc.Add(context.TODO(), nil, gitProviders, addOptions)
 			Expect(err).To(MatchError("failed to parse url: could not get provider name from URL {http:/-*wrong-url-827: could not parse git repo url \"{http:/-*wrong-url-827\": parse \"{http:/-*wrong-url-827\": first path segment in URL cannot contain colon"))
 		})
 
 		It("fails if the config repo does not exist", func() {
 			gitProviders.RepositoryExistsReturns(false, nil)
-			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			err := profilesSvc.Add(context.TODO(), nil, gitProviders, addOptions)
 			Expect(err).To(MatchError("repository \"ssh://git@github.com/owner/config-repo.git\" could not be found"))
 			Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 		})
