@@ -52,16 +52,19 @@ type clientsFactory struct {
 	clustersNamespaces *ClustersNamespaces
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
+
+	initialClustersLoad chan bool
 }
 
 func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
 	return &clientsFactory{
-		clustersFetcher:    fetcher,
-		nsChecker:          nsChecker,
-		clusters:           &Clusters{},
-		clustersNamespaces: &ClustersNamespaces{},
-		usersNamespaces:    &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
-		log:                logger,
+		clustersFetcher:     fetcher,
+		nsChecker:           nsChecker,
+		clusters:            &Clusters{},
+		clustersNamespaces:  &ClustersNamespaces{},
+		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
+		log:                 logger,
+		initialClustersLoad: make(chan bool),
 	}
 }
 
@@ -71,12 +74,18 @@ func (cf *clientsFactory) Start(ctx context.Context) {
 }
 
 func (cf *clientsFactory) watchClusters(ctx context.Context) {
+	if err := cf.UpdateClusters(ctx); err != nil {
+		cf.log.Error(err, "failed updating clusters")
+	}
+
+	cf.initialClustersLoad <- true
+
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			return false, err
 		}
 
-		return true, nil
+		return false, nil
 	}); err != nil {
 		cf.log.Error(err, "failed polling clusters")
 	}
@@ -94,6 +103,9 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 }
 
 func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
+	// waits the first load of cluster to start watching namespaces
+	<-cf.initialClustersLoad
+
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
 			return false, err
