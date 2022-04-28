@@ -73,11 +73,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", defaultedEnvVar("PROFILE_CACHE_LOCATION", "/tmp/helm-cache"), "the location where the cache Profile data lives")
-	cmd.Flags().StringVar(&options.WatcherHealthzBindAddress, "watcher-healthz-bind-address", defaultedEnvVar("HEALTHZ_BIND_ADDRESS", ":9981"), "bind address for the healthz service of the watcher")
-	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", defaultedEnvVar("METRICS_BIND_ADDRESS", ":9980"), "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", os.Getenv("NOTIFICATION_CONTROLLER_ADDRESS"), "the address of the notification-controller running in the cluster")
-	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", defaultedIntEnvVar("WATCHER_PORT", 9443), "the port on which the watcher is running")
 
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")

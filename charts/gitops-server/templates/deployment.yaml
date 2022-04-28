@@ -63,10 +63,6 @@ spec:
           env:
             - name: PROFILE_CACHE_LOCATION
               value: {{ .Values.profileCacheLocation }}
-            - name: HEALTHZ_BIND_ADDRESS
-              value: {{ .Values.watcherHealthzBindAddress }}
-            - name: METRICS_BIND_ADDRESS
-              value: {{ .Values.watcherMetricsBindAddress }}
             - name: NOTIFICATION_CONTROLLER_ADDRESS
               value: {{ .Values.notificationControllerAddress }}
             - name: WATCHER_PORT
