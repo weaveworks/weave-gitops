@@ -36,9 +36,9 @@ spec:
             - "{{ .Values.logLevel }}"
             {{- if .Values.serverTLS.enable }}
             - "--tls-cert-file"
-            - "/etc/tls-volume/tls.crt"
+            - {{ .Values.TLSCertFile }}
             - "--tls-private-key-file"
-            - "/etc/tls-volume/tls.key"
+            - {{ .Values.TLSKeyFile }}
             {{- else }}
             - "--insecure"
             {{- end }}
@@ -49,7 +49,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 9001
+              containerPort: {{ .Values.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -61,6 +61,30 @@ spec:
               port: http
           {{- if or .Values.enableLogin .Values.envVars}}
           env:
+            - name: PROFILE_CACHE_LOCATION
+              value: {{ .Values.profileCacheLocation }}
+            - name: HEALTHZ_BIND_ADDRESS
+              value: {{ .Values.watcherHealthzBindAddress }}
+            - name: METRICS_BIND_ADDRESS
+              value: {{ .Values.watcherMetricsBindAddress }}
+            - name: NOTIFICATION_CONTROLLER_ADDRESS
+              value: {{ .Values.notificationControllerAddress }}
+            - name: WATCHER_PORT
+              value: {{ .Values.watcherPort }}
+            - name: OIDC_ISSUER_URL
+              value: {{ .Values.OIDCIssuerURL }}
+            - name: OIDC_CLIENT_ID
+              value: {{ .Values.OIDCClientID }}
+            - name: OIDC_CLIENT_SECRET
+              value: {{ .Values.OIDCClientSecret }}
+            - name: OIDC_REDIRECT_URL
+              value: {{ .Values.OIDCRedirectURL }}
+            - name: OIDC_TOKEN_DURATION
+              value: {{ .Values.OIDCTokenDuration }}
+            - name: DEV_MODE
+              value: {{ .Values.DEV_MODE }}
+            - name: DEV_USER
+              value: {{ .Values.DEV_USER }}
           {{- if .Values.enableLogin }}
             - name: WEAVE_GITOPS_AUTH_ENABLED
               value: "true"

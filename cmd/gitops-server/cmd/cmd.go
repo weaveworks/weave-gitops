@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -70,21 +71,27 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
-	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
+	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", defaultedEnvVar("PROFILE_CACHE_LOCATION", "/tmp/helm-cache"), "the location where the cache Profile data lives")
+	cmd.Flags().StringVar(&options.WatcherHealthzBindAddress, "watcher-healthz-bind-address", defaultedEnvVar("HEALTHZ_BIND_ADDRESS", ":9981"), "bind address for the healthz service of the watcher")
+	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", defaultedEnvVar("METRICS_BIND_ADDRESS", ":9980"), "bind address for the metrics service of the watcher")
+	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", os.Getenv("NOTIFICATION_CONTROLLER_ADDRESS"), "the address of the notification-controller running in the cluster")
+	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", defaultedIntEnvVar("WATCHER_PORT", 9443), "the port on which the watcher is running")
 
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
-	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
+	cmd.Flags().BoolVar(&options.MTLS, "mtls", defaultedBoolEnvVar("MTLS", false), "disable enforce mTLS")
 
-	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", os.Getenv("OIDC_ISSUER_URL"), "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", defaultedDurationEnvVar("OIDC_TOKEN_DURATION", time.Hour), "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
-	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
+	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", defaultedBoolEnvVar("DEV_MODE", false), "Enables development mode")
+	cmd.Flags().StringVar(&options.DevUser, "dev-user", defaultedEnvVar("DEV_USER", v1alpha1.DefaultClaimsSubject), "Sets development User")
 
 	return cmd
 }
@@ -324,4 +331,50 @@ func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func defaultedEnvVar(name, defaultVal string) string {
+	val, found := os.LookupEnv(name)
+
+	if found {
+		return val
+	}
+
+	return defaultVal
+}
+
+func defaultedDurationEnvVar(name string, defaultVal time.Duration) time.Duration {
+	val, found := os.LookupEnv(name)
+
+	if found {
+		if dval, err := time.ParseDuration(val); err == nil {
+			return dval
+		}
+	}
+
+	return defaultVal
+}
+
+func defaultedIntEnvVar(name string, defaultVal int) int {
+	val, found := os.LookupEnv(name)
+
+	if found {
+		if ival, err := strconv.Atoi(val); err == nil {
+			return ival
+		}
+	}
+
+	return defaultVal
+}
+
+func defaultedBoolEnvVar(name string, defaultVal bool) bool {
+	val, found := os.LookupEnv(name)
+
+	if found {
+		if bval, err := strconv.ParseBool(val); err == nil {
+			return bval
+		}
+	}
+
+	return defaultVal
 }

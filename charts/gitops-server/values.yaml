@@ -15,6 +15,39 @@ fullnameOverride: ""
 enableLogin: true
 # valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
+# IP address of UI host
+host: "0.0.0.0"
+# UI port
+port: "9001"
+# The name of the Helm Repository resource to scan for profiles
+helmRepoName: "weaveworks-charts"
+# The location where the cached Profile data lives
+profileCacheLocation: "/tmp/helm-cache"
+# The bind address for the healthz service of the watcher
+watcherHealhzBindAddress: ":9981"
+# The bind address for the metrics service of the watcher
+watcherMetricsBindAddress: ":9980"
+# The address of the notification-controller running in the cluster
+notificationControllerAddress: ""
+# The port on which the watcher is running
+watcherPort: 9443
+# Filename for the TLS certificate, in-memory generated if omitted
+TLSCertFile: "/etc/tls-volume/tls.crt"
+# Filename for the TLS key, in-memory generated if omitted
+TLSKeyFile: "/etc/tls-volume/tls.key"
+# Do not enforce mTLS
+MTLS: false
+# The URL of the OpenID Connect issuer
+OIDCIssuerURL: ""
+# The client ID for the OpenID Connect client
+OIDCClientID: ""
+# The client secret to use with the OpenID Connect issuer
+OIDCClientSecret: ""
+# The OAuth2 redirect URL
+OIDCRedirectURL: ""
+# The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m
+OIDCTokenDuration: "60m"
+
 # Additional arguments to pass in
 # additionalArgs:
 # Any other environment variables:
