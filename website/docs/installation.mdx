@@ -5,6 +5,7 @@ hide_title: true
 ---
 
 import TierLabel from "./_components/TierLabel";
+import CurlCodeBlock from "./_components/CurlCodeBlock";
 
 ## Installing Weave GitOps
 
@@ -76,19 +77,13 @@ To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.w
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-:::note BEFORE YOU START
-
-`GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
-:::
-
 To upgrade to Weave GitOps Enterprise
 
 import TOCInline from "@theme/TOCInline";
 
 <TOCInline toc={toc[2].children} />
 
-
-### 1. Install `Weave GitOps`
+### 1. Setting up a Cluster with `flux`
 
 To get you started in this document we'll cover:
 
@@ -180,7 +175,16 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 </TabItem>
 </Tabs>
 
-DO FLUX bootstrap
+Install Flux onto your cluster with the `flux bootstrap` command
+
+```
+flux bootstrap github \
+  --owner=$GITHUB_USER \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/management \
+  --personal
+```
 
 ### 2. Install a CAPI provider
 
@@ -228,9 +232,16 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-CONFIGURE THE HELM repository and HELM chart
-
 ### 3.5 Configure repository paths
+
+import ExampleWGE from "./assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
+
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
 
 #### `values.config.capi.repositoryPath`
 By default, WGE will create new clusters in the `clusters/management/clusters` path.
@@ -284,34 +295,6 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 </TabItem>
 </Tabs>
 
-### 5.5 Configure password and add rolebindings for the 
-
-TODO: configure password
-
-By default a user `WegoAdmin` is used when you login. 
-
-import CodeBlock from "@theme/CodeBlock";
-import ExampleAdminRolebinding from "!!raw-loader!./assets/example-enterprise-rolebindings.yaml";
-import BrowserOnly from "@docusaurus/BrowserOnly";
-
-<BrowserOnly>
-  {() => (
-    <CodeBlock className="language-bash">
-      curl -o clusters/management/rbac/admin-rolebindings.yaml{" "}
-      {window.location.protocol}
-      //{window.location.host}
-      {require("./assets/example-enterprise-rolebindings.yaml").default}
-    </CodeBlock>
-  )}
-</BrowserOnly>
-
-<CodeBlock
-  title="clusters/management/rbac/admin-rolebindings.yaml"
-  className="language-yaml"
->
-  {ExampleAdminRolebinding}
-</CodeBlock>
-
 ### 5. Upgrade
 
 <Tabs groupId="git-host" default>
@@ -349,6 +332,21 @@ gitops upgrade \
 </Tabs>
 
 A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
+
+### 5.5 Configure password and add rolebindings for the
+
+TODO: configure password
+
+By default a user `WegoAdmin` is used when you login.
+
+import ExampleAdminRolebinding from "./assets/example-enterprise-rolebindings.yaml";
+import ExampleAdminRolebindingContent from "!!raw-loader!./assets/example-enterprise-rolebindings.yaml";
+
+<CurlCodeBlock
+  localPath="clusters/management/rbac/admin-rolebindings.yaml"
+  hostedPath={ExampleAdminRolebinding}
+  content={ExampleAdminRolebindingContent}
+/>
 
 ### 6. Checking that WGE is installed
 
