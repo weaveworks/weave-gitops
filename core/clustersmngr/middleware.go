@@ -9,7 +9,7 @@ import (
 )
 
 // WithClustersClient creates clusters client for provided user in the context
-func WithClustersClient(clustersFetcher ClusterFetcher, next http.Handler) http.Handler {
+func WithClustersClient(clientsFactory ClientsFactory, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := auth.Principal(r.Context())
 		if user == nil {
@@ -17,25 +17,14 @@ func WithClustersClient(clustersFetcher ClusterFetcher, next http.Handler) http.
 			return
 		}
 
-		clusters, err := clustersFetcher.Fetch(r.Context())
+		client, err := clientsFactory.GetImpersonatedClient(r.Context(), user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintln(w, "failed fetching clusters list: %w", err)
 			return
 		}
 
-		clientsPool := NewClustersClientsPool()
-		for _, c := range clusters {
-			if err := clientsPool.Add(ClientConfigWithUser(user), c); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "failed adding cluster client to the pool: %s", err)
-				return
-			}
-		}
-
-		clustersClient := NewClient(clientsPool)
-
-		ctx := context.WithValue(r.Context(), ClustersClientCtxKey, clustersClient)
+		ctx := context.WithValue(r.Context(), ClustersClientCtxKey, client)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

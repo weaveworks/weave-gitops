@@ -9,7 +9,7 @@ spec:
     spec:
       chart: podinfo
       sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
         name: testing
         namespace: test-ns

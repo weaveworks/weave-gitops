@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -29,7 +29,7 @@ var _ = Describe("ProfilesServer", func() {
 	var (
 		fakeCache  *cachefakes.FakeCache
 		s          *server.ProfilesServer
-		helmRepo   *sourcev1beta1.HelmRepository
+		helmRepo   *sourcev1.HelmRepository
 		kubeClient client.Client
 	)
 	var profileName = "observability"
@@ -38,7 +38,7 @@ var _ = Describe("ProfilesServer", func() {
 	BeforeEach(func() {
 		scheme := runtime.NewScheme()
 		schemeBuilder := runtime.SchemeBuilder{
-			sourcev1beta1.AddToScheme,
+			sourcev1.AddToScheme,
 		}
 		Expect(schemeBuilder.AddToScheme(scheme)).To(Succeed())
 
@@ -55,20 +55,20 @@ var _ = Describe("ProfilesServer", func() {
 			ClientGetter:      fakeClientGetter,
 		}
 
-		helmRepo = &sourcev1beta1.HelmRepository{
+		helmRepo = &sourcev1.HelmRepository{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1beta1.HelmRepositoryKind,
-				APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+				Kind:       sourcev1.HelmRepositoryKind,
+				APIVersion: sourcev1.GroupVersion.Identifier(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "helmrepo",
 				Namespace: "default",
 			},
-			Spec: sourcev1beta1.HelmRepositorySpec{
+			Spec: sourcev1.HelmRepositorySpec{
 				URL:      "example.com/charts",
 				Interval: metav1.Duration{Duration: time.Minute * 10},
 			},
-			Status: sourcev1beta1.HelmRepositoryStatus{
+			Status: sourcev1.HelmRepositoryStatus{
 				URL: "example.com/index.yaml",
 			},
 		}

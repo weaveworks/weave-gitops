@@ -2,9 +2,10 @@ package server_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
@@ -34,21 +35,9 @@ func TestListKustomizations(t *testing.T) {
 	appName := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	kust := &kustomizev1.Kustomization{
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-			},
-		},
-	}
-	kust.Name = appName
-	kust.Namespace = ns.Name
+	newKustomization(ctx, appName, ns.Name, k, g)
 
-	g.Expect(k.Create(ctx, kust)).To(Succeed())
-
-	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
-		Namespace: ns.Name,
-	})
+	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Kustomizations).To(HaveLen(1))
 	g.Expect(res.Kustomizations[0].Name).To(Equal(appName))
@@ -59,40 +48,87 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, cfg := makeGRPCServer(k8sEnv.Rest, t)
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
 		Scheme: kube.CreateScheme(),
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	existingKustomizationNo := func() int {
-		res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
-		g.Expect(err).NotTo(HaveOccurred())
+	appName1 := "myapp-1"
+	ns1 := newNamespace(ctx, k, g)
+	newKustomization(ctx, appName1, ns1.Name, k, g)
 
-		return len(res.Kustomizations)
-	}()
-
-	appName := "myapp"
-	ns := newNamespace(ctx, k, g)
-
-	kust := &kustomizev1.Kustomization{
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-			},
-		},
-	}
-	kust.Name = appName
-	kust.Namespace = ns.Name
-
-	g.Expect(k.Create(ctx, kust)).To(Succeed())
-
-	updateNamespaceCache(cfg)
+	appName2 := "myapp-2"
+	ns2 := newNamespace(ctx, k, g)
+	newKustomization(ctx, appName2, ns2.Name, k, g)
 
 	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.Kustomizations).To(HaveLen(existingKustomizationNo + 1))
+
+	resourcesFound := 0
+
+	for _, r := range res.Kustomizations {
+		if r.Name == appName1 || r.Name == appName2 {
+			resourcesFound++
+		}
+	}
+
+	g.Expect(resourcesFound).To(Equal(2))
+}
+
+func TestListKustomizationPagination(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	existingKust := existingKustomizationCount(g)
+
+	ns1 := newNamespace(ctx, k, g)
+
+	for i := 0; i < 2; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		newKustomization(ctx, appName, ns1.Name, k, g)
+	}
+
+	ns2 := newNamespace(ctx, k, g)
+
+	for i := 0; i < 2; i++ {
+		appName := "myapp-" + strconv.Itoa(i)
+		newKustomization(ctx, appName, ns2.Name, k, g)
+	}
+
+	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize: 1,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(existingKust + 2))
+
+	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize:  1,
+			PageToken: res.NextPageToken,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(2))
+
+	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
+		Pagination: &pb.Pagination{
+			PageSize:  1,
+			PageToken: res.NextPageToken,
+		},
+	})
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(0))
 }
 
 func TestGetKustomization(t *testing.T) {
@@ -180,4 +216,27 @@ func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) corev1.N
 	g.Expect(k.Create(ctx, &ns)).To(Succeed())
 
 	return ns
+}
+
+func newKustomization(ctx context.Context, appName, nsName string, k client.Client, g *GomegaWithT) *kustomizev1.Kustomization {
+	kust := &kustomizev1.Kustomization{
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+			},
+		},
+	}
+	kust.Name = appName
+	kust.Namespace = nsName
+
+	g.Expect(k.Create(ctx, kust)).To(Succeed())
+
+	return kust
+}
+
+func existingKustomizationCount(g *GomegaWithT) int {
+	nsList := &kustomizev1.KustomizationList{}
+	g.Expect(k8sEnv.Client.List(context.Background(), nsList)).To(Succeed())
+
+	return len(nsList.Items)
 }

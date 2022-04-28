@@ -1,15 +1,22 @@
 package clustersmngr
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Client thin wrapper to controller-runtime/client  adding multi clusters context.
+// Client is wrapper to controller-runtime/client adding multi clusters context.
+// it contains the list of clusters and namespaces the user has access to allowing
+// cross cluster/namespace querying
 type Client interface {
 	// Get retrieves an obj for the given object key.
 	Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error
@@ -25,7 +32,11 @@ type Client interface {
 	// Patch patches the given obj
 	Patch(ctx context.Context, cluster string, obj client.Object, patch client.Patch, opts ...client.PatchOption) error
 
-	// ClusteredList retrieves list of objects for all clusters.
+	// ClusteredList loops through the list of clusters and namespaces the client has access and
+	// queries the list of objects for each of them in parallel.
+	// This method supports pagination with a caveat, the client.Limit passed will be multiplied
+	// by the number of clusters and namespaces, we decided to do this to avoid the complex coordination
+	// that would be required to make sure the number of items returned match the limit passed.
 	ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error
 
 	// ClientsPool returns the clients pool.
@@ -39,12 +50,14 @@ type Client interface {
 }
 
 type clustersClient struct {
-	pool ClientsPool
+	pool       ClientsPool
+	namespaces map[string][]v1.Namespace
 }
 
-func NewClient(clientsPool ClientsPool) Client {
+func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Client {
 	return &clustersClient{
-		pool: clientsPool,
+		pool:       clientsPool,
+		namespaces: namespaces,
 	}
 }
 
@@ -75,18 +88,45 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 
 	var errs []error
 
-	for clusterName, c := range c.pool.Clients() {
-		wg.Add(1)
+	paginationInfo := &PaginationInfo{}
 
-		go func(clusterName string, c client.Client) {
-			defer wg.Done()
+	continueToken := extractContinueToken(opts...)
+	if continueToken != "" {
+		if err := decodeFromBase64(paginationInfo, continueToken); err != nil {
+			return fmt.Errorf("failed decoding pagination info: %w", err)
+		}
+	}
 
-			list := clist.ObjectList(clusterName)
+	for clusterName, cc := range c.pool.Clients() {
+		for _, ns := range c.namespaces[clusterName] {
+			listOpts := append(opts, client.InNamespace(ns.Name))
 
-			if err := c.List(ctx, list, opts...); err != nil {
-				errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
+			nsContinueToken := paginationInfo.Get(clusterName, ns.Name)
+
+			// a prior request has been made so this one comes with a previous token,
+			// but if the namespace token is empty we ignore it because all items have been returned.
+			if continueToken != "" && nsContinueToken == "" {
+				continue
 			}
-		}(clusterName, c)
+
+			listOpts = append(listOpts, client.Continue(nsContinueToken))
+
+			wg.Add(1)
+
+			go func(clusterName string, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
+				defer wg.Done()
+
+				list := clist.NewList()
+
+				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
+					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
+				}
+
+				paginationInfo.Set(clusterName, nsName, list.GetContinue())
+
+				clist.AddObjectList(clusterName, list)
+			}(clusterName, ns.Name, cc, listOpts...)
+		}
 	}
 
 	wg.Wait()
@@ -95,7 +135,27 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 		return fmt.Errorf("failed to list resources: %s", errs)
 	}
 
+	continueToken, err := encodeToBase64(paginationInfo)
+	if err != nil {
+		return fmt.Errorf("failed encoding pagination info: %w", err)
+	}
+
+	clist.SetContinue(continueToken)
+
 	return nil
+}
+
+func extractContinueToken(opts ...client.ListOption) string {
+	for _, o := range opts {
+		switch v := o.(type) {
+		case client.Continue:
+			return string(v)
+		default:
+			continue
+		}
+	}
+
+	return ""
 }
 
 func (c *clustersClient) Create(ctx context.Context, cluster string, obj client.Object, opts ...client.CreateOption) error {
@@ -152,37 +212,114 @@ func (c clustersClient) Scoped(cluster string) (client.Client, error) {
 	return client, nil
 }
 
+// ClusteredObjectList represents the returns of the lists of all clusters and namespaces user could query
 type ClusteredObjectList interface {
-	ObjectList(cluster string) client.ObjectList
-	Lists() map[string]client.ObjectList
+	// NewList is a factory that returns a new concrete list being queried
+	NewList() client.ObjectList
+	// AddObjectList adds a result list of objects to the lists map
+	AddObjectList(cluster string, list client.ObjectList)
+	// Lists returns the map of lists from all clusters
+	Lists() map[string][]client.ObjectList
+	// GetContinue returns the continue token used for pagination
+	GetContinue() string
+	// SetContinue sets the continue token used for pagination
+	SetContinue(continueToken string)
 }
 
 type ClusteredList struct {
 	sync.Mutex
 
-	listFactory func() client.ObjectList
-	lists       map[string]client.ObjectList
+	listFactory   func() client.ObjectList
+	lists         map[string][]client.ObjectList
+	continueToken string
 }
 
 func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList {
 	return &ClusteredList{
 		listFactory: listFactory,
-		lists:       make(map[string]client.ObjectList),
+		lists:       make(map[string][]client.ObjectList),
 	}
 }
 
-func (cl *ClusteredList) ObjectList(cluster string) client.ObjectList {
+func (cl *ClusteredList) NewList() client.ObjectList {
+	return cl.listFactory()
+}
+
+func (cl *ClusteredList) AddObjectList(cluster string, list client.ObjectList) {
 	cl.Lock()
 	defer cl.Unlock()
 
-	cl.lists[cluster] = cl.listFactory()
-
-	return cl.lists[cluster]
+	cl.lists[cluster] = append(cl.lists[cluster], list)
 }
 
-func (cl *ClusteredList) Lists() map[string]client.ObjectList {
+func (cl *ClusteredList) Lists() map[string][]client.ObjectList {
 	cl.Lock()
 	defer cl.Unlock()
 
 	return cl.lists
+}
+
+func (cl *ClusteredList) GetContinue() string {
+	return cl.continueToken
+}
+
+func (cl *ClusteredList) SetContinue(continueToken string) {
+	cl.continueToken = continueToken
+}
+
+type PaginationInfo struct {
+	sync.Mutex
+	ContinueTokens map[string]map[string]string
+}
+
+func (pi *PaginationInfo) Set(cluster string, namespace string, token string) {
+	pi.Lock()
+	defer pi.Unlock()
+
+	if pi.ContinueTokens == nil {
+		pi.ContinueTokens = make(map[string]map[string]string)
+	}
+
+	if pi.ContinueTokens[cluster] == nil {
+		pi.ContinueTokens[cluster] = make(map[string]string)
+	}
+
+	pi.ContinueTokens[cluster][namespace] = token
+}
+
+func (pi *PaginationInfo) Get(cluster string, namespace string) string {
+	pi.Lock()
+	defer pi.Unlock()
+
+	if pi.ContinueTokens == nil {
+		return ""
+	}
+
+	if pi.ContinueTokens[cluster] == nil {
+		return ""
+	}
+
+	if val, ok := pi.ContinueTokens[cluster][namespace]; ok {
+		return val
+	}
+
+	return ""
+}
+
+func decodeFromBase64(v interface{}, enc string) error {
+	return json.NewDecoder(base64.NewDecoder(base64.StdEncoding, strings.NewReader(enc))).Decode(v)
+}
+
+func encodeToBase64(v interface{}) (string, error) {
+	var buf bytes.Buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
+
+	err := json.NewEncoder(encoder).Encode(v)
+	if err != nil {
+		return "", err
+	}
+
+	encoder.Close()
+
+	return buf.String(), nil
 }

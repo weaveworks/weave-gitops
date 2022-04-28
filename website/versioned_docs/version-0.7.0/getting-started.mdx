@@ -98,6 +98,8 @@ $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 # weave-gitops-values.yaml
 adminUser:
+  create: true
+  username: admin
   passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
@@ -134,7 +136,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m0s
-  url:
+  url: https://helm.gitops.weave.works
 ```
 
 3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
@@ -189,7 +191,7 @@ Weave GitOps provides insights into your application deployments, and makes cont
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 
-2. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx).
+2. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encypted value you provided as $PASSWORD.
 
 ![Weave GitOps login screen](/img/dashboard-login.png)
 

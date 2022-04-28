@@ -5,8 +5,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,23 +35,23 @@ var _ = Describe("MakeHelmRelease", func() {
 
 	It("creates a helm release", func() {
 		actualHelmRelease := helm.MakeHelmRelease(name, version, cluster, ns, helmRepositoryNamespacedName)
-		expectedHelmRelease := &helmv2beta1.HelmRelease{
+		expectedHelmRelease := &helmv2.HelmRelease{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      cluster + "-" + name,
 				Namespace: ns,
 			},
 			TypeMeta: metav1.TypeMeta{
-				APIVersion: helmv2beta1.GroupVersion.Identifier(),
-				Kind:       helmv2beta1.HelmReleaseKind,
+				APIVersion: helmv2.GroupVersion.Identifier(),
+				Kind:       helmv2.HelmReleaseKind,
 			},
-			Spec: helmv2beta1.HelmReleaseSpec{
-				Chart: helmv2beta1.HelmChartTemplate{
-					Spec: helmv2beta1.HelmChartTemplateSpec{
+			Spec: helmv2.HelmReleaseSpec{
+				Chart: helmv2.HelmChartTemplate{
+					Spec: helmv2.HelmChartTemplateSpec{
 						Chart:   name,
 						Version: version,
-						SourceRef: helmv2beta1.CrossNamespaceObjectReference{
-							APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-							Kind:       sourcev1beta1.HelmRepositoryKind,
+						SourceRef: helmv2.CrossNamespaceObjectReference{
+							APIVersion: sourcev1.GroupVersion.Identifier(),
+							Kind:       sourcev1.HelmRepositoryKind,
 							Name:       helmRepositoryNamespacedName.Name,
 							Namespace:  helmRepositoryNamespacedName.Namespace,
 						},
@@ -65,7 +65,7 @@ var _ = Describe("MakeHelmRelease", func() {
 })
 
 var _ = Describe("AppendHelmReleaseToString", func() {
-	var newRelease *helmv2beta1.HelmRelease
+	var newRelease *helmv2.HelmRelease
 
 	BeforeEach(func() {
 		newRelease = helm.MakeHelmRelease(
@@ -113,7 +113,7 @@ var _ = Describe("MarshalHelmRelease", func() {
 		)
 		releaseBytes2, _ := kyaml.Marshal(release2)
 
-		patchedContent, err := helm.MarshalHelmReleases([]*helmv2beta1.HelmRelease{release1, release2})
+		patchedContent, err := helm.MarshalHelmReleases([]*helmv2.HelmRelease{release1, release2})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(cmp.Diff(patchedContent, "---\n"+string(releaseBytes1)+"---\n"+string(releaseBytes2))).To(BeEmpty())
 	})

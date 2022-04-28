@@ -1,5 +1,5 @@
 [flux]
-version="0.24.1"
+version="0.29.5"
 special_tarpath="https://github.com/fluxcd/flux2/releases/download/v${version}/flux_${version}_${goos}_${goarch}.tar.gz;flux"
 
 [envtest]
@@ -11,5 +11,5 @@ version="0.23.8"
 special_tarpath="https://github.com/tilt-dev/tilt/releases/download/v${version}/tilt.${version}.${goos}.${arch}.tar.gz;tilt"
 
 [helm]
-version="3.8.1"
+version="3.8.2"
 special_tarpath="https://get.helm.sh/helm-v${version}-${goos}-${goarch}.tar.gz;${goos}-${goarch}/helm"

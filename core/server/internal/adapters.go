@@ -5,9 +5,9 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,9 +15,9 @@ import (
 // Reconcilable represents a Kubernetes object that Flux can reconcile
 type Reconcilable interface {
 	client.Object
+	meta.ObjectWithConditions
 	GetAnnotations() map[string]string
 	SetAnnotations(map[string]string)
-	GetStatusConditions() *[]metav1.Condition
 	GetLastHandledReconcileRequest() string
 	AsClientObject() client.Object
 	GroupVersionKind() schema.GroupVersionKind
