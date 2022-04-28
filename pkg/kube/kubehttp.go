@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,7 +22,7 @@ import (
 )
 
 func CreateScheme() *apiruntime.Scheme {
-	scheme := apiruntime.NewScheme()
+	scheme := scheme.Scheme
 	_ = sourcev1.AddToScheme(scheme)
 	_ = kustomizev2.AddToScheme(scheme)
 	_ = helmv2.AddToScheme(scheme)

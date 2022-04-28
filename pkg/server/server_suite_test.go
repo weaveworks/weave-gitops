@@ -60,7 +60,6 @@ var _ = BeforeSuite(func() {
 
 	var err error
 	env, err = testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
 		"../../tools/testcrds",
 	})
 	Expect(err).NotTo(HaveOccurred())

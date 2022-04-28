@@ -14,13 +14,16 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
+	"golang.org/x/net/context"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -30,6 +33,7 @@ import (
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 )
@@ -53,12 +57,17 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 		return k8sEnv, nil
 	}
 
-	testEnv := &envtest.Environment{
+	testEnv := Environment{
 		CRDDirectoryPaths: crdPaths,
-		CRDInstallOptions: envtest.CRDInstallOptions{
-			CleanUpAfterUse: false,
-		},
 	}
+
+	// testEnv := &envtest.Environment{
+	// 	CRDDirectoryPaths: crdPaths,
+	// 	CRDInstallOptions: envtest.CRDInstallOptions{
+	// 		CleanUpAfterUse:    false,
+	// 		ErrorIfPathMissing: true,
+	// 	},
+	// }
 
 	var err error
 	cfg, err := testEnv.Start()
@@ -105,8 +114,13 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
+	kc, err := client.New(cfg, client.Options{Scheme: kube.CreateScheme()})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize client: %s", err)
+	}
+
 	k8sEnv = &K8sTestEnv{
-		Client:     k8sManager.GetClient(),
+		Client:     kc,
 		DynClient:  dyn,
 		RestMapper: mapper,
 		Rest:       cfg,
@@ -119,6 +133,76 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	}
 
 	return k8sEnv, nil
+}
+
+func CleanupAllResources(g *gomega.GomegaWithT, obj client.Object) {
+	ctx := context.Background()
+
+	nss := &corev1.NamespaceList{}
+	g.Expect(k8sEnv.Client.List(ctx, nss)).To(gomega.Succeed())
+
+	for _, ns := range nss.Items {
+		g.Expect(k8sEnv.Client.DeleteAllOf(ctx, obj, client.InNamespace(ns.Name))).To(gomega.Succeed())
+	}
+}
+
+func DeleteNamespace(g *gomega.GomegaWithT, ns *corev1.Namespace) {
+	// Code borrowed from controller-runtime: https://github.com/kubernetes-sigs/controller-runtime/blob/eb39b8eb28cfe920fa2450eb38f814fc9e8003e8/pkg/client/client_test.go#L51
+	clientset, err := kubernetes.NewForConfig(k8sEnv.Rest)
+	g.Expect(err).To(gomega.BeNil())
+
+	ctx := context.Background()
+
+	ns, err = clientset.CoreV1().Namespaces().Get(ctx, ns.Name, metav1.GetOptions{})
+	if err != nil {
+		return
+	}
+
+	err = clientset.CoreV1().Namespaces().Delete(ctx, ns.Name, metav1.DeleteOptions{})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	// finalize if necessary
+	pos := -1
+	finalizers := ns.Spec.Finalizers
+
+	for i, fin := range finalizers {
+		if fin == "kubernetes" {
+			pos = i
+			break
+		}
+	}
+
+	if pos == -1 {
+		// no need to finalize
+		return
+	}
+
+	// re-get in order to finalize
+	ns, err = clientset.CoreV1().Namespaces().Get(ctx, ns.Name, metav1.GetOptions{})
+	if err != nil {
+		return
+	}
+
+	ns.Spec.Finalizers = append(finalizers[:pos], finalizers[pos+1:]...)
+	_, err = clientset.CoreV1().Namespaces().Finalize(ctx, ns, metav1.UpdateOptions{})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+WAIT_LOOP:
+	for i := 0; i < 10; i++ {
+		ns, err = clientset.CoreV1().Namespaces().Get(ctx, ns.Name, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			// success!
+			return
+		}
+		select {
+		case <-ctx.Done():
+			break WAIT_LOOP
+			// failed to delete in time, see failure below
+		case <-time.After(100 * time.Millisecond):
+			// do nothing, try again
+		}
+	}
+	g.Fail(fmt.Sprintf("timed out waiting for namespace %q to be deleted", ns.Name))
 }
 
 // MakeFakeLogr returns an API compliant logr object that can be used for unit testing.
