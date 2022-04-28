@@ -285,7 +285,6 @@ message ListNamespacesResponse {
 }
 
 message ListFluxEventsRequest {
-    string          namespace      = 1;
     ObjectReference involvedObject = 2;
 }
 

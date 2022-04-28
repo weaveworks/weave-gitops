@@ -128,7 +128,6 @@ export type ListNamespacesResponse = {
 }
 
 export type ListFluxEventsRequest = {
-  namespace?: string
   involvedObject?: Gitops_coreV1Types.ObjectReference
 }
 
