@@ -74,12 +74,16 @@ func (cf *clientsFactory) Start(ctx context.Context) {
 }
 
 func (cf *clientsFactory) watchClusters(ctx context.Context) {
+	if err := cf.UpdateClusters(ctx); err != nil {
+		cf.log.Error(err, "failed updating clusters")
+	}
+
+	cf.initialClustersLoad <- true
+
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			return false, err
 		}
-
-		cf.initialClustersLoad <- true
 
 		return false, nil
 	}); err != nil {
