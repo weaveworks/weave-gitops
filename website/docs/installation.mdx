@@ -64,7 +64,7 @@ spec:
   url: https://helm.gitops.weave.works
 ```
 
-## Weave GitOps Enterprise<TierLabel tiers="enterprise" />
+## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
 Weave Gitops Enterprise (WGE) provides ops teams with an easy way to assess the
 health of multiple clusters in a single place. It shows cluster information such as
@@ -77,11 +77,11 @@ To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.w
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-To upgrade to Weave GitOps Enterprise
+To install Weave GitOps Enterprise
 
 import TOCInline from "@theme/TOCInline";
 
-<TOCInline toc={toc[2].children} />
+<TOCInline toc={toc[1].children} />
 
 ### 1. Setting up a Cluster with `flux`
 
@@ -190,7 +190,7 @@ flux bootstrap github \
 
 :::note `clusterctl` versions
 
-The example templates provided in this guide have been tested with `clusterctl` version `1.0.1`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
+The example templates provided in this guide have been tested with `clusterctl` version `1.1.3`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
 
 Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
 :::
@@ -234,7 +234,7 @@ kubectl apply -f entitlements.yaml
 
 ### 4. Configure
 
-We deploy WGE via a helm-chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
+We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
 
 ```
 git clone git@github.com:$GITHUB_USER/fleet-infra
