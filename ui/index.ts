@@ -19,7 +19,9 @@ import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
 import DataTable, { Field, SortType } from "./components/DataTable";
-import FilterableTable from "./components/FilterableTable";
+import FilterableTable, {
+  filterConfigForString,
+} from "./components/FilterableTable";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
@@ -67,6 +69,7 @@ export {
   FeatureFlagsContextProvider,
   FeatureFlags,
   Field,
+  filterConfigForString,
   FilterableTable,
   FluxRuntime,
   Footer,
