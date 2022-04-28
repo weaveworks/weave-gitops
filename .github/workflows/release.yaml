@@ -64,7 +64,7 @@ jobs:
         if: ${{ !contains(github.event.pull_request.head.ref, '-') }}
       - name: Store changelog
         run: |
-          echo > ${{ runner.temp }}/changelog.md <<END_OF_CHANGELOG
+          cat > ${{ runner.temp }}/changelog.md <<'END_OF_CHANGELOG'
           ${{ github.event.pull_request.body }}
           END_OF_CHANGELOG
       - name: Run GoReleaser
