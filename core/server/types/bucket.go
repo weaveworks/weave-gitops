@@ -1,19 +1,19 @@
 package types
 
 import (
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func BucketToProto(bucket *v1beta1.Bucket, clusterName string) *pb.Bucket {
+func BucketToProto(bucket *sourcev1.Bucket, clusterName string) *pb.Bucket {
 	var provider pb.Bucket_Provider
 
 	switch bucket.Spec.Provider {
-	case v1beta1.GenericBucketProvider:
+	case sourcev1.GenericBucketProvider:
 		provider = pb.Bucket_Generic
-	case v1beta1.AmazonBucketProvider:
+	case sourcev1.AmazonBucketProvider:
 		provider = pb.Bucket_AWS
-	case v1beta1.GoogleBucketProvider:
+	case sourcev1.GoogleBucketProvider:
 		provider = pb.Bucket_GCP
 	}
 

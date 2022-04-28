@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func GitRepositoryToProto(repository *v1beta1.GitRepository, clusterName string) *pb.GitRepository {
+func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string) *pb.GitRepository {
 	gr := &pb.GitRepository{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
