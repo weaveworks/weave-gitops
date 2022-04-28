@@ -101,12 +101,6 @@
         },
         "parameters": [
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,

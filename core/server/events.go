@@ -29,7 +29,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		"involvedObject.namespace": msg.InvolvedObject.Namespace,
 	}
 
-	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l, fields); err != nil {
+	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.InvolvedObject.Namespace, l, fields); err != nil {
 		return nil, fmt.Errorf("could not get events: %w", err)
 	}
 
