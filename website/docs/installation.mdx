@@ -236,6 +236,12 @@ kubectl apply -f entitlements.yaml
 
 We deploy WGE via a helm-chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
 
+```
+git clone git@github.com:$GITHUB_USER/fleet-infra
+```
+
+Clone the repo locally as we're gonna add some things!
+
 import ExampleWGE from "./assets/example-enterprise-helm.yaml";
 import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
 
