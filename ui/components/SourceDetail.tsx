@@ -57,6 +57,10 @@ function SourceDetail({ className, name, info, type }: Props) {
       return true;
     }
 
+    if (a?.helmChart?.sourceRef?.kind == s.type && a?.helmChart?.name == name){
+      return true;
+    }
+
     return false;
   });
 
