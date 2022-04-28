@@ -1,0 +1,42 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: weave-gitops-enterprise-charts
+  namespace: flux-system
+spec:
+  interval: 10m
+  secretRef:
+    name: weave-gitops-enterprise-credentials
+  url: https://charts.dev.wkp.weave.works/charts-v3
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: mccp
+      sourceRef:
+        kind: HelmRepository
+        name: weave-gitops-enterprise-main
+        namespace: flux-system
+      version: 0.7.0-rc.1
+  interval: 1m
+  values:
+    tls:
+      # -- Can be disabled if TLS is handled by a user-provided ingress controller
+      # enabled: true
+      # -- optionally specify a TLS secret
+      # secretName: null
+    config:
+      capi:
+        repositoryURL: https://github.com/my-org/my-repo
+        # -- Can be changed depending on your git repo structure
+        # repositoryPath: ./clusters/management/clusters
+        # repositoryClustersPath: ./cluster
+      git:
+        type: github
+        # -- Change if using on-prem github/gitlab
+        # hostname: https://github.com

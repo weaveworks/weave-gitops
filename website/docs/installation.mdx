@@ -232,7 +232,9 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-### 3.5 Configure repository paths
+### 4. Configure
+
+We deploy WGE via a helm-chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
 
 import ExampleWGE from "./assets/example-enterprise-helm.yaml";
 import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
@@ -253,7 +255,7 @@ The other important path to configure is where applications and workloads that w
 By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
 When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
 
-### 4. Configure access for writing to git from the UI
+### 4.5 Configure access for writing to git from the UI
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
@@ -295,43 +297,9 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 </TabItem>
 </Tabs>
 
-### 5. Upgrade
+### 5. Install
 
-<Tabs groupId="git-host" default>
-<TabItem value="hosted" label="github.com / gitlab.com">
-
-```bash
-gitops upgrade --version 0.0.18
-```
-
-</TabItem>
-<TabItem value="on-prem" label="GitLab on other domains">
-
-#### 5.1 Add `known_hosts` for other domains
-
-For hosts other than github.com or gitlab.com we need to retrieve the public ssh keys and save them in a secret. Replace `git.example.com` below with your git host.
-
-```bash
-ssh-keyscan git.example.com > known_hosts
-kubectl create configmap --namespace wego-system ssh-config --from-file=./known_hosts
-```
-
-Install WGE and mount the `known_hosts` file:
-
-```bash
-gitops upgrade \
-  --git-host-types="git.example.com=gitlab" \
-  --version 0.0.18 \
-  --set "config.extraVolumes[0].name=ssh-config" \
-  --set "config.extraVolumes[0].configMap.name=ssh-config" \
-  --set "config.extraVolumeMounts[0].name=ssh-config" \
-  --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" \
-```
-
-</TabItem>
-</Tabs>
-
-A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
+Commit and push all the files
 
 ### 5.5 Configure password and add rolebindings for the
 
