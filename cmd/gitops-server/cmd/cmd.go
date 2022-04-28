@@ -351,18 +351,6 @@ func defaultedDurationEnvVar(name string, defaultVal time.Duration) time.Duratio
 	return defaultVal
 }
 
-func defaultedIntEnvVar(name string, defaultVal int) int {
-	val, found := os.LookupEnv(name)
-
-	if found {
-		if ival, err := strconv.Atoi(val); err == nil {
-			return ival
-		}
-	}
-
-	return defaultVal
-}
-
 func defaultedBoolEnvVar(name string, defaultVal bool) bool {
 	val, found := os.LookupEnv(name)
 
