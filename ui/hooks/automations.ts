@@ -10,7 +10,7 @@ import {
   SyncAutomationRequest,
   SyncAutomationResponse,
 } from "../lib/api/core/core.pb";
-import { Kustomization } from "../lib/api/core/types.pb";
+import {HelmRelease, Kustomization} from "../lib/api/core/types.pb";
 import {
   AutomationType,
   DefaultCluster,
@@ -19,7 +19,7 @@ import {
   Syncable,
 } from "../lib/types";
 
-export type Automation = Kustomization & { type: AutomationType };
+export type Automation = Kustomization & { type: AutomationType } & HelmRelease;
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
