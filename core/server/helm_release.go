@@ -41,7 +41,11 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 			}
 
 			for _, helmrelease := range list.Items {
-				results = append(results, types.HelmReleaseToProto(&helmrelease, n, []*pb.GroupVersionKind{}))
+				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, msg.ClusterName)
+				if err != nil {
+					return nil, err
+				}
+				results = append(results, types.HelmReleaseToProto(&helmrelease, n, inv))
 			}
 		}
 	}

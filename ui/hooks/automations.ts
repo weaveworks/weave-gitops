@@ -29,7 +29,7 @@ export function useListAutomations(namespace = NoNamespace) {
     () => {
       const p = [
         api.ListKustomizations({ namespace }),
-        api.ListHelmReleases({ namespace }),
+        api.ListHelmReleases({ namespace, clusterName: DefaultCluster }),
       ];
 
       // The typescript CLI complains about Promise.all,

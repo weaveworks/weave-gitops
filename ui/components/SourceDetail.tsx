@@ -66,7 +66,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     }
 
     return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
-        isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.name);
+        isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name);
   });
 
   return (
