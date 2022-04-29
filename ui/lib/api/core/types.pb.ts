@@ -94,6 +94,7 @@ export type HelmRelease = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  helmChartName?: string
 }
 
 export type GitRepository = {
