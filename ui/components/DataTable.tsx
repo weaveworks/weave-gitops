@@ -153,7 +153,11 @@ function UnstyledDataTable({
     <TableRow key={i}>
       {_.map(fields, (f) => (
         <TableCell
-          style={f.maxWidth && { maxWidth: f.maxWidth, whiteSpace: "pre-line" }}
+          style={
+            f.maxWidth && {
+              maxWidth: f.maxWidth,
+            }
+          }
           key={f.label}
         >
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
@@ -169,15 +173,7 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell
-                  style={
-                    f.maxWidth && {
-                      maxWidth: f.maxWidth,
-                      whiteSpace: "pre-line",
-                    }
-                  }
-                  key={f.label}
-                >
+                <TableCell key={f.label}>
                   <SortableLabel field={f} />
                 </TableCell>
               ))}
@@ -220,6 +216,7 @@ export const DataTable = styled(UnstyledDataTable)`
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
+    white-space: nowrap;
   }
   .MuiTableRow-root {
     transition: background 0.5s ease-in-out;
@@ -232,8 +229,9 @@ export const DataTable = styled(UnstyledDataTable)`
     padding: 0;
   }
   td {
-    word-wrap: break-word;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
 
