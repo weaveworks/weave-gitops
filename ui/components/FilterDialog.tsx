@@ -55,16 +55,14 @@ export function initialFormState(cfg: FilterConfig) {
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
   const [all, setAll] = React.useState(false);
   React.useEffect(() => {
-    console.log(formState);
     const allChecked = _.chain(formState)
       // get all relevant keys' current value
       .keys()
       .filter((key) => _.includes(key, header))
       .every((key) => formState[key])
       .value();
-    console.log(allChecked);
     setAll(allChecked);
-  }, [formState]);
+  });
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
