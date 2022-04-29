@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
-import { withTheme } from "../../lib/test-utils";
+import { withContext, withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
   filterConfigForStatus,
@@ -152,7 +152,13 @@ describe("FilterableTable", () => {
 
   it("should show all rows", () => {
     render(
-      withTheme(<FilterableTable fields={fields} rows={rows} filters={{}} />)
+      withTheme(
+        withContext(
+          <FilterableTable fields={fields} rows={rows} filters={{}} />,
+          "/applications",
+          {}
+        )
+      )
     );
 
     expect(screen.queryAllByText("slick")).toBeTruthy();
@@ -161,11 +167,15 @@ describe("FilterableTable", () => {
   it("should filter rows", () => {
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={{ name: ["slick"] }}
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={{ name: ["slick"] }}
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -178,12 +188,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -215,12 +229,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -255,12 +273,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -281,12 +303,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
     const checkbox1 = document.getElementById("status") as HTMLInputElement;
@@ -306,12 +332,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -341,12 +371,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -382,12 +416,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -404,12 +442,16 @@ describe("FilterableTable", () => {
     };
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -430,12 +472,16 @@ describe("FilterableTable", () => {
 
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={initialFilterState}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -449,14 +495,16 @@ describe("FilterableTable", () => {
   it("filters by multiple text fields", () => {
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={{
-            ...filterConfigForString(rows, "type"),
-          }}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={{}}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
@@ -474,14 +522,16 @@ describe("FilterableTable", () => {
   it("filters by fragments of text fields", () => {
     render(
       withTheme(
-        <FilterableTable
-          fields={fields}
-          rows={rows}
-          filters={{
-            ...filterConfigForString(rows, "type"),
-          }}
-          dialogOpen
-        />
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={{}}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
       )
     );
 
