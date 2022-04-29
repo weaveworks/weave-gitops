@@ -235,11 +235,13 @@ kubectl apply -f entitlements.yaml
 
 We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
 
+Clone the repo locally as we're gonna add some things!
+
 ```
 git clone git@github.com:$GITHUB_USER/fleet-infra
 ```
 
-Clone the repo locally as we're gonna add some things!
+Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
 
 import ExampleWGE from "./assets/example-enterprise-helm.yaml";
 import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
@@ -309,7 +311,7 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 
 Commit and push all the files
 
-### 5.5 Configure password and add rolebindings for the
+### 5.5 Configure password
 
 In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
 
@@ -331,15 +333,6 @@ kubectl create secret generic cluster-user-auth \
 ```
 
 By default a user `wego-admin` is used when you login.
-
-import ExampleAdminRolebinding from "./assets/example-enterprise-rolebindings.yaml";
-import ExampleAdminRolebindingContent from "!!raw-loader!./assets/example-enterprise-rolebindings.yaml";
-
-<CurlCodeBlock
-  localPath="clusters/management/admin-rolebindings.yaml"
-  hostedPath={ExampleAdminRolebinding}
-  content={ExampleAdminRolebindingContent}
-/>
 
 ### 6. Checking that WGE is installed
 
