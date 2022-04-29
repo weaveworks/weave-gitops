@@ -110,6 +110,7 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
             <ReconciledObjectsTable
               kinds={helmRelease?.inventory}
               automationName={helmRelease?.name}
+              namespace={helmRelease?.namespace}
               automationKind={AutomationKind.HelmReleaseAutomation}
               clusterName={helmRelease?.clusterName}
             />
