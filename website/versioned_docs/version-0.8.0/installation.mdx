@@ -13,18 +13,22 @@ This section details the steps required to install Weave GitOps on a Kubernetes 
 ### Pre-requisites
 
 #### Kubernetes Cluster
-Weave GitOps is compatible with conformant Kubernetes distributions which match the minimum required version level of [Flux](https://fluxcd.io/docs/installation/#prerequisites).
+This version of Weave Gitops is tested against the following Kubernetes releases:
+* 1.20
+* 1.21
+* 1.22
+* 1.23
+
+Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
 
 #### Install Flux
-Weave GitOps is an extension to Flux and therefore requires that Flux has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.29 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
-#### Configure access to the GitOps Dashboard web UI
-Weave GitOps includes a web UI which runs on your Kubernetes cluster. In order to allow users to access this, you must first configure an appropriate login mechanism. We support integration with OIDC providers, as well as an admin cluster user for getting started and emergencies. This cluster user can be disabled if preferred.
-
-Follow the guide here to appropriately configure access : [Securing access to the dashboard](configuration/securing-access-to-the-dashboard.mdx).
+This version of Weave Gitops is tested against the following Flux releases:
+* 0.29
 
 ### Install the Helm Chart
-Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following where marked `<UPDATE>` based on the previous step, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
+Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
 
 ```
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -99,7 +103,7 @@ import TabItem from "@theme/TabItem";
 
 Make sure the following software is installed before continuing with these instructions:
 
-- `gitops` >= 0.6.2 download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
+- `gitops` 0.6.2 download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
 
 Also `GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 :::
