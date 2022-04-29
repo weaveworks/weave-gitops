@@ -45,6 +45,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 				if err != nil {
 					return nil, err
 				}
+
 				results = append(results, types.HelmReleaseToProto(&helmrelease, n, inv))
 			}
 		}
