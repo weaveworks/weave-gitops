@@ -1,20 +1,16 @@
 # Default values for chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
 replicaCount: 1
-
 image:
   # FIXME check the app name
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.7.0"
-
+  tag: "v0.8.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
 # Sets the WEAVE_GITOPS_AUTH_ENABLED environment variable to enable auth systems
 enableLogin: true
 # valid levels are 'debug', 'info', 'warn' and 'error'
@@ -32,7 +28,6 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
-
 rbac:
   # Specifies whether the clusterRole & binding to the service account should be created
   create: true
@@ -40,11 +35,10 @@ rbac:
   # recommended that you configure groups that can be used to populate this.
   impersonationResourceNames: []
   # Limit the type of principal that can be impersonated
-  impersonationResources: [ "users", "groups" ]
+  impersonationResources: ["users", "groups"]
   # Specify whether additional permissions should be granted to the service account
   # in order to work with weave-gitops enterprise
   viewSecrets: []
-
 # This should not be used in production
 adminUser:
   # Whether the wego-admin user should be created.
@@ -56,32 +50,29 @@ adminUser:
   # This needs to have been hashed using the bcrypt algorithm.
   # e.g. go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli
   # passwordHash:
-
 podAnnotations: {}
-
 podSecurityContext: {}
-  # fsGroup: 2000
+# fsGroup: 2000
 
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
 
 service:
   create: true
   type: ClusterIP
   port: 9001
   annotations: {}
-
 ingress:
   enabled: false
   className: ""
   annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
   hosts:
     - host: chart-example.local
       paths:
@@ -91,25 +82,21 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
-
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
-
 serverTLS:
   enable: false
   # secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
