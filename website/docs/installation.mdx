@@ -251,6 +251,9 @@ import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yam
   content={ExampleWGEContent}
 />
 
+#### `values.config.capi.repositoryURL`
+Ensure this has been set to your repository URL.
+
 #### `values.config.capi.repositoryPath`
 By default, WGE will create new clusters in the `clusters/management/clusters` path.
 This can be configured with `values.config.capi.repositoryPath`.
@@ -309,7 +312,24 @@ Commit and push all the files
 
 ### 5.5 Configure password and add rolebindings for the
 
-TODO: configure password
+In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
+
+Run the following Docker command and supply the password of your choice as an environment variable:
+
+```bash
+PASSWORD="<your password>"
+docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```
+
+Now create a Kubernetes secret to store your chosen username and the password hash:
+
+```bash
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+```
 
 By default a user `wego-admin` is used when you login.
 
@@ -317,7 +337,7 @@ import ExampleAdminRolebinding from "./assets/example-enterprise-rolebindings.ya
 import ExampleAdminRolebindingContent from "!!raw-loader!./assets/example-enterprise-rolebindings.yaml";
 
 <CurlCodeBlock
-  localPath="clusters/management/rbac/admin-rolebindings.yaml"
+  localPath="clusters/management/admin-rolebindings.yaml"
   hostedPath={ExampleAdminRolebinding}
   content={ExampleAdminRolebindingContent}
 />
