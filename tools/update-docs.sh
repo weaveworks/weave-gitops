@@ -11,7 +11,7 @@ yarn install
 sed -i
 ex - installation.mdx << EOS
 /download\/
-%s,download/\([^/]*\)/,download/${GITOPS_VERSION}/,
+%s,download/\([^/]*\)/,download/v${GITOPS_VERSION}/,
 /Current Version
 .,+3! ${WEAVE_GITOPS_BINARY} version
 wq!
