@@ -231,41 +231,7 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-### 4. Configure
-
-We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
-
-Clone the repo locally as we're gonna add some things!
-
-```
-git clone git@github.com:$GITHUB_USER/fleet-infra
-```
-
-Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
-
-import ExampleWGE from "./assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
-
-<CurlCodeBlock
-  localPath="clusters/management/weave-gitops-enterprise.yaml"
-  hostedPath={ExampleWGE}
-  content={ExampleWGEContent}
-/>
-
-#### `values.config.capi.repositoryURL`
-Ensure this has been set to your repository URL.
-
-#### `values.config.capi.repositoryPath`
-By default, WGE will create new clusters in the `clusters/management/clusters` path.
-This can be configured with `values.config.capi.repositoryPath`.
-For example you might what to change it to `clusters/my-cluster/cluster` if you configured flux to reconcile `./clusters/my-cluster` instead.
-
-#### `values.config.capi.repositoryClustersPath`
-The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
-By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
-When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
-
-### 4.5 Configure access for writing to git from the UI
+### 4. Configure access for writing to git from the UI
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
@@ -307,11 +273,52 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 </TabItem>
 </Tabs>
 
-### 5. Install
+
+### 5. Configure and commit
+
+We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
+
+Clone the repo locally as we're gonna add some things!
+
+```
+git clone git@github.com:$GITHUB_USER/fleet-infra
+```
+
+Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
+
+import ExampleWGE from "./assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
+
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
+
+#### `values.config.capi.repositoryURL`
+Ensure this has been set to your repository URL.
+
+#### `values.config.capi.repositoryPath`
+By default, WGE will create new clusters in the `clusters/management/clusters` path.
+This can be configured with `values.config.capi.repositoryPath`.
+For example you might what to change it to `clusters/my-cluster/cluster` if you configured flux to reconcile `./clusters/my-cluster` instead.
+
+#### `values.config.capi.repositoryClustersPath`
+The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
+By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
 
 Commit and push all the files
 
-### 5.5 Configure password
+```
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave Gitops Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster.
+
+### 6. Configure password
 
 In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
 
@@ -334,7 +341,7 @@ kubectl create secret generic cluster-user-auth \
 
 By default a user `wego-admin` is used when you login.
 
-### 6. Checking that WGE is installed
+### 7. Checking that WGE is installed
 
 You should now be able to load the WGE UI:
 
@@ -344,7 +351,7 @@ kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 
 The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
 
-### 7. Connect the management cluster up to itself
+### 8. Connect the management cluster up to itself
 
 _Connecting a cluster_ installs the agent which is responsible for detecting new clusters and reporting their status to the UI. We need to install the agent on our newly created management cluster. Check out [How to: Connect a cluster](./cluster-management/managing-existing-clusters.mdx#how-to-connect-a-cluster). The agent should be loaded onto our new management cluster, give it a name like **Management** and leave the Ingress URL blank.
 
