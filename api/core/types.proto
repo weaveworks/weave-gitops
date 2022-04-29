@@ -84,6 +84,7 @@ message HelmRelease {
     bool      suspended                  = 11;
     string    lastUpdatedAt              = 12;
     string    clusterName                = 13;
+    string    helmChartName              = 14;
 }
 
 message GitRepository {

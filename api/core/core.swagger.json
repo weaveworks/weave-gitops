@@ -955,6 +955,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "helmChartName": {
+          "type": "string"
         }
       }
     },

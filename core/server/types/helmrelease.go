@@ -36,6 +36,7 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		Inventory:     inventory,
 		Conditions:    mapConditions(helmrelease.Status.Conditions),
 		Suspended:     helmrelease.Spec.Suspend,
+		HelmChartName: helmrelease.Status.HelmChart,
 		ClusterName:   clusterName,
 		LastUpdatedAt: lastUpdatedAt(helmrelease),
 	}

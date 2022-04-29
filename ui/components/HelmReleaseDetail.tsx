@@ -35,6 +35,27 @@ const TabContent = styled.div`
   margin-top: 52px;
 `;
 
+function helmChartLink(helmRelease : HelmRelease) {
+  if (helmRelease.helmChartName === "") {
+    return (<SourceLink
+      sourceRef={{
+        kind: SourceRefSourceKind.HelmChart,
+          name: helmRelease?.helmChart.chart,
+      }}
+      />)
+  }
+
+  const [ns, name] = helmRelease.helmChartName.split("/")
+
+  return (<SourceLink
+    sourceRef={{
+      kind: SourceRefSourceKind.HelmChart,
+        name: name,
+        namespace: ns,
+    }}
+    />)
+}
+
 function HelmReleaseDetail({ name, helmRelease, className }: Props) {
   const { path } = useRouteMatch();
   const { notifySuccess } = React.useContext(AppContext);
@@ -60,12 +81,7 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
             items={[
               [
                 "Source",
-                <SourceLink
-                  sourceRef={{
-                    kind: SourceRefSourceKind.HelmChart,
-                    name: helmRelease?.helmChart.chart,
-                  }}
-                />,
+                helmChartLink(helmRelease),
               ],
               ["Chart", helmRelease?.helmChart.chart],
               ["Cluster", helmRelease?.clusterName],
