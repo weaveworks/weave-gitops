@@ -296,7 +296,7 @@ them into the `git-provider-credentials` secret along with:
 **Replace values** in this snippet and run:
 
 ```bash
-kubectl create secret generic git-provider-credentials --namespace=wego-system \
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
   --from-literal="GITLAB_CLIENT_ID=13457" \
   --from-literal="GITLAB_CLIENT_SECRET=24680" \
   --from-literal="GITLAB_HOSTNAME=git.example.com" \
@@ -408,7 +408,7 @@ iam:
   serviceAccounts:
   - metadata:
       name: wego-service-account # Altering this will require a corresponding change in a later command
-      namespace: wego-system
+      namespace: flux-system
     roleOnly: true
     attachPolicy:
       Version: "2012-10-17"
