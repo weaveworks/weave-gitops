@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
 func TestListKustomizations(t *testing.T) {
@@ -80,6 +81,8 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 func TestListKustomizationPagination(t *testing.T) {
 	g := NewGomegaWithT(t)
 
+	testutils.DeleteAllOf(g, &kustomizev1.Kustomization{})
+
 	ctx := context.Background()
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
@@ -87,8 +90,6 @@ func TestListKustomizationPagination(t *testing.T) {
 		Scheme: kube.CreateScheme(),
 	})
 	g.Expect(err).NotTo(HaveOccurred())
-
-	existingKust := existingKustomizationCount(g)
 
 	ns1 := newNamespace(ctx, k, g)
 
@@ -110,7 +111,7 @@ func TestListKustomizationPagination(t *testing.T) {
 		},
 	})
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(res.Kustomizations).To(HaveLen(existingKust + 2))
+	g.Expect(res.Kustomizations).To(HaveLen(2))
 
 	res, err = c.ListKustomizations(ctx, &pb.ListKustomizationsRequest{
 		Pagination: &pb.Pagination{
@@ -232,11 +233,4 @@ func newKustomization(ctx context.Context, appName, nsName string, k client.Clie
 	g.Expect(k.Create(ctx, kust)).To(Succeed())
 
 	return kust
-}
-
-func existingKustomizationCount(g *GomegaWithT) int {
-	nsList := &kustomizev1.KustomizationList{}
-	g.Expect(k8sEnv.Client.List(context.Background(), nsList)).To(Succeed())
-
-	return len(nsList.Items)
 }
