@@ -48,13 +48,21 @@ function SourceDetail({ className, name, info, type }: Props) {
 
   const items = info(s);
 
+  const isNameRelevant = (expectedName) => {
+    return expectedName == name
+  }
+
   const isRelevant = (expectedType, expectedName) => {
-    return (expectedType == s.type && expectedName == name)
+    return (expectedType == s.type && isNameRelevant(expectedName))
   }
 
   const relevantAutomations = _.filter(automations, (a) => {
     if (!s) {
       return false;
+    }
+
+    if (type == "HelmChart" && isNameRelevant(a?.helmChart?.name)) {
+      return true;
     }
 
     return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
