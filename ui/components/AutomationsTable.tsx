@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import {
   HelmRelease,
+    HelmRepository,
   Kustomization,
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
@@ -124,7 +125,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Last Updated",
       value: (a: Automation) => (
-        <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
+        <Timestamp time={(a as HelmRepository).lastUpdatedAt} />
       ),
     },
   ];
