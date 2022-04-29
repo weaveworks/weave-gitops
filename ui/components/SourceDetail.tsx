@@ -48,20 +48,17 @@ function SourceDetail({ className, name, info, type }: Props) {
 
   const items = info(s);
 
+  const isRelevant = (expectedType, expectedName) => {
+    return (expectedType == s.type && expectedName == name)
+  }
+
   const relevantAutomations = _.filter(automations, (a) => {
     if (!s) {
       return false;
     }
 
-    if (a?.sourceRef?.kind == s.type && a?.sourceRef?.name == name) {
-      return true;
-    }
-
-    if (a?.helmChart?.sourceRef?.kind == s.type && a?.helmChart?.name == name){
-      return true;
-    }
-
-    return false;
+    return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
+        isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.name);
   });
 
   return (
