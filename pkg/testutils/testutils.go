@@ -236,7 +236,7 @@ func DeleteAllOf(g *gomega.GomegaWithT, obj client.Object) {
 }
 
 // DeleteNamespace deletes a namespace.
-// Note: deleting a namespace using function on tests wont delete the underlying resources
+// Note: deleting a namespace using this function on tests wont delete the underlying resources
 // like in a real environment would.
 func DeleteNamespace(g *gomega.GomegaWithT, ns *corev1.Namespace) {
 	// Code borrowed from controller-runtime: https://github.com/kubernetes-sigs/controller-runtime/blob/eb39b8eb28cfe920fa2450eb38f814fc9e8003e8/pkg/client/client_test.go#L51
