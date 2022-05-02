@@ -92,7 +92,6 @@ export type HelmRelease = {
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
   suspended?: boolean
-  lastUpdatedAt?: string
   clusterName?: string
   helmChartName?: string
 }

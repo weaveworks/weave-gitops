@@ -42,6 +42,5 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		Suspended:     helmrelease.Spec.Suspend,
 		HelmChartName: helmrelease.Status.HelmChart,
 		ClusterName:   clusterName,
-		LastUpdatedAt: lastUpdatedAt(helmrelease),
 	}
 }

@@ -956,9 +956,6 @@
         "suspended": {
           "type": "boolean"
         },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
         "clusterName": {
           "type": "string"
         },
