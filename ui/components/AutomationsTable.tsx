@@ -4,8 +4,6 @@ import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import {
   HelmRelease,
-    HelmRepository,
-  Kustomization,
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
