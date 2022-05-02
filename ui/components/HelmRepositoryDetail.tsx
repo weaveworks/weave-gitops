@@ -21,6 +21,7 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
       type={SourceRefSourceKind.HelmRepository}
       // Guard against an undefined repo with a default empty object
       info={(hr: HelmRepository = {}) => [
+        ["Type", SourceRefSourceKind.HelmRepository],
         [
           "URL",
           <Link newTab href={hr.url}>

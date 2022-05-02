@@ -57,7 +57,7 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  min-width: 1024px;
+  min-width: 768px;
   max-width: 100vw;
   min-height: 100vh;
   margin: 0 auto;
@@ -119,15 +119,21 @@ const ContentContainer = styled.div`
   overflow: hidden;
 `;
 
-const Main = styled(Flex)``;
+const Main = styled(Flex)`
+  padding-top: 80px;
+`;
 
 const TopToolBar = styled(Flex)`
+  position: fixed;
   background-color: ${(props) => props.theme.colors.primary};
   height: 80px;
+  min-width: 768px;
   ${UserSettings} {
     justify-self: flex-end;
     margin-left: auto;
   }
+  //puts it over nav text (must be an mui thing)
+  z-index: 2;
 `;
 
 function Layout({ className, children }: Props) {

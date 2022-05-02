@@ -1,6 +1,5 @@
 import _ from "lodash";
 import React from "react";
-import { useIsFetching } from "react-query";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
 import { PageRoute, RequestError } from "../lib/types";
@@ -8,9 +7,7 @@ import Alert from "./Alert";
 import Flex from "./Flex";
 import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
-import PollingIndicator from "./PollingIndicator";
 import Spacer from "./Spacer";
-import Text from "./Text";
 
 export type PageProps = {
   className?: string;
@@ -39,11 +36,6 @@ export const Content = styled(Flex)`
 
 const Children = styled(Flex)``;
 
-export const TitleBar = styled(Flex)`
-  //matches nav tabs
-  line-height: 1.75;
-`;
-
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   return (
@@ -59,16 +51,8 @@ function Errors({ error }) {
   );
 }
 
-function Page({
-  children,
-  title,
-  actions,
-  loading,
-  error,
-  className,
-}: PageProps) {
+function Page({ children, loading, error, className }: PageProps) {
   const { settings } = useCommon();
-  const fetching = useIsFetching();
 
   if (loading) {
     return (
@@ -80,21 +64,10 @@ function Page({
 
   return (
     <Content wide tall start column className={className}>
-      <TitleBar wide start between>
-        <Flex align>
-          <Text semiBold size="large">
-            {title}
-          </Text>
-          <Spacer padding="small" />
-          <PollingIndicator loading={fetching > 0} />
-        </Flex>
-        {actions}
-      </TitleBar>
       {error && <Errors error={error} />}
       <Children column wide tall start>
         {children}
       </Children>
-
       {settings.renderFooter && <Footer />}
     </Content>
   );
