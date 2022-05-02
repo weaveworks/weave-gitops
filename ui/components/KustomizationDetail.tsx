@@ -68,7 +68,7 @@ function KustomizationDetail({ kustomization, className }: Props) {
           ["Interval", <Interval interval={kustomization?.interval} />],
           [
             "Last Updated At",
-            <Timestamp time={kustomization?.lastHandledReconciledAt} />,
+            <Timestamp time={""} />,
           ],
         ]}
       />
