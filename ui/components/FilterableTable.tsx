@@ -1,5 +1,7 @@
 import _ from "lodash";
+import qs from "query-string";
 import * as React from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
@@ -145,6 +147,8 @@ function FilterableTable({
   filters,
   dialogOpen,
 }: Props) {
+  const history = useHistory();
+  const location = useLocation();
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters,
@@ -170,7 +174,7 @@ function FilterableTable({
       next.textFilters,
       (f) => !_.includes(chips, f)
     );
-
+    setUrl(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
   };
 
@@ -182,16 +186,45 @@ function FilterableTable({
   };
 
   const handleClearAll = () => {
+    const resetFormState = initialFormState(filters);
     setFilterState({
       filters: {},
-      formState: initialFormState(filters),
+      formState: resetFormState,
       textFilters: [],
     });
+    setUrl(resetFormState);
   };
 
   const handleFilterSelect = (filters, formState) => {
+    setUrl(formState);
     setFilterState({ ...filterState, filters, formState });
   };
+
+  const setUrl = (formState) => {
+    let url = "";
+    _.each(formState, (value, key) => {
+      if (value) {
+        url += `${key}_`;
+      }
+    });
+    const query = location.search;
+    let prefix = "";
+    if (query && !query.includes("filters") && url) prefix = "&?filters=";
+    else if (url) prefix = "?filters=";
+    history.replace(location.pathname + prefix + encodeURIComponent(url));
+  };
+
+  React.useEffect(() => {
+    const filterQuery = qs.parse(location.search)["filters"] as string;
+    if (filterQuery) {
+      const split = filterQuery.split("_");
+      const next = filterState.formState;
+      _.each(split, (filterString) => {
+        if (filterString) next[filterString] = true;
+      });
+      setFilterState({ ...filterState, formState: next });
+    }
+  }, []);
 
   return (
     <Flex className={className} wide tall column>
