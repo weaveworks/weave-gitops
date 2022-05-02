@@ -64,7 +64,6 @@ export type Kustomization = {
   conditions?: Condition[]
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
-  lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
   suspended?: boolean
   clusterName?: string

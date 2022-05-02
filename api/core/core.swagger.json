@@ -1043,9 +1043,6 @@
         "lastAttemptedRevision": {
           "type": "string"
         },
-        "lastHandledReconciledAt": {
-          "type": "string"
-        },
         "inventory": {
           "type": "array",
           "items": {

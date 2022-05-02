@@ -54,7 +54,6 @@ message Kustomization {
     repeated  Condition conditions       = 6;
     string    lastAppliedRevision        = 7;
     string    lastAttemptedRevision      = 8;
-    string    lastHandledReconciledAt    = 9;
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
     string    clusterName                = 12;
