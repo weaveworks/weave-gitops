@@ -124,8 +124,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Last Updated",
-      value: (a: Automation) => (
-        <Timestamp time={(a as Kustomization).lastUpdatedAt} />
+      value: () => (
+        <Timestamp time={""} />
       ),
     },
   ];
