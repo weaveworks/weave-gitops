@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"google.golang.org/grpc/codes"
@@ -42,7 +43,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 			Name:      e.ObjectMeta.Name,
 			Reason:    e.Reason,
 			Message:   e.Message,
-			Timestamp: e.LastTimestamp.String(),
+			Timestamp: e.LastTimestamp.Format(time.RFC3339),
 			Host:      e.Source.Host,
 		})
 	}
