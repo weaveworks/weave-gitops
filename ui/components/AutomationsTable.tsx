@@ -125,7 +125,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Last Updated",
       value: (a: Automation) => (
-        <Timestamp time={(a as HelmRepository).lastUpdatedAt} />
+        <Timestamp time={(a as Kustomization).lastUpdatedAt} />
       ),
     },
   ];

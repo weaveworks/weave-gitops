@@ -37,29 +37,23 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
-// The UI needs to get a valid date format
-func convertToValidDate(date string) string {
-	t, _ := time.Parse("2006-01-02 15:04:05 -0700 MST", date)
-	return t.Format(time.RFC3339)
-}
-
 func lastUpdatedAt(obj interface{}) string {
 	switch s := obj.(type) {
 	case *sourcev1.GitRepository:
 		if s.Status.Artifact != nil {
-			return convertToValidDate(s.Status.Artifact.LastUpdateTime.String())
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
 	case *sourcev1.Bucket:
 		if s.Status.Artifact != nil {
-			return convertToValidDate(s.Status.Artifact.LastUpdateTime.String())
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
 	case *sourcev1.HelmChart:
 		if s.Status.Artifact != nil {
-			return convertToValidDate(s.Status.Artifact.LastUpdateTime.String())
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
 	case *sourcev1.HelmRepository:
 		if s.Status.Artifact != nil {
-			return convertToValidDate(s.Status.Artifact.LastUpdateTime.String())
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
 	}
 
