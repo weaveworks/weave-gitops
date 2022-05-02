@@ -54,9 +54,9 @@ message Kustomization {
     repeated  Condition conditions       = 6;
     string    lastAppliedRevision        = 7;
     string    lastAttemptedRevision      = 8;
-    repeated  GroupVersionKind inventory = 10;
-    bool      suspended                  = 11;
-    string    clusterName                = 12;
+    repeated  GroupVersionKind inventory = 9;
+    bool      suspended                  = 10;
+    string    clusterName                = 11;
 }
 
 message HelmChart {
