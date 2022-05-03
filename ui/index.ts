@@ -18,9 +18,14 @@ import Page from "./components/Page";
 import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
-import DataTable, { Field, SortType } from "./components/DataTable";
-import FilterableTable, {
+import { Field, SortType } from "./components/DataTable";
+import {
+  filterConfigForStatus,
   filterConfigForString,
+  filterRows,
+  filterText,
+  toPairs,
+  State,
 } from "./components/FilterableTable";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -65,12 +70,15 @@ export {
   clearCallbackState,
   coreClient,
   CoreClientContextProvider,
-  DataTable,
   FeatureFlagsContextProvider,
   FeatureFlags,
   Field,
   filterConfigForString,
-  FilterableTable,
+  filterConfigForStatus,
+  filterRows,
+  filterText,
+  toPairs,
+  State,
   FluxRuntime,
   Footer,
   getCallbackState,
