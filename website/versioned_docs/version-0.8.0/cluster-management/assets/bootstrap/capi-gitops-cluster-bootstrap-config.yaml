@@ -11,8 +11,8 @@ spec:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     spec:
       containers:
-        - image: ghcr.io/weaveworks/wego-app:v0.6.2
-          name: gitops-install
+        - image: ghcr.io/fluxcd/flux-cli:v0.29.5
+          name: flux-bootstrap
           resources: {}
           volumeMounts:
             - name: kubeconfig
@@ -20,26 +20,16 @@ spec:
               readOnly: true
           args:
             [
-              "install",
-              "--override-in-cluster",
-              "--config-repo",
-              "$(GITOPS_REPO)",
+              "bootstrap",
+              "github",
+              "--kubeconfig=/etc/gitops/value",
+              "--owner=$GITHUB_USER",
+              "--repository=fleet-infra",
+              "--path=./clusters/{{ .ObjectMeta.Name }}",
             ]
-          env:
-            - name: KUBECONFIG
-              value: "/etc/gitops/value"
-            - name: GITOPS_REPO
-              value: "ssh://git@github.com/my-org/my-management-cluster.git"
-            - name: GITHUB_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: my-pat
-                  key: GITHUB_TOKEN
-          # - name: GITLAB_TOKEN # If your GitOps reop is on GitLab, use this instead of GITHUB_TOKEN
-          #   valueFrom:
-          #     secretKeyRef:
-          #       name: pat
-          #       key: GITLAB_TOKEN
+          envFrom:
+            - secretRef:
+                name: my-pat
       restartPolicy: Never
       volumes:
         - name: kubeconfig
