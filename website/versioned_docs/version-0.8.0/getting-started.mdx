@@ -32,8 +32,7 @@ To follow along, you will need the following:
 brew install fluxcd/tap/flux
 ```
 
-For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
-
+For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
 2. Export your credentials
 
 ```
@@ -91,7 +90,6 @@ cd fleet-infra
 ```
 PASSWORD="<your password>"
 docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
-$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
 3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
@@ -100,7 +98,7 @@ $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 adminUser:
   create: true
   username: admin
-  passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+  passwordHash: <Output from previous command>
 ```
 
 :::info
