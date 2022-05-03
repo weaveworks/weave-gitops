@@ -45,7 +45,7 @@ adminUser:
   # If you use this make sure you add it to rbac.impersonationResourceNames.
   create: false
   # Specifies whether the clusterRole & binding to the admin user should be created.
-  # Will be created only if adminUser.crete is enabled.
+  # Will be created only if adminUser.create is enabled.
   createClusterRole: true
   createSecret: true
   # Set the username and password, these will be stored in a secret in k8s.
