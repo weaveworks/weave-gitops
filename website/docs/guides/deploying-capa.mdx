@@ -19,7 +19,6 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 Make sure the following software is installed before continuing with these instructions:
 
-- `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
 - `github cli` >= 2.3.0 [(source)](https://cli.github.com/)
 - `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - `eksctl` [(source)](https://github.com/weaveworks/eksctl/releases)
@@ -58,7 +57,7 @@ Download the template below to your config repository path, then commit and push
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      curl -o .weave-gitops/apps/capi/templates/capa-template.yaml{" "}
+      curl -o clusters/management/capi/templates/capa-template.yaml{" "}
       {window.location.protocol}//{window.location.host}
       {require("./assets/templates/capa-template.yaml").default}
     </CodeBlock>
@@ -66,7 +65,7 @@ Download the template below to your config repository path, then commit and push
 </BrowserOnly>
 
 <CodeBlock
-  title=".weave-gitops/apps/capi/templates/capa-template.yaml"
+  title="clusters/management/apps/capi/templates/capa-template.yaml"
   className="language-yaml"
 >
   {CapaTemplate}
