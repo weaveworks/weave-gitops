@@ -11,7 +11,7 @@ spec:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     spec:
       containers:
-        - image: ghcr.io/fluxcd/flux-cli:v0.27.3
+        - image: ghcr.io/fluxcd/flux-cli:v0.29.5
           name: flux-bootstrap
           resources: {}
           volumeMounts:
