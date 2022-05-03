@@ -31,6 +31,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer)
 		if e, ok := err.(*errors.StatusError); ok {
 			return fmt.Errorf("unable to retrieve profiles from %q: status code %d", r.Source(), e.ErrStatus.Code)
 		}
+
 		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
