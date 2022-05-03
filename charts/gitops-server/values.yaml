@@ -31,22 +31,21 @@ watcherMetricsBindAddress: ":9980"
 notificationControllerAddress: ""
 # The port on which the watcher is running
 watcherPort: 9443
-# Filename for the TLS certificate, in-memory generated if omitted
-TLSCertFile: "/etc/tls-volume/tls.crt"
-# Filename for the TLS key, in-memory generated if omitted
-TLSKeyFile: "/etc/tls-volume/tls.key"
 # Do not enforce mTLS
 MTLS: false
-# The URL of the OpenID Connect issuer
-OIDCIssuerURL: ""
-# The client ID for the OpenID Connect client
-OIDCClientID: ""
-# The client secret to use with the OpenID Connect issuer
-OIDCClientSecret: ""
-# The OAuth2 redirect URL
-OIDCRedirectURL: ""
-# The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m
-OIDCTokenDuration: "60m"
+
+# OIDC
+OIDC:
+  # The URL of the OpenID Connect issuer
+  issuerURL: ""
+  # The client ID for the OpenID Connect client
+  clientID: ""
+  # The client secret to use with the OpenID Connect issuer
+  clientSecret: ""
+  # The OAuth2 redirect URL
+  redirectURL: ""
+  # The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m
+  tokenDuration: "60m"
 
 # Additional arguments to pass in
 # additionalArgs:

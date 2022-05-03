@@ -36,9 +36,9 @@ spec:
             - "{{ .Values.logLevel }}"
             {{- if .Values.serverTLS.enable }}
             - "--tls-cert-file"
-            - {{ .Values.TLSCertFile }}
+            - "/etc/tls-volume/tls.crt"
             - "--tls-private-key-file"
-            - {{ .Values.TLSKeyFile }}
+            - "/etc/tls-volume/tls.key"
             {{- else }}
             - "--insecure"
             {{- end }}
@@ -59,35 +59,29 @@ spec:
             httpGet:
               path: /
               port: http
-          {{- if or .Values.enableLogin .Values.envVars}}
           env:
-            - name: PROFILE_CACHE_LOCATION
-              value: {{ .Values.profileCacheLocation }}
-            - name: NOTIFICATION_CONTROLLER_ADDRESS
-              value: {{ .Values.notificationControllerAddress }}
             - name: WATCHER_PORT
               value: {{ .Values.watcherPort }}
+          {{- if .Values.OIDC.enable }}
+          {{- with .Values.OIDC }}
             - name: OIDC_ISSUER_URL
-              value: {{ .Values.OIDCIssuerURL }}
+              value: {{ .issuerURL }}
             - name: OIDC_CLIENT_ID
-              value: {{ .Values.OIDCClientID }}
+              value: {{ .clientID }}
             - name: OIDC_CLIENT_SECRET
-              value: {{ .Values.OIDCClientSecret }}
+              value: {{ .clientSecret }}
             - name: OIDC_REDIRECT_URL
-              value: {{ .Values.OIDCRedirectURL }}
+              value: {{ .redirectURL }}
             - name: OIDC_TOKEN_DURATION
-              value: {{ .Values.OIDCTokenDuration }}
-            - name: DEV_MODE
-              value: {{ .Values.DEV_MODE }}
-            - name: DEV_USER
-              value: {{ .Values.DEV_USER }}
+              value: {{ .tokenDuration }}
+          {{- end }}
+          {{- end }}
           {{- if .Values.enableLogin }}
             - name: WEAVE_GITOPS_AUTH_ENABLED
               value: "true"
           {{- end }}
           {{- with .Values.envVars }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
