@@ -211,7 +211,9 @@ function FilterableTable({
     let prefix = "";
     if (query && !query.includes("filters") && url) prefix = "&?filters=";
     else if (url) prefix = "?filters=";
-    history.replace(location.pathname + prefix + encodeURIComponent(url));
+    history.replace(
+      (location.pathname || "") + prefix + encodeURIComponent(url)
+    );
   };
 
   React.useEffect(() => {
