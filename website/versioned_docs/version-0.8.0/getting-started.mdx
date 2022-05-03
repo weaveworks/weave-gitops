@@ -94,7 +94,7 @@ docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
+3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file: (we need to add the path where to store the file)
 ```
 # weave-gitops-values.yaml
 adminUser:
