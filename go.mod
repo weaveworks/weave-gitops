@@ -63,9 +63,8 @@ require (
 )
 
 require (
-	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 )
