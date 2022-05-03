@@ -17,7 +17,7 @@ func UpdateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		`,
 	}
 
-	cmd.AddCommand(profiles.UpdateCommand())
+	cmd.AddCommand(profiles.UpdateCommand(endpoint, client))
 
 	return cmd
 }
