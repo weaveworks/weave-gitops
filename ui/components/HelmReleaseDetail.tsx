@@ -6,7 +6,7 @@ import { useSyncAutomation } from "../hooks/automations";
 import {
   AutomationKind,
   HelmRelease,
-  SourceRefSourceKind,
+  SourceRefSourceKind
 } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
@@ -15,6 +15,7 @@ import InfoList from "./InfoList";
 import Interval from "./Interval";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
+import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
@@ -74,12 +75,22 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
   };
 
   return (
-    <Flex wide tall column className={className}>
-      {sync.isError && (
-        <Alert
-          severity="error"
-          message={sync.error.message}
-          title="Sync Error"
+    <Flex wide tall column align className={className}>
+      <Flex wide between>
+        <Info>
+          <Heading level={2}>{helmRelease?.namespace}</Heading>
+          <InfoList
+            items={[
+              ["Source", helmChartLink(helmRelease)],
+              ["Chart", helmRelease?.helmChart.chart],
+              ["Cluster", helmRelease?.clusterName],
+              ["Interval", <Interval interval={helmRelease?.interval} />],
+            ]}
+          />
+        </Info>
+        <PageStatus
+          conditions={helmRelease?.conditions}
+          suspended={helmRelease?.suspended}
         />
       )}
       <PageStatus
@@ -114,6 +125,15 @@ function HelmReleaseDetail({ name, helmRelease, className }: Props) {
                 name,
                 namespace: helmRelease?.namespace,
               }}
+            />
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
+            <ReconciliationGraph
+              automationKind={AutomationKind.HelmReleaseAutomation}
+              automationName={helmRelease?.name}
+              kinds={helmRelease?.inventory}
+              parentObject={helmRelease}
+              clusterName={helmRelease?.clusterName}
             />
           </RouterTab>
         </SubRouterTabs>
