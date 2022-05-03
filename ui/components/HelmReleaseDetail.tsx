@@ -1,24 +1,11 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
-import { useSyncAutomation } from "../hooks/automations";
-import {
-  AutomationKind,
-  HelmRelease,
-  SourceRefSourceKind
-} from "../lib/api/core/types.pb";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { AutomationType } from "../lib/types";
 import Alert from "./Alert";
-import EventsTable from "./EventsTable";
-import Flex from "./Flex";
-import InfoList from "./InfoList";
+import AutomationDetail from "./AutomationDetail";
 import Interval from "./Interval";
-import PageStatus from "./PageStatus";
-import ReconciledObjectsTable from "./ReconciledObjectsTable";
-import ReconciliationGraph from "./ReconciliationGraph";
 import SourceLink from "./SourceLink";
-import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncButton from "./SyncButton";
 
 type Props = {
   name: string;
@@ -26,12 +13,6 @@ type Props = {
   helmRelease?: HelmRelease;
   className?: string;
 };
-
-const TabContent = styled.div`
-  margin-top: ${(props) => props.theme.spacing.medium};
-  width: 100%;
-  height: 100%;
-`;
 
 function helmChartLink(helmRelease: HelmRelease) {
   if (helmRelease.helmChartName === "") {
@@ -58,87 +39,18 @@ function helmChartLink(helmRelease: HelmRelease) {
   );
 }
 
-function HelmReleaseDetail({ name, helmRelease, className }: Props) {
-  const { path } = useRouteMatch();
-  const { notifySuccess } = React.useContext(AppContext);
-  const sync = useSyncAutomation({
-    name: helmRelease?.name,
-    namespace: helmRelease?.namespace,
-    clusterName: helmRelease?.clusterName,
-    kind: AutomationKind.HelmReleaseAutomation,
-  });
-
-  const handleSyncClicked = (opts) => {
-    sync.mutateAsync(opts).then(() => {
-      notifySuccess("Resource synced successfully");
-    });
-  };
-
+function HelmReleaseDetail({ helmRelease, className }: Props) {
   return (
-    <Flex wide tall column align className={className}>
-      <Flex wide between>
-        <Info>
-          <Heading level={2}>{helmRelease?.namespace}</Heading>
-          <InfoList
-            items={[
-              ["Source", helmChartLink(helmRelease)],
-              ["Chart", helmRelease?.helmChart.chart],
-              ["Cluster", helmRelease?.clusterName],
-              ["Interval", <Interval interval={helmRelease?.interval} />],
-            ]}
-          />
-        </Info>
-        <PageStatus
-          conditions={helmRelease?.conditions}
-          suspended={helmRelease?.suspended}
-        />
-      )}
-      <PageStatus
-        conditions={helmRelease?.conditions}
-        suspended={helmRelease?.suspended}
-      />
-      <InfoList
-        items={[
-          ["Namespace", helmRelease?.namespace],
-          ["Source", helmChartLink(helmRelease)],
-          ["Chart", helmRelease?.helmChart.chart],
-          ["Cluster", helmRelease?.clusterName],
-          ["Interval", <Interval interval={helmRelease?.interval} />],
-        ]}
-      />
-      <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
-      <TabContent>
-        <SubRouterTabs rootPath={`${path}/details`}>
-          <RouterTab name="Details" path={`${path}/details`}>
-            <ReconciledObjectsTable
-              kinds={helmRelease?.inventory}
-              automationName={helmRelease?.name}
-              namespace={helmRelease?.namespace}
-              automationKind={AutomationKind.HelmReleaseAutomation}
-              clusterName={helmRelease?.clusterName}
-            />
-          </RouterTab>
-          <RouterTab name="Events" path={`${path}/events`}>
-            <EventsTable
-              involvedObject={{
-                kind: "HelmRelease",
-                name,
-                namespace: helmRelease?.namespace,
-              }}
-            />
-          </RouterTab>
-          <RouterTab name="Graph" path={`${path}/graph`}>
-            <ReconciliationGraph
-              automationKind={AutomationKind.HelmReleaseAutomation}
-              automationName={helmRelease?.name}
-              kinds={helmRelease?.inventory}
-              parentObject={helmRelease}
-              clusterName={helmRelease?.clusterName}
-            />
-          </RouterTab>
-        </SubRouterTabs>
-      </TabContent>
-    </Flex>
+    <AutomationDetail
+      className={className}
+      automation={{ ...helmRelease, type: AutomationType.HelmRelease }}
+      info={[
+        ["Source", helmChartLink(helmRelease)],
+        ["Chart", helmRelease?.helmChart.chart],
+        ["Cluster", helmRelease?.clusterName],
+        ["Interval", <Interval interval={helmRelease?.interval} />],
+      ]}
+    />
   );
 }
 

@@ -18,7 +18,7 @@ import {
   Syncable,
 } from "../lib/types";
 
-export type Automation = Kustomization & { type: AutomationType } & HelmRelease;
+export type Automation = Kustomization & HelmRelease & { type: AutomationType };
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
