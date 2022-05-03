@@ -1,10 +1,16 @@
 on:
   push:
     paths-ignore:
-      - "doc/**"
+      - 'doc/**'
+      - 'website/**'
+      - '*.md'
     branches:
       - main
   pull_request:
+    paths-ignore:
+      - 'doc/**'
+      - 'website/**'
+      - '*.md'
     branches:
       - main
   workflow_dispatch:
