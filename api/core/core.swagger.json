@@ -956,9 +956,6 @@
         "suspended": {
           "type": "boolean"
         },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
         "clusterName": {
           "type": "string"
         },
@@ -1044,9 +1041,6 @@
           "type": "string"
         },
         "lastAttemptedRevision": {
-          "type": "string"
-        },
-        "lastHandledReconciledAt": {
           "type": "string"
         },
         "inventory": {

@@ -36,14 +36,13 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 			Name:      kustomization.Spec.SourceRef.Name,
 			Namespace: kustomization.Spec.SourceRef.Namespace,
 		},
-		Interval:                durationToInterval(kustomization.Spec.Interval),
-		Conditions:              mapConditions(kustomization.Status.Conditions),
-		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
-		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
-		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
-		Inventory:               inv,
-		Suspended:               kustomization.Spec.Suspend,
-		ClusterName:             clusterName,
+		Interval:              durationToInterval(kustomization.Spec.Interval),
+		Conditions:            mapConditions(kustomization.Status.Conditions),
+		LastAppliedRevision:   kustomization.Status.LastAppliedRevision,
+		LastAttemptedRevision: kustomization.Status.LastAttemptedRevision,
+		Inventory:             inv,
+		Suspended:             kustomization.Spec.Suspend,
+		ClusterName:           clusterName,
 	}, nil
 }
 

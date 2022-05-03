@@ -64,7 +64,6 @@ export type Kustomization = {
   conditions?: Condition[]
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
-  lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
   suspended?: boolean
   clusterName?: string
@@ -92,7 +91,6 @@ export type HelmRelease = {
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
   suspended?: boolean
-  lastUpdatedAt?: string
   clusterName?: string
   helmChartName?: string
 }
