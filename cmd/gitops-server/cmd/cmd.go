@@ -329,16 +329,6 @@ func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 	}
 }
 
-func defaultedEnvVar(name, defaultVal string) string {
-	val, found := os.LookupEnv(name)
-
-	if found {
-		return val
-	}
-
-	return defaultVal
-}
-
 func defaultedDurationEnvVar(name string, defaultVal time.Duration) time.Duration {
 	val, found := os.LookupEnv(name)
 
