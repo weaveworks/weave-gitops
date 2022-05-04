@@ -33,4 +33,4 @@ If you prefer to delegate TLS handling to the ingress controller instead, your h
 
 #### `cert-manager`
 
-Install cert-manager and request a `Certificate` in the `wego-system` namespace. Provide the name of secret associated with the certificate to the weave-gitops-enterprise HelmRelease as described above.
+Install cert-manager and request a `Certificate` in the `flux-system` namespace. Provide the name of secret associated with the certificate to the weave-gitops-enterprise HelmRelease as described above.
