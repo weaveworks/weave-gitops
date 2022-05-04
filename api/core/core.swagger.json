@@ -536,6 +536,29 @@
           "Core"
         ]
       }
+    },
+    "/v1/version": {
+      "get": {
+        "summary": "GetVersion returns version information about the server",
+        "operationId": "Core_GetVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetVersionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Core"
+        ]
+      }
     }
   },
   "definitions": {
@@ -805,6 +828,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetVersionResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }
