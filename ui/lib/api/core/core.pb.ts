@@ -23,7 +23,6 @@ export type ListKustomizationsResponse = {
 
 export type ListHelmReleasesRequest = {
   namespace?: string
-  clusterName?: string
 }
 
 export type ListHelmReleasesResponse = {

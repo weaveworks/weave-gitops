@@ -33,7 +33,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 
 	var results []*pb.HelmRelease
 
-	for n, lists := range clist.Lists() {
+	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*helmv2.HelmReleaseList)
 			if !ok {
@@ -41,12 +41,12 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 			}
 
 			for _, helmrelease := range list.Items {
-				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, msg.ClusterName)
+				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
 				if err != nil {
 					return nil, err
 				}
 
-				results = append(results, types.HelmReleaseToProto(&helmrelease, n, inv))
+				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv))
 			}
 		}
 	}

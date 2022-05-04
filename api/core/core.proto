@@ -182,7 +182,6 @@ message ListKustomizationsResponse {
 
 message ListHelmReleasesRequest {
     string namespace = 1;
-    string clusterName = 2;
 }
 
 message ListHelmReleasesResponse {
