@@ -28,7 +28,7 @@ jobs:
       - name: Find old version
         id: old_version
         run: |
-          git checkout ${{ github.event.pull_request.head.sha }}
+          git checkout ${{ github.event.pull_request.base.sha }}
           OLD_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
           echo "::set-output name=version::$OLD_VERSION"
       - name: Alert about the need to change chart version
