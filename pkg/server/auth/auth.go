@@ -17,6 +17,9 @@ const (
 	// IDTokenCookieName is the name of the cookie that holds the ID Token once
 	// the user has authenticated successfully with the OIDC Provider.
 	IDTokenCookieName = "id_token"
+	// UsernameCookieName is the name of the cookie that holds information about
+	// the logged in user. Purely UI related.
+	UsernameCookieName = "username"
 	// RefreshTokenCookieName is the name of the cookie that holds the refresh
 	// token.
 	RefreshTokenCookieName = "refresh_token"

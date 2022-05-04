@@ -176,6 +176,8 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 			state SessionState
 		)
 
+		http.SetCookie(rw, s.clearCookie(UsernameCookieName))
+
 		if r.Method != http.MethodGet {
 			rw.Header().Add("Allow", "GET")
 			rw.WriteHeader(http.StatusMethodNotAllowed)
@@ -321,6 +323,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		}
 
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
+		http.SetCookie(rw, s.createCookie(UsernameCookieName, loginRequest.Username))
 		rw.WriteHeader(http.StatusOK)
 	}
 }
@@ -350,6 +353,14 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
+
+			if ui.Email == v1alpha1.DefaultClaimsSubject {
+				cookie, err := r.Cookie(UsernameCookieName)
+				if err == nil {
+					ui.Email = cookie.Value
+				}
+			}
+
 			toJson(rw, ui, s.Log)
 
 			return
