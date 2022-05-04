@@ -31,6 +31,11 @@ jobs:
           git checkout ${{ github.event.pull_request.head.sha }}
           OLD_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
           echo "::set-output name=version::$OLD_VERSION"
+      - name: debug
+        run: |
+          echo ${{ steps.new_version.outputs.version }}
+          echo ${{ steps.old_version.outputs.version }}
+          echo ${{ steps.new_version.outputs.version == steps.old_version.outputs.version }}
       - name: Alert about the need to change chart version
         run: |
           echo "This PR changed the helm chart. You need to change chart version when you change the chart"
