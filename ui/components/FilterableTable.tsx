@@ -1,5 +1,4 @@
 import _ from "lodash";
-import qs from "query-string";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -7,10 +6,10 @@ import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
-  DialogFormState,
   FilterConfig,
-  formStateToFilters,
-  initialFormState,
+  FilterSelections,
+  filterSeparator,
+  selectionsToFilters,
 } from "./FilterDialog";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
@@ -24,6 +23,7 @@ type Props = {
   filters: FilterConfig;
   dialogOpen?: boolean;
   onDialogClose?: () => void;
+  initialSelections?: FilterSelections;
 };
 
 export function filterConfigForString(rows, key: string) {
@@ -128,6 +128,38 @@ function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
   });
 }
 
+export function initialFormState(cfg: FilterConfig, initialSelections?) {
+  const allFilters = _.reduce(
+    cfg,
+    (r, vals, k) => {
+      _.each(vals, (v) => {
+        const key = `${k}${filterSeparator}${v}`;
+        const selection = _.get(initialSelections, key);
+        if (selection) {
+          r[key] = selection;
+        } else {
+          r[key] = false;
+        }
+      });
+
+      return r;
+    },
+    {}
+  );
+
+  return allFilters;
+}
+
+function applySelections(
+  filters: FilterConfig,
+  selections: FilterSelections
+): FilterConfig {
+  if (!selections) {
+    return filters;
+  }
+  return selectionsToFilters(selections);
+}
+
 function toPairs(state: State): string[] {
   const result = _.map(state.formState, (val, key) => (val ? key : null));
   const out = _.compact(result);
@@ -136,7 +168,7 @@ function toPairs(state: State): string[] {
 
 type State = {
   filters: FilterConfig;
-  formState: DialogFormState;
+  formState: FilterSelections;
   textFilters: string[];
 };
 
@@ -146,15 +178,17 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
+  initialSelections,
 }: Props) {
   const history = useHistory();
   const location = useLocation();
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
-    filters,
-    formState: initialFormState(filters),
+    filters: applySelections(filters, initialSelections),
+    formState: initialFormState(filters, initialSelections),
     textFilters: [],
   });
+
   let filtered = filterRows(rows, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
@@ -168,7 +202,7 @@ function FilterableTable({
       next.formState[chip] = false;
     });
 
-    const filters = formStateToFilters(next.formState);
+    const filters = selectionsToFilters(next.formState);
 
     const textFilters = _.filter(
       next.textFilters,
@@ -216,17 +250,17 @@ function FilterableTable({
     );
   };
 
-  React.useEffect(() => {
-    const filterQuery = qs.parse(location.search)["filters"] as string;
-    if (filterQuery) {
-      const split = filterQuery.split("_");
-      const next = filterState.formState;
-      _.each(split, (filterString) => {
-        if (filterString) next[filterString] = true;
-      });
-      setFilterState({ ...filterState, formState: next });
-    }
-  }, []);
+  // React.useEffect(() => {
+  //   const filterQuery = qs.parse(location.search)["filters"] as string;
+  //   if (filterQuery) {
+  //     const split = filterQuery.split("_");
+  //     const next = filterState.formState;
+  //     _.each(split, (filterString) => {
+  //       if (filterString) next[filterString] = true;
+  //     });
+  //     setFilterState({ ...filterState, formState: next });
+  //   }
+  // }, []);
 
   return (
     <Flex className={className} wide tall column>

@@ -543,4 +543,28 @@ describe("FilterableTable", () => {
     expect(tableRows).toHaveLength(1);
     expect(tableRows[0].innerHTML).toContain(row.name);
   });
+  it("adds an initial filter selection state", () => {
+    const initialFilterConfig = {
+      ...filterConfigForString(rows, "type"),
+    };
+
+    render(
+      withTheme(
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            initialSelections={{ "type:foo": true }}
+            filters={initialFilterConfig}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
+      )
+    );
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(2);
+    expect(tableRows[0].innerHTML).toContain("foo");
+  });
 });
