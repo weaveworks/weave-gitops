@@ -154,6 +154,7 @@ service Core {
             get: "/v1/events"
         };
     }
+
     /*
      * SyncResource forces a reconciliation of a Flux resource
      */
@@ -161,6 +162,15 @@ service Core {
         option (google.api.http) = {
             post: "/v1/sync"
             body: "*"
+        };
+    }
+
+    /*
+     * GetVersion returns version information about the server
+     */
+    rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
+        option (google.api.http) = {
+            get: "/v1/version"
         };
     }
 }
@@ -301,4 +311,10 @@ message SyncAutomationRequest {
 }
 
 message SyncAutomationResponse {
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+    map<string, string> version = 1;
 }

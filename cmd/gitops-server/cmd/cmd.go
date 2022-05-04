@@ -95,6 +95,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
