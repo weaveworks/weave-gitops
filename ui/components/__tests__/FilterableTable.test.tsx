@@ -8,7 +8,10 @@ import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
   filterRows,
+  filterSelectionsToQueryString,
+  parseFilterStateFromURL,
 } from "../FilterableTable";
+import { FilterSelections } from "../FilterDialog";
 
 const addTextSearchInput = (term: string) => {
   const input = document.getElementById("table-search");
@@ -566,5 +569,67 @@ describe("FilterableTable", () => {
     const tableRows = document.querySelectorAll("tbody tr");
     expect(tableRows).toHaveLength(2);
     expect(tableRows[0].innerHTML).toContain("foo");
+  });
+  it("adds filter selection from a URL", () => {
+    const initialFilterConfig = {
+      ...filterConfigForString(rows, "type"),
+    };
+
+    const search = `?filters=type%3Afoo_`;
+
+    render(
+      withTheme(
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            initialSelections={parseFilterStateFromURL(search)}
+            filters={initialFilterConfig}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
+      )
+    );
+    const tableRows = document.querySelectorAll("tbody tr");
+    expect(tableRows).toHaveLength(2);
+    expect(tableRows[0].innerHTML).toContain("foo");
+  });
+  it("returns a query string on filter change", () => {
+    const initialFilterConfig = {
+      ...filterConfigForString(rows, "type"),
+    };
+
+    const recorder = jest.fn();
+    const handler = (sel: FilterSelections) => {
+      recorder(sel);
+    };
+
+    render(
+      withTheme(
+        withContext(
+          <FilterableTable
+            onFilterChange={handler}
+            fields={fields}
+            rows={rows}
+            filters={initialFilterConfig}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
+      )
+    );
+    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    fireEvent.click(checkbox1);
+    const args = recorder.mock.calls[0][0];
+
+    expect(args["type:foo"]).toEqual(true);
+    const queryString = filterSelectionsToQueryString(args);
+    expect(queryString).toEqual("?filters=type%3Afoo_");
+    expect(parseFilterStateFromURL(queryString)).toEqual({
+      "type:foo": true,
+    });
   });
 });

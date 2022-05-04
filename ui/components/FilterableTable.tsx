@@ -1,6 +1,6 @@
 import _ from "lodash";
+import qs from "query-string";
 import * as React from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
@@ -24,6 +24,7 @@ type Props = {
   dialogOpen?: boolean;
   onDialogClose?: () => void;
   initialSelections?: FilterSelections;
+  onFilterChange?: (sel: FilterSelections) => void;
 };
 
 export function filterConfigForString(rows, key: string) {
@@ -166,6 +167,35 @@ function toPairs(state: State): string[] {
   return _.concat(out, state.textFilters);
 }
 
+export function parseFilterStateFromURL(search: string): FilterSelections {
+  const query = qs.parse(search) as any;
+  if (query.filters) {
+    const split = query.filters.split("_");
+    const next = {};
+    _.each(split, (filterString) => {
+      if (filterString) next[filterString] = true;
+    });
+    return next;
+  }
+
+  return null;
+}
+
+export function filterSelectionsToQueryString(sel: FilterSelections) {
+  let url = "";
+  _.each(sel, (value, key) => {
+    if (value) {
+      url += `${key}_`;
+    }
+  });
+  const query = location.search;
+  let prefix = "";
+  if (query && !query.includes("filters") && url) prefix = "&?filters=";
+  else if (url) prefix = "?filters=";
+
+  return prefix + encodeURIComponent(url);
+}
+
 type State = {
   filters: FilterConfig;
   formState: FilterSelections;
@@ -179,9 +209,8 @@ function FilterableTable({
   filters,
   dialogOpen,
   initialSelections,
+  onFilterChange,
 }: Props) {
-  const history = useHistory();
-  const location = useLocation();
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters: applySelections(filters, initialSelections),
@@ -192,6 +221,12 @@ function FilterableTable({
   let filtered = filterRows(rows, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
+
+  const doChange = (formState) => {
+    if (onFilterChange) {
+      onFilterChange(formState);
+    }
+  };
 
   const handleChipRemove = (chips: string[]) => {
     const next = {
@@ -208,7 +243,8 @@ function FilterableTable({
       next.textFilters,
       (f) => !_.includes(chips, f)
     );
-    setUrl(next.formState);
+
+    doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
   };
 
@@ -226,41 +262,13 @@ function FilterableTable({
       formState: resetFormState,
       textFilters: [],
     });
-    setUrl(resetFormState);
+    doChange(resetFormState);
   };
 
   const handleFilterSelect = (filters, formState) => {
-    setUrl(formState);
+    doChange(formState);
     setFilterState({ ...filterState, filters, formState });
   };
-
-  const setUrl = (formState) => {
-    let url = "";
-    _.each(formState, (value, key) => {
-      if (value) {
-        url += `${key}_`;
-      }
-    });
-    const query = location.search;
-    let prefix = "";
-    if (query && !query.includes("filters") && url) prefix = "&?filters=";
-    else if (url) prefix = "?filters=";
-    history.replace(
-      (location.pathname || "") + prefix + encodeURIComponent(url)
-    );
-  };
-
-  // React.useEffect(() => {
-  //   const filterQuery = qs.parse(location.search)["filters"] as string;
-  //   if (filterQuery) {
-  //     const split = filterQuery.split("_");
-  //     const next = filterState.formState;
-  //     _.each(split, (filterString) => {
-  //       if (filterString) next[filterString] = true;
-  //     });
-  //     setFilterState({ ...filterState, formState: next });
-  //   }
-  // }, []);
 
   return (
     <Flex className={className} wide tall column>
