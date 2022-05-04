@@ -13,7 +13,7 @@ metadata:
   namespace: flux-system
 subjects:
   - kind: User
-    name: wego-admin
+    name: {{ .Values.adminUser.username }}
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
@@ -52,7 +52,7 @@ metadata:
   name: wego-test-user-read-resources-cr
 subjects:
 - kind: User
-  name: wego-admin
+  name: {{ .Values.adminUser.username }}
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
