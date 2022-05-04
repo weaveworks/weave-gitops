@@ -12,11 +12,15 @@ FLUX_VERSION?=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/
 # Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
 GOARCH=$(shell which go > /dev/null && go env GOARCH)
-LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
-				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
-				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
+				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
+				 -X github.com/weaveworks/weave-gitops/core/server.GitCommit=$(GIT_COMMIT) \
+				 -X github.com/weaveworks/weave-gitops/core/server.Version=$(VERSION)
 
 # Docker args
 # LDFLAGS is passed so we don't have to copy the entire .git directory into the image
