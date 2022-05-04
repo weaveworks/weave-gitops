@@ -10,8 +10,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/tfcontroller"
 )
 
 type terraformCommandFlags struct {
@@ -61,7 +61,7 @@ func addTerraformCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.
 
 func addTerraformCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		_, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func addTerraformCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Com
 			return err
 		}
 
-		_ = capi.CreatePullRequestFromTemplateParams{
+		params := tfcontroller.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
 			TemplateName:     flags.Template,
 			ParameterValues:  vals,
@@ -101,7 +101,6 @@ func addTerraformCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Com
 			CommitMessage:    flags.CommitMessage,
 		}
 
-		return nil
-		// return terraform.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return tfcontroller.CreatePullRequestFromTFControllerTemplate(params, r, os.Stdout)
 	}
 }

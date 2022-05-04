@@ -212,6 +212,7 @@ func RenderTemplateWithParameters(name string, parameters map[string]string, cre
 	return nil
 }
 
+// TODO: extract this to a template pkg
 // CreatePullRequestFromTemplate uses a TemplatePullRequester
 // adapter to create a pull request from a CAPI template.
 func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r TemplatePullRequester, w io.Writer) error {

@@ -11,6 +11,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/tfcontroller"
 )
 
 const (
@@ -260,6 +261,64 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 			CommitMessage:   params.CommitMessage,
 			Credentials:     params.Credentials,
 			ProfileValues:   params.ProfileValues,
+		}).
+		SetResult(&result).
+		SetError(&serviceErr).
+		Post(endpoint)
+
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %s", res.Request.URL, serviceErr.Message)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result.WebURL, nil
+}
+
+// CreatePullRequestFromTFControllerTemplate commits the YAML template to the specified
+// branch and creates a pull request of that branch.
+func (c *HTTPClient) CreatePullRequestFromTFControllerTemplate(params tfcontroller.CreatePullRequestFromTemplateParams) (string, error) {
+	endpoint := "v1/tfcontrollers"
+
+	// POST request payload
+	type CreatePullRequestFromTemplateRequest struct {
+		RepositoryURL   string            `json:"repositoryUrl"`
+		HeadBranch      string            `json:"headBranch"`
+		BaseBranch      string            `json:"baseBranch"`
+		Title           string            `json:"title"`
+		Description     string            `json:"description"`
+		TemplateName    string            `json:"templateName"`
+		ParameterValues map[string]string `json:"parameter_values"`
+		CommitMessage   string            `json:"commitMessage"`
+	}
+
+	// POST response payload
+	type CreatePullRequestFromTemplateResponse struct {
+		WebURL string `json:"webUrl"`
+	}
+
+	var result CreatePullRequestFromTemplateResponse
+
+	var serviceErr *ServiceError
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetHeader(gitProviderTokenHeaderName, params.GitProviderToken).
+		SetBody(CreatePullRequestFromTemplateRequest{
+			RepositoryURL:   params.RepositoryURL,
+			HeadBranch:      params.HeadBranch,
+			BaseBranch:      params.BaseBranch,
+			Title:           params.Title,
+			Description:     params.Description,
+			TemplateName:    params.TemplateName,
+			ParameterValues: params.ParameterValues,
+			CommitMessage:   params.CommitMessage,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).
