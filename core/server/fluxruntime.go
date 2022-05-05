@@ -166,7 +166,7 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := clustersClient.List(ctx, msg.ClusterName, &l, client.InNamespace(msg.Namespace)); err != nil {
+	if err := clustersClient.List(ctx, msg.ClusterName, &l); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
@@ -175,6 +175,11 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 Items:
 	for _, obj := range l.Items {
 		refs := obj.GetOwnerReferences()
+		if len(refs) == 0 {
+			// Ignore items without OwnerReference.
+			// for example: dev-weave-gitops-test-connection
+			continue Items
+		}
 
 		for _, ref := range refs {
 			if ref.UID != types.UID(msg.ParentUid) {
