@@ -24,7 +24,8 @@ type Props = {
   filters: FilterConfig;
   dialogOpen?: boolean;
   onDialogClose?: () => void;
-};
+  selectedRows?: any;
+  setSelectedRows?: any;
 
 export function filterConfigForString(rows, key: string) {
   const typeFilterConfig = _.reduce(
@@ -146,6 +147,8 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
+  selectedRows
+  setSelectedRows,
 }: Props) {
   const history = useHistory();
   const location = useLocation();
@@ -249,7 +252,10 @@ function FilterableTable({
         </Flex>
       </Flex>
       <Flex wide tall>
-        <DataTable className={className} fields={fields} rows={filtered} />
+        <DataTable className={className} fields={fields} rows={filtered}        
+          selectedRows={selectedRows}
+          setSelectedRows={setSelectedRows}
+           />
         <FilterDialog
           onFilterSelect={handleFilterSelect}
           filterList={filters}

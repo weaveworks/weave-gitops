@@ -2,10 +2,7 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
-import {
-  HelmRelease,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
@@ -122,13 +119,13 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Last Updated",
-      value: () => (
-        <Timestamp time={""} />
-      ),
+      value: () => <Timestamp time={""} />,
     },
   ];
 
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
+
+  const [selectedRows, setSelectedRows] = React.useState([]);
 
   return (
     <FilterableTable
@@ -136,6 +133,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       filters={initialFilterState}
       rows={automations}
       className={className}
+      selectedRows={selectedRows}
+      setSelectedRows={setSelectedRows}
     />
   );
 }

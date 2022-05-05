@@ -1,14 +1,18 @@
 import {
+  Checkbox,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  withStyles,
 } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { theme } from "..";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
@@ -47,6 +51,10 @@ export interface Props {
   defaultSort?: number;
   /** for passing pagination */
   children?: any;
+
+  selectable?: any;
+  selectedRows?: any;
+  setSelectedRows?: any;
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -107,9 +115,13 @@ function UnstyledDataTable({
   rows,
   defaultSort = 0,
   children,
+  selectable,
+  selectedRows,
+  setSelectedRows,
 }: Props) {
   const [sort, setSort] = React.useState(fields[defaultSort]);
   const [reverseSort, setReverseSort] = React.useState(false);
+  const history = useHistory();
 
   const sorted = sortWithType(rows, sort);
 
@@ -149,22 +161,90 @@ function UnstyledDataTable({
     );
   }
 
-  const r = _.map(sorted, (r, i) => (
-    <TableRow key={i}>
-      {_.map(fields, (f) => (
-        <TableCell
-          style={
-            f.maxWidth && {
-              maxWidth: f.maxWidth,
-            }
-          }
-          key={f.label}
-        >
-          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
+  const IndividualCheckbox = withStyles({
+    root: {
+      color: theme.colors.primary,
+      "&$checked": {
+        color: theme.colors.primary,
+      },
+      "&$disabled": {
+        color: theme.colors.neutral20,
+      },
+    },
+    checked: {},
+    disabled: {},
+  })(Checkbox);
+
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected = rows.map((row, i) => i) || [];
+      setSelectedRows(newSelected);
+      return;
+    }
+    setSelectedRows([]);
+  };
+
+  const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
+    const selectedIndex = selectedRows.indexOf(name);
+    let newSelected: string[] = [];
+
+    console.log(name);
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selectedRows, name);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selectedRows.slice(1));
+    } else if (selectedIndex === selectedRows.length - 1) {
+      newSelected = newSelected.concat(selectedRows.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selectedRows.slice(0, selectedIndex),
+        selectedRows.slice(selectedIndex + 1)
+      );
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const numSelected = (selectedRows || []).length;
+  const rowCount = rows.length || 0;
+  const isSelected = (name: string) => selectedRows.indexOf(name) !== -1;
+
+  const r = _.map(sorted, (r, i) => {
+    const labelId = `enhanced-table-checkbox-${r.name}`;
+    const isItemSelected = isSelected(r.name);
+    return (
+      <TableRow key={i}>
+        {/* hide behind selectable attribute */}
+        <TableCell padding="checkbox">
+          <IndividualCheckbox
+            checked={isItemSelected}
+            inputProps={{ "aria-labelledby": labelId }}
+            onClick={(event: any) => handleClick(event, r.name)}
+          />
         </TableCell>
-      ))}
-    </TableRow>
-  ));
+        {_.map(fields, (f) => (
+          <TableCell
+            style={
+              f.maxWidth && {
+                maxWidth: f.maxWidth,
+              }
+            }
+            key={f.label}
+          >
+            <Text>
+              {typeof f.value === "function" ? f.value(r) : r[f.value]}
+            </Text>
+          </TableCell>
+        ))}
+      </TableRow>
+    );
+  });
+
+  React.useEffect(() => {
+    return history.listen(() => {
+      setSelectedRows([]);
+    });
+  }, [setSelectedRows]);
 
   return (
     <div className={className}>
@@ -172,6 +252,18 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
+              {/* hide behind selectable */}
+              <TableCell padding="checkbox">
+                <Checkbox
+                  indeterminate={numSelected > 0 && numSelected < rowCount}
+                  checked={rowCount > 0 && numSelected === rowCount}
+                  onChange={handleSelectAllClick}
+                  inputProps={{ "aria-label": "select all rows" }}
+                  style={{
+                    color: theme.colors.primary,
+                  }}
+                />
+              </TableCell>
               {_.map(fields, (f) => (
                 <TableCell key={f.label}>
                   <SortableLabel field={f} />
