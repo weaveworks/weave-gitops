@@ -75,10 +75,11 @@ var defaultChartGetters = getter.Providers{
 	},
 }
 
-type ChartPredicate func(*repo.ChartVersion) bool
+// ChartPredicate is used to filter charts coming from a HelmRepository.
+type ChartPredicate func(*sourcev1.HelmRepository, *repo.ChartVersion) bool
 
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
-var Profiles = func(v *repo.ChartVersion) bool {
+var Profiles = func(_ *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata, ProfileAnnotation)
 }
 
@@ -94,7 +95,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 
 	for name, versions := range chartRepo.Entries {
 		for _, v := range versions {
-			if pred(v) {
+			if pred(hr, v) {
 				// if already added, update the versions array
 				if p, ok := ps[name]; ok {
 					p.AvailableVersions = append(p.AvailableVersions, v.Version)
