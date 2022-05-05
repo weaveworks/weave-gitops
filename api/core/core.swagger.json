@@ -1305,6 +1305,12 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

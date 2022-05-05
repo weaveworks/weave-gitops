@@ -139,6 +139,13 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
 		}
 
+		var images []string
+
+		switch obj.GetKind() {
+		case "Deployment":
+			images = getDeploymentPodContainerImages(obj.Object)
+		}
+
 		objects = append(objects, &pb.UnstructuredObject{
 			GroupVersionKind: &pb.GroupVersionKind{
 				Group:   obj.GetObjectKind().GroupVersionKind().Group,
@@ -147,6 +154,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			},
 			Name:        obj.GetName(),
 			Namespace:   obj.GetNamespace(),
+			Images:      images,
 			Status:      res.Status.String(),
 			Uid:         string(obj.GetUID()),
 			Conditions:  mapUnstructuredConditions(res),
@@ -191,12 +199,23 @@ Items:
 		if err != nil {
 			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
 		}
+
+		var images []string
+
+		switch obj.GetKind() {
+		case "Pod":
+			images = getPodContainerImages(obj.Object)
+		case "ReplicaSet":
+			images = getReplicaSetPodContainerImages(obj.Object)
+		}
+
 		objects = append(objects, &pb.UnstructuredObject{
 			GroupVersionKind: &pb.GroupVersionKind{
 				Group:   obj.GetObjectKind().GroupVersionKind().Group,
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
+			Images:      images,
 			Name:        obj.GetName(),
 			Namespace:   obj.GetNamespace(),
 			Status:      statusResult.Status.String(),
@@ -217,4 +236,46 @@ func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
 	}
 
 	return conds
+}
+
+func getContainerImages(containers []interface{}) []string {
+	images := []string{}
+
+	for _, item := range containers {
+		container, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		image, ok, _ := unstructured.NestedString(container, "image")
+		if ok {
+			images = append(images, image)
+		}
+	}
+
+	return images
+}
+
+func getPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(obj, "spec", "containers")
+
+	return getContainerImages(containers)
+}
+
+func getReplicaSetPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(
+		obj,
+		"spec", "template", "spec", "containers",
+	)
+
+	return getContainerImages(containers)
+}
+
+func getDeploymentPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(
+		obj,
+		"spec", "template", "spec", "containers",
+	)
+
+	return getContainerImages(containers)
 }
