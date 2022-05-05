@@ -425,7 +425,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 
 	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
 
-	signed, err := tokenSignerVerifier.Sign()
+	signed, err := tokenSignerVerifier.Sign("wego-admin")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
@@ -444,6 +444,35 @@ func TestUserInfoAdminFlow(t *testing.T) {
 
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
 	g.Expect(info.Email).To(Equal("wego-admin"))
+}
+
+func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
+
+	signed, err := tokenSignerVerifier.Sign("dev")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: signed,
+	})
+
+	w := httptest.NewRecorder()
+	s.UserInfo().ServeHTTP(w, req)
+
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	var info auth.UserInfo
+
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal("dev"))
 }
 
 func TestUserInfoAdminFlowBadCookie(t *testing.T) {
