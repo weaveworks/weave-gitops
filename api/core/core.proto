@@ -170,6 +170,12 @@ message Pagination {
     string pageToken = 2;
 }
 
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
+}
+
 message ListKustomizationsRequest {
     string namespace = 1;
     Pagination pagination = 2;
@@ -178,6 +184,7 @@ message ListKustomizationsRequest {
 message ListKustomizationsResponse {
     repeated Kustomization kustomizations = 1;
     string nextPageToken = 2;
+    repeated ListError errors = 3;
 }
 
 message ListHelmReleasesRequest {
@@ -187,6 +194,7 @@ message ListHelmReleasesRequest {
 
 message ListHelmReleasesResponse {
     repeated HelmRelease helmReleases = 1;
+    repeated ListError errors = 2;
 }
 
 message GetHelmReleaseRequest {
@@ -205,6 +213,7 @@ message ListGitRepositoriesRequest {
 
 message ListGitRepositoriesResponse {
     repeated GitRepository gitRepositories = 1;
+    repeated ListError errors = 2;
 }
 
 message ListHelmRepositoriesRequest {
@@ -213,6 +222,7 @@ message ListHelmRepositoriesRequest {
 
 message ListHelmRepositoriesResponse {
     repeated HelmRepository helmRepositories = 1;
+    repeated ListError errors = 2;
 }
 
 message ListBucketRequest {
@@ -221,6 +231,7 @@ message ListBucketRequest {
 
 message ListBucketsResponse {
     repeated Bucket buckets = 1;
+    repeated ListError errors = 2;
 }
 
 message ListFluxRuntimeObjectsRequest {

@@ -1065,6 +1065,26 @@
           "items": {
             "$ref": "#/definitions/v1Bucket"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1098,6 +1118,12 @@
           "items": {
             "$ref": "#/definitions/v1GitRepository"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1120,6 +1146,12 @@
           "items": {
             "$ref": "#/definitions/v1HelmRelease"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1130,6 +1162,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1145,6 +1183,12 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },

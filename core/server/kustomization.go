@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -24,8 +25,17 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		opts = append(opts, client.Continue(msg.Pagination.PageToken))
 	}
 
+	respErrors := []*pb.ListError{}
+
 	if err := clustersClient.ClusteredList(ctx, clist, opts...); err != nil {
-		return nil, err
+		var errs clustersmngr.ClusteredListError
+		if !errors.As(err, &errs) {
+			return nil, err
+		}
+
+		for _, e := range errs.Errors {
+			respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Namespace: e.Namespace, Message: e.Err.Error()})
+		}
 	}
 
 	var results []*pb.Kustomization
@@ -51,6 +61,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
 		NextPageToken:  clist.GetContinue(),
+		Errors:         respErrors,
 	}, nil
 }
 

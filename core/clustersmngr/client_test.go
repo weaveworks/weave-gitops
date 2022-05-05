@@ -2,6 +2,7 @@ package clustersmngr_test
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -111,7 +112,7 @@ func TestClientClusteredList(t *testing.T) {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.InNamespace(ns.Name))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist)).To(Succeed())
 
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 
@@ -223,6 +224,46 @@ func TestClientClusteredListPagination(t *testing.T) {
 	})
 	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(0))
+}
+
+func TestClientCLusteredListErrors(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ns := createNamespace(g)
+
+	clusterName := "mycluster"
+
+	clientsPool := clustersmngr.NewClustersClientsPool()
+
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
+	g.Expect(err).To(BeNil())
+
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: {*ns},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+
+	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &kustomizev1.KustomizationList{}
+	})
+
+	labels := client.MatchingLabels{
+		"foo": "@invalid",
+	}
+
+	cerr := clustersClient.ClusteredList(context.Background(), cklist, labels)
+	g.Expect(cerr).ToNot(BeNil())
+
+	var errs clustersmngr.ClusteredListError
+
+	g.Expect(errors.As(cerr, &errs)).To(BeTrue())
 }
 
 func TestClientList(t *testing.T) {
@@ -469,4 +510,22 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	g.Expect(k8sEnv.Client.Create(context.Background(), ns)).To(Succeed())
 
 	return ns
+}
+
+func createKustomization(g *GomegaWithT, name string, nsName string) *kustomizev1.Kustomization {
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      name,
+			Namespace: nsName,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+			},
+		},
+	}
+	ctx := context.Background()
+	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
+
+	return kust
 }

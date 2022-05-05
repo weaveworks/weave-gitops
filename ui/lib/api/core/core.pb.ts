@@ -11,6 +11,12 @@ export type Pagination = {
   pageToken?: string
 }
 
+export type ListError = {
+  clusterName?: string
+  namespace?: string
+  message?: string
+}
+
 export type ListKustomizationsRequest = {
   namespace?: string
   pagination?: Pagination
@@ -19,6 +25,7 @@ export type ListKustomizationsRequest = {
 export type ListKustomizationsResponse = {
   kustomizations?: Gitops_coreV1Types.Kustomization[]
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type ListHelmReleasesRequest = {
@@ -28,6 +35,7 @@ export type ListHelmReleasesRequest = {
 
 export type ListHelmReleasesResponse = {
   helmReleases?: Gitops_coreV1Types.HelmRelease[]
+  errors?: ListError[]
 }
 
 export type GetHelmReleaseRequest = {
@@ -46,6 +54,7 @@ export type ListGitRepositoriesRequest = {
 
 export type ListGitRepositoriesResponse = {
   gitRepositories?: Gitops_coreV1Types.GitRepository[]
+  errors?: ListError[]
 }
 
 export type ListHelmRepositoriesRequest = {
@@ -54,6 +63,7 @@ export type ListHelmRepositoriesRequest = {
 
 export type ListHelmRepositoriesResponse = {
   helmRepositories?: Gitops_coreV1Types.HelmRepository[]
+  errors?: ListError[]
 }
 
 export type ListBucketRequest = {
@@ -62,6 +72,7 @@ export type ListBucketRequest = {
 
 export type ListBucketsResponse = {
   buckets?: Gitops_coreV1Types.Bucket[]
+  errors?: ListError[]
 }
 
 export type ListFluxRuntimeObjectsRequest = {
