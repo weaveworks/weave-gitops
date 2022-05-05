@@ -42,9 +42,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 			return nil, fmt.Errorf("could not find flux namespace in cluster %s", clusterName)
 		}
 
+		opts := client.MatchingLabels{
+			coretypes.PartOfLabel: FluxNamespacePartOf,
+		}
+
 		list := &appsv1.DeploymentList{}
 
-		if err := clustersClient.List(ctx, clusterName, list, client.InNamespace(fluxNs.Name)); err != nil {
+		if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
 			return nil, fmt.Errorf("could not list deployments in namespace %s: %w", fluxNs.Name, err)
 		}
 
