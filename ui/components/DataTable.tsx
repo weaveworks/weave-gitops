@@ -27,7 +27,7 @@ export enum SortType {
 type Sorter = (k: any) => any;
 
 export type Field = {
-  label: string;
+  label: string | ((k: any) => string | JSX.Element);
   value: string | ((k: any) => string | JSX.Element);
   sortType?: SortType;
   sortValue?: Sorter;
