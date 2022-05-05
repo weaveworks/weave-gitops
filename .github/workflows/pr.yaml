@@ -154,10 +154,9 @@ jobs:
           tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
           outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
           file: ${{ matrix.docker-image }}.dockerfile
-          # Warning: the ' in build-args are fragile -- only use on LDFLAGS
           build-args: |
             FLUX_VERSION=${{ env.FLUX_VERSION }}
-            LDFLAGS='${{ env.LDFLAGS }}'
+            LDFLAGS=${{ env.LDFLAGS }}
             GIT_COMMIT=${{ github.sha }}
       - name: Load docker image
         run: docker load --input /tmp/${{ matrix.docker-image }}.tar
