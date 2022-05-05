@@ -94,13 +94,11 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	switch msg.AutomationKind {
 	case pb.AutomationKind_KustomizationAutomation:
 		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.Namespace,
+			KustomizeNameKey: msg.AutomationName,
 		}
 	case pb.AutomationKind_HelmReleaseAutomation:
 		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
-			HelmNamespaceKey: msg.Namespace,
+			HelmNameKey: msg.AutomationName,
 		}
 	default:
 		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
@@ -117,7 +115,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			Version: gvk.Version,
 		})
 
-		if err := clustersClient.List(ctx, msg.ClusterName, &l, opts, client.InNamespace(msg.Namespace)); err != nil {
+		if err := clustersClient.List(ctx, msg.ClusterName, &l, opts); err != nil {
 			if k8serrors.IsForbidden(err) {
 				// Our service account (or impersonated user) may not have the ability to see the resource in question,
 				// in the given namespace.
