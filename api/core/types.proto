@@ -157,6 +157,7 @@ message UnstructuredObject {
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
     string           clusterName          = 8;
+    repeated         string images        = 9;
 }
 
 message Namespace {
