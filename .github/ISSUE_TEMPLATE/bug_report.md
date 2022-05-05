@@ -38,6 +38,7 @@ A maintainer will add the label to the issue, taking your suggestion into accoun
 
 **Environment**
  - Weave-Gitops Version, commit sha or image tag: [e.g. `v0.1.0`, `3499ba2a`, or `1651069883-3499ba2a2c78a7c04c47c56c58eb77eede4b21f4`]
+    + This can be found by going to `/v1/version` on your server. 
  - How you deployed the Weave GitOps server: [e.g. Tilt, Helm Chart, etc]
  - Kubernetes version:  [e.g. 1.20.4]
  - Where are you running your cluster?
