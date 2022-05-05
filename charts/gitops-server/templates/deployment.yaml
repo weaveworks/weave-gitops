@@ -62,20 +62,6 @@ spec:
           env:
             - name: WATCHER_PORT
               value: {{ .Values.watcherPort }}
-          {{- if .Values.OIDC.enable }}
-          {{- with .Values.OIDC }}
-            - name: OIDC_ISSUER_URL
-              value: {{ .issuerURL }}
-            - name: OIDC_CLIENT_ID
-              value: {{ .clientID }}
-            - name: OIDC_CLIENT_SECRET
-              value: {{ .clientSecret }}
-            - name: OIDC_REDIRECT_URL
-              value: {{ .redirectURL }}
-            - name: OIDC_TOKEN_DURATION
-              value: {{ .tokenDuration }}
-          {{- end }}
-          {{- end }}
           {{- if .Values.enableLogin }}
             - name: WEAVE_GITOPS_AUTH_ENABLED
               value: "true"

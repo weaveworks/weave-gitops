@@ -41,20 +41,19 @@ const (
 
 // Options contains all the options for the gitops-server command.
 type Options struct {
-	Port                          string
-	Host                          string
-	HelmRepoNamespace             string
-	HelmRepoName                  string
-	Path                          string
-	LogLevel                      string
-	OIDC                          auth.OIDCConfig
-	NotificationControllerAddress string
-	TLSCertFile                   string
-	TLSKeyFile                    string
-	Insecure                      bool
-	MTLS                          bool
-	DevMode                       bool
-	DevUser                       string
+	Port              string
+	Host              string
+	HelmRepoNamespace string
+	HelmRepoName      string
+	Path              string
+	LogLevel          string
+	TLSCertFile       string
+	TLSKeyFile        string
+	Insecure          bool
+	MTLS              bool
+	OIDC              auth.OIDCConfig
+	DevMode           bool
+	DevUser           string
 }
 
 var options Options
@@ -73,7 +72,6 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", os.Getenv("NOTIFICATION_CONTROLLER_ADDRESS"), "the address of the notification-controller running in the cluster")
 
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")

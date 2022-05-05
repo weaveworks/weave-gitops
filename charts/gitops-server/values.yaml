@@ -18,25 +18,10 @@ logLevel: info
 # IP address of UI host
 host: "0.0.0.0"
 # UI port
-# The address of the notification-controller running in the cluster
-notificationControllerAddress: ""
 # The port on which the watcher is running
 watcherPort: 9443
 # Do not enforce mTLS
 MTLS: false
-
-# OIDC
-OIDC:
-  # The URL of the OpenID Connect issuer
-  issuerURL: ""
-  # The client ID for the OpenID Connect client
-  clientID: ""
-  # The client secret to use with the OpenID Connect issuer
-  clientSecret: ""
-  # The OAuth2 redirect URL
-  redirectURL: ""
-  # The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m
-  tokenDuration: "60m"
 
 # Additional arguments to pass in
 # additionalArgs:
