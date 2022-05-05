@@ -151,7 +151,10 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell key={f.label}>
+        <TableCell
+          // key={f.label}
+          key={typeof f.label === "function" ? f.label(r) : r[f.label]}
+        >
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -165,7 +168,9 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell key={f.label}>
+                <TableCell
+                  key={typeof f.label === "function" ? f.label(r) : r[f.label]}
+                >
                   <SortableLabel field={f} />
                 </TableCell>
               ))}
