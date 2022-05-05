@@ -21,7 +21,7 @@ type Props = {
 };
 
 const TabContent = styled(Flex)`
-  margin-top: 52px;
+  margin-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
   height: 100%;
 `;
