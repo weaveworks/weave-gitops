@@ -171,7 +171,11 @@ function UnstyledDataTable({
                 <TableCell
                   key={typeof f.label === "function" ? f.label(r) : r[f.label]}
                 >
-                  <SortableLabel field={f} />
+                  {typeof f.label === "function" ? (
+                    f.label(r)
+                  ) : (
+                    <SortableLabel field={f} />
+                  )}
                 </TableCell>
               ))}
             </TableRow>
