@@ -1,6 +1,10 @@
 # Default values for chart.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+
+# Note: paragraphs starting with `# --` will end up in our manual -
+# see https://github.com/norwoodj/helm-docs
+
 replicaCount: 1
 image:
   # FIXME check the app name
@@ -11,9 +15,9 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-# Sets the WEAVE_GITOPS_AUTH_ENABLED environment variable to enable auth systems
+# -- Enable the login system.
 enableLogin: true
-# valid levels are 'debug', 'info', 'warn' and 'error'
+# -- What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
 # Additional arguments to pass in
 # additionalArgs:
@@ -21,38 +25,47 @@ logLevel: info
 # envVars:
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 rbac:
-  # Specifies whether the clusterRole & binding to the service account should be created
+  # -- Specifies whether the clusterRole & binding to the service account should be created
   create: true
-  # List of resources that the service account can impersonate. It is strongly
-  # recommended that you configure groups that can be used to populate this.
+  # -- If non-empty, this limits the resources that the service
+  # account can impersonate. This applies to both users and groups, e.g.
+  # `['user1@corporation.com', 'user2@corporation.com', 'operations']`
   impersonationResourceNames: []
-  # Limit the type of principal that can be impersonated
+  # -- Limit the type of principal that can be impersonated
   impersonationResources: ["users", "groups"]
-  # Specify whether additional permissions should be granted to the service account
-  # in order to work with weave-gitops enterprise
-  viewSecrets: []
-# This should not be used in production
+  # -- If non-empty, this limits the secrets that can be accessed by
+  # the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']`
+  viewSecretsResourceNames: []
+
 adminUser:
-  # Whether the wego-admin user should be created.
-  # If you use this make sure you add it to rbac.impersonationResourceNames.
+  # -- Whether the local admin user should be created.
+  # If you use this make sure you add it to `rbac.impersonationResourceNames`.
   create: false
-  # Specifies whether the clusterRole & binding to the admin user should be created.
-  # Will be created only if adminUser.create is enabled.
+  # -- Specifies whether the clusterRole & binding to the admin user should be created.
+  # Will be created only if `adminUser.create` is enabled. Without this,
+  # the adminUser will only be able to see resources in the `flux-system` namespace.
   createClusterRole: true
+  # -- Whether we should create the secret for the local
+  # adminUser. Will be created only if `adminUser.create` is
+  # enabled. Without this, we'll still set up the roles and
+  # permissions, but the secret with username and password has to be
+  # provided separately.
   createSecret: true
-  # Set the username and password, these will be stored in a secret in k8s.
+  # -- Set username for local admin user, these will be stored in a secret in
+  # k8s. Requires `adminUser.create` and `adminUser.createSecret`.
   username: gitops-test-user
-  # This needs to have been hashed using the bcrypt algorithm.
-  # e.g. go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli
-  # passwordHash:
+  # -- (string) Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret`
+  # This needs to have been hashed using the bcrypt
+  # algorithm. E.g. `go install github.com/bitnami/bcrypt-cli@v1.0.2 && bcrypt-cli <<< $PASSWORD`
+  passwordHash:
 podAnnotations: {}
 podSecurityContext: {}
 # fsGroup: 2000
@@ -70,6 +83,7 @@ service:
   type: ClusterIP
   port: 9001
   annotations: {}
+
 ingress:
   enabled: false
   className: ""
@@ -77,10 +91,11 @@ ingress:
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  # - host: chart-example.local
+  #   paths:
+  #     - path: /
+  #       pathType: ImplementationSpecific
+  #
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -101,9 +116,14 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 serverTLS:
+  # -- Enable TLS termination in gitops itself. If you enable this,
+  # you need to create a secret, and specify the secretName. Another
+  # option is to create an ingress.
   enable: false
-  # secretName: "my-secret-tls" # Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
-  #
+  # -- Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format.
+  # See
+  # https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets for more details and examples
+  secretName: "my-secret-tls"
   # Example of tls secret
   #
   #  apiVersion: v1
@@ -122,5 +142,3 @@ serverTLS:
   # kubectl create secret tls my-tls-secret \
   #  --cert=path/to/cert/file \
   #  --key=path/to/key/file
-  #
-  # Reference: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
