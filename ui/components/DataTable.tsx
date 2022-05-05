@@ -51,10 +51,10 @@ export interface Props {
   defaultSort?: number;
   /** for passing pagination */
   children?: any;
-
-  selectable?: any;
-  selectedRows?: any;
-  setSelectedRows?: any;
+  /** for selectable rows */
+  selectable?: boolean;
+  selectedRows?: string[];
+  setSelectedRows?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -132,6 +132,7 @@ function UnstyledDataTable({
   type labelProps = {
     field: Field;
   };
+
   function SortableLabel({ field }: labelProps) {
     return (
       <Flex align start>
@@ -177,7 +178,7 @@ function UnstyledDataTable({
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = rows.map((row, i) => i) || [];
+      const newSelected = rows.map((row) => row.name) || [];
       setSelectedRows(newSelected);
       return;
     }
@@ -187,8 +188,6 @@ function UnstyledDataTable({
   const handleClick = (event: React.MouseEvent<unknown>, name: string) => {
     const selectedIndex = selectedRows.indexOf(name);
     let newSelected: string[] = [];
-
-    console.log(name);
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selectedRows, name);
@@ -205,23 +204,25 @@ function UnstyledDataTable({
     setSelectedRows(newSelected);
   };
 
-  const numSelected = (selectedRows || []).length;
+  const numSelected = selectable && (selectedRows || []).length;
   const rowCount = rows.length || 0;
   const isSelected = (name: string) => selectedRows.indexOf(name) !== -1;
 
   const r = _.map(sorted, (r, i) => {
     const labelId = `enhanced-table-checkbox-${r.name}`;
-    const isItemSelected = isSelected(r.name);
+    const isItemSelected = selectable && isSelected(r.name);
+
     return (
       <TableRow key={i}>
-        {/* hide behind selectable attribute */}
-        <TableCell padding="checkbox">
-          <IndividualCheckbox
-            checked={isItemSelected}
-            inputProps={{ "aria-labelledby": labelId }}
-            onClick={(event: any) => handleClick(event, r.name)}
-          />
-        </TableCell>
+        {selectable && (
+          <TableCell padding="checkbox">
+            <IndividualCheckbox
+              checked={isItemSelected}
+              inputProps={{ "aria-labelledby": labelId }}
+              onClick={(event: any) => handleClick(event, r.name)}
+            />
+          </TableCell>
+        )}
         {_.map(fields, (f) => (
           <TableCell
             style={
@@ -252,18 +253,19 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {/* hide behind selectable */}
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={numSelected > 0 && numSelected < rowCount}
-                  checked={rowCount > 0 && numSelected === rowCount}
-                  onChange={handleSelectAllClick}
-                  inputProps={{ "aria-label": "select all rows" }}
-                  style={{
-                    color: theme.colors.primary,
-                  }}
-                />
-              </TableCell>
+              {selectable && (
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={numSelected > 0 && numSelected < rowCount}
+                    checked={rowCount > 0 && numSelected === rowCount}
+                    onChange={handleSelectAllClick}
+                    inputProps={{ "aria-label": "select all rows" }}
+                    style={{
+                      color: theme.colors.primary,
+                    }}
+                  />
+                </TableCell>
+              )}
               {_.map(fields, (f) => (
                 <TableCell key={f.label}>
                   <SortableLabel field={f} />

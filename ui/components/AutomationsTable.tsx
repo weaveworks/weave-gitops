@@ -125,7 +125,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
-  const [selectedRows, setSelectedRows] = React.useState([]);
+  const [selectedRows, setSelectedRows] = React.useState<string[]>([]);
 
   return (
     <FilterableTable
@@ -133,6 +133,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       filters={initialFilterState}
       rows={automations}
       className={className}
+      selectable={true}
       selectedRows={selectedRows}
       setSelectedRows={setSelectedRows}
     />

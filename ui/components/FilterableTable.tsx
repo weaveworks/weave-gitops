@@ -24,8 +24,10 @@ type Props = {
   filters: FilterConfig;
   dialogOpen?: boolean;
   onDialogClose?: () => void;
-  selectedRows?: any;
-  setSelectedRows?: any;
+  selectable?: boolean;
+  selectedRows?: string[];
+  setSelectedRows?: React.Dispatch<React.SetStateAction<string[]>>;
+};
 
 export function filterConfigForString(rows, key: string) {
   const typeFilterConfig = _.reduce(
@@ -147,7 +149,8 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
-  selectedRows
+  selectable,
+  selectedRows,
   setSelectedRows,
 }: Props) {
   const history = useHistory();
@@ -252,10 +255,14 @@ function FilterableTable({
         </Flex>
       </Flex>
       <Flex wide tall>
-        <DataTable className={className} fields={fields} rows={filtered}        
+        <DataTable
+          className={className}
+          fields={fields}
+          rows={filtered}
+          selectable={selectable}
           selectedRows={selectedRows}
           setSelectedRows={setSelectedRows}
-           />
+        />
         <FilterDialog
           onFilterSelect={handleFilterSelect}
           filterList={filters}
