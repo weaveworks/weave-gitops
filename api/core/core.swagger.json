@@ -1169,6 +1169,12 @@
           "items": {
             "$ref": "#/definitions/v1Deployment"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },

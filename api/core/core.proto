@@ -259,6 +259,7 @@ message ListFluxRuntimeObjectsRequest {
 
 message ListFluxRuntimeObjectsResponse {
     repeated Deployment deployments = 1;
+    repeated ListError errors = 2;
 }
 
 message ListHelmChartsRequest {

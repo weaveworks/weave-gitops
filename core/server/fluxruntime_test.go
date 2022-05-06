@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
+
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
@@ -199,6 +202,30 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
 	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
+}
+
+func TestListFluxRuntimeObjectsResponseError(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	testutils.DeleteAllOf(g, &kustomizev1.Kustomization{})
+
+	ctx := context.Background()
+
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+
+	k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ns := &v1.Namespace{}
+	ns.Name = "ns1"
+	g.Expect(k.Create(ctx, ns)).To(Succeed())
+
+	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
+	g.Expect(res.Errors[0].Namespace).To(BeEmpty())
+	g.Expect(res.Errors[0].ClusterName).To(Equal(clustersmngr.DefaultCluster))
 }
 
 func newDeployment(name, ns string) *appsv1.Deployment {

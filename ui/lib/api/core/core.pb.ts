@@ -81,6 +81,7 @@ export type ListFluxRuntimeObjectsRequest = {
 
 export type ListFluxRuntimeObjectsResponse = {
   deployments?: Gitops_coreV1Types.Deployment[]
+  errors?: ListError[]
 }
 
 export type ListHelmChartsRequest = {
