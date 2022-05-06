@@ -85,10 +85,6 @@
     "trim": "~0.0.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.13.8",
-    "@babel/preset-react": "^7.13.13",
-    "@babel/preset-typescript": "^7.13.0",
     "@parcel/config-default": "^2.3.2",
     "@parcel/optimizer-data-url": "^2.3.2",
     "@parcel/transformer-inline-string": "^2.3.2",
@@ -106,8 +102,6 @@
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
-    "babel-jest": "^27.3.1",
-    "babel-loader": "^8.2.3",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.22.1",
     "jest": "^27.3.1",
