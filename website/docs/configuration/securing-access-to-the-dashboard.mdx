@@ -44,7 +44,7 @@ Create a secret named `oidc-auth` in the `wego-system` namespace with these para
 
 ```sh
 kubectl create secret generic oidc-auth \
-  --namespace wego-system \
+  --namespace flux-system \
   --from-literal=issuerURL=<oidc-issuer-url> \
   --from-literal=clientID=<client-id> \
   --from-literal=clientSecret=<client-secret> \
