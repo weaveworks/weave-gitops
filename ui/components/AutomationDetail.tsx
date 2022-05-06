@@ -7,7 +7,6 @@ import { AutomationKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import Heading from "./Heading";
 import InfoList, { InfoField } from "./InfoList";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
@@ -21,12 +20,8 @@ type Props = {
   info: InfoField[];
 };
 
-const Info = styled.div`
-  margin-bottom: 16px;
-`;
-
 const TabContent = styled(Flex)`
-  margin-top: 52px;
+  margin-top: ${(props) => props.theme.spacing.medium};
   width: 100%;
   height: 100%;
 `;
@@ -49,26 +44,19 @@ function AutomationDetail({ automation, className, info }: Props) {
   };
 
   return (
-    <Flex wide tall column align className={className}>
-      <Flex wide between>
-        <Info>
-          <Heading level={2}>{automation?.namespace}</Heading>
-          <InfoList items={info} />
-        </Info>
-        <PageStatus
-          conditions={automation?.conditions}
-          suspended={automation?.suspended}
+    <Flex wide tall column className={className}>
+      {sync.isError && (
+        <Alert
+          severity="error"
+          message={sync.error.message}
+          title="Sync Error"
         />
-      </Flex>
-      <Flex wide>
-        {sync.isError && (
-          <Alert
-            severity="error"
-            message={sync.error.message}
-            title="Sync Error"
-          />
-        )}
-      </Flex>
+      )}
+      <PageStatus
+        conditions={automation?.conditions}
+        suspended={automation?.suspended}
+      />
+      <InfoList items={info} />
       <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>

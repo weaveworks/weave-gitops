@@ -75,6 +75,7 @@ function DirectedGraph<T>({
 
   React.useEffect(() => {
     graphRef.current.update(nodes, edges);
+    graphRef.current.render();
   }, [nodes, edges]);
 
   return (
