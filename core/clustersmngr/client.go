@@ -41,9 +41,6 @@ type Client interface {
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
 
-	// // RestConfig returns a rest.Config for a given cluster
-	// RestConfig(cluster string) (*rest.Config, error)
-
 	// Scoped returns a client that is scoped to a single cluster
 	Scoped(cluster string) (client.Client, error)
 }
