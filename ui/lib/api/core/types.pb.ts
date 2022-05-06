@@ -154,6 +154,7 @@ export type UnstructuredObject = {
   conditions?: Condition[]
   suspended?: boolean
   clusterName?: string
+  images?: string[]
 }
 
 export type Namespace = {

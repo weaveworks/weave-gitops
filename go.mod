@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/bufbuild/buf v1.1.0
-	github.com/cheshir/ttlcache v1.0.0
+	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.5.4

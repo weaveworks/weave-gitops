@@ -124,6 +124,29 @@
         ]
       }
     },
+    "/v1/featureflags": {
+      "get": {
+        "summary": "GetFeatureFlags returns configuration information about the server",
+        "operationId": "Core_GetFeatureFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFeatureFlagsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -771,6 +794,17 @@
         }
       }
     },
+    "v1GetFeatureFlagsResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1GetFluxNamespaceRequest": {
       "type": "object"
     },
@@ -1305,6 +1339,12 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"
