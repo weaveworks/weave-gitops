@@ -28,7 +28,7 @@ type Sorter = (k: any) => any;
 
 export type Field = {
   label: string | ((k: any) => string | JSX.Element);
-  value: string | ((k: any) => string | JSX.Element);
+  value: string | ((k: any) => string | JSX.Element) | null;
   sortType?: SortType;
   sortValue?: Sorter;
   textSearchable?: boolean;

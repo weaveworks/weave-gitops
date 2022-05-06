@@ -55,6 +55,8 @@ import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import { statusSortHelper } from "./lib/utils";
 
 export {
   AppContextProvider,
@@ -92,6 +94,7 @@ export {
   Icon,
   IconType,
   Interval,
+  KubeStatusIndicator,
   KustomizationDetail,
   LoadingPage,
   muiTheme,
@@ -99,6 +102,7 @@ export {
   Page,
   RepoInputWithAuth,
   SignIn,
+  statusSortHelper,
   SortType,
   SourceRefSourceKind,
   SourcesTable,
