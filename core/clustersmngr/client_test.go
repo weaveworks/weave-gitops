@@ -511,21 +511,3 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 
 	return ns
 }
-
-func createKustomization(g *GomegaWithT, name string, nsName string) *kustomizev1.Kustomization {
-	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: nsName,
-		},
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-			},
-		},
-	}
-	ctx := context.Background()
-	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
-
-	return kust
-}
