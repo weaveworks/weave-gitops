@@ -48,6 +48,17 @@ type FakeClientsFactory struct {
 		result1 clustersmngr.Client
 		result2 error
 	}
+	GetUserNamespacesStub        func(*auth.UserPrincipal) map[string][]v1.Namespace
+	getUserNamespacesMutex       sync.RWMutex
+	getUserNamespacesArgsForCall []struct {
+		arg1 *auth.UserPrincipal
+	}
+	getUserNamespacesReturns struct {
+		result1 map[string][]v1.Namespace
+	}
+	getUserNamespacesReturnsOnCall map[int]struct {
+		result1 map[string][]v1.Namespace
+	}
 	StartStub        func(context.Context)
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
@@ -74,6 +85,12 @@ type FakeClientsFactory struct {
 	}
 	updateNamespacesReturnsOnCall map[int]struct {
 		result1 error
+	}
+	UpdateUserNamespacesStub        func(context.Context, *auth.UserPrincipal)
+	updateUserNamespacesMutex       sync.RWMutex
+	updateUserNamespacesArgsForCall []struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -261,6 +278,67 @@ func (fake *FakeClientsFactory) GetServerClientReturnsOnCall(i int, result1 clus
 	}{result1, result2}
 }
 
+func (fake *FakeClientsFactory) GetUserNamespaces(arg1 *auth.UserPrincipal) map[string][]v1.Namespace {
+	fake.getUserNamespacesMutex.Lock()
+	ret, specificReturn := fake.getUserNamespacesReturnsOnCall[len(fake.getUserNamespacesArgsForCall)]
+	fake.getUserNamespacesArgsForCall = append(fake.getUserNamespacesArgsForCall, struct {
+		arg1 *auth.UserPrincipal
+	}{arg1})
+	stub := fake.GetUserNamespacesStub
+	fakeReturns := fake.getUserNamespacesReturns
+	fake.recordInvocation("GetUserNamespaces", []interface{}{arg1})
+	fake.getUserNamespacesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientsFactory) GetUserNamespacesCallCount() int {
+	fake.getUserNamespacesMutex.RLock()
+	defer fake.getUserNamespacesMutex.RUnlock()
+	return len(fake.getUserNamespacesArgsForCall)
+}
+
+func (fake *FakeClientsFactory) GetUserNamespacesCalls(stub func(*auth.UserPrincipal) map[string][]v1.Namespace) {
+	fake.getUserNamespacesMutex.Lock()
+	defer fake.getUserNamespacesMutex.Unlock()
+	fake.GetUserNamespacesStub = stub
+}
+
+func (fake *FakeClientsFactory) GetUserNamespacesArgsForCall(i int) *auth.UserPrincipal {
+	fake.getUserNamespacesMutex.RLock()
+	defer fake.getUserNamespacesMutex.RUnlock()
+	argsForCall := fake.getUserNamespacesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientsFactory) GetUserNamespacesReturns(result1 map[string][]v1.Namespace) {
+	fake.getUserNamespacesMutex.Lock()
+	defer fake.getUserNamespacesMutex.Unlock()
+	fake.GetUserNamespacesStub = nil
+	fake.getUserNamespacesReturns = struct {
+		result1 map[string][]v1.Namespace
+	}{result1}
+}
+
+func (fake *FakeClientsFactory) GetUserNamespacesReturnsOnCall(i int, result1 map[string][]v1.Namespace) {
+	fake.getUserNamespacesMutex.Lock()
+	defer fake.getUserNamespacesMutex.Unlock()
+	fake.GetUserNamespacesStub = nil
+	if fake.getUserNamespacesReturnsOnCall == nil {
+		fake.getUserNamespacesReturnsOnCall = make(map[int]struct {
+			result1 map[string][]v1.Namespace
+		})
+	}
+	fake.getUserNamespacesReturnsOnCall[i] = struct {
+		result1 map[string][]v1.Namespace
+	}{result1}
+}
+
 func (fake *FakeClientsFactory) Start(arg1 context.Context) {
 	fake.startMutex.Lock()
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
@@ -415,6 +493,39 @@ func (fake *FakeClientsFactory) UpdateNamespacesReturnsOnCall(i int, result1 err
 	}{result1}
 }
 
+func (fake *FakeClientsFactory) UpdateUserNamespaces(arg1 context.Context, arg2 *auth.UserPrincipal) {
+	fake.updateUserNamespacesMutex.Lock()
+	fake.updateUserNamespacesArgsForCall = append(fake.updateUserNamespacesArgsForCall, struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
+	}{arg1, arg2})
+	stub := fake.UpdateUserNamespacesStub
+	fake.recordInvocation("UpdateUserNamespaces", []interface{}{arg1, arg2})
+	fake.updateUserNamespacesMutex.Unlock()
+	if stub != nil {
+		fake.UpdateUserNamespacesStub(arg1, arg2)
+	}
+}
+
+func (fake *FakeClientsFactory) UpdateUserNamespacesCallCount() int {
+	fake.updateUserNamespacesMutex.RLock()
+	defer fake.updateUserNamespacesMutex.RUnlock()
+	return len(fake.updateUserNamespacesArgsForCall)
+}
+
+func (fake *FakeClientsFactory) UpdateUserNamespacesCalls(stub func(context.Context, *auth.UserPrincipal)) {
+	fake.updateUserNamespacesMutex.Lock()
+	defer fake.updateUserNamespacesMutex.Unlock()
+	fake.UpdateUserNamespacesStub = stub
+}
+
+func (fake *FakeClientsFactory) UpdateUserNamespacesArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
+	fake.updateUserNamespacesMutex.RLock()
+	defer fake.updateUserNamespacesMutex.RUnlock()
+	argsForCall := fake.updateUserNamespacesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
 func (fake *FakeClientsFactory) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -424,12 +535,16 @@ func (fake *FakeClientsFactory) Invocations() map[string][][]interface{} {
 	defer fake.getImpersonatedClientMutex.RUnlock()
 	fake.getServerClientMutex.RLock()
 	defer fake.getServerClientMutex.RUnlock()
+	fake.getUserNamespacesMutex.RLock()
+	defer fake.getUserNamespacesMutex.RUnlock()
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
 	fake.updateClustersMutex.RLock()
 	defer fake.updateClustersMutex.RUnlock()
 	fake.updateNamespacesMutex.RLock()
 	defer fake.updateNamespacesMutex.RUnlock()
+	fake.updateUserNamespacesMutex.RLock()
+	defer fake.updateUserNamespacesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

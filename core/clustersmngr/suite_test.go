@@ -30,9 +30,9 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeLeafCluster(t *testing.T) clustersmngr.Cluster {
+func makeLeafCluster(t *testing.T, name string) clustersmngr.Cluster {
 	return clustersmngr.Cluster{
-		Name:        "leaf-cluster",
+		Name:        name,
 		Server:      k8sEnv.Rest.Host,
 		BearerToken: k8sEnv.Rest.BearerToken,
 		TLSConfig:   k8sEnv.Rest.TLSClientConfig,
