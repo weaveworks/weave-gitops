@@ -42,9 +42,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 			return nil, fmt.Errorf("could not find flux namespace in cluster %s", clusterName)
 		}
 
+		opts := client.MatchingLabels{
+			coretypes.PartOfLabel: FluxNamespacePartOf,
+		}
+
 		list := &appsv1.DeploymentList{}
 
-		if err := clustersClient.List(ctx, clusterName, list, client.InNamespace(fluxNs.Name)); err != nil {
+		if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
 			return nil, fmt.Errorf("could not list deployments in namespace %s: %w", fluxNs.Name, err)
 		}
 
@@ -94,13 +98,11 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	switch msg.AutomationKind {
 	case pb.AutomationKind_KustomizationAutomation:
 		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.Namespace,
+			KustomizeNameKey: msg.AutomationName,
 		}
 	case pb.AutomationKind_HelmReleaseAutomation:
 		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
-			HelmNamespaceKey: msg.Namespace,
+			HelmNameKey: msg.AutomationName,
 		}
 	default:
 		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
@@ -117,7 +119,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			Version: gvk.Version,
 		})
 
-		if err := clustersClient.List(ctx, msg.ClusterName, &l, opts, client.InNamespace(msg.Namespace)); err != nil {
+		if err := clustersClient.List(ctx, msg.ClusterName, &l, opts); err != nil {
 			if k8serrors.IsForbidden(err) {
 				// Our service account (or impersonated user) may not have the ability to see the resource in question,
 				// in the given namespace.
@@ -139,6 +141,13 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
 		}
 
+		var images []string
+
+		switch obj.GetKind() {
+		case "Deployment":
+			images = getDeploymentPodContainerImages(obj.Object)
+		}
+
 		objects = append(objects, &pb.UnstructuredObject{
 			GroupVersionKind: &pb.GroupVersionKind{
 				Group:   obj.GetObjectKind().GroupVersionKind().Group,
@@ -147,6 +156,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			},
 			Name:        obj.GetName(),
 			Namespace:   obj.GetNamespace(),
+			Images:      images,
 			Status:      res.Status.String(),
 			Uid:         string(obj.GetUID()),
 			Conditions:  mapUnstructuredConditions(res),
@@ -168,7 +178,7 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := clustersClient.List(ctx, msg.ClusterName, &l, client.InNamespace(msg.Namespace)); err != nil {
+	if err := clustersClient.List(ctx, msg.ClusterName, &l); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
@@ -177,6 +187,11 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 Items:
 	for _, obj := range l.Items {
 		refs := obj.GetOwnerReferences()
+		if len(refs) == 0 {
+			// Ignore items without OwnerReference.
+			// for example: dev-weave-gitops-test-connection
+			continue Items
+		}
 
 		for _, ref := range refs {
 			if ref.UID != types.UID(msg.ParentUid) {
@@ -191,12 +206,23 @@ Items:
 		if err != nil {
 			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
 		}
+
+		var images []string
+
+		switch obj.GetKind() {
+		case "Pod":
+			images = getPodContainerImages(obj.Object)
+		case "ReplicaSet":
+			images = getReplicaSetPodContainerImages(obj.Object)
+		}
+
 		objects = append(objects, &pb.UnstructuredObject{
 			GroupVersionKind: &pb.GroupVersionKind{
 				Group:   obj.GetObjectKind().GroupVersionKind().Group,
 				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
 				Kind:    obj.GetKind(),
 			},
+			Images:      images,
 			Name:        obj.GetName(),
 			Namespace:   obj.GetNamespace(),
 			Status:      statusResult.Status.String(),
@@ -217,4 +243,46 @@ func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
 	}
 
 	return conds
+}
+
+func getContainerImages(containers []interface{}) []string {
+	images := []string{}
+
+	for _, item := range containers {
+		container, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		image, ok, _ := unstructured.NestedString(container, "image")
+		if ok {
+			images = append(images, image)
+		}
+	}
+
+	return images
+}
+
+func getPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(obj, "spec", "containers")
+
+	return getContainerImages(containers)
+}
+
+func getReplicaSetPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(
+		obj,
+		"spec", "template", "spec", "containers",
+	)
+
+	return getContainerImages(containers)
+}
+
+func getDeploymentPodContainerImages(obj map[string]interface{}) []string {
+	containers, _, _ := unstructured.NestedSlice(
+		obj,
+		"spec", "template", "spec", "containers",
+	)
+
+	return getContainerImages(containers)
 }
