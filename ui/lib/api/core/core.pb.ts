@@ -30,7 +30,6 @@ export type ListKustomizationsResponse = {
 
 export type ListHelmReleasesRequest = {
   namespace?: string
-  clusterName?: string
 }
 
 export type ListHelmReleasesResponse = {
@@ -158,6 +157,20 @@ export type SyncAutomationRequest = {
 export type SyncAutomationResponse = {
 }
 
+export type GetVersionRequest = {
+}
+
+export type GetVersionResponse = {
+  version?: {[key: string]: string}
+}
+
+export type GetFeatureFlagsRequest = {
+}
+
+export type GetFeatureFlagsResponse = {
+  flags?: {[key: string]: string}
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -203,5 +216,11 @@ export class Core {
   }
   static SyncAutomation(req: SyncAutomationRequest, initReq?: fm.InitReq): Promise<SyncAutomationResponse> {
     return fm.fetchReq<SyncAutomationRequest, SyncAutomationResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetVersion(req: GetVersionRequest, initReq?: fm.InitReq): Promise<GetVersionResponse> {
+    return fm.fetchReq<GetVersionRequest, GetVersionResponse>(`/v1/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
+    return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

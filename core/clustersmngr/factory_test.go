@@ -6,6 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -48,5 +49,88 @@ func TestGetImpersonatedClient(t *testing.T) {
 		}
 
 		g.Expect(nsFound).To(Equal(2))
+	})
+}
+
+func TestUpdateNamespaces(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
+
+	clusterName1 := "foo"
+	clusterName2 := "bar"
+
+	c1 := makeLeafCluster(t, clusterName1)
+	c2 := makeLeafCluster(t, clusterName2)
+
+	t.Run("UpdateNamespaces will return a map based on the clusters returned by Fetch", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
+
+		contents := clientsFactory.GetClustersNamespaces()
+
+		g.Expect(contents).To(HaveLen(2))
+		g.Expect(contents).To(HaveKey(clusterName1))
+		g.Expect(contents).To(HaveKey(clusterName2))
+	})
+
+	t.Run("When a cluster is no longer in the clusters cache, the clustersNamespaces cache updates to reflect this", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
+
+		contents := clientsFactory.GetClustersNamespaces()
+
+		g.Expect(contents).To(HaveLen(1))
+		g.Expect(contents).To(HaveKey(clusterName1))
+		g.Expect(contents).ToNot(HaveKey(clusterName2))
+	})
+}
+
+func TestUpdateUsers(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
+
+	clusterName1 := "foo"
+	clusterName2 := "bar"
+
+	c1 := makeLeafCluster(t, clusterName1)
+	c2 := makeLeafCluster(t, clusterName2)
+
+	u1 := &auth.UserPrincipal{ID: "drstrange"}
+
+	t.Run("UpdateUsers will return a map based on the clusters returned by Fetch", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		clientsFactory.UpdateUserNamespaces(ctx, u1)
+
+		contents := clientsFactory.GetUserNamespaces(u1)
+
+		g.Expect(contents).To(HaveLen(2))
+		g.Expect(contents).To(HaveKey(clusterName1))
+		g.Expect(contents).To(HaveKey(clusterName2))
+	})
+
+	t.Run("GetUsersNamespaces will only return cached items matched to the current clusters list", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		contents := clientsFactory.GetUserNamespaces(u1)
+
+		g.Expect(contents).To(HaveLen(1))
+		g.Expect(contents).To(HaveKey(clusterName1))
+		g.Expect(contents).NotTo(HaveKey(clusterName2))
 	})
 }

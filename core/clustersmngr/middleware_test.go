@@ -17,7 +17,7 @@ import (
 func TestWithClustersClientMiddleware(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	cluster := makeLeafCluster(t)
+	cluster := makeLeafCluster(t, "leaf-cluster")
 
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
