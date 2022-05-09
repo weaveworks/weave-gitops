@@ -89,11 +89,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
   });
 }
 
-export function filterText(
-  rows,
-  fields: Field[],
-  textFilters: State["textFilters"]
-) {
+function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
   if (textFilters.length === 0) {
     return rows;
   }
@@ -130,13 +126,13 @@ export function filterText(
   });
 }
 
-export function toPairs(state: State): string[] {
+function toPairs(state: State): string[] {
   const result = _.map(state.formState, (val, key) => (val ? key : null));
   const out = _.compact(result);
   return _.concat(out, state.textFilters);
 }
 
-export type State = {
+type State = {
   filters: FilterConfig;
   formState: DialogFormState;
   textFilters: string[];

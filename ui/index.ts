@@ -22,10 +22,6 @@ import { Field, SortType } from "./components/DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
-  filterRows,
-  filterText,
-  toPairs,
-  State,
 } from "./components/FilterableTable";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -78,10 +74,6 @@ export {
   FilterableTable,
   filterConfigForString,
   filterConfigForStatus,
-  filterRows,
-  filterText,
-  toPairs,
-  State,
   FluxRuntime,
   Footer,
   getCallbackState,
