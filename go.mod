@@ -85,7 +85,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.2 // indirect
-	github.com/Microsoft/go-winio v0.4.17 // indirect
+	github.com/Microsoft/go-winio v0.5.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -253,37 +253,3 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
-
-// fix CVE-2021-41103
-// fix GHSA-mvff-h3cj-wj9c
-replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
-
-// fix CVE-2021-30465
-// fix GHSA-v95c-p5hm-xq8f
-replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
-
-// https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
-replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1
-
-// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMOPENCONTAINERSIMAGESPECSPECSGOV1-1922832
-replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
-
-// Fix for CVE-2020-29652: https://github.com/golang/crypto/commit/8b5274cf687fd9316b4108863654cc57385531e8
-// Fix for CVE-2021-43565: https://github.com/golang/crypto/commit/5770296d904e90f15f38f77dfc2e43fdf5efc083
-replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
-
-// Fix for CVE-2020-26160: https://github.com/advisories/GHSA-w73w-5m7g-f7qc
-replace github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.1.0
-
-// CVE-2014-3499
-replace github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 => github.com/docker/docker v1.6.1
-
-// CVE-2020-8552
-replace k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655 => k8s.io/apimachinery v0.19.0
-
-// CVE-2020-8552
-replace k8s.io/apiserver v0.0.0-20190918160949-bfa5e2e684ad => k8s.io/apiserver v0.17.3
-
-replace k8s.io/apiextensions-apiserver v0.0.0-20190918161926-8f644eb6e783 => k8s.io/apiextensions-apiserver v0.20.2
-
-replace k8s.io/api v0.0.0-20190918155943-95b840bb6a1f => k8s.io/api v0.17.0
