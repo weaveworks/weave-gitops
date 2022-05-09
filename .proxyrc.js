@@ -13,6 +13,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: proxyHost,
       secure: !insecure,
+      changeOrigin: true,
     })
   );
   app.use(
@@ -20,6 +21,7 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: proxyHost,
       secure: !insecure,
+      changeOrigin: true,
     })
   );
 };

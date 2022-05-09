@@ -18,6 +18,11 @@ import Page from "./components/Page";
 import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
+import { Field, SortType } from "./components/DataTable";
+import FilterableTable, {
+  filterConfigForStatus,
+  filterConfigForString,
+} from "./components/FilterableTable";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
@@ -46,6 +51,9 @@ import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import { statusSortHelper } from "./lib/utils";
+import Flex from "./components/Flex";
 
 export {
   AppContextProvider,
@@ -63,6 +71,10 @@ export {
   CoreClientContextProvider,
   FeatureFlagsContextProvider,
   FeatureFlags,
+  Flex,
+  FilterableTable,
+  filterConfigForString,
+  filterConfigForStatus,
   FluxRuntime,
   Footer,
   getCallbackState,
@@ -75,6 +87,7 @@ export {
   Icon,
   IconType,
   Interval,
+  KubeStatusIndicator,
   KustomizationDetail,
   LoadingPage,
   muiTheme,
@@ -82,6 +95,8 @@ export {
   Page,
   RepoInputWithAuth,
   SignIn,
+  statusSortHelper,
+  SortType,
   SourceRefSourceKind,
   SourcesTable,
   theme,
