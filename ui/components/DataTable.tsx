@@ -27,7 +27,8 @@ export enum SortType {
 type Sorter = (k: any) => any;
 
 export type Field = {
-  label: string | ((k: any) => string | JSX.Element);
+  label: string | number;
+  labelRenderer: string | ((k: any) => string | JSX.Element);
   value: string | ((k: any) => string | JSX.Element | null);
   sortType?: SortType;
   sortValue?: Sorter;
@@ -151,9 +152,7 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell
-          key={typeof f.label === "function" ? f.label(r) : r[f.label]}
-        >
+        <TableCell key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -167,11 +166,9 @@ function UnstyledDataTable({
           <TableHead>
             <TableRow>
               {_.map(fields, (f) => (
-                <TableCell
-                  key={typeof f.label === "function" ? f.label(r) : r[f.label]}
-                >
-                  {typeof f.label === "function" ? (
-                    f.label(r)
+                <TableCell key={f.label}>
+                  {typeof f.labelRenderer === "function" ? (
+                    f.labelRenderer(r)
                   ) : (
                     <SortableLabel field={f} />
                   )}
