@@ -107,7 +107,10 @@ To upgrade to Weave GitOps Enterprise
 
 import TOCInline from "@theme/TOCInline";
 
-<TOCInline toc={toc[2].children} />
+<TOCInline toc={(() => {
+           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'weave-gitops-enterprise')+1);
+           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
+           })()} />
 
 
 ### 1. Install `Weave GitOps`

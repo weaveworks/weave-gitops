@@ -83,7 +83,10 @@ To install Weave GitOps Enterprise
 
 import TOCInline from "@theme/TOCInline";
 
-<TOCInline toc={toc[1].children} />
+<TOCInline toc={(() => {
+           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'installing-weave-gitops-enterprise')+1);
+           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
+           })()} />
 
 ### 1. Setting up a Cluster with `flux`
 
