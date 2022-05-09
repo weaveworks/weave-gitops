@@ -32,8 +32,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - "--helm-repo-namespace"
-            - "{{ .Release.Namespace }}"
             - "--log-level"
             - "{{ .Values.logLevel }}"
             {{- if .Values.serverTLS.enable }}

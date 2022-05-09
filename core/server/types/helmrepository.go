@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository, clusterName string) *pb.HelmRepository {
+func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName string) *pb.HelmRepository {
 	return &pb.HelmRepository{
 		Name:          helmRepository.Name,
 		Namespace:     helmRepository.Namespace,

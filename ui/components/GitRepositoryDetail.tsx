@@ -20,6 +20,7 @@ function GitRepositoryDetail({ name, namespace, className }: Props) {
       namespace={namespace}
       type={SourceRefSourceKind.GitRepository}
       info={(s: GitRepository) => [
+        ["Type", SourceRefSourceKind.GitRepository],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(s.url)}>

@@ -15,7 +15,7 @@ import (
 const UpdateCommitMessage = "Update profile manifests"
 
 // Update updates an installed profile
-func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
+func (s *ProfilesSvc) Update(ctx context.Context, r ProfilesRetriever, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -33,7 +33,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, gitProvider gitproviders.GitPr
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	_, version, err := s.discoverHelmRepository(ctx, GetOptions{
+	_, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,

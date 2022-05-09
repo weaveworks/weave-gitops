@@ -70,7 +70,20 @@ jobs:
 
           git commit -am "Update helm chart to $NEW_CHART_VERSION to use gitops $GITOPS_VERSION"
         if: ${{ !contains(github.event.inputs.version, '-') }}
-
+      - name: Set tag for building changelog
+        run: |
+          git config user.name weave-gitops-bot
+          git config user.email weave-gitops-bot@weave.works
+          git tag -a ${{ github.event.inputs.version }} -m ${{ github.event.inputs.version }}
+          # Do not push tag - we'll push it when approved
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v3
+        with:
+          configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
+          ignorePreReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Pull Request
         id: create-pull-request
         uses: peter-evans/create-pull-request@v4
@@ -81,6 +94,31 @@ jobs:
           branch: ${{ env.BRANCH }}
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
-          body: "Update version references to ${{ env.GITOPS_VERSION }}"
+          body: |
+           ## ⚠️ Breaking changes
+           Describe any breaking changes here, or delete this block
+
+           ## ✍️ Action required
+           Describe any user facing actions here, or delete this block.
+
+           ## 💸 Features and improvements
+           Describe any user facing changes here, or delete this block.
+
+           Examples of user facing changes:
+             - API changes
+             - Bug fixes
+             - Any changes in behaviour
+             - Changes requiring upgrade notices or deprecation warning
+
+           ${{ steps.github_release.outputs.changelog }}
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           labels: "exclude from release notes"
+      - name: "Comment on pull request"
+        run: |
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.create-pull-request.outputs.pull-request-number }}/comments \
+            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "body": "To change the release notes, edit the pull request description.\n\nAs soon as you approve the PR, the release will start, and will be automatically merged when finished"
+              }'

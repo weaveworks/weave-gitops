@@ -54,10 +54,9 @@ message Kustomization {
     repeated  Condition conditions       = 6;
     string    lastAppliedRevision        = 7;
     string    lastAttemptedRevision      = 8;
-    string    lastHandledReconciledAt    = 9;
-    repeated  GroupVersionKind inventory = 10;
-    bool      suspended                  = 11;
-    string    clusterName                = 12;
+    repeated  GroupVersionKind inventory = 9;
+    bool      suspended                  = 10;
+    string    clusterName                = 11;
 }
 
 message HelmChart {
@@ -82,8 +81,8 @@ message HelmRelease {
     repeated  Condition conditions       = 6;
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
-    string    lastUpdatedAt              = 12;
-    string    clusterName                = 13;
+    string    clusterName                = 12;
+    string    helmChartName              = 13;
 }
 
 message GitRepository {
@@ -158,6 +157,7 @@ message UnstructuredObject {
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
     string           clusterName          = 8;
+    repeated         string images        = 9;
 }
 
 message Namespace {

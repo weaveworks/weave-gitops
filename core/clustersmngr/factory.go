@@ -33,10 +33,14 @@ type ClientsFactory interface {
 	UpdateClusters(ctx context.Context) error
 	// UpdateNamespaces updates the namespaces all namespaces for all clusters
 	UpdateNamespaces(ctx context.Context) error
+	// UpdateUserNamespaces updates the cache of accessible namespaces for the user
+	UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal)
 	// GetServerClient returns the cluster client with gitops server permissions
 	GetServerClient(ctx context.Context) (Client, error)
 	// GetClustersNamespaces returns the namespaces for all clusters
 	GetClustersNamespaces() map[string][]v1.Namespace
+	// GetUserNamespaces returns the accessible namespaces for the user
+	GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
 }
@@ -48,20 +52,25 @@ type clientsFactory struct {
 
 	// list of clusters returned by the clusters fetcher
 	clusters *Clusters
+	// string containing ordered list of cluster names, used to refresh dependent caches
+	clustersHash string
 	// the lists of all namespaces of each cluster
 	clustersNamespaces *ClustersNamespaces
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
+
+	initialClustersLoad chan bool
 }
 
 func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
 	return &clientsFactory{
-		clustersFetcher:    fetcher,
-		nsChecker:          nsChecker,
-		clusters:           &Clusters{},
-		clustersNamespaces: &ClustersNamespaces{},
-		usersNamespaces:    &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
-		log:                logger,
+		clustersFetcher:     fetcher,
+		nsChecker:           nsChecker,
+		clusters:            &Clusters{},
+		clustersNamespaces:  &ClustersNamespaces{},
+		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
+		log:                 logger,
+		initialClustersLoad: make(chan bool),
 	}
 }
 
@@ -71,12 +80,18 @@ func (cf *clientsFactory) Start(ctx context.Context) {
 }
 
 func (cf *clientsFactory) watchClusters(ctx context.Context) {
+	if err := cf.UpdateClusters(ctx); err != nil {
+		cf.log.Error(err, "failed updating clusters")
+	}
+
+	cf.initialClustersLoad <- true
+
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			return false, err
 		}
 
-		return true, nil
+		return false, nil
 	}); err != nil {
 		cf.log.Error(err, "failed polling clusters")
 	}
@@ -94,6 +109,9 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 }
 
 func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
+	// waits the first load of cluster to start watching namespaces
+	<-cf.initialClustersLoad
+
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
 			return false, err
@@ -111,6 +129,8 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 		cf.log.Error(err, "failed to create clients for", "clusters", cf.clusters.Get())
 		return err
 	}
+
+	cf.syncCaches()
 
 	wg := sync.WaitGroup{}
 
@@ -133,6 +153,20 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 	wg.Wait()
 
 	return nil
+}
+
+func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
+	return cf.clustersNamespaces.namespaces
+}
+
+func (cf *clientsFactory) syncCaches() {
+	newHash := cf.clusters.Hash()
+
+	if newHash != cf.clustersHash {
+		cf.clustersNamespaces.Clear()
+		cf.usersNamespaces.Clear()
+		cf.clustersHash = newHash
+	}
 }
 
 func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
@@ -159,26 +193,7 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	return NewClient(pool, cf.clustersNamespaces.namespaces), nil
 }
 
-func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
-	return cf.clustersNamespaces.namespaces
-}
-
-func restConfigFromCluster(cluster Cluster) *rest.Config {
-	return &rest.Config{
-		Host:            cluster.Server,
-		BearerToken:     cluster.BearerToken,
-		TLSClientConfig: cluster.TLSConfig,
-		QPS:             ClientQPS,
-		Burst:           ClientBurst,
-	}
-}
-
-func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
-	userNamespaces := cf.usersNamespaces.GetAll(user, cf.clusters.Get())
-	if len(userNamespaces) > 0 {
-		return userNamespaces
-	}
-
+func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
 	wg := sync.WaitGroup{}
 
 	for _, cluster := range cf.clusters.Get() {
@@ -199,8 +214,21 @@ func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 	}
 
 	wg.Wait()
+}
 
+func (cf *clientsFactory) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
+}
+
+func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
+	userNamespaces := cf.GetUserNamespaces(user)
+	if len(userNamespaces) > 0 {
+		return userNamespaces
+	}
+
+	cf.UpdateUserNamespaces(ctx, user)
+
+	return cf.GetUserNamespaces(user)
 }
 
 func impersonatedConfig(cluster Cluster, user *auth.UserPrincipal) *rest.Config {
@@ -227,4 +255,14 @@ func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
 	}
 
 	return clients, nil
+}
+
+func restConfigFromCluster(cluster Cluster) *rest.Config {
+	return &rest.Config{
+		Host:            cluster.Server,
+		BearerToken:     cluster.BearerToken,
+		TLSClientConfig: cluster.TLSConfig,
+		QPS:             ClientQPS,
+		Burst:           ClientBurst,
+	}
 }

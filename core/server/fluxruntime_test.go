@@ -191,6 +191,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	otherDep := newDeployment("other-deployment", ns.Name)
 	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
 
+	otherDep2 := newDeployment("other-deployment-on-flux-ns", fluxNs.Name)
+	g.Expect(k.Create(ctx, otherDep2)).To(Succeed())
+
 	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 

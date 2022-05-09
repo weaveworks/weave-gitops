@@ -5,14 +5,13 @@ import { ListFluxEventsResponse } from "../lib/api/core/core.pb";
 import { ObjectReference } from "../lib/api/core/types.pb";
 import { RequestError } from "../lib/types";
 
-export function useListFluxEvents(namespace, obj: ObjectReference) {
+export function useListFluxEvents(obj: ObjectReference) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxEventsResponse, RequestError>(
     ["events", obj],
     () =>
       api.ListFluxEvents({
-        namespace,
         involvedObject: obj,
       }),
     {

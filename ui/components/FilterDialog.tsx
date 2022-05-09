@@ -37,7 +37,7 @@ const SlideContent = styled.div`
 export const filterSeparator = ":";
 
 export function initialFormState(cfg: FilterConfig) {
-  return _.reduce(
+  const allFilters = _.reduce(
     cfg,
     (r, vals, k) => {
       _.each(vals, (v) => {
@@ -48,6 +48,8 @@ export function initialFormState(cfg: FilterConfig) {
     },
     {}
   );
+
+  return allFilters;
 }
 
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
@@ -60,7 +62,7 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
       .every((key) => formState[key])
       .value();
     setAll(allChecked);
-  }, [formState]);
+  });
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [

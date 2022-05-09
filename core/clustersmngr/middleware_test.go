@@ -17,9 +17,7 @@ import (
 func TestWithClustersClientMiddleware(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	cluster := makeLeafCluster(t)
-	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	clustersFetcher.FetchReturns([]clustersmngr.Cluster{cluster}, nil)
+	cluster := makeLeafCluster(t, "leaf-cluster")
 
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 
@@ -40,7 +38,7 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 		})
 	}(defaultHandler)
 
-	middleware = clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, middleware)
+	middleware = clustersmngr.WithClustersClient(clientsFactory, middleware)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
@@ -53,11 +51,10 @@ func TestWithClustersClientMiddleware(t *testing.T) {
 func TestWithClustersClientsMiddlewareFailsToGetImpersonatedClient(t *testing.T) {
 	defaultHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 
-	clustersFetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
 	clientsFactory.GetImpersonatedClientReturns(nil, errors.New("error"))
 
-	middleware := clustersmngr.WithClustersClient(clientsFactory, clustersFetcher, defaultHandler)
+	middleware := clustersmngr.WithClustersClient(clientsFactory, defaultHandler)
 	middleware = authMiddleware(middleware)
 
 	req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)

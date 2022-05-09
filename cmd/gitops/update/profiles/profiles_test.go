@@ -26,6 +26,7 @@ var _ = Describe("Update Profile(s)", func() {
 				"--namespace", "test-namespace",
 				"--config-repo", "https://ssh@github:test/test.git",
 				"--auto-merge", "true",
+				"--endpoint", "localhost:8080",
 			})
 
 			err := cmd.Execute()
@@ -37,6 +38,7 @@ var _ = Describe("Update Profile(s)", func() {
 		It("fails if --name, --cluster, --version or --config-repo are not provided", func() {
 			cmd.SetArgs([]string{
 				"update", "profile",
+				"--endpoint", "localhost:8080",
 			})
 
 			err := cmd.Execute()
@@ -50,6 +52,7 @@ var _ = Describe("Update Profile(s)", func() {
 				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
 				"--cluster", "prod",
 				"--version", "&%*/v",
+				"--endpoint", "localhost:8080",
 			})
 
 			err := cmd.Execute()

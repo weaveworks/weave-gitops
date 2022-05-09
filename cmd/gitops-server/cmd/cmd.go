@@ -20,14 +20,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	corecache "github.com/weaveworks/weave-gitops/core/cache"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -47,10 +44,6 @@ type Options struct {
 	Host                          string
 	HelmRepoNamespace             string
 	HelmRepoName                  string
-	ProfileCacheLocation          string
-	WatcherMetricsBindAddress     string
-	WatcherHealthzBindAddress     string
-	WatcherPort                   int
 	Path                          string
 	LogLevel                      string
 	OIDC                          auth.OIDCConfig
@@ -77,13 +70,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
-	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmd.Flags().StringVar(&options.WatcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
-	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
@@ -107,6 +94,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
 
 	mux := http.NewServeMux()
 
@@ -134,35 +123,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
-
-	profileCache, err := cache.NewCache(options.ProfileCacheLocation)
-	if err != nil {
-		return fmt.Errorf("failed to create cacher: %w", err)
-	}
-
-	if options.NotificationControllerAddress == "" {
-		namespace, _ := cmd.Flags().GetString("namespace")
-		options.NotificationControllerAddress = fmt.Sprintf("http://notification-controller.%s.svc.cluster.local./", namespace)
-	}
-
-	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		KubeClient:                    rawClient,
-		Cache:                         profileCache,
-		MetricsBindAddress:            options.WatcherMetricsBindAddress,
-		HealthzBindAddress:            options.WatcherHealthzBindAddress,
-		NotificationControllerAddress: options.NotificationControllerAddress,
-		WatcherPort:                   options.WatcherPort,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the watcher: %w", err)
-	}
-
-	go func() {
-		if err := profileWatcher.StartWatcher(log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
 
 	var authServer *auth.AuthServer
 
@@ -207,13 +167,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authServer = srv
 	}
 
-	cacheContainer := corecache.NewContainer(
-		log,
-		corecache.WithSimpleCaches(
-			corecache.WithNamespaceCache(rest),
-		),
-	)
-
 	ctx := context.Background()
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
@@ -221,22 +174,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clusterClientsFactory.Start(ctx)
 
-	coreConfig := core.NewCoreConfig(log, rest, cacheContainer, clusterName, clusterClientsFactory)
+	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
-		DefaultConfig: rest,
-		ClusterName:   clusterName,
-	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
-
 	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
 			AppConfig:        appConfig,
-			ProfilesConfig:   profilesConfig,
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},

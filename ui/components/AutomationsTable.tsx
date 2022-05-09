@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import {
   HelmRelease,
-  Kustomization,
   SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
@@ -57,6 +56,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       },
       sortValue: ({ name }) => name,
       textSearchable: true,
+      maxWidth: 600,
     },
     {
       label: "Type",
@@ -86,6 +86,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
         return (
           <SourceLink
+            short
             sourceRef={{
               kind: sourceKind,
               name: sourceName,
@@ -113,6 +114,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Message",
       value: (a: Automation) => computeMessage(a.conditions),
       sortValue: ({ conditions }) => computeMessage(conditions),
+      maxWidth: 600,
     },
     {
       label: "Revision",
@@ -120,8 +122,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Last Updated",
-      value: (a: Automation) => (
-        <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
+      value: () => (
+        <Timestamp time={""} />
       ),
     },
   ];

@@ -25,8 +25,12 @@ const InfoList = styled(
     );
   }
 )`
+  padding: ${(props) => props.theme.spacing.medium} 0px;
   tbody tr td:first-child {
     min-width: 200px;
+  }
+  td {
+    word-break: break-all;
   }
   tr {
     height: 16px;

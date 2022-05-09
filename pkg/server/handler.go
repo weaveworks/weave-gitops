@@ -9,10 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	core "github.com/weaveworks/weave-gitops/core/server"
-	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
@@ -34,7 +31,6 @@ func AuthEnabled() bool {
 type Config struct {
 	AppConfig        *ApplicationsConfig
 	AppOptions       []ApplicationsOption
-	ProfilesConfig   ProfilesConfig
 	CoreServerConfig core.CoreServerConfig
 	AuthServer       *auth.AuthServer
 }
@@ -44,21 +40,8 @@ func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handle
 	httpHandler := middleware.WithLogging(log, mux)
 
 	if AuthEnabled() {
-		clustersFetcher := fetcher.NewSingleClusterFetcher(cfg.CoreServerConfig.RestCfg)
-
-		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, clustersFetcher, httpHandler)
+		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, httpHandler)
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
-	}
-
-	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)
-	if err := pbapp.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
-		return nil, fmt.Errorf("could not register application: %w", err)
-	}
-
-	profilesSrv := NewProfilesServer(log, cfg.ProfilesConfig)
-
-	if err := pbprofiles.RegisterProfilesHandlerServer(ctx, mux, profilesSrv); err != nil {
-		return nil, fmt.Errorf("could not register profiles: %w", err)
 	}
 
 	if err := core.Hydrate(ctx, mux, cfg.CoreServerConfig); err != nil {
