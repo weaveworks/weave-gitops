@@ -43,7 +43,6 @@ gitops add terraform --from-template <template-name> --set key=val
 	}
 
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
-	cmd.Flags().BoolVar(&flags.InsecureSkipTlsVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 	internal.AddTemplateFlags(cmd, &flags.Template, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
