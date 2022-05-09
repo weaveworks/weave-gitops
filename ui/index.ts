@@ -53,6 +53,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import { statusSortHelper } from "./lib/utils";
+import Flex from "./components/Flex";
 
 export {
   AppContextProvider,
@@ -70,7 +71,7 @@ export {
   CoreClientContextProvider,
   FeatureFlagsContextProvider,
   FeatureFlags,
-  Field,
+  Flex,
   FilterableTable,
   filterConfigForString,
   filterConfigForStatus,
