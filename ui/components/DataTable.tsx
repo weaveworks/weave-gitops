@@ -159,6 +159,7 @@ function UnstyledDataTable({
               maxWidth: f.maxWidth,
             }
           }
+          key={f.label}
         >
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
