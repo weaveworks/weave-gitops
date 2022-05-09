@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -25,18 +27,20 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		Interval:    durationToInterval(helmrelease.Spec.Interval),
 		HelmChart: &pb.HelmChart{
 			Chart:     helmrelease.Spec.Chart.Spec.Chart,
-			Namespace: helmrelease.Spec.Chart.Spec.SourceRef.Namespace,
-			Name:      helmrelease.Spec.Chart.Spec.SourceRef.Name,
 			Version:   helmrelease.Spec.Chart.Spec.Version,
+			Name:      fmt.Sprintf("%s-%s", helmrelease.Namespace, helmrelease.Name),
+			Namespace: helmrelease.Namespace,
 			Interval:  chartInterval,
 			SourceRef: &pb.SourceRef{
-				Kind: getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
+				Namespace: helmrelease.Spec.Chart.Spec.SourceRef.Namespace,
+				Name:      helmrelease.Spec.Chart.Spec.SourceRef.Name,
+				Kind:      getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
 		Inventory:     inventory,
 		Conditions:    mapConditions(helmrelease.Status.Conditions),
 		Suspended:     helmrelease.Spec.Suspend,
+		HelmChartName: helmrelease.Status.HelmChart,
 		ClusterName:   clusterName,
-		LastUpdatedAt: lastUpdatedAt(helmrelease),
 	}
 }

@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import HelmReleaseComponent from "../../components/HelmReleaseDetail";
+import HelmReleaseDetail from "../../components/HelmReleaseDetail";
 import Page from "../../components/Page";
 import { useGetHelmRelease } from "../../hooks/automations";
 
@@ -21,7 +21,7 @@ function HelmReleasePage({ className, name, namespace, clusterName }: Props) {
 
   return (
     <Page loading={isLoading} error={error} className={className} title={name}>
-      <HelmReleaseComponent
+      <HelmReleaseDetail
         helmRelease={helmRelease}
         name={name}
         clusterName={clusterName}

@@ -33,6 +33,7 @@ export type Field = {
   sortType?: SortType;
   sortValue?: Sorter;
   textSearchable?: boolean;
+  maxWidth?: number;
 };
 
 /** DataTable Properties  */
@@ -152,7 +153,13 @@ function UnstyledDataTable({
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
       {_.map(fields, (f) => (
-        <TableCell key={f.label}>
+        <TableCell
+          style={
+            f.maxWidth && {
+              maxWidth: f.maxWidth,
+            }
+          }
+        >
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -213,7 +220,6 @@ export const DataTable = styled(UnstyledDataTable)`
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .MuiTableRow-root {
@@ -226,10 +232,7 @@ export const DataTable = styled(UnstyledDataTable)`
   th {
     padding: 0;
   }
-
   td {
-    word-break: break-all;
-    word-wrap: break-word;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,7 +44,7 @@ var (
 	repo1 = &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "HelmRepository",
-			APIVersion: "source.toolkit.fluxcd.io/v1beta1",
+			APIVersion: "source.toolkit.fluxcd.io/v1beta2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",

@@ -154,6 +154,7 @@ service Core {
             get: "/v1/events"
         };
     }
+
     /*
      * SyncResource forces a reconciliation of a Flux resource
      */
@@ -161,6 +162,24 @@ service Core {
         option (google.api.http) = {
             post: "/v1/sync"
             body: "*"
+        };
+    }
+
+    /*
+     * GetVersion returns version information about the server
+     */
+    rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
+        option (google.api.http) = {
+            get: "/v1/version"
+        };
+    }
+
+    /**
+    * GetFeatureFlags returns configuration information about the server
+    */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+        option (google.api.http) = {
+            get : "/v1/featureflags"
         };
     }
 }
@@ -285,7 +304,6 @@ message ListNamespacesResponse {
 }
 
 message ListFluxEventsRequest {
-    string          namespace      = 1;
     ObjectReference involvedObject = 2;
 }
 
@@ -302,4 +320,16 @@ message SyncAutomationRequest {
 }
 
 message SyncAutomationResponse {
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+    map<string, string> version = 1;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+    map<string, string> flags = 1;
 }

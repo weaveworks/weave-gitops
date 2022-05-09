@@ -2,6 +2,8 @@ package clustersmngr
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/cheshir/ttlcache"
@@ -28,6 +30,18 @@ func (c *Clusters) Get() []Cluster {
 	return c.clusters
 }
 
+func (c *Clusters) Hash() string {
+	names := []string{}
+
+	for _, cluster := range c.clusters {
+		names = append(names, cluster.Name)
+	}
+
+	sort.Strings(names)
+
+	return strings.Join(names, "")
+}
+
 type ClustersNamespaces struct {
 	sync.RWMutex
 	namespaces map[string][]v1.Namespace
@@ -42,6 +56,13 @@ func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
 	}
 
 	cn.namespaces[cluster] = namespaces
+}
+
+func (cn *ClustersNamespaces) Clear() {
+	cn.Lock()
+	defer cn.Unlock()
+
+	cn.namespaces = make(map[string][]v1.Namespace)
 }
 
 func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
@@ -67,6 +88,8 @@ func (un *UsersNamespaces) Set(user *auth.UserPrincipal, cluster string, nsList 
 	un.Cache.Set(un.cacheKey(user, cluster), nsList, userNamespaceTTL)
 }
 
+// GetAll will return all namespace mappings based on the list of clusters provided.
+// The cache very well may contain more, but this List is targeted.
 func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []Cluster) map[string][]v1.Namespace {
 	namespaces := map[string][]v1.Namespace{}
 
@@ -77,6 +100,10 @@ func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []Cluster) 
 	}
 
 	return namespaces
+}
+
+func (un *UsersNamespaces) Clear() {
+	un.Cache.Clear()
 }
 
 func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {

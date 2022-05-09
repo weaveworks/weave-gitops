@@ -312,7 +312,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		signed, err := s.tokenSignerVerifier.Sign()
+		signed, err := s.tokenSignerVerifier.Sign(loginRequest.Username)
 		if err != nil {
 			s.Log.Error(err, "Failed to create and sign token")
 			rw.WriteHeader(http.StatusInternalServerError)

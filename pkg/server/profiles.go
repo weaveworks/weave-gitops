@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -72,7 +72,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
 	}
 
-	helmRepo := &sourcev1beta1.HelmRepository{}
+	helmRepo := &sourcev1.HelmRepository{}
 	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,
@@ -115,7 +115,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
 	}
 
-	helmRepo := &sourcev1beta1.HelmRepository{}
+	helmRepo := &sourcev1.HelmRepository{}
 	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,

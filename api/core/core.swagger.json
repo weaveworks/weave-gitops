@@ -101,12 +101,6 @@
         },
         "parameters": [
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,
@@ -125,6 +119,29 @@
             "type": "string"
           }
         ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/featureflags": {
+      "get": {
+        "summary": "GetFeatureFlags returns configuration information about the server",
+        "operationId": "Core_GetFeatureFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFeatureFlagsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
         "tags": [
           "Core"
         ]
@@ -542,6 +559,29 @@
           "Core"
         ]
       }
+    },
+    "/v1/version": {
+      "get": {
+        "summary": "GetVersion returns version information about the server",
+        "operationId": "Core_GetVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetVersionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Core"
+        ]
+      }
     }
   },
   "definitions": {
@@ -754,6 +794,17 @@
         }
       }
     },
+    "v1GetFeatureFlagsResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1GetFluxNamespaceRequest": {
       "type": "object"
     },
@@ -811,6 +862,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetVersionResponse": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }
@@ -956,10 +1018,10 @@
         "suspended": {
           "type": "boolean"
         },
-        "lastUpdatedAt": {
+        "clusterName": {
           "type": "string"
         },
-        "clusterName": {
+        "helmChartName": {
           "type": "string"
         }
       }
@@ -1041,9 +1103,6 @@
           "type": "string"
         },
         "lastAttemptedRevision": {
-          "type": "string"
-        },
-        "lastHandledReconciledAt": {
           "type": "string"
         },
         "inventory": {
@@ -1280,6 +1339,12 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

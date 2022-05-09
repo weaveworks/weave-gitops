@@ -19,7 +19,7 @@ const AddCommitMessage = "Add profile manifests"
 
 // Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
 // provided that such a HelmRelease does not exist with the same profile name and version in the same namespace and cluster.
-func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
+func (s *ProfilesSvc) Add(ctx context.Context, r ProfilesRetriever, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -37,7 +37,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
+	helmRepo, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,

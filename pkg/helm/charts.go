@@ -9,7 +9,7 @@ import (
 	"path"
 	"sort"
 
-	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -27,8 +27,8 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . HelmRepoManager
 type HelmRepoManager interface {
-	ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
-	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
+	ListCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
+	GetValuesFile(ctx context.Context, helmRepo *sourcev1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
 }
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
@@ -83,7 +83,7 @@ var Profiles = func(v *repo.ChartVersion) bool {
 }
 
 // ListCharts filters charts using the provided predicate.
-func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
+func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s: %w",
@@ -138,7 +138,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepo
 }
 
 // GetValuesFile fetches the value file from a chart.
-func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error) {
+func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1.HelmRepository, c *ChartReference, filename string) ([]byte, error) {
 	if err := h.updateCache(ctx, helmRepo); err != nil {
 		return nil, fmt.Errorf("updating cache: %w", err)
 	}
@@ -157,7 +157,7 @@ func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1
 	return nil, fmt.Errorf("failed to find file: %s", filename)
 }
 
-func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository) error {
+func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1.HelmRepository) error {
 	entry, err := h.entryForRepository(ctx, helmRepo)
 	if err != nil {
 		return fmt.Errorf("failed to build repository entry: %w", err)
@@ -176,7 +176,7 @@ func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.H
 	return nil
 }
 
-func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference) (*chart.Chart, error) {
+func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1.HelmRepository, c *ChartReference) (*chart.Chart, error) {
 	o, err := h.chartPathOptionsFromRepository(ctx, helmRepo, c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure client: %w", err)
@@ -195,7 +195,7 @@ func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.Hel
 	return chart, nil
 }
 
-func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference) (*action.ChartPathOptions, error) {
+func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRepo *sourcev1.HelmRepository, c *ChartReference) (*action.ChartPathOptions, error) {
 	// TODO: This should probably use Verify: true
 	co := &action.ChartPathOptions{
 		RepoURL:            helmRepo.Spec.URL,
@@ -216,7 +216,7 @@ func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRe
 	return co, nil
 }
 
-func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository) (*repo.Entry, error) {
+func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1.HelmRepository) (*repo.Entry, error) {
 	entry := &repo.Entry{
 		Name: helmRepo.GetName() + "-" + helmRepo.GetNamespace(),
 		URL:  helmRepo.Spec.URL,
@@ -235,7 +235,7 @@ func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1
 	return entry, nil
 }
 
-func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1.HelmRepository) (string, string, error) {
+func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1.HelmRepository) (string, string, error) {
 	var secret corev1.Secret
 	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: hr.Namespace}, &secret); err != nil {
 		return "", "", fmt.Errorf("repository authentication: %w", err)

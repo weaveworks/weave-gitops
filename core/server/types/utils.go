@@ -1,19 +1,20 @@
 package types
 
 import (
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	"time"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func getSourceKind(kind string) pb.SourceRef_SourceKind {
 	switch kind {
-	case v1beta1.GitRepositoryKind:
+	case sourcev1.GitRepositoryKind:
 		return pb.SourceRef_GitRepository
-	case v1beta1.HelmRepositoryKind:
+	case sourcev1.HelmRepositoryKind:
 		return pb.SourceRef_HelmRepository
-	case v1beta1.BucketKind:
+	case sourcev1.BucketKind:
 		return pb.SourceRef_Bucket
 	default:
 		return -1
@@ -29,7 +30,7 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 			Status:    string(c.Status),
 			Reason:    c.Reason,
 			Message:   c.Message,
-			Timestamp: c.LastTransitionTime.String(),
+			Timestamp: c.LastTransitionTime.Format(time.RFC3339),
 		})
 	}
 
@@ -38,24 +39,22 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 
 func lastUpdatedAt(obj interface{}) string {
 	switch s := obj.(type) {
-	case *v1beta1.GitRepository:
+	case *sourcev1.GitRepository:
 		if s.Status.Artifact != nil {
-			return s.Status.Artifact.LastUpdateTime.String()
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
-	case *v1beta1.Bucket:
+	case *sourcev1.Bucket:
 		if s.Status.Artifact != nil {
-			return s.Status.Artifact.LastUpdateTime.String()
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
-	case *v1beta1.HelmChart:
+	case *sourcev1.HelmChart:
 		if s.Status.Artifact != nil {
-			return s.Status.Artifact.LastUpdateTime.String()
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
-	case *v1beta1.HelmRepository:
+	case *sourcev1.HelmRepository:
 		if s.Status.Artifact != nil {
-			return s.Status.Artifact.LastUpdateTime.String()
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
-	case *v2beta1.HelmRelease:
-		return s.Status.LastHandledReconcileAt
 	}
 
 	return ""

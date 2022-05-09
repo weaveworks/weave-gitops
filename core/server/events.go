@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"google.golang.org/grpc/codes"
@@ -29,7 +30,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		"involvedObject.namespace": msg.InvolvedObject.Namespace,
 	}
 
-	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.Namespace, l, fields); err != nil {
+	if err := list(ctx, k8s, temporarilyEmptyAppName, msg.InvolvedObject.Namespace, l, fields); err != nil {
 		return nil, fmt.Errorf("could not get events: %w", err)
 	}
 
@@ -42,7 +43,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 			Name:      e.ObjectMeta.Name,
 			Reason:    e.Reason,
 			Message:   e.Message,
-			Timestamp: e.LastTimestamp.String(),
+			Timestamp: e.LastTimestamp.Format(time.RFC3339),
 			Host:      e.Source.Host,
 		})
 	}

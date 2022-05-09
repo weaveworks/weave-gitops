@@ -64,7 +64,6 @@ export type Kustomization = {
   conditions?: Condition[]
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
-  lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
   suspended?: boolean
   clusterName?: string
@@ -92,8 +91,8 @@ export type HelmRelease = {
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
   suspended?: boolean
-  lastUpdatedAt?: string
   clusterName?: string
+  helmChartName?: string
 }
 
 export type GitRepository = {
@@ -155,6 +154,7 @@ export type UnstructuredObject = {
   conditions?: Condition[]
   suspended?: boolean
   clusterName?: string
+  images?: string[]
 }
 
 export type Namespace = {

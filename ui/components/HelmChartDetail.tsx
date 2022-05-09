@@ -19,6 +19,7 @@ function HelmChartDetail({ name, namespace, className }: Props) {
       type={SourceRefSourceKind.HelmChart}
       className={className}
       info={(ch: HelmChart) => [
+        ["Type", SourceRefSourceKind.HelmChart],
         ["Chart", ch?.chart],
         ["Ref", ch?.sourceRef?.name],
         ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
@@ -30,4 +31,6 @@ function HelmChartDetail({ name, namespace, className }: Props) {
   );
 }
 
-export default styled(HelmChartDetail).attrs({ className: HelmChartDetail.name })``;
+export default styled(HelmChartDetail).attrs({
+  className: HelmChartDetail.name,
+})``;

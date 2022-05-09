@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import KustomizationComponent from "../../components/KustomizationDetail";
+import KustomizationDetail from "../../components/KustomizationDetail";
 import Page from "../../components/Page";
 import { useGetKustomization } from "../../hooks/automations";
 
@@ -20,7 +20,7 @@ function KustomizationPage({ className, name, namespace, clusterName }: Props) {
   const kustomization = data?.kustomization;
   return (
     <Page loading={isLoading} error={error} className={className} title={name}>
-      <KustomizationComponent kustomization={kustomization} />
+      <KustomizationDetail kustomization={kustomization} />
     </Page>
   );
 }

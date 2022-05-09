@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListFluxEvents } from "../hooks/events";
 import { Event, ObjectReference } from "../lib/api/core/types.pb";
-import { NoNamespace } from "../lib/types";
 import Alert from "./Alert";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
@@ -19,11 +18,9 @@ type Props = {
 
 function EventsTable({
   className,
-  namespace = NoNamespace,
   involvedObject,
 }: Props) {
   const { data, isLoading, error } = useListFluxEvents(
-    namespace,
     involvedObject
   );
 
@@ -51,7 +48,7 @@ function EventsTable({
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
         },
-        { value: "message", label: "Message" },
+        { value: "message", label: "Message", maxWidth: 600 },
         { value: "component", label: "Component" },
         {
           label: "Timestamp",

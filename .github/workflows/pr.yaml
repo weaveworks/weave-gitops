@@ -1,10 +1,16 @@
 on:
   push:
     paths-ignore:
-      - "doc/**"
+      - 'doc/**'
+      - 'website/**'
+      - '*.md'
     branches:
       - main
   pull_request:
+    paths-ignore:
+      - 'doc/**'
+      - 'website/**'
+      - '*.md'
     branches:
       - main
   workflow_dispatch:
@@ -84,6 +90,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.17.5]
+        node-version: [16.13.2]
     steps:
       - uses: actions/checkout@v2
       - name: Setup Go
@@ -103,17 +110,28 @@ jobs:
       - name: Check that make fakes has been run
         run: git diff --no-ext-diff --exit-code
       - uses: snyk/actions/setup@master
-      - name: Look for insecure dependencies or bad licenses
-        uses: snyk/actions/golang@master
+      - name: Setup snyk prerequisities
+        run: |
+          npm install --global snyk-delta
+      - name: Look for new insecure dependencies or bad licenses
+        run: |
+          ./.github/snyk_delta_all_projects.sh --org=product-engineering-ly9
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with:
-          args: --all-projects --sarif-file-output=snyk.opensource.sarif --org=product-engineering-ly9
-        continue-on-error: true
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.opensource.sarif
+        if: github.event_name == 'pull_request'
+      - name: Monitor dependencies & license problems with Snyk
+        # Throw an error if the error is "snyk couldn't run".
+        # Don't throw an error on "there are vulnerabilities", those
+        # are notified separately
+        run: |
+          exit_code=0
+          snyk monitor --all-projects --org=product-engineering-ly9 || exit_code=$?
+          if [ $exit_code -gt 1 ]; then
+            exit $exit_code
+          fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+        if: github.event_name == 'push'
 
 
   ci-generate-tag:
@@ -148,26 +166,12 @@ jobs:
           tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
           outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
           file: ${{ matrix.docker-image }}.dockerfile
-          # Warning: the ' in build-args are fragile -- only use on LDFLAGS
           build-args: |
             FLUX_VERSION=${{ env.FLUX_VERSION }}
-            LDFLAGS='${{ env.LDFLAGS }}'
+            LDFLAGS=${{ env.LDFLAGS }}
             GIT_COMMIT=${{ github.sha }}
       - name: Load docker image
         run: docker load --input /tmp/${{ matrix.docker-image }}.tar
-      - name: Scan docker image for OS insecurities
-        uses: snyk/actions/docker@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with:
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
-          args: --file=${{ matrix.docker-image }}.dockerfile --org=product-engineering-ly9
-          sarif: true
-        continue-on-error: true
-      - name: Upload snyk scan result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: snyk.sarif
       - name: Cache docker image
         uses: actions/upload-artifact@v2
         with:
@@ -243,54 +247,6 @@ jobs:
         aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
-  ci-snyk-monitor:
-    name: CI Snyk Monitor
-    runs-on: ubuntu-latest
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download cached docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: gitops
-          path: /tmp
-      - name: Download cached docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: gitops-server
-          path: /tmp
-      - name: Load cached docker image
-        run: docker load --input /tmp/gitops.tar
-      - name: Load cached docker image
-        run: docker load --input /tmp/gitops-server.tar
-      - name: Monitor docker image with Snyk
-        uses: snyk/actions/docker@master
-        with:
-          command: monitor
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops:${{ needs.ci-generate-tag.outputs.tag }}"
-          args: --org=product-engineering-ly9
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        continue-on-error: true
-      - name: Monitor docker image with Snyk
-        uses: snyk/actions/docker@master
-        with:
-          command: monitor
-          image: "${{ env.CI_CONTAINER_REPOSITORY }}/gitops-server:${{ needs.ci-generate-tag.outputs.tag }}"
-          args: --org=product-engineering-ly9
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        continue-on-error: true
-      - name: Monitor dependencies & license problems with Snyk
-        uses: snyk/actions/golang@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        with:
-          command: monitor
-          args: --all-projects --org=product-engineering-ly9
-        continue-on-error: true
-
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
     name: PR CI Pipeline
@@ -311,6 +267,23 @@ jobs:
     needs:
       - ci-upload-images
       - ci-upload-binary
-      - ci-snyk-monitor
     steps:
       - run: echo "All done"
+
+  notify-failure:
+    name: Notify Slack on Failure
+    runs-on: ubuntu-latest
+    needs:
+      - finish-ci-merge
+    if: ${{ failure() }}
+    steps:
+    - name: Send alert
+      if: github.event_name == 'push'
+      uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+      with:
+        slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
+        message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
+        channel: proj-core-reloaded
+        color: red
+        verbose: false
+

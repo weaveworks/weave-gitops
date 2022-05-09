@@ -17,38 +17,26 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
   const ok = suspended ? false : computeReady(conditions);
   const msg = suspended ? "Suspended" : computeMessage(conditions);
   return (
-    <div className={`${className}${!ok ? " error-border" : ""}`}>
-      <Flex align>
-        <Icon
-          type={
-            suspended
-              ? IconType.SuspendedIcon
-              : ok
-              ? IconType.CheckCircleIcon
-              : IconType.FailedIcon
-          }
-          color={ok ? "success" : "alert"}
-          size="medium"
-        />
-        <Spacer padding="xs" />
-        <Text color="neutral30">{msg}</Text>
-      </Flex>
-    </div>
+    <Flex align className={className}>
+      <Icon
+        type={
+          suspended
+            ? IconType.SuspendedIcon
+            : ok
+            ? IconType.CheckCircleIcon
+            : IconType.FailedIcon
+        }
+        color={ok ? "success" : "alert"}
+        size="medium"
+      />
+      <Spacer padding="xs" />
+      <Text color="neutral30">{msg}</Text>
+    </Flex>
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
-  position: relative;
-  max-width: 45%;
-  bottom: ${(props) => props.theme.spacing.large};
-  padding: ${(props) => props.theme.spacing.small};
+  //matches nav
+  line-height: 1.75;
+
   color: ${(props) => props.theme.colors.neutral30};
-  overflow: hidden;
-  &.error-border {
-    border: 1px solid ${(props) => props.theme.colors.neutral20};
-    border-radius: 10px;
-  }
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 `;

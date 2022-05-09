@@ -75,5 +75,5 @@ func (f *defaultFactory) getAuthService(kubeClient *kube.KubeHTTP, normalizedUrl
 		}
 	}
 
-	return auth.NewAuthService(f.fluxClient, kubeClient, gitProvider, f.log)
+	return auth.NewAuthService(f.fluxClient, kubeClient, gitProvider, f.log), nil
 }

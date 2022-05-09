@@ -6,11 +6,41 @@ on:
       - 'main'
     paths:
       - 'charts/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'charts/**'
 
 jobs:
+  helm-verify:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Find new version
+        id: new_version
+        run: |
+          NEW_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          echo "::set-output name=version::$NEW_VERSION"
+      - name: Find old version
+        id: old_version
+        run: |
+          git checkout ${{ github.event.pull_request.base.sha }}
+          OLD_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          echo "::set-output name=version::$OLD_VERSION"
+      - name: Alert about the need to change chart version
+        run: |
+          echo "This PR changed the helm chart. You need to change chart version when you change the chart"
+          exit 1
+        if: ${{ steps.new_version.outputs.version == steps.old_version.outputs.version }}
+
 
   helm-release:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - name: Generate new chart

@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 )
@@ -411,6 +412,27 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	}
 
 	return string(b), nil
+}
+
+func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
+	endpoint := "/v1/profiles"
+
+	result := &pb.GetProfilesResponse{}
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetResult(result).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result, nil
 }
 
 // DeleteClusters deletes CAPI cluster using its name

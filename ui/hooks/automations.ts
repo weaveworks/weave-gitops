@@ -10,16 +10,15 @@ import {
   SyncAutomationRequest,
   SyncAutomationResponse,
 } from "../lib/api/core/core.pb";
-import { Kustomization } from "../lib/api/core/types.pb";
+import { HelmRelease, Kustomization } from "../lib/api/core/types.pb";
 import {
   AutomationType,
-  DefaultCluster,
   NoNamespace,
   RequestError,
   Syncable,
 } from "../lib/types";
 
-export type Automation = Kustomization & { type: AutomationType };
+export type Automation = Kustomization & HelmRelease & { type: AutomationType };
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
@@ -62,7 +61,7 @@ export function useGetKustomization(
   name: string,
 
   namespace = NoNamespace,
-  clusterName = DefaultCluster
+  clusterName = null
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -76,7 +75,7 @@ export function useGetKustomization(
 export function useGetHelmRelease(
   name: string,
   namespace = NoNamespace,
-  clusterName = DefaultCluster
+  clusterName = null
 ) {
   const { api } = useContext(CoreClientContext);
 

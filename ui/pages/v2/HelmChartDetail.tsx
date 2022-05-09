@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import Page from "../../components/Page";
 import HelmChartDetailComponent from "../../components/HelmChartDetail";
+import Page from "../../components/Page";
 
 type Props = {
   className?: string;
@@ -11,11 +11,8 @@ type Props = {
 
 function HelmChartDetail({ className, name, namespace }: Props) {
   return (
-    <Page error={null} className={className} title={name}>
-      <HelmChartDetailComponent
-        name={name}
-        namespace={namespace}
-      />
+    <Page error={null} className={className}>
+      <HelmChartDetailComponent name={name} namespace={namespace} />
     </Page>
   );
 }
