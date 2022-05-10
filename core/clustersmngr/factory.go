@@ -19,7 +19,7 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 const (
-	userNamespaceTTL        = 1 * time.Hour
+	userNamespaceTTL        = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 )
