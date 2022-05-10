@@ -50,6 +50,35 @@ To keep things organized we've created some subpaths for the different resources
 
 Lets grab some sample resources to create our first cluster!
 
+### Add common RBAC to the repo
+
+When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-name>` and `./clusters/bases`.
+
+To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
+
+Adding common rbac rules to `./clusters/bases/rbac` is an easy way to configure this!
+
+import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o
+      clusters/bases/rbac/wego-admin.yaml{" "}
+      {window.location.protocol}//{window.location.host}
+      {require("./assets/rbac/wego-admin.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/bases/rbac/wego-admin.yaml"
+  className="language-yaml"
+>
+  {WegoAdmin}
+</CodeBlock>
+
+
 ### Add a template
 
 See [CAPI Templates](templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
@@ -75,6 +104,7 @@ Download the template below to your config repository path, then commit and push
 >
   {CapdTemplate}
 </CodeBlock>
+
 
 ## Automatically install a CNI with `ClusterResourceSet`s
 

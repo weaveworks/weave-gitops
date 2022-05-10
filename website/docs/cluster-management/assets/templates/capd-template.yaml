@@ -20,6 +20,14 @@ spec:
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
   resourcetemplates:
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+      spec:
+        capiClusterRef:
+          name: "${CLUSTER_NAME}"
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: Cluster
       metadata:
