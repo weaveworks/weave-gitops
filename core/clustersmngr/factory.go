@@ -88,7 +88,7 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
-			return false, err
+			cf.log.Error(err, "Failed to update clusters")
 		}
 
 		return false, nil
@@ -114,7 +114,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
-			return false, err
+			cf.log.Error(err, "Failed to update namespaces")
 		}
 
 		return false, nil
