@@ -19,7 +19,9 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 const (
-	userNamespaceTTL        = 30 * time.Second
+	userNamespaceTTL = 30 * time.Second
+	// How often we need to stop the world and remove outdated records.
+	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 )
@@ -68,7 +70,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
-		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
+		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 	}
