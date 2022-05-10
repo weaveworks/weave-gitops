@@ -1,0 +1,60 @@
+---
+title: User permissions
+sidebar_position: 4
+---
+
+This is an explanation of the [kubernetes permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+needed by users of the Weave GitOps application. As covered in
+[service account permissions](docs/configuration/service-account-permissions)
+the primary way that the application interacts with the Kube API is via [impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
+This means that the permissions granted to the users and groups that Weave GitOps
+can impersonate determine the scope of actions that it can take within your cluster.
+
+A minimal set of permissions are generated for the static cluster-user as part
+of the [helm chart](https://github.com/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates/admin-user-roles.yaml).
+
+By default both a ClusterRole and Role are generated for the static cluster-user.
+Both have the same permissions with former being optional and the latter being
+bound to the `flux-system` namespace (where Flux stores its resources by default).
+The rules created for both are:
+```yaml
+rules:
+# View resources managed by Flux
+- apiGroups: [""]
+  resources: ["secrets", "pods" ]
+  verbs: [ "get", "list" ]
+- apiGroups: ["apps"]
+  resources: [ "deployments", "replicasets"]
+  verbs: [ "get", "list" ]
+# View resources for managing Flux
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: [ "kustomizations" ]
+  verbs: [ "get", "list" ]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: [ "helmreleases" ]
+  verbs: [ "get", "list" ]
+- apiGroups: ["source.toolkit.fluxcd.io"]
+  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+  verbs: [ "get", "list" ]
+# View feedback
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "watch", "list"]
+```
+
+As the Weave GitOps UI is readonly the only verbs needed are `get`,`list`, and,
+for events `watch`. The resources read fall into three broad groups:
+* Resources managed by Flux
+* Resources for managing Flux
+* Events, for viewing feedback
+
+These permissions exist because these are resources that, in order to understand,
+the status of Flux you need to be able to see. To understand if the change in
+a `kustomization` or `helmrelease` has worked you need to be able to see those
+resources, the source for them and the deployment that they have created.
+
+The `events` permissions are granted to view the history of resources that Flux
+manages (e.g. when a source is reconciled).
+
+It is important to note that read permissions are required for viewing helm release
+information (which are secrets of type `helm.sh/release.v1`). 
