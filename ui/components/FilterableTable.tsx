@@ -16,7 +16,7 @@ import Icon, { IconType } from "./Icon";
 import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 
-type Props = {
+export type FilterableTableProps = {
   className?: string;
   fields: Field[];
   rows: any[];
@@ -210,7 +210,7 @@ function FilterableTable({
   dialogOpen,
   initialSelections,
   onFilterChange,
-}: Props) {
+}: FilterableTableProps) {
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters: applySelections(filters, initialSelections),

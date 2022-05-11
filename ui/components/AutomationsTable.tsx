@@ -8,7 +8,7 @@ import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
@@ -16,6 +16,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -133,8 +134,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <FilterableTable
-      // initialSelections={parseFilterStateFromURL(history)}
+    <URLAddressableTable
       fields={fields}
       filters={filterConfig}
       rows={automations}
