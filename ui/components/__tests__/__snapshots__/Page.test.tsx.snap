@@ -34,10 +34,6 @@ exports[`Page snapshots default 1`] = `
   -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
@@ -45,39 +41,6 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c5 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-}
-
-.c9 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-}
-
-.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -93,14 +56,6 @@ exports[`Page snapshots default 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  text-transform: none;
-  font-style: normal;
-}
-
-.c12 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
   text-transform: none;
@@ -108,7 +63,7 @@ exports[`Page snapshots default 1`] = `
   color: #737373;
 }
 
-.c15 {
+.c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -117,47 +72,25 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c14 {
+.c8 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c14.title-bar-button {
+.c8.title-bar-button {
   width: 250px;
 }
 
 .c7 {
-  padding: 12px;
-}
-
-.c13 {
   padding: 4px;
 }
 
-.c16 {
+.c10 {
   padding-right: 24px;
 }
 
-.c10 {
+.c4 {
   color: #737373;
-}
-
-.c8 {
-  padding-left: 8px;
-}
-
-.c8 .MuiCircularProgress-root {
-  -webkit-transition: opacity 2s;
-  transition: opacity 2s;
-  margin-bottom: 0;
-}
-
-.c8 .MuiCircularProgress-root.in {
-  opacity: 1;
-}
-
-.c8 .MuiCircularProgress-root.out {
-  opacity: 0;
 }
 
 .c1 {
@@ -174,10 +107,6 @@ exports[`Page snapshots default 1`] = `
   overflow: hidden;
 }
 
-.c4 {
-  line-height: 1.75;
-}
-
 .c2 .MuiAlert-root {
   width: 100%;
 }
@@ -186,76 +115,32 @@ exports[`Page snapshots default 1`] = `
   className="c0 c1 c2"
 >
   <div
-    className="c3 c4"
+    className="c0"
+  />
+  <footer
+    className="c3 c4 Footer"
   >
     <div
       className="c5"
     >
       <span
         className="c6"
-        size="large"
-      />
-      <div
-        className="c7"
-      />
-      <div
-        className="c5 c8"
-      >
-        <div
-          className="MuiCircularProgress-root out MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
-          role="progressbar"
-          style={
-            Object {
-              "height": "16px",
-              "width": "16px",
-            }
-          }
-        >
-          <svg
-            className="MuiCircularProgress-svg"
-            viewBox="22 22 44 44"
-          >
-            <circle
-              className="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
-              cx={44}
-              cy={44}
-              fill="none"
-              r={20.2}
-              strokeWidth={3.6}
-              style={Object {}}
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div
-    className="c0"
-  />
-  <footer
-    className="c9 c10 Footer"
-  >
-    <div
-      className="c11"
-    >
-      <span
-        className="c12"
         color="neutral30"
         size="normal"
       >
         Need help? Contact us at
       </span>
       <div
-        className="c13"
+        className="c7"
       />
       <a
-        className="c14"
+        className="c8"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c15"
+          className="c9"
           color="primary"
           size="normal"
         >
@@ -264,13 +149,13 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c11 c16"
+      className="c5 c10"
     >
       <div
-        className="c13"
+        className="c7"
       />
       <span
-        className="c12"
+        className="c6"
         color="neutral30"
         size="normal"
       >

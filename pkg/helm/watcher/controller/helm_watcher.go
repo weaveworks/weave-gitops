@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/helm/helm/pkg/chartutil"
 	"k8s.io/apimachinery/pkg/runtime"

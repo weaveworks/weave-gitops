@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
-func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName string) (*pb.Kustomization, error) {
+func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string) (*pb.Kustomization, error) {
 	var kind pb.SourceRef_SourceKind
 
 	switch kustomization.Spec.SourceRef.Kind {
-	case v1beta1.GitRepositoryKind:
+	case sourcev1.GitRepositoryKind:
 		kind = pb.SourceRef_GitRepository
-	case v1beta1.HelmRepositoryKind:
+	case sourcev1.HelmRepositoryKind:
 		kind = pb.SourceRef_HelmRepository
-	case v1beta1.BucketKind:
+	case sourcev1.BucketKind:
 		kind = pb.SourceRef_Bucket
 	}
 
@@ -36,18 +36,17 @@ func KustomizationToProto(kustomization *v1beta2.Kustomization, clusterName stri
 			Name:      kustomization.Spec.SourceRef.Name,
 			Namespace: kustomization.Spec.SourceRef.Namespace,
 		},
-		Interval:                durationToInterval(kustomization.Spec.Interval),
-		Conditions:              mapConditions(kustomization.Status.Conditions),
-		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
-		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
-		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
-		Inventory:               inv,
-		Suspended:               kustomization.Spec.Suspend,
-		ClusterName:             clusterName,
+		Interval:              durationToInterval(kustomization.Spec.Interval),
+		Conditions:            mapConditions(kustomization.Status.Conditions),
+		LastAppliedRevision:   kustomization.Status.LastAppliedRevision,
+		LastAttemptedRevision: kustomization.Status.LastAttemptedRevision,
+		Inventory:             inv,
+		Suspended:             kustomization.Spec.Suspend,
+		ClusterName:           clusterName,
 	}, nil
 }
 
-func getKustomizeInventory(kustomization *v1beta2.Kustomization) ([]*pb.GroupVersionKind, error) {
+func getKustomizeInventory(kustomization *kustomizev1.Kustomization) ([]*pb.GroupVersionKind, error) {
 	if kustomization.Status.Inventory == nil {
 		return nil, nil
 	}

@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import Page from "../../components/Page";
 import GitRepositoryDetailComponent from "../../components/GitRepositoryDetail";
+import Page from "../../components/Page";
 
 type Props = {
   className?: string;
@@ -11,11 +11,8 @@ type Props = {
 
 function GitRepositoryDetail({ className, name, namespace }: Props) {
   return (
-    <Page error={null} className={className} title={name}>
-      <GitRepositoryDetailComponent
-        name={name}
-        namespace={namespace}
-      />
+    <Page error={null} className={className}>
+      <GitRepositoryDetailComponent name={name} namespace={namespace} />
     </Page>
   );
 }

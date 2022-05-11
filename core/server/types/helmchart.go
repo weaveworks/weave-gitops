@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/fluxcd/source-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func HelmChartToProto(helmchart *v1beta1.HelmChart, clusterName string) *pb.HelmChart {
+func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string) *pb.HelmChart {
 	return &pb.HelmChart{
 		Name:      helmchart.Name,
 		Namespace: helmchart.Namespace,

@@ -64,7 +64,6 @@ func TestListFluxEvents(t *testing.T) {
 	g.Expect(k.Create(ctx, otherEvent)).To(Succeed())
 
 	res, err := c.ListFluxEvents(ctx, &pb.ListFluxEventsRequest{
-		Namespace: ns.Name,
 		InvolvedObject: &pb.ObjectReference{
 			Name:      eventObjectName,
 			Namespace: ns.Name,

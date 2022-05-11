@@ -6,13 +6,14 @@ import (
 )
 
 var _ = Describe("Gitlab authorize url", func() {
-
 	It("returns url with all required parameters", func() {
-		codeVerifier, _ := NewCodeVerifier(5, 10)
+		codeVerifier, err := NewCodeVerifier(5, 10)
+		Expect(err).NotTo(HaveOccurred())
+
 		scopes := []string{"api", "read_user", "profile"}
 		u, err := GitlabAuthorizeUrl("https://weave.works/test", scopes, codeVerifier)
+		Expect(err).NotTo(HaveOccurred())
 
-		Expect(err).To(BeNil())
 		Expect(u.Scheme).To(Equal("https"))
 		Expect(u.Host).To(Equal("gitlab.com"))
 		Expect(u.Path).To(Equal("/oauth/authorize"))
@@ -22,20 +23,22 @@ var _ = Describe("Gitlab authorize url", func() {
 		Expect(params.Get("client_id")).To(Equal(gitlabClientId))
 		Expect(params.Get("response_type")).To(Equal("code"))
 		Expect(params.Get("scope")).To(Equal("api read_user profile"))
-		codeChallenge, _ := codeVerifier.CodeChallenge()
+
+		codeChallenge, err := codeVerifier.CodeChallenge()
+		Expect(err).NotTo(HaveOccurred())
+
 		Expect(params.Get("code_challenge")).To(Equal(codeChallenge))
 		Expect(params.Get("code_challenge_method")).To(Equal("S256"))
 		Expect(params.Get("redirect_uri")).To(Equal("https://weave.works/test"))
 	})
-
 })
 
 var _ = Describe("Gitlab token", func() {
-
 	It("returns url with all required parameters", func() {
-		codeVerifier, _ := NewCodeVerifier(5, 10)
-		u := GitlabTokenUrl("https://weave.works/test", "12345", codeVerifier)
+		codeVerifier, err := NewCodeVerifier(5, 10)
+		Expect(err).NotTo(HaveOccurred())
 
+		u := GitlabTokenUrl("https://weave.works/test", "12345", codeVerifier)
 		Expect(u.Scheme).To(Equal("https"))
 		Expect(u.Host).To(Equal("gitlab.com"))
 		Expect(u.Path).To(Equal("/oauth/token"))
@@ -49,5 +52,4 @@ var _ = Describe("Gitlab token", func() {
 		Expect(params.Get("code")).To(Equal("12345"))
 		Expect(params.Get("client_secret")).To(Equal(gitlabClientSecret))
 	})
-
 })

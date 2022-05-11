@@ -1,6 +1,4 @@
-# weave-gitops
-
-Weave GitOps
+# Weave GitOps
 
 ![Test status](https://github.com/weaveworks/weave-gitops/actions/workflows/pr.yaml/badge.svg)
 [![LICENSE](https://img.shields.io/github/license/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/blob/master/LICENSE)
@@ -8,10 +6,29 @@ Weave GitOps
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
 
-## Overview
+Weave GitOps is a simple open source developer platform for people who want cloud native applications, without needing Kubernetes expertise.  Experience how easy it is to enable GitOps and run your apps in a cluster. Use git to collaborate with team members making new deployments easy and secure.  Start with what developers need to run apps, and then easily extend to define and run your own enterprise platform.
 
-Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters.
-It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
+From Kubernetes run Weave GitOps to get:
+
+1. Application Operations: see the automations that are running your deployments 
+2. Platforms: the easy way to have your own custom PaaS on cloud or on premise
+3. Extensions: coordinate Kubernetes rollouts with eg. VMs, DBs and cloud services
+
+Our vision is that all cloud native applications should be easy for developers, including operations which should be automated and secure.  Weave GitOps is a highly extensible tool to achieve this by placing Kubernetes and GitOps at the core and building a platform around that.
+
+We use GitOps tools throughout.  Today Weave GitOps defaults are Flux, Kustomize, Helm, Sops and Kubernetes CAPI.  If you use Flux already then you can easily add Weave GitOps to create a platform management overlay.
+
+### Manage and view applications all in one place
+![Application Page](./doc/img/01-apps.png)
+
+### Easily see your continuous deployments and what is being produced via GitOps
+![Reconciliation Page](./doc/img/02-reconciliation.png)
+
+### Easily see your git repositories and helm charts
+![Source Page](./doc/img/03-sources.png)
+
+### Quickly see the health of your continous deployment runtime
+![Flux Runtime](./doc/img/04-flux-runtime.png)
 
 ## Getting Started
 
@@ -20,7 +37,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.7.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

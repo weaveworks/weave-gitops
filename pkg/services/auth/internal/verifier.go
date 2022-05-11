@@ -4,14 +4,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 // CodeVerifier is for PKCE OAuth workflows. This will generate a random string with a random length.
 type CodeVerifier struct {
-	min   int
-	max   int
 	value string
 }
 
@@ -22,8 +21,6 @@ func NewCodeVerifier(min, max int) (CodeVerifier, error) {
 	}
 
 	return CodeVerifier{
-		min:   min,
-		max:   max,
 		value: value,
 	}, nil
 }
@@ -31,8 +28,8 @@ func NewCodeVerifier(min, max int) (CodeVerifier, error) {
 // CodeChallenge is an encoded hash value to be used in the authorization flow
 func (c CodeVerifier) CodeChallenge() (string, error) {
 	h := sha256.New()
-	_, err := h.Write([]byte(c.value))
 
+	_, err := h.Write([]byte(c.value))
 	if err != nil {
 		return "", fmt.Errorf("code verifier issue hashing challenge: %w", err)
 	}

@@ -1,4 +1,4 @@
-package auth
+package auth_test
 
 import (
 	"bytes"
@@ -10,23 +10,29 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakehttp"
 )
 
 var _ = Describe("GitlabAuthClient", func() {
+	var rt fakehttp.RoundTripper
+
+	BeforeEach(func() {
+		rt = fakehttp.RoundTripper{}
+	})
+
 	It("AuthURL", func() {
-		rt := fakehttp.RoundTripper{}
 		rt.RoundTripReturns(&http.Response{}, nil)
-		c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+		c := auth.NewGitlabAuthClient(&http.Client{Transport: &rt})
 
 		u, err := c.AuthURL(context.Background(), "http://example.com:9999/oauth/callback")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(u.Hostname()).To(Equal("gitlab.com"))
 		Expect(u.Scheme).To(Equal("https"))
 	})
+
 	It("ExchangeCode", func() {
-		rt := fakehttp.RoundTripper{}
 		res := &http.Response{StatusCode: http.StatusOK}
 
 		rs := &internal.GitlabTokenResponse{
@@ -40,7 +46,7 @@ var _ = Describe("GitlabAuthClient", func() {
 
 		rt.RoundTripReturns(res, nil)
 
-		c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+		c := auth.NewGitlabAuthClient(&http.Client{Transport: &rt})
 
 		tokenState, err := c.ExchangeCode(context.Background(), "http://example.com/oauth/callback", "abc123def456")
 		Expect(err).NotTo(HaveOccurred())
@@ -48,20 +54,20 @@ var _ = Describe("GitlabAuthClient", func() {
 		Expect(tokenState.AccessToken).To(Equal(rs.AccessToken))
 		Expect(tokenState.ExpiresInSeconds).To(Equal(time.Duration(rs.ExpiresIn) * time.Second))
 	})
+
 	Describe("ValidateToken", func() {
 		It("returns an error when a 401 is returned", func() {
-			rt := fakehttp.RoundTripper{}
 			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusUnauthorized}, nil)
-			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+			c := auth.NewGitlabAuthClient(&http.Client{Transport: &rt})
 
 			Expect(c.ValidateToken(context.Background(), "sometoken")).To(HaveOccurred())
 		})
-		It("does not return an error when a token is valid", func() {
-			rt := fakehttp.RoundTripper{}
-			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
-			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
 
-			Expect(c.ValidateToken(context.Background(), "sometoken")).NotTo(HaveOccurred())
+		It("does not return an error when a token is valid", func() {
+			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
+			c := auth.NewGitlabAuthClient(&http.Client{Transport: &rt})
+
+			Expect(c.ValidateToken(context.Background(), "sometoken")).To(Succeed())
 		})
 	})
 })

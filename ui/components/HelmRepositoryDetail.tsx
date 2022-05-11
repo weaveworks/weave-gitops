@@ -4,10 +4,7 @@ import Interval from "../components/Interval";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import {
-  HelmRepository,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { HelmRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
 
 type Props = {
   className?: string;
@@ -24,6 +21,7 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
       type={SourceRefSourceKind.HelmRepository}
       // Guard against an undefined repo with a default empty object
       info={(hr: HelmRepository = {}) => [
+        ["Type", SourceRefSourceKind.HelmRepository],
         [
           "URL",
           <Link newTab href={hr.url}>
@@ -39,4 +37,6 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
   );
 }
 
-export default styled(HelmRepositoryDetail).attrs({ className: HelmRepositoryDetail.name })``;
+export default styled(HelmRepositoryDetail).attrs({
+  className: HelmRepositoryDetail.name,
+})``;

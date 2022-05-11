@@ -1,6 +1,7 @@
 package clustersmngr_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -42,8 +43,9 @@ func TestClusters(t *testing.T) {
 
 	cs := clustersmngr.Clusters{}
 
-	clusterName := "cluster-1"
-	clusters := []clustersmngr.Cluster{{Name: clusterName}}
+	c1 := "cluster-1"
+	c2 := "cluster-2"
+	clusters := []clustersmngr.Cluster{{Name: c1}, {Name: c2}}
 
 	// simulating concurrent access
 	go cs.Set(clusters)
@@ -51,7 +53,9 @@ func TestClusters(t *testing.T) {
 
 	cs.Set(clusters)
 
-	g.Expect(cs.Get()).To(Equal([]clustersmngr.Cluster{{Name: clusterName}}))
+	g.Expect(cs.Get()).To(Equal([]clustersmngr.Cluster{{Name: c1}, {Name: c2}}))
+
+	g.Expect(cs.Hash()).To(Equal(fmt.Sprintf("%s%s", c1, c2)))
 }
 
 func TestClustersNamespaces(t *testing.T) {
@@ -71,4 +75,8 @@ func TestClustersNamespaces(t *testing.T) {
 	cs.Set(clusterName, []v1.Namespace{ns})
 
 	g.Expect(cs.Get(clusterName)).To(Equal([]v1.Namespace{ns}))
+
+	cs.Clear()
+
+	g.Expect(cs.Get(clusterName)).To(HaveLen(0))
 }
