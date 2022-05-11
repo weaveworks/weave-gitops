@@ -81,7 +81,8 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} Weaveworks`,
     },
     algolia: {
-      apiKey: process.env.ALGOLIA_API_KEY,
+      appId: "BH4D9OD16A",
+      apiKey: "ae068e3fa083e30f6fe7311168e93568",
       indexName: "weave",
       // Needed to handle the different versions of docs
       contextualSearch: true,
