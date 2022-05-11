@@ -1,6 +1,6 @@
 ---
 title: User permissions
-sidebar_position: 4
+sidebar_position: 2
 ---
 
 This is an explanation of the [kubernetes permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
@@ -16,45 +16,70 @@ of the [helm chart](https://github.com/weaveworks/weave-gitops/tree/main/charts/
 By default both a ClusterRole and Role are generated for the static cluster-user.
 Both have the same permissions with former being optional and the latter being
 bound to the `flux-system` namespace (where Flux stores its resources by default).
-The rules created for both are:
+The default set of rules fall into three groups, discussed below, they are:
 ```yaml
 rules:
-# View resources managed by Flux
+# Flux Resources
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: [ "kustomizations" ]
+  verbs: [ "get", "list", "patch" ]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: [ "helmreleases" ]
+  verbs: [ "get", "list", "patch" ]
+- apiGroups: ["source.toolkit.fluxcd.io"]
+  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+  verbs: [ "get", "list", "patch" ]
+# Resources managed via Flux
 - apiGroups: [""]
   resources: ["secrets", "pods" ]
   verbs: [ "get", "list" ]
 - apiGroups: ["apps"]
   resources: [ "deployments", "replicasets"]
   verbs: [ "get", "list" ]
-# View resources for managing Flux
-- apiGroups: ["kustomize.toolkit.fluxcd.io"]
-  resources: [ "kustomizations" ]
-  verbs: [ "get", "list" ]
-- apiGroups: ["helm.toolkit.fluxcd.io"]
-  resources: [ "helmreleases" ]
-  verbs: [ "get", "list" ]
-- apiGroups: ["source.toolkit.fluxcd.io"]
-  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-  verbs: [ "get", "list" ]
-# View feedback
+# Feedback
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["get", "watch", "list"]
 ```
 
-As the Weave GitOps UI is readonly the only verbs needed are `get`,`list`, and,
-for events `watch`. The resources read fall into three broad groups:
-* Resources managed by Flux
-* Resources for managing Flux
-* Events, for viewing feedback
 
-These permissions exist because these are resources that, in order to understand,
-the status of Flux you need to be able to see. To understand if the change in
-a `kustomization` or `helmrelease` has worked you need to be able to see those
-resources, the source for them and the deployment that they have created.
+### Flux Resources
 
-The `events` permissions are granted to view the history of resources that Flux
-manages (e.g. when a source is reconciled).
+The resources that Flux works with directly.
 
-It is important to note that read permissions are required for viewing helm release
-information (which are secrets of type `helm.sh/release.v1`). 
+
+| Api Group                   | Resources                                              | Permissions      |
+|-----------------------------|--------------------------------------------------------|------------------|
+| kustomize.toolkit.fluxcd.io | kustomizations                                         | get, list, patch |
+| helm.toolkit.fluxcd.io      | helmreleases                                           | get, list, patch |
+| source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories | get, list, patch |
+
+In order for Weave GitOps to be able to accurately display the state of Flux it
+needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses. This is done using the
+`get` and `list` permissions
+
+The `patch` permissions are used to enable the 'sync' functionality which forces
+reconciliation of a resource. This is done Weave GitOps modifying the annotations
+of the resource in the same way `flux reconcile` does on the CLI.
+
+### Resources managed via Flux
+
+| Api Group | Resources                | Permissions |
+|-----------|--------------------------|-------------|
+| ""        | secrets, pods            | get, list   |
+| apps      | deployments, replicasets | get, list   |
+
+
+Weave GitOps reads basic resources so that it can monitor the effect that Flux has
+on what's running.
+
+Reading `secrets` enables Weave GitOps to monitor the state of Helm releases
+as that's where it stores the [state by default](https://helm.sh/docs/faq/changes_since_helm2/#secrets-as-the-default-storage-driver).
+For clarity this these are the Helm release objects _not_ the Flux HelmRelease
+resource (which are dealt with by the earlier section).
+
+### Feedback from Flux
+
+The primary method by which Flux communicates the status of itself is by events,
+these will show when reconciliations start and stop, whether they're successful
+and information as to why they're not.
