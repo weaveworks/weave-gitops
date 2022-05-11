@@ -2,9 +2,13 @@ import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
-import images from "../lib/images";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { Condition, UnstructuredObject } from "../lib/api/core/types.pb";
+import {
+  Condition,
+  SourceRef,
+  UnstructuredObject,
+} from "../lib/api/core/types.pb";
+import images from "../lib/images";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import { computeReady } from "./KubeStatusIndicator";
@@ -18,6 +22,7 @@ export type Props = ReconciledVisualizationProps & {
     conditions?: Condition[];
     suspended?: boolean;
   };
+  source: SourceRef;
 };
 
 const GraphIcon = styled.img`
@@ -77,12 +82,19 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
   );
 };
 
+const findParentStatus = (parent) => {
+  if (parent.suspended) return "InProgress";
+  if (computeReady(parent.conditions)) return "Current";
+  return "Failed";
+};
+
 function ReconciliationGraph({
   className,
   parentObject,
   automationKind,
   kinds,
   clusterName,
+  source,
 }: Props) {
   const {
     data: objects,
@@ -111,11 +123,7 @@ function ReconciliationGraph({
     []
   );
 
-  const findParentStatus = (parent) => {
-    if (parent.suspended) return "InProgress";
-    if (computeReady(parent.conditions)) return "Current";
-    return "Failed";
-  };
+  const sourceId = `source/${source.namespace}/${source.name}`;
 
   const nodes = [
     ..._.map(objects, (r) => ({
@@ -133,7 +141,23 @@ function ReconciliationGraph({
           />
         ),
     },
+    // Add a node to show the source on the graph
+    {
+      id: sourceId,
+      data: {
+        ...source,
+      },
+      label: (s: SourceRef) =>
+        renderToString(
+          <NodeHtml object={{ ...s, groupVersionKind: { kind: s.kind } }} />
+        ),
+    },
   ];
+  // Edge connecting the source to the automation
+  edges.push({
+    source: sourceId,
+    target: parentObject.name,
+  });
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
