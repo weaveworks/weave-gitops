@@ -4,7 +4,6 @@ import * as React from "react";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
-import AnimatedBackground from "../components/AnimatedBackground";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
@@ -13,6 +12,10 @@ import { FeatureFlags } from "../contexts/FeatureFlags";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
+
+const SignInBackgroundAnimation = React.lazy(
+  () => import("../components/Animations/SignInBackground")
+);
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -177,8 +180,9 @@ function SignIn() {
         width: "100vw",
       }}
     >
-      <AnimatedBackground />
-      {/* <LottieWrapper /> */}
+      <React.Suspense fallback={null}>
+        <SignInBackgroundAnimation />
+      </React.Suspense>
       {authError && (
         <AlertWrapper
           severity="error"
