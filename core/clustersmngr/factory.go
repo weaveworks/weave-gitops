@@ -19,7 +19,9 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 const (
-	userNamespaceTTL        = 1 * time.Hour
+	userNamespaceTTL = 30 * time.Second
+	// How often we need to stop the world and remove outdated records.
+	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 )
@@ -68,7 +70,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
-		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(24 * time.Hour)},
+		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 	}
@@ -88,7 +90,7 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
-			return false, err
+			cf.log.Error(err, "Failed to update clusters")
 		}
 
 		return false, nil
@@ -114,7 +116,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
-			return false, err
+			cf.log.Error(err, "Failed to update namespaces")
 		}
 
 		return false, nil
