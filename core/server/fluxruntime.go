@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -29,6 +30,11 @@ var (
 	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev1.GroupVersion.Group)
 	HelmNameKey           = fmt.Sprintf("%s/name", helmv2.GroupVersion.Group)
 	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
+
+	// ErrFluxNamespaceNotFound no flux namespace found
+	ErrFluxNamespaceNotFound = errors.New("could not find flux namespace in cluster")
+	// ErrListingDeployments no deployments found
+	ErrListingDeployments = errors.New("could not list deployments in namespace")
 )
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
@@ -36,10 +42,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
+	respErrors := []*pb.ListError{}
+
 	for clusterName, nss := range cs.clientsFactory.GetClustersNamespaces() {
 		fluxNs := filterFluxNamespace(nss)
 		if fluxNs == nil {
-			return nil, fmt.Errorf("could not find flux namespace in cluster %s", clusterName)
+			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
+			continue
 		}
 
 		opts := client.MatchingLabels{
@@ -49,7 +58,8 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 		list := &appsv1.DeploymentList{}
 
 		if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
-			return nil, fmt.Errorf("could not list deployments in namespace %s: %w", fluxNs.Name, err)
+			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+			continue
 		}
 
 		for _, d := range list.Items {
@@ -77,7 +87,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 		}
 	}
 
-	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results}, nil
+	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
 }
 
 func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
