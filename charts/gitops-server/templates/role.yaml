@@ -19,7 +19,13 @@ rules:
   - apiGroups: [""]
     resources: [ "secrets" ]
     verbs: [ "get", "list" ]
+    {{- if and .Values.rbac.viewSecrets .Values.rbac.viewSecretsResourceNames }}
+    {{- fail "You've supplied both rbac.viewSecrets and rbac.viewSecretsResourceName. Please only use rbac.viewSecretsResourceName" }}
+    {{- end }}
     {{- with .Values.rbac.viewSecrets }}
+    resourceNames: {{ . | toJson }}
+    {{- end }}
+    {{- with .Values.rbac.viewSecretsResourceNames }}
     resourceNames: {{ . | toJson }}
     {{- end }}
   # helm repository rules for...?

@@ -1,5 +1,6 @@
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
+// 9001 is the default port that tilt starts the application on
 const DEFAULT_PROXY_HOST = "http://localhost:9001/";
 const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
 
