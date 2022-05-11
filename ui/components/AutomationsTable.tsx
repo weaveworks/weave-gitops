@@ -2,10 +2,7 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
-import {
-  HelmRelease,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
@@ -122,8 +119,10 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Last Updated",
-      value: () => (
-        <Timestamp time={""} />
+      value: (a: Automation) => (
+        <Timestamp
+          time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
+        />
       ),
     },
   ];
