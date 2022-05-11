@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FakeClientsPool struct {
@@ -20,28 +21,28 @@ type FakeClientsPool struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ClientStub        func(string) (clustersmngr.ClusterClient, error)
+	ClientStub        func(string) (client.Client, error)
 	clientMutex       sync.RWMutex
 	clientArgsForCall []struct {
 		arg1 string
 	}
 	clientReturns struct {
-		result1 clustersmngr.ClusterClient
+		result1 client.Client
 		result2 error
 	}
 	clientReturnsOnCall map[int]struct {
-		result1 clustersmngr.ClusterClient
+		result1 client.Client
 		result2 error
 	}
-	ClientsStub        func() map[string]clustersmngr.ClusterClient
+	ClientsStub        func() map[string]client.Client
 	clientsMutex       sync.RWMutex
 	clientsArgsForCall []struct {
 	}
 	clientsReturns struct {
-		result1 map[string]clustersmngr.ClusterClient
+		result1 map[string]client.Client
 	}
 	clientsReturnsOnCall map[int]struct {
-		result1 map[string]clustersmngr.ClusterClient
+		result1 map[string]client.Client
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -109,7 +110,7 @@ func (fake *FakeClientsPool) AddReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeClientsPool) Client(arg1 string) (clustersmngr.ClusterClient, error) {
+func (fake *FakeClientsPool) Client(arg1 string) (client.Client, error) {
 	fake.clientMutex.Lock()
 	ret, specificReturn := fake.clientReturnsOnCall[len(fake.clientArgsForCall)]
 	fake.clientArgsForCall = append(fake.clientArgsForCall, struct {
@@ -134,7 +135,7 @@ func (fake *FakeClientsPool) ClientCallCount() int {
 	return len(fake.clientArgsForCall)
 }
 
-func (fake *FakeClientsPool) ClientCalls(stub func(string) (clustersmngr.ClusterClient, error)) {
+func (fake *FakeClientsPool) ClientCalls(stub func(string) (client.Client, error)) {
 	fake.clientMutex.Lock()
 	defer fake.clientMutex.Unlock()
 	fake.ClientStub = stub
@@ -147,33 +148,33 @@ func (fake *FakeClientsPool) ClientArgsForCall(i int) string {
 	return argsForCall.arg1
 }
 
-func (fake *FakeClientsPool) ClientReturns(result1 clustersmngr.ClusterClient, result2 error) {
+func (fake *FakeClientsPool) ClientReturns(result1 client.Client, result2 error) {
 	fake.clientMutex.Lock()
 	defer fake.clientMutex.Unlock()
 	fake.ClientStub = nil
 	fake.clientReturns = struct {
-		result1 clustersmngr.ClusterClient
+		result1 client.Client
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClientsPool) ClientReturnsOnCall(i int, result1 clustersmngr.ClusterClient, result2 error) {
+func (fake *FakeClientsPool) ClientReturnsOnCall(i int, result1 client.Client, result2 error) {
 	fake.clientMutex.Lock()
 	defer fake.clientMutex.Unlock()
 	fake.ClientStub = nil
 	if fake.clientReturnsOnCall == nil {
 		fake.clientReturnsOnCall = make(map[int]struct {
-			result1 clustersmngr.ClusterClient
+			result1 client.Client
 			result2 error
 		})
 	}
 	fake.clientReturnsOnCall[i] = struct {
-		result1 clustersmngr.ClusterClient
+		result1 client.Client
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClientsPool) Clients() map[string]clustersmngr.ClusterClient {
+func (fake *FakeClientsPool) Clients() map[string]client.Client {
 	fake.clientsMutex.Lock()
 	ret, specificReturn := fake.clientsReturnsOnCall[len(fake.clientsArgsForCall)]
 	fake.clientsArgsForCall = append(fake.clientsArgsForCall, struct {
@@ -197,32 +198,32 @@ func (fake *FakeClientsPool) ClientsCallCount() int {
 	return len(fake.clientsArgsForCall)
 }
 
-func (fake *FakeClientsPool) ClientsCalls(stub func() map[string]clustersmngr.ClusterClient) {
+func (fake *FakeClientsPool) ClientsCalls(stub func() map[string]client.Client) {
 	fake.clientsMutex.Lock()
 	defer fake.clientsMutex.Unlock()
 	fake.ClientsStub = stub
 }
 
-func (fake *FakeClientsPool) ClientsReturns(result1 map[string]clustersmngr.ClusterClient) {
+func (fake *FakeClientsPool) ClientsReturns(result1 map[string]client.Client) {
 	fake.clientsMutex.Lock()
 	defer fake.clientsMutex.Unlock()
 	fake.ClientsStub = nil
 	fake.clientsReturns = struct {
-		result1 map[string]clustersmngr.ClusterClient
+		result1 map[string]client.Client
 	}{result1}
 }
 
-func (fake *FakeClientsPool) ClientsReturnsOnCall(i int, result1 map[string]clustersmngr.ClusterClient) {
+func (fake *FakeClientsPool) ClientsReturnsOnCall(i int, result1 map[string]client.Client) {
 	fake.clientsMutex.Lock()
 	defer fake.clientsMutex.Unlock()
 	fake.ClientsStub = nil
 	if fake.clientsReturnsOnCall == nil {
 		fake.clientsReturnsOnCall = make(map[int]struct {
-			result1 map[string]clustersmngr.ClusterClient
+			result1 map[string]client.Client
 		})
 	}
 	fake.clientsReturnsOnCall[i] = struct {
-		result1 map[string]clustersmngr.ClusterClient
+		result1 map[string]client.Client
 	}{result1}
 }
 
