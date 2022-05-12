@@ -101,6 +101,49 @@ export const sortWithType = (rows: Row[], sort: Field) => {
   });
 };
 
+type labelProps = {
+  field: Field;
+  sort: Field;
+  reverseSort: boolean;
+  setSort: (field: Field) => void;
+  setReverseSort: (b: boolean) => void;
+};
+
+function SortableLabel({
+  field,
+  sort,
+  setReverseSort,
+  setSort,
+  reverseSort,
+}: labelProps) {
+  return (
+    <Flex align start>
+      <TableButton
+        color="inherit"
+        variant="text"
+        onClick={() => {
+          setReverseSort(sort === field ? !reverseSort : false);
+          setSort(field);
+        }}
+      >
+        <h2 className={sort.label === field.label ? "selected" : ""}>
+          {field.label}
+        </h2>
+      </TableButton>
+      <Spacer padding="xxs" />
+      {sort.label === field.label ? (
+        <Icon
+          type={IconType.ArrowUpwardIcon}
+          size="base"
+          className={reverseSort ? "upward" : "downward"}
+        />
+      ) : (
+        <div style={{ width: "16px" }} />
+      )}
+    </Flex>
+  );
+}
+
 /** Form DataTable */
 function UnstyledDataTable({
   className,
@@ -116,38 +159,6 @@ function UnstyledDataTable({
 
   if (reverseSort) {
     sorted.reverse();
-  }
-
-  type labelProps = {
-    field: Field;
-  };
-  function SortableLabel({ field }: labelProps) {
-    return (
-      <Flex align start>
-        <TableButton
-          color="inherit"
-          variant="text"
-          onClick={() => {
-            setReverseSort(sort === field ? !reverseSort : false);
-            setSort(field);
-          }}
-        >
-          <h2 className={sort.label === field.label ? "selected" : ""}>
-            {field.label}
-          </h2>
-        </TableButton>
-        <Spacer padding="xxs" />
-        {sort.label === field.label ? (
-          <Icon
-            type={IconType.ArrowUpwardIcon}
-            size="base"
-            className={reverseSort ? "upward" : "downward"}
-          />
-        ) : (
-          <div style={{ width: "16px" }} />
-        )}
-      </Flex>
-    );
   }
 
   const r = _.map(sorted, (r, i) => (
@@ -178,7 +189,13 @@ function UnstyledDataTable({
                   {typeof f.labelRenderer === "function" ? (
                     f.labelRenderer(r)
                   ) : (
-                    <SortableLabel field={f} />
+                    <SortableLabel
+                      sort={sort}
+                      reverseSort={reverseSort}
+                      setReverseSort={(isReverse) => setReverseSort(isReverse)}
+                      setSort={setSort}
+                      field={f}
+                    />
                   )}
                 </TableCell>
               ))}
