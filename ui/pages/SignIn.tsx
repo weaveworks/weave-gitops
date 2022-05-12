@@ -88,7 +88,11 @@ function SignIn() {
           <AlertWrapper
             severity="error"
             title="Error signin in"
-            message={`${String(error.status)} ${error.statusText}`}
+            message={`${
+              error.status == 401
+                ? "Incorrect username or password."
+                : String(error.status) + error.statusText
+            }`}
             center
           />
         )}
