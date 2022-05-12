@@ -124,33 +124,54 @@ describe("FilterableTable", () => {
       const filtered = filterRows(rows, { name: ["cool", "slick"] });
       expect(filtered).toHaveLength(2);
     });
-    it("filters rows with multiple filter keys", () => {
-      const filtered = filterRows(rows, { name: ["cool"], type: ["bar"] });
-      expect(filtered).toHaveLength(2);
-      const cool = _.find(filtered, { name: "cool" });
-      const neat = _.find(filtered, { name: "neat" });
-      const slick = _.find(filtered, { name: "slick" });
-
-      expect(cool).toBeTruthy();
-      expect(neat).toBeTruthy();
-      expect(slick).toBeFalsy();
-    });
-    it("filters rows with multiple filters in multiple keys", () => {
+    it("ANDs between categories", () => {
+      const rows = [
+        { name: "a", namespace: "ns1", type: "git" },
+        { name: "b", namespace: "ns1", type: "bucket" },
+        { name: "c", namespace: "ns2", type: "git" },
+      ];
       const filtered = filterRows(rows, {
-        name: ["cool"],
-        type: ["bar", "foo"],
+        namespace: ["ns1"],
       });
-      expect(filtered).toHaveLength(3);
+      expect(filtered).toHaveLength(2);
 
       const filtered2 = filterRows(rows, {
-        name: [],
-        type: ["baz", "foo"],
+        namespace: ["ns1"],
+        type: ["git"],
       });
-      expect(filtered2).toHaveLength(3);
+      expect(filtered2).toHaveLength(1);
 
-      const neat = _.find(filtered2, { name: "neat" });
-      expect(neat).toBeFalsy();
+      const a = _.find(filtered2, { name: "a" });
+      const b = _.find(filtered2, { name: "b" });
+      const c = _.find(filtered2, { name: "c" });
+      expect(a).toBeTruthy();
+      expect(b).toBeFalsy();
+      expect(c).toBeFalsy();
     });
+  });
+  it("ANDs between categories, ORs within a category", () => {
+    const rows = [
+      { name: "a", namespace: "ns1", type: "git" },
+      { name: "b", namespace: "ns1", type: "bucket" },
+      { name: "c", namespace: "ns2", type: "git" },
+    ];
+    const filtered = filterRows(rows, {
+      namespace: ["ns1", "ns2"],
+    });
+    expect(filtered).toHaveLength(3);
+
+    const filtered2 = filterRows(rows, {
+      namespace: ["ns1"],
+      type: ["git", "bucket"],
+    });
+    expect(filtered2).toHaveLength(2);
+
+    const a2 = _.find(filtered2, { name: "a" });
+    const b2 = _.find(filtered2, { name: "b" });
+    const c2 = _.find(filtered2, { name: "c" });
+    expect(a2).toBeTruthy();
+    expect(b2).toBeTruthy();
+    expect(c2).toBeFalsy();
   });
 
   it("should show all rows", () => {

@@ -69,22 +69,22 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
     return rows;
   }
 
-  return _.filter(rows, (r) => {
-    let ok = false;
+  return _.filter(rows, (row) => {
+    let ok = true;
 
-    _.each(filters, (vals, key) => {
+    _.each(filters, (vals, category) => {
       let value;
       //status
-      if (key === "status") {
-        if (r["suspended"]) value = "Suspended";
-        else if (computeReady(r["conditions"])) value = "Ready";
+      if (category === "status") {
+        if (row["suspended"]) value = "Suspended";
+        else if (computeReady(row["conditions"])) value = "Ready";
         else value = "Not Ready";
       }
-      //string
-      else value = r[key];
+      // strings
+      else value = row[category];
 
-      if (_.includes(vals, value)) {
-        ok = true;
+      if (!_.includes(vals, value)) {
+        ok = false;
       }
     });
 
