@@ -2,9 +2,10 @@ package version
 
 import (
 	"fmt"
+	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 
 	"github.com/spf13/cobra"
 )
@@ -33,9 +34,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 // CheckVersion looks to see if there is a newer version of the software available
 func CheckVersion(p *checkpoint.CheckParams) {
+	log := internal.NewCLILogger(os.Stdout)
 	checkResponse, err := checkpoint.Check(p)
+
 	if err == nil && checkResponse.Outdated {
-		log.Infof("gitops version %s is available; please update at %s",
+		log.Printf("gitops version %s is available; please update at %s\n",
 			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
 	}
 }

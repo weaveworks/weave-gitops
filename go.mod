@@ -35,7 +35,6 @@ require (
 	github.com/onsi/gomega v1.18.1
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.0
 	github.com/stretchr/testify v1.7.1
@@ -65,6 +64,7 @@ require (
 require (
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 )
