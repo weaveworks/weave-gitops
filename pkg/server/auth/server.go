@@ -134,11 +134,6 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		scopes = append(scopes, oidc.ScopeOpenID)
 	}
 
-	// Request "offline_access" scope for refresh tokens.
-	if !contains(scopes, oidc.ScopeOfflineAccess) {
-		scopes = append(scopes, oidc.ScopeOfflineAccess)
-	}
-
 	// Request "email" scope to get user's email address.
 	if !contains(scopes, scopeEmail) {
 		scopes = append(scopes, scopeEmail)
@@ -253,12 +248,6 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		// Issue ID token cookie
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
-
-		// Some OIDC providers may not include a refresh token
-		if token.RefreshToken != "" {
-			// Issue refresh token cookie
-			http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
-		}
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -416,7 +405,7 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	var scopes []string
-	// "openid", "offline_access", "email" and "groups" scopes added by default
+	// "openid", "email" and "groups" scopes added by default
 	scopes = append(scopes, scopeProfile)
 	authCodeUrl := c.oauth2Config(scopes).AuthCodeURL(state)
 

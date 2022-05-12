@@ -6,6 +6,8 @@ WORKDIR /home/app
 USER node
 COPY --chown=node:node package*.json /home/app/
 COPY --chown=node:node Makefile /home/app/
+COPY --chown=node:node tsconfig.json /home/app/
+COPY --chown=node:node .parcelrc /home/app/
 RUN make node_modules
 COPY --chown=node:node ui /home/app/ui
 RUN make ui

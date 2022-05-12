@@ -28,6 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -211,7 +212,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: middleware.WithLogging(log, mux),
 	}
 
 	go func() {

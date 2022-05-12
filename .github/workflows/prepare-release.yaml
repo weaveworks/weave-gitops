@@ -56,9 +56,9 @@ jobs:
       - name: Generate updated helm reference
         # Needs to run after chart update, before docs update
         run: |
-         go install github.com/norwoodj/helm-docs/cmd/helm-docs@1.9.1
+         go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.9.1
          helm-docs -c charts/gitops-server -o ../../website/docs/references/helm-reference.md
-         git commit -am "Update the helm reference"
+         git commit -am "Update the helm reference" || : # This may not have changed
       - name: Update docs version
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
