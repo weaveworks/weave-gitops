@@ -66,7 +66,7 @@ func updateProfileCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, log)
+		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)

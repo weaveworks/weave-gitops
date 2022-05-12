@@ -3,18 +3,18 @@ package services
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 )
 
 var _ = Describe("Services factory", func() {
 	var ctx context.Context
 	var fakeFlux *fluxfakes.FakeFlux
-	var fakeLog *loggerfakes.FakeLogger
+	fakeLog := logr.Discard()
 	var fakeClient *gitprovidersfakes.FakeClient
 	var fakeKube *kube.KubeHTTP
 	var factory Factory
@@ -23,7 +23,6 @@ var _ = Describe("Services factory", func() {
 		ctx = context.Background()
 		fakeFlux = &fluxfakes.FakeFlux{}
 		fakeClient = &gitprovidersfakes.FakeClient{}
-		fakeLog = &loggerfakes.FakeLogger{}
 		fakeKube = &kube.KubeHTTP{}
 
 		factory = NewFactory(fakeFlux, fakeLog)

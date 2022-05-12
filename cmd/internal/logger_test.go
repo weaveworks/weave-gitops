@@ -8,12 +8,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
-var (
-	log    logger.Logger
-	output *bytes.Buffer
-)
-
 var _ = Describe("Logger", func() {
+	var (
+		log    logger.Logger
+		output *bytes.Buffer
+	)
+
 	BeforeEach(func() {
 		output = &bytes.Buffer{}
 		log = NewCLILogger(output)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/names"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -51,7 +51,7 @@ type AuthService interface {
 }
 
 type authSvc struct {
-	log        logger.Logger
+	log        logr.Logger
 	fluxClient flux.Flux
 	// Note that this is a k8s go-client, NOT a wego kube.Kube interface.
 	// That interface wasn't providing any valuable abstraction for this service.
@@ -60,7 +60,7 @@ type authSvc struct {
 }
 
 // NewAuthService constructs an auth service for doing git operations with an authenticated client.
-func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitproviders.GitProvider, log logger.Logger) AuthService {
+func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitproviders.GitProvider, log logr.Logger) AuthService {
 	return &authSvc{
 		log:         log,
 		fluxClient:  fluxClient,
@@ -118,7 +118,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, repo git
 			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster,
 			// or if a cluster was destroyed during development work.
 			// Create and upload a new deploy key.
-			a.log.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", secretName.Name)
+			a.log.Info("A deploy key was found on the git provider, but not in the cluster.", "key name", secretName.Name)
 			return a.provisionDeployKey(ctx, secretName, repo)
 		} else if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
@@ -154,7 +154,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, name SecretName, repo 
 		return nil, fmt.Errorf("error storing deploy key: %w", err)
 	}
 
-	a.log.Println("Deploy key generated and uploaded to git provider")
+	a.log.Info("Deploy key generated and uploaded to git provider")
 
 	return deployKey, nil
 }

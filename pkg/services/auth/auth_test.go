@@ -3,6 +3,7 @@ package auth_test
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/names"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -47,7 +47,7 @@ var _ = Describe("auth", func() {
 		gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil)
 		fluxClient = flux.New(&actualFluxRunner{Runner: &runner.CLIRunner{}})
 
-		as = auth.NewAuthService(fluxClient, k8sClient, &gp, &loggerfakes.FakeLogger{})
+		as = auth.NewAuthService(fluxClient, k8sClient, &gp, logr.Discard())
 	})
 
 	AfterEach(func() {
