@@ -131,6 +131,7 @@ function SignIn() {
                   type="text"
                   placeholder="Username"
                   value={username}
+                  required
                 />
               </Flex>
               <Flex center align>
