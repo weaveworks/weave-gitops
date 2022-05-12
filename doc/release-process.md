@@ -17,6 +17,8 @@ All releases release all artifacts, but only a stable release releases
 things that reference artifacts - this is how a pre-release doesn't
 get pushed to end-users.
 
+## Let's get started
+
 To release a new version of Weave Gitops, you need to:
 - Decide on an appropriate release number depending on if you want a
   pre-release or stable release. Do include a leading `v`. See [the
@@ -28,12 +30,14 @@ To release a new version of Weave Gitops, you need to:
 - Wait for the action to finish (1-5 minutes, depending on if it's an
   RC or not).
 - Wait for CI, and review the PR.
-  - For a pre-release, currently only a javascript version number
-    should be updated.
+  - For a pre-release, most steps are skipped - there's updates to the
+    javascript, and maybe some small documentation changes.
   - If it's a stable release, there's also updates to our helm chart,
     documentation and README. Don't forget to check out the docs
     staging site (there's a link in the list of github status checks
     called "Doc site preview")
+- The PR cover message contains draft release notes. Edit the cover
+  message to fill in or delete blocks as appropriate.
 - If everything looks good, approve the PR - do *not* merge or things
   won't be published in the right order. This immediately kicks off the
   release job.
