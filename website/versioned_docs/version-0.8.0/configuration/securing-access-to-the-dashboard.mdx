@@ -20,12 +20,6 @@ export WEAVE_GITOPS_AUTH_ENABLED=true
 
 ## Login via an OIDC provider
 
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
-
-<Tabs groupId="Weave GitOps tier" default>
-<TabItem value="Weave-GitOps" label="Weave GitOps">
-
 You may decide to give your engineering teams access to the dashboard, in order to view and manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
 
 #### Background
@@ -50,7 +44,7 @@ Create a secret named `oidc-auth` in the `wego-system` namespace with these para
 
 ```sh
 kubectl create secret generic oidc-auth \
-  --namespace wego-system \
+  --namespace flux-system \
   --from-literal=issuerURL=<oidc-issuer-url> \
   --from-literal=clientID=<client-id> \
   --from-literal=clientSecret=<client-secret> \
@@ -59,41 +53,6 @@ kubectl create secret generic oidc-auth \
 ```
 
 Once the HTTP server starts, it will redirect unauthenticated users to the provider's login page to authenticate them. Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. At this point, the dashboard will fail to render correctly unless RBAC has been configured accordingly. Follow the instructions in the [RBAC authorization](#rbac-authorization) section in order to configure RBAC correctly.
-
-</TabItem>
-<TabItem value="Weave-Gitops-Enterprise" label="Weave GitOps Enterprise">
-Weave GitOps Enterprise builds upon the Weave GitOps functionality that allows users to secure the dashboard and use RBAC to control access. <br/><br/>
-
-
-#### Configuration
-
-Before enabling this feature, you need to add a secret in the `wego-system` namespace containing the `clientId` and `clientSecret` for the client app used. Ensure that your OIDC issuer provider has been setup correctly with the same client app details.
-
-```sh
-kubectl create secret generic client-credentials \
-  --namespace wego-system \
-  --from-literal=clientId=<client-id> \
-  --from-literal=clientSecret=<client-secret>
-```
-
-Once the secret has been added to the cluster, run the `gitops upgrade` command and set the following OIDC parameters accordingly:
-
-```sh
-gitops upgrade --config-repo https://github.com/my-org/ my-repo --version 0.0.16 \
-  --set config.oidc.enabled=true \
-  --set config.oidc.clientCredentialsSecret=client-credentials \
-  --set config.oidc.issuerURL=<URL of the OIDC issuer> \
-  --set config.oidc.redirectURL=<Weave GitOps Enterprise callback URL>
-```
-
-The `<Weave GitOps Enterprise callback URL>` should be set to the URL that the dashboard is hosted at, postfixed with `/oauth2/callback`. For example: https://gitops.example.com/oauth2/callback.
-
-:::note UPDATING OIDC CONFIGURATION
-If you need to change the OIDC configuration after running `gitops upgrade`, update the corresponding `HelmRelease` manifest for Weave GitOps Enterprise in the git repository.
-:::
-
-</TabItem>
-</Tabs>
 
 ## Login via a cluster user account
 
