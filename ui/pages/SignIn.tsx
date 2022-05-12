@@ -187,7 +187,11 @@ function SignIn() {
         <AlertWrapper
           severity="error"
           title="Error signin in"
-          message={`${String(authError.status)} ${authError.statusText}`}
+          message={`${
+            authError.status === 401
+              ? `Incorrect username or password.`
+              : `${authError.status} ${authError.statusText}`
+          }`}
           center
         />
       )}
@@ -203,7 +207,76 @@ function SignIn() {
           <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
-          {loading ? <LoadingPage /> : authOptions}
+          {flags.OIDC_AUTH ? (
+            <Flex wide center>
+              <Button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleOIDCSubmit();
+                }}
+              >
+                LOGIN WITH OIDC PROVIDER
+              </Button>
+            </Flex>
+          ) : null}
+          {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
+            <Divider variant="middle" style={{ margin: theme.spacing.base }} />
+          ) : null}
+          {flags.CLUSTER_USER_AUTH ? (
+            <form
+              ref={formRef}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUserPassSubmit();
+              }}
+            >
+              <Flex center align>
+                <Input
+                  onChange={(e) => setUsername(e.currentTarget.value)}
+                  id="email"
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  required
+                />
+              </Flex>
+              <Flex center align>
+                <Input
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  id="password"
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  endAdornment={
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  }
+                />
+              </Flex>
+              <Flex center>
+                {!loading ? (
+                  <Button
+                    type="submit"
+                    style={{ marginTop: theme.spacing.medium }}
+                  >
+                    CONTINUE
+                  </Button>
+                ) : (
+                  <div style={{ margin: theme.spacing.medium }}>
+                    <LoadingPage />
+                  </div>
+                )}
+              </Flex>
+            </form>
+          ) : null}
           <DocsWrapper center align>
             Need help? Have a look at the&nbsp;
             <a

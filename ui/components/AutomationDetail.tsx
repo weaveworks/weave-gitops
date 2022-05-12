@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncAutomation } from "../hooks/automations";
 import { AutomationKind } from "../lib/api/core/types.pb";
+import { AutomationType } from "../lib/types";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -62,7 +63,7 @@ function AutomationDetail({ automation, className, info }: Props) {
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
             <ReconciledObjectsTable
-              automationKind={AutomationKind.KustomizationAutomation}
+              automationKind={automation?.type === AutomationType.Kustomization ? AutomationKind.KustomizationAutomation: AutomationKind.HelmReleaseAutomation}
               automationName={automation?.name}
               namespace={automation?.namespace}
               kinds={automation?.inventory}
@@ -81,12 +82,12 @@ function AutomationDetail({ automation, className, info }: Props) {
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
-              automationKind={AutomationKind.KustomizationAutomation}
+              automationKind={automation?.type === AutomationType.Kustomization ? AutomationKind.KustomizationAutomation: AutomationKind.HelmReleaseAutomation}
               automationName={automation?.name}
               kinds={automation?.inventory}
               parentObject={automation}
               clusterName={automation?.clusterName}
-              source={automation?.sourceRef}
+              source={automation?.type === AutomationType.Kustomization ? automation?.sourceRef: automation?.helmChart.sourceRef}
             />
           </RouterTab>
         </SubRouterTabs>
