@@ -11,6 +11,12 @@ export type Pagination = {
   pageToken?: string
 }
 
+export type ListError = {
+  clusterName?: string
+  namespace?: string
+  message?: string
+}
+
 export type ListKustomizationsRequest = {
   namespace?: string
   pagination?: Pagination
@@ -19,6 +25,7 @@ export type ListKustomizationsRequest = {
 export type ListKustomizationsResponse = {
   kustomizations?: Gitops_coreV1Types.Kustomization[]
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type ListHelmReleasesRequest = {
@@ -27,6 +34,7 @@ export type ListHelmReleasesRequest = {
 
 export type ListHelmReleasesResponse = {
   helmReleases?: Gitops_coreV1Types.HelmRelease[]
+  errors?: ListError[]
 }
 
 export type GetHelmReleaseRequest = {
@@ -45,6 +53,7 @@ export type ListGitRepositoriesRequest = {
 
 export type ListGitRepositoriesResponse = {
   gitRepositories?: Gitops_coreV1Types.GitRepository[]
+  errors?: ListError[]
 }
 
 export type ListHelmRepositoriesRequest = {
@@ -53,6 +62,7 @@ export type ListHelmRepositoriesRequest = {
 
 export type ListHelmRepositoriesResponse = {
   helmRepositories?: Gitops_coreV1Types.HelmRepository[]
+  errors?: ListError[]
 }
 
 export type ListBucketRequest = {
@@ -61,6 +71,7 @@ export type ListBucketRequest = {
 
 export type ListBucketsResponse = {
   buckets?: Gitops_coreV1Types.Bucket[]
+  errors?: ListError[]
 }
 
 export type ListFluxRuntimeObjectsRequest = {
@@ -70,6 +81,7 @@ export type ListFluxRuntimeObjectsRequest = {
 
 export type ListFluxRuntimeObjectsResponse = {
   deployments?: Gitops_coreV1Types.Deployment[]
+  errors?: ListError[]
 }
 
 export type ListHelmChartsRequest = {
@@ -153,6 +165,13 @@ export type GetVersionResponse = {
   version?: {[key: string]: string}
 }
 
+export type GetFeatureFlagsRequest = {
+}
+
+export type GetFeatureFlagsResponse = {
+  flags?: {[key: string]: string}
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -201,5 +220,8 @@ export class Core {
   }
   static GetVersion(req: GetVersionRequest, initReq?: fm.InitReq): Promise<GetVersionResponse> {
     return fm.fetchReq<GetVersionRequest, GetVersionResponse>(`/v1/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
+    return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

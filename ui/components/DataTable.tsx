@@ -27,8 +27,9 @@ export enum SortType {
 type Sorter = (k: any) => any;
 
 export type Field = {
-  label: string;
-  value: string | ((k: any) => string | JSX.Element);
+  label: string | number;
+  labelRenderer?: string | ((k: any) => string | JSX.Element);
+  value: string | ((k: any) => string | JSX.Element | null);
   sortType?: SortType;
   sortValue?: Sorter;
   textSearchable?: boolean;
@@ -174,7 +175,11 @@ function UnstyledDataTable({
             <TableRow>
               {_.map(fields, (f) => (
                 <TableCell key={f.label}>
-                  <SortableLabel field={f} />
+                  {typeof f.labelRenderer === "function" ? (
+                    f.labelRenderer(r)
+                  ) : (
+                    <SortableLabel field={f} />
+                  )}
                 </TableCell>
               ))}
             </TableRow>

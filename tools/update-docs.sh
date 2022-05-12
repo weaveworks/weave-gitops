@@ -17,10 +17,10 @@ ex - installation.mdx << EOS
 wq!
 EOS
 # create CLI reference
-git rm -f --ignore-unmatch cli-reference.md
-git rm -f --ignore-unmatch cli-reference/*.md
-mkdir -p cli-reference
-cd cli-reference
+git rm -f --ignore-unmatch references/cli-reference.md
+git rm -f --ignore-unmatch references/cli-reference/*.md
+mkdir -p references/cli-reference
+cd references/cli-reference
 ${WEAVE_GITOPS_BINARY} docs
 git add *.md
 # create versioned docs

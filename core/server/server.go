@@ -60,11 +60,21 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 	}
 }
 
-func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
+func NewCoreServer(cfg CoreServerConfig, setters ...CoreOption) (pb.CoreServer, error) {
 	cfgGetter := kube.NewImpersonatingConfigGetter(cfg.RestCfg, false)
 
+	clientGetter := kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName)
+
+	args := &CoreOptions{
+		ClientGetter: clientGetter,
+	}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
 	return &coreServer{
-		k8s:            kube.NewDefaultClientGetter(cfgGetter, cfg.clusterName),
+		k8s:            args.ClientGetter,
 		logger:         cfg.log,
 		nsChecker:      cfg.NSAccess,
 		clientsFactory: cfg.ClientsFactory,

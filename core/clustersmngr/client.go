@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -42,9 +41,6 @@ type Client interface {
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
 
-	// RestConfig returns a rest.Config for a given cluster
-	RestConfig(cluster string) (*rest.Config, error)
-
 	// Scoped returns a client that is scoped to a single cluster
 	Scoped(cluster string) (client.Client, error)
 }
@@ -52,6 +48,33 @@ type Client interface {
 type clustersClient struct {
 	pool       ClientsPool
 	namespaces map[string][]v1.Namespace
+}
+
+type ListError struct {
+	Cluster   string
+	Namespace string
+	Err       error
+}
+
+func (le ListError) Error() string {
+	return fmt.Sprintf("Failed to list resource on cluster=%q namespace=%q err=%q", le.Cluster, le.Namespace, le.Err)
+}
+
+type ClusteredListError struct {
+	Errors []ListError
+}
+
+func (cle *ClusteredListError) Add(err ListError) {
+	cle.Errors = append(cle.Errors, err)
+}
+
+func (cle ClusteredListError) Error() string {
+	var errs []string
+	for _, e := range cle.Errors {
+		errs = append(errs, e.Error())
+	}
+
+	return strings.Join(errs, "; ")
 }
 
 func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Client {
@@ -84,10 +107,6 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 }
 
 func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
-	wg := sync.WaitGroup{}
-
-	var errs []error
-
 	paginationInfo := &PaginationInfo{}
 
 	continueToken := extractContinueToken(opts...)
@@ -97,10 +116,13 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 		}
 	}
 
+	var (
+		errs = ClusteredListError{}
+		wg   = sync.WaitGroup{}
+	)
+
 	for clusterName, cc := range c.pool.Clients() {
 		for _, ns := range c.namespaces[clusterName] {
-			listOpts := append(opts, client.InNamespace(ns.Name))
-
 			nsContinueToken := paginationInfo.Get(clusterName, ns.Name)
 
 			// a prior request has been made so this one comes with a previous token,
@@ -109,7 +131,8 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 				continue
 			}
 
-			listOpts = append(listOpts, client.Continue(nsContinueToken))
+			listOpts := append(opts, client.Continue(nsContinueToken))
+			listOpts = append(listOpts, client.InNamespace(ns.Name))
 
 			wg.Add(1)
 
@@ -119,7 +142,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 				list := clist.NewList()
 
 				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
-					errs = append(errs, fmt.Errorf("cluster=\"%s\" err=\"%s\"", clusterName, err))
+					errs.Add(ListError{Cluster: clusterName, Namespace: nsName, Err: err})
 				}
 
 				paginationInfo.Set(clusterName, nsName, list.GetContinue())
@@ -131,16 +154,16 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 
 	wg.Wait()
 
-	if len(errs) > 0 {
-		return fmt.Errorf("failed to list resources: %s", errs)
-	}
-
 	continueToken, err := encodeToBase64(paginationInfo)
 	if err != nil {
 		return fmt.Errorf("failed encoding pagination info: %w", err)
 	}
 
 	clist.SetContinue(continueToken)
+
+	if len(errs.Errors) > 0 {
+		return errs
+	}
 
 	return nil
 }
@@ -192,15 +215,6 @@ func (c *clustersClient) Patch(ctx context.Context, cluster string, obj client.O
 	}
 
 	return client.Patch(ctx, obj, patch, opts...)
-}
-
-func (c clustersClient) RestConfig(cluster string) (*rest.Config, error) {
-	client, err := c.pool.Client(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.RestConfig(), nil
 }
 
 func (c clustersClient) Scoped(cluster string) (client.Client, error) {

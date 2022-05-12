@@ -124,6 +124,29 @@
         ]
       }
     },
+    "/v1/featureflags": {
+      "get": {
+        "summary": "GetFeatureFlags returns configuration information about the server",
+        "operationId": "Core_GetFeatureFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFeatureFlagsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -771,6 +794,17 @@
         }
       }
     },
+    "v1GetFeatureFlagsResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1GetFluxNamespaceRequest": {
       "type": "object"
     },
@@ -1093,6 +1127,26 @@
           "items": {
             "$ref": "#/definitions/v1Bucket"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1115,6 +1169,12 @@
           "items": {
             "$ref": "#/definitions/v1Deployment"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1125,6 +1185,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1148,6 +1214,12 @@
           "items": {
             "$ref": "#/definitions/v1HelmRelease"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1158,6 +1230,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1173,6 +1251,12 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
