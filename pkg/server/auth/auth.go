@@ -17,9 +17,6 @@ const (
 	// IDTokenCookieName is the name of the cookie that holds the ID Token once
 	// the user has authenticated successfully with the OIDC Provider.
 	IDTokenCookieName = "id_token"
-	// RefreshTokenCookieName is the name of the cookie that holds the refresh
-	// token.
-	RefreshTokenCookieName = "refresh_token"
 	// ScopeProfile is the "profile" scope
 	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
