@@ -89,9 +89,9 @@ function SignIn() {
             severity="error"
             title="Error signin in"
             message={`${
-              error.status == 401
-                ? "Incorrect username or password."
-                : String(error.status) + error.statusText
+              error.status === 401
+                ? `Incorrect username or password.`
+                : `${error.status} ${error.statusText}`
             }`}
             center
           />
