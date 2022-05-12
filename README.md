@@ -61,9 +61,6 @@ Usage:
 
 Examples:
 
-  # Get verbose output for any gitops command
-  gitops [command] -v, --verbose
-
   # Get help for gitops add cluster command
   gitops add cluster -h
   gitops help add cluster
@@ -90,7 +87,6 @@ Flags:
   -h, --help                       help for gitops
       --insecure-skip-tls-verify   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
       --namespace string           The namespace scope for this operation (default "flux-system")
-  -v, --verbose                    Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
 ```
