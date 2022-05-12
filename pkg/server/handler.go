@@ -37,16 +37,14 @@ type Config struct {
 
 func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handler, error) {
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-	httpHandler := middleware.WithLogging(log, mux)
-
-	if AuthEnabled() {
-		httpHandler = clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, httpHandler)
-		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
-	}
 
 	if err := core.Hydrate(ctx, mux, cfg.CoreServerConfig); err != nil {
 		return nil, fmt.Errorf("could not start up core servers: %w", err)
 	}
+
+	httpHandler := clustersmngr.WithClustersClient(cfg.CoreServerConfig.ClientsFactory, mux)
+
+	httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer, PublicRoutes)
 
 	return httpHandler, nil
 }

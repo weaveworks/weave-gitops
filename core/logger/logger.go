@@ -18,13 +18,13 @@ const (
 // Levels are in order of decreasing verbosity and increasing importance
 const (
 	// LogLevelDebug = -1
-	LogLevelDebug int = int(zap.DebugLevel)
+	LogLevelDebug int = -int(zap.DebugLevel)
 	// LogLevelInfo = 0
-	LogLevelInfo int = int(zap.InfoLevel)
+	LogLevelInfo int = -int(zap.InfoLevel)
 	// LogLevelWarn = 1
-	LogLevelWarn int = int(zap.WarnLevel)
+	LogLevelWarn int = -int(zap.WarnLevel)
 	// LogLevelError = 2
-	LogLevelError int = int(zap.ErrorLevel)
+	LogLevelError int = -int(zap.ErrorLevel)
 )
 
 // New returns a new Logger instance
