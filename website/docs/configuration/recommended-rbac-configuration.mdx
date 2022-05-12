@@ -3,8 +3,8 @@ title: Recommended RBAC Configuration
 sidebar_position: 0
 ---
 
-This page summarises the contents of the [securing access to the dashboard](docs/configuration/securing-access-to-the-dashboard),
-[service account permissions](docs/configuration/service-account-permissions) and [user permissions](docs/configuration/user-permissions). They should be
+This page summarises the contents of the [securing access to the dashboard](securing-access-to-the-dashboard.mdx),
+[service account permissions](service-account-permissions.mdx) and [user permissions](user-permissions.mdx). They should be
 read in addition to this page in order to understand the suggestions made here and
 their ramifications.
 
@@ -27,7 +27,7 @@ OIDC is the recommended method for managing authentication as it decouples the
 need to manage user lists from the application, allowing it to be managed via
 a central system designed for that purpose (i.e. the OIDC provider). OIDC also
 enables the creation of groups (either via your provider's own systems or by
-using a connector like [Dex](docs/guides/setting-up-dex)).
+using a connector like [Dex](../guides/setting-up-dex.md)).
 
 Configuring Weave GitOps to impersonate kubernetes groups rather than
 users has the following benefits:

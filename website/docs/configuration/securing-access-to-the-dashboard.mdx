@@ -52,7 +52,7 @@ kubectl create secret generic oidc-auth \
   --from-literal=tokenDuration=<token-duration>
 ```
 
-Once the HTTP server starts unauthenticated users will have to click the 'login with OIDC provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly but it is recommended to read the [service account](docs/configuration/service-account-permissions) and [user](docs/configuration/user-permissions) permissions pages to understand which actions are needed for Weave GitOps to function correctly.
+Once the HTTP server starts unauthenticated users will have to click the 'login with OIDC provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly but it is recommended to read the [service account](service-account-permissions.mdx) and [user](user-permissions.mdx) permissions pages to understand which actions are needed for Weave GitOps to function correctly.
 
 ## Login via a cluster user account
 
