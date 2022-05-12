@@ -2,10 +2,12 @@ import * as React from "react";
 import styled from "styled-components";
 import { Kustomization } from "../lib/api/core/types.pb";
 import { AutomationType } from "../lib/types";
+import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
+import Timestamp from "./Timestamp";
 
 type Props = {
   kustomization?: Kustomization;
@@ -15,6 +17,7 @@ type Props = {
 function KustomizationDetail({ kustomization, className }: Props) {
   return (
     <AutomationDetail
+      className={className}
       automation={{
         ...kustomization,
         type: AutomationType.Kustomization,
@@ -24,7 +27,12 @@ function KustomizationDetail({ kustomization, className }: Props) {
         ["Applied Revision", kustomization?.lastAppliedRevision],
         ["Cluster", kustomization?.clusterName],
         ["Path", kustomization?.path],
+
         ["Interval", <Interval interval={kustomization?.interval} />],
+        [
+          "Last Updated",
+          <Timestamp time={automationLastUpdated(kustomization)} />,
+        ],
       ]}
     />
   );

@@ -12,13 +12,14 @@ import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -37,7 +38,7 @@ function SourcesTable({ className, sources }: Props) {
   };
 
   return (
-    <FilterableTable
+    <URLAddressableTable
       className={className}
       filters={initialFilterState}
       rows={sources}
