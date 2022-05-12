@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
-import FilterDialog, { initialFormState } from "../FilterDialog";
+import { initialFormState } from "../FilterableTable";
+import FilterDialog from "../FilterDialog";
 
 describe("FilterDialog", () => {
   const setActiveFilters = jest.fn();

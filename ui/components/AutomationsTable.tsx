@@ -1,5 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
@@ -7,7 +8,7 @@ import { formatURL } from "../lib/nav";
 import { AutomationType, V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
@@ -15,6 +16,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -24,7 +26,9 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  const initialFilterState = {
+  const history = useHistory();
+
+  const filterConfig = {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
     ...filterConfigForString(automations, "clusterName"),
@@ -130,9 +134,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <FilterableTable
+    <URLAddressableTable
       fields={fields}
-      filters={initialFilterState}
+      filters={filterConfig}
       rows={automations}
       className={className}
     />

@@ -86,6 +86,7 @@ function AutomationDetail({ automation, className, info }: Props) {
               kinds={automation?.inventory}
               parentObject={automation}
               clusterName={automation?.clusterName}
+              source={automation?.sourceRef}
             />
           </RouterTab>
         </SubRouterTabs>
