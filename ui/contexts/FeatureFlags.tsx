@@ -15,7 +15,11 @@ type FeatureFlags = {
 
 export type Flags = OptionsFlags<FeatureFlags>;
 
-export type FeatureFlagsContextType = Flags;
+export type FeatureFlagsContextType = {
+  data: Flags;
+  loading: boolean;
+  error: Error;
+};
 
 export const FeatureFlags =
   React.createContext<FeatureFlagsContextType | null>(null);
@@ -23,15 +27,20 @@ export const FeatureFlags =
 export default function FeatureFlagsContextProvider({ children }) {
   const { request } = React.useContext(AppContext);
   const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(null);
+  const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
+    setLoading(true);
     request("/v1/featureflags")
       .then((response) => response.json())
-      .then((data) => setData(data));
+      .then((data) => setData(data))
+      .catch((error) => setError(error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <FeatureFlags.Provider value={data?.flags}>
+    <FeatureFlags.Provider value={{ data: data?.flags, loading, error }}>
       {children}
     </FeatureFlags.Provider>
   );
