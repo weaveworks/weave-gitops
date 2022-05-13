@@ -37,9 +37,6 @@ import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListSources } from "./hooks/sources";
 import { useFeatureFlags } from "./hooks/featureflags";
-import FeatureFlagsContextProvider, {
-  FeatureFlags,
-} from "./contexts/FeatureFlags";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import {
@@ -69,8 +66,6 @@ export {
   clearCallbackState,
   coreClient,
   CoreClientContextProvider,
-  FeatureFlagsContextProvider,
-  FeatureFlags,
   Flex,
   FilterableTable,
   filterConfigForString,

@@ -125,47 +125,41 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	var authServer *auth.AuthServer
-
 	oidcConfig := options.OIDC
 
-	if server.AuthEnabled() {
-		// If OIDC auth secret is found prefer that over CLI parameters
-		var secret corev1.Secret
-		if err := rawClient.Get(cmd.Context(), client.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
-			Name:      auth.OIDCAuthSecretName,
-		}, &secret); err == nil {
-			oidcConfig = auth.NewOIDCConfigFromSecret(secret)
-		}
+	// If OIDC auth secret is found prefer that over CLI parameters
+	var secret corev1.Secret
+	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
+		Namespace: v1alpha1.DefaultNamespace,
+		Name:      auth.OIDCAuthSecretName,
+	}, &secret); err == nil {
+		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
+	}
 
-		tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
-		if err != nil {
-			return fmt.Errorf("could not create HMAC token signer: %w", err)
-		}
+	tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
+	if err != nil {
+		return fmt.Errorf("could not create HMAC token signer: %w", err)
+	}
 
-		if options.DevMode {
-			log.Info("WARNING: dev mode enabled. This should be used for local work only")
-			tsv.SetDevMode(options.DevUser)
-		}
+	if options.DevMode {
+		log.Info("WARNING: dev mode enabled. This should be used for local work only")
+		tsv.SetDevMode(options.DevUser)
+	}
 
-		authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
-		if err != nil {
-			return err
-		}
+	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
+	if err != nil {
+		return err
+	}
 
-		srv, err := auth.NewAuthServer(cmd.Context(), authCfg)
-		if err != nil {
-			return fmt.Errorf("could not create auth server: %w", err)
-		}
+	authServer, err := auth.NewAuthServer(cmd.Context(), authCfg)
+	if err != nil {
+		return fmt.Errorf("could not create auth server: %w", err)
+	}
 
-		log.Info("Registering auth routes")
+	log.Info("Registering auth routes")
 
-		if err := auth.RegisterAuthServer(mux, "/oauth2", srv, loginRequestRateLimit); err != nil {
-			return fmt.Errorf("failed to register auth routes: %w", err)
-		}
-
-		authServer = srv
+	if err := auth.RegisterAuthServer(mux, "/oauth2", authServer, loginRequestRateLimit); err != nil {
+		return fmt.Errorf("failed to register auth routes: %w", err)
 	}
 
 	ctx := context.Background()
