@@ -1,16 +1,16 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import bg from "data-url:../images/bg-circles.png";
-import failedSrc from "data-url:../images/failed.svg";
-import fluxIconHoverSrc from "data-url:../images/flux-icon-hover.svg";
-import fluxIconSrc from "data-url:../images/flux-icon.svg";
-import logoSrc from "data-url:../images/logo.svg";
-import reconcileSrc from "data-url:../images/reconcile.svg";
-import signInWheel from "data-url:../images/SignInWheel.svg";
-import successSrc from "data-url:../images/success.svg";
-import suspendedSrc from "data-url:../images/suspended.svg";
-import weaveLogo from "data-url:../images/WeaveLogo.svg";
+import bg from "../images/bg-circles.png";
+import failedSrc from "../images/failed.svg";
+import fluxIconHoverSrc from "../images/flux-icon-hover.svg";
+import fluxIconSrc from "../images/flux-icon.svg";
+import logoSrc from "../images/logo.svg";
+import reconcileSrc from "../images/reconcile.svg";
+import signInWheel from "../images/SignInWheel.svg";
+import successSrc from "../images/success.svg";
+import suspendedSrc from "../images/suspended.svg";
+import weaveLogo from "../images/WeaveLogo.svg";
 
 export default {
   bg,

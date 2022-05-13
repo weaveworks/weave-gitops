@@ -2,6 +2,7 @@
   "name": "@weaveworks/weave-gitops",
   "version": "0.10.2-rc.1",
   "description": "Weave GitOps core",
+  "module": "index.js",
   "targets": {
     "default": {
       "distDir": "bin/dist",
@@ -11,7 +12,8 @@
     "lib": {
       "includeNodeModules": false,
       "isLibrary": true,
-      "outputFormat": "commonjs",
+      "optimize": false,
+      "outputFormat": "esmodule",
       "distDir": "dist",
       "source": "ui/index.ts",
       "sourceMap": false
