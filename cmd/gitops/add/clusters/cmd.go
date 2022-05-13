@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 type clusterCommandFlags struct {
@@ -121,8 +122,9 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return err
 		}
 
-		params := capi.CreatePullRequestFromTemplateParams{
+		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
+			TemplateKind:     templates.CAPITemplateKind,
 			TemplateName:     flags.Template,
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
@@ -135,7 +137,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			ProfileValues:    profilesValues,
 		}
 
-		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
 }
 
