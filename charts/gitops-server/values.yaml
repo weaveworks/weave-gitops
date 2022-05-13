@@ -43,7 +43,7 @@ rbac:
   impersonationResources: ["users", "groups"]
   # -- If non-empty, this limits the secrets that can be accessed by
   # the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']`
-  viewSecretsResourceNames: []
+  viewSecretsResourceNames: ["cluster-user-auth", "oidc-auth"]
 
 adminUser:
   # -- Whether the local admin user should be created.

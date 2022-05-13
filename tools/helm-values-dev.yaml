@@ -6,6 +6,9 @@ image:
 
 logLevel: debug
 
+rbac:
+  viewSecrets: ["cluster-user-auth", "oidc-auth"]
+
 adminUser:
   create: true
   username: dev
