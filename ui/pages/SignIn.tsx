@@ -60,7 +60,8 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const { data: flags } = useFeatureFlags();
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
 
   const formRef = React.useRef<HTMLFormElement>();
   const {
