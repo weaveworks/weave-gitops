@@ -20,11 +20,13 @@ rules:
     resources: [ "secrets" ]
     verbs: [ "get", "list" ]
     {{- if and .Values.rbac.viewSecrets .Values.rbac.viewSecretsResourceNames }}
-    {{- fail "You've supplied both rbac.viewSecrets and rbac.viewSecretsResourceName. Please only use rbac.viewSecretsResourceName" }}
+    {{- fail "You've supplied both rbac.viewSecrets and rbac.viewSecretsResourceNames. Please only use rbac.viewSecretsResourceNames" }}
     {{- end }}
-    {{- with .Values.rbac.viewSecrets }}
+    # or should return the first non-falsy result
+    {{- with (or .Values.rbac.viewSecretsResourceNames .Values.rbac.viewSecrets) }}
     resourceNames: {{ . | toJson }}
     {{- end }}
+
   # The service account needs to read namespaces to know where it can query
   - apiGroups: [ "" ]
     resources: [ "namespaces" ]
