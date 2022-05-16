@@ -24,7 +24,9 @@ import FilterableTable, {
   filterConfigForString,
 } from "./components/FilterableTable";
 import AppContextProvider from "./contexts/AppContext";
-import CoreClientContextProvider from "./contexts/CoreClientContext";
+import CoreClientContextProvider, {
+  UnAuthrizedInterceptor,
+} from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import {
@@ -68,6 +70,7 @@ export {
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
+  UnAuthrizedInterceptor,
   CoreClientContextProvider,
   FeatureFlagsContextProvider,
   FeatureFlags,
