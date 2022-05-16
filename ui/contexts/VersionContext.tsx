@@ -6,7 +6,10 @@ type Props = {
 };
 
 export type VersionType = {
-
+  version: string;
+  gitCommit: string;
+  branch: string;
+  buildTime: string;
 };
 
 export type VersionContextType = {
@@ -28,16 +31,13 @@ export default function VersionContextProvider({ children }: Props) {
     setLoading(true);
     request("/v1/version")
       .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setData(data);
-      })
+      .then((data) => setData(data))
       .catch((error) => setError(error))
       .finally(() => setLoading(false));
   }, []);
 
   return (
-    <VersionContext.Provider value={{ data: data?.flags, loading, error }}>
+    <VersionContext.Provider value={{ data: data?.version, loading, error }}>
       {children}
     </VersionContext.Provider>
   );

@@ -1,6 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import p from "../../package.json";
+import { VersionContext } from "../contexts/VersionContext";
+import { useVersion } from "../hooks/version";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -17,6 +19,10 @@ const RightFoot = styled(Flex)`
 const LeftFoot = styled(Flex)``;
 
 function Footer({ className }: Props) {
+  const version = useVersion();
+
+  const { loading, error } = React.useContext(VersionContext);
+
   return (
     <Flex as="footer" wide between className={className}>
       <LeftFoot>
