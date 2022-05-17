@@ -97,8 +97,7 @@ However Weave GitOps Enterprise supports any combination of management cluster a
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="kind">
 
-##### 1.1 We start with creating a kind-config. 
-
+- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
 
 ```yaml title="kind-config.yaml"
 kind: Cluster
@@ -379,18 +378,6 @@ kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
 
 Use the username above and regular password (not the hashed version) to login.
-
-### 8. Connect the management cluster up to itself
-
-_Connecting a cluster_ installs the agent which is responsible for detecting new clusters and reporting their status to the UI. We need to install the agent on our newly created management cluster. Check out [How to: Connect a cluster](./cluster-management/managing-existing-clusters.mdx#how-to-connect-a-cluster). The agent should be loaded onto our new management cluster, give it a name like **Management** and leave the Ingress URL blank.
-
-:::caution Self-Signed certificates
-
-When _connecting a cluster_ the UI prompts you to run a `kubectl apply` command to deploy the agent.
-If the WGE UI and HTTPS server is using self-signed TLS certificates this will fail with a **x509** certificate error.
-Instead use `curl --insecure "$AGENT_URL" | kubectl apply -f -`
-
-:::
 
 Head over to either:
 

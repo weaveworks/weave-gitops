@@ -25,6 +25,8 @@ spec:
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
+        labels:
+          weave.works/capi: bootstrap
       spec:
         capiClusterRef:
           name: "${CLUSTER_NAME}"
@@ -35,7 +37,6 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
-          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:
