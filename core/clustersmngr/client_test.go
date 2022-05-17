@@ -72,6 +72,7 @@ func TestClientGet(t *testing.T) {
 func TestClientClusteredList(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
+	namespaced := true
 
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
@@ -112,7 +113,7 @@ func TestClientClusteredList(t *testing.T) {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	g.Expect(clustersClient.ClusteredList(ctx, cklist)).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced)).To(Succeed())
 
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 
@@ -138,7 +139,7 @@ func TestClientClusteredList(t *testing.T) {
 		return &sourcev1.GitRepositoryList{}
 	})
 
-	g.Expect(clustersClient.ClusteredList(ctx, cgrlist)).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cgrlist, namespaced)).To(Succeed())
 
 	glist := cgrlist.Lists()[clusterName][0].(*sourcev1.GitRepositoryList)
 	g.Expect(glist.Items).To(HaveLen(1))
@@ -150,6 +151,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	ctx := context.Background()
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
+	namespaced := true
 
 	clusterName := "mycluster"
 
@@ -200,7 +202,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(""))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(""))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(2))
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist.Items).To(HaveLen(1))
@@ -211,7 +213,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(1))
 	klist0 := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist0.Items).To(HaveLen(1))
@@ -222,7 +224,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(0))
 }
 

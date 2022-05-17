@@ -36,7 +36,7 @@ type Client interface {
 	// This method supports pagination with a caveat, the client.Limit passed will be multiplied
 	// by the number of clusters and namespaces, we decided to do this to avoid the complex coordination
 	// that would be required to make sure the number of items returned match the limit passed.
-	ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error
+	ClusteredList(ctx context.Context, clist ClusteredObjectList, namespaced bool, opts ...client.ListOption) error
 
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
@@ -106,7 +106,7 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 	return client.List(ctx, list, opts...)
 }
 
-func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, opts ...client.ListOption) error {
+func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, namespaced bool, opts ...client.ListOption) error {
 	paginationInfo := &PaginationInfo{}
 
 	continueToken := extractContinueToken(opts...)
@@ -122,7 +122,13 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 	)
 
 	for clusterName, cc := range c.pool.Clients() {
-		for _, ns := range c.namespaces[clusterName] {
+		var namespaces []v1.Namespace
+		if namespaced {
+			namespaces = c.namespaces[clusterName]
+		} else {
+			namespaces = []v1.Namespace{{}}
+		}
+		for _, ns := range namespaces {
 			nsContinueToken := paginationInfo.Get(clusterName, ns.Name)
 
 			// a prior request has been made so this one comes with a previous token,
