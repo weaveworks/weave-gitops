@@ -172,6 +172,17 @@ export type GetFeatureFlagsResponse = {
   flags?: {[key: string]: string}
 }
 
+export type ToggleSuspendResourceRequest = {
+  kind?: Gitops_coreV1Types.FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
+  suspend?: boolean
+}
+
+export type ToggleSuspendResourceResponse = {
+}
+
 export class Core {
   static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
     return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -223,5 +234,8 @@ export class Core {
   }
   static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
     return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
+    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

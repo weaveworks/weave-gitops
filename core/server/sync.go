@@ -43,7 +43,7 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 	if msg.WithSource {
 		sourceRef := obj.SourceRef()
 
-		_, sourceObj, err := internal.ToReconcileableSource(kindToSourceType(sourceRef.Kind()))
+		_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
 
 		if err != nil {
 			return nil, fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err)

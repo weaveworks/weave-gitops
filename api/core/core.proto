@@ -182,6 +182,16 @@ service Core {
             get : "/v1/featureflags"
         };
     }
+
+    /*
+     * ToggleSuspendResource suspends or resumes a flux object.
+     */
+    rpc ToggleSuspendResource(ToggleSuspendResourceRequest) returns (ToggleSuspendResourceResponse) {
+        option (google.api.http) = {
+            post: "/v1/suspend"
+            body: "*"
+        };
+    }
 }
 
 message Pagination {
@@ -344,4 +354,16 @@ message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
     map<string, string> flags = 1;
+}
+
+message ToggleSuspendResourceRequest {
+    FluxObjectKind kind        = 1;
+    string         name        = 2;
+    string         namespace   = 3;
+    string         clusterName = 4;
+    bool           suspend     = 5;
+}
+
+message ToggleSuspendResourceResponse {
+    
 }
