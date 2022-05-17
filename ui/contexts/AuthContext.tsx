@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Redirect, useHistory } from "react-router-dom";
-import { useFeatureFlags } from "../hooks/featureflags";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -16,13 +15,6 @@ interface AuthCheckProps {
 }
 
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
-  // If the auth flag is null go straight to rendering the children
-  const flags = useFeatureFlags();
-
-  if (!flags?.WEAVE_GITOPS_AUTH_ENABLED) {
-    return children;
-  }
-
   const { userInfo } = React.useContext(Auth);
 
   // Wait until userInfo is loaded before showing signin or app content
@@ -55,13 +47,11 @@ export const Auth = React.createContext<AuthContext | null>({} as AuthContext);
 
 export default function AuthContextProvider({ children }) {
   const { request } = React.useContext(AppContext);
-  const flags = useFeatureFlags();
 
-  const [userInfo, setUserInfo] =
-    React.useState<{
-      email: string;
-      groups: string[];
-    }>(null);
+  const [userInfo, setUserInfo] = React.useState<{
+    email: string;
+    groups: string[];
+  }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
   const history = useHistory();
@@ -98,7 +88,7 @@ export default function AuthContextProvider({ children }) {
       .then((data) => setUserInfo({ email: data?.email, groups: [] }))
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
-  }, [flags]);
+  }, []);
 
   const logOut = React.useCallback(() => {
     setLoading(true);
@@ -116,31 +106,24 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   React.useEffect(() => {
-    if (!flags.WEAVE_GITOPS_AUTH_ENABLED) {
-      return null;
-    }
     getUserInfo();
     return history.listen(getUserInfo);
-  }, [flags, getUserInfo, history]);
+  }, [getUserInfo, history]);
 
   return (
     <>
-      {flags.WEAVE_GITOPS_AUTH_ENABLED ? (
-        <Auth.Provider
-          value={{
-            signIn,
-            userInfo,
-            error,
-            setError,
-            loading,
-            logOut,
-          }}
-        >
-          {children}
-        </Auth.Provider>
-      ) : (
-        children
-      )}
+      <Auth.Provider
+        value={{
+          signIn,
+          userInfo,
+          error,
+          setError,
+          loading,
+          logOut,
+        }}
+      >
+        {children}
+      </Auth.Provider>
     </>
   );
 }

@@ -15,8 +15,7 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-# -- Enable the login system.
-enableLogin: true
+
 # -- What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
 # Additional arguments to pass in
