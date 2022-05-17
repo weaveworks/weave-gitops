@@ -128,6 +128,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 		} else {
 			namespaces = []v1.Namespace{{}}
 		}
+
 		for _, ns := range namespaces {
 			nsContinueToken := paginationInfo.Get(clusterName, ns.Name)
 
