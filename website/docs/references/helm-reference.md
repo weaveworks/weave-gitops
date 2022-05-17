@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 2.0.4 which installs weave gitops v0.8.0.
+This reference was generated for the chart version 2.0.7 which installs weave gitops v0.8.0.
 
 ## Values
 
@@ -17,7 +17,6 @@ This reference was generated for the chart version 2.0.4 which installs weave gi
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using the bcrypt algorithm. E.g. `go install github.com/bitnami/bcrypt-cli@v1.0.2 && bcrypt-cli <<< $PASSWORD` |
 | adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
 | affinity | object | `{}` |  |
-| enableLogin | bool | `true` | Enable the login system. |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
@@ -36,7 +35,7 @@ This reference was generated for the chart version 2.0.4 which installs weave gi
 | rbac.create | bool | `true` | Specifies whether the clusterRole & binding to the service account should be created |
 | rbac.impersonationResourceNames | list | `[]` | If non-empty, this limits the resources that the service account can impersonate. This applies to both users and groups, e.g. `['user1@corporation.com', 'user2@corporation.com', 'operations']` |
 | rbac.impersonationResources | list | `["users","groups"]` | Limit the type of principal that can be impersonated |
-| rbac.viewSecretsResourceNames | list | `[]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
+| rbac.viewSecretsResourceNames | list | `["cluster-user-auth","oidc-auth"]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
 | securityContext | object | `{}` |  |
