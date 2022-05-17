@@ -14,7 +14,7 @@ function ErrorPage({ className }: Props) {
   );
 
   return (
-    <Content>
+    <Content className={className}>
       <Flex center wide align>
         <React.Suspense fallback={null}>
           <Error404Animation />

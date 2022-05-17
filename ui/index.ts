@@ -18,7 +18,7 @@ import Page from "./components/Page";
 import SourcesTable from "./components/SourcesTable";
 import Interval from "./components/Interval";
 import Timestamp from "./components/Timestamp";
-import { Field, SortType } from "./components/DataTable";
+import { SortType } from "./components/DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,

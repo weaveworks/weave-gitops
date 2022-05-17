@@ -1,6 +1,5 @@
 import _ from "lodash";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
@@ -26,8 +25,6 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  const history = useHistory();
-
   const filterConfig = {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
