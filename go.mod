@@ -40,7 +40,6 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/policy-agent/api v1.0.3
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
