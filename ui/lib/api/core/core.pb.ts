@@ -105,7 +105,7 @@ export type GetKustomizationResponse = {
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.AutomationKind
+  automationKind?: Gitops_coreV1Types.FluxObjectKind
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }
@@ -150,7 +150,7 @@ export type ListFluxEventsResponse = {
 export type SyncAutomationRequest = {
   name?: string
   namespace?: string
-  kind?: Gitops_coreV1Types.AutomationKind
+  kind?: Gitops_coreV1Types.FluxObjectKind
   clusterName?: string
   withSource?: boolean
 }

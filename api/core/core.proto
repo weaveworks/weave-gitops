@@ -283,7 +283,7 @@ message GetKustomizationResponse {
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    AutomationKind automationKind         = 3;
+    FluxObjectKind automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }
@@ -326,7 +326,7 @@ message ListFluxEventsResponse {
 message SyncAutomationRequest {
     string         name        = 1;
     string         namespace   = 2;
-    AutomationKind kind        = 3;
+    FluxObjectKind kind        = 3;
     string         clusterName = 4;
     bool           withSource  = 5;
 }

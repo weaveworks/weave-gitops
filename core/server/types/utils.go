@@ -8,14 +8,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func getSourceKind(kind string) pb.SourceRef_SourceKind {
+func getSourceKind(kind string) pb.FluxObjectKind {
 	switch kind {
 	case sourcev1.GitRepositoryKind:
-		return pb.SourceRef_GitRepository
+		return pb.FluxObjectKind_KindGitRepository
 	case sourcev1.HelmRepositoryKind:
-		return pb.SourceRef_HelmRepository
+		return pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
-		return pb.SourceRef_Bucket
+		return pb.FluxObjectKind_KindBucket
 	default:
 		return -1
 	}

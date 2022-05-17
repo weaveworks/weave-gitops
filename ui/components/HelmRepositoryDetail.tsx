@@ -4,7 +4,7 @@ import Interval from "../components/Interval";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { HelmRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { FluxObjectKind, HelmRepository } from "../lib/api/core/types.pb";
 
 type Props = {
   className?: string;
@@ -18,10 +18,10 @@ function HelmRepositoryDetail({ name, namespace, className }: Props) {
       className={className}
       name={name}
       namespace={namespace}
-      type={SourceRefSourceKind.HelmRepository}
+      type={FluxObjectKind.KindHelmRepository}
       // Guard against an undefined repo with a default empty object
       info={(hr: HelmRepository = {}) => [
-        ["Type", SourceRefSourceKind.HelmRepository],
+        ["Type", FluxObjectKind.KindHelmRepository],
         [
           "URL",
           <Link newTab href={hr.url}>

@@ -3,8 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncAutomation } from "../hooks/automations";
-import { AutomationKind } from "../lib/api/core/types.pb";
-import { AutomationType } from "../lib/types";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -35,7 +34,7 @@ function AutomationDetail({ automation, className, info }: Props) {
     name: automation?.name,
     namespace: automation?.namespace,
     clusterName: automation?.clusterName,
-    kind: AutomationKind.KustomizationAutomation,
+    kind: automation?.kind,
   });
 
   const handleSyncClicked = (opts) => {
@@ -63,7 +62,7 @@ function AutomationDetail({ automation, className, info }: Props) {
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
             <ReconciledObjectsTable
-              automationKind={automation?.type === AutomationType.Kustomization ? AutomationKind.KustomizationAutomation: AutomationKind.HelmReleaseAutomation}
+              automationKind={automation?.kind}
               automationName={automation?.name}
               namespace={automation?.namespace}
               kinds={automation?.inventory}
@@ -82,12 +81,16 @@ function AutomationDetail({ automation, className, info }: Props) {
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
-              automationKind={automation?.type === AutomationType.Kustomization ? AutomationKind.KustomizationAutomation: AutomationKind.HelmReleaseAutomation}
+              automationKind={automation?.kind}
               automationName={automation?.name}
               kinds={automation?.inventory}
               parentObject={automation}
               clusterName={automation?.clusterName}
-              source={automation?.type === AutomationType.Kustomization ? automation?.sourceRef: automation?.helmChart.sourceRef}
+              source={
+                automation?.kind === FluxObjectKind.KindKustomization
+                  ? automation?.sourceRef
+                  : automation?.helmChart.sourceRef
+              }
             />
           </RouterTab>
         </SubRouterTabs>

@@ -59,7 +59,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization no source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_KustomizationAutomation,
+			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  false,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
@@ -67,7 +67,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization with source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_KustomizationAutomation,
+			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  true,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
@@ -76,7 +76,7 @@ func TestSync(t *testing.T) {
 		name: "helm release no source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_HelmReleaseAutomation,
+			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  false,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
@@ -84,7 +84,7 @@ func TestSync(t *testing.T) {
 		name: "helm release with source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_HelmReleaseAutomation,
+			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  true,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},

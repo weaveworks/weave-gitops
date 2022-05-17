@@ -2,10 +2,10 @@ import * as React from "react";
 import styled from "styled-components";
 import {
   Bucket,
+  FluxObjectKind,
   GitRepository,
   HelmChart,
   HelmRepository,
-  SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
@@ -49,7 +49,7 @@ function SourcesTable({ className, sources }: Props) {
           label: "Name",
           value: (s: Source) => (
             <Link
-              to={formatURL(sourceTypeToRoute(s.type), {
+              to={formatURL(sourceTypeToRoute(s.kind), {
                 name: s?.name,
                 namespace: s?.namespace,
               })}
@@ -91,21 +91,21 @@ function SourcesTable({ className, sources }: Props) {
             let text;
             let url;
             let link = false;
-            switch (s.type) {
-              case SourceRefSourceKind.GitRepository:
+            switch (s.kind) {
+              case FluxObjectKind.KindGitRepository:
                 text = (s as GitRepository).url;
                 url = convertGitURLToGitProvider((s as GitRepository).url);
                 link = true;
                 break;
-              case SourceRefSourceKind.Bucket:
+              case FluxObjectKind.KindBucket:
                 text = (s as Bucket).endpoint;
                 break;
-              case SourceRefSourceKind.HelmChart:
+              case FluxObjectKind.KindHelmChart:
                 text = `https://${(s as HelmChart).sourceRef?.name}`;
                 url = (s as HelmChart).chart;
                 link = true;
                 break;
-              case SourceRefSourceKind.HelmRepository:
+              case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
                 url = text;
                 link = true;
@@ -124,7 +124,7 @@ function SourcesTable({ className, sources }: Props) {
         {
           label: "Reference",
           value: (s: Source) => {
-            const isGit = s.type === SourceRefSourceKind.GitRepository;
+            const isGit = s.kind === FluxObjectKind.KindGitRepository;
             const repo = s as GitRepository;
             const ref =
               repo?.reference?.branch ||

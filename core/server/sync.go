@@ -94,29 +94,29 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 	return &pb.SyncAutomationResponse{}, nil
 }
 
-func getAutomation(kind pb.AutomationKind) internal.Automation {
+func getAutomation(kind pb.FluxObjectKind) internal.Automation {
 	switch kind {
-	case pb.AutomationKind_KustomizationAutomation:
+	case pb.FluxObjectKind_KindKustomization:
 		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}
-	case pb.AutomationKind_HelmReleaseAutomation:
+	case pb.FluxObjectKind_KindHelmRelease:
 		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}
 	}
 
 	return nil
 }
 
-func kindToSourceType(kind string) pb.SourceRef_SourceKind {
+func kindToSourceType(kind string) pb.FluxObjectKind {
 	switch kind {
 	case "GitRepository":
-		return pb.SourceRef_GitRepository
+		return pb.FluxObjectKind_KindGitRepository
 	case "Bucket":
-		return pb.SourceRef_Bucket
+		return pb.FluxObjectKind_KindBucket
 
 	case "HelmRepository":
-		return pb.SourceRef_HelmRepository
+		return pb.FluxObjectKind_KindHelmRepository
 
 	case "HelmChart":
-		return pb.SourceRef_HelmChart
+		return pb.FluxObjectKind_KindHelmChart
 	}
 
 	return -1
