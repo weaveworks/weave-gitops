@@ -97,7 +97,6 @@ const NavContent = styled.div`
     min-height: 24px;
     &.sub-item {
       margin-bottom: 32px;
-      padding-left: ${(props) => props.theme.spacing.medium};
     }
   }
   ${Link} {
