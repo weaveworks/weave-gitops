@@ -21,6 +21,8 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/fields"
 )
 
 func TestClientGet(t *testing.T) {
@@ -227,6 +229,58 @@ func TestClientClusteredListPagination(t *testing.T) {
 	})
 	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(0))
+}
+
+func TestClientClusteredListClusterScoped(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	clusterName := "mycluster"
+	appName := "myapp" + rand.String(5)
+
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
+	g.Expect(err).To(BeNil())
+
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: {},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clusterRole := rbacv1.ClusterRole{
+		ObjectMeta: v1.ObjectMeta{
+			Name: appName,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Verbs:     []string{"get"},
+				Resources: []string{"pods"},
+			},
+		},
+	}
+	opts := []client.ListOption{&client.ListOptions{FieldSelector: fields.OneTermEqualSelector("metadata.name", appName)}}
+
+	ctx := context.Background()
+	g.Expect(k8sEnv.Client.Create(ctx, &clusterRole)).To(Succeed())
+
+	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &rbacv1.ClusterRoleList{}
+	})
+
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, false, opts...)).To(Succeed())
+
+	klist := cklist.Lists()[clusterName][0].(*rbacv1.ClusterRoleList)
+
+	g.Expect(klist.Items).To(HaveLen(1))
+	g.Expect(klist.Items[0].Name).To(Equal(appName))
 }
 
 func TestClientCLusteredListErrors(t *testing.T) {

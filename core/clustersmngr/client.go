@@ -122,10 +122,8 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 	)
 
 	for clusterName, cc := range c.pool.Clients() {
-		var namespaces []v1.Namespace
-		if namespaced {
-			namespaces = c.namespaces[clusterName]
-		} else {
+		namespaces := c.namespaces[clusterName]
+		if !namespaced {
 			namespaces = []v1.Namespace{{}}
 		}
 
