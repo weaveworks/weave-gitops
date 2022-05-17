@@ -166,7 +166,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, kube.CreateScheme())
 	clusterClientsFactory.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)

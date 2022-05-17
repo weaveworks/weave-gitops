@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
@@ -55,7 +56,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log)
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, kube.CreateScheme())
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker

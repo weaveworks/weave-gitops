@@ -19,7 +19,10 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/fields"
 )
 
 func TestClientGet(t *testing.T) {
@@ -30,7 +33,7 @@ func TestClientGet(t *testing.T) {
 
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -72,11 +75,12 @@ func TestClientGet(t *testing.T) {
 func TestClientClusteredList(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ns := createNamespace(g)
+	namespaced := true
 
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -112,7 +116,7 @@ func TestClientClusteredList(t *testing.T) {
 		return &kustomizev1.KustomizationList{}
 	})
 
-	g.Expect(clustersClient.ClusteredList(ctx, cklist)).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced)).To(Succeed())
 
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 
@@ -138,7 +142,7 @@ func TestClientClusteredList(t *testing.T) {
 		return &sourcev1.GitRepositoryList{}
 	})
 
-	g.Expect(clustersClient.ClusteredList(ctx, cgrlist)).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cgrlist, namespaced)).To(Succeed())
 
 	glist := cgrlist.Lists()[clusterName][0].(*sourcev1.GitRepositoryList)
 	g.Expect(glist.Items).To(HaveLen(1))
@@ -150,6 +154,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	ctx := context.Background()
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
+	namespaced := true
 
 	clusterName := "mycluster"
 
@@ -180,7 +185,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 		createKust(appName, ns2.Name)
 	}
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
 		clustersmngr.Cluster{
@@ -200,7 +205,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(""))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(""))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(2))
 	klist := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist.Items).To(HaveLen(1))
@@ -211,7 +216,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(1))
 	klist0 := cklist.Lists()[clusterName][0].(*kustomizev1.KustomizationList)
 	g.Expect(klist0.Items).To(HaveLen(1))
@@ -222,8 +227,60 @@ func TestClientClusteredListPagination(t *testing.T) {
 	cklist = clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
 	})
-	g.Expect(clustersClient.ClusteredList(ctx, cklist, client.Limit(1), client.Continue(continueToken))).To(Succeed())
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, namespaced, client.Limit(1), client.Continue(continueToken))).To(Succeed())
 	g.Expect(cklist.Lists()[clusterName]).To(HaveLen(0))
+}
+
+func TestClientClusteredListClusterScoped(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	clusterName := "mycluster"
+	appName := "myapp" + rand.String(5)
+
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+
+	err := clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
+	g.Expect(err).To(BeNil())
+
+	nsMap := map[string][]corev1.Namespace{
+		clusterName: {},
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clusterRole := rbacv1.ClusterRole{
+		ObjectMeta: v1.ObjectMeta{
+			Name: appName,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Verbs:     []string{"get"},
+				Resources: []string{"pods"},
+			},
+		},
+	}
+	opts := []client.ListOption{&client.ListOptions{FieldSelector: fields.OneTermEqualSelector("metadata.name", appName)}}
+
+	ctx := context.Background()
+	g.Expect(k8sEnv.Client.Create(ctx, &clusterRole)).To(Succeed())
+
+	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &rbacv1.ClusterRoleList{}
+	})
+
+	g.Expect(clustersClient.ClusteredList(ctx, cklist, false, opts...)).To(Succeed())
+
+	klist := cklist.Lists()[clusterName][0].(*rbacv1.ClusterRoleList)
+
+	g.Expect(klist.Items).To(HaveLen(1))
+	g.Expect(klist.Items[0].Name).To(Equal(appName))
 }
 
 func TestClientCLusteredListErrors(t *testing.T) {
@@ -232,7 +289,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 
 	clusterName := "mycluster"
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -258,7 +315,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 		"foo": "@invalid",
 	}
 
-	cerr := clustersClient.ClusteredList(context.Background(), cklist, labels)
+	cerr := clustersClient.ClusteredList(context.Background(), cklist, true, labels)
 	g.Expect(cerr).ToNot(BeNil())
 
 	var errs clustersmngr.ClusteredListError
@@ -273,7 +330,7 @@ func TestClientList(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -320,7 +377,7 @@ func TestClientCreate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -365,7 +422,7 @@ func TestClientDelete(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -408,7 +465,7 @@ func TestClientUpdate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -456,7 +513,7 @@ func TestClientPatch(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool()
+	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),

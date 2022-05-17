@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
@@ -27,7 +28,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -58,7 +59,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -99,7 +100,7 @@ func TestUpdateUsers(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"

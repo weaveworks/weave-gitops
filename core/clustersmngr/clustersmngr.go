@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -23,10 +23,6 @@ const (
 	ClientQPS = 1000
 	// ClientBurst is the burst to use while creating the k8s clients
 	ClientBurst = 2000
-)
-
-var (
-	scheme = kube.CreateScheme()
 )
 
 // Cluster defines a leaf cluster
@@ -70,6 +66,7 @@ type ClientsPool interface {
 
 type clientsPool struct {
 	clients map[string]client.Client
+	scheme  *apiruntime.Scheme
 }
 
 type ClusterClientConfig func(Cluster) *rest.Config
@@ -91,9 +88,10 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 }
 
 // NewClustersClientsPool initializes a new ClientsPool
-func NewClustersClientsPool() ClientsPool {
+func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 	return &clientsPool{
 		clients: map[string]client.Client{},
+		scheme:  scheme,
 	}
 }
 
@@ -102,7 +100,7 @@ func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 	config := cfg(cluster)
 
 	leafClient, err := client.New(config, client.Options{
-		Scheme: scheme,
+		Scheme: cp.scheme,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create leaf client: %w", err)
