@@ -36,7 +36,7 @@ export function UnAuthrizedInterceptor(api: any) {
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {
-  const wrapped = UnAuthrizedInterceptor(api) as typeof Core;
+  const wrapped = UnAuthrizedInterceptor(api) as any;
 
   return (
     <CoreClientContext.Provider value={{ api: wrapped }}>
