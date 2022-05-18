@@ -1,14 +1,14 @@
 import _ from "lodash";
+import { FluxObjectKind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
 import { createCoreMockClient } from "../test-utils";
-import {AutomationKind} from "../api/core/types.pb";
 
 describe("graph lib", () => {
   it("getChildren", async () => {
     const app = {
       name: "my-app",
       namespace: "my-namespace",
-      automationKind: AutomationKind.HelmReleaseAutomation,
+      automationKind: FluxObjectKind.KindHelmRelease,
       reconciledObjectKinds: [
         { group: "apps", version: "v1", kind: "Deployment" },
       ],

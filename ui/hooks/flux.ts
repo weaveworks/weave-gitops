@@ -3,7 +3,7 @@ import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListFluxRuntimeObjectsResponse } from "../lib/api/core/core.pb";
 import {
-  AutomationKind,
+  FluxObjectKind,
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
@@ -26,7 +26,7 @@ export function useListFluxRuntimeObjects(
 export function useGetReconciledObjects(
   name: string,
   namespace: string,
-  type: AutomationKind,
+  type: FluxObjectKind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster
 ) {

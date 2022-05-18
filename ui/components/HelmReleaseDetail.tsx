@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { HelmRelease, SourceRefSourceKind } from "../lib/api/core/types.pb";
-import { AutomationType } from "../lib/types";
+import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
@@ -21,7 +20,7 @@ function helmChartLink(helmRelease: HelmRelease) {
     return (
       <SourceLink
         sourceRef={{
-          kind: SourceRefSourceKind.HelmChart,
+          kind: FluxObjectKind.KindHelmChart,
           name: helmRelease?.helmChart.chart,
         }}
       />
@@ -33,7 +32,7 @@ function helmChartLink(helmRelease: HelmRelease) {
   return (
     <SourceLink
       sourceRef={{
-        kind: SourceRefSourceKind.HelmChart,
+        kind: FluxObjectKind.KindHelmChart,
         name: name,
         namespace: ns,
       }}
@@ -45,7 +44,7 @@ function HelmReleaseDetail({ helmRelease, className }: Props) {
   return (
     <AutomationDetail
       className={className}
-      automation={{ ...helmRelease, type: AutomationType.HelmRelease }}
+      automation={{ ...helmRelease, kind: FluxObjectKind.KindHelmRelease }}
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],

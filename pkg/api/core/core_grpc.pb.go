@@ -71,6 +71,9 @@ type CoreClient interface {
 	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
+	//
+	// ToggleSuspendResource suspends or resumes a flux object.
+	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 }
 
 type coreClient struct {
@@ -234,6 +237,15 @@ func (c *coreClient) GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsReq
 	return out, nil
 }
 
+func (c *coreClient) ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error) {
+	out := new(ToggleSuspendResourceResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ToggleSuspendResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -291,6 +303,9 @@ type CoreServer interface {
 	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
+	//
+	// ToggleSuspendResource suspends or resumes a flux object.
+	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -348,6 +363,9 @@ func (UnimplementedCoreServer) GetVersion(context.Context, *GetVersionRequest) (
 }
 func (UnimplementedCoreServer) GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeatureFlags not implemented")
+}
+func (UnimplementedCoreServer) ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendResource not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -668,6 +686,24 @@ func _Core_GetFeatureFlags_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_ToggleSuspendResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ToggleSuspendResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ToggleSuspendResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ToggleSuspendResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ToggleSuspendResource(ctx, req.(*ToggleSuspendResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -742,6 +778,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFeatureFlags",
 			Handler:    _Core_GetFeatureFlags_Handler,
+		},
+		{
+			MethodName: "ToggleSuspendResource",
+			Handler:    _Core_ToggleSuspendResource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

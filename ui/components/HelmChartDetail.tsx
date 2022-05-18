@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { HelmChart, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { FluxObjectKind, HelmChart } from "../lib/api/core/types.pb";
 
 type Props = {
   className?: string;
@@ -16,10 +16,10 @@ function HelmChartDetail({ name, namespace, className }: Props) {
     <SourceDetail
       name={name}
       namespace={namespace}
-      type={SourceRefSourceKind.HelmChart}
+      type={FluxObjectKind.KindHelmChart}
       className={className}
       info={(ch: HelmChart) => [
-        ["Type", SourceRefSourceKind.HelmChart],
+        ["Type", FluxObjectKind.KindHelmChart],
         ["Chart", ch?.chart],
         ["Ref", ch?.sourceRef?.name],
         ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
