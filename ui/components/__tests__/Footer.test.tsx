@@ -3,17 +3,17 @@ import "jest-canvas-mock";
 import React from "react";
 import renderer from "react-test-renderer";
 import { createCoreMockClient, withContext, withTheme } from "../../lib/test-utils";
-import Page from "../Page";
+import Footer from "../Footer";
 import { CoreClientContext } from "../../contexts/CoreClientContext";
 
-describe("Page", () => {
+describe("Footer", () => {
   describe("snapshots", () => {
     it("default", () => {
       const tree = renderer
         .create(withTheme(
           withContext(
             <CoreClientContext.Provider value={{ api: createCoreMockClient({}) }}>
-              <Page />
+              <Footer />
             </CoreClientContext.Provider>,
             "/",
             {}

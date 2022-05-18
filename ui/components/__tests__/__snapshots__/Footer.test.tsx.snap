@@ -1,0 +1,122 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Footer snapshots default 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c5 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c5.title-bar-button {
+  width: 250px;
+}
+
+.c4 {
+  padding: 4px;
+}
+
+.c7 {
+  padding-right: 24px;
+}
+
+.c1 {
+  color: #737373;
+}
+
+<footer
+  className="c0 c1 Footer"
+>
+  <div
+    className="c2"
+  >
+    <span
+      className="c3"
+      color="neutral30"
+      size="normal"
+    >
+      Need help? Contact us at
+    </span>
+    <div
+      className="c4"
+    />
+    <a
+      className="c5"
+      href="mailto:support@weave.works"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        className="c6"
+        color="primary"
+        size="normal"
+      >
+        support@weave.works
+      </span>
+    </a>
+  </div>
+  <div
+    className="c2 c7"
+  >
+    <div
+      className="c4"
+    />
+    <span
+      className="c3"
+      color="neutral30"
+      size="normal"
+    >
+      © 2022 Weaveworks
+    </span>
+  </div>
+</footer>
+`;
