@@ -1,8 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import p from "../../package.json";
-import { VersionContext } from "../contexts/VersionContext";
-import { useVersion } from "../hooks/version";
+import { useVersion, Version } from "../hooks/version";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -21,11 +20,16 @@ const LeftFoot = styled(Flex)``;
 const REPO_URL = "https://github.com/weaveworks/weave-gitops";
 
 function Footer({ className }: Props) {
-  const apiVersion = useVersion();
+  const { data, isLoading } = useVersion();
+  const versionData = data?.version || {} as Version;
+  const apiVersion: Version = {
+    version: versionData.version,
+    gitCommit: versionData["git-commit"],
+    branch: versionData.branch,
+    buildTime: versionData["buildtime"]
+  };
 
-  const { loading: isLoadingVersion } = React.useContext(VersionContext);
-
-  const shouldDisplayApiVersion = !isLoadingVersion
+  const shouldDisplayApiVersion = !isLoading
     && apiVersion.version !== p.version
     && apiVersion.branch
     && apiVersion.gitCommit;
@@ -51,7 +55,7 @@ function Footer({ className }: Props) {
         </Link>
       </LeftFoot>
       <RightFoot>
-        {process.env.NODE_ENV !== "test" && !isLoadingVersion && (
+        {process.env.NODE_ENV !== "test" && !isLoading && (
           <Link
             newTab
             href={versionHref}

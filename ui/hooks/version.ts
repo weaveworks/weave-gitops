@@ -1,8 +1,25 @@
 import { useContext } from "react";
-import { VersionContext, VersionType } from "../contexts/VersionContext";
+import { useQuery } from "react-query";
+import { RequestError } from "../lib/types";
+import { GetVersionResponse } from "../lib/api/core/core.pb";
+import { CoreClientContext } from "../contexts/CoreClientContext";
+
+export type Version = {
+  version: string;
+  gitCommit: string;
+  branch: string;
+  buildTime: string;
+};
 
 export function useVersion() {
-  const { data } = useContext(VersionContext);
+  const { api } = useContext(CoreClientContext);
 
-  return data || ({} as VersionType);
+  return useQuery<GetVersionResponse, RequestError>(
+    "version",
+    () => api.GetVersion({}),
+    {
+      staleTime: Infinity,
+      cacheTime: Infinity,
+    }
+  );
 }
