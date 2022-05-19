@@ -152,6 +152,7 @@ git push
 flux create helmrelease ww-gitops \
   --source=HelmRepository/ww-gitops \
   --chart=weave-gitops \
+  --chart-version=2.0.6 \
   --values=<path to weave-gitops-values.yaml> \
   --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
 ```
