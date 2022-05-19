@@ -4,7 +4,7 @@ import { Core } from "../lib/api/core/core.pb";
 import { AuthRoutes } from "./AuthContext";
 
 type Props = {
-  api: any;
+  api: typeof Core;
   children: any;
 };
 
@@ -17,7 +17,7 @@ export const CoreClientContext =
 
 export function UnAuthrizedInterceptor(api: any) {
   const history = useHistory();
-  const wrapped = {} as typeof Core;
+  const wrapped = {} as any;
   //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
     if (typeof api[method] != "function") {
