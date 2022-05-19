@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -62,9 +63,10 @@ type clientsFactory struct {
 	usersNamespaces *UsersNamespaces
 
 	initialClustersLoad chan bool
+	scheme              *apiruntime.Scheme
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClientsFactory {
+func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme) ClientsFactory {
 	return &clientsFactory{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -73,6 +75,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
+		scheme:              scheme,
 	}
 }
 
@@ -172,7 +175,7 @@ func (cf *clientsFactory) syncCaches() {
 }
 
 func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
-	pool := NewClustersClientsPool()
+	pool := NewClustersClientsPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
@@ -184,7 +187,7 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 }
 
 func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
-	pool := NewClustersClientsPool()
+	pool := NewClustersClientsPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(restConfigFromCluster, cluster); err != nil {

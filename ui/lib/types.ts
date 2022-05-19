@@ -1,9 +1,4 @@
-import {
-  AutomationKind,
-  Condition,
-  Interval,
-  SourceRefSourceKind,
-} from "./api/core/types.pb";
+import { Condition, FluxObjectKind, Interval } from "./api/core/types.pb";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -46,21 +41,16 @@ export const NoNamespace = "";
 export interface Source {
   name?: string;
   namespace?: string;
-  type?: SourceRefSourceKind;
+  kind?: FluxObjectKind;
   conditions?: Condition[];
   interval?: Interval;
   suspended?: boolean;
   clusterName?: string;
 }
 
-export enum AutomationType {
-  Kustomization = "Kustomization",
-  HelmRelease = "HelmRelease",
-}
-
 export interface Syncable {
   name?: string;
-  kind?: AutomationKind;
+  kind?: FluxObjectKind;
   namespace?: string;
   clusterName?: string;
 }

@@ -59,7 +59,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization no source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_KustomizationAutomation,
+			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  false,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
@@ -67,16 +67,16 @@ func TestSync(t *testing.T) {
 		name: "kustomization with source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_KustomizationAutomation,
+			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  true,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
-		source:     internal.NewReconcileableSource(gitRepo),
+		source:     internal.NewReconcileable(gitRepo),
 	}, {
 		name: "helm release no source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_HelmReleaseAutomation,
+			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  false,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
@@ -84,11 +84,11 @@ func TestSync(t *testing.T) {
 		name: "helm release with source",
 		msg: &pb.SyncAutomationRequest{
 			ClusterName: "Default",
-			Kind:        pb.AutomationKind_HelmReleaseAutomation,
+			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  true,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
-		source:     internal.NewReconcileableSource(helmRepo),
+		source:     internal.NewReconcileable(helmRepo),
 	}}
 
 	for _, tt := range tests {
@@ -203,24 +203,28 @@ func makeGitRepo(name string, ns corev1.Namespace) *sourcev1.GitRepository {
 }
 
 func makeKustomization(name string, ns corev1.Namespace, source *sourcev1.GitRepository) *kustomizev1.Kustomization {
-	return &kustomizev1.Kustomization{
+	k := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind:      "GitRepository",
-				Name:      source.GetName(),
-				Namespace: source.GetNamespace(),
-			},
-		},
+		Spec: kustomizev1.KustomizationSpec{},
 		Status: kustomizev1.KustomizationStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
 		},
 	}
+
+	if source != nil {
+		k.Spec.SourceRef = kustomizev1.CrossNamespaceSourceReference{
+			Kind:      "GitRepository",
+			Name:      source.GetName(),
+			Namespace: source.GetNamespace(),
+		}
+	}
+
+	return k
 }
 
 func makeHelmChart(name string, ns corev1.Namespace) *sourcev1.HelmChart {
@@ -238,6 +242,21 @@ func makeHelmChart(name string, ns corev1.Namespace) *sourcev1.HelmChart {
 			},
 		},
 		Status: sourcev1.HelmChartStatus{
+			ReconcileRequestStatus: meta.ReconcileRequestStatus{
+				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+			},
+		},
+	}
+}
+
+func makeBucket(name string, ns corev1.Namespace) *sourcev1.Bucket {
+	return &sourcev1.Bucket{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns.Name,
+		},
+		Spec: sourcev1.BucketSpec{},
+		Status: sourcev1.BucketStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

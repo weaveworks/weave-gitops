@@ -2,7 +2,6 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
-import { useFeatureFlags } from "../hooks/featureflags";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
@@ -137,7 +136,6 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
-  const flags = useFeatureFlags();
   const { currentPage } = useNavigation();
 
   return (
@@ -146,7 +144,7 @@ function Layout({ className, children }: Props) {
         <TopToolBar start align wide>
           <Logo />
           <Breadcrumbs />
-          {flags.WEAVE_GITOPS_AUTH_ENABLED ? <UserSettings /> : null}
+          <UserSettings />
         </TopToolBar>
         <Main wide tall>
           <NavContainer>

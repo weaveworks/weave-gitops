@@ -106,11 +106,11 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	var opts client.MatchingLabels
 
 	switch msg.AutomationKind {
-	case pb.AutomationKind_KustomizationAutomation:
+	case pb.FluxObjectKind_KindKustomization:
 		opts = client.MatchingLabels{
 			KustomizeNameKey: msg.AutomationName,
 		}
-	case pb.AutomationKind_HelmReleaseAutomation:
+	case pb.FluxObjectKind_KindHelmRelease:
 		opts = client.MatchingLabels{
 			HelmNameKey: msg.AutomationName,
 		}

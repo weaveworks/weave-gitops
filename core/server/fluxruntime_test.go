@@ -68,7 +68,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	res, err := c.GetReconciledObjects(ctx, &pb.GetReconciledObjectsRequest{
 		AutomationName: automationName,
 		Namespace:      ns.Name,
-		AutomationKind: pb.AutomationKind_KustomizationAutomation,
+		AutomationKind: pb.FluxObjectKind_KindKustomization,
 		Kinds:          []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
 		ClusterName:    clustersmngr.DefaultCluster,
 	})

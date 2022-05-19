@@ -11,13 +11,6 @@ There are 2 supported methods for logging in to the dashboard:
 
 The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
 
-:::note FEATURE TOGGLE
-The following instructions describe a feature that is behind a feature toggle. To enable this feature, set the following OS environment variable:
-```sh
-export WEAVE_GITOPS_AUTH_ENABLED=true
-```
-:::
-
 ## Login via an OIDC provider
 
 You may decide to give your engineering teams access to the dashboard, in order to view and manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.

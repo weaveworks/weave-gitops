@@ -1,28 +1,29 @@
-import { SourceRefSourceKind } from "./lib/api/core/types.pb";
-import Button from "./components/Button";
-import Footer from "./components/Footer";
-import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
-import Icon, { IconType } from "./components/Icon";
-import LoadingPage from "./components/LoadingPage";
-import RepoInputWithAuth from "./components/RepoInputWithAuth";
-import UserSettings from "./components/UserSettings";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
-import FluxRuntime from "./components/FluxRuntime";
-import GitRepositoryDetail from "./components/GitRepositoryDetail";
-import HelmChartDetail from "./components/HelmChartDetail";
-import HelmReleaseDetail from "./components/HelmReleaseDetail";
-import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
-import KustomizationDetail from "./components/KustomizationDetail";
-import Page from "./components/Page";
-import SourcesTable from "./components/SourcesTable";
-import Interval from "./components/Interval";
-import Timestamp from "./components/Timestamp";
-import { Field, SortType } from "./components/DataTable";
+import Button from "./components/Button";
+import { SortType } from "./components/DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
 } from "./components/FilterableTable";
+import Flex from "./components/Flex";
+import FluxRuntime from "./components/FluxRuntime";
+import Footer from "./components/Footer";
+import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
+import GitRepositoryDetail from "./components/GitRepositoryDetail";
+import HelmChartDetail from "./components/HelmChartDetail";
+import HelmReleaseDetail from "./components/HelmReleaseDetail";
+import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
+import Icon, { IconType } from "./components/Icon";
+import Interval from "./components/Interval";
+import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import KustomizationDetail from "./components/KustomizationDetail";
+import LoadingPage from "./components/LoadingPage";
+import Page from "./components/Page";
+import RepoInputWithAuth from "./components/RepoInputWithAuth";
+import SourcesTable from "./components/SourcesTable";
+import Timestamp from "./components/Timestamp";
+import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider, {
   UnAuthrizedInterceptor,
@@ -31,19 +32,17 @@ import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import {
   Automation,
-  useListAutomations,
-  useGetKustomization,
   useGetHelmRelease,
+  useGetKustomization,
+  useListAutomations,
 } from "./hooks/automations";
+import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListSources } from "./hooks/sources";
-import { useFeatureFlags } from "./hooks/featureflags";
-import FeatureFlagsContextProvider, {
-  FeatureFlags,
-} from "./contexts/FeatureFlags";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
+import { FluxObjectKind } from "./lib/api/core/types.pb";
 import {
   clearCallbackState,
   getCallbackState,
@@ -51,11 +50,9 @@ import {
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
+import { statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-import KubeStatusIndicator from "./components/KubeStatusIndicator";
-import { statusSortHelper } from "./lib/utils";
-import Flex from "./components/Flex";
 
 export {
   AppContextProvider,
@@ -72,8 +69,6 @@ export {
   coreClient,
   UnAuthrizedInterceptor,
   CoreClientContextProvider,
-  FeatureFlagsContextProvider,
-  FeatureFlags,
   Flex,
   FilterableTable,
   filterConfigForString,
@@ -100,7 +95,7 @@ export {
   SignIn,
   statusSortHelper,
   SortType,
-  SourceRefSourceKind,
+  FluxObjectKind,
   SourcesTable,
   theme,
   Timestamp,
