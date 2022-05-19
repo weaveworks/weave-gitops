@@ -21,29 +21,26 @@ const REPO_URL = "https://github.com/weaveworks/weave-gitops";
 
 function Footer({ className }: Props) {
   const { data, isLoading } = useVersion();
-  const versionData = data?.version || {} as Version;
+  const versionData = data?.version || ({} as Version);
   const apiVersion: Version = {
     version: versionData.version,
     gitCommit: versionData["git-commit"],
     branch: versionData.branch,
-    buildTime: versionData["buildtime"]
+    buildTime: versionData["buildtime"],
   };
 
-  const shouldDisplayApiVersion = !isLoading
-    && apiVersion.version !== p.version
-    && apiVersion.branch
-    && apiVersion.gitCommit;
+  const shouldDisplayApiVersion =
+    !isLoading &&
+    apiVersion.version !== p.version &&
+    apiVersion.branch &&
+    apiVersion.gitCommit;
 
   const versionText = shouldDisplayApiVersion
-    ?
-    `${apiVersion.branch}-${apiVersion.gitCommit}`
-    :
-    `v${p.version}`;
+    ? `${apiVersion.branch}-${apiVersion.gitCommit}`
+    : `v${p.version}`;
   const versionHref = shouldDisplayApiVersion
-    ?
-    `${REPO_URL}/commit/${apiVersion.gitCommit}`
-    :
-    `${REPO_URL}/releases/tag/v${p.version}`;
+    ? `${REPO_URL}/commit/${apiVersion.gitCommit}`
+    : `${REPO_URL}/releases/tag/v${p.version}`;
 
   return (
     <Flex as="footer" wide between className={className}>
@@ -56,10 +53,7 @@ function Footer({ className }: Props) {
       </LeftFoot>
       <RightFoot>
         {process.env.NODE_ENV !== "test" && !isLoading && (
-          <Link
-            newTab
-            href={versionHref}
-          >
+          <Link newTab href={versionHref}>
             {versionText}
           </Link>
         )}
