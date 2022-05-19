@@ -107,15 +107,6 @@ nodes:
     extraMounts:
       - hostPath: /var/run/docker.sock
         containerPath: /var/run/docker.sock
-    extraPortMappings:
-      - containerPort: 30080
-        hostPort: 30080
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
-      - containerPort: 31490
-        hostPort: 31490
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
 ```
 
 Fire up cluster
