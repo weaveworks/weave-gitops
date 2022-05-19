@@ -43,7 +43,7 @@ function Footer({ className }: Props) {
     : `${REPO_URL}/releases/tag/v${p.version}`;
 
   return (
-    <Flex as="footer" wide between className={className}>
+    <Flex as="footer" wide between className={className} role="footer">
       <LeftFoot>
         <Text color="neutral30">Need help? Contact us at</Text>
         <Spacer padding="xxs" />
@@ -52,7 +52,7 @@ function Footer({ className }: Props) {
         </Link>
       </LeftFoot>
       <RightFoot>
-        {process.env.NODE_ENV !== "test" && !isLoading && (
+        {!isLoading && (
           <Link newTab href={versionHref}>
             {versionText}
           </Link>

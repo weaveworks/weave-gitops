@@ -74,46 +74,44 @@ exports[`Footer snapshots default 1`] = `
 }
 
 <footer
-  className="c0 c1 Footer"
+  class="c0 c1 Footer"
+  role="footer"
 >
   <div
-    className="c2"
+    class="c2"
   >
     <span
-      className="c3"
+      class="c3"
       color="neutral30"
-      size="normal"
     >
       Need help? Contact us at
     </span>
     <div
-      className="c4"
+      class="c4"
     />
     <a
-      className="c5"
+      class="c5"
       href="mailto:support@weave.works"
       rel="noreferrer"
       target="_blank"
     >
       <span
-        className="c6"
+        class="c6"
         color="primary"
-        size="normal"
       >
         support@weave.works
       </span>
     </a>
   </div>
   <div
-    className="c2 c7"
+    class="c2 c7"
   >
     <div
-      className="c4"
+      class="c4"
     />
     <span
-      className="c3"
+      class="c3"
       color="neutral30"
-      size="normal"
     >
       © 2022 Weaveworks
     </span>
