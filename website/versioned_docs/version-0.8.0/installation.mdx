@@ -44,15 +44,13 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: ww-gitops
+      version: 2.0.6
   interval: 1m0s
   values:
     adminUser:
       create: true
-      passwordHash: <UPDATE>
       username: <UPDATE>
-    namespace: flux-system
-    rbac:
-      create: true
+      passwordHash: <UPDATE>
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
