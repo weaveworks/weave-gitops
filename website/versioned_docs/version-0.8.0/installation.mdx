@@ -14,7 +14,7 @@ This section details the steps required to install Weave GitOps on a Kubernetes 
 ### Pre-requisites
 
 #### Kubernetes Cluster
-This version of Weave Gitops is tested against the following Kubernetes releases:
+This version of Weave GitOps is tested against the following Kubernetes releases:
 * 1.20
 * 1.21
 * 1.22
@@ -25,7 +25,7 @@ Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisit
 #### Install Flux
 Weave GitOps is an extension to Flux and therefore requires that Flux 0.29 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
-This version of Weave Gitops is tested against the following Flux releases:
+This version of Weave GitOps is tested against the following Flux releases:
 * 0.29
 
 ### Install the Helm Chart
@@ -64,7 +64,7 @@ spec:
 
 ## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
-Weave Gitops Enterprise (WGE) provides ops teams with an easy way to assess the
+Weave GitOps Enterprise (WGE) provides ops teams with an easy way to assess the
 health of multiple clusters in a single place. It shows cluster information such as
 Kubernetes version and number of nodes and provides details about the GitOps operations
 on those clusters, such as Git repositories and recent commits. Additionally, it
@@ -91,7 +91,7 @@ To get you started in this document we'll cover:
 - `kind` as our management cluster with the _CAPD_ provider
 - **EKS** as our management cluster with the _CAPA_ provider
 
-However Weave Gitops Enterprise supports any combination of management cluster and CAPI provider.
+However Weave GitOps Enterprise supports any combination of management cluster and CAPI provider.
 
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="kind">
@@ -313,7 +313,7 @@ Commit and push all the files
 
 ```
 git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave Gitops Enterprise"
+git commit -m "Deploy Weave GitOps Enterprise"
 git push
 ```
 
