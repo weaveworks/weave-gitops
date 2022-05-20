@@ -3,7 +3,6 @@ import "jest-canvas-mock";
 import "jest-styled-components";
 import React from "react";
 import { act } from "react-dom/test-utils";
-import { CoreClientContext } from "../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
   withContext,
@@ -27,25 +26,17 @@ describe("Footer", () => {
       await act(async () => {
         render(
           withTheme(
-            withContext(
-              <CoreClientContext.Provider
-                value={{
-                  api: createCoreMockClient({
-                    GetVersion: () => ({
-                      version: {
-                        version: "v0.0.1",
-                        branch: "mybranch",
-                        "git-commit": "123abcd",
-                      },
-                    }),
-                  }),
-                }}
-              >
-                <Footer />
-              </CoreClientContext.Provider>,
-              "/",
-              {}
-            )
+            withContext(<Footer />, "/", {
+              api: createCoreMockClient({
+                GetVersion: () => ({
+                  version: {
+                    version: "v0.0.1",
+                    branch: "mybranch",
+                    "git-commit": "123abcd",
+                  },
+                }),
+              }),
+            })
           ),
           container
         );
@@ -58,19 +49,11 @@ describe("Footer", () => {
       await act(async () => {
         render(
           withTheme(
-            withContext(
-              <CoreClientContext.Provider
-                value={{
-                  api: createCoreMockClient({
-                    GetVersion: () => ({}),
-                  }),
-                }}
-              >
-                <Footer />
-              </CoreClientContext.Provider>,
-              "/",
-              {}
-            )
+            withContext(<Footer />, "/", {
+              api: createCoreMockClient({
+                GetVersion: () => ({}),
+              }),
+            })
           ),
           container
         );

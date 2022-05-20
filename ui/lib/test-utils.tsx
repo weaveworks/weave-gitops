@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
+import CoreClientContextProvider from "../contexts/CoreClientContext";
 import {
   Applications,
   GetGithubAuthStatusRequest,
@@ -103,16 +104,24 @@ export function withTheme(element) {
   );
 }
 
-export function withContext(TestComponent, url: string, ctxProps: AppProps) {
+type TestContextProps = AppProps & { api?: Core };
+
+export function withContext(
+  TestComponent,
+  url: string,
+  { api = {}, ...appProps }: TestContextProps
+) {
   const history = createMemoryHistory();
   history.push(url);
   const queryClient = new QueryClient();
   const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
-      <AppContextProvider renderFooter {...ctxProps}>
+      <AppContextProvider renderFooter {...appProps}>
         <QueryClientProvider client={queryClient}>
-          {isElement ? TestComponent : <TestComponent />}
+          <CoreClientContextProvider api={api as any}>
+            {isElement ? TestComponent : <TestComponent />}
+          </CoreClientContextProvider>
         </QueryClientProvider>
       </AppContextProvider>
     </Router>
