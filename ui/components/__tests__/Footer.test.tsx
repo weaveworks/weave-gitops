@@ -1,15 +1,15 @@
-import "jest-styled-components";
-import "jest-canvas-mock";
-import React from "react";
 import { render, screen } from "@testing-library/react";
+import "jest-canvas-mock";
+import "jest-styled-components";
+import React from "react";
 import { act } from "react-dom/test-utils";
+import { CoreClientContext } from "../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
   withContext,
   withTheme,
 } from "../../lib/test-utils";
 import Footer from "../Footer";
-import { CoreClientContext } from "../../contexts/CoreClientContext";
 
 describe("Footer", () => {
   let container;
@@ -29,7 +29,42 @@ describe("Footer", () => {
           withTheme(
             withContext(
               <CoreClientContext.Provider
-                value={{ api: createCoreMockClient({}) }}
+                value={{
+                  api: createCoreMockClient({
+                    GetVersion: () => ({
+                      version: {
+                        version: "v0.0.1",
+                        branch: "mybranch",
+                        "git-commit": "123abcd",
+                      },
+                    }),
+                  }),
+                }}
+              >
+                <Footer />
+              </CoreClientContext.Provider>,
+              "/",
+              {}
+            )
+          ),
+          container
+        );
+      });
+
+      const footer = screen.getByRole("footer");
+      expect(footer).toMatchSnapshot();
+    });
+    it("no api version", async () => {
+      await act(async () => {
+        render(
+          withTheme(
+            withContext(
+              <CoreClientContext.Provider
+                value={{
+                  api: createCoreMockClient({
+                    GetVersion: () => ({}),
+                  }),
+                }}
               >
                 <Footer />
               </CoreClientContext.Provider>,

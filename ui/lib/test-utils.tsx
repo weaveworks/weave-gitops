@@ -23,6 +23,8 @@ import {
   GetChildObjectsResponse,
   GetReconciledObjectsRequest,
   GetReconciledObjectsResponse,
+  GetVersionRequest,
+  GetVersionResponse,
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
@@ -32,6 +34,7 @@ export type CoreOverrides = {
   GetReconciledObjects?: (
     req: GetReconciledObjectsRequest
   ) => GetReconciledObjectsResponse;
+  GetVersion?: (req: GetVersionRequest) => GetVersionResponse;
 };
 
 export const createCoreMockClient = (
