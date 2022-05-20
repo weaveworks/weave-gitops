@@ -85,7 +85,7 @@ import TOCInline from "@theme/TOCInline";
            return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
            })()} />
 
-### 1. Setting up a Cluster with `flux`
+### 1. Setting up a Management Cluster with `flux`
 
 To get you started in this document we'll cover:
 
@@ -97,8 +97,8 @@ However Weave Gitops Enterprise supports any combination of management cluster a
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="kind">
 
-- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
-- `extraPortMappings` are for easily accessing NATS and the UI
+##### 1.1 We start with creating a kind-config. 
+
 
 ```yaml title="kind-config.yaml"
 kind: Cluster
@@ -119,10 +119,13 @@ nodes:
         protocol: tcp # Optional, defaults to tcp
 ```
 
-Fire up cluster
+- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
+- `extraPortMappings` are for easily accessing NATS and the UI
+
+##### 1.2 Start your kind cluster using the configuration above and Kubernetes v1.23.6
 
 ```bash
-kind create cluster --config kind-config.yaml
+kind create cluster --config kind-config.yaml --image=kindest/node:v1.23.6
 ```
 
 </TabItem>
@@ -177,16 +180,50 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 </TabItem>
 </Tabs>
 
-Install Flux onto your cluster with the `flux bootstrap` command
+##### Install Flux onto your cluster with the `flux bootstrap` command.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="github" label="GITHUB">
 
 ```
 flux bootstrap github \
-  --owner=$GITHUB_USER \
+  --owner=<github username> \
   --repository=fleet-infra \
   --branch=main \
   --path=./clusters/management \
   --personal
 ```
+
+</TabItem>
+
+<TabItem value="gitlab" label="GITLAB">
+
+```
+flux bootstrap gitlab \
+  --owner=<gitlab username> \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/management \
+  --personal
+```
+
+</TabItem>
+
+
+</Tabs>
+
+* **owner**      - The username (or organization) of the git repository
+* **repository** - Git repository name
+* **branch**     - Git branch (default "main")
+* **path**       - path relative to the repository root, when specified the cluster sync will be scoped to this path
+* **personal**   -  if set, the owner is assumed to be a repo user
+
+More information about `flux` and the `flux bootstrap` command can be found [here](https://fluxcd.io/docs/cmd/)
+
+:::note At this point a few things have occurred:
+* Your Flux management cluster is now running
+* A new git repo was created based on the parameters you set in the `flux bootstrap` command. Take a look at your repositories. 
+:::
 
 ### 2. Install a CAPI provider
 
@@ -280,10 +317,11 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 
 We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
 
-Clone the repo locally as we're gonna add some things!
+Clone the newly created repo locally as we're gonna add some things!
 
 ```
-git clone git@github.com:$GITHUB_USER/fleet-infra
+git clone git@<provider>:<username>/fleet-infra
+cd fleet-infra
 ```
 
 Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
@@ -318,7 +356,7 @@ git commit -m "Deploy Weave Gitops Enterprise"
 git push
 ```
 
-Flux will reconcile the helm-release and WGE will be deployed into the cluster.
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running. 
 
 ### 6. Configure password
 
@@ -327,31 +365,29 @@ In order to login to the WGE UI, you need to generate a bcrypt hash for your cho
 Run the following Docker command and supply the password of your choice as an environment variable:
 
 ```bash
-PASSWORD="<your password>"
-docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
-$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+docker run -e PASSWORD="<your password>" -it golang:1.17 bash -c 'go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n $PASSWORD | bcrypt-cli'
 ```
 
-Now create a Kubernetes secret to store your chosen username and the password hash:
+Use the hashed output to create a Kubernetes username/password secret.
 
 ```bash
 kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
   --from-literal=username=admin \
-  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+  --from-literal=password='$2a$.......'
 ```
-
-By default a user `wego-admin` is used when you login.
 
 ### 7. Checking that WGE is installed
 
-You should now be able to load the WGE UI:
+You should now be able to load the WGE UI by port forwarding. 
 
 ```bash
 kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 ```
 
 The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
+
+Use the username above and regular password (not the hashed version) to login.
 
 ### 8. Connect the management cluster up to itself
 
