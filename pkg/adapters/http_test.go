@@ -641,7 +641,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 							Name:      "test-repo",
 							Namespace: "test-ns",
 						},
-						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
+						AvailableVersions: []string{"v0.0.15", "v0.0.14"},
 					},
 				})
 			},

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/go-resty/resty/v2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -516,6 +517,8 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, erro
 
 	var tps []capi.Profile
 	for _, p := range templateProfilesList.Profiles {
+	    sort.Sort(sort.Reverse(sort.StringSlice(p.AvailableVersions)))
+
 		tps = append(tps, capi.Profile{
 			Name:              p.Name,
 			Home:              p.Home,
