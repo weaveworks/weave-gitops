@@ -895,11 +895,17 @@
     "v1GetVersionResponse": {
       "type": "object",
       "properties": {
-        "version": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
+        "semver": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "buildTime": {
+          "type": "string"
         }
       }
     },

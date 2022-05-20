@@ -1,6 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import p from "../../package.json";
+import { useVersion } from "../hooks/version";
+import { GetVersionResponse } from "../lib/api/core/core.pb";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -16,9 +18,27 @@ const RightFoot = styled(Flex)`
 
 const LeftFoot = styled(Flex)``;
 
+const REPO_URL = "https://github.com/weaveworks/weave-gitops";
+
 function Footer({ className }: Props) {
+  const { data, isLoading } = useVersion();
+  const versionData = data || ({} as GetVersionResponse);
+
+  const shouldDisplayApiVersion =
+    !isLoading &&
+    versionData.semver !== p.version &&
+    versionData.branch &&
+    versionData.commit;
+
+  const versionText = shouldDisplayApiVersion
+    ? `${versionData.branch}-${versionData.commit}`
+    : `v${p.version}`;
+  const versionHref = shouldDisplayApiVersion
+    ? `${REPO_URL}/commit/${versionData.commit}`
+    : `${REPO_URL}/releases/tag/v${p.version}`;
+
   return (
-    <Flex as="footer" wide between className={className}>
+    <Flex as="footer" wide between className={className} role="footer">
       <LeftFoot>
         <Text color="neutral30">Need help? Contact us at</Text>
         <Spacer padding="xxs" />
@@ -27,12 +47,9 @@ function Footer({ className }: Props) {
         </Link>
       </LeftFoot>
       <RightFoot>
-        {process.env.NODE_ENV !== "test" && (
-          <Link
-            newTab
-            href={`https://github.com/weaveworks/weave-gitops/releases/tag/v${p.version}`}
-          >
-            v{p.version}
+        {!isLoading && (
+          <Link newTab href={versionHref}>
+            {versionText}
           </Link>
         )}
         <Spacer padding="xxs" />
