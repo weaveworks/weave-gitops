@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import p from "../../package.json";
-import { useVersion, Version } from "../hooks/version";
+import { useVersion } from "../hooks/version";
+import { GetVersionResponse } from "../lib/api/core/core.pb";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -21,25 +22,19 @@ const REPO_URL = "https://github.com/weaveworks/weave-gitops";
 
 function Footer({ className }: Props) {
   const { data, isLoading } = useVersion();
-  const versionData = data?.version || ({} as Version);
-  const apiVersion: Version = {
-    version: versionData.version,
-    gitCommit: versionData["git-commit"],
-    branch: versionData.branch,
-    buildTime: versionData["buildtime"],
-  };
+  const versionData = data || ({} as GetVersionResponse);
 
   const shouldDisplayApiVersion =
     !isLoading &&
-    apiVersion.version !== p.version &&
-    apiVersion.branch &&
-    apiVersion.gitCommit;
+    versionData.semver !== p.version &&
+    versionData.branch &&
+    versionData.commit;
 
   const versionText = shouldDisplayApiVersion
-    ? `${apiVersion.branch}-${apiVersion.gitCommit}`
+    ? `${versionData.branch}-${versionData.commit}`
     : `v${p.version}`;
   const versionHref = shouldDisplayApiVersion
-    ? `${REPO_URL}/commit/${apiVersion.gitCommit}`
+    ? `${REPO_URL}/commit/${versionData.commit}`
     : `${REPO_URL}/releases/tag/v${p.version}`;
 
   return (

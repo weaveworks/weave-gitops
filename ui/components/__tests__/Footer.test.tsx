@@ -29,11 +29,9 @@ describe("Footer", () => {
             withContext(<Footer />, "/", {
               api: createCoreMockClient({
                 GetVersion: () => ({
-                  version: {
-                    version: "v0.0.1",
-                    branch: "mybranch",
-                    "git-commit": "123abcd",
-                  },
+                  semver: "v0.0.1",
+                  branch: "mybranch",
+                  commit: "123abcd",
                 }),
               }),
             })
