@@ -26,7 +26,7 @@ import Timestamp from "./components/Timestamp";
 import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
 import CoreClientContextProvider, {
-  UnAuthrizedInterceptor,
+  UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
@@ -67,7 +67,7 @@ export {
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
-  UnAuthrizedInterceptor,
+  UnAuthorizedInterceptor,
   CoreClientContextProvider,
   Flex,
   FilterableTable,
