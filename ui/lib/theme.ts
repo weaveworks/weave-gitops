@@ -15,9 +15,9 @@ export const theme: DefaultTheme = {
     huge: "48px",
     extraLarge: "32px",
     large: "20px",
-    normal: "16px",
-    small: "14px",
-    tiny: "12px",
+    medium: "14px",
+    small: "12px",
+    tiny: "10px",
   },
   colors: {
     black: "#1a1a1a",
@@ -84,7 +84,7 @@ export const GlobalStyle = createGlobalStyle`
   
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
-    font-size: ${(props) => props.theme.fontSizes.normal};
+    font-size: ${(props) => props.theme.fontSizes.medium};
     color: ${(props) => props.theme.colors.black};
     padding: 0;
     margin: 0;

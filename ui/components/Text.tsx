@@ -40,7 +40,7 @@ const Text = styled.span<TextProps>`
 `;
 
 Text.defaultProps = {
-  size: "normal",
+  size: "medium",
 };
 
 export default Text;
