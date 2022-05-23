@@ -39,6 +39,7 @@ function SourcesTable({ className, sources }: Props) {
 
   return (
     <URLAddressableTable
+      key={sources?.length}
       className={className}
       filters={initialFilterState}
       rows={sources}

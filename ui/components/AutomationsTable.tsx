@@ -132,6 +132,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
   return (
     <URLAddressableTable
+      key={automations?.length}
       fields={fields}
       filters={filterConfig}
       rows={automations}
