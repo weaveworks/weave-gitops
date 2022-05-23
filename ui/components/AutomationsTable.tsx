@@ -130,9 +130,15 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
+  const [tableKey, setTableKey] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    setTableKey((prevState: number) => prevState + 1);
+  }, [automations]);
+
   return (
     <URLAddressableTable
-      key={automations?.length}
+      key={tableKey}
       fields={fields}
       filters={filterConfig}
       rows={automations}

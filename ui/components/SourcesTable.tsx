@@ -37,9 +37,15 @@ function SourcesTable({ className, sources }: Props) {
     ...filterConfigForString(sources, "clusterName"),
   };
 
+  const [tableKey, setTableKey] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    setTableKey((prevState: number) => prevState + 1);
+  }, [sources]);
+
   return (
     <URLAddressableTable
-      key={sources?.length}
+      key={tableKey}
       className={className}
       filters={initialFilterState}
       rows={sources}
