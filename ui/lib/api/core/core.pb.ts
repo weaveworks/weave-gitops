@@ -162,7 +162,10 @@ export type GetVersionRequest = {
 }
 
 export type GetVersionResponse = {
-  version?: {[key: string]: string}
+  semver?: string
+  commit?: string
+  branch?: string
+  buildTime?: string
 }
 
 export type GetFeatureFlagsRequest = {
