@@ -33,7 +33,7 @@ export namespace fontSizes {
   const huge: string;
   const extraLarge: string;
   const large: string;
-  const normal: string;
+  const medium: string;
   const small: string;
   const tiny: string;
 }
