@@ -70,19 +70,20 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
           </Text>
         </ListItem>
         {_.map(options, (option: string, index: number) => {
-          return (
-            <ListItem key={index}>
-              <ListItemIcon>
-                <FormCheckbox
-                  label=""
-                  name={`${header}${filterSeparator}${option}`}
-                />
-              </ListItemIcon>
-              <Text color="neutral40" size="small">
-                {_.toString(option)}
-              </Text>
-            </ListItem>
-          );
+          if (option)
+            return (
+              <ListItem key={index}>
+                <ListItemIcon>
+                  <FormCheckbox
+                    label=""
+                    name={`${header}${filterSeparator}${option}`}
+                  />
+                </ListItemIcon>
+                <Text color="neutral40" size="small">
+                  {_.toString(option)}
+                </Text>
+              </ListItem>
+            );
         })}
       </List>
     </ListItem>
