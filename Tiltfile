@@ -47,7 +47,7 @@ else:
     )
 
 
-k8s_yaml(helm('./charts/gitops-server', name='dev', values='./tools/helm-values-dev.yaml'))
-k8s_yaml(helm('./tools/charts/dev', name='dev', values='./tools/charts/dev/values.yaml'))
+k8s_yaml(helm('./charts/gitops-server', name='dev', namespace='flux-system', values='./tools/helm-values-dev.yaml'))
+k8s_yaml(helm('./tools/charts/dev', name='dev', namespace='flux-system', values='./tools/charts/dev/values.yaml'))
 
 k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server', 'ui-server'] if advanced_go_dev_mode else [])
