@@ -89,7 +89,7 @@ function AutomationDetail({ automation, className, info }: Props) {
               source={
                 automation?.kind === FluxObjectKind.KindKustomization
                   ? automation?.sourceRef
-                  : automation?.helmChart.sourceRef
+                  : automation?.helmChart?.sourceRef
               }
             />
           </RouterTab>
