@@ -25,9 +25,11 @@ import SourcesTable from "./components/SourcesTable";
 import Timestamp from "./components/Timestamp";
 import UserSettings from "./components/UserSettings";
 import AppContextProvider from "./contexts/AppContext";
+import CoreClientContextProvider, {
+  UnAuthorizedInterceptor,
+} from "./contexts/CoreClientContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
-import CoreClientContextProvider from "./contexts/CoreClientContext";
 import {
   Automation,
   useGetHelmRelease,
@@ -65,6 +67,7 @@ export {
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
+  UnAuthorizedInterceptor,
   CoreClientContextProvider,
   Flex,
   FilterableTable,
