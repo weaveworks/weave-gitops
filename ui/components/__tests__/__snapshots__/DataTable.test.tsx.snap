@@ -35,7 +35,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c8 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -106,7 +106,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 h2 {
   padding: 8px;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
@@ -368,7 +368,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               <a
                 href="/some_url"
@@ -383,7 +383,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               Ready
             </span>
@@ -394,7 +394,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               2004-01-02T15:04:05-0700
             </span>
@@ -405,7 +405,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               3000
             </span>
@@ -421,7 +421,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               <a
                 href="/some_url"
@@ -436,7 +436,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             />
           </td>
           <td
@@ -445,7 +445,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               2006-01-02T15:04:05-0700
             </span>
@@ -456,7 +456,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               2000
             </span>
@@ -472,7 +472,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               <a
                 href="/some_url"
@@ -487,7 +487,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             />
           </td>
           <td
@@ -496,7 +496,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               2005-01-02T15:04:05-0700
             </span>
@@ -507,7 +507,7 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c7 c8"
-              size="normal"
+              size="medium"
             >
               1000
             </span>

@@ -36,7 +36,7 @@ exports[`Footer snapshots default 1`] = `
 
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -45,7 +45,7 @@ exports[`Footer snapshots default 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -168,7 +168,7 @@ exports[`Footer snapshots no api version 1`] = `
 
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -177,7 +177,7 @@ exports[`Footer snapshots no api version 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
