@@ -123,7 +123,7 @@ function ReconciliationGraph({
     []
   );
 
-  const sourceId = `source/${source.namespace}/${source.name}`;
+  const sourceId = `source/${source?.namespace}/${source?.name}`;
 
   const nodes = [
     ..._.map(objects, (r) => ({
@@ -190,19 +190,23 @@ export default styled(ReconciliationGraph)`
     stroke: ${(props) => props.theme.colors.neutral20};
     stroke-width: 3;
   }
+
   .status {
     display: flex;
     align-items: center;
   }
+
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 28px;
   }
+
   .status-line {
     width: 2.5%;
     border-radius: 10px 0px 0px 10px;
   }
+
   .nodeText {
     width: 95%;
     align-items: flex-start;
@@ -211,31 +215,39 @@ export default styled(ReconciliationGraph)`
 
   .Current {
     color: ${(props) => props.theme.colors.success};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.success};
     }
   }
+
   .InProgress {
     color: ${(props) => props.theme.colors.suspended};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.suspended};
     }
   }
+
   .Failed {
     color: ${(props) => props.theme.colors.alert};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.alert};
     }
   }
+
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
     font-size: 28px;
     white-space: pre-wrap;
   }
+
   .kind {
     color: ${(props) => props.theme.colors.neutral30};
   }
+
   .edgePath path {
     stroke: ${(props) => props.theme.colors.neutral30};
     stroke-width: 1px;
