@@ -37,12 +37,8 @@ const SlideContent = styled.div`
 export const filterSeparator = ":";
 
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
-  const all = _.chain(formState)
-    // get all relevant keys' current value
-    .keys()
-    .filter((key) => _.includes(key, header))
-    .every((key) => formState[key])
-    .value();
+  const compoundKeys = options.map((option) => `${header}:${option}`);
+  const all = compoundKeys.every((key) => formState[key] === true);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
@@ -58,11 +54,7 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
         <ListItem>
           {options[0] && (
             <ListItemIcon>
-              <Checkbox
-                checked={Object.keys(formState).length === 0 ? false : all}
-                onChange={handleChange}
-                id={header}
-              />
+              <Checkbox checked={all} onChange={handleChange} id={header} />
             </ListItemIcon>
           )}
           <Text capitalize size="small" color="neutral30" semiBold>
