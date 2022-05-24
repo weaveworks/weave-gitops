@@ -58,7 +58,11 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
         <ListItem>
           {options[0] && (
             <ListItemIcon>
-              <Checkbox checked={all} onChange={handleChange} id={header} />
+              <Checkbox
+                checked={Object.keys(formState).length === 0 ? false : all}
+                onChange={handleChange}
+                id={header}
+              />
             </ListItemIcon>
           )}
           <Text capitalize size="small" color="neutral30" semiBold>
