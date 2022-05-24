@@ -38,7 +38,8 @@ export const filterSeparator = ":";
 
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
   const compoundKeys = options.map((option) => `${header}:${option}`);
-  const all = compoundKeys.every((key) => formState[key] === true);
+  // every on an empty list is true so check that too
+  const all = compoundKeys.length > 0 && compoundKeys.every((key) => formState[key] === true);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
