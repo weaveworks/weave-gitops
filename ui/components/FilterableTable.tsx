@@ -225,17 +225,8 @@ function FilterableTable({
   });
 
   let filtered = filterRows(rows, filterState.filters);
-  // filtered = filterText(filtered, fields, filterState.textFilters);
+  filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
-
-  console.log({
-    filters,
-    initialSelections,
-    rows,
-    filtered,
-    "filterState.filters": filterState.filters,
-    "filterState.formState": filterState.formState,
-  });
 
   const doChange = (formState) => {
     if (onFilterChange) {
