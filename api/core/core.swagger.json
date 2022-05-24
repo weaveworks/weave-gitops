@@ -1055,6 +1055,12 @@
         },
         "helmChartName": {
           "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "lastAttemptedRevision": {
+          "type": "string"
         }
       }
     },
