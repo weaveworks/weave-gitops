@@ -54,13 +54,13 @@ function Errors({ error }) {
 function Page({ children, loading, error, className }: PageProps) {
   const { settings } = useCommon();
 
-  // if (loading) {
-  //   return (
-  //     <Content wide tall start column>
-  //       <LoadingPage />
-  //     </Content>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <Content wide tall start column>
+        <LoadingPage />
+      </Content>
+    );
+  }
 
   return (
     <Content wide tall start column className={className}>
