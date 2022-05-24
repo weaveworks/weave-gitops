@@ -37,7 +37,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Name",
       value: (k) => {
         const route =
-          k.type === FluxObjectKind.KindKustomization
+          k.kind === FluxObjectKind.KindKustomization
             ? V2Routes.Kustomization
             : V2Routes.HelmRelease;
         return (
