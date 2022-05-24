@@ -39,6 +39,8 @@ import (
 	"k8s.io/client-go/restmapper"
 )
 
+const BaseURI = "https://weave.works/api"
+
 var k8sEnv *K8sTestEnv
 
 type K8sTestEnv struct {

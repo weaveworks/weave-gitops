@@ -11,6 +11,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 const (
@@ -220,9 +221,7 @@ func (c *HTTPClient) RenderTemplateWithParameters(name string, parameters map[st
 
 // CreatePullRequestFromTemplate commits the YAML template to the specified
 // branch and creates a pull request of that branch.
-func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
-	endpoint := "v1/clusters"
-
+func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
 		RepositoryURL   string               `json:"repositoryUrl"`
@@ -242,9 +241,16 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 		WebURL string `json:"webUrl"`
 	}
 
-	var result CreatePullRequestFromTemplateResponse
+	var (
+		endpoint   string
+		result     CreatePullRequestFromTemplateResponse
+		serviceErr *ServiceError
+	)
 
-	var serviceErr *ServiceError
+	endpoint = "v1/clusters"
+	if params.TemplateKind == templates.TFTemplateKind {
+		endpoint = "v1/tfcontrollers"
+	}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
