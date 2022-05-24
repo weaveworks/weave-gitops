@@ -130,6 +130,9 @@ function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
 }
 
 export function initialFormState(cfg: FilterConfig, initialSelections?) {
+  if (!initialSelections) {
+    return {};
+  }
   const allFilters = _.reduce(
     cfg,
     (r, vals, k) => {
@@ -153,12 +156,15 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
 
 function applySelections(
   filters: FilterConfig,
-  selections: FilterSelections
+  initialSelections: FilterSelections
 ): FilterConfig {
-  if (!selections) {
-    return filters;
+  // If no initial selections just use the filter data for the filter config as the initial set of actual filters
+  if (!initialSelections) {
+    return {};
   }
-  return selectionsToFilters(selections);
+
+  // Otherwise set up the initial filtering based on initialSelections, we can come from the URL etc
+  return selectionsToFilters(initialSelections);
 }
 
 function toPairs(state: State): string[] {
@@ -219,8 +225,17 @@ function FilterableTable({
   });
 
   let filtered = filterRows(rows, filterState.filters);
-  filtered = filterText(filtered, fields, filterState.textFilters);
+  // filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
+
+  console.log({
+    filters,
+    initialSelections,
+    rows,
+    filtered,
+    "filterState.filters": filterState.filters,
+    "filterState.formState": filterState.formState,
+  });
 
   const doChange = (formState) => {
     if (onFilterChange) {

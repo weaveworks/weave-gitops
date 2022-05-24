@@ -37,16 +37,12 @@ const SlideContent = styled.div`
 export const filterSeparator = ":";
 
 const FilterSection = ({ header, options, formState, onSectionSelect }) => {
-  const [all, setAll] = React.useState(false);
-  React.useEffect(() => {
-    const allChecked = _.chain(formState)
-      // get all relevant keys' current value
-      .keys()
-      .filter((key) => _.includes(key, header))
-      .every((key) => formState[key])
-      .value();
-    setAll(allChecked);
-  });
+  const all = _.chain(formState)
+    // get all relevant keys' current value
+    .keys()
+    .filter((key) => _.includes(key, header))
+    .every((key) => formState[key])
+    .value();
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
