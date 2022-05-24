@@ -154,19 +154,6 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
   return allFilters;
 }
 
-function applySelections(
-  filters: FilterConfig,
-  initialSelections: FilterSelections
-): FilterConfig {
-  // If no initial selections just use the filter data for the filter config as the initial set of actual filters
-  if (!initialSelections) {
-    return {};
-  }
-
-  // Otherwise set up the initial filtering based on initialSelections, we can come from the URL etc
-  return selectionsToFilters(initialSelections);
-}
-
 function toPairs(state: State): string[] {
   const result = _.map(state.formState, (val, key) => (val ? key : null));
   const out = _.compact(result);
@@ -219,7 +206,7 @@ function FilterableTable({
 }: FilterableTableProps) {
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
-    filters: applySelections(filters, initialSelections),
+    filters: selectionsToFilters(initialSelections),
     formState: initialFormState(filters, initialSelections),
     textFilters: [],
   });
