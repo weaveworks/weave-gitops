@@ -373,7 +373,7 @@ Use the hashed output to create a Kubernetes username/password secret.
 ```bash
 kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
-  --from-literal=username=admin \
+  --from-literal=username=wego-admin \
   --from-literal=password='$2a$.......'
 ```
 
