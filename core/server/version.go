@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
@@ -15,11 +16,9 @@ var (
 
 func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
 	return &pb.GetVersionResponse{
-		Version: map[string]string{
-			"version":    Version,
-			"git-commit": GitCommit,
-			"branch":     Branch,
-			"buildtime":  Buildtime,
-		},
+		Semver:    Version,
+		Commit:    GitCommit,
+		Branch:    Branch,
+		BuildTime: Buildtime,
 	}, nil
 }

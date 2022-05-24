@@ -1,6 +1,6 @@
 ---
 title: TLS and certificates
-sidebar_position: 1
+sidebar_position: 4
 ---
 
 ## TLS configuration

@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
 import {
-  AutomationKind,
+  FluxObjectKind,
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
@@ -20,7 +20,7 @@ export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
   namespace?: string;
-  automationKind: AutomationKind;
+  automationKind: FluxObjectKind;
   kinds: GroupVersionKind[];
   clusterName: string;
 }

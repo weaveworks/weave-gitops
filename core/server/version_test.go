@@ -22,10 +22,6 @@ func TestGetVersion(t *testing.T) {
 	resp, err := c.GetVersion(context.Background(), &pb.GetVersionRequest{})
 
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(map[string]string{
-		"version":    "v0.0.0",
-		"git-commit": "",
-		"branch":     "",
-		"buildtime":  "",
-	}).To(Equal(resp.Version))
+
+	g.Expect(resp.Semver).To(Equal("v0.0.0"))
 }

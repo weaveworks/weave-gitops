@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -14,19 +13,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
 
-const (
-	AuthEnabledFeatureFlag = "WEAVE_GITOPS_AUTH_ENABLED"
-)
-
 var (
 	PublicRoutes = []string{
 		"/v1/featureflags",
 	}
 )
-
-func AuthEnabled() bool {
-	return os.Getenv(AuthEnabledFeatureFlag) == "true"
-}
 
 type Config struct {
 	AppConfig        *ApplicationsConfig

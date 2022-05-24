@@ -17,7 +17,7 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 		return &sourcev1.GitRepositoryList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 
@@ -48,7 +48,7 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 		return &sourcev1.HelmRepositoryList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 
@@ -79,7 +79,7 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 		return &sourcev1.HelmChartList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 
 	var results []*pb.Bucket
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 

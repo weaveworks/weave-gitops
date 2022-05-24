@@ -11,15 +11,15 @@ import (
 )
 
 func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string) (*pb.Kustomization, error) {
-	var kind pb.SourceRef_SourceKind
+	var kind pb.FluxObjectKind
 
 	switch kustomization.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
-		kind = pb.SourceRef_GitRepository
+		kind = pb.FluxObjectKind_KindGitRepository
 	case sourcev1.HelmRepositoryKind:
-		kind = pb.SourceRef_HelmRepository
+		kind = pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
-		kind = pb.SourceRef_Bucket
+		kind = pb.FluxObjectKind_KindBucket
 	}
 
 	inv, err := getKustomizeInventory(kustomization)

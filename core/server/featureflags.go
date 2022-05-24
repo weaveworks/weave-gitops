@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -15,8 +14,6 @@ import (
 
 func (cs *coreServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFlagsRequest) (*pb.GetFeatureFlagsResponse, error) {
 	flags := make(map[string]string)
-
-	flags["WEAVE_GITOPS_AUTH_ENABLED"] = os.Getenv("WEAVE_GITOPS_AUTH_ENABLED")
 
 	cl, err := cs.k8s.Client(ctx)
 	if err != nil {

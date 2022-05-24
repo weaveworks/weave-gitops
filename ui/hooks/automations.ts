@@ -10,15 +10,14 @@ import {
   SyncAutomationRequest,
   SyncAutomationResponse,
 } from "../lib/api/core/core.pb";
-import { HelmRelease, Kustomization } from "../lib/api/core/types.pb";
 import {
-  AutomationType,
-  NoNamespace,
-  RequestError,
-  Syncable,
-} from "../lib/types";
+  FluxObjectKind,
+  HelmRelease,
+  Kustomization,
+} from "../lib/api/core/types.pb";
+import { NoNamespace, RequestError, Syncable } from "../lib/types";
 
-export type Automation = Kustomization & HelmRelease & { type: AutomationType };
+export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
@@ -44,11 +43,11 @@ export function useListAutomations(namespace = NoNamespace) {
         return [
           ..._.map(kustomizations, (k) => ({
             ...k,
-            type: AutomationType.Kustomization,
+            kind: FluxObjectKind.KindKustomization,
           })),
           ..._.map(helmReleases, (h) => ({
             ...h,
-            type: AutomationType.HelmRelease,
+            kind: FluxObjectKind.KindHelmRelease,
           })),
         ];
       });

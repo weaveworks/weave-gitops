@@ -11,16 +11,19 @@ message Interval {
     int64 seconds = 3;
 }
 
+enum FluxObjectKind {
+    KindGitRepository  = 0;
+    KindBucket         = 1;
+    KindHelmRepository = 2;
+    KindHelmChart      = 3;
+    KindKustomization  = 4;
+    KindHelmRelease    = 5;
+};
+
 message SourceRef {
-    enum SourceKind {
-      GitRepository  = 0;
-      Bucket         = 1;
-      HelmRepository = 2;
-      HelmChart      = 3;
-    };
-    SourceKind kind      = 1;
-    string     name      = 2;
-    string     namespace = 3;
+    FluxObjectKind kind      = 1;
+    string         name      = 2;
+    string         namespace = 3;
 }
 
 message Condition {
@@ -138,13 +141,6 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
-}
-
-enum AutomationKind {
-    // enums populate a global namespace, so spell these out.
-    // `Kustomization` and `HelmRelease` are already taken as names.
-    KustomizationAutomation = 0;
-    HelmReleaseAutomation   = 1;
 }
 
 // UnstructuredObject is a Kubernetes object of an unknown type

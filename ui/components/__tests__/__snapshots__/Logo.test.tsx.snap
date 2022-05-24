@@ -35,7 +35,7 @@ exports[`Logo snapshots renders 1`] = `
 
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -71,7 +71,7 @@ exports[`Logo snapshots renders 1`] = `
     <span
       className="c3"
       color="primary"
-      size="normal"
+      size="medium"
     >
       <div
         className="c4"

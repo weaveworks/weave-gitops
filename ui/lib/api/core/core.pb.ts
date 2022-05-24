@@ -105,7 +105,7 @@ export type GetKustomizationResponse = {
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.AutomationKind
+  automationKind?: Gitops_coreV1Types.FluxObjectKind
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }
@@ -150,7 +150,7 @@ export type ListFluxEventsResponse = {
 export type SyncAutomationRequest = {
   name?: string
   namespace?: string
-  kind?: Gitops_coreV1Types.AutomationKind
+  kind?: Gitops_coreV1Types.FluxObjectKind
   clusterName?: string
   withSource?: boolean
 }
@@ -162,7 +162,10 @@ export type GetVersionRequest = {
 }
 
 export type GetVersionResponse = {
-  version?: {[key: string]: string}
+  semver?: string
+  commit?: string
+  branch?: string
+  buildTime?: string
 }
 
 export type GetFeatureFlagsRequest = {
@@ -170,6 +173,17 @@ export type GetFeatureFlagsRequest = {
 
 export type GetFeatureFlagsResponse = {
   flags?: {[key: string]: string}
+}
+
+export type ToggleSuspendResourceRequest = {
+  kind?: Gitops_coreV1Types.FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
+  suspend?: boolean
+}
+
+export type ToggleSuspendResourceResponse = {
 }
 
 export class Core {
@@ -223,5 +237,8 @@ export class Core {
   }
   static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
     return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
+    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

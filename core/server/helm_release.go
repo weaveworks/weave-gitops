@@ -27,7 +27,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 		return &helmv2.HelmReleaseList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 

@@ -4,7 +4,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { useListSources } from "../hooks/sources";
-import { SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import EventsTable from "./EventsTable";
@@ -17,7 +17,7 @@ import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 
 type Props = {
   className?: string;
-  type: SourceRefSourceKind;
+  type: FluxObjectKind;
   name: string;
   namespace: string;
   children?: JSX.Element;
@@ -33,7 +33,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, type });
+  const s = _.find(sources, { name, kind: type });
 
   if (!s) {
     return (
@@ -48,24 +48,29 @@ function SourceDetail({ className, name, info, type }: Props) {
   const items = info(s);
 
   const isNameRelevant = (expectedName) => {
-    return expectedName == name
-  }
+    return expectedName == name;
+  };
 
   const isRelevant = (expectedType, expectedName) => {
-    return (expectedType == s.type && isNameRelevant(expectedName))
-  }
+    return expectedType == s.kind && isNameRelevant(expectedName);
+  };
 
   const relevantAutomations = _.filter(automations, (a) => {
     if (!s) {
       return false;
     }
 
-    if (type == "HelmChart" && isNameRelevant(a?.helmChart?.name)) {
+    if (
+      type == FluxObjectKind.KindHelmChart &&
+      isNameRelevant(a?.helmChart?.name)
+    ) {
       return true;
     }
 
-    return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
-        isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name);
+    return (
+      isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
+      isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name)
+    );
   });
 
   return (

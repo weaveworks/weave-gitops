@@ -21,6 +21,8 @@ type Reconcilable interface {
 	GetLastHandledReconcileRequest() string
 	AsClientObject() client.Object
 	GroupVersionKind() schema.GroupVersionKind
+	SetSuspended(suspend bool)
+	DeepCopyClientObject() client.Object
 }
 
 type SourceRef interface {
@@ -35,8 +37,12 @@ type Automation interface {
 	SourceRef() SourceRef
 }
 
-func NewReconcileableSource(obj client.Object) Reconcilable {
+func NewReconcileable(obj client.Object) Reconcilable {
 	switch o := obj.(type) {
+	case *kustomizev1.Kustomization:
+		return KustomizationAdapter{Kustomization: o}
+	case *helmv2.HelmRelease:
+		return HelmReleaseAdapter{HelmRelease: o}
 	case *sourcev1.GitRepository:
 		return GitRepositoryAdapter{GitRepository: o}
 	case *sourcev1.HelmRepository:
@@ -66,6 +72,14 @@ func (o GitRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind)
 }
 
+func (o GitRepositoryAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o GitRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
+}
+
 type BucketAdapter struct {
 	*sourcev1.Bucket
 }
@@ -80,6 +94,14 @@ func (obj BucketAdapter) AsClientObject() client.Object {
 
 func (o BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
+}
+
+func (o BucketAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o BucketAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
 }
 
 type HelmChartAdapter struct {
@@ -98,6 +120,14 @@ func (o HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
 }
 
+func (o HelmChartAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o HelmChartAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
+}
+
 type HelmRepositoryAdapter struct {
 	*sourcev1.HelmRepository
 }
@@ -112,6 +142,14 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 
 func (o HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
+}
+
+func (o HelmRepositoryAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
 }
 
 type HelmReleaseAdapter struct {
@@ -141,6 +179,14 @@ func (o HelmReleaseAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind)
 }
 
+func (o HelmReleaseAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o HelmReleaseAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
+}
+
 type KustomizationAdapter struct {
 	*kustomizev1.Kustomization
 }
@@ -166,6 +212,14 @@ func (o KustomizationAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
 }
 
+func (o KustomizationAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o KustomizationAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -189,19 +243,25 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileableSource(sourceType pb.SourceRef_SourceKind) (client.ObjectList, Reconcilable, error) {
-	switch sourceType {
-	case pb.SourceRef_GitRepository:
-		return &sourcev1.GitRepositoryList{}, NewReconcileableSource(&sourcev1.GitRepository{}), nil
+func ToReconcileable(kind pb.FluxObjectKind) (client.ObjectList, Reconcilable, error) {
+	switch kind {
+	case pb.FluxObjectKind_KindKustomization:
+		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
 
-	case pb.SourceRef_Bucket:
-		return &sourcev1.GitRepositoryList{}, NewReconcileableSource(&sourcev1.Bucket{}), nil
+	case pb.FluxObjectKind_KindHelmRelease:
+		return &helmv2.HelmReleaseList{}, NewReconcileable(&helmv2.HelmRelease{}), nil
 
-	case pb.SourceRef_HelmRepository:
-		return &sourcev1.GitRepositoryList{}, NewReconcileableSource(&sourcev1.HelmRepository{}), nil
+	case pb.FluxObjectKind_KindGitRepository:
+		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
 
-	case pb.SourceRef_HelmChart:
-		return &sourcev1.GitRepositoryList{}, NewReconcileableSource(&sourcev1.HelmChart{}), nil
+	case pb.FluxObjectKind_KindBucket:
+		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.Bucket{}), nil
+
+	case pb.FluxObjectKind_KindHelmRepository:
+		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmRepository{}), nil
+
+	case pb.FluxObjectKind_KindHelmChart:
+		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmChart{}), nil
 	}
 
 	return nil, nil, errors.New("could not find source type")

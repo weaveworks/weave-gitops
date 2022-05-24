@@ -234,7 +234,7 @@ export const DataTable = styled(UnstyledDataTable)`
   overflow-x: auto;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;

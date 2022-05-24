@@ -1,0 +1,265 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Footer snapshots default 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c5 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c5.title-bar-button {
+  width: 250px;
+}
+
+.c4 {
+  padding: 4px;
+}
+
+.c7 {
+  padding-right: 24px;
+}
+
+.c1 {
+  color: #737373;
+}
+
+<footer
+  class="c0 c1 Footer"
+  role="footer"
+>
+  <div
+    class="c2"
+  >
+    <span
+      class="c3"
+      color="neutral30"
+    >
+      Need help? Contact us at
+    </span>
+    <div
+      class="c4"
+    />
+    <a
+      class="c5"
+      href="mailto:support@weave.works"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        class="c6"
+        color="primary"
+      >
+        support@weave.works
+      </span>
+    </a>
+  </div>
+  <div
+    class="c2 c7"
+  >
+    <a
+      class="c5"
+      href="https://github.com/weaveworks/weave-gitops/commit/123abcd"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        class="c6"
+        color="primary"
+      >
+        mybranch-123abcd
+      </span>
+    </a>
+    <div
+      class="c4"
+    />
+    <span
+      class="c3"
+      color="neutral30"
+    >
+      © 2022 Weaveworks
+    </span>
+  </div>
+</footer>
+`;
+
+exports[`Footer snapshots no api version 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c5 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c5.title-bar-button {
+  width: 250px;
+}
+
+.c4 {
+  padding: 4px;
+}
+
+.c7 {
+  padding-right: 24px;
+}
+
+.c1 {
+  color: #737373;
+}
+
+<footer
+  class="c0 c1 Footer"
+  role="footer"
+>
+  <div
+    class="c2"
+  >
+    <span
+      class="c3"
+      color="neutral30"
+    >
+      Need help? Contact us at
+    </span>
+    <div
+      class="c4"
+    />
+    <a
+      class="c5"
+      href="mailto:support@weave.works"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        class="c6"
+        color="primary"
+      >
+        support@weave.works
+      </span>
+    </a>
+  </div>
+  <div
+    class="c2 c7"
+  >
+    <a
+      class="c5"
+      href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.8.1-rc.4"
+      rel="noreferrer"
+      target="_blank"
+    >
+      <span
+        class="c6"
+        color="primary"
+      >
+        v0.8.1-rc.4
+      </span>
+    </a>
+    <div
+      class="c4"
+    />
+    <span
+      class="c3"
+      color="neutral30"
+    >
+      © 2022 Weaveworks
+    </span>
+  </div>
+</footer>
+`;

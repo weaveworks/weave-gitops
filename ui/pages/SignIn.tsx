@@ -1,14 +1,12 @@
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
-import { FeatureFlags } from "../contexts/FeatureFlags";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
@@ -62,13 +60,8 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const flags = useFeatureFlags();
-
-  const { loading, error } = React.useContext(FeatureFlags);
-
-  if (flags.WEAVE_GITOPS_AUTH_ENABLED === false) {
-    return <Redirect to="applications" />;
-  }
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
 
   const formRef = React.useRef<HTMLFormElement>();
   const {
@@ -88,85 +81,6 @@ function SignIn() {
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
-
-  const authOptions = (
-    <>
-      {error && (
-        <Alert
-          severity="error"
-          title="Error retrieving auth setup details"
-          message={String(error)}
-          center
-        />
-      )}
-      {flags.OIDC_AUTH ? (
-        <Flex wide center>
-          <Button
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              handleOIDCSubmit();
-            }}
-          >
-            LOGIN WITH OIDC PROVIDER
-          </Button>
-        </Flex>
-      ) : null}
-      {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
-        <Divider variant="middle" style={{ margin: theme.spacing.base }} />
-      ) : null}
-      {flags.CLUSTER_USER_AUTH ? (
-        <form
-          ref={formRef}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleUserPassSubmit();
-          }}
-        >
-          <Flex center align>
-            <Input
-              onChange={(e) => setUsername(e.currentTarget.value)}
-              id="email"
-              type="text"
-              placeholder="Username"
-              value={username}
-            />
-          </Flex>
-          <Flex center align>
-            <Input
-              onChange={(e) => setPassword(e.currentTarget.value)}
-              required
-              id="password"
-              placeholder="Password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <Visibility /> : <VisibilityOff />}
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </Flex>
-          <Flex center>
-            {!authLoading ? (
-              <Button type="submit" style={{ marginTop: theme.spacing.medium }}>
-                CONTINUE
-              </Button>
-            ) : (
-              <div style={{ margin: theme.spacing.medium }}>
-                <LoadingPage />
-              </div>
-            )}
-          </Flex>
-        </form>
-      ) : null}
-    </>
-  );
 
   return (
     <Flex
@@ -262,7 +176,7 @@ function SignIn() {
                 />
               </Flex>
               <Flex center>
-                {!loading ? (
+                {!authLoading ? (
                   <Button
                     type="submit"
                     style={{ marginTop: theme.spacing.medium }}

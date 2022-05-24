@@ -2,7 +2,6 @@ package server_test
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -31,55 +30,13 @@ func TestGetFeatureFlags(t *testing.T) {
 		result   map[string]string
 	}{
 		{
-			name: "Auth enabled",
-			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "true")
-			},
-			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-			},
-			state: []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "true",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name: "Auth disabled",
-			envSet: func() {
-				os.Setenv("WEAVE_GITOPS_AUTH_ENABLED", "false")
-			},
-			envUnset: func() {
-				os.Unsetenv("WEAVE_GITOPS_AUTH_ENABLED")
-			},
-			state: []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "false",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
-			name:     "Auth not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
-			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
-			},
-		},
-		{
 			name:     "Cluster auth secret set",
 			envSet:   func() {},
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "true",
-				"OIDC_AUTH":                 "false",
+				"CLUSTER_USER_AUTH": "true",
+				"OIDC_AUTH":         "false",
 			},
 		},
 		{
@@ -88,9 +45,8 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				"CLUSTER_USER_AUTH": "false",
+				"OIDC_AUTH":         "false",
 			},
 		},
 		{
@@ -99,9 +55,8 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "true",
+				"CLUSTER_USER_AUTH": "false",
+				"OIDC_AUTH":         "true",
 			},
 		},
 		{
@@ -110,9 +65,8 @@ func TestGetFeatureFlags(t *testing.T) {
 			envUnset: func() {},
 			state:    []client.Object{},
 			result: map[string]string{
-				"WEAVE_GITOPS_AUTH_ENABLED": "",
-				"CLUSTER_USER_AUTH":         "false",
-				"OIDC_AUTH":                 "false",
+				"CLUSTER_USER_AUTH": "false",
+				"OIDC_AUTH":         "false",
 			},
 		},
 	}

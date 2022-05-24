@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { Bucket, SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { Bucket, FluxObjectKind } from "../lib/api/core/types.pb";
 
 type Props = {
   className?: string;
@@ -17,10 +17,10 @@ function BucketDetail({ name, namespace, className }: Props) {
       className={className}
       name={name}
       namespace={namespace}
-      type={SourceRefSourceKind.Bucket}
+      type={FluxObjectKind.KindBucket}
       // Guard against an undefined bucket with a default empty object
       info={(b: Bucket = {}) => [
-        ["Type", SourceRefSourceKind.Bucket],
+        ["Type", FluxObjectKind.KindBucket],
         ["Endpoint", b.endpoint],
         ["Bucket Name", b.name],
         ["Last Updated", <Timestamp time={b.lastUpdatedAt} />],

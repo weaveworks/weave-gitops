@@ -27,7 +27,7 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	respErrors := []*pb.ListError{}
 
-	if err := clustersClient.ClusteredList(ctx, clist, opts...); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, err

@@ -4,16 +4,13 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-export enum AutomationKind {
-  KustomizationAutomation = "KustomizationAutomation",
-  HelmReleaseAutomation = "HelmReleaseAutomation",
-}
-
-export enum SourceRefSourceKind {
-  GitRepository = "GitRepository",
-  Bucket = "Bucket",
-  HelmRepository = "HelmRepository",
-  HelmChart = "HelmChart",
+export enum FluxObjectKind {
+  KindGitRepository = "KindGitRepository",
+  KindBucket = "KindBucket",
+  KindHelmRepository = "KindHelmRepository",
+  KindHelmChart = "KindHelmChart",
+  KindKustomization = "KindKustomization",
+  KindHelmRelease = "KindHelmRelease",
 }
 
 export enum BucketProvider {
@@ -29,7 +26,7 @@ export type Interval = {
 }
 
 export type SourceRef = {
-  kind?: SourceRefSourceKind
+  kind?: FluxObjectKind
   name?: string
   namespace?: string
 }

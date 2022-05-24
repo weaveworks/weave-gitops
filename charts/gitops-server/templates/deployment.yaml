@@ -59,12 +59,10 @@ spec:
             httpGet:
               path: /
               port: http
-          {{- if or .Values.enableLogin .Values.envVars}}
           env:
-          {{- if .Values.enableLogin }}
             - name: WEAVE_GITOPS_AUTH_ENABLED
               value: "true"
-          {{- end }}
+          {{- if .Values.envVars }}
           {{- with .Values.envVars }}
             {{- toYaml . | nindent 12 }}
           {{- end }}

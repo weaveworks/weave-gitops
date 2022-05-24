@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Kustomization } from "../lib/api/core/types.pb";
-import { AutomationType } from "../lib/types";
+import { FluxObjectKind, Kustomization } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
@@ -20,7 +19,7 @@ function KustomizationDetail({ kustomization, className }: Props) {
       className={className}
       automation={{
         ...kustomization,
-        type: AutomationType.Kustomization,
+        kind: FluxObjectKind.KindKustomization,
       }}
       info={[
         ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
