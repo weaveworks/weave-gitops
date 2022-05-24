@@ -27,6 +27,13 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		return nil, fmt.Errorf("coverting kustomization to proto: %w", err)
 	}
 
+	var sourceNamespace string
+	if kustomization.Spec.SourceRef.Namespace != "" {
+		sourceNamespace = kustomization.Spec.SourceRef.Namespace
+	} else {
+		sourceNamespace = kustomization.Namespace
+	}
+
 	return &pb.Kustomization{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
@@ -34,7 +41,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		SourceRef: &pb.SourceRef{
 			Kind:      kind,
 			Name:      kustomization.Spec.SourceRef.Name,
-			Namespace: kustomization.Spec.SourceRef.Namespace,
+			Namespace: sourceNamespace,
 		},
 		Interval:              durationToInterval(kustomization.Spec.Interval),
 		Conditions:            mapConditions(kustomization.Status.Conditions),
