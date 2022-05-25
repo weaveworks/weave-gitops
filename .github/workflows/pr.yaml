@@ -107,7 +107,9 @@ jobs:
           npm install --global snyk-delta
       - name: Look for new insecure dependencies or bad licenses
         run: |
-          ./.github/snyk_delta_all_projects.sh --org=product-engineering-ly9
+          snyk test --org=product-engineering-ly9 --json --file=go.mod | snyk-delta
+          snyk test --org=product-engineering-ly9 --json --file=package-lock.json | snyk-delta
+          snyk test --org=product-engineering-ly9 --json --file=website/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         if: github.event_name == 'pull_request'
