@@ -111,7 +111,7 @@ func TestCreatePullRequestFromTemplate_Terraform(t *testing.T) {
 
 			c, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
-			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.TFTemplateKind})
+			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.GitopsTemplateKind})
 			tt.assertFunc(t, result, err)
 		})
 	}
