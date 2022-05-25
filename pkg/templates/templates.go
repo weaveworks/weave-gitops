@@ -12,7 +12,7 @@ const (
 	CAPITemplateKind = "CAPITemplate"
 
 	// TF template
-	TFTemplateKind = "TFTemplate"
+	GitopsTemplateKind = "GitopsTemplate"
 )
 
 type CreatePullRequestFromTemplateParams struct {
