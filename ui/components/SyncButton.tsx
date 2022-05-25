@@ -47,7 +47,11 @@ function SyncButton({ className, loading, disabled, onClick }: Props) {
         >
           Sync
         </Button>
-        <ArrowDropDown variant="outlined" onClick={() => setOpen(!open)}>
+        <ArrowDropDown
+          variant="outlined"
+          onClick={() => setOpen(!open)}
+          disabled={disabled}
+        >
           <Icon type={IconType.ArrowDropDownIcon} size="base" />
         </ArrowDropDown>
       </Flex>
@@ -55,7 +59,6 @@ function SyncButton({ className, loading, disabled, onClick }: Props) {
         <Button
           variant="outlined"
           color="primary"
-          disabled={disabled}
           onClick={() => onClick({ withSource: false })}
         >
           Sync Without Source
