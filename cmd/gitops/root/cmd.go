@@ -39,7 +39,7 @@ func init() {
 	//   config-repo => GITOPS_CONFIG_REPO
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	viper.SetEnvPrefix("GITOPS")
+	viper.SetEnvPrefix("WEAVE_GITOPS")
 
 	viper.AutomaticEnv()
 }
@@ -85,13 +85,25 @@ func RootCmd(client *resty.Client) *cobra.Command {
 			if options.insecureSkipTlsVerify {
 				client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 			}
+
+			err = cmd.Flags().Set("username", viper.GetString("username"))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
+
+			err = cmd.Flags().Set("password", viper.GetString("password"))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
 	}
 
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "The namespace scope for this operation")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
-	rootCmd.PersistentFlags().StringVarP(&options.username, "username", "u", os.Getenv("WEAVE_GITOPS_USERNAME"), "The Weave GitOps Enterprise HTTP API endpoint")
-	rootCmd.PersistentFlags().StringVarP(&options.password, "password", "p", os.Getenv("WEAVE_GITOPS_PASSWORD"), "The Weave GitOps Enterprise HTTP API endpoint")
+	rootCmd.PersistentFlags().StringVarP(&options.username, "username", "u", "", "The Weave GitOps Enterprise username for authentication can be set with `WEAVE_GITOPS_USERNAME` environment variable")
+	rootCmd.PersistentFlags().StringVarP(&options.password, "password", "p", "", "The Weave GitOps Enterprise password for authentication can be set with `WEAVE_GITOPS_PASSWORD` environment variable")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	rootCmd.PersistentFlags().StringToStringVar(&options.gitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	rootCmd.PersistentFlags().BoolVar(&options.insecureSkipTlsVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
