@@ -92,7 +92,7 @@ func addTerraformCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Com
 		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
 			TemplateName:     flags.Template,
-			TemplateKind:     templates.TFTemplateKind,
+			TemplateKind:     templates.GitopsTemplateKind,
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
 			HeadBranch:       flags.HeadBranch,
