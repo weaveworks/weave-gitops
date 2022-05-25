@@ -69,7 +69,7 @@ func TestRetrieveTemplates(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplates()
 			tt.assertFunc(t, ts, err)
@@ -119,7 +119,7 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplates()
 			tt.assertFunc(t, ts, err)
@@ -169,7 +169,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			ts, err := r.RetrieveTemplateParameters("cluster-template")
 			tt.assertFunc(t, ts, err)
@@ -263,7 +263,7 @@ spec:
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/templates/cluster-template/render", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := r.RenderTemplateWithParameters("cluster-template", nil, capi.Credentials{})
 			tt.assertFunc(t, result, err)
@@ -322,7 +322,7 @@ func TestRetrieveCredentials(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			creds, err := r.RetrieveCredentials()
 			tt.assertFunc(t, creds, err)
@@ -358,7 +358,7 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			creds, err := r.RetrieveCredentialsByName("aws-creds")
 			tt.assertFunc(t, creds, err)
@@ -427,7 +427,7 @@ func TestRetrieveClusters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/gitops/api/clusters", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			cs, err := r.RetrieveClusters()
 			tt.assertFunc(t, cs, err)
@@ -478,7 +478,7 @@ func TestGetClusterKubeconfig(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/clusters/dev/kubeconfig", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			k, err := r.GetClusterKubeconfig("dev")
 			tt.assertFunc(t, k, err)
@@ -529,7 +529,7 @@ func TestDeleteClusters(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("DELETE", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := c.DeleteClusters(clusters.DeleteClustersParams{})
 			tt.assertFunc(t, result, err)
@@ -548,7 +548,7 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 	httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", httpmock.ResponderFromResponse(response))
 
 	var buf bytes.Buffer
-	c, err := adapters.NewHttpClient(testutils.BaseURI, client, &buf)
+	c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, &buf)
 	assert.NoError(t, err)
 	_, err = c.RetrieveTemplates()
 	assert.NoError(t, err)
@@ -610,10 +610,62 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/profiles", tt.responder)
 
-			r, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			tps, err := r.RetrieveTemplateProfiles("cluster-template")
 			tt.assertFunc(t, tps, err)
+		})
+	}
+}
+
+func TestSignin(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, client *resty.Client, err error)
+	}{
+		{
+			name: "sign in successful",
+			responder: func(*http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: 200,
+					Header: map[string][]string{
+						"Set-Cookie": {
+							"id_token=value",
+						},
+					},
+				}, nil
+			},
+			assertFunc: func(t *testing.T, client *resty.Client, err error) {
+				assert.NotEmpty(t, client.Cookies)
+				assert.Equal(t, client.Cookies[0].Name, "id_token")
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, client *resty.Client, err error) {
+				assert.Equal(t, err.Error(), "unable to sign in from \"https://weave.works/api/oauth2/sign_in\": Post \"https://weave.works/api/oauth2/sign_in\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
+			assertFunc: func(t *testing.T, client *resty.Client, err error) {
+				assert.Equal(t, err.Error(), "response status for POST \"https://weave.works/api/oauth2/sign_in\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("POST", testutils.BaseURI+"/oauth2/sign_in", tt.responder)
+
+			_, err := adapters.NewHttpClient(testutils.BaseURI, "username", "pass", client, os.Stdout)
+			tt.assertFunc(t, client, err)
 		})
 	}
 }

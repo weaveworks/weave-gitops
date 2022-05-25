@@ -28,7 +28,7 @@ type terraformCommandFlags struct {
 
 var flags terraformCommandFlags
 
-func AddCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func AddCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "terraform",
 		Short: "Add a new Terraform resource using a TF template",
@@ -39,7 +39,7 @@ gitops add terraform --from-template <template-name> --set key=val
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       addTerraformCmdPreRunE(endpoint, client),
-		RunE:          addTerraformCmdRunE(endpoint, client),
+		RunE:          addTerraformCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
@@ -59,9 +59,9 @@ func addTerraformCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.
 	}
 }
 
-func addTerraformCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func addTerraformCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

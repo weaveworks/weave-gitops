@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 const (
 	expiredHeaderName          = "Entitlement-Expired-Message"
 	gitProviderTokenHeaderName = "Git-Provider-Token"
+	auth_cookie_name           = "id_token"
 )
 
 // An HTTP client of the cluster service.
@@ -32,10 +34,10 @@ type ServiceError struct {
 
 // NewHttpClient creates a new HTTP client of the cluster service.
 // The endpoint is expected to be an absolute HTTP URI.
-func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HTTPClient, error) {
+func NewHttpClient(endpoint, username, password string, client *resty.Client, out io.Writer) (*HTTPClient, error) {
 	u, err := url.ParseRequestURI(endpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
 	}
 
 	client = client.SetHostURL(u.String()).
@@ -51,10 +53,59 @@ func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HTTPC
 			return nil
 		})
 
-	return &HTTPClient{
+	httpClient := &HTTPClient{
 		baseURI: u,
 		client:  client,
-	}, nil
+	}
+
+	if username != "" && password != "" {
+		err = httpClient.signIn(username, password)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return httpClient, nil
+}
+
+func getAuthCookie(cookies []*http.Cookie) (*http.Cookie, error) {
+	for i := range cookies {
+		if cookies[i].Name == auth_cookie_name {
+			return cookies[i], nil
+		}
+	}
+
+	return nil, errors.New("unable to find token in auth response")
+}
+
+func (c *HTTPClient) signIn(username, password string) error {
+	endpoint := "oauth2/sign_in"
+
+	type SignInBody struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	res, err := c.client.R().
+		SetBody(SignInBody{Username: username, Password: password}).
+		Post(endpoint)
+
+	if err != nil {
+		return fmt.Errorf("unable to sign in from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	cookie, err := getAuthCookie(res.Cookies())
+	if err != nil {
+		return err
+	}
+
+	c.client.SetCookie(cookie)
+
+	return nil
 }
 
 // Source returns the endpoint of the cluster service.
