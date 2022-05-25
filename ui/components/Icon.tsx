@@ -1,5 +1,6 @@
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
+import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -30,6 +31,7 @@ export enum IconType {
   ExternalTab,
   AddIcon,
   ArrowUpwardIcon,
+  ArrowDropDownIcon,
   DeleteIcon,
   SaveAltIcon,
   ErrorIcon,
@@ -124,6 +126,9 @@ function getIcon(i: IconType) {
 
     case IconType.SuspendedIcon:
       return () => <img src={images.suspendedSrc} />;
+
+    case IconType.ArrowDropDownIcon:
+      return ArrowDropDownIcon;
 
     default:
       break;

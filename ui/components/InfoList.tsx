@@ -25,7 +25,6 @@ const InfoList = styled(
     );
   }
 )`
-  padding: ${(props) => props.theme.spacing.medium} 0px;
   tbody tr td:first-child {
     min-width: 200px;
   }

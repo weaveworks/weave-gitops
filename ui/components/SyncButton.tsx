@@ -1,8 +1,8 @@
-import { FormControlLabel, FormGroup, Switch } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
+import Button, { IconButton } from "./Button";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 
 type Props = {
   className?: string;
@@ -10,30 +10,54 @@ type Props = {
   onClick: (opts: { withSource: boolean }) => void;
 };
 
+const ArrowDropDown = styled(IconButton)`
+  &.MuiButton-outlined {
+    border-color: ${(props) => props.theme.colors.neutral20};
+    border-left: 0px;
+  }
+  &.MuiButton-root {
+    border-radius: 0;
+    min-width: 0;
+    height: initial;
+    padding: 7px 0px;
+  }
+  &.MuiButton-text {
+    padding: 0;
+  }
+`;
+
+const DropDown = styled(Flex)`
+  overflow: hidden;
+  background: white;
+  height: ${(props) => (props.open ? "40px" : "0px")};
+  transition: height 0.25s ease-in;
+`;
+
 function SyncButton({ className, loading, onClick }: Props) {
-  const [withSource, setWithSource] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   return (
-    <Flex wide align start className={className}>
-      <Button
-        style={{ marginRight: 8 }}
-        loading={loading}
-        variant="outlined"
-        onClick={() => onClick({ withSource })}
-      >
-        Sync
-      </Button>
-      <FormGroup>
-        <FormControlLabel
-          control={
-            <Switch
-              color="primary"
-              checked={withSource}
-              onChange={() => setWithSource(!withSource)}
-            />
-          }
-          label="Sync with Source"
-        />
-      </FormGroup>
+    <Flex column start className={className}>
+      <Flex style={{ position: "relative" }}>
+        <Button
+          loading={loading}
+          variant="outlined"
+          onClick={() => onClick({ withSource: true })}
+        >
+          Sync
+        </Button>
+        <ArrowDropDown variant="outlined" onClick={() => setOpen(!open)}>
+          <Icon type={IconType.ArrowDropDownIcon} size="base" />
+        </ArrowDropDown>
+      </Flex>
+      <DropDown open={open}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => onClick({ withSource: false })}
+        >
+          Sync Without Source
+        </Button>
+      </DropDown>
     </Flex>
   );
 }
