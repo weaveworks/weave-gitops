@@ -25,7 +25,7 @@ export type Interval = {
   seconds?: string
 }
 
-export type SourceRef = {
+export type ObjectRef = {
   kind?: FluxObjectKind
   name?: string
   namespace?: string
@@ -56,7 +56,7 @@ export type Kustomization = {
   namespace?: string
   name?: string
   path?: string
-  sourceRef?: SourceRef
+  sourceRef?: ObjectRef
   interval?: Interval
   conditions?: Condition[]
   lastAppliedRevision?: string
@@ -69,7 +69,7 @@ export type Kustomization = {
 export type HelmChart = {
   namespace?: string
   name?: string
-  sourceRef?: SourceRef
+  sourceRef?: ObjectRef
   chart?: string
   version?: string
   interval?: Interval
@@ -171,11 +171,5 @@ export type Event = {
   timestamp?: string
   component?: string
   host?: string
-  name?: string
-}
-
-export type ObjectReference = {
-  kind?: string
-  namespace?: string
   name?: string
 }

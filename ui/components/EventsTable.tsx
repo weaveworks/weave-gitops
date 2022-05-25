@@ -2,7 +2,7 @@ import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { useListFluxEvents } from "../hooks/events";
-import { Event, ObjectReference } from "../lib/api/core/types.pb";
+import { Event, ObjectRef } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
@@ -13,7 +13,7 @@ import Timestamp from "./Timestamp";
 type Props = {
   className?: string;
   namespace?: string;
-  involvedObject: ObjectReference;
+  involvedObject: ObjectRef;
 };
 
 function EventsTable({

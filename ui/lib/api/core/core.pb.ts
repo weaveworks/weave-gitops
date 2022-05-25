@@ -140,7 +140,7 @@ export type ListNamespacesResponse = {
 }
 
 export type ListFluxEventsRequest = {
-  involvedObject?: Gitops_coreV1Types.ObjectReference
+  involvedObject?: Gitops_coreV1Types.ObjectRef
 }
 
 export type ListFluxEventsResponse = {

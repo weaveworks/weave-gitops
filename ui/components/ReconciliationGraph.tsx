@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
 import {
   Condition,
-  SourceRef,
+  ObjectRef,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
 import images from "../lib/images";
@@ -22,7 +22,7 @@ export type Props = ReconciledVisualizationProps & {
     conditions?: Condition[];
     suspended?: boolean;
   };
-  source: SourceRef;
+  source: ObjectRef;
 };
 
 const GraphIcon = styled.img`
@@ -147,7 +147,7 @@ function ReconciliationGraph({
       data: {
         ...source,
       },
-      label: (s: SourceRef) =>
+      label: (s: ObjectRef) =>
         renderToString(
           <NodeHtml object={{ ...s, groupVersionKind: { kind: s.kind } }} />
         ),

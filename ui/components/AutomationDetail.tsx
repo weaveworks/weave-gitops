@@ -73,7 +73,7 @@ function AutomationDetail({ automation, className, info }: Props) {
             <EventsTable
               namespace={automation?.namespace}
               involvedObject={{
-                kind: "Kustomization",
+                kind: automation?.kind,
                 name: automation?.name,
                 namespace: automation?.namespace,
               }}

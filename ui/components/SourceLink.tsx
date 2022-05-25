@@ -1,12 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
-import { SourceRef } from "../lib/api/core/types.pb";
+import { ObjectRef } from "../lib/api/core/types.pb";
 import { formatSourceURL } from "../lib/nav";
 import Link from "./Link";
 
 type Props = {
   className?: string;
-  sourceRef?: SourceRef;
+  sourceRef?: ObjectRef;
   short?: boolean;
 };
 
