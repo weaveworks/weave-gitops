@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -80,6 +81,27 @@ var _ = Describe("RepoManager", func() {
 				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profiles).To(BeEmpty())
+			})
+		})
+
+		When("the repo is marked as containing profiles", func() {
+			It("returns all Helm charts in the index", func() {
+				// no_profiles contains Helm charts, none are annotated
+				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
+
+				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL, func(hr *sourcev1.HelmRepository) {
+					hr.ObjectMeta.Annotations = map[string]string{
+						helm.RepositoryProfilesAnnotation: "true",
+					}
+				}), helm.Profiles)
+				Expect(err).NotTo(HaveOccurred())
+
+				foundNames := make([]string, len(profiles))
+				for i := range profiles {
+					foundNames[i] = profiles[i].Name
+				}
+				sort.Strings(foundNames)
+				Expect(foundNames).To(Equal([]string{"alpine", "nginx"}))
 			})
 		})
 

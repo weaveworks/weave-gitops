@@ -77,7 +77,7 @@ function AutomationDetail({ automation, className, info }: Props) {
             <EventsTable
               namespace={automation?.namespace}
               involvedObject={{
-                kind: "Kustomization",
+                kind: automation?.kind,
                 name: automation?.name,
                 namespace: automation?.namespace,
               }}
@@ -93,7 +93,7 @@ function AutomationDetail({ automation, className, info }: Props) {
               source={
                 automation?.kind === FluxObjectKind.KindKustomization
                   ? automation?.sourceRef
-                  : automation?.helmChart.sourceRef
+                  : automation?.helmChart?.sourceRef
               }
             />
           </RouterTab>

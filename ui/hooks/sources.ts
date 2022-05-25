@@ -37,19 +37,19 @@ export function useListSources(
         return [
           ..._.map(repos, (r) => ({
             ...r,
-            type: FluxObjectKind.KindGitRepository,
+            kind: FluxObjectKind.KindGitRepository,
           })),
           ..._.map(hrs, (c) => ({
             ...c,
-            type: FluxObjectKind.KindHelmRepository,
+            kind: FluxObjectKind.KindHelmRepository,
           })),
           ..._.map(buckets, (b) => ({
             ...b,
-            type: FluxObjectKind.KindBucket,
+            kind: FluxObjectKind.KindBucket,
           })),
           ..._.map(charts, (ch) => ({
             ...ch,
-            type: FluxObjectKind.KindHelmChart,
+            kind: FluxObjectKind.KindHelmChart,
           })),
         ];
       });

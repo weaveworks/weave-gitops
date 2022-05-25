@@ -21,7 +21,7 @@ import (
 var opts profiles.Options
 
 // UpdateCommand provides support for updating a profile that is installed on a cluster.
-func UpdateCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func UpdateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Short:         "Update a profile installation",
@@ -32,7 +32,7 @@ func UpdateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	gitops update profile --name=podinfo --cluster=prod --config-repo=ssh://git@github.com/owner/config-repo.git  --version=1.0.0
 		`,
 		PreRunE: updateProfileCmdPreRunE(endpoint, client),
-		RunE:    updateProfileCmdRunE(endpoint, client),
+		RunE:    updateProfileCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
@@ -62,14 +62,14 @@ func updateProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra
 	}
 }
 
-func updateProfileCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func updateProfileCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
