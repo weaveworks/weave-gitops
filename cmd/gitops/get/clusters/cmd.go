@@ -18,7 +18,7 @@ type clustersGetFlags struct {
 
 var clustersGetCmdFlags clustersGetFlags
 
-func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -35,7 +35,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
@@ -45,6 +45,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
+
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -53,9 +54,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

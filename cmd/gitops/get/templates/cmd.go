@@ -32,7 +32,7 @@ var providers = []string{
 	"vsphere",
 }
 
-func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func TemplateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
@@ -50,14 +50,13 @@ gitops get template <template-name> --list-parameters
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
-		RunE:          getTemplateCmdRunE(endpoint, client),
+		RunE:          getTemplateCmdRunE(endpoint, username, password, client),
 		Args:          cobra.MaximumNArgs(1),
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 	cmd.Flags().BoolVar(&flags.ListTemplateProfiles, "list-profiles", false, "Show profiles of CAPI template")
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
-
 	return cmd
 }
 
@@ -75,13 +74,12 @@ func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 	}
 }
 
-func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
-
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 

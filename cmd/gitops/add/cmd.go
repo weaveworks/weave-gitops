@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/terraform"
 )
 
-func GetCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func GetCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new Weave GitOps resource",
@@ -17,9 +17,9 @@ func GetCommand(endpoint *string, client *resty.Client) *cobra.Command {
 gitops add cluster`,
 	}
 
-	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
-	cmd.AddCommand(profiles.AddCommand(endpoint, client))
-	cmd.AddCommand(terraform.AddCommand(endpoint, client))
+	cmd.AddCommand(clusters.ClusterCommand(endpoint, username, password, client))
+	cmd.AddCommand(profiles.AddCommand(endpoint, username, password, client))
+	cmd.AddCommand(terraform.AddCommand(endpoint, username, password, client))
 
 	return cmd
 }

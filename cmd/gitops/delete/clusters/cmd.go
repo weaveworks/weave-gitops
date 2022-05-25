@@ -25,7 +25,7 @@ type clustersDeleteFlags struct {
 
 var flags clustersDeleteFlags
 
-func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -37,7 +37,7 @@ gitops delete cluster <cluster-name>
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, username, password, client),
 		Args:          cobra.MinimumNArgs(1),
 	}
 
@@ -53,6 +53,7 @@ gitops delete cluster <cluster-name>
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -61,9 +62,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

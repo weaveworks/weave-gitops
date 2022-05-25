@@ -13,7 +13,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func ProfilesCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ProfilesCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Aliases:       []string{"profiles"},
@@ -26,7 +26,7 @@ func ProfilesCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	gitops get profiles
 	`,
 		PreRunE: getProfilesCmdPreRunE(endpoint, client),
-		RunE:    getProfilesCmdRunE(endpoint, client),
+		RunE:    getProfilesCmdRunE(endpoint, username, password, client),
 	}
 
 	return cmd
@@ -34,6 +34,7 @@ func ProfilesCommand(endpoint *string, client *resty.Client) *cobra.Command {
 
 func getProfilesCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
+
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -42,9 +43,9 @@ func getProfilesCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 	}
 }
 
-func getProfilesCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getProfilesCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

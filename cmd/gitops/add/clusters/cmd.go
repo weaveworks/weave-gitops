@@ -33,7 +33,7 @@ type clusterCommandFlags struct {
 
 var flags clusterCommandFlags
 
-func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Add a new cluster using a CAPI template",
@@ -52,7 +52,7 @@ gitops add cluster --from-template <template-name> \
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
@@ -67,6 +67,7 @@ gitops add cluster --from-template <template-name> \
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
+
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -75,15 +76,14 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
 
 		vals := make(map[string]string)
-
 		for _, v := range flags.ParameterValues {
 			kv := strings.SplitN(v, "=", 2)
 			if len(kv) == 2 {

@@ -22,7 +22,7 @@ import (
 var opts profiles.Options
 
 // AddCommand provides support for adding a profile to a cluster.
-func AddCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func AddCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Short:         "Add a profile to a cluster",
@@ -33,7 +33,7 @@ func AddCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		gitops add profile --name=podinfo --cluster=prod --version=1.0.0 --config-repo=ssh://git@github.com/owner/config-repo.git
 		`,
 		PreRunE: addProfileCmdPreRunE(endpoint, client),
-		RunE:    addProfileCmdRunE(endpoint, client),
+		RunE:    addProfileCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
@@ -55,6 +55,7 @@ func AddCommand(endpoint *string, client *resty.Client) *cobra.Command {
 
 func addProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
+
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -63,14 +64,14 @@ func addProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func addProfileCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func addProfileCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

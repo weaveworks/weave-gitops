@@ -57,7 +57,7 @@ func TestCreatePullRequestFromTemplate_CAPI(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 
 			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.CAPITemplateKind})
@@ -109,7 +109,7 @@ func TestCreatePullRequestFromTemplate_Terraform(t *testing.T) {
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/tfcontrollers", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, client, os.Stdout)
+			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.GitopsTemplateKind})
 			tt.assertFunc(t, result, err)
