@@ -46,7 +46,7 @@ function AutomationDetail({ automation, className, info }: Props) {
 
   return (
     <Flex wide tall column className={className}>
-      <DetailTitle name={automation?.name} type={automation.kind} />
+      <DetailTitle name={automation?.name} type={automation?.kind} />
       {sync.isError && (
         <Alert
           severity="error"
