@@ -24,7 +24,7 @@ type Props = {
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, info, type }: Props) {
+function SourceDetail({ className, name, namespace, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
   const { path } = useRouteMatch();
@@ -33,7 +33,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, kind: type });
+  const s = _.find(sources, { name, namespace, kind: type });
 
   if (!s) {
     return (
