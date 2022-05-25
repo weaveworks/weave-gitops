@@ -7,6 +7,7 @@ import Icon, { IconType } from "./Icon";
 type Props = {
   className?: string;
   loading?: boolean;
+  disabled?: boolean;
   onClick: (opts: { withSource: boolean }) => void;
 };
 
@@ -33,12 +34,13 @@ const DropDown = styled(Flex)`
   transition: height 0.25s ease-in;
 `;
 
-function SyncButton({ className, loading, onClick }: Props) {
+function SyncButton({ className, loading, disabled, onClick }: Props) {
   const [open, setOpen] = React.useState(false);
   return (
     <Flex column start className={className}>
       <Flex style={{ position: "relative" }}>
         <Button
+          disabled={disabled}
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
@@ -53,6 +55,7 @@ function SyncButton({ className, loading, onClick }: Props) {
         <Button
           variant="outlined"
           color="primary"
+          disabled={disabled}
           onClick={() => onClick({ withSource: false })}
         >
           Sync Without Source

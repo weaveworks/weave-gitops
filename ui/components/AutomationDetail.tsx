@@ -58,7 +58,11 @@ function AutomationDetail({ automation, className, info }: Props) {
         conditions={automation?.conditions}
         suspended={automation?.suspended}
       />
-      <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
+      <SyncButton
+        onClick={handleSyncClicked}
+        loading={sync.isLoading}
+        disabled={automation?.suspended}
+      />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
