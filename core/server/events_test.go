@@ -26,21 +26,39 @@ func TestListFluxEvents(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	eventObjectName := "my-kustomization"
+	kustomizationObjectName := "my-kustomization"
+	helmObjectName := "my-helmrelease"
 	ns := newNamespace(ctx, k, g)
 
-	event := &corev1.Event{
+	// Kustomization
+	kustomizeEvent := &corev1.Event{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      fmt.Sprintf("%s.16da7d2e2c5b0930", eventObjectName),
+			Name:      fmt.Sprintf("%s.16da7d2e2c5b0930", kustomizationObjectName),
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "kustomization",
+			Kind:      "Kustomization",
 			Namespace: ns.Name,
-			Name:      eventObjectName,
+			Name:      kustomizationObjectName,
 		},
 		Source: corev1.EventSource{
 			Component: "kustomize-controller",
+		},
+	}
+
+	// HelmRelease
+	helmEvent := &corev1.Event{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      fmt.Sprintf("%s.16da7d2e2c5b0930", helmObjectName),
+			Namespace: ns.Name,
+		},
+		InvolvedObject: corev1.ObjectReference{
+			Kind:      "HelmRelease",
+			Namespace: ns.Name,
+			Name:      helmObjectName,
+		},
+		Source: corev1.EventSource{
+			Component: "helm-controller",
 		},
 	}
 
@@ -51,7 +69,7 @@ func TestListFluxEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "kustomization",
+			Kind:      "Kustomization",
 			Namespace: ns.Name,
 			Name:      "someotherobject",
 		},
@@ -60,19 +78,35 @@ func TestListFluxEvents(t *testing.T) {
 		},
 	}
 
-	g.Expect(k.Create(ctx, event)).To(Succeed())
+	g.Expect(k.Create(ctx, kustomizeEvent)).To(Succeed())
+	g.Expect(k.Create(ctx, helmEvent)).To(Succeed())
 	g.Expect(k.Create(ctx, otherEvent)).To(Succeed())
 
+	// Get kustomization events
 	res, err := c.ListFluxEvents(ctx, &pb.ListFluxEventsRequest{
-		InvolvedObject: &pb.ObjectReference{
-			Name:      eventObjectName,
+		InvolvedObject: &pb.ObjectRef{
+			Name:      kustomizationObjectName,
 			Namespace: ns.Name,
-			Kind:      "kustomization",
+			Kind:      pb.FluxObjectKind_KindKustomization,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(res.Events).To(HaveLen(1))
 
-	g.Expect(res.Events[0].Component).To(Equal(event.Source.Component))
+	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
+
+	// Get helmrelease events
+	res, err = c.ListFluxEvents(ctx, &pb.ListFluxEventsRequest{
+		InvolvedObject: &pb.ObjectRef{
+			Name:      helmObjectName,
+			Namespace: ns.Name,
+			Kind:      pb.FluxObjectKind_KindHelmRelease,
+		},
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Events).To(HaveLen(1))
+
+	g.Expect(res.Events[0].Component).To(Equal(helmEvent.Source.Component))
 }

@@ -326,7 +326,7 @@ message ListNamespacesResponse {
 }
 
 message ListFluxEventsRequest {
-    ObjectReference involvedObject = 2;
+    ObjectRef involvedObject = 2;
 }
 
 message ListFluxEventsResponse {

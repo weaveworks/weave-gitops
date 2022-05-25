@@ -38,7 +38,7 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 			Name:      fmt.Sprintf("%s-%s", helmrelease.Namespace, helmrelease.Name),
 			Namespace: sourceNamespace,
 			Interval:  chartInterval,
-			SourceRef: &pb.SourceRef{
+			SourceRef: &pb.ObjectRef{
 				Namespace: sourceNamespace,
 				Name:      helmrelease.Spec.Chart.Spec.SourceRef.Name,
 				Kind:      getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),

@@ -38,7 +38,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
 		Path:      kustomization.Spec.Path,
-		SourceRef: &pb.SourceRef{
+		SourceRef: &pb.ObjectRef{
 			Kind:      kind,
 			Name:      kustomization.Spec.SourceRef.Name,
 			Namespace: sourceNamespace,
