@@ -45,7 +45,6 @@ gitops get cluster <cluster-name> --kubeconfig`,
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}

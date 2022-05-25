@@ -67,7 +67,6 @@ gitops add cluster --from-template <template-name> \
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -84,6 +83,7 @@ func getClusterCmdRunE(endpoint, username, password *string, client *resty.Clien
 		}
 
 		vals := make(map[string]string)
+
 		for _, v := range flags.ParameterValues {
 			kv := strings.SplitN(v, "=", 2)
 			if len(kv) == 2 {

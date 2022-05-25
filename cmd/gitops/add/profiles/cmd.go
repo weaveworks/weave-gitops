@@ -55,7 +55,6 @@ func AddCommand(endpoint, username, password *string, client *resty.Client) *cob
 
 func addProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}

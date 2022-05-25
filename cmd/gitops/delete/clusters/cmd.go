@@ -53,7 +53,6 @@ gitops delete cluster <cluster-name>
 
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}

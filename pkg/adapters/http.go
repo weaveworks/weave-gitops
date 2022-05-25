@@ -74,6 +74,7 @@ func getAuthCookie(cookies []*http.Cookie) (*http.Cookie, error) {
 			return cookies[i], nil
 		}
 	}
+
 	return nil, errors.New("unable to find token in auth response")
 }
 
@@ -101,9 +102,10 @@ func (c *HTTPClient) signIn(username, password string) error {
 	if err != nil {
 		return err
 	}
-	c.client.SetCookie(cookie)
-	return nil
 
+	c.client.SetCookie(cookie)
+
+	return nil
 }
 
 // Source returns the endpoint of the cluster service.

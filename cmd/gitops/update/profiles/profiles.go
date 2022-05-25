@@ -54,7 +54,6 @@ func UpdateCommand(endpoint, username, password *string, client *resty.Client) *
 
 func updateProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -65,11 +64,11 @@ func updateProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra
 
 func updateProfileCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
+
 		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err

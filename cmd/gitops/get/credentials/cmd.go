@@ -31,7 +31,6 @@ gitops get credentials
 
 func getCredentialCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
@@ -46,7 +45,9 @@ func getCredentialCmdRunE(endpoint, username, password *string, client *resty.Cl
 		if err != nil {
 			return err
 		}
+
 		w := printers.GetNewTabWriter(os.Stdout)
+
 		defer w.Flush()
 
 		return capi.GetCredentials(r, w)

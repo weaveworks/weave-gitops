@@ -57,6 +57,7 @@ gitops get template <template-name> --list-parameters
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 	cmd.Flags().BoolVar(&flags.ListTemplateProfiles, "list-profiles", false, "Show profiles of CAPI template")
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
+
 	return cmd
 }
 
@@ -80,6 +81,7 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 		if err != nil {
 			return err
 		}
+
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
