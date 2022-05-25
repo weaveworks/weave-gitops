@@ -36,17 +36,24 @@ const SlideContent = styled.div`
 
 export const filterSeparator = ":";
 
-const FilterSection = ({ header, options, formState, onSectionSelect }) => {
-  const [all, setAll] = React.useState(false);
-  React.useEffect(() => {
-    const allChecked = _.chain(formState)
-      // get all relevant keys' current value
-      .keys()
-      .filter((key) => _.includes(key, header))
-      .every((key) => formState[key])
-      .value();
-    setAll(allChecked);
-  });
+type FilterSectionProps = {
+  header: string;
+  options: string[];
+  formState: FilterSelections;
+  onSectionSelect: (sectionSelectObject) => void;
+};
+
+const FilterSection = ({
+  header,
+  options,
+  formState,
+  onSectionSelect,
+}: FilterSectionProps) => {
+  const compoundKeys = options.map((option) => `${header}:${option}`);
+  // every on an empty list is true so check that too
+  const all =
+    compoundKeys.length > 0 &&
+    compoundKeys.every((key) => formState[key] === true);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
@@ -60,16 +67,19 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
     <ListItem>
       <List>
         <ListItem>
-          {options[0] && (
-            <ListItemIcon>
-              <Checkbox checked={all} onChange={handleChange} id={header} />
-            </ListItemIcon>
-          )}
+          <ListItemIcon>
+            <Checkbox
+              disabled={!options[0]}
+              checked={all}
+              onChange={handleChange}
+              id={header}
+            />
+          </ListItemIcon>
           <Text capitalize size="small" color="neutral30" semiBold>
             {convertHeaders(header)}
           </Text>
         </ListItem>
-        {_.map(options, (option: string, index: number) => {
+        {options.sort().map((option: string, index: number) => {
           if (option)
             return (
               <ListItem key={index}>
@@ -157,17 +167,19 @@ function UnstyledFilterDialog({
           </Flex>
           <ControlledForm state={{ values: formState }} onChange={onFormChange}>
             <List>
-              {_.map(filterList, (options: string[], header: string) => {
-                return (
-                  <FilterSection
-                    key={header}
-                    header={header}
-                    options={options}
-                    formState={formState}
-                    onSectionSelect={onSectionSelect}
-                  />
-                );
-              })}
+              {Object.entries(filterList)
+                .sort()
+                .map(([header, options]) => {
+                  return (
+                    <FilterSection
+                      key={header}
+                      header={header}
+                      options={options}
+                      formState={formState}
+                      onSectionSelect={onSectionSelect}
+                    />
+                  );
+                })}
             </List>
           </ControlledForm>
         </Flex>
