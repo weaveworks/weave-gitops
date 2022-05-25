@@ -104,6 +104,10 @@ func TestHelmRepository(t *testing.T) {
 						},
 					},
 				},
+				Status: v2beta1.HelmReleaseStatus{
+					LastAppliedRevision:   "1.0",
+					LastAttemptedRevision: "2.0",
+				},
 			},
 			&pb.HelmRelease{
 				Name:      "some-chart",
@@ -120,10 +124,12 @@ func TestHelmRepository(t *testing.T) {
 					Version:  "semver-version",
 					Interval: &pb.Interval{Hours: 3, Minutes: 2, Seconds: 1},
 				},
-				Interval:    &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
-				Inventory:   []*pb.GroupVersionKind{},
-				Conditions:  []*pb.Condition{},
-				ClusterName: "Default",
+				Interval:              &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
+				Inventory:             []*pb.GroupVersionKind{},
+				Conditions:            []*pb.Condition{},
+				LastAppliedRevision:   "1.0",
+				LastAttemptedRevision: "2.0",
+				ClusterName:           "Default",
 			},
 		},
 	}
