@@ -895,11 +895,17 @@
     "v1GetVersionResponse": {
       "type": "object",
       "properties": {
-        "version": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
+        "semver": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "buildTime": {
+          "type": "string"
         }
       }
     },
@@ -1048,6 +1054,12 @@
           "type": "string"
         },
         "helmChartName": {
+          "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "lastAttemptedRevision": {
           "type": "string"
         }
       }

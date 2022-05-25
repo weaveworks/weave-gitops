@@ -130,6 +130,9 @@ function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
 }
 
 export function initialFormState(cfg: FilterConfig, initialSelections?) {
+  if (!initialSelections) {
+    return {};
+  }
   const allFilters = _.reduce(
     cfg,
     (r, vals, k) => {
@@ -149,16 +152,6 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
   );
 
   return allFilters;
-}
-
-function applySelections(
-  filters: FilterConfig,
-  selections: FilterSelections
-): FilterConfig {
-  if (!selections) {
-    return filters;
-  }
-  return selectionsToFilters(selections);
 }
 
 function toPairs(state: State): string[] {
@@ -213,7 +206,7 @@ function FilterableTable({
 }: FilterableTableProps) {
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
-    filters: applySelections(filters, initialSelections),
+    filters: selectionsToFilters(initialSelections),
     formState: initialFormState(filters, initialSelections),
     textFilters: [],
   });

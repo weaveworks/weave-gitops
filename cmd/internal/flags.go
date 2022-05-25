@@ -9,3 +9,8 @@ func AddPRFlags(cmd *cobra.Command, headBranch, baseBranch, description, message
 	cmd.Flags().StringVar(baseBranch, "base", "", "The base branch of the remote repository")
 	cmd.Flags().StringVar(description, "description", "", "The description of the pull request")
 }
+
+func AddTemplateFlags(cmd *cobra.Command, template *string, parameterValues *[]string) {
+	cmd.Flags().StringVar(template, "from-template", "", "Specify the template to create the resource from")
+	cmd.Flags().StringSliceVar(parameterValues, "set", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+}

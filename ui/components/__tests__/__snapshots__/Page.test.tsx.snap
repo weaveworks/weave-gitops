@@ -56,7 +56,7 @@ exports[`Page snapshots default 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -65,7 +65,7 @@ exports[`Page snapshots default 1`] = `
 
 .c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -119,6 +119,7 @@ exports[`Page snapshots default 1`] = `
   />
   <footer
     className="c3 c4 Footer"
+    role="footer"
   >
     <div
       className="c5"
@@ -126,7 +127,7 @@ exports[`Page snapshots default 1`] = `
       <span
         className="c6"
         color="neutral30"
-        size="normal"
+        size="medium"
       >
         Need help? Contact us at
       </span>
@@ -142,7 +143,7 @@ exports[`Page snapshots default 1`] = `
         <span
           className="c9"
           color="primary"
-          size="normal"
+          size="medium"
         >
           support@weave.works
         </span>
@@ -157,7 +158,7 @@ exports[`Page snapshots default 1`] = `
       <span
         className="c6"
         color="neutral30"
-        size="normal"
+        size="medium"
       >
         © 2022 Weaveworks
       </span>

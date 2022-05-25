@@ -16,7 +16,7 @@ type Props = {
 };
 
 function helmChartLink(helmRelease: HelmRelease) {
-  if (helmRelease.helmChartName === "") {
+  if (helmRelease?.helmChartName === "") {
     return (
       <SourceLink
         sourceRef={{
@@ -27,7 +27,9 @@ function helmChartLink(helmRelease: HelmRelease) {
     );
   }
 
-  const [ns, name] = helmRelease.helmChartName.split("/");
+  const [ns, name] = helmRelease?.helmChartName
+    ? helmRelease.helmChartName.split("/")
+    : ["", ""];
 
   return (
     <SourceLink

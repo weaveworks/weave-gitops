@@ -20,6 +20,13 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		chartInterval = durationToInterval(*helmrelease.Spec.Chart.Spec.Interval)
 	}
 
+	var sourceNamespace string
+	if helmrelease.Spec.Chart.Spec.SourceRef.Namespace != "" {
+		sourceNamespace = helmrelease.Spec.Chart.Spec.SourceRef.Namespace
+	} else {
+		sourceNamespace = helmrelease.Namespace
+	}
+
 	return &pb.HelmRelease{
 		Name:        helmrelease.Name,
 		ReleaseName: helmrelease.Spec.ReleaseName,
@@ -29,18 +36,20 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 			Chart:     helmrelease.Spec.Chart.Spec.Chart,
 			Version:   helmrelease.Spec.Chart.Spec.Version,
 			Name:      fmt.Sprintf("%s-%s", helmrelease.Namespace, helmrelease.Name),
-			Namespace: helmrelease.Namespace,
+			Namespace: sourceNamespace,
 			Interval:  chartInterval,
 			SourceRef: &pb.SourceRef{
-				Namespace: helmrelease.Spec.Chart.Spec.SourceRef.Namespace,
+				Namespace: sourceNamespace,
 				Name:      helmrelease.Spec.Chart.Spec.SourceRef.Name,
 				Kind:      getSourceKind(helmrelease.Spec.Chart.Spec.SourceRef.Kind),
 			},
 		},
-		Inventory:     inventory,
-		Conditions:    mapConditions(helmrelease.Status.Conditions),
-		Suspended:     helmrelease.Spec.Suspend,
-		HelmChartName: helmrelease.Status.HelmChart,
-		ClusterName:   clusterName,
+		Inventory:             inventory,
+		Conditions:            mapConditions(helmrelease.Status.Conditions),
+		Suspended:             helmrelease.Spec.Suspend,
+		HelmChartName:         helmrelease.Status.HelmChart,
+		ClusterName:           clusterName,
+		LastAppliedRevision:   helmrelease.Status.LastAppliedRevision,
+		LastAttemptedRevision: helmrelease.Status.LastAttemptedRevision,
 	}
 }
