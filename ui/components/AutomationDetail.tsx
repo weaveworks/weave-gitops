@@ -3,6 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncAutomation } from "../hooks/automations";
+import { useToggleSuspend } from "../hooks/flux";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import DetailTitle from "./DetailTitle";
@@ -13,6 +14,7 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import SuspendButton from "./SuspendButton";
 import SyncButton from "./SyncButton";
 
 type Props = {
@@ -36,6 +38,14 @@ function AutomationDetail({ automation, className, info }: Props) {
     namespace: automation?.namespace,
     clusterName: automation?.clusterName,
     kind: automation?.kind,
+  });
+
+  const suspend = useToggleSuspend({
+    name: automation?.name,
+    namespace: automation?.namespace,
+    clusterName: automation?.clusterName,
+    kind: automation?.kind,
+    suspend: automation?.suspended,
   });
 
   const handleSyncClicked = (opts) => {
@@ -62,6 +72,11 @@ function AutomationDetail({ automation, className, info }: Props) {
         onClick={handleSyncClicked}
         loading={sync.isLoading}
         disabled={automation?.suspended}
+      />
+      <SuspendButton
+        toggleSuspend={() => suspend.mutateAsync()}
+        loading={suspend.isLoading}
+        suspend={automation?.suspended}
       />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>
