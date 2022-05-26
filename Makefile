@@ -191,40 +191,6 @@ lib-test: dependencies ## Run the library integration test
 		 gitops-library-test
 
 
-# Test coverage
-
-# JS coverage info
-coverage/lcov.info:
-	npm run test -- --coverage
-
-# Golang gocov data. Not compatible with coveralls at this point.
-unittest.out: dependencies
-	go get github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api,api,integration -o unittest.out ./... -- -v --timeout=496s -tags test,unittest
-	@go mod tidy
-
-integrationtest.out: dependencies
-	go get github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
-	@go mod tidy
-
-coverage:
-	@mkdir -p coverage
-
-# Convert gocov to lcov for coveralls
-coverage/unittest.info: coverage unittest.out
-	@go get -u github.com/jandelgado/gcov2lcov
-	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
-
-coverage/integrationtest.info: coverage integrationtest.out
-	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info
-
-# Concat the JS and Go coverage files for the coveralls report/
-# Note: you need to install `lcov` to run this locally.
-# There are no deps listed here to avoid re-running tests. If this fails run the other coverage/ targets first
-merged.lcov:
-	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
-
 ##@ Utilities
 tls-files:
 	mkcert localhost
