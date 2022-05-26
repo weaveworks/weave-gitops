@@ -20,7 +20,7 @@ func WithClustersClient(clientsFactory ClientsFactory, next http.Handler) http.H
 		client, err := clientsFactory.GetImpersonatedClient(r.Context(), user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintln(w, "failed fetching clusters list: %w", err)
+			fmt.Fprintln(w, "failed fetching clusters list:", err)
 			return
 		}
 
