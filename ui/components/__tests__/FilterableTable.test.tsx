@@ -1,4 +1,4 @@
-import { fireEvent, prettyDOM, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
