@@ -92,7 +92,7 @@ func addTerraformCmdRunE(endpoint, username, password *string, client *resty.Cli
 		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
 			TemplateName:     flags.Template,
-			TemplateKind:     templates.GitopsTemplateKind,
+			TemplateKind:     templates.GitOpsTemplateKind,
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
 			HeadBranch:       flags.HeadBranch,
