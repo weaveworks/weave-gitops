@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 2.0.7 which installs weave gitops v0.8.0.
+This reference was generated for the chart version 2.0.8 which installs weave gitops v0.8.0.
 
 ## Values
 
