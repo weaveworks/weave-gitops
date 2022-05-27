@@ -154,7 +154,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 // RetrieveTemplatesByProvider returns the list of all templates for a given
 // provider from the cluster service.
 func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, provider string) ([]templates.Template, error) {
-	endpoint := "v1/templates"
+	endpoint := "v1/templates/{provider}/{template_kind}"
 
 	type ListTemplatesResponse struct {
 		Templates []*templates.Template
@@ -193,7 +193,7 @@ func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
 func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
-	endpoint := "v1/templates/{name}/params"
+	endpoint := "v1/templates/{template_name}/{template_kind}/params"
 
 	type ListTemplateParametersResponse struct {
 		Parameters []*templates.TemplateParameter
@@ -203,7 +203,7 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"name":          name,
+			"template_name": name,
 			"template_kind": kind.String(),
 		}).
 		SetResult(&templateParametersList).
@@ -239,7 +239,7 @@ type TemplateParameterValuesAndCredentials struct {
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
 func (c *HTTPClient) RenderTemplateWithParameters(kind templates.TemplateKind, name string, parameters map[string]string, creds templates.Credentials) (string, error) {
-	endpoint := "v1/templates/{name}/render"
+	endpoint := "v1/templates/{name}/{template_kind}/render"
 
 	// POST response payload
 	type RenderedTemplate struct {
