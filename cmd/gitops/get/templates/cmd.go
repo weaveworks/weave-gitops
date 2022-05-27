@@ -110,7 +110,7 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 			return templates.GetTemplates(templates.CAPITemplateKind, r, w)
 		}
 
-		return nil
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, r, w)
 	}
 }
 

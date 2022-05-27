@@ -182,6 +182,51 @@ func TestGetTemplates(t *testing.T) {
 	}
 }
 
+func TestGetTemplate(t *testing.T) {
+	tests := []struct {
+		name             string
+		tmplName         string
+		ts               []templates.Template
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no templates",
+			tmplName: "",
+			expected: "No templates were found.\n",
+		},
+		{
+			name:     "templates includes just name",
+			tmplName: "template-a",
+			ts: []templates.Template{
+				{
+					Name:     "template-a",
+					Provider: "aws",
+				},
+			},
+			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\n",
+		},
+		{
+			name:             "error retrieving templates",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve templates from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
+			w := new(bytes.Buffer)
+			err := templates.GetTemplates(templates.CAPITemplateKind, c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
 func TestGetTemplatesByProvider(t *testing.T) {
 	tests := []struct {
 		name             string
@@ -548,6 +593,18 @@ func (c *fakeClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 	}
 
 	return c.ts, nil
+}
+
+func (c *fakeClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	if c.ts[0].Name == name {
+		return &c.ts[0], nil
+	}
+
+	return nil, errors.New("not found")
 }
 
 func (c *fakeClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, provider string) ([]templates.Template, error) {

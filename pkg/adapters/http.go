@@ -151,6 +151,35 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 	return ts, nil
 }
 
+// RetrieveTemplate returns a template from the cluster service.
+func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+	endpoint := "v1/template"
+
+	type GetTemplateResponse struct {
+		Template *templates.Template
+	}
+
+	var template GetTemplateResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetQueryParams(map[string]string{
+			"template_kind": kind.String(),
+			"template_name": name,
+		}).
+		SetResult(&template).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET template from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return template.Template, nil
+}
+
 // RetrieveTemplatesByProvider returns the list of all templates for a given
 // provider from the cluster service.
 func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, provider string) ([]templates.Template, error) {

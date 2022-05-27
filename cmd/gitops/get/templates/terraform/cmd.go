@@ -75,6 +75,6 @@ func getTerraformTemplateCmdRunE(endpoint, username, password *string, client *r
 			return templates.GetTemplates(templates.GitOpsTemplateKind, r, w)
 		}
 
-		return nil
+		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, r, w)
 	}
 }

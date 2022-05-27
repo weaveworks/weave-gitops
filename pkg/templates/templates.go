@@ -61,6 +61,7 @@ func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r
 // need to implement in order to return an array of templates.
 type TemplatesRetriever interface {
 	Source() string
+	RetrieveTemplate(name string, kind TemplateKind) (*Template, error)
 	RetrieveTemplates(kind TemplateKind) ([]Template, error)
 	RetrieveTemplatesByProvider(kind TemplateKind, provider string) ([]Template, error)
 	RetrieveTemplateParameters(kind TemplateKind, name string) ([]TemplateParameter, error)
@@ -132,6 +133,24 @@ type Maintainer struct {
 	Name  string
 	Email string
 	Url   string
+}
+
+// GetTemplate uses a TemplatesRetriever adapter to show print template to the console.
+func GetTemplate(name string, kind TemplateKind, r TemplatesRetriever, w io.Writer) error {
+	t, err := r.RetrieveTemplate(name, kind)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+	}
+
+	fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\tERROR\n")
+
+	fmt.Fprintf(w, "%s", t.Name)
+	fmt.Fprintf(w, "\t%s", t.Provider)
+	fmt.Fprintf(w, "\t%s", t.Description)
+	fmt.Fprintf(w, "\t%s", t.Error)
+	fmt.Fprintln(w, "")
+
+	return nil
 }
 
 // GetTemplates uses a TemplatesRetriever adapter to show
