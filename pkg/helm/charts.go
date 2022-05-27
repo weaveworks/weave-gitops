@@ -141,6 +141,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 		if err != nil {
 			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
 		}
+
 		profiles = append(profiles, p)
 	}
 
