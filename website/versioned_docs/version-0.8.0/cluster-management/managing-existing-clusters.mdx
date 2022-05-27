@@ -10,12 +10,12 @@ import TierLabel from "../_components/TierLabel";
 
 ## How to: Connect a cluster {#how-to-connect-a-cluster}
 
-To connect a cluster to Weave Gitops, first navigate to the `Clusters` section of the UI and click on the `Connect a cluster` button. You will then be presented with a form to add the details of the leaf cluster being connected.
+To connect a cluster to Weave GitOps, first navigate to the `Clusters` section of the UI and click on the `Connect a cluster` button. You will then be presented with a form to add the details of the leaf cluster being connected.
 
 - Name: this is the name of the leaf cluster. This is a required field.
 - Ingress URL: this is the publicly accessible HTTP(S) endpoint of the leaf cluster. This is an optional field.
 
-Click on the `Save & next` button to persist these details. You will then be presented with a `kubectl` command that you can run to install an agent on your leaf cluster. The agent is responsible for inspecting the leaf cluster and sending back leaf information to the Weave Gitops server. It will not make any changes to your cluster.
+Click on the `Save & next` button to persist these details. You will then be presented with a `kubectl` command that you can run to install an agent on your leaf cluster. The agent is responsible for inspecting the leaf cluster and sending back leaf information to the Weave GitOps server. It will not make any changes to your cluster.
 
 Ensure that your current kubeconfig context is setup to use the leaf cluster. Then copy the command and run it.
 

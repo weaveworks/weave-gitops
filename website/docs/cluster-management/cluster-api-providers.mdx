@@ -12,7 +12,7 @@ import TierLabel from "../_components/TierLabel";
 
 ## Creating leaf clusters
 
-To enable leaf cluster creation, Weave Gitops leverages the Cluster-API (CAPI) providers for [AWS](https://cluster-api-aws.sigs.k8s.io/getting-started.html) or [Docker](https://cluster-api.sigs.k8s.io/user/quick-start.html).
+To enable leaf cluster creation, Weave GitOps leverages the Cluster-API (CAPI) providers for [AWS](https://cluster-api-aws.sigs.k8s.io/getting-started.html) or [Docker](https://cluster-api.sigs.k8s.io/user/quick-start.html).
 In this section we cover the steps to deploy the providers on a Kubernetes cluster that is running the Weave GitOps.
 
 CAPI provides declarative APIs, controllers, and tooling to manage the lifecycle of Kubernetes clusters, across
@@ -35,6 +35,6 @@ After having configured `kubectl`, to deploy the CAPA components, follow the ste
 
 ## Docker provider (CAPD)
 
-The Docker infrastructure provider is a reference implementation and is a practical way of testing the Weave Gitops cluster creation feature. It is not intended for production clusters. As CAPD will start docker containers in the host nodes of the management cluster, note that if you are using it with a `kind` cluster you'll need to mount the docker socket as described in the [Install and/or configure a kubernetes cluster](https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-andor-configure-a-kubernetes-cluster) kind section.
+The Docker infrastructure provider is a reference implementation and is a practical way of testing the Weave GitOps cluster creation feature. It is not intended for production clusters. As CAPD will start docker containers in the host nodes of the management cluster, note that if you are using it with a `kind` cluster you'll need to mount the docker socket as described in the [Install and/or configure a kubernetes cluster](https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-andor-configure-a-kubernetes-cluster) kind section.
 
 Similar to the AWS provider case, configure `kubectl` to use the management cluster, and to deploy the CAPD components follow the steps at https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-clusterctl.
