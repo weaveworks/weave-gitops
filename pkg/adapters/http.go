@@ -401,7 +401,7 @@ func (c *HTTPClient) RetrieveCredentialsByName(name string) (capi.Credentials, e
 
 // RetrieveClusters returns the list of all clusters from the cluster service.
 func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
-	endpoint := "gitops/api/clusters"
+	endpoint := "/v1/clusters"
 
 	type ClusterView struct {
 		Name        string               `json:"name"`
