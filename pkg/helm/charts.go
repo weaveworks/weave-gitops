@@ -9,6 +9,7 @@ import (
 	"path"
 	"sort"
 
+	"github.com/Masterminds/semver"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -136,7 +137,10 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 	var profiles []*pb.Profile
 
 	for _, p := range ps {
-		sort.Strings(p.AvailableVersions)
+		p.AvailableVersions, err = ReverseSemVerSort(p.AvailableVersions)
+		if err != nil {
+			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
+		}
 		profiles = append(profiles, p)
 	}
 
@@ -239,6 +243,28 @@ func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1
 	}
 
 	return entry, nil
+}
+
+func ReverseSemVerSort(versions []string) ([]string, error) {
+	vs := make([]*semver.Version, len(versions))
+
+	for i, r := range versions {
+		v, err := semver.NewVersion(r)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", r, err)
+		}
+
+		vs[i] = v
+	}
+
+	sort.Sort(sort.Reverse(semver.Collection(vs)))
+
+	result := make([]string, len(versions))
+	for i := range vs {
+		result[i] = vs[i].String()
+	}
+
+	return result, nil
 }
 
 func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1.HelmRepository) (string, string, error) {

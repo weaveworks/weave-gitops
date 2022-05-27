@@ -7,9 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"sort"
 
-	"github.com/Masterminds/semver"
 	"github.com/go-resty/resty/v2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
@@ -547,28 +545,6 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 	return result.WebURL, nil
 }
 
-func reverseSemVerSort(versions []string) ([]string, error) {
-	vs := make([]*semver.Version, len(versions))
-
-	for i, r := range versions {
-		v, err := semver.NewVersion(r)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", r, err)
-		}
-
-		vs[i] = v
-	}
-
-	sort.Sort(sort.Reverse(semver.Collection(vs)))
-
-	result := make([]string, len(versions))
-	for i := range vs {
-		result[i] = vs[i].String()
-	}
-
-	return result, nil
-}
-
 // RetrieveTemplateProfiles returns the list of all profiles of the
 // specified template.
 func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {
@@ -596,13 +572,7 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, erro
 	}
 
 	var tps []capi.Profile
-
 	for _, p := range templateProfilesList.Profiles {
-		p.AvailableVersions, err = reverseSemVerSort(p.AvailableVersions)
-		if err != nil {
-			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
-		}
-
 		tps = append(tps, capi.Profile{
 			Name:              p.Name,
 			Home:              p.Home,
