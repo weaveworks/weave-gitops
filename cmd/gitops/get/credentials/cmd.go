@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -50,6 +50,6 @@ func getCredentialCmdRunE(endpoint, username, password *string, client *resty.Cl
 
 		defer w.Flush()
 
-		return capi.GetCredentials(r, w)
+		return templates.GetCredentials(r, w)
 	}
 }

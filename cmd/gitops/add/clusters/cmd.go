@@ -9,10 +9,10 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
@@ -91,7 +91,7 @@ func getClusterCmdRunE(endpoint, username, password *string, client *resty.Clien
 			}
 		}
 
-		creds := capi.Credentials{}
+		creds := templates.Credentials{}
 		if flags.Credentials != "" {
 			creds, err = r.RetrieveCredentialsByName(flags.Credentials)
 			if err != nil {
@@ -105,7 +105,7 @@ func getClusterCmdRunE(endpoint, username, password *string, client *resty.Clien
 		}
 
 		if flags.DryRun {
-			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
+			return templates.RenderTemplateWithParameters(templates.CAPITemplateKind, flags.Template, vals, creds, r, os.Stdout)
 		}
 
 		if flags.RepositoryURL == "" {
@@ -124,7 +124,7 @@ func getClusterCmdRunE(endpoint, username, password *string, client *resty.Clien
 
 		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
-			TemplateKind:     templates.CAPITemplateKind,
+			TemplateKind:     templates.CAPITemplateKind.String(),
 			TemplateName:     flags.Template,
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
@@ -141,8 +141,8 @@ func getClusterCmdRunE(endpoint, username, password *string, client *resty.Clien
 	}
 }
 
-func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
-	var profilesValues []capi.ProfileValues
+func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
+	var profilesValues []templates.ProfileValues
 
 	// Validate values include alphanumeric or - or .
 	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
@@ -169,7 +169,7 @@ func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
 			return nil, err
 		}
 
-		var profileValues capi.ProfileValues
+		var profileValues templates.ProfileValues
 
 		err = json.Unmarshal(profileJson, &profileValues)
 		if err != nil {

@@ -11,9 +11,10 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
@@ -21,13 +22,13 @@ func TestRetrieveTemplates(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, templates []capi.Template, err error)
+		assertFunc func(t *testing.T, templates []templates.Template, err error)
 	}{
 		{
 			name:      "templates returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/templates.json")),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.ElementsMatch(t, ts, []capi.Template{
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.ElementsMatch(t, ts, []templates.Template{
 					{
 						Name:        "cluster-template",
 						Provider:    "",
@@ -49,15 +50,15 @@ func TestRetrieveTemplates(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates\": Get \"https://weave.works/api/v1/templates\": oops")
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates\" was 400")
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\" was 400")
 			},
 		},
 	}
@@ -71,7 +72,7 @@ func TestRetrieveTemplates(t *testing.T) {
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplates()
+			ts, err := r.RetrieveTemplates(templates.CAPITemplateKind)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -81,13 +82,13 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, templates []capi.Template, err error)
+		assertFunc func(t *testing.T, templates []templates.Template, err error)
 	}{
 		{
 			name:      "templates returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/templates_by_provider.json")),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.ElementsMatch(t, ts, []capi.Template{
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.ElementsMatch(t, ts, []templates.Template{
 					{
 						Name:        "cluster-template-2",
 						Provider:    "aws",
@@ -99,15 +100,15 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates\": Get \"https://weave.works/api/v1/templates\": oops")
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates\" was 400")
+			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates?template_kind=CAPITemplate\" was 400")
 			},
 		},
 	}
@@ -121,7 +122,7 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplates()
+			ts, err := r.RetrieveTemplates(templates.CAPITemplateKind)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -131,13 +132,13 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, templates []capi.TemplateParameter, err error)
+		assertFunc func(t *testing.T, templates []templates.TemplateParameter, err error)
 	}{
 		{
 			name:      "template parameters returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_parameters.json")),
-			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
-				assert.ElementsMatch(t, ts, []capi.TemplateParameter{
+			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
+				assert.ElementsMatch(t, ts, []templates.TemplateParameter{
 					{
 						Name:        "CLUSTER_NAME",
 						Description: "This is used for the cluster naming.",
@@ -149,14 +150,14 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
+			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
 				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params\": Get \"https://weave.works/api/v1/templates/cluster-template/params\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
+			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params\" was 400")
 			},
 		},
@@ -171,7 +172,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplateParameters("cluster-template")
+			ts, err := r.RetrieveTemplateParameters(templates.CAPITemplateKind, "cluster-template")
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -265,7 +266,7 @@ spec:
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
-			result, err := r.RenderTemplateWithParameters("cluster-template", nil, capi.Credentials{})
+			result, err := r.RenderTemplateWithParameters(templates.CAPITemplateKind, "cluster-template", nil, templates.Credentials{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -275,13 +276,13 @@ func TestRetrieveCredentials(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, credentials []capi.Credentials, err error)
+		assertFunc func(t *testing.T, credentials []templates.Credentials, err error)
 	}{
 		{
 			name:      "credentials returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/credentials.json")),
-			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
-				assert.ElementsMatch(t, creds, []capi.Credentials{
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+				assert.ElementsMatch(t, creds, []templates.Credentials{
 					{
 						Group:     "infrastructure.cluster.x-k8s.io",
 						Version:   "v1alpha3",
@@ -302,14 +303,14 @@ func TestRetrieveCredentials(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
 				assert.EqualError(t, err, "unable to GET credentials from \"https://weave.works/api/v1/credentials\": Get \"https://weave.works/api/v1/credentials\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
+			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/credentials\" was 400")
 			},
 		},
@@ -334,13 +335,13 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, credentials capi.Credentials, err error)
+		assertFunc func(t *testing.T, credentials templates.Credentials, err error)
 	}{
 		{
 			name:      "credentials returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/credentials.json")),
-			assertFunc: func(t *testing.T, creds capi.Credentials, err error) {
-				assert.Equal(t, creds, capi.Credentials{
+			assertFunc: func(t *testing.T, creds templates.Credentials, err error) {
+				assert.Equal(t, creds, templates.Credentials{
 					Group:     "infrastructure.cluster.x-k8s.io",
 					Version:   "v1alpha3",
 					Kind:      "AWSClusterStaticIdentity",
@@ -550,7 +551,7 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 	var buf bytes.Buffer
 	c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, &buf)
 	assert.NoError(t, err)
-	_, err = c.RetrieveTemplates()
+	_, err = c.RetrieveTemplates(templates.CAPITemplateKind)
 	assert.NoError(t, err)
 	b, err := io.ReadAll(&buf)
 	assert.NoError(t, err)
@@ -564,19 +565,19 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, profile []capi.Profile, err error)
+		assertFunc func(t *testing.T, profile []templates.Profile, err error)
 	}{
 		{
 			name:      "template profiles returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_profiles.json")),
-			assertFunc: func(t *testing.T, ts []capi.Profile, err error) {
-				assert.ElementsMatch(t, ts, []capi.Profile{
+			assertFunc: func(t *testing.T, ts []templates.Profile, err error) {
+				assert.ElementsMatch(t, ts, []templates.Profile{
 					{
 						Name:        "profile-a",
 						Home:        "https://github.com/org/repo",
 						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
 						Description: "this is test profile a",
-						Maintainers: []capi.Maintainer{
+						Maintainers: []templates.Maintainer{
 							{
 								Name:  "foo",
 								Email: "foo@example.com",
@@ -585,7 +586,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 						},
 						Icon:        "test",
 						KubeVersion: "1.19",
-						HelmRepository: capi.HelmRepository{
+						HelmRepository: templates.HelmRepository{
 							Name:      "test-repo",
 							Namespace: "test-ns",
 						},
@@ -597,7 +598,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
+			assertFunc: func(t *testing.T, fs []templates.Profile, err error) {
 				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles\": oops")
 			},
 		},
