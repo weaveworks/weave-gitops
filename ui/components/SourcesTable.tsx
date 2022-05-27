@@ -4,7 +4,6 @@ import {
   Bucket,
   FluxObjectKind,
   GitRepository,
-  HelmChart,
   HelmRepository,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
@@ -102,10 +101,11 @@ function SourcesTable({ className, sources }: Props) {
                 text = (s as Bucket).endpoint;
                 break;
               case FluxObjectKind.KindHelmChart:
-                text = `https://${(s as HelmChart).sourceRef?.name}`;
-                url = (s as HelmChart).chart;
-                link = true;
-                break;
+                // text = `https://${(s as HelmChart).sourceRef?.name}`;
+                // url = (s as HelmChart).chart;
+                // link = true;
+                // break;
+                return "-";
               case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
                 url = text;
