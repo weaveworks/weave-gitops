@@ -26,62 +26,32 @@ func TestGetClusters(t *testing.T) {
 			name: "clusters exist",
 			cs: []clusters.Cluster{
 				{
-					Name:   "cluster-a",
-					Status: "status-a",
+					Name: "cluster-a",
+					Conditions: []clusters.Condition{
+						{
+							Type:    "Ready",
+							Status:  "True",
+							Message: "Cluster Found",
+						},
+					},
 				},
 				{
-					Name:   "cluster-b",
-					Status: "status-b",
+					Name: "cluster-b",
+					Conditions: []clusters.Condition{
+						{
+							Type:    "Ready",
+							Status:  "True",
+							Message: "Cluster Found",
+						},
+					},
 				},
 			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tstatus-a\ncluster-b\tstatus-b\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tReady\tCluster Found\ncluster-b\tReady\tCluster Found\n",
 		},
 		{
 			name:             "error retrieving clusters",
 			err:              fmt.Errorf("oops something went wrong"),
 			expectedErrorStr: "unable to retrieve clusters from \"In-memory fake\": oops something went wrong",
-		},
-		{
-			name: "different status for creation and deletion PR",
-			cs: []clusters.Cluster{
-				{
-					Name:   "cluster-a",
-					Status: "pullRequestCreated",
-					PullRequest: clusters.PullRequest{
-						Type: "create",
-					},
-				},
-				{
-					Name:   "cluster-b",
-					Status: "pullRequestCreated",
-					PullRequest: clusters.PullRequest{
-						Type: "delete",
-					},
-				},
-			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\t\ncluster-b\tDeletion PR\t\n",
-		},
-		{
-			name: "PR URL column",
-			cs: []clusters.Cluster{
-				{
-					Name:   "cluster-a",
-					Status: "pullRequestCreated",
-					PullRequest: clusters.PullRequest{
-						Type: "create",
-						Url:  "https://github.com/org/repo/pull/1",
-					},
-				},
-				{
-					Name:   "cluster-b",
-					Status: "foo",
-					PullRequest: clusters.PullRequest{
-						Type: "create",
-						Url:  "https://github.com/org/repo/pull/1",
-					},
-				},
-			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\thttps://github.com/org/repo/pull/1\ncluster-b\tfoo\n",
 		},
 	}
 
@@ -116,8 +86,13 @@ func TestGetClusterByName(t *testing.T) {
 			clusterName: "cluster-a",
 			cs: []clusters.Cluster{
 				{
-					Name:   "cluster-a",
-					Status: "status-a",
+					Name: "cluster-a",
+					Conditions: []clusters.Condition{
+						{
+							Type:   "ready",
+							Status: "True",
+						},
+					},
 				},
 			},
 			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tstatus-a\n",
@@ -127,11 +102,12 @@ func TestGetClusterByName(t *testing.T) {
 			clusterName: "cluster-a",
 			cs: []clusters.Cluster{
 				{
-					Name:   "cluster-a",
-					Status: "pullRequestCreated",
-					PullRequest: clusters.PullRequest{
-						Type: "create",
-						Url:  "https://github.com/org/repo/pull/1",
+					Name: "cluster-a",
+					Conditions: []clusters.Condition{
+						{
+							Type:   "ready",
+							Status: "True",
+						},
 					},
 				},
 			},

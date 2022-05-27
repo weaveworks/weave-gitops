@@ -378,27 +378,33 @@ func TestRetrieveClusters(t *testing.T) {
 			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
 				assert.ElementsMatch(t, cs, []clusters.Cluster{
 					{
-						Name:   "cluster-a",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/1",
+						Name: "cluster-a",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 					{
-						Name:   "cluster-b",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/2",
+						Name: "cluster-b",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 					{
-						Name:   "cluster-c",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/3",
+						Name: "cluster-c",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 				})

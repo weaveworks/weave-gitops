@@ -15,14 +15,14 @@ type ClustersRetriever interface {
 }
 
 type Cluster struct {
-	Name        string      `json:"name"`
-	Status      string      `json:"status"`
-	PullRequest PullRequest `json:"pullRequest"`
+	Name       string      `json:"name"`
+	Conditions []Condition `json:"conditions"`
 }
 
-type PullRequest struct {
-	Type string `json:"type"`
-	Url  string `json:"url"`
+type Condition struct {
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 // GetClusters uses a ClustersRetriever adapter to show
@@ -107,17 +107,19 @@ type DeleteClustersParams struct {
 }
 
 func printCluster(c Cluster, w io.Writer) {
-	if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
-		c.Status = "Creation PR"
-	} else if c.PullRequest.Type == "delete" {
-		c.Status = "Deletion PR"
+	var status, message string
+
+	// wip
+	for _, condition := range c.Conditions {
+		if condition.Type == "Ready" {
+			if condition.Status == "True" {
+				status = condition.Type
+			}
+
+			message = condition.Message
+		}
 	}
 
-	if c.Status == "Creation PR" || c.Status == "Deletion PR" {
-		fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
-		fmt.Fprintln(w, "")
-	} else {
-		fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-		fmt.Fprintln(w, "")
-	}
+	fmt.Fprintf(w, "%s\t%s\t%s", c.Name, status, message)
+	fmt.Fprintln(w, "")
 }
