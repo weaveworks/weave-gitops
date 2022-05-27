@@ -34,7 +34,7 @@ func TestSetSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -73,7 +73,7 @@ func TestSetMultipleValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -109,7 +109,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
