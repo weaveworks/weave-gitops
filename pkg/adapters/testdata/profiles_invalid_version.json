@@ -18,7 +18,7 @@
                 "name": "test-repo",
                 "namespace": "test-ns"
             },
-            "availableVersions": ["v0.0.14", "v0.0.16-rc1", "v0.0.15"]
+            "availableVersions": ["v0.0.14", "v0..15"]
         }
     ]
 }

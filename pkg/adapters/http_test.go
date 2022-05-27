@@ -641,7 +641,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 							Name:      "test-repo",
 							Namespace: "test-ns",
 						},
-						AvailableVersions: []string{"0.0.15", "0.0.14"},
+						AvailableVersions: []string{"0.0.16-rc1", "0.0.15", "0.0.14"},
 					},
 				})
 			},
@@ -651,6 +651,14 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
 				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles\": oops")
+			},
+		},
+		{
+			name:      "invalid semantic version error",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/profiles_invalid_version.json")),
+			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
+				assert.EqualError(t, err, "parsing template profile profile-a: v0..15: Invalid Semantic Version")
+
 			},
 		},
 	}
