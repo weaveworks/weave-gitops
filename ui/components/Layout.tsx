@@ -125,7 +125,7 @@ const Main = styled(Flex)`
 const TopToolBar = styled(Flex)`
   position: fixed;
   background-color: ${(props) => props.theme.colors.primary};
-  height: 80px;
+  height: 60px;
   min-width: 768px;
   ${UserSettings} {
     justify-self: flex-end;

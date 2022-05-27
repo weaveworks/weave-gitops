@@ -15,7 +15,7 @@ function Logo({ className }: Props) {
     <Flex className={className} start>
       <Link to={V2Routes.Automations}>
         <Flex align>
-          <img src={images.logoSrc} style={{ height: 56 }} />
+          <img src={images.logoSrc} style={{ height: 40 }} />
           <Spacer padding="xxs" />
           <img src={images.titleSrc} />
         </Flex>
