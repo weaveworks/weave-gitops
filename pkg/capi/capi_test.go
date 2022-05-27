@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 func TestGetTemplates(t *testing.T) {
@@ -294,7 +295,7 @@ func TestCreatePullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
-			err := capi.CreatePullRequestFromTemplate(capi.CreatePullRequestFromTemplateParams{}, c, w)
+			err := templates.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -464,7 +465,7 @@ func (c *fakeClient) RenderTemplateWithParameters(name string, parameters map[st
 	return c.s, nil
 }
 
-func (c *fakeClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
+func (c *fakeClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}

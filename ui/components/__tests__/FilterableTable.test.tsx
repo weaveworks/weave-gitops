@@ -196,6 +196,7 @@ describe("FilterableTable", () => {
             fields={fields}
             rows={rows}
             filters={{ name: ["slick"] }}
+            initialSelections={{ "name:slick": true }}
           />,
           "/applications",
           {}

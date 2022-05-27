@@ -140,7 +140,7 @@ export type ListNamespacesResponse = {
 }
 
 export type ListFluxEventsRequest = {
-  involvedObject?: Gitops_coreV1Types.ObjectReference
+  involvedObject?: Gitops_coreV1Types.ObjectRef
 }
 
 export type ListFluxEventsResponse = {
@@ -162,7 +162,10 @@ export type GetVersionRequest = {
 }
 
 export type GetVersionResponse = {
-  version?: {[key: string]: string}
+  semver?: string
+  commit?: string
+  branch?: string
+  buildTime?: string
 }
 
 export type GetFeatureFlagsRequest = {

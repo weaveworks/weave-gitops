@@ -35,6 +35,10 @@ type HelmRepoManager interface {
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
 
+// RepositoryProfilesAnnotation is the annotation that Helm Repositories must
+// have to indicate that all charts are to be considered as Profiles.
+const RepositoryProfilesAnnotation = "weave.works/profiles"
+
 // LayerAnnotation specifies profile application order.
 // Profiles are sorted by layer and those at a higher "layer" are only installed after
 // lower layers have successfully installed and started.
@@ -75,11 +79,13 @@ var defaultChartGetters = getter.Providers{
 	},
 }
 
-type ChartPredicate func(*repo.ChartVersion) bool
+// ChartPredicate is used to filter charts coming from a HelmRepository.
+type ChartPredicate func(*sourcev1.HelmRepository, *repo.ChartVersion) bool
 
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
-var Profiles = func(v *repo.ChartVersion) bool {
-	return hasAnnotation(v.Metadata, ProfileAnnotation)
+var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
+	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
+		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
 }
 
 // ListCharts filters charts using the provided predicate.
@@ -94,7 +100,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 
 	for name, versions := range chartRepo.Entries {
 		for _, v := range versions {
-			if pred(v) {
+			if pred(hr, v) {
 				// if already added, update the versions array
 				if p, ok := ps[name]; ok {
 					p.AvailableVersions = append(p.AvailableVersions, v.Version)
@@ -294,8 +300,8 @@ func getLayer(annotations map[string]string) string {
 	return annotations[LayerAnnotation]
 }
 
-func hasAnnotation(cm *chart.Metadata, name string) bool {
-	for k := range cm.Annotations {
+func hasAnnotation(cm map[string]string, name string) bool {
+	for k := range cm {
 		if k == name {
 			return true
 		}

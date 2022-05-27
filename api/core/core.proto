@@ -326,7 +326,7 @@ message ListNamespacesResponse {
 }
 
 message ListFluxEventsRequest {
-    ObjectReference involvedObject = 2;
+    ObjectRef involvedObject = 2;
 }
 
 message ListFluxEventsResponse {
@@ -347,7 +347,10 @@ message SyncAutomationResponse {
 message GetVersionRequest {}
 
 message GetVersionResponse {
-    map<string, string> version = 1;
+    string semver    = 1;
+    string commit    = 2;
+    string branch    = 3;
+    string buildTime = 4;
 }
 
 message GetFeatureFlagsRequest {}

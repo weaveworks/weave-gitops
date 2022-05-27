@@ -40,7 +40,7 @@ func TestGetCluster(t *testing.T) {
 				"--kubeconfig",
 				"--endpoint", "not_a_valid_url",
 			},
-			errString: "parse \"not_a_valid_url\": invalid URI for request",
+			errString: "failed to parse endpoint: parse \"not_a_valid_url\": invalid URI for request",
 		},
 		{
 			name: "no endpoint",

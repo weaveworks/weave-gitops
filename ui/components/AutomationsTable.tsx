@@ -37,7 +37,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Name",
       value: (k) => {
         const route =
-          k.type === FluxObjectKind.KindKustomization
+          k.kind === FluxObjectKind.KindKustomization
             ? V2Routes.Kustomization
             : V2Routes.HelmRelease;
         return (
@@ -71,15 +71,19 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Source",
       value: (a: Automation) => {
-        let sourceKind;
-        let sourceName;
+        let sourceKind: FluxObjectKind;
+        let sourceName: string;
+        let sourceNamespace: string;
 
         if (a.kind === FluxObjectKind.KindKustomization) {
           sourceKind = a.sourceRef?.kind;
           sourceName = a.sourceRef?.name;
+          sourceNamespace = a.sourceRef?.namespace;
         } else {
+          const hr = a as HelmRelease;
           sourceKind = FluxObjectKind.KindHelmChart;
-          sourceName = (a as HelmRelease).helmChart.name;
+          sourceName = hr.helmChart.name;
+          sourceNamespace = hr.helmChart.namespace;
         }
 
         return (
@@ -88,7 +92,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             sourceRef={{
               kind: sourceKind,
               name: sourceName,
-              namespace: a.sourceRef?.namespace,
+              namespace: sourceNamespace,
             }}
           />
         );

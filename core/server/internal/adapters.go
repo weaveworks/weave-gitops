@@ -141,7 +141,7 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (o HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 }
 
 func (o HelmRepositoryAdapter) SetSuspended(suspend bool) {

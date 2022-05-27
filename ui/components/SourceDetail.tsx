@@ -7,6 +7,7 @@ import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
+import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -24,7 +25,7 @@ type Props = {
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, info, type }: Props) {
+function SourceDetail({ className, name, namespace, info, type }: Props) {
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
   const { path } = useRouteMatch();
@@ -33,7 +34,7 @@ function SourceDetail({ className, name, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, kind: type });
+  const s = _.find(sources, { name, namespace, kind: type });
 
   if (!s) {
     return (
@@ -75,14 +76,17 @@ function SourceDetail({ className, name, info, type }: Props) {
 
   return (
     <Flex wide tall column className={className}>
+      <DetailTitle name={name} type={type} />
       {error && (
         <Alert severity="error" title="Error" message={error.message} />
       )}
       <PageStatus conditions={s.conditions} suspended={s.suspended} />
-      <InfoList items={items} />
-      <SubRouterTabs rootPath={`${path}/automations`}>
-        <RouterTab name="Automations" path={`${path}/automations`}>
-          <AutomationsTable automations={relevantAutomations} hideSource />
+      <SubRouterTabs rootPath={`${path}/details`}>
+        <RouterTab name="Details" path={`${path}/details`}>
+          <>
+            <InfoList items={items} />
+            <AutomationsTable automations={relevantAutomations} hideSource />
+          </>
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
@@ -102,8 +106,8 @@ function SourceDetail({ className, name, info, type }: Props) {
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
   width: 100%;
 
-  ${InfoList} {
-    margin-bottom: ${(props) => props.theme.spacing.medium};
+  ${PageStatus} {
+    padding: ${(props) => props.theme.spacing.small} 0px;
   }
 
   .MuiTabs-root ${Link} .active-tab {

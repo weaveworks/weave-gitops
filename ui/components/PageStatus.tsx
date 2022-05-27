@@ -35,8 +35,5 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
-  //matches nav
-  line-height: 1.75;
-
   color: ${(props) => props.theme.colors.neutral30};
 `;

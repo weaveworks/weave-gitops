@@ -5,6 +5,7 @@ import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncAutomation } from "../hooks/automations";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
+import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -45,6 +46,7 @@ function AutomationDetail({ automation, className, info }: Props) {
 
   return (
     <Flex wide tall column className={className}>
+      <DetailTitle name={automation?.name} type={automation?.kind} />
       {sync.isError && (
         <Alert
           severity="error"
@@ -56,24 +58,30 @@ function AutomationDetail({ automation, className, info }: Props) {
         conditions={automation?.conditions}
         suspended={automation?.suspended}
       />
-      <InfoList items={info} />
-      <SyncButton onClick={handleSyncClicked} loading={sync.isLoading} />
+      <SyncButton
+        onClick={handleSyncClicked}
+        loading={sync.isLoading}
+        disabled={automation?.suspended}
+      />
       <TabContent>
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
-            <ReconciledObjectsTable
-              automationKind={automation?.kind}
-              automationName={automation?.name}
-              namespace={automation?.namespace}
-              kinds={automation?.inventory}
-              clusterName={automation?.clusterName}
-            />
+            <>
+              <InfoList items={info} />
+              <ReconciledObjectsTable
+                automationKind={automation?.kind}
+                automationName={automation?.name}
+                namespace={automation?.namespace}
+                kinds={automation?.inventory}
+                clusterName={automation?.clusterName}
+              />
+            </>
           </RouterTab>
           <RouterTab name="Events" path={`${path}/events`}>
             <EventsTable
               namespace={automation?.namespace}
               involvedObject={{
-                kind: "Kustomization",
+                kind: automation?.kind,
                 name: automation?.name,
                 namespace: automation?.namespace,
               }}
@@ -89,7 +97,7 @@ function AutomationDetail({ automation, className, info }: Props) {
               source={
                 automation?.kind === FluxObjectKind.KindKustomization
                   ? automation?.sourceRef
-                  : automation?.helmChart.sourceRef
+                  : automation?.helmChart?.sourceRef
               }
             />
           </RouterTab>
@@ -104,7 +112,7 @@ export default styled(AutomationDetail).attrs({
 })`
   width: 100%;
 
-  ${Alert} {
-    margin-bottom: 16px;
+  ${PageStatus} {
+    padding: ${(props) => props.theme.spacing.small} 0px;
   }
 `;

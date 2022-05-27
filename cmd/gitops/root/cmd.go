@@ -29,6 +29,8 @@ var options struct {
 	overrideInCluster     bool
 	gitHostTypes          map[string]string
 	insecureSkipTlsVerify bool
+	username              string
+	password              string
 }
 
 // Only want AutomaticEnv to be called once!
@@ -37,7 +39,7 @@ func init() {
 	//   config-repo => GITOPS_CONFIG_REPO
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
-	viper.SetEnvPrefix("GITOPS")
+	viper.SetEnvPrefix("WEAVE_GITOPS")
 
 	viper.AutomaticEnv()
 }
@@ -79,14 +81,29 @@ func RootCmd(client *resty.Client) *cobra.Command {
 			if options.overrideInCluster {
 				kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			}
+
 			if options.insecureSkipTlsVerify {
 				client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+			}
+
+			err = cmd.Flags().Set("username", viper.GetString("username"))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
+
+			err = cmd.Flags().Set("password", viper.GetString("password"))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
 			}
 		},
 	}
 
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "The namespace scope for this operation")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
+	rootCmd.PersistentFlags().StringVarP(&options.username, "username", "u", "", "The Weave GitOps Enterprise username for authentication can be set with `WEAVE_GITOPS_USERNAME` environment variable")
+	rootCmd.PersistentFlags().StringVarP(&options.password, "password", "p", "", "The Weave GitOps Enterprise password for authentication can be set with `WEAVE_GITOPS_PASSWORD` environment variable")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	rootCmd.PersistentFlags().StringToStringVar(&options.gitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	rootCmd.PersistentFlags().BoolVar(&options.insecureSkipTlsVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
@@ -94,10 +111,10 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
-	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
-	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, client))
-	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
+	rootCmd.AddCommand(get.GetCommand(&options.endpoint, &options.username, &options.password, client))
+	rootCmd.AddCommand(add.GetCommand(&options.endpoint, &options.username, &options.password, client))
+	rootCmd.AddCommand(update.UpdateCommand(&options.endpoint, &options.username, &options.password, client))
+	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, &options.username, &options.password, client))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)

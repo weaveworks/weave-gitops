@@ -104,16 +104,25 @@
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "KindGitRepository",
+              "KindBucket",
+              "KindHelmRepository",
+              "KindHelmChart",
+              "KindKustomization",
+              "KindHelmRelease"
+            ],
+            "default": "KindGitRepository"
           },
           {
-            "name": "involvedObject.namespace",
+            "name": "involvedObject.name",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "involvedObject.name",
+            "name": "involvedObject.namespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -895,11 +904,17 @@
     "v1GetVersionResponse": {
       "type": "object",
       "properties": {
-        "version": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
+        "semver": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "buildTime": {
+          "type": "string"
         }
       }
     },
@@ -983,7 +998,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
+          "$ref": "#/definitions/v1ObjectRef"
         },
         "chart": {
           "type": "string"
@@ -1048,6 +1063,12 @@
           "type": "string"
         },
         "helmChartName": {
+          "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "lastAttemptedRevision": {
           "type": "string"
         }
       }
@@ -1114,7 +1135,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
+          "$ref": "#/definitions/v1ObjectRef"
         },
         "interval": {
           "$ref": "#/definitions/v1Interval"
@@ -1323,16 +1344,16 @@
         }
       }
     },
-    "v1ObjectReference": {
+    "v1ObjectRef": {
       "type": "object",
       "properties": {
         "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
           "type": "string"
         },
         "namespace": {
-          "type": "string"
-        },
-        "name": {
           "type": "string"
         }
       }
@@ -1345,20 +1366,6 @@
           "format": "int32"
         },
         "pageToken": {
-          "type": "string"
-        }
-      }
-    },
-    "v1SourceRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
           "type": "string"
         }
       }

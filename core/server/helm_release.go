@@ -80,15 +80,9 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 }
 
 func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
-	storageNamespace := helmRelease.GetNamespace()
-	if helmRelease.Spec.StorageNamespace != "" {
-		storageNamespace = helmRelease.Spec.StorageNamespace
-	}
+	storageNamespace := helmRelease.GetStorageNamespace()
 
-	storageName := helmRelease.GetName()
-	if helmRelease.Spec.ReleaseName != "" {
-		storageName = helmRelease.Spec.ReleaseName
-	}
+	storageName := helmRelease.GetReleaseName()
 
 	storageVersion := helmRelease.Status.LastReleaseRevision
 	if storageVersion < 1 {

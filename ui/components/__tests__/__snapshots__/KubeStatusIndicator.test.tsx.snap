@@ -35,7 +35,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
@@ -79,7 +79,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
     />
     <span
       className="c5 c6"
-      size="normal"
+      size="medium"
     >
       There was a problem
     </span>
@@ -122,7 +122,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
@@ -166,7 +166,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
     />
     <span
       className="c5 c6"
-      size="normal"
+      size="medium"
     >
       Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161
     </span>

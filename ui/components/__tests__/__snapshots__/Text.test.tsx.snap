@@ -3,7 +3,7 @@
 exports[`Text snapshots bold 1`] = `
 .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
@@ -11,7 +11,7 @@ exports[`Text snapshots bold 1`] = `
 
 <span
   className="c0"
-  size="normal"
+  size="medium"
 >
   some text
 </span>
@@ -20,7 +20,7 @@ exports[`Text snapshots bold 1`] = `
 exports[`Text snapshots normal 1`] = `
 .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -28,7 +28,7 @@ exports[`Text snapshots normal 1`] = `
 
 <span
   className="c0"
-  size="normal"
+  size="medium"
 >
   some text
 </span>
@@ -37,7 +37,7 @@ exports[`Text snapshots normal 1`] = `
 exports[`Text snapshots with color 1`] = `
 .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -47,7 +47,7 @@ exports[`Text snapshots with color 1`] = `
 <span
   className="c0"
   color="success"
-  size="normal"
+  size="medium"
 >
   some text
 </span>
