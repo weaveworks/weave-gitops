@@ -151,14 +151,14 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params\": Get \"https://weave.works/api/v1/templates/cluster-template/params\": oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/params\": Get \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/params\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/params\" was 400")
 			},
 		},
 	}
@@ -168,7 +168,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params", tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/CAPITemplate/params", tt.responder)
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
@@ -238,21 +238,21 @@ spec:
 			name:      "service error",
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("./testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": something bad happened")
+				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/render\": something bad happened")
 			},
 		},
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render\": Post \"https://weave.works/api/v1/templates/cluster-template/render\": oops")
+				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/render\": Post \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/render\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/cluster-template/render\" was 400")
+				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/cluster-template/CAPITemplate/render\" was 400")
 			},
 		},
 	}
@@ -262,7 +262,7 @@ spec:
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/templates/cluster-template/render", tt.responder)
+			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/templates/cluster-template/CAPITemplate/render", tt.responder)
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)

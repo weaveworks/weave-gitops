@@ -15,7 +15,6 @@ import (
 
 type templateCommandFlags struct {
 	ListTemplateParameters bool
-	Provider               string
 }
 
 var flags templateCommandFlags
@@ -73,10 +72,6 @@ func getTerraformTemplateCmdRunE(endpoint, username, password *string, client *r
 		}
 
 		if len(args) == 0 {
-			if flags.Provider != "" {
-				return templates.GetTemplatesByProvider(templates.GitOpsTemplateKind, flags.Provider, r, w)
-			}
-
 			return templates.GetTemplates(templates.GitOpsTemplateKind, r, w)
 		}
 

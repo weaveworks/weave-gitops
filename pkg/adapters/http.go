@@ -154,7 +154,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 // RetrieveTemplatesByProvider returns the list of all templates for a given
 // provider from the cluster service.
 func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, provider string) ([]templates.Template, error) {
-	endpoint := "v1/templates/{provider}/{template_kind}"
+	endpoint := "v1/templates"
 
 	type ListTemplatesResponse struct {
 		Templates []*templates.Template
