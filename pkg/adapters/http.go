@@ -555,6 +555,7 @@ func reverseSemVerSort(versions []string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", r, err)
 		}
+
 		vs[i] = v
 	}
 
@@ -595,6 +596,7 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, erro
 	}
 
 	var tps []capi.Profile
+
 	for _, p := range templateProfilesList.Profiles {
 		p.AvailableVersions, err = reverseSemVerSort(p.AvailableVersions)
 		if err != nil {
