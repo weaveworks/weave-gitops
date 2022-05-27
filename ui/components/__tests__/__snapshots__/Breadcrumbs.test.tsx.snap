@@ -82,30 +82,5 @@ exports[`snapshots renders on the root page 1`] = `
       size="medium"
     />
   </a>
-  <div
-    className="sc-bdvvtL dVdTOU sc-dkPtRN hTjxvJ"
-  >
-    <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root"
-      focusable="false"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-      />
-    </svg>
-  </div>
-  <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
-    href="/"
-    onClick={[Function]}
-  >
-    <span
-      className="sc-gsDKAQ eOAACW"
-      color="primary"
-      size="medium"
-    />
-  </a>
 </div>
 `;
