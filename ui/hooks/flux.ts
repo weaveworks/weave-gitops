@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListFluxRuntimeObjectsResponse,
@@ -43,10 +43,20 @@ export function useGetReconciledObjects(
   );
 }
 
-export function useToggleSuspend(req: ToggleSuspendResourceRequest) {
+export function useToggleSuspend(
+  req: ToggleSuspendResourceRequest,
+  type: string
+) {
   const { api } = useContext(CoreClientContext);
+  const queryClient = useQueryClient();
   const mutation = useMutation<ToggleSuspendResourceResponse, RequestError>(
-    () => api.ToggleSuspendResource(req)
+    () => api.ToggleSuspendResource(req),
+    {
+      onSuccess: () => {
+        return queryClient.invalidateQueries("kustomizations");
+        return queryClient.invalidateQueries("sources");
+      },
+    }
   );
   return mutation;
 }

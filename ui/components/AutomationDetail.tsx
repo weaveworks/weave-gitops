@@ -40,19 +40,24 @@ function AutomationDetail({ automation, className, info }: Props) {
     kind: automation?.kind,
   });
 
-  const suspend = useToggleSuspend({
-    name: automation?.name,
-    namespace: automation?.namespace,
-    clusterName: automation?.clusterName,
-    kind: automation?.kind,
-    suspend: automation?.suspended,
-  });
+  const suspend = useToggleSuspend(
+    {
+      name: automation?.name,
+      namespace: automation?.namespace,
+      clusterName: automation?.clusterName,
+      kind: automation?.kind,
+      suspend: automation?.suspended,
+    },
+    "automation"
+  );
 
   const handleSyncClicked = (opts) => {
     sync.mutateAsync(opts).then(() => {
       notifySuccess("Resource synced successfully");
     });
   };
+
+  console.log(suspend);
 
   return (
     <Flex wide tall column className={className}>
