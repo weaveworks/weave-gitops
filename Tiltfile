@@ -1,9 +1,16 @@
 # Anyone seen Fast and Furious? :)
 
-advanced_go_dev_mode = os.getenv('FAST_AND_FURIOUSER')
+# Allow a K8s context named wego-dev, in addition to the local cluster
+allow_k8s_contexts('wego-dev')
+
+# Support IMAGE_REPO env so that we can run Tilt with a remote cluster
+image_repository = os.getenv('IMAGE_REPO')
+if image_repository == "":
+    image_repository = "localhost:5001/weaveworks/wego-app"
 
 load('ext://restart_process', 'docker_build_with_restart')
 
+advanced_go_dev_mode = os.getenv('FAST_AND_FURIOUSER')
 if advanced_go_dev_mode:
 
     local_resource(
@@ -26,7 +33,7 @@ if advanced_go_dev_mode:
     )
 
     docker_build_with_restart(
-        'localhost:5001/weaveworks/wego-app',
+        image_repository,
         '.',
         only=[
             './bin',
@@ -41,13 +48,13 @@ if advanced_go_dev_mode:
     )
 else:
     docker_build(
-        'localhost:5001/weaveworks/wego-app',
+        image_repository,
         '.',
         dockerfile="gitops-server.dockerfile",
     )
 
-
-k8s_yaml(helm('./charts/gitops-server', name='dev', values='./tools/helm-values-dev.yaml'))
+# Override image.repository of the dev Helm chart with image_repository
+k8s_yaml(helm('./charts/gitops-server', name='dev', values='./tools/helm-values-dev.yaml', set=['image.repository=' + image_repository]))
 k8s_yaml(helm('./tools/charts/dev', name='dev', values='./tools/charts/dev/values.yaml'))
 
 k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server', 'ui-server'] if advanced_go_dev_mode else [])
