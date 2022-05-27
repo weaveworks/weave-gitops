@@ -299,7 +299,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 	)
 
 	endpoint = "v1/clusters"
-	if params.TemplateKind == templates.GitopsTemplateKind {
+	if params.TemplateKind == templates.GitOpsTemplateKind {
 		endpoint = "v1/tfcontrollers"
 	}
 
