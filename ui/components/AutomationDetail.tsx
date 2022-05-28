@@ -74,6 +74,7 @@ function AutomationDetail({ automation, className, info }: Props) {
         conditions={automation?.conditions}
         suspended={automation?.suspended}
       />
+<<<<<<< HEAD
       <Flex wide start>
         <SyncButton
           onClick={handleSyncClicked}
@@ -94,6 +95,66 @@ function AutomationDetail({ automation, className, info }: Props) {
           <>
             <InfoList items={info} />
             <ReconciledObjectsTable
+=======
+      <SyncButton
+        onClick={handleSyncClicked}
+        loading={sync.isLoading}
+        disabled={automation?.suspended}
+      />
+      <p>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+      </p>
+      <TabContent>
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
+            <>
+              <InfoList items={info} />
+              <ReconciledObjectsTable
+                automationKind={automation?.kind}
+                automationName={automation?.name}
+                namespace={automation?.namespace}
+                kinds={automation?.inventory}
+                clusterName={automation?.clusterName}
+              />
+            </>
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
+            <EventsTable
+              namespace={automation?.namespace}
+              involvedObject={{
+                kind: automation?.kind,
+                name: automation?.name,
+                namespace: automation?.namespace,
+              }}
+            />
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
+            <ReconciliationGraph
+>>>>>>> 737ca32d (so close yet so far)
               automationKind={automation?.kind}
               automationName={automation?.name}
               namespace={automation?.namespace}

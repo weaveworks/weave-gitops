@@ -47,7 +47,7 @@ function UserSettings({ className }: { className?: string }) {
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
         >
-          <Icon size="xl" type={IconType.Account} color="white" />
+          <Icon size="large" type={IconType.Account} color="white" />
         </IconButton>
       </Tooltip>
       <SettingsMenu

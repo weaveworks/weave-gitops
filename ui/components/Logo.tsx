@@ -25,7 +25,7 @@ function Logo({ className }: Props) {
 }
 
 export default styled(Logo)`
-  padding-left: ${(props) => props.theme.spacing.medium};
-  //this width plus medium spacing (24px) lines up the breadcrumbs with the page title.
-  width: 224px;
+  padding-left: ${(props) => props.theme.spacing.small};
+  //this width plus small spacing (12px) lines up the breadcrumbs with the page title.
+  width: 236px;
 `;
