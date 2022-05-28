@@ -25,7 +25,7 @@ export const Content = styled(Flex)`
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  min-height: 480px;
+  min-height: 100%;
   max-width: 100%;
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
@@ -63,7 +63,7 @@ function Page({ children, loading, error, className }: PageProps) {
   }
 
   return (
-    <Content wide tall start column className={className}>
+    <Content wide between column className={className}>
       {error && <Errors error={error} />}
       <Children column wide tall start>
         {children}
