@@ -4,9 +4,7 @@
 allow_k8s_contexts('wego-dev')
 
 # Support IMAGE_REPO env so that we can run Tilt with a remote cluster
-image_repository = os.getenv('IMAGE_REPO')
-if image_repository == "":
-    image_repository = "localhost:5001/weaveworks/wego-app"
+image_repository = os.getenv('IMAGE_REPO', 'localhost:5001/weaveworks/wego-app')
 
 load('ext://restart_process', 'docker_build_with_restart')
 
