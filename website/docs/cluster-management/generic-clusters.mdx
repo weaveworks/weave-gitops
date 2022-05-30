@@ -4,6 +4,9 @@ hide_title: true
 sidebar_position: 2
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 import TierLabel from "../_components/TierLabel";
 
 # Generic Cluster <TierLabel tiers="enterprise" />
@@ -14,6 +17,21 @@ Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterpri
 
 import TOCInline from "@theme/TOCInline";
 <TOCInline />;
+
+<Tabs groupId="have-a-secret" default>
+<TabItem value="existing-kubeconfig-secret" label="Existing kubeconfig">
+
+If you already have a `kubeconfig` stored in a secret in your management cluster, continue below to create a `GitopsCluster`.
+
+If you have a kubeconfig, you can load in into the cluster like so:
+
+```
+kubectl create secret generic demo-01-kubeconfig \
+--from-file=value.yaml=./demo-01-kubeconfig
+```
+
+</TabItem>
+<TabItem value="service-account-secret" label="Create a kubeconfig for a ServiceAccount">
 
 ### How to create a kubeconfig secret using a service account
 
@@ -101,9 +119,51 @@ Finally create a secret for the generated kubeconfig:
 
 ```sh
 kubectl create secret generic demo-01-kubeconfig \
---from-file=value.yaml=./demo-01-kubeconfig \
---dry-run=client -o yaml > demo-01-kubeconfig.yaml
+--from-file=value.yaml=./demo-01-kubeconfig
 ```
+
+</TabItem>
+</Tabs>
+
+### Connect a cluster
+
+Create a `GitopsCluster`
+
+```yaml title="./clusters/management/clusters/my-cluster.yaml"
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: my-cluster
+  namespace: default
+  # Signals that this cluster should be bootstrapped.
+  labels:
+    weave.works/capi: bootstrap
+spec:
+  secretRef:
+    name: my-cluster-kubeconfig
+```
+
+```yaml title="./clusters/my-cluster/clusters-bases-kustomization.yaml"
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+```
+
+Save these 2 files into your git repository. Commit and push.
+
+Once flux has reconciled the cluster you can inspect your flux resources via the UI!
+
+## Debugging
 
 ### How to test a kubeconfig secret in a cluster
 
