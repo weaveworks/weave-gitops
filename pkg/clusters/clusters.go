@@ -109,11 +109,12 @@ type DeleteClustersParams struct {
 func printCluster(c Cluster, w io.Writer) {
 	var status, message string
 
-	// wip
 	for _, condition := range c.Conditions {
 		if condition.Type == "Ready" {
 			if condition.Status == "True" {
 				status = condition.Type
+			} else {
+				status = "Not Ready"
 			}
 
 			message = condition.Message

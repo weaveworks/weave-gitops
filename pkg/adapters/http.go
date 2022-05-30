@@ -40,7 +40,7 @@ func NewHttpClient(endpoint, username, password string, client *resty.Client, ou
 		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
 	}
 
-	client = client.SetDebug(true).SetHostURL(u.String()).
+	client = client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
