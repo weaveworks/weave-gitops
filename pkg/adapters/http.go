@@ -436,16 +436,15 @@ func (c *HTTPClient) RetrieveCredentialsByName(name string) (templates.Credentia
 
 // RetrieveClusters returns the list of all clusters from the cluster service.
 func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
-	endpoint := "gitops/api/clusters"
+	endpoint := "/v1/clusters"
 
 	type ClusterView struct {
-		Name        string               `json:"name"`
-		Status      string               `json:"status"`
-		PullRequest clusters.PullRequest `json:"pullRequest"`
+		Name       string                `json:"name"`
+		Conditions []*clusters.Condition `json:"conditions"`
 	}
 
 	type ClustersResponse struct {
-		Clusters []ClusterView `json:"clusters"`
+		Clusters []ClusterView `json:"gitopsClusters"`
 	}
 
 	var clustersResponse ClustersResponse
@@ -463,11 +462,20 @@ func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	}
 
 	var cs []clusters.Cluster
+
 	for _, c := range clustersResponse.Clusters {
+		var conditions []clusters.Condition
+		for _, condition := range c.Conditions {
+			conditions = append(conditions, clusters.Condition{
+				Type:    condition.Type,
+				Status:  condition.Status,
+				Message: condition.Message,
+			})
+		}
+
 		cs = append(cs, clusters.Cluster{
-			Name:        c.Name,
-			Status:      c.Status,
-			PullRequest: c.PullRequest,
+			Name:       c.Name,
+			Conditions: conditions,
 		})
 	}
 

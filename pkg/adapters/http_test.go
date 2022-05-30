@@ -531,27 +531,33 @@ func TestRetrieveClusters(t *testing.T) {
 			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
 				assert.ElementsMatch(t, cs, []clusters.Cluster{
 					{
-						Name:   "cluster-a",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/1",
+						Name: "cluster-a",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 					{
-						Name:   "cluster-b",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/2",
+						Name: "cluster-b",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 					{
-						Name:   "cluster-c",
-						Status: "pullRequestCreated",
-						PullRequest: clusters.PullRequest{
-							Type: "",
-							Url:  "https://github.com/org/repo/pull/3",
+						Name: "cluster-c",
+						Conditions: []clusters.Condition{
+							{
+								Type:    "Ready",
+								Status:  "True",
+								Message: "Cluster Found",
+							},
 						},
 					},
 				})
@@ -561,14 +567,14 @@ func TestRetrieveClusters(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
-				assert.EqualError(t, err, "unable to GET clusters from \"https://weave.works/api/gitops/api/clusters\": Get \"https://weave.works/api/gitops/api/clusters\": oops")
+				assert.EqualError(t, err, "unable to GET clusters from \"https://weave.works/api/v1/clusters\": Get \"https://weave.works/api/v1/clusters\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/gitops/api/clusters\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/clusters\" was 400")
 			},
 		},
 	}
@@ -578,7 +584,7 @@ func TestRetrieveClusters(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/gitops/api/clusters", tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/clusters", tt.responder)
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
