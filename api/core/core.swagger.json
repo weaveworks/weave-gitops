@@ -572,12 +572,12 @@
     "/v1/sync": {
       "post": {
         "summary": "SyncResource forces a reconciliation of a Flux resource",
-        "operationId": "Core_SyncAutomation",
+        "operationId": "Core_SyncFluxObject",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1SyncAutomationResponse"
+              "$ref": "#/definitions/v1SyncFluxObjectResponse"
             }
           },
           "default": {
@@ -593,7 +593,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1SyncAutomationRequest"
+              "$ref": "#/definitions/v1SyncFluxObjectRequest"
             }
           }
         ],
@@ -1370,7 +1370,7 @@
         }
       }
     },
-    "v1SyncAutomationRequest": {
+    "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
         "name": {
@@ -1390,7 +1390,7 @@
         }
       }
     },
-    "v1SyncAutomationResponse": {
+    "v1SyncFluxObjectResponse": {
       "type": "object"
     },
     "v1ToggleSuspendResourceRequest": {

@@ -9,6 +9,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -22,7 +23,7 @@ import (
 var k8sPollInterval = 2 * time.Second
 var k8sTimeout = 1 * time.Minute
 
-func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomationRequest) (*pb.SyncAutomationResponse, error) {
+func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -38,14 +39,18 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 		Namespace: msg.Namespace,
 	}
 
-	obj := getAutomation(msg.Kind)
+	obj, err := getFluxObject(msg.Kind)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
 		return nil, err
 	}
 
-	if msg.WithSource {
-		sourceRef := obj.SourceRef()
+	automation, isAutomation := obj.(internal.Automation)
+	if msg.WithSource && isAutomation {
+		sourceRef := automation.SourceRef()
 
 		_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
 
@@ -80,7 +85,6 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 	}
 
 	gvk := obj.GroupVersionKind()
-
 	if err := requestReconciliation(ctx, c, key, gvk); err != nil {
 		return nil, fmt.Errorf("requesting reconciliation: %w", err)
 	}
@@ -89,18 +93,25 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 		return nil, fmt.Errorf("syncing automation; %w", err)
 	}
 
-	return &pb.SyncAutomationResponse{}, nil
+	return &pb.SyncFluxObjectResponse{}, nil
 }
 
-func getAutomation(kind pb.FluxObjectKind) internal.Automation {
+func getFluxObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {
 	switch kind {
 	case pb.FluxObjectKind_KindKustomization:
-		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}
+		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
 	case pb.FluxObjectKind_KindHelmRelease:
-		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}
+		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
+
+	case pb.FluxObjectKind_KindGitRepository:
+		return &internal.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
+	case pb.FluxObjectKind_KindBucket:
+		return &internal.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
+	case pb.FluxObjectKind_KindHelmRepository:
+		return &internal.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
 	}
 
-	return nil
+	return nil, fmt.Errorf("not supported kind: %s", kind.String())
 }
 
 func kindToSourceType(kind string) pb.FluxObjectKind {

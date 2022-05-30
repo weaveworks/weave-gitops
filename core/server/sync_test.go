@@ -52,12 +52,12 @@ func TestSync(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		msg        *pb.SyncAutomationRequest
+		msg        *pb.SyncFluxObjectRequest
 		automation internal.Automation
 		source     internal.Reconcilable
 	}{{
 		name: "kustomization no source",
-		msg: &pb.SyncAutomationRequest{
+		msg: &pb.SyncFluxObjectRequest{
 			ClusterName: "Default",
 			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  false,
@@ -65,7 +65,7 @@ func TestSync(t *testing.T) {
 		automation: internal.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
-		msg: &pb.SyncAutomationRequest{
+		msg: &pb.SyncFluxObjectRequest{
 			ClusterName: "Default",
 			Kind:        pb.FluxObjectKind_KindKustomization,
 			WithSource:  true,
@@ -74,7 +74,7 @@ func TestSync(t *testing.T) {
 		source:     internal.NewReconcileable(gitRepo),
 	}, {
 		name: "helm release no source",
-		msg: &pb.SyncAutomationRequest{
+		msg: &pb.SyncFluxObjectRequest{
 			ClusterName: "Default",
 			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  false,
@@ -82,7 +82,7 @@ func TestSync(t *testing.T) {
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
-		msg: &pb.SyncAutomationRequest{
+		msg: &pb.SyncFluxObjectRequest{
 			ClusterName: "Default",
 			Kind:        pb.FluxObjectKind_KindHelmRelease,
 			WithSource:  true,
@@ -101,7 +101,7 @@ func TestSync(t *testing.T) {
 			defer close(done)
 
 			go func() {
-				_, err := c.SyncAutomation(ctx, msg)
+				_, err := c.SyncFluxObject(ctx, msg)
 				done <- err
 			}()
 
