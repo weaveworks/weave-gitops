@@ -130,7 +130,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/template?template_kind=CAPITemplate&template_name=cluster-template\": Get \"https://weave.works/api/v1/template?template_kind=CAPITemplate&template_name=cluster-template\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\": oops")
 			},
 		},
 		{
@@ -139,7 +139,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.GitOpsTemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/template?template_kind=GitOpsTemplate&template_name=terraform-template\": Get \"https://weave.works/api/v1/template?template_kind=GitOpsTemplate&template_name=terraform-template\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate\": Get \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate\": oops")
 			},
 		},
 		{
@@ -148,7 +148,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/template?template_kind=CAPITemplate&template_name=cluster-template\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\" was 400")
 			},
 		},
 	}
@@ -158,7 +158,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/template", tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/"+tt.templateName, tt.responder)
 
 			r, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
 			assert.NoError(t, err)
