@@ -22,7 +22,7 @@ func TestSetSeparateValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/CAPITemplate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
@@ -61,7 +61,7 @@ func TestSetMultipleValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/CAPITemplate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
@@ -97,7 +97,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/CAPITemplate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
