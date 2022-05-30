@@ -97,7 +97,7 @@ However Weave GitOps Enterprise supports any combination of management cluster a
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="kind">
 
-- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
+##### 1.1 We start with creating a kind-config.
 
 ```yaml title="kind-config.yaml"
 kind: Cluster
@@ -109,8 +109,7 @@ nodes:
         containerPath: /var/run/docker.sock
 ```
 
-- The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
-- `extraPortMappings` are for easily accessing NATS and the UI
+The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
 
 ##### 1.2 Start your kind cluster using the configuration above and Kubernetes v1.23.6
 
