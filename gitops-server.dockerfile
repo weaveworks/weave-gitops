@@ -10,7 +10,7 @@ COPY --chown=node:node tsconfig.json /home/app/
 COPY --chown=node:node .parcelrc /home/app/
 RUN make node_modules
 COPY --chown=node:node ui /home/app/ui
-RUN make ui
+RUN --mount=type=cache,target=/home/app/ui/.parcel-cache make ui
 
 # Go build
 FROM golang:1.18 AS go-build
@@ -35,7 +35,7 @@ COPY api /app/api
 ARG GIT_COMMIT="_unset_"
 ARG LDFLAGS="-X localbuild=true"
 
-RUN LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
+RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
 FROM gcr.io/distroless/base as runtime
