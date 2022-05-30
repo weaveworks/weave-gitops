@@ -8,6 +8,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
+type clientFactoryAndUser struct {
+	clientsFactory ClientsFactory
+	user           *auth.UserPrincipal
+}
+
 // WithClustersClient creates clusters client for provided user in the context
 func WithClustersClient(clientsFactory ClientsFactory, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -17,14 +22,10 @@ func WithClustersClient(clientsFactory ClientsFactory, next http.Handler) http.H
 			return
 		}
 
-		client, err := clientsFactory.GetImpersonatedClient(r.Context(), user)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintln(w, "failed getting impersonated client:", err)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), ClustersClientCtxKey, client)
+		ctx := context.WithValue(r.Context(), ClustersClientCtxKey, &clientFactoryAndUser{
+			clientsFactory: clientsFactory,
+			user:           user,
+		})
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -32,10 +33,18 @@ func WithClustersClient(clientsFactory ClientsFactory, next http.Handler) http.H
 
 // ClientFromCtx returns the ClusterClient stored in the context
 func ClientFromCtx(ctx context.Context) Client {
-	client, ok := ctx.Value(ClustersClientCtxKey).(*clustersClient)
-	if ok {
-		return client
+	cu, ok := ctx.Value(ClustersClientCtxKey).(*clientFactoryAndUser)
+	if !ok {
+		fmt.Println("not ok!")
+		return nil
 	}
 
-	return nil
+	client, err := cu.clientsFactory.GetImpersonatedClient(ctx, cu.user)
+	if err != nil {
+		fmt.Printf("error getting client, %v\n", err)
+		return nil
+	}
+
+	return client
+
 }
