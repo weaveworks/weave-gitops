@@ -40,13 +40,13 @@ func TestGetClusters(t *testing.T) {
 					Conditions: []clusters.Condition{
 						{
 							Type:    "Ready",
-							Status:  "True",
-							Message: "Cluster Found",
+							Status:  "False",
+							Message: "failed to get CAPI cluster",
 						},
 					},
 				},
 			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tReady\tCluster Found\ncluster-b\tReady\tCluster Found\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tReady\tCluster Found\ncluster-b\tNot Ready\tfailed to get CAPI cluster\n",
 		},
 		{
 			name:             "error retrieving clusters",
@@ -89,29 +89,30 @@ func TestGetClusterByName(t *testing.T) {
 					Name: "cluster-a",
 					Conditions: []clusters.Condition{
 						{
-							Type:   "ready",
+							Type:   "Ready",
 							Status: "True",
 						},
 					},
 				},
 			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tstatus-a\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tReady\t\n",
 		},
 		{
-			name:        "Print cluster PR url",
+			name:        "not ready cluster",
 			clusterName: "cluster-a",
 			cs: []clusters.Cluster{
 				{
 					Name: "cluster-a",
 					Conditions: []clusters.Condition{
 						{
-							Type:   "ready",
-							Status: "True",
+							Type:    "Ready",
+							Status:  "False",
+							Message: "failed to get CAPI cluster",
 						},
 					},
 				},
 			},
-			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\thttps://github.com/org/repo/pull/1\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tNot Ready\tfailed to get CAPI cluster\n",
 		},
 	}
 
