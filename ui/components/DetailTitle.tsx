@@ -9,6 +9,7 @@ type Props = {
   type: string;
 };
 
+// eslint-disable-next-line
 function DetailTitle({ className, name, type }: Props) {
   //the correct value for the type prop is not currently available - will be added later
   return (
