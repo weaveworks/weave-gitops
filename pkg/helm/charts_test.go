@@ -64,8 +64,10 @@ var _ = Describe("RepoManager", func() {
 				},
 				Icon: "https://helm.sh/icon.png",
 				AvailableVersions: []string{
-					"1.1.0",
+					"1.10.1",
+					"1.2.1-rc.1",
 					"1.1.2",
+					"1.1.0",
 				},
 				Layer: "layer-1",
 				HelmRepository: &pb.HelmRepository{
@@ -141,6 +143,14 @@ var _ = Describe("RepoManager", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
 				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error unmarshaling chart response")))
+			})
+		})
+
+		When("the index has invalid versions", func() {
+			It("errors", func() {
+				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid-versions"), helm.Profiles)
+				Expect(err).To(MatchError(ContainSubstring("1..2: Invalid Semantic Version")))
 			})
 		})
 	})

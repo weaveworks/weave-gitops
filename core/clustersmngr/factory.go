@@ -131,7 +131,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 	clients, err := clientsForClusters(cf.clusters.Get())
 	if err != nil {
-		cf.log.Error(err, "failed to create clients for", "clusters", cf.clusters.Get())
+		cf.log.Error(err, "failed to create client")
 		return err
 	}
 

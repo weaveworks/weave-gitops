@@ -1,40 +1,64 @@
 {
-    "clusters": [
+    "gitopsClusters": [
      {
-      "id": 1,
-      "name": "cluster-a",
-      "type": "",
-      "token": "111",
-      "ingressUrl": "",
-      "status": "pullRequestCreated",
-      "updatedAt": "0001-01-01T00:00:00Z",
-      "pullRequest": {
-       "url": "https://github.com/org/repo/pull/1"
+        "id": 1,
+        "name": "cluster-a",
+        "namespace": "default",
+        "annotations": {
+           "capi.weave.works/bootstrapped": "yes"
+         },
+         "labels": {
+            "kustomize.toolkit.fluxcd.io/name": "flux-system",
+            "kustomize.toolkit.fluxcd.io/namespace": "flux-system",
+            "weave.works/capi": "bootstrap"
+         },
+         "conditions": [
+            {
+               "type": "Ready",
+               "status": "True",
+               "Message": "Cluster Found"
+            }
+         ]
+      },
+      {
+         "id": 1,
+         "name": "cluster-b",
+         "namespace": "default",
+         "annotations": {
+            "capi.weave.works/bootstrapped": "yes"
+         },
+         "labels": {
+            "kustomize.toolkit.fluxcd.io/name": "flux-system",
+            "kustomize.toolkit.fluxcd.io/namespace": "flux-system",
+            "weave.works/capi": "bootstrap"
+         },
+         "conditions": [
+            {
+               "type": "Ready",
+               "status": "True",
+               "Message": "Cluster Found"
+            }
+         ]
+      },
+      {
+         "id": 1,
+         "name": "cluster-c",
+         "namespace": "default",
+         "annotations": {
+            "capi.weave.works/bootstrapped": "yes"
+         },
+         "labels": {
+            "kustomize.toolkit.fluxcd.io/name": "flux-system",
+            "kustomize.toolkit.fluxcd.io/namespace": "flux-system",
+            "weave.works/capi": "bootstrap"
+         },
+         "conditions": [
+            {
+               "type": "Ready",
+               "status": "True",
+               "Message": "Cluster Found"
+            }
+         ]
       }
-     },
-     {
-        "id": 1,
-        "name": "cluster-b",
-        "type": "",
-        "token": "222",
-        "ingressUrl": "",
-        "status": "pullRequestCreated",
-        "updatedAt": "0001-01-01T00:00:00Z",
-        "pullRequest": {
-         "url": "https://github.com/org/repo/pull/2"
-        }
-       },
-       {
-        "id": 1,
-        "name": "cluster-c",
-        "type": "",
-        "token": "333",
-        "ingressUrl": "",
-        "status": "pullRequestCreated",
-        "updatedAt": "0001-01-01T00:00:00Z",
-        "pullRequest": {
-         "url": "https://github.com/org/repo/pull/3"
-        }
-       }
-    ]
-   }
+   ]
+}
