@@ -101,11 +101,58 @@ TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base6
 
 For the next step, the cluster certificate (CA) is needed. How you get hold of the certificate depends on the cluster. For GKE you can view it on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You will need to copy the contents of the certificate into the `ca.crt` file used below.
 
+```bash title="static-kubeconfig.sh"
+#!/bin/bash
+
+if [[ -z "$CLUSTER_NAME" ]]; then
+    echo "Ensure CLUSTER_NAME has been set"
+    exit 1
+fi
+
+if [[ -z "$CA_CERTIFICATE" ]]; then
+    echo "Ensure CA_CERTIFICATE has been set to the path of the CA certificate"
+    exit 1
+fi
+
+if [[ -z "$ENDPOINT" ]]; then
+    echo "Ensure ENDPOINT has been set"
+    exit 1
+fi
+
+if [[ -z "$TOKEN" ]]; then
+    echo "Ensure TOKEN has been set"
+    exit 1
+fi
+
+export CLUSTER_CA_CERTIFICATE=$(cat "$CA_CERTIFICATE" | base64)
+
+envsubst <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: $CLUSTER_NAME
+  cluster:
+    server: https://$ENDPOINT
+    certificate-authority-data: $CLUSTER_CA_CERTIFICATE
+users:
+- name: $CLUSTER_NAME
+  user:
+    token: $TOKEN
+contexts:
+- name: $CLUSTER_NAME
+  context:
+    cluster: $CLUSTER_NAME
+    user: $CLUSTER_NAME
+current-context: $CLUSTER_NAME
+
+EOF
+```
+
 ```sh
 CLUSTER_NAME=demo-01 \
 CA_CERTIFICATE=ca.crt \
 ENDPOINT=<control-plane-ip-address> \
-TOKEN=<token> ./tools/sa/static-kubeconfig.sh > demo-01-kubeconfig
+TOKEN=<token> ./static-kubeconfig.sh > demo-01-kubeconfig
 ```
 
 Replace the following:
