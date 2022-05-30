@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/printers"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
-	"k8s.io/cli-runtime/pkg/printers"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 type templateCommandFlags struct {
@@ -90,7 +91,7 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 				return errors.New("template name is required")
 			}
 
-			return capi.GetTemplateParameters(args[0], r, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], r, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -98,18 +99,18 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 				return errors.New("template name is required")
 			}
 
-			return capi.GetTemplateProfiles(args[0], r, w)
+			return templates.GetTemplateProfiles(args[0], r, w)
 		}
 
 		if len(args) == 0 {
 			if flags.Provider != "" {
-				return capi.GetTemplatesByProvider(flags.Provider, r, w)
+				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, r, w)
 			}
 
-			return capi.GetTemplates(r, w)
+			return templates.GetTemplates(templates.CAPITemplateKind, r, w)
 		}
 
-		return nil
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, r, w)
 	}
 }
 

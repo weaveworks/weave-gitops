@@ -1,0 +1,14 @@
+{
+    "template": {
+        "name": "cluster-template",
+        "provider": "aws",
+        "description": "this is a test template",
+        "version": "",
+        "parameters": [
+            {
+                "name": "CLUSTER_NAME",
+                "description": "This is used for the cluster naming."
+            }
+        ]
+    }
+}

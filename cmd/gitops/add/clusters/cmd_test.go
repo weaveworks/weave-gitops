@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
@@ -21,7 +22,7 @@ func TestSetSeparateValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
@@ -33,7 +34,7 @@ func TestSetSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -60,7 +61,7 @@ func TestSetMultipleValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
@@ -72,7 +73,7 @@ func TestSetMultipleValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -96,7 +97,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render",
+		"http://localhost:8000/v1/templates/cluster-template-eks-fargate/render?template_kind=CAPITemplate",
 		func(r *http.Request) (*http.Response, error) {
 			var vs adapters.TemplateParameterValuesAndCredentials
 
@@ -108,7 +109,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
