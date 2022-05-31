@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
@@ -92,7 +93,7 @@ func addTerraformCmdRunE(endpoint, username, password *string, client *resty.Cli
 		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
 			TemplateName:     flags.Template,
-			TemplateKind:     templates.GitOpsTemplateKind,
+			TemplateKind:     templates.GitOpsTemplateKind.String(),
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
 			HeadBranch:       flags.HeadBranch,
