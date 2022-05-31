@@ -35,3 +35,6 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
+  - apiGroups: ["pac.weave.works"]
+    resources: ["policies"]
+    verbs: ["get", "list"]
