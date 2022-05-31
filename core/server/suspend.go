@@ -4,14 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
-	c, err := clustersmngr.ClientFromCtx(ctx).Scoped(msg.ClusterName)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}

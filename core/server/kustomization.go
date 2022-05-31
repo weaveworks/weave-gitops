@@ -9,11 +9,15 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
@@ -66,7 +70,10 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 }
 
 func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomizationRequest) (*pb.GetKustomizationResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	k := &kustomizev1.Kustomization{}
 	key := client.ObjectKey{

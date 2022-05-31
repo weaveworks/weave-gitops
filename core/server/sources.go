@@ -2,16 +2,21 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoriesRequest) (*pb.ListGitRepositoriesResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.GitRepositoryList{}
@@ -42,7 +47,10 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 }
 
 func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.HelmRepositoryList{}
@@ -73,7 +81,10 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 }
 
 func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.HelmChartList{}
@@ -104,7 +115,10 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 }
 
 func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &sourcev1.BucketList{}
