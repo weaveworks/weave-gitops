@@ -63,3 +63,10 @@ export function statusSortHelper({ suspended, conditions }: Statusable) {
 export function automationLastUpdated(a: Kustomization | HelmRelease): string {
   return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
 }
+
+export function displayKind(kind: string): string {
+  if (kind.startsWith("Kind")) {
+    return kind.slice(4);
+  }
+  return kind;
+}
