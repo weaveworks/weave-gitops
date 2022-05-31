@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.8.1-rc.5",
+  "version": "0.8.1-rc.6",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -23,7 +23,7 @@
     "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
-    "lint": "eslint ui && npm run typecheck",
+    "lint": "eslint ui --max-warnings 0 && npm run typecheck",
     "test": "jest",
     "watch": "jest --runInBand --watch",
     "coverage": "jest --coverage",

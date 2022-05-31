@@ -4,6 +4,7 @@ import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { Bucket, FluxObjectKind } from "../lib/api/core/types.pb";
+import { displayKind } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -20,7 +21,7 @@ function BucketDetail({ name, namespace, className }: Props) {
       type={FluxObjectKind.KindBucket}
       // Guard against an undefined bucket with a default empty object
       info={(b: Bucket = {}) => [
-        ["Type", FluxObjectKind.KindBucket],
+        ["Type", displayKind(FluxObjectKind.KindBucket)],
         ["Endpoint", b.endpoint],
         ["Bucket Name", b.name],
         ["Last Updated", <Timestamp time={b.lastUpdatedAt} />],
