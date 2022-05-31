@@ -4,13 +4,16 @@ import {
   Bucket,
   FluxObjectKind,
   GitRepository,
-  HelmChart,
   HelmRepository,
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
-import { convertGitURLToGitProvider, statusSortHelper, displayKind } from "../lib/utils";
+import {
+  convertGitURLToGitProvider,
+  displayKind,
+  statusSortHelper,
+} from "../lib/utils";
 import { SortType } from "./DataTable";
 import {
   filterConfigForStatus,
@@ -29,7 +32,9 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
-  sources = sources.map((s) => { return { ...s, type: displayKind(s.kind) } });
+  sources = sources.map((s) => {
+    return { ...s, type: displayKind(s.kind) };
+  });
 
   const initialFilterState = {
     ...filterConfigForString(sources, "type"),
@@ -102,10 +107,7 @@ function SourcesTable({ className, sources }: Props) {
                 text = (s as Bucket).endpoint;
                 break;
               case FluxObjectKind.KindHelmChart:
-                text = `https://${(s as HelmChart).sourceRef?.name}`;
-                url = (s as HelmChart).chart;
-                link = true;
-                break;
+                return "-";
               case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
                 url = text;
