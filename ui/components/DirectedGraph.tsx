@@ -96,6 +96,7 @@ function DirectedGraph<T>({
 }
 
 export default styled(DirectedGraph)`
+  overflow: hidden;
   text {
     font-weight: 300;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
