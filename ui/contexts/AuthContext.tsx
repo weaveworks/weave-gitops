@@ -100,7 +100,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        history.push("/sign_in");
+        window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
       })
       .finally(() => setLoading(false));
   }, []);
