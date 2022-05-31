@@ -56,8 +56,8 @@ exports[`Logo snapshots renders 1`] = `
 }
 
 .c1 {
-  padding-left: 24px;
-  width: 224px;
+  padding-left: 12px;
+  width: 236px;
 }
 
 <div
@@ -80,7 +80,7 @@ exports[`Logo snapshots renders 1`] = `
           src=""
           style={
             Object {
-              "height": 56,
+              "height": 40,
             }
           }
         />

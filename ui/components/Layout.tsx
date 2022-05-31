@@ -71,7 +71,8 @@ const topBarHeight = "60px";
 const NavContainer = styled.div`
   position: fixed;
   width: ${navWidth};
-  height: 100%;
+  //topBarHeight + correct margins of 36px
+  height: calc(100% - 84px);
   margin-top: ${(props) => props.theme.spacing.small};
   margin-bottom: ${(props) => props.theme.spacing.small};
 `;
