@@ -84,6 +84,7 @@ const NavContent = styled.div`
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
   box-sizing: border-box;
+  overflow-y: scroll;
   .MuiTab-textColorInherit {
     opacity: 1;
     .MuiTab-wrapper {

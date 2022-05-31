@@ -79,7 +79,7 @@ function DirectedGraph<T>({
   }, [nodes, edges]);
 
   return (
-    <Flex className={className}>
+    <Flex wide tall className={className}>
       <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
         <Slider
@@ -96,8 +96,6 @@ function DirectedGraph<T>({
 }
 
 export default styled(DirectedGraph)`
-  height: 100%;
-  overflow: hidden;
   text {
     font-weight: 300;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
