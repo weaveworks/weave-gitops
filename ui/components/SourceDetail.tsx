@@ -8,15 +8,14 @@ import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
+import Button from "./Button";
 import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
-import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SuspendButton from "./SuspendButton";
 
 type Props = {
   className?: string;
@@ -82,23 +81,27 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
       namespace: s.namespace,
       clusterName: s.clusterName,
       kind: s.kind,
-      suspend: s.suspended,
+      suspend: !s.suspended,
     },
-    "automation"
+    "sources"
   );
 
   return (
     <Flex wide tall column className={className}>
       <DetailTitle name={name} type={type} />
-      {error && (
-        <Alert severity="error" title="Error" message={error.message} />
-      )}
+      {error ||
+        (suspend.error && (
+          <Alert
+            severity="error"
+            title="Error"
+            message={error.message || suspend.error.message}
+          />
+        ))}
       <PageStatus conditions={s.conditions} suspended={s.suspended} />
-      <SuspendButton
-        toggleSuspend={() => suspend.mutateAsync()}
-        loading={suspend.isLoading}
-        suspend={s.suspended}
-      />
+      <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
+        {s.suspended ? "Resume" : "Suspend"}
+      </Button>
+
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <>
@@ -122,13 +125,10 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
-  width: 100%;
-
   ${PageStatus} {
     padding: ${(props) => props.theme.spacing.small} 0px;
   }
-
-  .MuiTabs-root ${Link} .active-tab {
-    background: ${(props) => props.theme.colors.primary}19;
+  ${SubRouterTabs} {
+    margin-top: ${(props) => props.theme.spacing.medium};
   }
 `;

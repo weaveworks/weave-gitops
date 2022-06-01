@@ -53,8 +53,7 @@ export function useToggleSuspend(
     () => api.ToggleSuspendResource(req),
     {
       onSuccess: () => {
-        return queryClient.invalidateQueries("kustomizations");
-        return queryClient.invalidateQueries("sources");
+        return queryClient.invalidateQueries(type);
       },
     }
   );
