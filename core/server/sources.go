@@ -15,7 +15,7 @@ import (
 func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoriesRequest) (*pb.ListGitRepositoriesResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -49,7 +49,7 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoriesRequest) (*pb.ListHelmRepositoriesResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -83,7 +83,7 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartsRequest) (*pb.ListHelmChartsResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -117,7 +117,7 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest) (*pb.ListBucketsResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {

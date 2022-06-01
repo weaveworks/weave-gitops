@@ -25,7 +25,7 @@ var k8sTimeout = 1 * time.Minute
 func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomationRequest) (*pb.SyncAutomationResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	c, err := clustersClient.Scoped(msg.ClusterName)

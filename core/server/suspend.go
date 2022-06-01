@@ -13,7 +13,7 @@ import (
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	c, err := clustersClient.Scoped(msg.ClusterName)

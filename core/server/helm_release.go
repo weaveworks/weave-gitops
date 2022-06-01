@@ -24,7 +24,7 @@ import (
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -63,7 +63,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	helmRelease := helmv2.HelmRelease{}
