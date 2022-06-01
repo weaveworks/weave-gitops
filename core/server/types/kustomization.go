@@ -50,6 +50,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		Inventory:             inv,
 		Suspended:             kustomization.Spec.Suspend,
 		ClusterName:           clusterName,
+		ApiVersion:            kustomization.APIVersion,
 	}, nil
 }
 

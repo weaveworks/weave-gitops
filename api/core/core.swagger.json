@@ -1220,6 +1220,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
