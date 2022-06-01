@@ -2,6 +2,7 @@ package clustersmngr
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -175,6 +176,10 @@ func (cf *clientsFactory) syncCaches() {
 }
 
 func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+	if user == nil {
+		return nil, errors.New("no user supplied")
+	}
+
 	pool := NewClustersClientsPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {

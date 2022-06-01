@@ -16,12 +16,16 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &helmv2.HelmReleaseList{}
@@ -57,7 +61,10 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 }
 
 func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	helmRelease := helmv2.HelmRelease{}
 	key := client.ObjectKey{

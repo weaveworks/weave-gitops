@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,7 +38,10 @@ var (
 )
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	var results []*pb.Deployment
 
@@ -101,7 +104,10 @@ func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
 }
 
 func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	var opts client.MatchingLabels
 
@@ -178,7 +184,10 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 }
 
 func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	l := unstructured.UnstructuredList{}
 

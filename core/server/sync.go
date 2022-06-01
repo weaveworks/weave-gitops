@@ -9,9 +9,9 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -23,7 +23,12 @@ var k8sPollInterval = 2 * time.Second
 var k8sTimeout = 1 * time.Minute
 
 func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomationRequest) (*pb.SyncAutomationResponse, error) {
-	c, err := clustersmngr.ClientFromCtx(ctx).Scoped(msg.ClusterName)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
