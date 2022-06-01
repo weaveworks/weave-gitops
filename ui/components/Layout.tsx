@@ -120,6 +120,7 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  min-width: 768px;
   max-width: 100%;
   //without a hard value in the height property, min-height in the Page component doesn't work
   height: 1px;
