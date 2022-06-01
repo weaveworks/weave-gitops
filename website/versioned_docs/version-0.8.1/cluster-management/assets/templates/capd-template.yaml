@@ -1,0 +1,147 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-development
+  namespace: default
+spec:
+  description: A simple CAPD template
+  params:
+    - name: CLUSTER_NAME
+      required: true
+      description: This is used for the cluster naming.
+    - name: NAMESPACE
+      description: Namespace to create the cluster in
+    - name: KUBERNETES_VERSION
+      description: Kubernetes version to use for the cluster
+      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
+      options: ["1", "2", "3"]
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+        labels:
+          cni: calico
+          weave.works/capi: bootstrap
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks:
+              - 192.168.0.0/16
+          serviceDomain: cluster.local
+          services:
+            cidrBlocks:
+              - 10.128.0.0/12
+        controlPlaneRef:
+          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          kind: KubeadmControlPlane
+          name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+          kind: DockerCluster
+          name: "${CLUSTER_NAME}"
+          namespace: "${NAMESPACE}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        namespace: "${NAMESPACE}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            extraMounts:
+              - containerPath: /var/run/docker.sock
+                hostPath: /var/run/docker.sock
+    - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+      kind: KubeadmControlPlane
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
+      spec:
+        kubeadmConfigSpec:
+          clusterConfiguration:
+            apiServer:
+              certSANs:
+                - localhost
+                - 127.0.0.1
+                - 0.0.0.0
+            controllerManager:
+              extraArgs:
+                enable-hostpath-provisioner: "true"
+          initConfiguration:
+            nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
+              kubeletExtraArgs:
+                cgroup-driver: cgroupfs
+                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+          joinConfiguration:
+            nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
+              kubeletExtraArgs:
+                cgroup-driver: cgroupfs
+                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+        machineTemplate:
+          infrastructureRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: DockerMachineTemplate
+            name: "${CLUSTER_NAME}-control-plane"
+            namespace: "${NAMESPACE}"
+        replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
+        version: "${KUBERNETES_VERSION}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec: {}
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  cgroup-driver: cgroupfs
+                  eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: MachineDeployment
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        clusterName: "${CLUSTER_NAME}"
+        replicas: "${WORKER_MACHINE_COUNT}"
+        selector:
+          matchLabels: null
+        template:
+          spec:
+            bootstrap:
+              configRef:
+                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                kind: KubeadmConfigTemplate
+                name: "${CLUSTER_NAME}-md-0"
+                namespace: "${NAMESPACE}"
+            clusterName: "${CLUSTER_NAME}"
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+              kind: DockerMachineTemplate
+              name: "${CLUSTER_NAME}-md-0"
+              namespace: "${NAMESPACE}"
+            version: "${KUBERNETES_VERSION}"
