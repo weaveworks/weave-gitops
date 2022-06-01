@@ -152,4 +152,10 @@ function SourcesTable({ className, sources }: Props) {
   );
 }
 
-export default styled(SourcesTable).attrs({ className: SourcesTable.name })``;
+export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
+  td:nth-child(5) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;
