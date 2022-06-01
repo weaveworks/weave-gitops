@@ -1,0 +1,90 @@
+---
+title: Profiles
+sidebar_position: 6
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Profiles <TierLabel tiers="enterprise" />
+
+:::note BEFORE YOU START
+The following instructions require you to make minor changes to the content of your own hosted Helm repository.
+:::
+
+When provisioning new clusters it is often useful to install selected software packages to them as part of their bootstrap process. Weave GitOps Enterprise enables this by installing standard Helm charts to the newly provisioned clusters. This feature lowers the ongoing operational overhead and allows for the clusters to be immediately usable after being provisioned. To set this up you need to:
+
+1. Annotate a Helm chart to make it available for installation
+2. Select which profiles you want installed when creating a cluster
+
+### 1. Annotate a Helm chart to make it available for installation
+
+In order for a chart to become available for installation, it needs to include a `weave.works/profile` annotation. For example:
+
+```yaml title="Chart.yaml"
+annotations:
+  weave.works/profile: observability-profile
+apiVersion: v1
+appVersion: 1.0.0
+description: Observability Helm chart for Kubernetes
+home: https://github.com/weaveworks/observability-profile
+kubeVersion: ">=1.19.0-0"
+name: observability
+sources:
+  - https://github.com/weaveworks/observability-profile
+version: 1.0.0
+```
+
+The annotation value is not important and can be left blank i.e. `""`. Helm charts with the `weave.works/profile` annotation are called _Profiles_.
+
+Annotations can also be used to determine the order in which profiles will be installed.
+
+```
+annotations:
+  weave.works/profile: observability-profile
+  weave.works/layer: layer-0
+```
+
+```
+annotations:
+  weave.works/profile: podinfo-profile
+  weave.works/layer: layer-1
+```
+
+The profiles will be sorted lexicographically by their layer and those at a higher layer will only be installed after lower layers have been successfully installed and started.
+
+In this example, `observability-profile` will be installed prior to `podinfo-profile`. In the corresponding HelmReleases, the dependencies can be observed under the `dependsOn` field.
+
+```
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  labels:
+    weave.works/applied-layer: layer-0
+  name: cluster-name-observability
+  namespace: wego-system
+...
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  labels:
+    weave.works/applied-layer: layer-1
+  name: cluster-name-podinfo
+  namespace: wego-system
+spec:
+...
+  dependsOn:
+  - name: cluster-name-observability
+...
+```
+
+### 2. Select which profiles you want installed when creating a cluster
+
+Currenly WGE inspects the current namespace that it is deployed in (in the management cluster) for a `HelmRepository` object named `weaveworks-charts`. This Kubernetes object should be pointing to a Helm chart repository that includes the profiles that are available for installation.
+
+When creating a cluster from the UI using a CAPI template, these profiles should be available for selection in the `Profiles` section of the template. For example:
+
+![Profiles Selection](./img/profile-selection.png)
+
+As shown above, some profiles will be optional whereas some profiles will be required. This is determined when the template is authored and allows for operation teams to control which Helm packages should be installed on new clusters by default.
