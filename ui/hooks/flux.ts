@@ -1,7 +1,11 @@
 import { useContext } from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { ListFluxRuntimeObjectsResponse } from "../lib/api/core/core.pb";
+import {
+  ListFluxRuntimeObjectsResponse,
+  ToggleSuspendResourceRequest,
+  ToggleSuspendResourceResponse,
+} from "../lib/api/core/core.pb";
 import {
   FluxObjectKind,
   GroupVersionKind,
@@ -37,4 +41,21 @@ export function useGetReconciledObjects(
     () => getChildren(api, name, namespace, type, kinds, clusterName),
     { retry: false, refetchOnWindowFocus: false, refetchInterval: 5000 }
   );
+}
+
+export function useToggleSuspend(
+  req: ToggleSuspendResourceRequest,
+  type: string
+) {
+  const { api } = useContext(CoreClientContext);
+  const queryClient = useQueryClient();
+  const mutation = useMutation<ToggleSuspendResourceResponse, RequestError>(
+    () => api.ToggleSuspendResource(req),
+    {
+      onSuccess: () => {
+        return queryClient.invalidateQueries(type);
+      },
+    }
+  );
+  return mutation;
 }
