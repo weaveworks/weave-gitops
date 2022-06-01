@@ -4,18 +4,16 @@
 
 # Note: paragraphs starting with `# --` will end up in our manual -
 # see https://github.com/norwoodj/helm-docs
-
 replicaCount: 1
 image:
   # FIXME check the app name
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.8.0"
+  tag: "v0.8.1"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
 # -- What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
 # Additional arguments to pass in
@@ -43,7 +41,6 @@ rbac:
   # -- If non-empty, this limits the secrets that can be accessed by
   # the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']`
   viewSecretsResourceNames: ["cluster-user-auth", "oidc-auth"]
-
 adminUser:
   # -- Whether the local admin user should be created.
   # If you use this make sure you add it to `rbac.impersonationResourceNames`.
@@ -82,7 +79,6 @@ service:
   type: ClusterIP
   port: 9001
   annotations: {}
-
 ingress:
   enabled: false
   className: ""

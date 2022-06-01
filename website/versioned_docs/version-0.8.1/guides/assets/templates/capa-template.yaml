@@ -1,0 +1,76 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: aws-eks-dev
+  namespace: default
+spec:
+  description: AWS EKS Development Cluster 
+  params:
+    - name: CLUSTER_NAME
+      description: The name for this cluster.
+    - name: AWS_REGION
+      description: AWS Region to create cluster
+      options: ['us-east-1','eu-central-1','eu-west-2','us-west-2']
+    - name: KUBERNETES_VERSION
+      description: EKS Kubernetes version to use
+      options: ['v1.19.8','v1.20.7','v1.21.2']
+    - name: WORKER_MACHINE_COUNT
+      description: Number of worker nodes to create.
+  resourcetemplates:
+
+  - apiVersion: cluster.x-k8s.io/v1beta1
+    kind: Cluster
+    metadata:
+      name: ${CLUSTER_NAME}
+      namespace: default
+      labels:
+        weave.works/capi: bootstrap
+    spec:
+      clusterNetwork:
+        pods:
+          cidrBlocks:
+          - 192.168.0.0/16
+      controlPlaneRef:
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: AWSManagedControlPlane
+        name: ${CLUSTER_NAME}-control-plane
+      infrastructureRef:
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: AWSManagedControlPlane
+        name: ${CLUSTER_NAME}-control-plane
+    
+  - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: AWSManagedControlPlane
+    metadata:
+      name: ${CLUSTER_NAME}-control-plane
+      namespace: default
+    spec:
+      region: ${AWS_REGION}
+      sshKeyName: default
+      version: ${KUBERNETES_VERSION}
+      eksClusterName: ${CLUSTER_NAME}
+    
+  - apiVersion: cluster.x-k8s.io/v1beta1
+    kind: MachinePool
+    metadata:
+      name: ${CLUSTER_NAME}-pool-0
+      namespace: default
+    spec:
+      clusterName: ${CLUSTER_NAME}
+      replicas: ${WORKER_MACHINE_COUNT}
+      template:
+        spec:
+          bootstrap:
+            dataSecretName: ""
+          clusterName: ${CLUSTER_NAME}
+          infrastructureRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: AWSManagedMachinePool
+            name: ${CLUSTER_NAME}-pool-0
+    
+  - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: AWSManagedMachinePool
+    metadata:
+      name: ${CLUSTER_NAME}-pool-0
+      namespace: default
+    spec: {}
