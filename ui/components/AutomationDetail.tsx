@@ -23,8 +23,6 @@ type Props = {
   info: InfoField[];
 };
 
-const TabContent = styled(Flex)``;
-
 function AutomationDetail({ automation, className, info }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
