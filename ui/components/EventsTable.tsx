@@ -16,13 +16,8 @@ type Props = {
   involvedObject: ObjectRef;
 };
 
-function EventsTable({
-  className,
-  involvedObject,
-}: Props) {
-  const { data, isLoading, error } = useListFluxEvents(
-    involvedObject
-  );
+function EventsTable({ className, involvedObject }: Props) {
+  const { data, isLoading, error } = useListFluxEvents(involvedObject);
 
   if (isLoading) {
     return (
@@ -63,5 +58,11 @@ function EventsTable({
 export default styled(EventsTable).attrs({ className: EventsTable.name })`
   td {
     max-width: 1024px;
+
+    &:nth-child(2) {
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
   }
 `;

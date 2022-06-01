@@ -25,7 +25,9 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  automations = automations.map((a) => { return { ...a, type: displayKind(a.kind) } });
+  automations = automations.map((a) => {
+    return { ...a, type: displayKind(a.kind) };
+  });
   const filterConfig = {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
@@ -147,4 +149,10 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
 export default styled(AutomationsTable).attrs({
   className: AutomationsTable.name,
-})``;
+})`
+  td:nth-child(7) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;
