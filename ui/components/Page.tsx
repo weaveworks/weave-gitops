@@ -25,8 +25,6 @@ export const Content = styled(Flex)`
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  //without a hard value in the height property, the 100% height of the svg graph does not work
-  height: 1px;
   min-height: 100%;
   max-width: 100%;
   padding-bottom: ${(props) => props.theme.spacing.medium};

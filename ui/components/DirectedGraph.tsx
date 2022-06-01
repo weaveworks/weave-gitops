@@ -23,7 +23,7 @@ const SliderFlex = styled(Flex)`
   padding-top: ${(props) => props.theme.spacing.base};
   min-height: 400px;
   min-width: 60px;
-  height: 25%;
+  height: 100%;
   width: 5%;
 `;
 
@@ -46,7 +46,7 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(20);
+  const [zoomPercent, setZoomPercent] = React.useState(1);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -80,17 +80,24 @@ function DirectedGraph<T>({
 
   return (
     <Flex wide tall className={className}>
-      <svg width={width} height={height} ref={svgRef} />
-      <SliderFlex column align>
-        <Slider
-          onChange={(e, value: number) => setZoomPercent(value)}
-          defaultValue={20}
-          orientation="vertical"
-          aria-label="zoom"
-        />
-        <Spacer padding="base" />
-        <PercentFlex>{zoomPercent}%</PercentFlex>
-      </SliderFlex>
+      <svg
+        viewBox="-25 0 100 50"
+        ref={svgRef}
+        preserveAspectRatio="xMidYMid meet"
+      />
+
+      <Flex tall>
+        <SliderFlex column center align>
+          <Slider
+            onChange={(e, value: number) => setZoomPercent(value + 1)}
+            defaultValue={0}
+            orientation="vertical"
+            aria-label="zoom"
+          />
+          <Spacer padding="base" />
+          <PercentFlex>{zoomPercent}%</PercentFlex>
+        </SliderFlex>
+      </Flex>
     </Flex>
   );
 }
@@ -112,6 +119,9 @@ export default styled(DirectedGraph)`
     width: 650px;
     height: 200px;
     overflow: visible;
+  }
+  .MuiSlider-vertical {
+    min-height: 400px;
   }
   .MuiSlider-vertical .MuiSlider-track {
     width: 6px;
@@ -149,7 +159,7 @@ class D3Graph {
 
   zoom(zoomPercent) {
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 20) / 100;
+      e.transform.k = zoomPercent / 100;
       this.svg.select("g").attr("transform", e.transform);
     });
 
