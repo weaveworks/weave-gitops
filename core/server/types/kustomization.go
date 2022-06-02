@@ -34,6 +34,8 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		sourceNamespace = kustomization.Namespace
 	}
 
+	version, _ := kustomization.GroupVersionKind().ToAPIVersionAndKind()
+
 	return &pb.Kustomization{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
@@ -50,7 +52,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		Inventory:             inv,
 		Suspended:             kustomization.Spec.Suspend,
 		ClusterName:           clusterName,
-		ApiVersion:            kustomization.APIVersion,
+		ApiVersion:            version,
 	}, nil
 }
 

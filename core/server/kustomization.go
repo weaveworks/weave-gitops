@@ -75,6 +75,7 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	apiVersion := kustomizev1.GroupVersion.String()
 	k := &kustomizev1.Kustomization{}
 	key := client.ObjectKey{
 		Name:      msg.Name,
@@ -89,6 +90,8 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
 	}
+
+	res.ApiVersion = apiVersion
 
 	return &pb.GetKustomizationResponse{Kustomization: res}, nil
 }
