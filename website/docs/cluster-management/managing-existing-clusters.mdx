@@ -1,38 +1,275 @@
 ---
 title: Managing existing clusters
-sidebar_position: 1
 hide_title: true
+sidebar_position: 2
 ---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 import TierLabel from "../_components/TierLabel";
 
 # Managing existing clusters <TierLabel tiers="enterprise" />
 
-## How to: Connect a cluster {#how-to-connect-a-cluster}
+### Managing non-capi clusters {#how-to-connect-a-cluster}
 
-To connect a cluster to Weave GitOps, first navigate to the `Clusters` section of the UI and click on the `Connect a cluster` button. You will then be presented with a form to add the details of the leaf cluster being connected.
+Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterprise. The only thing we need is a secret containing a valid `kubeconfig`.
 
-- Name: this is the name of the leaf cluster. This is a required field.
-- Ingress URL: this is the publicly accessible HTTP(S) endpoint of the leaf cluster. This is an optional field.
+import TOCInline from "@theme/TOCInline";
+<TOCInline />;
 
-Click on the `Save & next` button to persist these details. You will then be presented with a `kubectl` command that you can run to install an agent on your leaf cluster. The agent is responsible for inspecting the leaf cluster and sending back leaf information to the Weave GitOps server. It will not make any changes to your cluster.
+<Tabs groupId="have-a-secret" default>
+<TabItem value="existing-kubeconfig-secret" label="Existing kubeconfig">
 
-Ensure that your current kubeconfig context is setup to use the leaf cluster. Then copy the command and run it.
+If you already have a `kubeconfig` stored in a secret in your management cluster, continue below to create a `GitopsCluster`.
 
-After a few seconds, the status of your cluster should change to `Connected (Ready)` which indicates that the leaf cluster has been successfully connected.
+If you have a kubeconfig, you can load in into the cluster like so:
 
-## How to: Update a cluster
+```
+kubectl create secret generic demo-01-kubeconfig \
+--from-file=value.yaml=./demo-01-kubeconfig
+```
 
-To update a cluster, click on the rightmost icon of that cluster's row. You will be presented with a form that allows you to update its name and ingress URL. Finally click on the `Save & next` button to persist these changes.
+</TabItem>
+<TabItem value="service-account-secret" label="Create a kubeconfig for a ServiceAccount">
 
-## How to: Disconnect and remove a cluster
+### How to create a kubeconfig secret using a service account
 
-To disconnect a cluster open the config dialog with the 🛠 button on the cluster's row.
+1. Create a new service account on the remote cluster:
 
-The _Disconnect_ tab shows instructions on how to remove the wkp-agent from your leaf cluster.
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-01
+  namespace: default
+```
 
-Once the agent has been removed its status will change from "Connected" to _Last seen_. Click _Remove cluster from the management cluster_ to remove the cluster and the meta-data that's been collected.
+2. Add RBAC permissions for the service account
 
-To re-connect the cluster again follow the _Connect a cluster_ instructions above.
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: impersonate-user-groups
+subjects:
+  - kind: ServiceAccount
+    name: demo-02
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: user-groups-impersonator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: user-groups-impersonator
+rules:
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+```
 
-![Disconnect cluster](./img/disconnect-cluster.png)
+This will allow WGE to introspect the cluster for available namespaces.
+
+Once we know what namespaces are available we can test whether the logged in user can access them via impersonation.
+
+3. Get the token of the service account
+
+First get the list of secrets of the service accounts by running the following command:
+
+```sh
+kubectl get secrets --field-selector type=kubernetes.io/service-account-token
+NAME                      TYPE                                  DATA   AGE
+default-token-lsjz4       kubernetes.io/service-account-token   3      13d
+demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
+```
+
+`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account
+
+To get the token of the service account run the following command:
+
+```sh
+TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
+```
+
+4. Create a kubeconfig secret
+
+We'll use a helper script to generate the kubeconfig, save this into `static-kubeconfig.sh`:
+
+```bash title="static-kubeconfig.sh"
+#!/bin/bash
+
+if [[ -z "$CLUSTER_NAME" ]]; then
+    echo "Ensure CLUSTER_NAME has been set"
+    exit 1
+fi
+
+if [[ -z "$CA_CERTIFICATE" ]]; then
+    echo "Ensure CA_CERTIFICATE has been set to the path of the CA certificate"
+    exit 1
+fi
+
+if [[ -z "$ENDPOINT" ]]; then
+    echo "Ensure ENDPOINT has been set"
+    exit 1
+fi
+
+if [[ -z "$TOKEN" ]]; then
+    echo "Ensure TOKEN has been set"
+    exit 1
+fi
+
+export CLUSTER_CA_CERTIFICATE=$(cat "$CA_CERTIFICATE" | base64)
+
+envsubst <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- name: $CLUSTER_NAME
+  cluster:
+    server: https://$ENDPOINT
+    certificate-authority-data: $CLUSTER_CA_CERTIFICATE
+users:
+- name: $CLUSTER_NAME
+  user:
+    token: $TOKEN
+contexts:
+- name: $CLUSTER_NAME
+  context:
+    cluster: $CLUSTER_NAME
+    user: $CLUSTER_NAME
+current-context: $CLUSTER_NAME
+
+EOF
+```
+
+For the next step, the cluster certificate (CA) is needed. How you get hold of the certificate depends on the cluster. For GKE you can view it on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You will need to copy the contents of the certificate into the `ca.crt` file used below.
+
+```sh
+CLUSTER_NAME=demo-01 \
+CA_CERTIFICATE=ca.crt \
+ENDPOINT=<control-plane-ip-address> \
+TOKEN=<token> ./static-kubeconfig.sh > demo-01-kubeconfig
+```
+
+Replace the following:
+
+- CLUSTER_NAME: the name of your cluster i.e. `demo-01`
+- ENDPOINT: the API server endpoint i.e. `34.218.72.31`
+- CA_CERTIFICATE: path to the CA certificate file of the cluster
+- TOKEN: the token of the service account retrieved in the previous step
+
+Finally create a secret for the generated kubeconfig:
+
+```sh
+kubectl create secret generic demo-01-kubeconfig \
+--from-file=value.yaml=./demo-01-kubeconfig
+```
+
+</TabItem>
+</Tabs>
+
+### Connect a cluster
+
+:::note Get started first!
+
+Make sure you've
+
+1. Added some common RBAC rules into the `clusters/bases` folder, as described in [Getting started](./getting-started.mdx).
+2. Configured the cluster bootstrap controller as described in [Getting started](./getting-started.mdx).
+
+:::
+
+Create a `GitopsCluster`
+
+```yaml title="./clusters/management/clusters/demo-01.yaml"
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: demo-01
+  namespace: default
+  # Signals that this cluster should be bootstrapped.
+  labels:
+    weave.works/capi: bootstrap
+spec:
+  secretRef:
+    name: demo-01-kubeconfig
+```
+
+When the `GitopsCluster` appears in the cluster, the Cluster Bootstrap Controller will install flux on it and by default start reconciling the `./clusters/demo-01` path in your management cluster's git repository. To inspect the Applications and Sources running on the new cluster we need to give permissions to the user accessing the UI. Common RBAC rules like this should be stored in `./clusters/bases`. Here we create a kustomziation to add these common resources onto our new cluster:
+
+```yaml title="./clusters/demo-01/clusters-bases-kustomization.yaml"
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+```
+
+Save these 2 files into your git repository. Commit and push.
+
+Once flux has reconciled the cluster you can inspect your flux resources via the UI!
+
+## Debugging
+
+### How to test a kubeconfig secret in a cluster
+
+To test a kubeconfig secret has been correctly setup apply the following manifest and check the logs after the job completes:
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubectl
+spec:
+  ttlSecondsAfterFinished: 30
+  template:
+    spec:
+      containers:
+        - name: kubectl
+          image: bitnami/kubectl
+          args:
+            [
+              "get",
+              "pods",
+              "-n",
+              "kube-system",
+              "--kubeconfig",
+              "/etc/kubeconfig/value.yaml",
+            ]
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/etc/kubeconfig"
+              readOnly: true
+      restartPolicy: Never
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: demo-01-kubeconfig
+            optional: false
+```
+
+In the manifest above `demo-01-kubeconfig`is the name of the secret that contains the kubeconfig for the remote cluster.
+
+---
+
+# Background
+
+- [Authentication strategies](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#authentication-strategies)
+  - [X509 client certificates](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#x509-client-certs): can be used across different namespaces
+  - [Service account tokens](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#service-account-tokens): limited to a single namespace
+- [Kubernetes authentication 101 (CNCF blog post)](https://www.cncf.io/blog/2020/07/31/kubernetes-rbac-101-authentication/)
+- [Kubernetes authentication (Magalix blog post)](https://www.magalix.com/blog/kubernetes-authentication)
