@@ -147,7 +147,7 @@ export type ListFluxEventsResponse = {
   events?: Gitops_coreV1Types.Event[]
 }
 
-export type SyncAutomationRequest = {
+export type SyncFluxObjectRequest = {
   name?: string
   namespace?: string
   kind?: Gitops_coreV1Types.FluxObjectKind
@@ -155,7 +155,7 @@ export type SyncAutomationRequest = {
   withSource?: boolean
 }
 
-export type SyncAutomationResponse = {
+export type SyncFluxObjectResponse = {
 }
 
 export type GetVersionRequest = {
@@ -229,8 +229,8 @@ export class Core {
   static ListFluxEvents(req: ListFluxEventsRequest, initReq?: fm.InitReq): Promise<ListFluxEventsResponse> {
     return fm.fetchReq<ListFluxEventsRequest, ListFluxEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
-  static SyncAutomation(req: SyncAutomationRequest, initReq?: fm.InitReq): Promise<SyncAutomationResponse> {
-    return fm.fetchReq<SyncAutomationRequest, SyncAutomationResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
+    return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetVersion(req: GetVersionRequest, initReq?: fm.InitReq): Promise<GetVersionResponse> {
     return fm.fetchReq<GetVersionRequest, GetVersionResponse>(`/v1/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

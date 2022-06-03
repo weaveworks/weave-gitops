@@ -2,10 +2,11 @@ import _ from "lodash";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { useListAutomations } from "../hooks/automations";
+import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { AppContext } from "../contexts/AppContext";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
@@ -15,7 +16,9 @@ import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
+import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import SyncButton from "./SyncButton";
 
 type Props = {
   className?: string;
@@ -27,6 +30,7 @@ type Props = {
 };
 
 function SourceDetail({ className, name, namespace, info, type }: Props) {
+  const { notifySuccess } = React.useContext(AppContext);
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
   const { path } = useRouteMatch();
@@ -35,9 +39,9 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, namespace, kind: type });
+  const source = _.find(sources, { name, namespace, kind: type });
 
-  if (!s) {
+  if (!source) {
     return (
       <Alert
         severity="error"
@@ -47,18 +51,18 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
     );
   }
 
-  const items = info(s);
+  const items = info(source);
 
   const isNameRelevant = (expectedName) => {
     return expectedName == name;
   };
 
   const isRelevant = (expectedType, expectedName) => {
-    return expectedType == s.kind && isNameRelevant(expectedName);
+    return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
   const relevantAutomations = _.filter(automations, (a) => {
-    if (!s) {
+    if (!source) {
       return false;
     }
 
@@ -77,14 +81,27 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
 
   const suspend = useToggleSuspend(
     {
-      name: s.name,
-      namespace: s.namespace,
-      clusterName: s.clusterName,
-      kind: s.kind,
-      suspend: !s.suspended,
+      name: source.name,
+      namespace: source.namespace,
+      clusterName: source.clusterName,
+      kind: source.kind,
+      suspend: !source.suspended,
     },
     "sources"
   );
+
+  const sync = useSyncFluxObject({
+    name: source?.name,
+    namespace: source?.namespace,
+    clusterName: source?.clusterName,
+    kind: source?.kind,
+  });
+
+  const handleSyncClicked = () => {
+    sync.mutateAsync({ withSource: false }).then(() => {
+      notifySuccess("Resource synced successfully");
+    });
+  };
 
   return (
     <Flex wide tall column className={className}>
@@ -97,10 +114,22 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
             message={error.message || suspend.error.message}
           />
         ))}
-      <PageStatus conditions={s.conditions} suspended={s.suspended} />
-      <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
-        {s.suspended ? "Resume" : "Suspend"}
-      </Button>
+      <PageStatus conditions={source.conditions} suspended={source.suspended} />
+      <Flex wide start>
+        <SyncButton
+          onClick={handleSyncClicked}
+          loading={sync.isLoading}
+          disabled={source?.suspended}
+          hideDropdown={true}
+        />
+        <Spacer padding="xs" />
+        <Button
+          onClick={() => suspend.mutateAsync()}
+          loading={suspend.isLoading}
+        >
+          {source.suspended ? "Resume" : "Suspend"}
+        </Button>
+      </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
@@ -111,11 +140,11 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
-            namespace={s.namespace}
+            namespace={source.namespace}
             involvedObject={{
               kind: type,
               name,
-              namespace: s.namespace,
+              namespace: source.namespace,
             }}
           />
         </RouterTab>

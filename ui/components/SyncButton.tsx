@@ -9,6 +9,7 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   onClick: (opts: { withSource: boolean }) => void;
+  hideDropdown?: boolean;
 };
 
 const ArrowDropDown = styled(IconButton)`
@@ -36,8 +37,28 @@ const DropDown = styled(Flex)`
   z-index: 1;
 `;
 
-function SyncButton({ className, loading, disabled, onClick }: Props) {
+function SyncButton({
+  className,
+  loading,
+  disabled,
+  onClick,
+  hideDropdown = false,
+}: Props) {
   const [open, setOpen] = React.useState(false);
+  let arrowDropDown;
+  if (hideDropdown == false) {
+    arrowDropDown = (
+      <ArrowDropDown
+        variant="outlined"
+        onClick={() => setOpen(!open)}
+        disabled={disabled}
+      >
+        <Icon type={IconType.ArrowDropDownIcon} size="base" />
+      </ArrowDropDown>
+    );
+  } else {
+    arrowDropDown = <></>;
+  }
   return (
     <div
       className={className}
@@ -53,13 +74,7 @@ function SyncButton({ className, loading, disabled, onClick }: Props) {
         >
           Sync
         </Button>
-        <ArrowDropDown
-          variant="outlined"
-          onClick={() => setOpen(!open)}
-          disabled={disabled}
-        >
-          <Icon type={IconType.ArrowDropDownIcon} size="base" />
-        </ArrowDropDown>
+        {arrowDropDown}
       </Flex>
       <DropDown open={open}>
         <Button

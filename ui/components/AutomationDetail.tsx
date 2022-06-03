@@ -2,7 +2,7 @@ import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { Automation, useSyncAutomation } from "../hooks/automations";
+import { Automation, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
@@ -27,7 +27,7 @@ function AutomationDetail({ automation, className, info }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
 
-  const sync = useSyncAutomation({
+  const sync = useSyncFluxObject({
     name: automation?.name,
     namespace: automation?.namespace,
     clusterName: automation?.clusterName,

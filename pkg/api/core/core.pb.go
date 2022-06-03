@@ -1598,7 +1598,7 @@ func (x *ListFluxEventsResponse) GetEvents() []*Event {
 	return nil
 }
 
-type SyncAutomationRequest struct {
+type SyncFluxObjectRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -1610,8 +1610,8 @@ type SyncAutomationRequest struct {
 	WithSource  bool           `protobuf:"varint,5,opt,name=withSource,proto3" json:"withSource,omitempty"`
 }
 
-func (x *SyncAutomationRequest) Reset() {
-	*x = SyncAutomationRequest{}
+func (x *SyncFluxObjectRequest) Reset() {
+	*x = SyncFluxObjectRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_core_core_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1619,13 +1619,13 @@ func (x *SyncAutomationRequest) Reset() {
 	}
 }
 
-func (x *SyncAutomationRequest) String() string {
+func (x *SyncFluxObjectRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SyncAutomationRequest) ProtoMessage() {}
+func (*SyncFluxObjectRequest) ProtoMessage() {}
 
-func (x *SyncAutomationRequest) ProtoReflect() protoreflect.Message {
+func (x *SyncFluxObjectRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_core_core_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1637,54 +1637,54 @@ func (x *SyncAutomationRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SyncAutomationRequest.ProtoReflect.Descriptor instead.
-func (*SyncAutomationRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SyncFluxObjectRequest.ProtoReflect.Descriptor instead.
+func (*SyncFluxObjectRequest) Descriptor() ([]byte, []int) {
 	return file_api_core_core_proto_rawDescGZIP(), []int{30}
 }
 
-func (x *SyncAutomationRequest) GetName() string {
+func (x *SyncFluxObjectRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *SyncAutomationRequest) GetNamespace() string {
+func (x *SyncFluxObjectRequest) GetNamespace() string {
 	if x != nil {
 		return x.Namespace
 	}
 	return ""
 }
 
-func (x *SyncAutomationRequest) GetKind() FluxObjectKind {
+func (x *SyncFluxObjectRequest) GetKind() FluxObjectKind {
 	if x != nil {
 		return x.Kind
 	}
 	return FluxObjectKind_KindGitRepository
 }
 
-func (x *SyncAutomationRequest) GetClusterName() string {
+func (x *SyncFluxObjectRequest) GetClusterName() string {
 	if x != nil {
 		return x.ClusterName
 	}
 	return ""
 }
 
-func (x *SyncAutomationRequest) GetWithSource() bool {
+func (x *SyncFluxObjectRequest) GetWithSource() bool {
 	if x != nil {
 		return x.WithSource
 	}
 	return false
 }
 
-type SyncAutomationResponse struct {
+type SyncFluxObjectResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-func (x *SyncAutomationResponse) Reset() {
-	*x = SyncAutomationResponse{}
+func (x *SyncFluxObjectResponse) Reset() {
+	*x = SyncFluxObjectResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_core_core_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1692,13 +1692,13 @@ func (x *SyncAutomationResponse) Reset() {
 	}
 }
 
-func (x *SyncAutomationResponse) String() string {
+func (x *SyncFluxObjectResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SyncAutomationResponse) ProtoMessage() {}
+func (*SyncFluxObjectResponse) ProtoMessage() {}
 
-func (x *SyncAutomationResponse) ProtoReflect() protoreflect.Message {
+func (x *SyncFluxObjectResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_core_core_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1710,8 +1710,8 @@ func (x *SyncAutomationResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SyncAutomationResponse.ProtoReflect.Descriptor instead.
-func (*SyncAutomationResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SyncFluxObjectResponse.ProtoReflect.Descriptor instead.
+func (*SyncFluxObjectResponse) Descriptor() ([]byte, []int) {
 	return file_api_core_core_proto_rawDescGZIP(), []int{31}
 }
 
@@ -2231,7 +2231,7 @@ var file_api_core_core_proto_rawDesc = []byte{
 	0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70,
 	0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52,
 	0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x22, 0xbf, 0x01, 0x0a, 0x15, 0x53, 0x79, 0x6e, 0x63,
-	0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61,
 	0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70,
@@ -2243,7 +2243,7 @@ var file_api_core_core_proto_rawDesc = []byte{
 	0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1e, 0x0a, 0x0a, 0x77, 0x69, 0x74,
 	0x68, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0a, 0x77,
 	0x69, 0x74, 0x68, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x22, 0x18, 0x0a, 0x16, 0x53, 0x79, 0x6e,
-	0x63, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x63, 0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
 	0x6e, 0x73, 0x65, 0x22, 0x13, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f,
 	0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x7a, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x56,
 	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16,
@@ -2396,12 +2396,12 @@ var file_api_core_core_proto_rawDesc = []byte{
 	0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x46, 0x6c, 0x75, 0x78,
 	0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x12,
 	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0c, 0x12, 0x0a, 0x2f, 0x76, 0x31, 0x2f, 0x65, 0x76, 0x65, 0x6e,
-	0x74, 0x73, 0x12, 0x74, 0x0a, 0x0e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x25, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f,
-	0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x67, 0x69,
+	0x74, 0x73, 0x12, 0x74, 0x0a, 0x0e, 0x53, 0x79, 0x6e, 0x63, 0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62,
+	0x6a, 0x65, 0x63, 0x74, 0x12, 0x25, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f,
+	0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62,
+	0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x26, 0x2e, 0x67, 0x69,
 	0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x79, 0x6e,
-	0x63, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x63, 0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
 	0x6e, 0x73, 0x65, 0x22, 0x13, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0d, 0x22, 0x08, 0x2f, 0x76, 0x31,
 	0x2f, 0x73, 0x79, 0x6e, 0x63, 0x3a, 0x01, 0x2a, 0x12, 0x68, 0x0a, 0x0a, 0x47, 0x65, 0x74, 0x56,
 	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x21, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f,
@@ -2484,8 +2484,8 @@ var file_api_core_core_proto_goTypes = []interface{}{
 	(*ListNamespacesResponse)(nil),         // 27: gitops_core.v1.ListNamespacesResponse
 	(*ListFluxEventsRequest)(nil),          // 28: gitops_core.v1.ListFluxEventsRequest
 	(*ListFluxEventsResponse)(nil),         // 29: gitops_core.v1.ListFluxEventsResponse
-	(*SyncAutomationRequest)(nil),          // 30: gitops_core.v1.SyncAutomationRequest
-	(*SyncAutomationResponse)(nil),         // 31: gitops_core.v1.SyncAutomationResponse
+	(*SyncFluxObjectRequest)(nil),          // 30: gitops_core.v1.SyncFluxObjectRequest
+	(*SyncFluxObjectResponse)(nil),         // 31: gitops_core.v1.SyncFluxObjectResponse
 	(*GetVersionRequest)(nil),              // 32: gitops_core.v1.GetVersionRequest
 	(*GetVersionResponse)(nil),             // 33: gitops_core.v1.GetVersionResponse
 	(*GetFeatureFlagsRequest)(nil),         // 34: gitops_core.v1.GetFeatureFlagsRequest
@@ -2532,7 +2532,7 @@ var file_api_core_core_proto_depIdxs = []int32{
 	49, // 21: gitops_core.v1.ListNamespacesResponse.namespaces:type_name -> gitops_core.v1.Namespace
 	50, // 22: gitops_core.v1.ListFluxEventsRequest.involvedObject:type_name -> gitops_core.v1.ObjectRef
 	51, // 23: gitops_core.v1.ListFluxEventsResponse.events:type_name -> gitops_core.v1.Event
-	46, // 24: gitops_core.v1.SyncAutomationRequest.kind:type_name -> gitops_core.v1.FluxObjectKind
+	46, // 24: gitops_core.v1.SyncFluxObjectRequest.kind:type_name -> gitops_core.v1.FluxObjectKind
 	38, // 25: gitops_core.v1.GetFeatureFlagsResponse.flags:type_name -> gitops_core.v1.GetFeatureFlagsResponse.FlagsEntry
 	46, // 26: gitops_core.v1.ToggleSuspendResourceRequest.kind:type_name -> gitops_core.v1.FluxObjectKind
 	2,  // 27: gitops_core.v1.Core.ListKustomizations:input_type -> gitops_core.v1.ListKustomizationsRequest
@@ -2549,7 +2549,7 @@ var file_api_core_core_proto_depIdxs = []int32{
 	24, // 38: gitops_core.v1.Core.GetFluxNamespace:input_type -> gitops_core.v1.GetFluxNamespaceRequest
 	26, // 39: gitops_core.v1.Core.ListNamespaces:input_type -> gitops_core.v1.ListNamespacesRequest
 	28, // 40: gitops_core.v1.Core.ListFluxEvents:input_type -> gitops_core.v1.ListFluxEventsRequest
-	30, // 41: gitops_core.v1.Core.SyncAutomation:input_type -> gitops_core.v1.SyncAutomationRequest
+	30, // 41: gitops_core.v1.Core.SyncFluxObject:input_type -> gitops_core.v1.SyncFluxObjectRequest
 	32, // 42: gitops_core.v1.Core.GetVersion:input_type -> gitops_core.v1.GetVersionRequest
 	34, // 43: gitops_core.v1.Core.GetFeatureFlags:input_type -> gitops_core.v1.GetFeatureFlagsRequest
 	36, // 44: gitops_core.v1.Core.ToggleSuspendResource:input_type -> gitops_core.v1.ToggleSuspendResourceRequest
@@ -2567,7 +2567,7 @@ var file_api_core_core_proto_depIdxs = []int32{
 	25, // 56: gitops_core.v1.Core.GetFluxNamespace:output_type -> gitops_core.v1.GetFluxNamespaceResponse
 	27, // 57: gitops_core.v1.Core.ListNamespaces:output_type -> gitops_core.v1.ListNamespacesResponse
 	29, // 58: gitops_core.v1.Core.ListFluxEvents:output_type -> gitops_core.v1.ListFluxEventsResponse
-	31, // 59: gitops_core.v1.Core.SyncAutomation:output_type -> gitops_core.v1.SyncAutomationResponse
+	31, // 59: gitops_core.v1.Core.SyncFluxObject:output_type -> gitops_core.v1.SyncFluxObjectResponse
 	33, // 60: gitops_core.v1.Core.GetVersion:output_type -> gitops_core.v1.GetVersionResponse
 	35, // 61: gitops_core.v1.Core.GetFeatureFlags:output_type -> gitops_core.v1.GetFeatureFlagsResponse
 	37, // 62: gitops_core.v1.Core.ToggleSuspendResource:output_type -> gitops_core.v1.ToggleSuspendResourceResponse
@@ -2946,7 +2946,7 @@ func file_api_core_core_proto_init() {
 			}
 		}
 		file_api_core_core_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyncAutomationRequest); i {
+			switch v := v.(*SyncFluxObjectRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2958,7 +2958,7 @@ func file_api_core_core_proto_init() {
 			}
 		}
 		file_api_core_core_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SyncAutomationResponse); i {
+			switch v := v.(*SyncFluxObjectResponse); i {
 			case 0:
 				return &v.state
 			case 1:
