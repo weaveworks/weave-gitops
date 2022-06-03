@@ -17,6 +17,16 @@ spec:
     - name: WORKER_MACHINE_COUNT
       description: Number of worker nodes to create.
   resourcetemplates:
+  - apiVersion: gitops.weave.works/v1alpha1
+    kind: GitopsCluster
+    metadata:
+      name: "${CLUSTER_NAME}"
+      namespace: default
+      labels:
+        weave.works/capi: bootstrap
+    spec:
+      capiClusterRef:
+        name: "${CLUSTER_NAME}"
 
   - apiVersion: cluster.x-k8s.io/v1beta1
     kind: Cluster

@@ -14,7 +14,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 If you've followed the [Upgrade steps](installation.mdx#weave-gitops-enterprise) in the [Installation guide](installation.mdx) you should have:
 
-1. Weave GitOps Enterprise installed and an agent running on the management cluster.
+1. Weave GitOps Enterprise installed
 2. A CAPI provider installed (With support for `ClusterResourceSet`s enabled).
 
 Next up we'll add a template and use it to create a cluster.
@@ -24,7 +24,8 @@ Next up we'll add a template and use it to create a cluster.
 Let's setup a directory structure to manage our clusters
 
 ```bash
-mkdir -p clusters/management/capi/templates \
+mkdir -p clusters/bases \
+  clusters/management/capi/templates \
   clusters/management/capi/bootstrap \
   clusters/management/capi/profiles
 ```
@@ -32,23 +33,53 @@ mkdir -p clusters/management/capi/templates \
 Now we should have:
 
 ```bash
-clusters/
-└── management
-    └── capi
-        ├── bootstrap
-        ├── profiles
-        └── templates
+.
+└── clusters
+    ├── bases
+    └── management
+        └── capi
+            ├── bootstrap
+            ├── profiles
+            └── templates
 ```
 
 This assumes that we've configured flux to reconcile everything in `clusters/management` into our management cluster.
 
 To keep things organized we've created some subpaths for the different resources:
 
+- `bases` for any common resources between clusters like RBAC and policy.
 - `templates` for `CAPITemplates`
 - `bootstrap` for `ClusterBootstrapConfig`, `ClusterResourceSet` and the `ConfigMap` they reference
 - `profiles` for the `HelmRepository` of the profiles for the newly created clusters
 
 Lets grab some sample resources to create our first cluster!
+
+### Add common RBAC to the repo
+
+When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-name>` and `./clusters/bases`.
+
+To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
+
+Adding common rbac rules to `./clusters/bases/rbac` is an easy way to configure this!
+
+import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/bases/rbac/wego-admin.yaml {window.location.protocol}//
+      {window.location.host}
+      {require("./assets/rbac/wego-admin.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/bases/rbac/wego-admin.yaml"
+  className="language-yaml"
+>
+  {WegoAdmin}
+</CodeBlock>
 
 ### Add a template
 
@@ -61,8 +92,7 @@ Download the template below to your config repository path, then commit and push
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      curl -o
-      clusters/management/capi/templates/capd-template.yaml{" "}
+      curl -o clusters/management/capi/templates/capd-template.yaml{" "}
       {window.location.protocol}//{window.location.host}
       {require("./assets/templates/capd-template.yaml").default}
     </CodeBlock>
@@ -93,8 +123,9 @@ import CalicoCRS from "!!raw-loader!./assets/bootstrap/calico-crs.yaml";
       {window.location.protocol}//{window.location.host}
       {require("./assets/bootstrap/calico-crs.yaml").default}
       {"\n"}
-      curl -o clusters/management/capi/bootstrap/calico-crs-configmap.yaml{" "}
-      {window.location.protocol}//{window.location.host}
+      curl -o clusters/management/capi/bootstrap/calico-crs-configmap.yaml {
+        window.location.protocol
+      }//{window.location.host}
       {require("./assets/bootstrap/calico-crs-configmap.yaml").default}
     </CodeBlock>
   )}
