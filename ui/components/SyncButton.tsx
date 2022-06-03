@@ -28,22 +28,28 @@ const ArrowDropDown = styled(IconButton)`
 `;
 
 const DropDown = styled(Flex)`
+  position: absolute;
   overflow: hidden;
   background: white;
-  height: ${(props) => (props.open ? "40px" : "0px")};
-  transition: height 0.25s ease-in;
+  height: ${(props) => (props.open ? "100%" : "0px")};
+  transition: height 0.2s ease-in;
+  z-index: 1;
 `;
 
 function SyncButton({ className, loading, disabled, onClick }: Props) {
   const [open, setOpen] = React.useState(false);
   return (
-    <Flex column start className={className}>
-      <Flex style={{ position: "relative" }}>
+    <div
+      className={className}
+      style={{ position: "relative", display: open ? "block" : "inline-block" }}
+    >
+      <Flex>
         <Button
           disabled={disabled}
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
+          style={{ marginRight: 0 }}
         >
           Sync
         </Button>
@@ -60,11 +66,12 @@ function SyncButton({ className, loading, disabled, onClick }: Props) {
           variant="outlined"
           color="primary"
           onClick={() => onClick({ withSource: false })}
+          style={{ whiteSpace: "nowrap" }}
         >
           Sync Without Source
         </Button>
       </DropDown>
-    </Flex>
+    </div>
   );
 }
 

@@ -8,22 +8,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	pre bool
-)
-
 var Cmd = &cobra.Command{
 	Use:   "check",
 	Short: "Validates flux compatibility",
 	Example: `
 # Validate flux and kubernetes compatibility
-gitops check --pre
+gitops check
 `,
 	RunE: runCmd,
-}
-
-func init() {
-	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "perform only the pre-installation checks")
 }
 
 func runCmd(_ *cobra.Command, _ []string) error {

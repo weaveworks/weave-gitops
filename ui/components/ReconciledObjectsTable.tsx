@@ -16,6 +16,7 @@ import FilterableTable, {
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import RequestStateHandler from "./RequestStateHandler";
+
 export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
@@ -102,4 +103,10 @@ function ReconciledObjectsTable({
 
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
-})``;
+})`
+  td:nth-child(5) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;
