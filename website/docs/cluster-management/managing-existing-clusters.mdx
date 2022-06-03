@@ -1,5 +1,5 @@
 ---
-title: Generic Clusters
+title: Managing existing clusters
 hide_title: true
 sidebar_position: 2
 ---
@@ -9,11 +9,11 @@ import TabItem from "@theme/TabItem";
 
 import TierLabel from "../_components/TierLabel";
 
-# Generic Cluster <TierLabel tiers="enterprise" />
+# Managing existing clusters <TierLabel tiers="enterprise" />
 
-### Managing non-capi clusters
+### Managing non-capi clusters {#how-to-connect-a-cluster}
 
-Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterprise.
+Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterprise. The only thing we need is a secret containing a valid `kubeconfig`.
 
 import TOCInline from "@theme/TOCInline";
 <TOCInline />;
@@ -175,6 +175,15 @@ kubectl create secret generic demo-01-kubeconfig \
 </Tabs>
 
 ### Connect a cluster
+
+:::note Get started first!
+
+Make sure you've
+
+1. Added some common RBAC rules into the `clusters/bases` folder, as described in [Getting started](./getting-started.mdx).
+2. Configured the cluster bootstrap controller as described in [Getting started](./getting-started.mdx).
+
+:::
 
 Create a `GitopsCluster`
 
