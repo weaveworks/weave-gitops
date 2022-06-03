@@ -104,6 +104,9 @@ func TestKustomization(t *testing.T) {
 					Name:      "some-object",
 					Namespace: "namespace-of-object",
 				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
+				},
 				Spec: kustomizev1.KustomizationSpec{
 					Path:     "./my-cluster",
 					Interval: metav1.Duration{Duration: d},
@@ -170,6 +173,7 @@ func TestKustomization(t *testing.T) {
 				},
 				Suspended:   true,
 				ClusterName: "Default",
+				ApiVersion:  "some-version",
 			},
 		},
 	}
