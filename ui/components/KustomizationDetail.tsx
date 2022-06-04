@@ -32,7 +32,6 @@ function KustomizationDetail({ kustomization, className }: Props) {
           "Last Updated",
           <Timestamp time={automationLastUpdated(kustomization)} />,
         ],
-        ["API Version", kustomization?.apiVersion],
       ]}
     />
   );
