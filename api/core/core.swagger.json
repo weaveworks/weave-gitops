@@ -760,6 +760,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1010,6 +1013,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1080,6 +1086,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1127,6 +1136,9 @@
         },
         "lastAttemptedRevision": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1158,6 +1170,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }

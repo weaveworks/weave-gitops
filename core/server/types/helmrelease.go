@@ -27,6 +27,8 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		sourceNamespace = helmrelease.Namespace
 	}
 
+	version, _ := helmrelease.GroupVersionKind().ToAPIVersionAndKind()
+
 	return &pb.HelmRelease{
 		Name:        helmrelease.Name,
 		ReleaseName: helmrelease.Spec.ReleaseName,
@@ -51,5 +53,6 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		ClusterName:           clusterName,
 		LastAppliedRevision:   helmrelease.Status.LastAppliedRevision,
 		LastAttemptedRevision: helmrelease.Status.LastAttemptedRevision,
+		ApiVersion:            version,
 	}
 }

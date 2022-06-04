@@ -20,5 +20,6 @@ func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string) *pb.Hel
 		Suspended:     helmchart.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(helmchart),
 		ClusterName:   clusterName,
+		ApiVersion:    helmchart.APIVersion,
 	}
 }

@@ -73,6 +73,7 @@ message HelmChart {
     bool      suspended            = 8;
     string    lastUpdatedAt        = 9;
     string    clusterName          = 10;
+    string    apiVersion           = 11;
 }
 
 message HelmRelease {
@@ -88,6 +89,7 @@ message HelmRelease {
     string    helmChartName              = 13;
     string    lastAppliedRevision        = 14;
     string    lastAttemptedRevision      = 15;
+    string    apiVersion                 = 16;
 }
 
 message GitRepository {
@@ -101,6 +103,7 @@ message GitRepository {
     bool             suspended            = 8;
     string           lastUpdatedAt        = 9;
     string           clusterName          = 10;
+    string           apiVersion           = 11;
 }
 
 message HelmRepository {
@@ -112,6 +115,7 @@ message HelmRepository {
     bool     suspended            = 6;
     string   lastUpdatedAt        = 7;
     string   clusterName          = 8;
+    string   apiVersion           = 9;
 }
 
 message Bucket {
@@ -134,6 +138,7 @@ message Bucket {
     bool     suspended            = 12;
     string   lastUpdatedAt        = 13;
     string   clusterName          = 14;
+    string   apiVersion           = 15;
 }
 
 message Object {
