@@ -37,7 +37,7 @@ We use GitOps tools throughout.  Today Weave GitOps defaults are Flux, Kustomize
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

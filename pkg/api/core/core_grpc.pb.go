@@ -64,7 +64,7 @@ type CoreClient interface {
 	ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
-	SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error)
+	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
 	//
 	// GetVersion returns version information about the server
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
@@ -210,9 +210,9 @@ func (c *coreClient) ListFluxEvents(ctx context.Context, in *ListFluxEventsReque
 	return out, nil
 }
 
-func (c *coreClient) SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error) {
-	out := new(SyncAutomationResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/SyncAutomation", in, out, opts...)
+func (c *coreClient) SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error) {
+	out := new(SyncFluxObjectResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/SyncFluxObject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ type CoreServer interface {
 	ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
-	SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error)
+	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
 	//
 	// GetVersion returns version information about the server
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
@@ -355,8 +355,8 @@ func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRe
 func (UnimplementedCoreServer) ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxEvents not implemented")
 }
-func (UnimplementedCoreServer) SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SyncAutomation not implemented")
+func (UnimplementedCoreServer) SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncFluxObject not implemented")
 }
 func (UnimplementedCoreServer) GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVersion not implemented")
@@ -632,20 +632,20 @@ func _Core_ListFluxEvents_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Core_SyncAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncAutomationRequest)
+func _Core_SyncFluxObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncFluxObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CoreServer).SyncAutomation(ctx, in)
+		return srv.(CoreServer).SyncFluxObject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/SyncAutomation",
+		FullMethod: "/gitops_core.v1.Core/SyncFluxObject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).SyncAutomation(ctx, req.(*SyncAutomationRequest))
+		return srv.(CoreServer).SyncFluxObject(ctx, req.(*SyncFluxObjectRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -768,8 +768,8 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_ListFluxEvents_Handler,
 		},
 		{
-			MethodName: "SyncAutomation",
-			Handler:    _Core_SyncAutomation_Handler,
+			MethodName: "SyncFluxObject",
+			Handler:    _Core_SyncFluxObject_Handler,
 		},
 		{
 			MethodName: "GetVersion",

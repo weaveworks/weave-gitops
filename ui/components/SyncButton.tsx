@@ -9,6 +9,7 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   onClick: (opts: { withSource: boolean }) => void;
+  hideDropdown?: boolean;
 };
 
 const ArrowDropDown = styled(IconButton)`
@@ -28,43 +29,64 @@ const ArrowDropDown = styled(IconButton)`
 `;
 
 const DropDown = styled(Flex)`
+  position: absolute;
   overflow: hidden;
   background: white;
-  height: ${(props) => (props.open ? "40px" : "0px")};
-  transition: height 0.25s ease-in;
+  height: ${(props) => (props.open ? "100%" : "0px")};
+  transition: height 0.2s ease-in;
+  z-index: 1;
 `;
 
-function SyncButton({ className, loading, disabled, onClick }: Props) {
+function SyncButton({
+  className,
+  loading,
+  disabled,
+  onClick,
+  hideDropdown = false,
+}: Props) {
   const [open, setOpen] = React.useState(false);
+  let arrowDropDown;
+  if (hideDropdown == false) {
+    arrowDropDown = (
+      <ArrowDropDown
+        variant="outlined"
+        onClick={() => setOpen(!open)}
+        disabled={disabled}
+      >
+        <Icon type={IconType.ArrowDropDownIcon} size="base" />
+      </ArrowDropDown>
+    );
+  } else {
+    arrowDropDown = <></>;
+  }
   return (
-    <Flex column start className={className}>
-      <Flex style={{ position: "relative" }}>
+    <div
+      className={className}
+      style={{ position: "relative", display: open ? "block" : "inline-block" }}
+    >
+      <Flex>
         <Button
           disabled={disabled}
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
+          style={{ marginRight: 0 }}
         >
           Sync
         </Button>
-        <ArrowDropDown
-          variant="outlined"
-          onClick={() => setOpen(!open)}
-          disabled={disabled}
-        >
-          <Icon type={IconType.ArrowDropDownIcon} size="base" />
-        </ArrowDropDown>
+        {arrowDropDown}
       </Flex>
       <DropDown open={open}>
         <Button
           variant="outlined"
           color="primary"
           onClick={() => onClick({ withSource: false })}
+          style={{ whiteSpace: "nowrap" }}
         >
           Sync Without Source
         </Button>
       </DropDown>
-    </Flex>
+    </div>
   );
 }
 

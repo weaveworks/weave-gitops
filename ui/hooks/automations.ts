@@ -7,8 +7,8 @@ import {
   GetKustomizationResponse,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
-  SyncAutomationRequest,
-  SyncAutomationResponse,
+  SyncFluxObjectRequest,
+  SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
 import {
   FluxObjectKind,
@@ -85,13 +85,13 @@ export function useGetHelmRelease(
   );
 }
 
-export function useSyncAutomation(obj: Syncable) {
+export function useSyncFluxObject(obj: Syncable) {
   const { api } = useContext(CoreClientContext);
   const mutation = useMutation<
-    SyncAutomationResponse,
+    SyncFluxObjectResponse,
     RequestError,
-    SyncAutomationRequest
-  >(({ withSource }) => api.SyncAutomation({ ...obj, withSource }));
+    SyncFluxObjectRequest
+  >(({ withSource }) => api.SyncFluxObject({ ...obj, withSource }));
 
   return mutation;
 }
