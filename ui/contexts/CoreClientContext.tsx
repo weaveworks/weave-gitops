@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useHistory } from "react-router-dom";
 import { Core } from "../lib/api/core/core.pb";
 import { AuthRoutes } from "./AuthContext";
 
@@ -16,7 +15,6 @@ export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
 export function UnAuthorizedInterceptor(api: any) {
-  const history = useHistory();
   const wrapped = {} as any;
   //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
@@ -26,7 +24,7 @@ export function UnAuthorizedInterceptor(api: any) {
     wrapped[method] = (req, initReq) => {
       return api[method](req, initReq).catch((err) => {
         if (err.code === 401) {
-          history.push(AuthRoutes.AUTH_PATH_SIGNIN);
+          window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
         }
         throw err;
       });
