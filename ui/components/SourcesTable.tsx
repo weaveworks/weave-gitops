@@ -11,7 +11,7 @@ import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import {
   convertGitURLToGitProvider,
-  displayKind,
+  removeKind,
   statusSortHelper,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
@@ -33,7 +33,7 @@ type Props = {
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
   sources = sources.map((s) => {
-    return { ...s, type: displayKind(s.kind) };
+    return { ...s, type: removeKind(s.kind) };
   });
 
   const initialFilterState = {

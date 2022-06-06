@@ -5,7 +5,7 @@ import { Automation } from "../hooks/automations";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { statusSortHelper, displayKind } from "../lib/utils";
+import { statusSortHelper, removeKind } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
 import {
   filterConfigForStatus,
@@ -26,7 +26,7 @@ type Props = {
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
   automations = automations.map((a) => {
-    return { ...a, type: displayKind(a.kind) };
+    return { ...a, type: removeKind(a.kind) };
   });
   const filterConfig = {
     ...filterConfigForString(automations, "type"),

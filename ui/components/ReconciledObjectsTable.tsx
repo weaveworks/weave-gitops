@@ -9,7 +9,7 @@ import {
 } from "../lib/api/core/types.pb";
 import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { statusSortHelper } from "../lib/utils";
+import { addKind, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
@@ -76,7 +76,7 @@ function ReconciledObjectsTable({
         fields={[
           {
             value: (u: UnstructuredObject) => {
-              const kind = FluxObjectKind[`Kind${u.groupVersionKind.kind}`];
+              const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
 
               return shouldAddLinks &&
                 kind &&

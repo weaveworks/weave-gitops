@@ -4,6 +4,8 @@ import { computeReady } from "../components/KubeStatusIndicator";
 import { Condition, HelmRelease, Kustomization } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
+const KIND_PREFIX = "Kind";
+
 export function notifySuccess(message: string) {
   toast["success"](message);
 }
@@ -64,9 +66,16 @@ export function automationLastUpdated(a: Kustomization | HelmRelease): string {
   return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
 }
 
-export function displayKind(kind: string): string {
-  if (kind.startsWith("Kind")) {
-    return kind.slice(4);
+export function addKind(kind: string): string {
+  if (!kind.startsWith(KIND_PREFIX)) {
+    return `${KIND_PREFIX}${kind}`;
+  }
+  return kind;
+}
+
+export function removeKind(kind: string): string {
+  if (kind.startsWith(KIND_PREFIX)) {
+    return kind.slice(KIND_PREFIX.length);
   }
   return kind;
 }
