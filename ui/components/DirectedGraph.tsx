@@ -13,8 +13,6 @@ type Props<N> = {
   nodes: { id: any; data: N; label: (v: N) => string }[];
   edges: { source: any; target: any }[];
   scale?: number;
-  width: number | string;
-  height: number | string;
   labelType?: "html" | "text";
   labelShape: "rect" | "ellipse";
 };
@@ -44,7 +42,7 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(1);
+  const [zoomPercent, setZoomPercent] = React.useState(20);
 
   React.useEffect(() => {
     if (!svgRef.current) {

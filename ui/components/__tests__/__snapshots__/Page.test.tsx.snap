@@ -117,7 +117,6 @@ exports[`Page snapshots default 1`] = `
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  height: 1px;
   min-height: 100%;
   max-width: 100%;
   padding-bottom: 24px;
