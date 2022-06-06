@@ -7,8 +7,6 @@ type Props = {
 };
 
 function YamlView({ yaml, className }: Props) {
-  console.log(yaml.split("\n"));
-
   return (
     <pre className={className}>
       {yaml.split("\n").map((yaml, index) => (
