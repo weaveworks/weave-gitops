@@ -79,3 +79,13 @@ export function removeKind(kind: string): string {
   }
   return kind;
 }
+
+export function imageString(images: string[]) {
+  let imageString = "";
+  if (!images[0]) imageString = "-";
+  else imageString += images[0];
+  if (images[1]) {
+    for (let i = 1; i < images.length; i++) imageString += `\n${images[i]}`;
+  }
+  return imageString;
+}
