@@ -2,7 +2,7 @@
 import { CircularProgress, PropTypes } from "@material-ui/core";
 import MaterialButton, { ButtonProps } from "@material-ui/core/Button/Button";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
 /** Button Properties */
 export interface Props extends ButtonProps {
@@ -21,10 +21,17 @@ const defaultProps = {
 
 /** Form Button */
 function UnstyledButton({ loading, ...props }: Props) {
+  const theme = useTheme();
   return (
     <MaterialButton
       disabled={loading}
-      startIcon={loading ? <CircularProgress size={14} /> : props.startIcon}
+      startIcon={
+        loading ? (
+          <CircularProgress size={theme.fontSizes.medium} />
+        ) : (
+          props.startIcon
+        )
+      }
       disableElevation={true}
       {...defaultProps}
       {...props}
