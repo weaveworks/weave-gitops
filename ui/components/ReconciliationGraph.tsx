@@ -170,9 +170,7 @@ function ReconciliationGraph({
     <RequestStateHandler loading={isLoading} error={error}>
       <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
-          width="100%"
-          height="100%"
-          scale={1}
+          scale={20}
           nodes={nodes}
           edges={edges}
           labelShape="rect"
