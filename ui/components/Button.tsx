@@ -24,7 +24,7 @@ function UnstyledButton({ loading, ...props }: Props) {
   return (
     <MaterialButton
       disabled={loading}
-      startIcon={loading ? <CircularProgress size={16} /> : props.startIcon}
+      startIcon={loading ? <CircularProgress size={14} /> : props.startIcon}
       disableElevation={true}
       {...defaultProps}
       {...props}
