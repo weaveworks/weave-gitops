@@ -15,7 +15,7 @@ function Logo({ className }: Props) {
     <Flex className={className} start>
       <Link to={V2Routes.Automations}>
         <Flex align>
-          <img src={images.logoSrc} style={{ height: 56 }} />
+          <img src={images.logoSrc} style={{ height: 40 }} />
           <Spacer padding="xxs" />
           <img src={images.titleSrc} />
         </Flex>
@@ -25,7 +25,7 @@ function Logo({ className }: Props) {
 }
 
 export default styled(Logo)`
-  padding-left: ${(props) => props.theme.spacing.medium};
-  //this width plus medium spacing (24px) lines up the breadcrumbs with the page title.
-  width: 224px;
+  padding-left: ${(props) => props.theme.spacing.small};
+  //this width plus small spacing (12px) lines up the breadcrumbs with the page title.
+  width: 236px;
 `;
