@@ -7,12 +7,13 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function GitRepositoryDetail({ className, name, namespace }: Props) {
+function GitRepositoryDetail({ className, name, namespace, clusterName }: Props) {
   return (
     <Page error={null} className={className}>
-      <GitRepositoryDetailComponent name={name} namespace={namespace} />
+      <GitRepositoryDetailComponent name={name} namespace={namespace} clusterName={clusterName} />
     </Page>
   );
 }

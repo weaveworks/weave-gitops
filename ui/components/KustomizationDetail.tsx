@@ -22,7 +22,7 @@ function KustomizationDetail({ kustomization, className }: Props) {
         kind: FluxObjectKind.KindKustomization,
       }}
       info={[
-        ["Source", <SourceLink sourceRef={kustomization?.sourceRef} />],
+        ["Source", <SourceLink sourceRef={kustomization?.sourceRef} clusterName={kustomization?.clusterName} />],
         ["Applied Revision", kustomization?.lastAppliedRevision],
         ["Cluster", kustomization?.clusterName],
         ["Path", kustomization?.path],

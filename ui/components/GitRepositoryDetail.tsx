@@ -10,14 +10,16 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function GitRepositoryDetail({ name, namespace, className }: Props) {
+function GitRepositoryDetail({ name, namespace, className, clusterName }: Props) {
   return (
     <SourceDetail
       className={className}
       name={name}
       namespace={namespace}
+      clusterName={clusterName}
       type={FluxObjectKind.KindGitRepository}
       info={(s: GitRepository) => [
         ["Type", displayKind(FluxObjectKind.KindGitRepository)],
