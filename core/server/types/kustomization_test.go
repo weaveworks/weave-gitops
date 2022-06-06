@@ -44,6 +44,9 @@ func TestKustomization(t *testing.T) {
 					Name:      "some-object",
 					Namespace: "namespace-of-all-objects",
 				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
+				},
 				Spec: kustomizev1.KustomizationSpec{
 					Interval: metav1.Duration{Duration: d},
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
@@ -64,6 +67,7 @@ func TestKustomization(t *testing.T) {
 				Interval:    &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
+				ApiVersion:  "some-version",
 			},
 		},
 		{
@@ -73,6 +77,9 @@ func TestKustomization(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "some-object",
 					Namespace: "namespace-of-object",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
 				},
 				Spec: kustomizev1.KustomizationSpec{
 					Interval: metav1.Duration{Duration: d},
@@ -94,6 +101,7 @@ func TestKustomization(t *testing.T) {
 				Interval:    &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
+				ApiVersion:  "some-version",
 			},
 		},
 		{
@@ -103,6 +111,9 @@ func TestKustomization(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "some-object",
 					Namespace: "namespace-of-object",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
 				},
 				Spec: kustomizev1.KustomizationSpec{
 					Path:     "./my-cluster",
@@ -170,6 +181,7 @@ func TestKustomization(t *testing.T) {
 				},
 				Suspended:   true,
 				ClusterName: "Default",
+				ApiVersion:  "some-version",
 			},
 		},
 	}

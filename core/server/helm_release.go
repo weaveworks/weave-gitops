@@ -66,6 +66,7 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	apiVersion := helmv2.GroupVersion.String()
 	helmRelease := helmv2.HelmRelease{}
 	key := client.ObjectKey{
 		Name:      msg.Name,
@@ -81,8 +82,12 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory)
+
+	res.ApiVersion = apiVersion
+
 	return &pb.GetHelmReleaseResponse{
-		HelmRelease: types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory),
+		HelmRelease: res,
 	}, err
 }
 

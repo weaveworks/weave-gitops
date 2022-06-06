@@ -15,5 +15,6 @@ func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName 
 		Suspended:     helmRepository.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(helmRepository),
 		ClusterName:   clusterName,
+		ApiVersion:    helmRepository.APIVersion,
 	}
 }
