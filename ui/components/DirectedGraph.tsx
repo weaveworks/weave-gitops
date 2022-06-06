@@ -46,7 +46,7 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(1);
+  const [zoomPercent, setZoomPercent] = React.useState(20);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -78,19 +78,21 @@ function DirectedGraph<T>({
     graphRef.current.render();
   }, [nodes, edges]);
 
+  const viewBoxOffsetX = -zoomPercent * 1.25;
+
   return (
     <Flex wide tall className={className}>
       <svg
-        viewBox="-25 0 100 50"
-        ref={svgRef}
+        viewBox={`${viewBoxOffsetX} 0 100 100`}
         preserveAspectRatio="xMidYMid meet"
+        ref={svgRef}
       />
 
       <Flex tall>
         <SliderFlex column center align>
           <Slider
-            onChange={(e, value: number) => setZoomPercent(value + 1)}
-            defaultValue={0}
+            onChange={(e, value: number) => setZoomPercent(value)}
+            defaultValue={20}
             orientation="vertical"
             aria-label="zoom"
           />
@@ -159,7 +161,7 @@ class D3Graph {
 
   zoom(zoomPercent) {
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = zoomPercent / 100;
+      e.transform.k = (zoomPercent + 20) / 1000;
       this.svg.select("g").attr("transform", e.transform);
     });
 

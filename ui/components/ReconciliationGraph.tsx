@@ -172,7 +172,7 @@ function ReconciliationGraph({
         <DirectedGraph
           width="100%"
           height="100%"
-          scale={1}
+          scale={20}
           nodes={nodes}
           edges={edges}
           labelShape="rect"
