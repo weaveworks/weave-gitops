@@ -10,15 +10,17 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function HelmChartDetail({ name, namespace, className }: Props) {
+function HelmChartDetail({ name, namespace, className, clusterName }: Props) {
   return (
     <SourceDetail
       name={name}
       namespace={namespace}
       type={FluxObjectKind.KindHelmChart}
       className={className}
+      clusterName={clusterName}
       info={(ch: HelmChart) => [
         ["Type", displayKind(FluxObjectKind.KindHelmChart)],
         ["Chart", ch?.chart],

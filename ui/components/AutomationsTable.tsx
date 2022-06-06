@@ -97,6 +97,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
               name: sourceName,
               namespace: sourceNamespace,
             }}
+            clusterName={a.clusterName}
           />
         );
       },

@@ -7,12 +7,13 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function HelmRepositoryDetail({ className, name, namespace }: Props) {
+function HelmRepositoryDetail({ className, name, namespace, clusterName }: Props) {
   return (
     <Page error={null} className={className}>
-      <HelmRepositoryDetailComponent name={name} namespace={namespace} />
+      <HelmRepositoryDetailComponent name={name} namespace={namespace} clusterName={clusterName} />
     </Page>
   );
 }

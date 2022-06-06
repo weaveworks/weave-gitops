@@ -96,6 +96,15 @@ service Core {
         };
     }
 
+    /*
+    * GetObject gets data about a single primary object from a cluster.
+    */
+    rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
+        option (google.api.http) = {
+            get : "/v1/object/{name}"
+        };
+    }
+
     // Misc
     /*
      * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
@@ -288,6 +297,17 @@ message GetKustomizationRequest {
 
 message GetKustomizationResponse {
     Kustomization kustomization = 1;
+}
+
+message GetObjectRequest {
+    string name        = 1;
+    string namespace   = 2;
+    string kind        = 3;
+    string clusterName = 4;
+}
+
+message GetObjectResponse {
+    Object object = 1;
 }
 
 message GetReconciledObjectsRequest {
