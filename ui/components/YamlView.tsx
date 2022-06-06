@@ -26,7 +26,7 @@ export default styled(YamlView).attrs({
   border: 1px solid ${(props) => props.theme.colors.neutral20};
   border-radius: 8px;
   padding: ${(props) => props.theme.spacing.small};
-  white-space: break-spaces;
+  overflow: scroll;
   pre {
     white-space: pre-wrap;
   }
