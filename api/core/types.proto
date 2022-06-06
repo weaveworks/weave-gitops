@@ -135,6 +135,11 @@ message Bucket {
     string   clusterName          = 14;
 }
 
+message Object {
+    string payload     = 1;
+    string clusterName = 2;
+}
+
 message Deployment {
     string   name                 = 1;
     string   namespace            = 2;
