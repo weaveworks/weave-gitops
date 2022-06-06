@@ -7,6 +7,7 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { formatURL, sourceTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
@@ -15,6 +16,7 @@ import FilterableTable, {
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
 
 export interface ReconciledVisualizationProps {
@@ -51,6 +53,21 @@ function ReconciledObjectsTable({
     ...filterConfigForStatus(objs),
   };
 
+  const kindsToAddLinksFrom = [
+    FluxObjectKind.KindKustomization,
+    FluxObjectKind.KindHelmRelease,
+  ];
+
+  const shouldAddLinks = kindsToAddLinksFrom.includes(automationKind);
+
+  const kindsToAddLinksTo = [
+    FluxObjectKind.KindKustomization,
+    FluxObjectKind.KindHelmRelease,
+    FluxObjectKind.KindGitRepository,
+    FluxObjectKind.KindHelmRepository,
+    FluxObjectKind.KindBucket,
+  ];
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FilterableTable
@@ -58,7 +75,25 @@ function ReconciledObjectsTable({
         className={className}
         fields={[
           {
-            value: "name",
+            value: (u: UnstructuredObject) => {
+              const kind = FluxObjectKind[`Kind${u.groupVersionKind.kind}`];
+
+              return shouldAddLinks &&
+                kind &&
+                kindsToAddLinksTo.includes(kind) ? (
+                <Link
+                  to={formatURL(sourceTypeToRoute(kind), {
+                    name: u.name,
+                    namespace: u.namespace,
+                    clusterName: u.clusterName,
+                  })}
+                >
+                  {u.name}
+                </Link>
+              ) : (
+                "name"
+              );
+            },
             label: "Name",
             maxWidth: 600,
           },
