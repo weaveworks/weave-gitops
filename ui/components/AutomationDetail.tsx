@@ -4,7 +4,9 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
+import { useGetObject } from "../hooks/objects";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { fluxObjectKindToKind } from "../lib/objects";
 import Alert from "./Alert";
 import Button from "./Button";
 import DetailTitle from "./DetailTitle";
@@ -16,7 +18,10 @@ import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import Metadata from "./Metadata";
+import YamlView from "./YamlView";
 import SyncButton from "./SyncButton";
+
 type Props = {
   automation?: Automation;
   className?: string;
@@ -26,6 +31,12 @@ type Props = {
 function AutomationDetail({ automation, className, info }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
+  const { data: object } = useGetObject(
+    automation.name,
+    automation.namespace,
+    fluxObjectKindToKind(automation.kind),
+    automation.clusterName
+  );
 
   const sync = useSyncFluxObject({
     name: automation?.name,
@@ -93,6 +104,7 @@ function AutomationDetail({ automation, className, info }: Props) {
         <RouterTab name="Details" path={`${path}/details`}>
           <>
             <InfoList items={info} />
+            <Metadata metadata={object?.metadata()} />
             <ReconciledObjectsTable
               automationKind={automation?.kind}
               automationName={automation?.name}
@@ -126,6 +138,11 @@ function AutomationDetail({ automation, className, info }: Props) {
             }
           />
         </RouterTab>
+        {object ? (
+          <RouterTab name="yaml" path={`${path}/yaml`}>
+            <YamlView yaml={object.yaml()} />
+          </RouterTab>
+        ) : (<></>)}
       </SubRouterTabs>
     </Flex>
   );
