@@ -52,6 +52,9 @@ func TestHelmRepository(t *testing.T) {
 					Name:      "some-chart",
 					Namespace: "namespace-of-all-objects",
 				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
+				},
 				Spec: v2beta1.HelmReleaseSpec{
 					Chart: v2beta1.HelmChartTemplate{
 						Spec: v2beta1.HelmChartTemplateSpec{
@@ -79,6 +82,7 @@ func TestHelmRepository(t *testing.T) {
 				Inventory:   []*pb.GroupVersionKind{},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
+				ApiVersion:  "some-version",
 			},
 		},
 		{
@@ -88,6 +92,9 @@ func TestHelmRepository(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "some-chart",
 					Namespace: "namespace-of-object",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "some-version",
 				},
 				Spec: v2beta1.HelmReleaseSpec{
 					Interval: metav1.Duration{Duration: d123},
@@ -130,6 +137,7 @@ func TestHelmRepository(t *testing.T) {
 				LastAppliedRevision:   "1.0",
 				LastAttemptedRevision: "2.0",
 				ClusterName:           "Default",
+				ApiVersion:            "some-version",
 			},
 		},
 	}

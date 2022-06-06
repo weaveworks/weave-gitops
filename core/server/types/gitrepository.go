@@ -21,6 +21,7 @@ func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string
 		Suspended:     repository.Spec.Suspend,
 		LastUpdatedAt: lastUpdatedAt(repository),
 		ClusterName:   clusterName,
+		ApiVersion:    repository.APIVersion,
 	}
 
 	if repository.Spec.SecretRef != nil {
