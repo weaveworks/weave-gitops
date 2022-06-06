@@ -23,6 +23,7 @@ function helmChartLink(helmRelease: HelmRelease) {
           kind: FluxObjectKind.KindHelmChart,
           name: helmRelease?.helmChart.chart,
         }}
+        clusterName={helmRelease?.clusterName}
       />
     );
   }
@@ -38,6 +39,7 @@ function helmChartLink(helmRelease: HelmRelease) {
         name: name,
         namespace: ns,
       }}
+      clusterName={helmRelease.clusterName}
     />
   );
 }

@@ -25,11 +25,12 @@ type Props = {
   type: FluxObjectKind;
   name: string;
   namespace: string;
+  clusterName: string;
   children?: JSX.Element;
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, namespace, info, type }: Props) {
+function SourceDetail({ className, name, namespace, clusterName, info, type }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
@@ -39,7 +40,7 @@ function SourceDetail({ className, name, namespace, info, type }: Props) {
     return <LoadingPage />;
   }
 
-  const source = _.find(sources, { name, namespace, kind: type });
+  const source = _.find(sources, { name, namespace, kind: type, clusterName });
 
   if (!source) {
     return (
