@@ -41,6 +41,7 @@ export default styled(YamlView).attrs({
   }
 
   code::before {
+    width: 24px;
     color: ${(props) => props.theme.colors.primary10};
     content: counter(listing);
     display: inline-block;
