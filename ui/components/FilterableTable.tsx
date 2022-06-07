@@ -99,7 +99,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
         else value = "Not Ready";
       }
       // type
-      else if (category === "type") {
+      else if (category === "type" && typeof row[category] !== "string") {
         value = _.get(row, "groupVersionKind.kind");
       }
       // strings
