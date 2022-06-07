@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.13.2]
+        node-version: [16.X]
     steps:
       - uses: actions/checkout@v2
       - name: Node modules cache
@@ -82,7 +82,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.17.5]
-        node-version: [16.13.2]
+        node-version: [16.X]
     steps:
       - uses: actions/checkout@v2
       - name: Setup Go
@@ -280,4 +280,3 @@ jobs:
         channel: proj-core-reloaded
         color: red
         verbose: false
-
