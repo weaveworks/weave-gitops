@@ -13,6 +13,25 @@ exports[`Page snapshots default 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
   height: 100%;
   width: 100%;
   -webkit-box-pack: start;
@@ -21,7 +40,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c3 {
+.c4 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -40,7 +59,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c5 {
+.c6 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -54,7 +73,7 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c6 {
+.c7 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -63,7 +82,7 @@ exports[`Page snapshots default 1`] = `
   color: #737373;
 }
 
-.c9 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -72,24 +91,24 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c8 {
+.c9 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c8.title-bar-button {
+.c9.title-bar-button {
   width: 250px;
 }
 
-.c7 {
+.c8 {
   padding: 4px;
 }
 
-.c10 {
+.c11 {
   padding-right: 24px;
 }
 
-.c4 {
+.c5 {
   color: #737373;
 }
 
@@ -98,7 +117,7 @@ exports[`Page snapshots default 1`] = `
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
-  min-height: 480px;
+  min-height: 100%;
   max-width: 100%;
   padding-bottom: 24px;
   padding-left: 24px;
@@ -115,33 +134,33 @@ exports[`Page snapshots default 1`] = `
   className="c0 c1 c2"
 >
   <div
-    className="c0"
+    className="c3"
   />
   <footer
-    className="c3 c4 Footer"
+    className="c4 c5 Footer"
     role="footer"
   >
     <div
-      className="c5"
+      className="c6"
     >
       <span
-        className="c6"
+        className="c7"
         color="neutral30"
         size="medium"
       >
         Need help? Contact us at
       </span>
       <div
-        className="c7"
+        className="c8"
       />
       <a
-        className="c8"
+        className="c9"
         href="mailto:support@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c9"
+          className="c10"
           color="primary"
           size="medium"
         >
@@ -150,13 +169,13 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c5 c10"
+      className="c6 c11"
     >
       <div
-        className="c7"
+        className="c8"
       />
       <span
-        className="c6"
+        className="c7"
         color="neutral30"
         size="medium"
       >

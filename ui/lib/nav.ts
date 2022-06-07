@@ -49,9 +49,10 @@ export const formatURL = (page: string, query: any = {}) => {
 export const formatSourceURL = (
   kind: FluxObjectKind,
   name: string,
-  namespace: string = NoNamespace
+  namespace: string = NoNamespace,
+  clusterName: string
 ) => {
-  return formatURL(sourceTypeToRoute(kind), { name, namespace });
+  return formatURL(sourceTypeToRoute(kind), { name, namespace, clusterName });
 };
 
 export function sourceTypeToRoute(t: FluxObjectKind): V2Routes {

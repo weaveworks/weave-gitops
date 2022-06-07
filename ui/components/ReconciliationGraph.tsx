@@ -8,8 +8,8 @@ import {
   ObjectRef,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
-import { displayKind } from "../lib/utils";
 import images from "../lib/images";
+import { displayKind } from "../lib/utils";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import { computeReady } from "./KubeStatusIndicator";
@@ -138,7 +138,10 @@ function ReconciliationGraph({
       label: (u: Props["parentObject"]) =>
         renderToString(
           <NodeHtml
-            object={{ ...u, groupVersionKind: { kind: displayKind(automationKind) } }}
+            object={{
+              ...u,
+              groupVersionKind: { kind: displayKind(automationKind) },
+            }}
           />
         ),
     },
@@ -146,11 +149,14 @@ function ReconciliationGraph({
     {
       id: sourceId,
       data: {
-        ...source, kind: displayKind(source.kind),
+        ...source,
+        kind: displayKind(source.kind),
       },
       label: (s: ObjectRef) =>
         renderToString(
-          <NodeHtml object={{ ...s, groupVersionKind: { kind: displayKind(s.kind) } }} />
+          <NodeHtml
+            object={{ ...s, groupVersionKind: { kind: displayKind(s.kind) } }}
+          />
         ),
     },
   ];
@@ -164,9 +170,7 @@ function ReconciliationGraph({
     <RequestStateHandler loading={isLoading} error={error}>
       <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
-          width="100%"
-          height="100%"
-          scale={1}
+          scale={20}
           nodes={nodes}
           edges={edges}
           labelShape="rect"

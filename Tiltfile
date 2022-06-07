@@ -3,6 +3,9 @@
 # Allow a K8s context named wego-dev, in addition to the local cluster
 allow_k8s_contexts('wego-dev')
 
+if os.getenv('MANUAL_MODE'):
+   trigger_mode(TRIGGER_MODE_MANUAL)
+
 # Support IMAGE_REPO env so that we can run Tilt with a remote cluster
 image_repository = os.getenv('IMAGE_REPO', 'localhost:5001/weaveworks/wego-app')
 

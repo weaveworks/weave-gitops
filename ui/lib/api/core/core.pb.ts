@@ -102,6 +102,17 @@ export type GetKustomizationResponse = {
   kustomization?: Gitops_coreV1Types.Kustomization
 }
 
+export type GetObjectRequest = {
+  name?: string
+  namespace?: string
+  kind?: string
+  clusterName?: string
+}
+
+export type GetObjectResponse = {
+  object?: Gitops_coreV1Types.Object
+}
+
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
@@ -210,6 +221,9 @@ export class Core {
   }
   static ListBuckets(req: ListBucketRequest, initReq?: fm.InitReq): Promise<ListBucketsResponse> {
     return fm.fetchReq<ListBucketRequest, ListBucketsResponse>(`/v1/buckets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
+    return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

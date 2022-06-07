@@ -7,12 +7,13 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function HelmChartDetail({ className, name, namespace }: Props) {
+function HelmChartDetail({ className, name, namespace, clusterName }: Props) {
   return (
     <Page error={null} className={className}>
-      <HelmChartDetailComponent name={name} namespace={namespace} />
+      <HelmChartDetailComponent name={name} namespace={namespace} clusterName={clusterName} />
     </Page>
   );
 }

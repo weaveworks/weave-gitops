@@ -64,6 +64,7 @@ export type Kustomization = {
   inventory?: GroupVersionKind[]
   suspended?: boolean
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmChart = {
@@ -77,6 +78,7 @@ export type HelmChart = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmRelease = {
@@ -92,6 +94,7 @@ export type HelmRelease = {
   helmChartName?: string
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
+  apiVersion?: string
 }
 
 export type GitRepository = {
@@ -105,6 +108,7 @@ export type GitRepository = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmRepository = {
@@ -116,6 +120,7 @@ export type HelmRepository = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type Bucket = {
@@ -132,6 +137,12 @@ export type Bucket = {
   bucketName?: string
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
+  apiVersion?: string
+}
+
+export type Object = {
+  payload?: string
   clusterName?: string
 }
 

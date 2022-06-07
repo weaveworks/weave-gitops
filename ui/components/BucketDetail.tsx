@@ -10,14 +10,16 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function BucketDetail({ name, namespace, className }: Props) {
+function BucketDetail({ name, namespace, className, clusterName }: Props) {
   return (
     <SourceDetail
       className={className}
       name={name}
       namespace={namespace}
+      clusterName={clusterName}
       type={FluxObjectKind.KindBucket}
       // Guard against an undefined bucket with a default empty object
       info={(b: Bucket = {}) => [

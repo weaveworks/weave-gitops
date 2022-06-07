@@ -63,17 +63,28 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
+//nav width needs to match content margin left.
+const navWidth = "200px";
+//top tool bar height needs to match main padding top
+const topBarHeight = "60px";
+
 const NavContainer = styled.div`
-  min-width: 200px;
-  height: 100%;
-  margin-top: ${(props) => props.theme.spacing.medium};
-  background-color: ${(props) => props.theme.colors.neutral00};
-  border-radius: 10px;
+  position: fixed;
+  width: ${navWidth};
+  //topBarHeight + correct margins of 36px
+  height: calc(100% - 84px);
+  margin-top: ${(props) => props.theme.spacing.small};
+  margin-bottom: ${(props) => props.theme.spacing.small};
 `;
 
 const NavContent = styled.div`
+  height: 100%;
+  border-radius: 10px;
+  background-color: ${(props) => props.theme.colors.neutral00};
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
+  box-sizing: border-box;
+  overflow-y: scroll;
   .MuiTab-textColorInherit {
     opacity: 1;
     .MuiTab-wrapper {
@@ -109,23 +120,30 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  min-width: 768px;
   max-width: 100%;
-  height: 100%;
-  padding-top: ${(props) => props.theme.spacing.medium};
-  padding-bottom: ${(props) => props.theme.spacing.medium};
+  //without a hard value in the height property, min-height in the Page component doesn't work
+  height: 1px;
+  min-height: 100%;
+  padding-top: ${(props) => props.theme.spacing.small};
+  padding-bottom: ${(props) => props.theme.spacing.small};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
+  margin-left: ${navWidth};
   overflow: hidden;
+  overflow-y: scroll;
+  box-sizing: border-box;
 `;
 
 const Main = styled(Flex)`
-  padding-top: 80px;
+  padding-top: ${topBarHeight};
+  box-sizing: border-box;
 `;
 
 const TopToolBar = styled(Flex)`
   position: fixed;
   background-color: ${(props) => props.theme.colors.primary};
-  height: 80px;
+  height: ${topBarHeight};
   min-width: 768px;
   ${UserSettings} {
     justify-self: flex-end;
@@ -139,42 +157,38 @@ function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
 
   return (
-    <div className={className}>
-      <AppContainer>
-        <TopToolBar start align wide>
-          <Logo />
-          <Breadcrumbs />
-          <UserSettings />
-        </TopToolBar>
-        <Main wide tall>
-          <NavContainer>
-            <NavContent>
-              <Tabs
-                centered={false}
-                orientation="vertical"
-                value={getParentNavValue(currentPage)}
-              >
-                {_.map(navItems, (n) => (
-                  <StyleLinkTab
-                    key={n.label}
-                    label={n.label}
-                    to={formatURL(n.value)}
-                    value={n.value}
-                    className={n.sub && "sub-item"}
-                    href={n.href}
-                    newTab={n.newTab}
-                  />
-                ))}
-              </Tabs>
-            </NavContent>
-          </NavContainer>
-          <ContentContainer>{children}</ContentContainer>
-        </Main>
-      </AppContainer>
-    </div>
+    <AppContainer className={className}>
+      <TopToolBar start align wide>
+        <Logo />
+        <Breadcrumbs />
+        <UserSettings />
+      </TopToolBar>
+      <Main wide tall>
+        <NavContainer>
+          <NavContent>
+            <Tabs
+              centered={false}
+              orientation="vertical"
+              value={getParentNavValue(currentPage)}
+            >
+              {_.map(navItems, (n) => (
+                <StyleLinkTab
+                  key={n.label}
+                  label={n.label}
+                  to={formatURL(n.value)}
+                  value={n.value}
+                  className={n.sub && "sub-item"}
+                  href={n.href}
+                  newTab={n.newTab}
+                />
+              ))}
+            </Tabs>
+          </NavContent>
+        </NavContainer>
+        <ContentContainer>{children}</ContentContainer>
+      </Main>
+    </AppContainer>
   );
 }
 
-export default styled(Layout)`
-  display: flex;
-`;
+export default styled(Layout)``;

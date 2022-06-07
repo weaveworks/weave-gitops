@@ -503,6 +503,55 @@
         ]
       }
     },
+    "/v1/object/{name}": {
+      "get": {
+        "summary": "GetObject gets data about a single primary object from a cluster.",
+        "operationId": "Core_GetObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -711,6 +760,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -867,6 +919,14 @@
         }
       }
     },
+    "v1GetObjectResponse": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "$ref": "#/definitions/v1Object"
+        }
+      }
+    },
     "v1GetReconciledObjectsRequest": {
       "type": "object",
       "properties": {
@@ -953,6 +1013,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1023,6 +1086,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1070,6 +1136,9 @@
         },
         "lastAttemptedRevision": {
           "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
         }
       }
     },
@@ -1101,6 +1170,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -1162,6 +1234,9 @@
           "type": "boolean"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -1338,6 +1413,17 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Object": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
         },
         "clusterName": {
           "type": "string"

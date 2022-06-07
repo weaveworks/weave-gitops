@@ -58,6 +58,7 @@ function SourcesTable({ className, sources }: Props) {
               to={formatURL(sourceTypeToRoute(s.kind), {
                 name: s?.name,
                 namespace: s?.namespace,
+                clusterName: s?.clusterName,
               })}
             >
               {s?.name}

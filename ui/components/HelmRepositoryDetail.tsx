@@ -11,14 +11,16 @@ type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function HelmRepositoryDetail({ name, namespace, className }: Props) {
+function HelmRepositoryDetail({ name, namespace, className, clusterName }: Props) {
   return (
     <SourceDetail
       className={className}
       name={name}
       namespace={namespace}
+      clusterName={clusterName}
       type={FluxObjectKind.KindHelmRepository}
       // Guard against an undefined repo with a default empty object
       info={(hr: HelmRepository = {}) => [
