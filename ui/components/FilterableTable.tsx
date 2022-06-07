@@ -68,7 +68,7 @@ export function filterConfigForType(rows) {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
-      const t = v["groupVersionKind"]["kind"];
+      const t = _.get(v, "groupVersionKind.kind");
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -100,7 +100,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
       }
       // type
       else if (category === "type") {
-        value = row["groupVersionKind"]["kind"];
+        value = _.get(row, "groupVersionKind.kind");
       }
       // strings
       else value = row[category];
