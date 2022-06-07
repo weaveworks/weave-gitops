@@ -9,7 +9,7 @@ import {
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { addKind, statusSortHelper } from "../lib/utils";
+import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
@@ -127,6 +127,12 @@ function ReconciledObjectsTable({
             sortValue: ({ conditions }) => computeMessage(conditions),
             maxWidth: 600,
           },
+          {
+            label: "Images",
+            value: (u: UnstructuredObject) => makeImageString(u.images),
+            sortType: SortType.string,
+            sortValue: (u: UnstructuredObject) => makeImageString(u.images),
+          },
         ]}
         rows={objs}
       />
@@ -137,8 +143,11 @@ function ReconciledObjectsTable({
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
 })`
-  td:nth-child(5) {
+  td:nth-child(5),
+  td:nth-child(6) {
     white-space: pre-wrap;
+  }
+  td:nth-child(5) {
     overflow-wrap: break-word;
     word-wrap: break-word;
   }
