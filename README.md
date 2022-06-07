@@ -93,7 +93,6 @@ Use "gitops [command] --help" for more information about a command.
 
 For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference/gitops)
 
-
 ## FAQ
 
 Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
