@@ -28,6 +28,19 @@ export interface ReconciledVisualizationProps {
   clusterName: string;
 }
 
+const kindsFrom = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+];
+
+const kindsTo = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+  FluxObjectKind.KindGitRepository,
+  FluxObjectKind.KindHelmRepository,
+  FluxObjectKind.KindBucket,
+];
+
 function ReconciledObjectsTable({
   className,
   automationName,
@@ -53,20 +66,7 @@ function ReconciledObjectsTable({
     ...filterConfigForStatus(objs),
   };
 
-  const kindsFrom = [
-    FluxObjectKind.KindKustomization,
-    FluxObjectKind.KindHelmRelease,
-  ];
-
   const shouldDisplayLinks = kindsFrom.includes(automationKind);
-
-  const kindsTo = [
-    FluxObjectKind.KindKustomization,
-    FluxObjectKind.KindHelmRelease,
-    FluxObjectKind.KindGitRepository,
-    FluxObjectKind.KindHelmRepository,
-    FluxObjectKind.KindBucket,
-  ];
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
