@@ -9,7 +9,7 @@ import {
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { addKind, imageString, statusSortHelper } from "../lib/utils";
+import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
@@ -129,9 +129,9 @@ function ReconciledObjectsTable({
           },
           {
             label: "Images",
-            value: (u: UnstructuredObject) => imageString(u.images),
+            value: (u: UnstructuredObject) => makeImageString(u.images),
             sortType: SortType.string,
-            sortValue: (u: UnstructuredObject) => imageString(u.images),
+            sortValue: (u: UnstructuredObject) => makeImageString(u.images),
           },
         ]}
         rows={objs}

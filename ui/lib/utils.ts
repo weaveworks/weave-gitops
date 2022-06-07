@@ -80,9 +80,9 @@ export function removeKind(kind: string): string {
   return kind;
 }
 
-export function imageString(images: string[]) {
+export function makeImageString(images: string[]) {
   let imageString = "";
-  if (!images[0]) imageString = "-";
+  if (!images[0]) return "-";
   else imageString += images[0];
   if (images[1]) {
     for (let i = 1; i < images.length; i++) imageString += `\n${images[i]}`;
