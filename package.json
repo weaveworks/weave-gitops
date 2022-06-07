@@ -18,7 +18,6 @@
     }
   },
   "scripts": {
-    "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
     "build": "parcel build --target default",
     "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
