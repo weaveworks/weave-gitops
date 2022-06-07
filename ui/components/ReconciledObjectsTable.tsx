@@ -143,8 +143,11 @@ function ReconciledObjectsTable({
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
 })`
-  td:nth-child(5) {
+  td:nth-child(5),
+  td:nth-child(6) {
     white-space: pre-wrap;
+  }
+  td:nth-child(5) {
     overflow-wrap: break-word;
     word-wrap: break-word;
   }
