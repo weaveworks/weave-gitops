@@ -4,7 +4,7 @@ import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { FluxObjectKind, GitRepository } from "../lib/api/core/types.pb";
-import { convertGitURLToGitProvider, displayKind } from "../lib/utils";
+import { convertGitURLToGitProvider, removeKind } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -13,7 +13,12 @@ type Props = {
   clusterName: string;
 };
 
-function GitRepositoryDetail({ name, namespace, className, clusterName }: Props) {
+function GitRepositoryDetail({
+  name,
+  namespace,
+  className,
+  clusterName,
+}: Props) {
   return (
     <SourceDetail
       className={className}
@@ -22,7 +27,7 @@ function GitRepositoryDetail({ name, namespace, className, clusterName }: Props)
       clusterName={clusterName}
       type={FluxObjectKind.KindGitRepository}
       info={(s: GitRepository) => [
-        ["Type", displayKind(FluxObjectKind.KindGitRepository)],
+        ["Type", removeKind(FluxObjectKind.KindGitRepository)],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(s.url)}>

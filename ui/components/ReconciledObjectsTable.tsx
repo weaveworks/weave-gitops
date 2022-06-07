@@ -7,14 +7,16 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { statusSortHelper } from "../lib/utils";
+import { addKind, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
 
 export interface ReconciledVisualizationProps {
@@ -25,6 +27,19 @@ export interface ReconciledVisualizationProps {
   kinds: GroupVersionKind[];
   clusterName: string;
 }
+
+const kindsFrom = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+];
+
+const kindsTo = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+  FluxObjectKind.KindGitRepository,
+  FluxObjectKind.KindHelmRepository,
+  FluxObjectKind.KindBucket,
+];
 
 function ReconciledObjectsTable({
   className,
@@ -51,6 +66,8 @@ function ReconciledObjectsTable({
     ...filterConfigForStatus(objs),
   };
 
+  const shouldDisplayLinks = kindsFrom.includes(automationKind);
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FilterableTable
@@ -58,7 +75,23 @@ function ReconciledObjectsTable({
         className={className}
         fields={[
           {
-            value: "name",
+            value: (u: UnstructuredObject) => {
+              const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
+
+              return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
+                <Link
+                  to={formatURL(objectTypeToRoute(kind), {
+                    name: u.name,
+                    namespace: u.namespace,
+                    clusterName: u.clusterName,
+                  })}
+                >
+                  {u.name}
+                </Link>
+              ) : (
+                u.name
+              );
+            },
             label: "Name",
             maxWidth: 600,
           },

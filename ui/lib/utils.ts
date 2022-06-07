@@ -64,9 +64,18 @@ export function automationLastUpdated(a: Kustomization | HelmRelease): string {
   return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
 }
 
-export function displayKind(kind: string): string {
-  if (kind.startsWith("Kind")) {
-    return kind.slice(4);
+const kindPrefix = "Kind";
+
+export function addKind(kind: string): string {
+  if (!kind.startsWith(kindPrefix)) {
+    return `${kindPrefix}${kind}`;
+  }
+  return kind;
+}
+
+export function removeKind(kind: string): string {
+  if (kind.startsWith(kindPrefix)) {
+    return kind.slice(kindPrefix.length);
   }
   return kind;
 }
