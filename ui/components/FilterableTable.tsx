@@ -64,6 +64,24 @@ export function filterConfigForStatus(rows) {
   return { status: statusFilterConfig };
 }
 
+export function filterConfigForType(rows) {
+  const typeFilterConfig = _.reduce(
+    rows,
+    (r, v) => {
+      const t = v["groupVersionKind"]["kind"];
+
+      if (!_.includes(r, t)) {
+        r.push(t);
+      }
+
+      return r;
+    },
+    []
+  );
+
+  return { type: typeFilterConfig };
+}
+
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
   if (_.keys(filters).length === 0) {
     return rows;
@@ -74,11 +92,15 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 
     _.each(filters, (vals, category) => {
       let value;
-      //status
+      // status
       if (category === "status") {
         if (row["suspended"]) value = "Suspended";
         else if (computeReady(row["conditions"])) value = "Ready";
         else value = "Not Ready";
+      }
+      // type
+      else if (category === "type") {
+        value = row["groupVersionKind"]["kind"];
       }
       // strings
       else value = row[category];

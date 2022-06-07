@@ -13,6 +13,7 @@ import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
+  filterConfigForType,
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
@@ -62,6 +63,7 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
+    ...filterConfigForType(objs),
     ...filterConfigForString(objs, "namespace"),
     ...filterConfigForStatus(objs),
   };
