@@ -7,7 +7,7 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
-import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { addKind, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
@@ -58,7 +58,7 @@ function ReconciledObjectsTable({
     FluxObjectKind.KindHelmRelease,
   ];
 
-  const shouldAddLinks = kindsFrom.includes(automationKind);
+  const shouldDisplayLinks = kindsFrom.includes(automationKind);
 
   const kindsTo = [
     FluxObjectKind.KindKustomization,
@@ -78,9 +78,9 @@ function ReconciledObjectsTable({
             value: (u: UnstructuredObject) => {
               const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
 
-              return shouldAddLinks && kind && kindsTo.includes(kind) ? (
+              return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
                 <Link
-                  to={formatURL(sourceTypeToRoute(kind), {
+                  to={formatURL(objectTypeToRoute(kind), {
                     name: u.name,
                     namespace: u.namespace,
                     clusterName: u.clusterName,
@@ -89,7 +89,7 @@ function ReconciledObjectsTable({
                   {u.name}
                 </Link>
               ) : (
-                "name"
+                u.name
               );
             },
             label: "Name",

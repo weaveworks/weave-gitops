@@ -6,7 +6,7 @@ import {
   GitRepository,
   HelmRepository,
 } from "../lib/api/core/types.pb";
-import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import {
@@ -55,7 +55,7 @@ function SourcesTable({ className, sources }: Props) {
           label: "Name",
           value: (s: Source) => (
             <Link
-              to={formatURL(sourceTypeToRoute(s.kind), {
+              to={formatURL(objectTypeToRoute(s.kind), {
                 name: s?.name,
                 namespace: s?.namespace,
                 clusterName: s?.clusterName,
