@@ -53,14 +53,14 @@ function ReconciledObjectsTable({
     ...filterConfigForStatus(objs),
   };
 
-  const kindsToAddLinksFrom = [
+  const kindsFrom = [
     FluxObjectKind.KindKustomization,
     FluxObjectKind.KindHelmRelease,
   ];
 
-  const shouldAddLinks = kindsToAddLinksFrom.includes(automationKind);
+  const shouldAddLinks = kindsFrom.includes(automationKind);
 
-  const kindsToAddLinksTo = [
+  const kindsTo = [
     FluxObjectKind.KindKustomization,
     FluxObjectKind.KindHelmRelease,
     FluxObjectKind.KindGitRepository,
@@ -78,9 +78,7 @@ function ReconciledObjectsTable({
             value: (u: UnstructuredObject) => {
               const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
 
-              return shouldAddLinks &&
-                kind &&
-                kindsToAddLinksTo.includes(kind) ? (
+              return shouldAddLinks && kind && kindsTo.includes(kind) ? (
                 <Link
                   to={formatURL(sourceTypeToRoute(kind), {
                     name: u.name,
