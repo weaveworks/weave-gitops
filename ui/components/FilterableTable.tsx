@@ -27,22 +27,28 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
-export function filterConfig(rows, key: string) {
-  const typeFilterConfig = _.reduce(
-    rows,
-    (r, v) => {
-      const t = v[key];
+type FilterHelper = string | ((k: any) => any);
 
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
+export function filterConfig(rows, keyOrCallback: FilterHelper) {
+  if (typeof keyOrCallback === "string") {
+    const typeFilterConfig = _.reduce(
+      rows,
+      (r, v) => {
+        const t = v[keyOrCallback];
 
-      return r;
-    },
-    []
-  );
+        if (!_.includes(r, t)) {
+          r.push(t);
+        }
 
-  return { [key]: typeFilterConfig };
+        return r;
+      },
+      []
+    );
+
+    return { [keyOrCallback]: typeFilterConfig };
+  } else {
+    return [];
+  }
 }
 
 export function filterConfigForStatus(rows) {
