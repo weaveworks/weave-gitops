@@ -48,6 +48,7 @@ jobs:
       - run: make ui
       - run: make ui-lint
       - run: make ui-test
+      - run: make ui-lib
 
   ci-go:
     name: CI Test Go

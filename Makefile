@@ -153,7 +153,6 @@ ui: node_modules $(shell find ui -type f) ## Build the UI
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
 	npm install-clean
-	npx npm-force-resolutions
 
 ui-lint: ## Run linter against the UI
 	npm run lint
