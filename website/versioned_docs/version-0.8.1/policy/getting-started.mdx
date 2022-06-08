@@ -62,11 +62,7 @@ Now you have a provisioned cluster with these policies enforced by the policy ag
 ## Prevent Violating Changes
 Now let's try to deploy a Kubernetes deployment that violates one of the enforced policies. Let's deploy a deployment that has `spec.securityContext.allowPrivilegeEscalation` as `true`. This violates the `Allow Privilege Escalation` policy.
 
-<em><strong>screenshot</strong></em>
-
 Once you apply it, the policy agent will deny this request and show a violation message.
-
-<em><strong>screenshot</strong></em>
 
 ## Violations Logs in UI
 You can view all the violation log in Weave GitOps UI to view all connected clusters policy violations, and where you can dive into the details of each violation. 
