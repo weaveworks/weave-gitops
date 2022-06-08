@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -18,17 +18,14 @@
     }
   },
   "scripts": {
-    "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
     "build": "parcel build --target default",
     "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
-    "lint": "eslint ui && npm run typecheck",
+    "lint": "eslint ui --max-warnings 0 && npm run typecheck",
     "test": "jest",
     "watch": "jest --runInBand --watch",
     "coverage": "jest --coverage",
-    "storybook": "start-storybook -s ui/ -p 6006",
-    "build-storybook": "build-storybook ui/assets",
     "typecheck": "tsc --noemit"
   },
   "repository": {
@@ -57,6 +54,7 @@
     "dagre-d3": "^0.6.4",
     "history": "^5.0.0",
     "http-proxy-middleware": "^2.0.3",
+    "jest-canvas-mock": "^2.4.0",
     "jest-worker": "^27.5.1",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
@@ -64,6 +62,7 @@
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-lottie-player": "^1.4.3",
     "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
@@ -80,26 +79,11 @@
     ],
     "testEnvironment": "jsdom"
   },
-  "resolutions": {
-    "ejs": "^3.1.6",
-    "css-what": "^5.0.1",
-    "normalize-url": "^5.3.1",
-    "trim": "~0.0.3"
-  },
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.13.8",
-    "@babel/preset-react": "^7.13.13",
-    "@babel/preset-typescript": "^7.13.0",
     "@parcel/config-default": "^2.3.2",
     "@parcel/optimizer-data-url": "^2.3.2",
     "@parcel/transformer-inline-string": "^2.3.2",
-    "@parcel/transformer-svg-react": "^2.3.2",
     "@parcel/transformer-typescript-tsc": "^2.3.2",
-    "@storybook/addon-actions": "^6.3.12",
-    "@storybook/addon-essentials": "^6.4.14",
-    "@storybook/addon-links": "^6.3.12",
-    "@storybook/react": "^6.4.14",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/react-hooks": "^6.0.0",
@@ -112,13 +96,13 @@
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
-    "babel-jest": "^27.3.1",
-    "babel-loader": "^8.2.3",
+    "buffer": "^6.0.3",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.22.1",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
     "parcel": "^2.3.2",
+    "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.0.7",
     "typescript": "~4.3.5"

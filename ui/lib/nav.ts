@@ -1,6 +1,6 @@
 import _ from "lodash";
 import qs from "query-string";
-import { SourceRefSourceKind } from "./api/core/types.pb";
+import { FluxObjectKind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
@@ -47,26 +47,33 @@ export const formatURL = (page: string, query: any = {}) => {
 };
 
 export const formatSourceURL = (
-  kind: SourceRefSourceKind,
+  kind: FluxObjectKind,
   name: string,
-  namespace: string = NoNamespace
+  namespace: string = NoNamespace,
+  clusterName: string
 ) => {
-  return formatURL(sourceTypeToRoute(kind), { name, namespace });
+  return formatURL(objectTypeToRoute(kind), { name, namespace, clusterName });
 };
 
-export function sourceTypeToRoute(t: SourceRefSourceKind): V2Routes {
+export function objectTypeToRoute(t: FluxObjectKind): V2Routes {
   switch (t) {
-    case SourceRefSourceKind.GitRepository:
+    case FluxObjectKind.KindGitRepository:
       return V2Routes.GitRepo;
 
-    case SourceRefSourceKind.Bucket:
+    case FluxObjectKind.KindBucket:
       return V2Routes.Bucket;
 
-    case SourceRefSourceKind.HelmRepository:
+    case FluxObjectKind.KindHelmRepository:
       return V2Routes.HelmRepo;
 
-    case SourceRefSourceKind.HelmChart:
+    case FluxObjectKind.KindHelmChart:
       return V2Routes.HelmChart;
+
+    case FluxObjectKind.KindKustomization:
+      return V2Routes.Kustomization;
+
+    case FluxObjectKind.KindHelmRelease:
+      return V2Routes.HelmRelease;
 
     default:
       break;

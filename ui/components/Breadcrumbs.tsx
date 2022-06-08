@@ -30,8 +30,7 @@ export const Breadcrumbs = () => {
       <CrumbLink to={parentValue || ""} textProps={{ bold: true }}>
         {label}
       </CrumbLink>
-
-      {parentValue !== currentPage && (
+      {parentValue !== currentPage && parsed.name && (
         <>
           <Icon
             type={IconType.NavigateNextIcon}

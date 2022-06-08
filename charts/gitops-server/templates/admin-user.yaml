@@ -19,43 +19,19 @@ roleRef:
   kind: Role
   name: wego-admin-role
   apiGroup: rbac.authorization.k8s.io
+{{- if .Values.adminUser.createClusterRole }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRoleBinding
 metadata:
-  name: wego-admin-role
-  namespace: flux-system
-rules:
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-{{- if .Values.adminUser.createSecret }}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cluster-user-auth
-  namespace: flux-system
-type: Opaque
-data:
-  {{- with .Values.adminUser }}
-  username: {{ .username | b64enc | quote }}
-  password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
-  {{- end }}
+  name: wego-test-user-read-resources-cr
+subjects:
+- kind: User
+  name: wego-admin
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: wego-admin-cluster-role
+  apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}

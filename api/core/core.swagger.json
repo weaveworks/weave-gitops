@@ -104,6 +104,21 @@
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,
+            "type": "string",
+            "enum": [
+              "KindGitRepository",
+              "KindBucket",
+              "KindHelmRepository",
+              "KindHelmChart",
+              "KindKustomization",
+              "KindHelmRelease"
+            ],
+            "default": "KindGitRepository"
+          },
+          {
+            "name": "involvedObject.name",
+            "in": "query",
+            "required": false,
             "type": "string"
           },
           {
@@ -111,14 +126,31 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "involvedObject.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/featureflags": {
+      "get": {
+        "summary": "GetFeatureFlags returns configuration information about the server",
+        "operationId": "Core_GetFeatureFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetFeatureFlagsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
         "tags": [
           "Core"
         ]
@@ -287,12 +319,6 @@
         "parameters": [
           {
             "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -477,6 +503,55 @@
         ]
       }
     },
+    "/v1/object/{name}": {
+      "get": {
+        "summary": "GetObject gets data about a single primary object from a cluster.",
+        "operationId": "Core_GetObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -510,15 +585,15 @@
         ]
       }
     },
-    "/v1/sync": {
+    "/v1/suspend": {
       "post": {
-        "summary": "SyncResource forces a reconciliation of a Flux resource",
-        "operationId": "Core_SyncAutomation",
+        "summary": "ToggleSuspendResource suspends or resumes a flux object.",
+        "operationId": "Core_ToggleSuspendResource",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1SyncAutomationResponse"
+              "$ref": "#/definitions/v1ToggleSuspendResourceResponse"
             }
           },
           "default": {
@@ -534,10 +609,66 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1SyncAutomationRequest"
+              "$ref": "#/definitions/v1ToggleSuspendResourceRequest"
             }
           }
         ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/sync": {
+      "post": {
+        "summary": "SyncResource forces a reconciliation of a Flux resource",
+        "operationId": "Core_SyncFluxObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncFluxObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncFluxObjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "summary": "GetVersion returns version information about the server",
+        "operationId": "Core_GetVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetVersionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
         "tags": [
           "Core"
         ]
@@ -553,16 +684,6 @@
         "GCP"
       ],
       "default": "Generic"
-    },
-    "SourceRefSourceKind": {
-      "type": "string",
-      "enum": [
-        "GitRepository",
-        "Bucket",
-        "HelmRepository",
-        "HelmChart"
-      ],
-      "default": "GitRepository"
     },
     "protobufAny": {
       "type": "object",
@@ -590,15 +711,6 @@
           }
         }
       }
-    },
-    "v1AutomationKind": {
-      "type": "string",
-      "enum": [
-        "KustomizationAutomation",
-        "HelmReleaseAutomation"
-      ],
-      "default": "KustomizationAutomation",
-      "description": " - KustomizationAutomation: enums populate a global namespace, so spell these out.\n`Kustomization` and `HelmRelease` are already taken as names."
     },
     "v1Bucket": {
       "type": "object",
@@ -647,6 +759,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -726,6 +841,18 @@
         }
       }
     },
+    "v1FluxObjectKind": {
+      "type": "string",
+      "enum": [
+        "KindGitRepository",
+        "KindBucket",
+        "KindHelmRepository",
+        "KindHelmChart",
+        "KindKustomization",
+        "KindHelmRelease"
+      ],
+      "default": "KindGitRepository"
+    },
     "v1GetChildObjectsRequest": {
       "type": "object",
       "properties": {
@@ -750,6 +877,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetFeatureFlagsResponse": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }
@@ -781,6 +919,14 @@
         }
       }
     },
+    "v1GetObjectResponse": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "$ref": "#/definitions/v1Object"
+        }
+      }
+    },
     "v1GetReconciledObjectsRequest": {
       "type": "object",
       "properties": {
@@ -791,7 +937,7 @@
           "type": "string"
         },
         "automationKind": {
-          "$ref": "#/definitions/v1AutomationKind"
+          "$ref": "#/definitions/v1FluxObjectKind"
         },
         "kinds": {
           "type": "array",
@@ -812,6 +958,23 @@
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
           }
+        }
+      }
+    },
+    "v1GetVersionResponse": {
+      "type": "object",
+      "properties": {
+        "semver": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "buildTime": {
+          "type": "string"
         }
       }
     },
@@ -849,6 +1012,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -895,7 +1061,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
+          "$ref": "#/definitions/v1ObjectRef"
         },
         "chart": {
           "type": "string"
@@ -919,6 +1085,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -956,13 +1125,19 @@
         "suspended": {
           "type": "boolean"
         },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
         "clusterName": {
           "type": "string"
         },
         "helmChartName": {
+          "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "lastAttemptedRevision": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -995,6 +1170,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -1029,7 +1207,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
+          "$ref": "#/definitions/v1ObjectRef"
         },
         "interval": {
           "$ref": "#/definitions/v1Interval"
@@ -1046,9 +1224,6 @@
         "lastAttemptedRevision": {
           "type": "string"
         },
-        "lastHandledReconciledAt": {
-          "type": "string"
-        },
         "inventory": {
           "type": "array",
           "items": {
@@ -1059,6 +1234,9 @@
           "type": "boolean"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
@@ -1071,6 +1249,26 @@
           "items": {
             "$ref": "#/definitions/v1Bucket"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1093,6 +1291,12 @@
           "items": {
             "$ref": "#/definitions/v1Deployment"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1103,6 +1307,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1126,6 +1336,12 @@
           "items": {
             "$ref": "#/definitions/v1HelmRelease"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1136,6 +1352,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1151,6 +1373,12 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1191,16 +1419,27 @@
         }
       }
     },
-    "v1ObjectReference": {
+    "v1Object": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ObjectRef": {
       "type": "object",
       "properties": {
         "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
           "type": "string"
         },
         "namespace": {
-          "type": "string"
-        },
-        "name": {
           "type": "string"
         }
       }
@@ -1217,21 +1456,7 @@
         }
       }
     },
-    "v1SourceRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "$ref": "#/definitions/SourceRefSourceKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        }
-      }
-    },
-    "v1SyncAutomationRequest": {
+    "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
         "name": {
@@ -1241,7 +1466,7 @@
           "type": "string"
         },
         "kind": {
-          "$ref": "#/definitions/v1AutomationKind"
+          "$ref": "#/definitions/v1FluxObjectKind"
         },
         "clusterName": {
           "type": "string"
@@ -1251,7 +1476,30 @@
         }
       }
     },
-    "v1SyncAutomationResponse": {
+    "v1SyncFluxObjectResponse": {
+      "type": "object"
+    },
+    "v1ToggleSuspendResourceRequest": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "suspend": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ToggleSuspendResourceResponse": {
       "type": "object"
     },
     "v1UnstructuredObject": {
@@ -1283,6 +1531,12 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "title": "UnstructuredObject is a Kubernetes object of an unknown type"

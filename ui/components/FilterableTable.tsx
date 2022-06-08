@@ -1,29 +1,30 @@
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
 import DataTable, { Field } from "./DataTable";
 import FilterDialog, {
-  DialogFormState,
   FilterConfig,
-  formStateToFilters,
-  initialFormState,
+  FilterSelections,
+  filterSeparator,
+  selectionsToFilters,
 } from "./FilterDialog";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import { computeReady } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 
-type Props = {
+export type FilterableTableProps = {
   className?: string;
   fields: Field[];
   rows: any[];
   filters: FilterConfig;
   dialogOpen?: boolean;
   onDialogClose?: () => void;
+  initialSelections?: FilterSelections;
+  onFilterChange?: (sel: FilterSelections) => void;
 };
 
 export function filterConfigForString(rows, key: string) {
@@ -68,22 +69,22 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
     return rows;
   }
 
-  return _.filter(rows, (r) => {
-    let ok = false;
+  return _.filter(rows, (row) => {
+    let ok = true;
 
-    _.each(filters, (vals, key) => {
+    _.each(filters, (vals, category) => {
       let value;
       //status
-      if (key === "status") {
-        if (r["suspended"]) value = "Suspended";
-        else if (computeReady(r["conditions"])) value = "Ready";
+      if (category === "status") {
+        if (row["suspended"]) value = "Suspended";
+        else if (computeReady(row["conditions"])) value = "Ready";
         else value = "Not Ready";
       }
-      //string
-      else value = r[key];
+      // strings
+      else value = row[category];
 
-      if (_.includes(vals, value)) {
-        ok = true;
+      if (!_.includes(vals, value)) {
+        ok = false;
       }
     });
 
@@ -128,15 +129,69 @@ function filterText(rows, fields: Field[], textFilters: State["textFilters"]) {
   });
 }
 
+export function initialFormState(cfg: FilterConfig, initialSelections?) {
+  if (!initialSelections) {
+    return {};
+  }
+  const allFilters = _.reduce(
+    cfg,
+    (r, vals, k) => {
+      _.each(vals, (v) => {
+        const key = `${k}${filterSeparator}${v}`;
+        const selection = _.get(initialSelections, key);
+        if (selection) {
+          r[key] = selection;
+        } else {
+          r[key] = false;
+        }
+      });
+
+      return r;
+    },
+    {}
+  );
+
+  return allFilters;
+}
+
 function toPairs(state: State): string[] {
   const result = _.map(state.formState, (val, key) => (val ? key : null));
   const out = _.compact(result);
   return _.concat(out, state.textFilters);
 }
 
+export function parseFilterStateFromURL(search: string): FilterSelections {
+  const query = qs.parse(search) as any;
+  if (query.filters) {
+    const split = query.filters.split("_");
+    const next = {};
+    _.each(split, (filterString) => {
+      if (filterString) next[filterString] = true;
+    });
+    return next;
+  }
+
+  return null;
+}
+
+export function filterSelectionsToQueryString(sel: FilterSelections) {
+  let url = "";
+  _.each(sel, (value, key) => {
+    if (value) {
+      url += `${key}_`;
+    }
+  });
+  const query = location.search;
+  let prefix = "";
+  if (query && !query.includes("filters") && url) prefix = "&?filters=";
+  else if (url) prefix = "?filters=";
+
+  return prefix + encodeURIComponent(url);
+}
+
 type State = {
   filters: FilterConfig;
-  formState: DialogFormState;
+  formState: FilterSelections;
   textFilters: string[];
 };
 
@@ -146,18 +201,25 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
-}: Props) {
-  const history = useHistory();
-  const location = useLocation();
+  initialSelections,
+  onFilterChange,
+}: FilterableTableProps) {
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
-    filters,
-    formState: initialFormState(filters),
+    filters: selectionsToFilters(initialSelections),
+    formState: initialFormState(filters, initialSelections),
     textFilters: [],
   });
+
   let filtered = filterRows(rows, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
+
+  const doChange = (formState) => {
+    if (onFilterChange) {
+      onFilterChange(formState);
+    }
+  };
 
   const handleChipRemove = (chips: string[]) => {
     const next = {
@@ -168,13 +230,14 @@ function FilterableTable({
       next.formState[chip] = false;
     });
 
-    const filters = formStateToFilters(next.formState);
+    const filters = selectionsToFilters(next.formState);
 
     const textFilters = _.filter(
       next.textFilters,
       (f) => !_.includes(chips, f)
     );
-    setUrl(next.formState);
+
+    doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
   };
 
@@ -192,39 +255,13 @@ function FilterableTable({
       formState: resetFormState,
       textFilters: [],
     });
-    setUrl(resetFormState);
+    doChange(resetFormState);
   };
 
   const handleFilterSelect = (filters, formState) => {
-    setUrl(formState);
+    doChange(formState);
     setFilterState({ ...filterState, filters, formState });
   };
-
-  const setUrl = (formState) => {
-    let url = "";
-    _.each(formState, (value, key) => {
-      if (value) {
-        url += `${key}_`;
-      }
-    });
-    const query = location.search;
-    let prefix = "";
-    if (query && !query.includes("filters") && url) prefix = "&?filters=";
-    else if (url) prefix = "?filters=";
-    history.replace(location.pathname + prefix + encodeURIComponent(url));
-  };
-
-  React.useEffect(() => {
-    const filterQuery = qs.parse(location.search)["filters"] as string;
-    if (filterQuery) {
-      const split = filterQuery.split("_");
-      const next = filterState.formState;
-      _.each(split, (filterString) => {
-        if (filterString) next[filterString] = true;
-      });
-      setFilterState({ ...filterState, formState: next });
-    }
-  }, []);
 
   return (
     <Flex className={className} wide tall column>

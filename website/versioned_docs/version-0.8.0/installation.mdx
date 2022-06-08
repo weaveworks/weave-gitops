@@ -5,6 +5,7 @@ hide_title: true
 ---
 
 import TierLabel from "./_components/TierLabel";
+import CurlCodeBlock from "./_components/CurlCodeBlock";
 
 ## Installing Weave GitOps
 
@@ -13,7 +14,7 @@ This section details the steps required to install Weave GitOps on a Kubernetes 
 ### Pre-requisites
 
 #### Kubernetes Cluster
-This version of Weave Gitops is tested against the following Kubernetes releases:
+This version of Weave GitOps is tested against the following Kubernetes releases:
 * 1.20
 * 1.21
 * 1.22
@@ -24,7 +25,7 @@ Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisit
 #### Install Flux
 Weave GitOps is an extension to Flux and therefore requires that Flux 0.29 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
-This version of Weave Gitops is tested against the following Flux releases:
+This version of Weave GitOps is tested against the following Flux releases:
 * 0.29
 
 ### Install the Helm Chart
@@ -43,15 +44,13 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: ww-gitops
+      version: 2.0.6
   interval: 1m0s
   values:
     adminUser:
       create: true
-      passwordHash: <UPDATE>
       username: <UPDATE>
-    namespace: flux-system
-    rbac:
-      create: true
+      passwordHash: <UPDATE>
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -63,32 +62,9 @@ spec:
   url: https://helm.gitops.weave.works
 ```
 
-## Installing the gitops CLI
+## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
-The `gitops` command line interface provides a set of commands to make it easier to interact with Weave GitOps, including both the free open source project, and commercial Weave GitOps Enterprise product. It is currently supported on Mac (x86 and Arm), and Linux including WSL.
-
-Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
-
-To install the `gitops` CLI, please follow the following steps:
-
-```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/gitops /usr/local/bin
-gitops version
-```
-
-You should see:
-
-```console
-Current Version: v0.8.0
-GitCommit: 79fc7cc8
-BuildTime: 2022-04-29_13:53:43
-Branch: releases/v0.8.0
-```
-
-## Weave GitOps Enterprise<TierLabel tiers="enterprise" />
-
-Weave Gitops Enterprise (WGE) provides ops teams with an easy way to assess the
+Weave GitOps Enterprise (WGE) provides ops teams with an easy way to assess the
 health of multiple clusters in a single place. It shows cluster information such as
 Kubernetes version and number of nodes and provides details about the GitOps operations
 on those clusters, such as Git repositories and recent commits. Additionally, it
@@ -99,30 +75,23 @@ To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.w
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-:::note BEFORE YOU START
-
-Make sure the following software is installed before continuing with these instructions:
-
-- `gitops` 0.6.2 download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
-
-Also `GITHUB_TOKEN` or `GITLAB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
-:::
-
-To upgrade to Weave GitOps Enterprise
+To install Weave GitOps Enterprise
 
 import TOCInline from "@theme/TOCInline";
 
-<TOCInline toc={toc[2].children} />
+<TOCInline toc={(() => {
+           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'installing-weave-gitops-enterprise')+1);
+           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
+           })()} />
 
-
-### 1. Install `Weave GitOps`
+### 1. Setting up a Cluster with `flux`
 
 To get you started in this document we'll cover:
 
 - `kind` as our management cluster with the _CAPD_ provider
 - **EKS** as our management cluster with the _CAPA_ provider
 
-However Weave Gitops Enterprise supports any combination of management cluster and CAPI provider.
+However Weave GitOps Enterprise supports any combination of management cluster and CAPI provider.
 
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="kind">
@@ -138,15 +107,6 @@ nodes:
     extraMounts:
       - hostPath: /var/run/docker.sock
         containerPath: /var/run/docker.sock
-    extraPortMappings:
-      - containerPort: 30080
-        hostPort: 30080
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
-      - containerPort: 31490
-        hostPort: 31490
-        listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
-        protocol: tcp # Optional, defaults to tcp
 ```
 
 Fire up cluster
@@ -207,22 +167,22 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 </TabItem>
 </Tabs>
 
-Create a new repo
+Install Flux onto your cluster with the `flux bootstrap` command
 
-```bash
-gh repo create my-management-cluster --private --confirm
-cd my-management-cluster
-echo "# my-management-cluster" > README.md
-git add README.md
-git commit --all --message "init commit"
-git push -u origin main
+```
+flux bootstrap github \
+  --owner=$GITHUB_USER \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/management \
+  --personal
 ```
 
 ### 2. Install a CAPI provider
 
 :::note `clusterctl` versions
 
-The example templates provided in this guide have been tested with `clusterctl` version `1.0.1`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
+The example templates provided in this guide have been tested with `clusterctl` version `1.1.3`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
 
 Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
 :::
@@ -238,7 +198,6 @@ Here we'll continue with our example instructions for CAPD and CAPA.
 export EXP_CLUSTER_RESOURCE_SET=true
 
 clusterctl init --infrastructure docker
-
 ```
 
 </TabItem>
@@ -264,7 +223,7 @@ Contact sales@weave.works for a valid entitlements secret. Then apply it to the 
 kubectl apply -f entitlements.yaml
 ```
 
-### 4 Configure access for writing to git from the UI
+### 4. Configure access for writing to git from the UI
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
@@ -296,7 +255,7 @@ them into the `git-provider-credentials` secret along with:
 **Replace values** in this snippet and run:
 
 ```bash
-kubectl create secret generic git-provider-credentials --namespace=wego-system \
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
   --from-literal="GITLAB_CLIENT_ID=13457" \
   --from-literal="GITLAB_CLIENT_SECRET=24680" \
   --from-literal="GITLAB_HOSTNAME=git.example.com" \
@@ -306,45 +265,75 @@ kubectl create secret generic git-provider-credentials --namespace=wego-system \
 </TabItem>
 </Tabs>
 
-### 5. Upgrade
 
-<Tabs groupId="git-host" default>
-<TabItem value="hosted" label="github.com / gitlab.com">
+### 5. Configure and commit
 
-```bash
-gitops upgrade --version 0.0.18
+We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
+
+Clone the repo locally as we're gonna add some things!
+
+```
+git clone git@github.com:$GITHUB_USER/fleet-infra
 ```
 
-</TabItem>
-<TabItem value="on-prem" label="GitLab on other domains">
+Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
 
-#### 5.1 Add `known_hosts` for other domains
+import ExampleWGE from "./assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
 
-For hosts other than github.com or gitlab.com we need to retrieve the public ssh keys and save them in a secret. Replace `git.example.com` below with your git host.
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
 
-```bash
-ssh-keyscan git.example.com > known_hosts
-kubectl create configmap --namespace wego-system ssh-config --from-file=./known_hosts
+#### `values.config.capi.repositoryURL`
+Ensure this has been set to your repository URL.
+
+#### `values.config.capi.repositoryPath`
+By default, WGE will create new clusters in the `clusters/management/clusters` path.
+This can be configured with `values.config.capi.repositoryPath`.
+For example you might what to change it to `clusters/my-cluster/cluster` if you configured flux to reconcile `./clusters/my-cluster` instead.
+
+#### `values.config.capi.repositoryClustersPath`
+The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
+By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
+
+Commit and push all the files
+
+```
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
 ```
 
-Install WGE and mount the `known_hosts` file:
+Flux will reconcile the helm-release and WGE will be deployed into the cluster.
+
+### 6. Configure password
+
+In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
+
+Run the following Docker command and supply the password of your choice as an environment variable:
 
 ```bash
-gitops upgrade \
-  --git-host-types="git.example.com=gitlab" \
-  --version 0.0.18 \
-  --set "config.extraVolumes[0].name=ssh-config" \
-  --set "config.extraVolumes[0].configMap.name=ssh-config" \
-  --set "config.extraVolumeMounts[0].name=ssh-config" \
-  --set "config.extraVolumeMounts[0].mountPath=/root/.ssh" \
+PASSWORD="<your password>"
+docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-</TabItem>
-</Tabs>
+Now create a Kubernetes secret to store your chosen username and the password hash:
 
-A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
+```bash
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+```
 
-### 6. Checking that WGE is installed
+By default a user `wego-admin` is used when you login.
+
+### 7. Checking that WGE is installed
 
 You should now be able to load the WGE UI:
 
@@ -354,9 +343,17 @@ kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 
 The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
 
-### 7. Connect the management cluster up to itself
+### 8. Connect the management cluster up to itself
 
 _Connecting a cluster_ installs the agent which is responsible for detecting new clusters and reporting their status to the UI. We need to install the agent on our newly created management cluster. Check out [How to: Connect a cluster](./cluster-management/managing-existing-clusters.mdx#how-to-connect-a-cluster). The agent should be loaded onto our new management cluster, give it a name like **Management** and leave the Ingress URL blank.
+
+:::caution Self-Signed certificates
+
+When _connecting a cluster_ the UI prompts you to run a `kubectl apply` command to deploy the agent.
+If the WGE UI and HTTPS server is using self-signed TLS certificates this will fail with a **x509** certificate error.
+Instead use `curl --insecure "$AGENT_URL" | kubectl apply -f -`
+
+:::
 
 Head over to either:
 
@@ -402,7 +399,7 @@ iam:
   serviceAccounts:
   - metadata:
       name: wego-service-account # Altering this will require a corresponding change in a later command
-      namespace: wego-system
+      namespace: flux-system
     roleOnly: true
     attachPolicy:
       Version: "2012-10-17"

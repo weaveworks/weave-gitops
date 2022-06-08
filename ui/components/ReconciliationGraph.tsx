@@ -2,9 +2,14 @@ import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
-import images from "../lib/images";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { Condition, UnstructuredObject } from "../lib/api/core/types.pb";
+import {
+  Condition,
+  ObjectRef,
+  UnstructuredObject,
+} from "../lib/api/core/types.pb";
+import images from "../lib/images";
+import { removeKind } from "../lib/utils";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import { computeReady } from "./KubeStatusIndicator";
@@ -18,6 +23,7 @@ export type Props = ReconciledVisualizationProps & {
     conditions?: Condition[];
     suspended?: boolean;
   };
+  source: ObjectRef;
 };
 
 const GraphIcon = styled.img`
@@ -77,12 +83,19 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
   );
 };
 
+const findParentStatus = (parent) => {
+  if (parent.suspended) return "InProgress";
+  if (computeReady(parent.conditions)) return "Current";
+  return "Failed";
+};
+
 function ReconciliationGraph({
   className,
   parentObject,
   automationKind,
   kinds,
   clusterName,
+  source,
 }: Props) {
   const {
     data: objects,
@@ -111,11 +124,7 @@ function ReconciliationGraph({
     []
   );
 
-  const findParentStatus = (parent) => {
-    if (parent.suspended) return "InProgress";
-    if (computeReady(parent.conditions)) return "Current";
-    return "Failed";
-  };
+  const sourceId = `source/${source?.namespace}/${source?.name}`;
 
   const nodes = [
     ..._.map(objects, (r) => ({
@@ -129,19 +138,39 @@ function ReconciliationGraph({
       label: (u: Props["parentObject"]) =>
         renderToString(
           <NodeHtml
-            object={{ ...u, groupVersionKind: { kind: automationKind } }}
+            object={{
+              ...u,
+              groupVersionKind: { kind: removeKind(automationKind) },
+            }}
+          />
+        ),
+    },
+    // Add a node to show the source on the graph
+    {
+      id: sourceId,
+      data: {
+        ...source,
+        kind: removeKind(source.kind),
+      },
+      label: (s: ObjectRef) =>
+        renderToString(
+          <NodeHtml
+            object={{ ...s, groupVersionKind: { kind: removeKind(s.kind) } }}
           />
         ),
     },
   ];
+  // Edge connecting the source to the automation
+  edges.push({
+    source: sourceId,
+    target: parentObject.name,
+  });
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
-          width="100%"
-          height="100%"
-          scale={1}
+          scale={20}
           nodes={nodes}
           edges={edges}
           labelShape="rect"
@@ -166,19 +195,23 @@ export default styled(ReconciliationGraph)`
     stroke: ${(props) => props.theme.colors.neutral20};
     stroke-width: 3;
   }
+
   .status {
     display: flex;
     align-items: center;
   }
+
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 28px;
   }
+
   .status-line {
     width: 2.5%;
     border-radius: 10px 0px 0px 10px;
   }
+
   .nodeText {
     width: 95%;
     align-items: flex-start;
@@ -187,31 +220,39 @@ export default styled(ReconciliationGraph)`
 
   .Current {
     color: ${(props) => props.theme.colors.success};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.success};
     }
   }
+
   .InProgress {
     color: ${(props) => props.theme.colors.suspended};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.suspended};
     }
   }
+
   .Failed {
     color: ${(props) => props.theme.colors.alert};
+
     &.status-line {
       background-color: ${(props) => props.theme.colors.alert};
     }
   }
+
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
     font-size: 28px;
     white-space: pre-wrap;
   }
+
   .kind {
     color: ${(props) => props.theme.colors.neutral30};
   }
+
   .edgePath path {
     stroke: ${(props) => props.theme.colors.neutral30};
     stroke-width: 1px;

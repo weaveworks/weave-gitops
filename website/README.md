@@ -10,10 +10,9 @@ yarn install
 
 ## Local Development
 
-Set a fake Algolia API key to pass validation errors:
+Set a fake Google Analytics API key to pass validation errors:
 
 ```shell
-export ALGOLIA_API_KEY=fakekey
 export GA_KEY=fakekey
 ```
 
@@ -22,6 +21,12 @@ yarn start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+If you are using newer version of Node (17+):
+
+```bash
+export NODE_OPTIONS=--openssl-legacy-provider
+```
 
 ## Build
 

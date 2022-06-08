@@ -4,16 +4,13 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
-export enum AutomationKind {
-  KustomizationAutomation = "KustomizationAutomation",
-  HelmReleaseAutomation = "HelmReleaseAutomation",
-}
-
-export enum SourceRefSourceKind {
-  GitRepository = "GitRepository",
-  Bucket = "Bucket",
-  HelmRepository = "HelmRepository",
-  HelmChart = "HelmChart",
+export enum FluxObjectKind {
+  KindGitRepository = "KindGitRepository",
+  KindBucket = "KindBucket",
+  KindHelmRepository = "KindHelmRepository",
+  KindHelmChart = "KindHelmChart",
+  KindKustomization = "KindKustomization",
+  KindHelmRelease = "KindHelmRelease",
 }
 
 export enum BucketProvider {
@@ -28,8 +25,8 @@ export type Interval = {
   seconds?: string
 }
 
-export type SourceRef = {
-  kind?: SourceRefSourceKind
+export type ObjectRef = {
+  kind?: FluxObjectKind
   name?: string
   namespace?: string
 }
@@ -59,21 +56,21 @@ export type Kustomization = {
   namespace?: string
   name?: string
   path?: string
-  sourceRef?: SourceRef
+  sourceRef?: ObjectRef
   interval?: Interval
   conditions?: Condition[]
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
-  lastHandledReconciledAt?: string
   inventory?: GroupVersionKind[]
   suspended?: boolean
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmChart = {
   namespace?: string
   name?: string
-  sourceRef?: SourceRef
+  sourceRef?: ObjectRef
   chart?: string
   version?: string
   interval?: Interval
@@ -81,6 +78,7 @@ export type HelmChart = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmRelease = {
@@ -92,9 +90,11 @@ export type HelmRelease = {
   conditions?: Condition[]
   inventory?: GroupVersionKind[]
   suspended?: boolean
-  lastUpdatedAt?: string
   clusterName?: string
   helmChartName?: string
+  lastAppliedRevision?: string
+  lastAttemptedRevision?: string
+  apiVersion?: string
 }
 
 export type GitRepository = {
@@ -108,6 +108,7 @@ export type GitRepository = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type HelmRepository = {
@@ -119,6 +120,7 @@ export type HelmRepository = {
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string
+  apiVersion?: string
 }
 
 export type Bucket = {
@@ -135,6 +137,12 @@ export type Bucket = {
   bucketName?: string
   suspended?: boolean
   lastUpdatedAt?: string
+  clusterName?: string
+  apiVersion?: string
+}
+
+export type Object = {
+  payload?: string
   clusterName?: string
 }
 
@@ -156,6 +164,7 @@ export type UnstructuredObject = {
   conditions?: Condition[]
   suspended?: boolean
   clusterName?: string
+  images?: string[]
 }
 
 export type Namespace = {
@@ -173,11 +182,5 @@ export type Event = {
   timestamp?: string
   component?: string
   host?: string
-  name?: string
-}
-
-export type ObjectReference = {
-  kind?: string
-  namespace?: string
   name?: string
 }

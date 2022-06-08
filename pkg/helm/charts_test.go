@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -63,8 +64,10 @@ var _ = Describe("RepoManager", func() {
 				},
 				Icon: "https://helm.sh/icon.png",
 				AvailableVersions: []string{
-					"1.1.0",
+					"1.10.1",
+					"1.2.1-rc.1",
 					"1.1.2",
+					"1.1.0",
 				},
 				Layer: "layer-1",
 				HelmRepository: &pb.HelmRepository{
@@ -80,6 +83,27 @@ var _ = Describe("RepoManager", func() {
 				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profiles).To(BeEmpty())
+			})
+		})
+
+		When("the repo is marked as containing profiles", func() {
+			It("returns all Helm charts in the index", func() {
+				// no_profiles contains Helm charts, none are annotated
+				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
+
+				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL, func(hr *sourcev1.HelmRepository) {
+					hr.ObjectMeta.Annotations = map[string]string{
+						helm.RepositoryProfilesAnnotation: "true",
+					}
+				}), helm.Profiles)
+				Expect(err).NotTo(HaveOccurred())
+
+				foundNames := make([]string, len(profiles))
+				for i := range profiles {
+					foundNames[i] = profiles[i].Name
+				}
+				sort.Strings(foundNames)
+				Expect(foundNames).To(Equal([]string{"alpine", "nginx"}))
 			})
 		})
 
@@ -119,6 +143,14 @@ var _ = Describe("RepoManager", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
 				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error unmarshaling chart response")))
+			})
+		})
+
+		When("the index has invalid versions", func() {
+			It("errors", func() {
+				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid-versions"), helm.Profiles)
+				Expect(err).To(MatchError(ContainSubstring("1..2: Invalid Semantic Version")))
 			})
 		})
 	})

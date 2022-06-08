@@ -2,16 +2,12 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
-import {
-  HelmRelease,
-  Kustomization,
-  SourceRefSourceKind,
-} from "../lib/api/core/types.pb";
+import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
-import { AutomationType, V2Routes } from "../lib/types";
-import { statusSortHelper } from "../lib/utils";
+import { V2Routes } from "../lib/types";
+import { statusSortHelper, removeKind } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
@@ -19,6 +15,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -28,7 +25,10 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  const initialFilterState = {
+  automations = automations.map((a) => {
+    return { ...a, type: removeKind(a.kind) };
+  });
+  const filterConfig = {
     ...filterConfigForString(automations, "type"),
     ...filterConfigForString(automations, "namespace"),
     ...filterConfigForString(automations, "clusterName"),
@@ -40,7 +40,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Name",
       value: (k) => {
         const route =
-          k.type === AutomationType.Kustomization
+          k.kind === FluxObjectKind.KindKustomization
             ? V2Routes.Kustomization
             : V2Routes.HelmRelease;
         return (
@@ -74,15 +74,19 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Source",
       value: (a: Automation) => {
-        let sourceKind;
-        let sourceName;
+        let sourceKind: FluxObjectKind;
+        let sourceName: string;
+        let sourceNamespace: string;
 
-        if (a.type === AutomationType.Kustomization) {
+        if (a.kind === FluxObjectKind.KindKustomization) {
           sourceKind = a.sourceRef?.kind;
           sourceName = a.sourceRef?.name;
+          sourceNamespace = a.sourceRef?.namespace;
         } else {
-          sourceKind = SourceRefSourceKind.HelmChart;
-          sourceName = (a as HelmRelease).helmChart.name;
+          const hr = a as HelmRelease;
+          sourceKind = FluxObjectKind.KindHelmChart;
+          sourceName = hr.helmChart.name;
+          sourceNamespace = hr.helmChart.namespace;
         }
 
         return (
@@ -91,8 +95,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             sourceRef={{
               kind: sourceKind,
               name: sourceName,
-              namespace: a.sourceRef?.namespace,
+              namespace: sourceNamespace,
             }}
+            clusterName={a.clusterName}
           />
         );
       },
@@ -124,7 +129,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Last Updated",
       value: (a: Automation) => (
-        <Timestamp time={(a as Kustomization).lastHandledReconciledAt} />
+        <Timestamp
+          time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
+        />
       ),
     },
   ];
@@ -132,9 +139,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <FilterableTable
+    <URLAddressableTable
       fields={fields}
-      filters={initialFilterState}
+      filters={filterConfig}
       rows={automations}
       className={className}
     />
@@ -143,4 +150,10 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
 export default styled(AutomationsTable).attrs({
   className: AutomationsTable.name,
-})``;
+})`
+  td:nth-child(7) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;

@@ -9,6 +9,7 @@ import (
 	"path"
 	"sort"
 
+	"github.com/Masterminds/semver"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -34,6 +35,10 @@ type HelmRepoManager interface {
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
+
+// RepositoryProfilesAnnotation is the annotation that Helm Repositories must
+// have to indicate that all charts are to be considered as Profiles.
+const RepositoryProfilesAnnotation = "weave.works/profiles"
 
 // LayerAnnotation specifies profile application order.
 // Profiles are sorted by layer and those at a higher "layer" are only installed after
@@ -75,11 +80,13 @@ var defaultChartGetters = getter.Providers{
 	},
 }
 
-type ChartPredicate func(*repo.ChartVersion) bool
+// ChartPredicate is used to filter charts coming from a HelmRepository.
+type ChartPredicate func(*sourcev1.HelmRepository, *repo.ChartVersion) bool
 
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
-var Profiles = func(v *repo.ChartVersion) bool {
-	return hasAnnotation(v.Metadata, ProfileAnnotation)
+var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
+	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
+		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
 }
 
 // ListCharts filters charts using the provided predicate.
@@ -94,7 +101,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 
 	for name, versions := range chartRepo.Entries {
 		for _, v := range versions {
-			if pred(v) {
+			if pred(hr, v) {
 				// if already added, update the versions array
 				if p, ok := ps[name]; ok {
 					p.AvailableVersions = append(p.AvailableVersions, v.Version)
@@ -130,7 +137,11 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepositor
 	var profiles []*pb.Profile
 
 	for _, p := range ps {
-		sort.Strings(p.AvailableVersions)
+		p.AvailableVersions, err = ReverseSemVerSort(p.AvailableVersions)
+		if err != nil {
+			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
+		}
+
 		profiles = append(profiles, p)
 	}
 
@@ -235,6 +246,28 @@ func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1
 	return entry, nil
 }
 
+func ReverseSemVerSort(versions []string) ([]string, error) {
+	vs := make([]*semver.Version, len(versions))
+
+	for i, r := range versions {
+		v, err := semver.NewVersion(r)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", r, err)
+		}
+
+		vs[i] = v
+	}
+
+	sort.Sort(sort.Reverse(semver.Collection(vs)))
+
+	result := make([]string, len(versions))
+	for i := range vs {
+		result[i] = vs[i].String()
+	}
+
+	return result, nil
+}
+
 func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1.HelmRepository) (string, string, error) {
 	var secret corev1.Secret
 	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: hr.Namespace}, &secret); err != nil {
@@ -294,8 +327,8 @@ func getLayer(annotations map[string]string) string {
 	return annotations[LayerAnnotation]
 }
 
-func hasAnnotation(cm *chart.Metadata, name string) bool {
-	for k := range cm.Annotations {
+func hasAnnotation(cm map[string]string, name string) bool {
+	for k := range cm {
 		if k == name {
 			return true
 		}

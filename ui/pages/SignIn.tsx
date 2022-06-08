@@ -1,7 +1,6 @@
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
@@ -12,9 +11,9 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
 
-export const SignInPageWrapper = styled(Flex)`
-  background: url(${images.signInBackground});
-`;
+const SignInBackgroundAnimation = React.lazy(
+  () => import("../components/Animations/SignInBackground")
+);
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -45,6 +44,7 @@ const Footer = styled(Flex)`
 `;
 
 const AlertWrapper = styled(Alert)`
+  width: auto;
   .MuiAlert-root {
     width: 470px;
     margin-bottom: ${(props) => props.theme.spacing.small};
@@ -60,14 +60,15 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const flags = useFeatureFlags();
-
-  if (flags.WEAVE_GITOPS_AUTH_ENABLED === false) {
-    return <Redirect to="applications" />;
-  }
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
 
   const formRef = React.useRef<HTMLFormElement>();
-  const { signIn, error, loading } = React.useContext(Auth);
+  const {
+    signIn,
+    error: authError,
+    loading: authLoading,
+  } = React.useContext(Auth);
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
@@ -82,16 +83,40 @@ function SignIn() {
   const handleUserPassSubmit = () => signIn({ username, password });
 
   return (
-    <SignInPageWrapper tall wide center align column>
-      <FormWrapper center align wrap>
-        {error && (
-          <AlertWrapper
-            severity="error"
-            title="Error signin in"
-            message={`${String(error.status)} ${error.statusText}`}
-            center
-          />
-        )}
+    <Flex
+      tall
+      wide
+      center
+      align
+      column
+      style={{
+        height: "100vh",
+        width: "100vw",
+      }}
+    >
+      <React.Suspense fallback={null}>
+        <SignInBackgroundAnimation />
+      </React.Suspense>
+      {authError && (
+        <AlertWrapper
+          severity="error"
+          title="Error signin in"
+          message={`${
+            authError.status === 401
+              ? `Incorrect username or password.`
+              : `${authError.status} ${authError.statusText}`
+          }`}
+          center
+        />
+      )}
+      <FormWrapper
+        center
+        align
+        wrap
+        style={{
+          zIndex: 999,
+        }}
+      >
         <div>
           <Logo wide center>
             <img src={images.weaveLogo} />
@@ -127,6 +152,7 @@ function SignIn() {
                   type="text"
                   placeholder="Username"
                   value={username}
+                  required
                 />
               </Flex>
               <Flex center align>
@@ -150,7 +176,7 @@ function SignIn() {
                 />
               </Flex>
               <Flex center>
-                {!loading ? (
+                {!authLoading ? (
                   <Button
                     type="submit"
                     style={{ marginTop: theme.spacing.medium }}
@@ -180,7 +206,7 @@ function SignIn() {
           <img src={images.signInWheel} />
         </Footer>
       </FormWrapper>
-    </SignInPageWrapper>
+    </Flex>
   );
 }
 

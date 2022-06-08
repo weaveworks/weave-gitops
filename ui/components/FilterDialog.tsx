@@ -8,7 +8,7 @@ import FormCheckbox from "./FormCheckbox";
 import Text from "./Text";
 
 export type FilterConfig = { [key: string]: string[] };
-export type DialogFormState = { [inputName: string]: boolean };
+export type FilterSelections = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
   position: relative;
@@ -36,33 +36,24 @@ const SlideContent = styled.div`
 
 export const filterSeparator = ":";
 
-export function initialFormState(cfg: FilterConfig) {
-  const allFilters = _.reduce(
-    cfg,
-    (r, vals, k) => {
-      _.each(vals, (v) => {
-        r[`${k}${filterSeparator}${v}`] = false;
-      });
+type FilterSectionProps = {
+  header: string;
+  options: string[];
+  formState: FilterSelections;
+  onSectionSelect: (sectionSelectObject) => void;
+};
 
-      return r;
-    },
-    {}
-  );
-
-  return allFilters;
-}
-
-const FilterSection = ({ header, options, formState, onSectionSelect }) => {
-  const [all, setAll] = React.useState(false);
-  React.useEffect(() => {
-    const allChecked = _.chain(formState)
-      // get all relevant keys' current value
-      .keys()
-      .filter((key) => _.includes(key, header))
-      .every((key) => formState[key])
-      .value();
-    setAll(allChecked);
-  });
+const FilterSection = ({
+  header,
+  options,
+  formState,
+  onSectionSelect,
+}: FilterSectionProps) => {
+  const compoundKeys = options.map((option) => `${header}:${option}`);
+  // every on an empty list is true so check that too
+  const all =
+    compoundKeys.length > 0 &&
+    compoundKeys.every((key) => formState[key] === true);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
@@ -77,26 +68,32 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
       <List>
         <ListItem>
           <ListItemIcon>
-            <Checkbox checked={all} onChange={handleChange} id={header} />
+            <Checkbox
+              disabled={!options[0]}
+              checked={all}
+              onChange={handleChange}
+              id={header}
+            />
           </ListItemIcon>
           <Text capitalize size="small" color="neutral30" semiBold>
             {convertHeaders(header)}
           </Text>
         </ListItem>
-        {_.map(options, (option: string, index: number) => {
-          return (
-            <ListItem key={index}>
-              <ListItemIcon>
-                <FormCheckbox
-                  label=""
-                  name={`${header}${filterSeparator}${option}`}
-                />
-              </ListItemIcon>
-              <Text color="neutral40" size="small">
-                {_.toString(option)}
-              </Text>
-            </ListItem>
-          );
+        {options.sort().map((option: string, index: number) => {
+          if (option)
+            return (
+              <ListItem key={index}>
+                <ListItemIcon>
+                  <FormCheckbox
+                    label=""
+                    name={`${header}${filterSeparator}${option}`}
+                  />
+                </ListItemIcon>
+                <Text color="neutral40" size="small">
+                  {_.toString(option)}
+                </Text>
+              </ListItem>
+            );
         })}
       </List>
     </ListItem>
@@ -107,14 +104,14 @@ const FilterSection = ({ header, options, formState, onSectionSelect }) => {
 export interface Props {
   className?: string;
   /** the setState function for `activeFilters` */
-  onFilterSelect: (val: FilterConfig, state: DialogFormState) => void;
+  onFilterSelect: (val: FilterConfig, state: FilterSelections) => void;
   /** Object containing column headers + corresponding filter options */
   filterList: FilterConfig;
-  formState: DialogFormState;
+  formState: FilterSelections;
   open?: boolean;
 }
 
-export function formStateToFilters(values: DialogFormState): FilterConfig {
+export function selectionsToFilters(values: FilterSelections): FilterConfig {
   const out = {};
   _.each(values, (v, k) => {
     const [key, val] = k.split(filterSeparator);
@@ -149,13 +146,13 @@ function UnstyledFilterDialog({
   const onSectionSelect = (object: sectionSelectObject) => {
     if (onFilterSelect) {
       const next = { ...formState, ...object };
-      onFilterSelect(formStateToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next), next);
     }
   };
   const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
-      onFilterSelect(formStateToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next), next);
     }
   };
 
@@ -170,17 +167,19 @@ function UnstyledFilterDialog({
           </Flex>
           <ControlledForm state={{ values: formState }} onChange={onFormChange}>
             <List>
-              {_.map(filterList, (options: string[], header: string) => {
-                return (
-                  <FilterSection
-                    key={header}
-                    header={header}
-                    options={options}
-                    formState={formState}
-                    onSectionSelect={onSectionSelect}
-                  />
-                );
-              })}
+              {Object.entries(filterList)
+                .sort()
+                .map(([header, options]) => {
+                  return (
+                    <FilterSection
+                      key={header}
+                      header={header}
+                      options={options}
+                      formState={formState}
+                      onSectionSelect={onSectionSelect}
+                    />
+                  );
+                })}
             </List>
           </ControlledForm>
         </Flex>

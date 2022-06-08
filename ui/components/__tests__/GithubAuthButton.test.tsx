@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "jest-styled-components";
+import "jest-canvas-mock";
 import * as React from "react";
 import { unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";

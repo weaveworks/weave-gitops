@@ -96,6 +96,15 @@ service Core {
         };
     }
 
+    /*
+    * GetObject gets data about a single primary object from a cluster.
+    */
+    rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
+        option (google.api.http) = {
+            get : "/v1/object/{name}"
+        };
+    }
+
     // Misc
     /*
      * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
@@ -154,12 +163,41 @@ service Core {
             get: "/v1/events"
         };
     }
+
     /*
      * SyncResource forces a reconciliation of a Flux resource
      */
-    rpc SyncAutomation(SyncAutomationRequest) returns (SyncAutomationResponse) {
+    rpc SyncFluxObject(SyncFluxObjectRequest) returns (SyncFluxObjectResponse) {
         option (google.api.http) = {
             post: "/v1/sync"
+            body: "*"
+        };
+    }
+
+    /*
+     * GetVersion returns version information about the server
+     */
+    rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
+        option (google.api.http) = {
+            get: "/v1/version"
+        };
+    }
+
+    /**
+    * GetFeatureFlags returns configuration information about the server
+    */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+        option (google.api.http) = {
+            get : "/v1/featureflags"
+        };
+    }
+
+    /*
+     * ToggleSuspendResource suspends or resumes a flux object.
+     */
+    rpc ToggleSuspendResource(ToggleSuspendResourceRequest) returns (ToggleSuspendResourceResponse) {
+        option (google.api.http) = {
+            post: "/v1/suspend"
             body: "*"
         };
     }
@@ -170,6 +208,12 @@ message Pagination {
     string pageToken = 2;
 }
 
+message ListError {
+    string clusterName = 1;
+    string namespace = 2;
+    string message = 3;
+}
+
 message ListKustomizationsRequest {
     string namespace = 1;
     Pagination pagination = 2;
@@ -178,15 +222,16 @@ message ListKustomizationsRequest {
 message ListKustomizationsResponse {
     repeated Kustomization kustomizations = 1;
     string nextPageToken = 2;
+    repeated ListError errors = 3;
 }
 
 message ListHelmReleasesRequest {
     string namespace = 1;
-    string clusterName = 2;
 }
 
 message ListHelmReleasesResponse {
     repeated HelmRelease helmReleases = 1;
+    repeated ListError errors = 2;
 }
 
 message GetHelmReleaseRequest {
@@ -205,6 +250,7 @@ message ListGitRepositoriesRequest {
 
 message ListGitRepositoriesResponse {
     repeated GitRepository gitRepositories = 1;
+    repeated ListError errors = 2;
 }
 
 message ListHelmRepositoriesRequest {
@@ -213,6 +259,7 @@ message ListHelmRepositoriesRequest {
 
 message ListHelmRepositoriesResponse {
     repeated HelmRepository helmRepositories = 1;
+    repeated ListError errors = 2;
 }
 
 message ListBucketRequest {
@@ -221,6 +268,7 @@ message ListBucketRequest {
 
 message ListBucketsResponse {
     repeated Bucket buckets = 1;
+    repeated ListError errors = 2;
 }
 
 message ListFluxRuntimeObjectsRequest {
@@ -230,6 +278,7 @@ message ListFluxRuntimeObjectsRequest {
 
 message ListFluxRuntimeObjectsResponse {
     repeated Deployment deployments = 1;
+    repeated ListError errors = 2;
 }
 
 message ListHelmChartsRequest {
@@ -250,10 +299,21 @@ message GetKustomizationResponse {
     Kustomization kustomization = 1;
 }
 
+message GetObjectRequest {
+    string name        = 1;
+    string namespace   = 2;
+    string kind        = 3;
+    string clusterName = 4;
+}
+
+message GetObjectResponse {
+    Object object = 1;
+}
+
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    AutomationKind automationKind         = 3;
+    FluxObjectKind automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }
@@ -286,20 +346,47 @@ message ListNamespacesResponse {
 }
 
 message ListFluxEventsRequest {
-    ObjectReference involvedObject = 2;
+    ObjectRef involvedObject = 2;
 }
 
 message ListFluxEventsResponse {
     repeated Event events = 1;
 }
 
-message SyncAutomationRequest {
+message SyncFluxObjectRequest {
     string         name        = 1;
     string         namespace   = 2;
-    AutomationKind kind        = 3;
+    FluxObjectKind kind        = 3;
     string         clusterName = 4;
     bool           withSource  = 5;
 }
 
-message SyncAutomationResponse {
+message SyncFluxObjectResponse {
+}
+
+message GetVersionRequest {}
+
+message GetVersionResponse {
+    string semver    = 1;
+    string commit    = 2;
+    string branch    = 3;
+    string buildTime = 4;
+}
+
+message GetFeatureFlagsRequest {}
+
+message GetFeatureFlagsResponse {
+    map<string, string> flags = 1;
+}
+
+message ToggleSuspendResourceRequest {
+    FluxObjectKind kind        = 1;
+    string         name        = 2;
+    string         namespace   = 3;
+    string         clusterName = 4;
+    bool           suspend     = 5;
+}
+
+message ToggleSuspendResourceResponse {
+
 }

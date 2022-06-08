@@ -9,12 +9,12 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,8 +23,13 @@ import (
 var k8sPollInterval = 2 * time.Second
 var k8sTimeout = 1 * time.Minute
 
-func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomationRequest) (*pb.SyncAutomationResponse, error) {
-	c, err := clustersmngr.ClientFromCtx(ctx).Scoped(msg.ClusterName)
+func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
@@ -34,55 +39,52 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 		Namespace: msg.Namespace,
 	}
 
-	obj := getAutomation(msg.Kind)
+	obj, err := getFluxObject(msg.Kind)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
 		return nil, err
 	}
 
-	if msg.WithSource {
-		sourceRef := obj.SourceRef()
+	automation, isAutomation := obj.(internal.Automation)
+	if msg.WithSource && isAutomation {
+		sourceRef := automation.SourceRef()
 
-		_, sourceObj, err := internal.ToReconcileableSource(kindToSourceType(sourceRef.Kind()))
+		_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
 
 		if err != nil {
 			return nil, fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err)
 		}
 
-		ns := sourceRef.Namespace()
+		sourceNs := sourceRef.Namespace()
 
 		// sourceRef.Namespace is an optional field in flux
 		// From the flux type reference:
 		// "Namespace of the referent, defaults to the namespace of the Kubernetes resource object that contains the reference."
 		// https://github.com/fluxcd/kustomize-controller/blob/4da17e1ffb9c2b9e057ff3440f66500394a4f765/api/v1beta2/reference_types.go#L37
-		if ns == "" {
-			ns = msg.Namespace
+		if sourceNs == "" {
+			sourceNs = msg.Namespace
 		}
 
-		name := types.NamespacedName{
+		sourceKey := client.ObjectKey{
 			Name:      sourceRef.Name(),
-			Namespace: ns,
-		}
-
-		src := sourceObj.AsClientObject()
-
-		if err := c.Get(ctx, name, src); err != nil {
-			return nil, fmt.Errorf("getting source: %w", err)
+			Namespace: sourceNs,
 		}
 
 		sourceGvk := sourceObj.GroupVersionKind()
 
-		if err := requestReconciliation(ctx, c, name, sourceGvk); err != nil {
+		if err := requestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
 			return nil, fmt.Errorf("request source reconciliation: %w", err)
 		}
 
-		if err := waitForSync(ctx, c, key, sourceObj); err != nil {
+		if err := waitForSync(ctx, c, sourceKey, sourceObj); err != nil {
 			return nil, fmt.Errorf("syncing source; %w", err)
 		}
 	}
 
 	gvk := obj.GroupVersionKind()
-
 	if err := requestReconciliation(ctx, c, key, gvk); err != nil {
 		return nil, fmt.Errorf("requesting reconciliation: %w", err)
 	}
@@ -91,32 +93,39 @@ func (cs *coreServer) SyncAutomation(ctx context.Context, msg *pb.SyncAutomation
 		return nil, fmt.Errorf("syncing automation; %w", err)
 	}
 
-	return &pb.SyncAutomationResponse{}, nil
+	return &pb.SyncFluxObjectResponse{}, nil
 }
 
-func getAutomation(kind pb.AutomationKind) internal.Automation {
+func getFluxObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {
 	switch kind {
-	case pb.AutomationKind_KustomizationAutomation:
-		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}
-	case pb.AutomationKind_HelmReleaseAutomation:
-		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}
+	case pb.FluxObjectKind_KindKustomization:
+		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
+	case pb.FluxObjectKind_KindHelmRelease:
+		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
+
+	case pb.FluxObjectKind_KindGitRepository:
+		return &internal.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
+	case pb.FluxObjectKind_KindBucket:
+		return &internal.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
+	case pb.FluxObjectKind_KindHelmRepository:
+		return &internal.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
 	}
 
-	return nil
+	return nil, fmt.Errorf("not supported kind: %s", kind.String())
 }
 
-func kindToSourceType(kind string) pb.SourceRef_SourceKind {
+func kindToSourceType(kind string) pb.FluxObjectKind {
 	switch kind {
 	case "GitRepository":
-		return pb.SourceRef_GitRepository
+		return pb.FluxObjectKind_KindGitRepository
 	case "Bucket":
-		return pb.SourceRef_Bucket
+		return pb.FluxObjectKind_KindBucket
 
 	case "HelmRepository":
-		return pb.SourceRef_HelmRepository
+		return pb.FluxObjectKind_KindHelmRepository
 
 	case "HelmChart":
-		return pb.SourceRef_HelmChart
+		return pb.FluxObjectKind_KindHelmChart
 	}
 
 	return -1
@@ -125,7 +134,7 @@ func kindToSourceType(kind string) pb.SourceRef_SourceKind {
 // requestReconciliation sets the annotations of an object so that the flux controller(s) will force a reconciliation.
 // Take straight from the flux CLI source:
 // https://github.com/fluxcd/flux2/blob/cb53243fc11de81de3a34616d14322d66573aa65/cmd/flux/reconcile.go#L155
-func requestReconciliation(ctx context.Context, k client.Client, name types.NamespacedName, gvk schema.GroupVersionKind) error {
+func requestReconciliation(ctx context.Context, k client.Client, name client.ObjectKey, gvk schema.GroupVersionKind) error {
 	return retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
 		object := &metav1.PartialObjectMetadata{}
 		object.SetGroupVersionKind(gvk)
@@ -147,7 +156,7 @@ func requestReconciliation(ctx context.Context, k client.Client, name types.Name
 	})
 }
 
-func checkResourceSync(ctx context.Context, c client.Client, name types.NamespacedName, obj internal.Reconcilable, lastReconcile string) func() (bool, error) {
+func checkResourceSync(ctx context.Context, c client.Client, name client.ObjectKey, obj internal.Reconcilable, lastReconcile string) func() (bool, error) {
 	return func() (bool, error) {
 		err := c.Get(ctx, name, obj.AsClientObject())
 		if err != nil {
@@ -158,7 +167,7 @@ func checkResourceSync(ctx context.Context, c client.Client, name types.Namespac
 	}
 }
 
-func waitForSync(ctx context.Context, c client.Client, key types.NamespacedName, obj internal.Reconcilable) error {
+func waitForSync(ctx context.Context, c client.Client, key client.ObjectKey, obj internal.Reconcilable) error {
 	if err := wait.PollImmediate(
 		k8sPollInterval,
 		k8sTimeout,

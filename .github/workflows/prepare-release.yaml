@@ -23,11 +23,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.17.5
+          go-version: 1.18.X
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 16.13.2
+          node-version: 16.X
       - name: Set up environment vars
         run: |
           echo "BRANCH=releases/${{ github.event.inputs.version }}" >> $GITHUB_ENV
@@ -41,8 +41,25 @@ jobs:
           jq '.version = "'$GITOPS_VERSION'"' < package.json > package-new.json
           mv package-new.json package.json
           npm ci
+          npm run test -- -u
           git commit -am "Update javascript library version to $GITOPS_VERSION"
 
+      - name: Update Chart
+        run: |
+          # Increment the micro chart version
+          NEW_CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml | awk -F. -v OFS=. '{ $3++; print }')
+          yq e '.appVersion = "${{ github.event.inputs.version }}"' -i charts/gitops-server/Chart.yaml
+          yq e '.version = "'$NEW_CHART_VERSION'"' -i charts/gitops-server/Chart.yaml
+          yq e '.image.tag = "${{ github.event.inputs.version }}"' -i charts/gitops-server/values.yaml
+
+          git commit -am "Update helm chart to $NEW_CHART_VERSION to use gitops $GITOPS_VERSION"
+        if: ${{ !contains(github.event.inputs.version, '-') }}
+      - name: Generate updated helm reference
+        # Needs to run after chart update, before docs update
+        run: |
+         go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.9.1
+         helm-docs -c charts/gitops-server -o ../../website/docs/references/helm-reference.md
+         git commit -am "Update the helm reference" || : # This may not have changed
       - name: Update docs version
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
@@ -60,16 +77,6 @@ jobs:
           git commit -am "Update README to point download link to $GITOPS_VERSION"
         if: ${{ !contains(github.event.inputs.version, '-') }}
 
-      - name: Update Chart
-        run: |
-          # Increment the micro chart version
-          NEW_CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml | awk -F. -v OFS=. '{ $3++; print }')
-          yq e '.appVersion = "${{ github.event.inputs.version }}"' -i charts/gitops-server/Chart.yaml
-          yq e '.version = "'$NEW_CHART_VERSION'"' -i charts/gitops-server/Chart.yaml
-          yq e '.image.tag = "${{ github.event.inputs.version }}"' -i charts/gitops-server/values.yaml
-
-          git commit -am "Update helm chart to $NEW_CHART_VERSION to use gitops $GITOPS_VERSION"
-        if: ${{ !contains(github.event.inputs.version, '-') }}
       - name: Set tag for building changelog
         run: |
           git config user.name weave-gitops-bot

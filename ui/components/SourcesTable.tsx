@@ -2,23 +2,27 @@ import * as React from "react";
 import styled from "styled-components";
 import {
   Bucket,
+  FluxObjectKind,
   GitRepository,
-  HelmChart,
   HelmRepository,
-  SourceRefSourceKind,
 } from "../lib/api/core/types.pb";
-import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
-import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
+import {
+  convertGitURLToGitProvider,
+  removeKind,
+  statusSortHelper,
+} from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -28,6 +32,9 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
+  sources = sources.map((s) => {
+    return { ...s, type: removeKind(s.kind) };
+  });
 
   const initialFilterState = {
     ...filterConfigForString(sources, "type"),
@@ -37,7 +44,7 @@ function SourcesTable({ className, sources }: Props) {
   };
 
   return (
-    <FilterableTable
+    <URLAddressableTable
       className={className}
       filters={initialFilterState}
       rows={sources}
@@ -48,9 +55,10 @@ function SourcesTable({ className, sources }: Props) {
           label: "Name",
           value: (s: Source) => (
             <Link
-              to={formatURL(sourceTypeToRoute(s.type), {
+              to={formatURL(objectTypeToRoute(s.kind), {
                 name: s?.name,
                 namespace: s?.namespace,
+                clusterName: s?.clusterName,
               })}
             >
               {s?.name}
@@ -90,21 +98,18 @@ function SourcesTable({ className, sources }: Props) {
             let text;
             let url;
             let link = false;
-            switch (s.type) {
-              case SourceRefSourceKind.GitRepository:
+            switch (s.kind) {
+              case FluxObjectKind.KindGitRepository:
                 text = (s as GitRepository).url;
                 url = convertGitURLToGitProvider((s as GitRepository).url);
                 link = true;
                 break;
-              case SourceRefSourceKind.Bucket:
+              case FluxObjectKind.KindBucket:
                 text = (s as Bucket).endpoint;
                 break;
-              case SourceRefSourceKind.HelmChart:
-                text = `https://${(s as HelmChart).sourceRef?.name}`;
-                url = (s as HelmChart).chart;
-                link = true;
-                break;
-              case SourceRefSourceKind.HelmRepository:
+              case FluxObjectKind.KindHelmChart:
+                return "-";
+              case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
                 url = text;
                 link = true;
@@ -123,7 +128,7 @@ function SourcesTable({ className, sources }: Props) {
         {
           label: "Reference",
           value: (s: Source) => {
-            const isGit = s.type === SourceRefSourceKind.GitRepository;
+            const isGit = s.kind === FluxObjectKind.KindGitRepository;
             const repo = s as GitRepository;
             const ref =
               repo?.reference?.branch ||
@@ -148,4 +153,10 @@ function SourcesTable({ className, sources }: Props) {
   );
 }
 
-export default styled(SourcesTable).attrs({ className: SourcesTable.name })``;
+export default styled(SourcesTable).attrs({ className: SourcesTable.name })`
+  td:nth-child(5) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;

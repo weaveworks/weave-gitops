@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/printers"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
-	"k8s.io/cli-runtime/pkg/printers"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 type templateCommandFlags struct {
@@ -32,7 +33,7 @@ var providers = []string{
 	"vsphere",
 }
 
-func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func TemplateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
@@ -50,7 +51,7 @@ gitops get template <template-name> --list-parameters
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
-		RunE:          getTemplateCmdRunE(endpoint, client),
+		RunE:          getTemplateCmdRunE(endpoint, username, password, client),
 		Args:          cobra.MaximumNArgs(1),
 	}
 
@@ -75,9 +76,9 @@ func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 	}
 }
 
-func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -90,7 +91,7 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 				return errors.New("template name is required")
 			}
 
-			return capi.GetTemplateParameters(args[0], r, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], r, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -98,18 +99,18 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 				return errors.New("template name is required")
 			}
 
-			return capi.GetTemplateProfiles(args[0], r, w)
+			return templates.GetTemplateProfiles(args[0], r, w)
 		}
 
 		if len(args) == 0 {
 			if flags.Provider != "" {
-				return capi.GetTemplatesByProvider(flags.Provider, r, w)
+				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, r, w)
 			}
 
-			return capi.GetTemplates(r, w)
+			return templates.GetTemplates(templates.CAPITemplateKind, r, w)
 		}
 
-		return nil
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, r, w)
 	}
 }
 

@@ -7,19 +7,17 @@ import {
   GetKustomizationResponse,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
-  SyncAutomationRequest,
-  SyncAutomationResponse,
+  SyncFluxObjectRequest,
+  SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
-import {HelmRelease, Kustomization} from "../lib/api/core/types.pb";
 import {
-  AutomationType,
-  DefaultCluster,
-  NoNamespace,
-  RequestError,
-  Syncable,
-} from "../lib/types";
+  FluxObjectKind,
+  HelmRelease,
+  Kustomization,
+} from "../lib/api/core/types.pb";
+import { NoNamespace, RequestError, Syncable } from "../lib/types";
 
-export type Automation = Kustomization & { type: AutomationType } & HelmRelease;
+export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
@@ -29,7 +27,7 @@ export function useListAutomations(namespace = NoNamespace) {
     () => {
       const p = [
         api.ListKustomizations({ namespace }),
-        api.ListHelmReleases({ namespace, clusterName: DefaultCluster }),
+        api.ListHelmReleases({ namespace }),
       ];
 
       // The typescript CLI complains about Promise.all,
@@ -45,11 +43,11 @@ export function useListAutomations(namespace = NoNamespace) {
         return [
           ..._.map(kustomizations, (k) => ({
             ...k,
-            type: AutomationType.Kustomization,
+            kind: FluxObjectKind.KindKustomization,
           })),
           ..._.map(helmReleases, (h) => ({
             ...h,
-            type: AutomationType.HelmRelease,
+            kind: FluxObjectKind.KindHelmRelease,
           })),
         ];
       });
@@ -62,7 +60,7 @@ export function useGetKustomization(
   name: string,
 
   namespace = NoNamespace,
-  clusterName = DefaultCluster
+  clusterName = null
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -76,7 +74,7 @@ export function useGetKustomization(
 export function useGetHelmRelease(
   name: string,
   namespace = NoNamespace,
-  clusterName = DefaultCluster
+  clusterName = null
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -87,13 +85,13 @@ export function useGetHelmRelease(
   );
 }
 
-export function useSyncAutomation(obj: Syncable) {
+export function useSyncFluxObject(obj: Syncable) {
   const { api } = useContext(CoreClientContext);
   const mutation = useMutation<
-    SyncAutomationResponse,
+    SyncFluxObjectResponse,
     RequestError,
-    SyncAutomationRequest
-  >(({ withSource }) => api.SyncAutomation({ ...obj, withSource }));
+    SyncFluxObjectRequest
+  >(({ withSource }) => api.SyncFluxObject({ ...obj, withSource }));
 
   return mutation;
 }

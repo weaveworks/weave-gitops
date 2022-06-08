@@ -19,6 +19,37 @@ If you've followed the [Upgrade steps](installation.mdx#weave-gitops-enterprise)
 
 Next up we'll add a template and use it to create a cluster.
 
+### Directory structure
+
+Let's setup a directory structure to manage our clusters
+
+```bash
+mkdir -p clusters/management/capi/templates \
+  clusters/management/capi/bootstrap \
+  clusters/management/capi/profiles
+```
+
+Now we should have:
+
+```bash
+clusters/
+└── management
+    └── capi
+        ├── bootstrap
+        ├── profiles
+        └── templates
+```
+
+This assumes that we've configured flux to reconcile everything in `clusters/management` into our management cluster.
+
+To keep things organized we've created some subpaths for the different resources:
+
+- `templates` for `CAPITemplates`
+- `bootstrap` for `ClusterBootstrapConfig`, `ClusterResourceSet` and the `ConfigMap` they reference
+- `profiles` for the `HelmRepository` of the profiles for the newly created clusters
+
+Lets grab some sample resources to create our first cluster!
+
 ### Add a template
 
 See [CAPI Templates](templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
@@ -30,7 +61,8 @@ Download the template below to your config repository path, then commit and push
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      curl -o .weave-gitops/apps/capi/templates/capd-template.yaml{" "}
+      curl -o
+      clusters/management/capi/templates/capd-template.yaml{" "}
       {window.location.protocol}//{window.location.host}
       {require("./assets/templates/capd-template.yaml").default}
     </CodeBlock>
@@ -38,7 +70,7 @@ Download the template below to your config repository path, then commit and push
 </BrowserOnly>
 
 <CodeBlock
-  title=".weave-gitops/apps/capi/templates/capd-template.yaml"
+  title="clusters/management/capi/templates/capd-template.yaml"
   className="language-yaml"
 >
   {CapdTemplate}
@@ -57,13 +89,11 @@ import CalicoCRS from "!!raw-loader!./assets/bootstrap/calico-crs.yaml";
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      mkdir -p .weave-gitops/apps/capi/bootstrap{"\n"}
-      curl -o .weave-gitops/apps/capi/bootstrap/calico-crs.yaml {
-        window.location.protocol
-      }//{window.location.host}
+      curl -o clusters/management/capi/bootstrap/calico-crs.yaml{" "}
+      {window.location.protocol}//{window.location.host}
       {require("./assets/bootstrap/calico-crs.yaml").default}
       {"\n"}
-      curl -o .weave-gitops/apps/capi/bootstrap/calico-crs-configmap.yaml{" "}
+      curl -o clusters/management/capi/bootstrap/calico-crs-configmap.yaml{" "}
       {window.location.protocol}//{window.location.host}
       {require("./assets/bootstrap/calico-crs-configmap.yaml").default}
     </CodeBlock>
@@ -71,13 +101,13 @@ import CalicoCRS from "!!raw-loader!./assets/bootstrap/calico-crs.yaml";
 </BrowserOnly>
 
 <CodeBlock
-  title=".weave-gitops/apps/capi/boostrap/calico-crs.yaml"
+  title="clusters/management/capi/boostrap/calico-crs.yaml"
   className="language-yaml"
 >
   {CalicoCRS}
 </CodeBlock>
 
-The full [`calico-crs-configmap.yaml`](./assets/bootstrap/calico-crs-configmap.yaml) is a bit large to display inline here but make sure to download it to `.weave-gitops/apps/capi/bootstrap/calico-crs-configmap.yaml` too, manually or with the above `curl` command.
+The full [`calico-crs-configmap.yaml`](./assets/bootstrap/calico-crs-configmap.yaml) is a bit large to display inline here but make sure to download it to `clusters/management/capi/bootstrap/calico-crs-configmap.yaml` too, manually or with the above `curl` command.
 
 ## Profiles and clusters
 
@@ -94,15 +124,13 @@ annotations:
   weave.works/profile: nginx-profile
 ```
 
-Download the profile repositry below to your config repository path then commit and push. Make sure to update the url to point to a helm repository containing your profiles.
+Download the profile repository below to your config repository path then commit and push. Make sure to update the url to point to a Helm repository containing your profiles.
 
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      mkdir -p .weave-gitops/apps/capi/profiles{"\n"}
-      curl -o .weave-gitops/apps/capi/profiles/profile-repo.yaml {
-        window.location.protocol
-      }
+      curl -o clusters/management/capi/profiles/profile-repo.yaml{" "}
+      {window.location.protocol}
       //{window.location.host}
       {require("./assets/profiles/profile-repo.yaml").default}
     </CodeBlock>
@@ -110,7 +138,7 @@ Download the profile repositry below to your config repository path then commit 
 </BrowserOnly>
 
 <CodeBlock
-  title=".weave-gitops/apps/capi/profiles/profile-repo.yaml"
+  title="clusters/management/capi/profiles/profile-repo.yaml"
   className="language-yaml"
 >
   {ProfileRepo}
@@ -131,8 +159,8 @@ Download the config with
 <BrowserOnly>
   {() => (
     <CodeBlock className="language-bash">
-      mkdir -p .weave-gitops/apps/capi/bootstrap{"\n"}
-      curl -o .weave-gitops/apps/capi/bootstrap/capi-gitops-cluster-bootstrap-config.yaml{" "}
+      curl -o
+      clusters/management/capi/bootstrap/capi-gitops-cluster-bootstrap-config.yaml{" "}
       {window.location.protocol}
       //{window.location.host}
       {
@@ -146,7 +174,7 @@ Download the config with
 Then update the `GITOPS_REPO` variable to point to your cluster
 
 <CodeBlock
-  title=".weave-gitops/apps/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
+  title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
   className="language-yaml"
 >
   {CapiGitopsCDC}

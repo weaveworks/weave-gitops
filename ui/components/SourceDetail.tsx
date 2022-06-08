@@ -2,40 +2,73 @@ import _ from "lodash";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { useListAutomations } from "../hooks/automations";
+import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
+import { useToggleSuspend } from "../hooks/flux";
 import { useListSources } from "../hooks/sources";
-import { SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { useGetObject } from "../hooks/objects";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { fluxObjectKindToKind } from "../lib/objects";
+import { AppContext } from "../contexts/AppContext";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
+import Button from "./Button";
+import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
-import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 import PageStatus from "./PageStatus";
+import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import Metadata from "./Metadata";
+import YamlView from "./YamlView";
+import SyncButton from "./SyncButton";
 
 type Props = {
   className?: string;
-  type: SourceRefSourceKind;
+  type: FluxObjectKind;
   name: string;
   namespace: string;
+  clusterName: string;
   children?: JSX.Element;
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, info, type }: Props) {
+function SourceDetail({ className, name, namespace, clusterName, info, type }: Props) {
+  const { notifySuccess } = React.useContext(AppContext);
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
   const { path } = useRouteMatch();
+  const { data: object } = useGetObject(name, namespace, fluxObjectKindToKind(type), clusterName);
+  const [isSuspended, setIsSuspended] = React.useState(false);
+
+  const suspend = useToggleSuspend(
+    {
+      name,
+      namespace,
+      clusterName,
+      kind: type,
+      suspend: !isSuspended,
+    },
+    "sources"
+  );
+
+  const sync = useSyncFluxObject({
+    name,
+    namespace,
+    clusterName,
+    kind: type,
+  });
+
+
 
   if (isLoading) {
     return <LoadingPage />;
   }
 
-  const s = _.find(sources, { name, type });
+  const source = _.find(sources, { name, namespace, kind: type, clusterName });
 
-  if (!s) {
+  if (!source) {
     return (
       <Alert
         severity="error"
@@ -45,63 +78,106 @@ function SourceDetail({ className, name, info, type }: Props) {
     );
   }
 
-  const items = info(s);
+  if (isSuspended != source.suspended) {
+    setIsSuspended(source.suspended);
+  }
+
+  const items = info(source);
 
   const isNameRelevant = (expectedName) => {
-    return expectedName == name
-  }
+    return expectedName == name;
+  };
 
   const isRelevant = (expectedType, expectedName) => {
-    return (expectedType == s.type && isNameRelevant(expectedName))
-  }
+    return expectedType == source.kind && isNameRelevant(expectedName);
+  };
 
   const relevantAutomations = _.filter(automations, (a) => {
-    if (!s) {
+    if (!source) {
       return false;
     }
 
-    if (type == "HelmChart" && isNameRelevant(a?.helmChart?.name)) {
+    if (
+      type == FluxObjectKind.KindHelmChart &&
+      isNameRelevant(a?.helmChart?.name)
+    ) {
       return true;
     }
 
-    return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
-        isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name);
+    return (
+      isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
+      isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name)
+    );
   });
+
+  const handleSyncClicked = () => {
+    sync.mutateAsync({ withSource: false }).then(() => {
+      notifySuccess("Resource synced successfully");
+    });
+  };
 
   return (
     <Flex wide tall column className={className}>
-      {error && (
-        <Alert severity="error" title="Error" message={error.message} />
-      )}
-      <PageStatus conditions={s.conditions} suspended={s.suspended} />
-      <InfoList items={items} />
-      <SubRouterTabs rootPath={`${path}/automations`}>
-        <RouterTab name="Automations" path={`${path}/automations`}>
-          <AutomationsTable automations={relevantAutomations} hideSource />
+      <DetailTitle name={name} type={type} />
+      {error ||
+        (suspend.error && (
+          <Alert
+            severity="error"
+            title="Error"
+            message={error.message || suspend.error.message}
+          />
+        ))
+      }
+      <PageStatus conditions={source.conditions} suspended={source.suspended} />
+      <Flex wide start>
+        <SyncButton
+          onClick={handleSyncClicked}
+          loading={sync.isLoading}
+          disabled={source?.suspended}
+          hideDropdown={true}
+        />
+        <Spacer padding="xs" />
+        <Button
+          onClick={() => suspend.mutateAsync()}
+          loading={suspend.isLoading}
+        >
+          {isSuspended ? "Resume" : "Suspend"}
+        </Button>
+      </Flex>
+
+      <SubRouterTabs rootPath={`${path}/details`}>
+        <RouterTab name="Details" path={`${path}/details`}>
+          <>
+            <InfoList items={items} />
+            <Metadata metadata={object?.metadata()} />
+            <AutomationsTable automations={relevantAutomations} hideSource />
+          </>
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
-            namespace={s.namespace}
+            namespace={source.namespace}
             involvedObject={{
               kind: type,
               name,
-              namespace: s.namespace,
+              namespace: source.namespace,
             }}
           />
         </RouterTab>
+        {object ? (
+          <RouterTab name="yaml" path={`${path}/yaml`}>
+            <YamlView yaml={object.yaml()} />
+          </RouterTab>
+        ) : (<></>)}
       </SubRouterTabs>
     </Flex>
   );
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
-  width: 100%;
-
-  ${InfoList} {
-    margin-bottom: ${(props) => props.theme.spacing.medium};
+  ${PageStatus} {
+    padding: ${(props) => props.theme.spacing.small} 0px;
   }
-
-  .MuiTabs-root ${Link} .active-tab {
-    background: ${(props) => props.theme.colors.primary}19;
+  ${SubRouterTabs} {
+    margin-top: ${(props) => props.theme.spacing.medium};
   }
 `;

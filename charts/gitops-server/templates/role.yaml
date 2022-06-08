@@ -19,19 +19,15 @@ rules:
   - apiGroups: [""]
     resources: [ "secrets" ]
     verbs: [ "get", "list" ]
-    {{- with .Values.rbac.viewSecrets }}
+    {{- if and .Values.rbac.viewSecrets .Values.rbac.viewSecretsResourceNames }}
+    {{- fail "You've supplied both rbac.viewSecrets and rbac.viewSecretsResourceNames. Please only use rbac.viewSecretsResourceNames" }}
+    {{- end }}
+    # or should return the first non-falsy result
+    {{- with (or .Values.rbac.viewSecretsResourceNames .Values.rbac.viewSecrets) }}
     resourceNames: {{ . | toJson }}
     {{- end }}
-  # helm repository rules for...?
-  - apiGroups: [ "source.toolkit.fluxcd.io" ]
-    resources: [ "helmrepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-  - apiGroups: [ "gitops.weave.works" ]
-    resources: [ "gitopsclusters" ]
-    verbs: [ "list" ]
-  - apiGroups: [ "source.toolkit.fluxcd.io" ]
-    resources: [ "helmrepositories/finalizers", "helmrepositories/status" ]
-    verbs: [ "get" ]
+
+  # The service account needs to read namespaces to know where it can query
   - apiGroups: [ "" ]
     resources: [ "namespaces" ]
     verbs: [ "get", "list" ]

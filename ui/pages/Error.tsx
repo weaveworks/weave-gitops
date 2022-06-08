@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
+import Content from "../components/Page";
 import Flex from "../components/Flex";
-import Page from "../components/Page";
 
 type Props = {
   className?: string;
@@ -9,12 +9,18 @@ type Props = {
 };
 
 function ErrorPage({ className }: Props) {
+  const Error404Animation = React.lazy(
+    () => import("../components/Animations/Error404")
+  );
+
   return (
-    <Page className={className} title="Error">
-      <Flex wide center>
-        <h2>404</h2>
+    <Content className={className}>
+      <Flex center wide align>
+        <React.Suspense fallback={null}>
+          <Error404Animation />
+        </React.Suspense>
       </Flex>
-    </Page>
+    </Content>
   );
 }
 

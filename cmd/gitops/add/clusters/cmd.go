@@ -9,11 +9,12 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 type clusterCommandFlags struct {
@@ -32,7 +33,7 @@ type clusterCommandFlags struct {
 
 var flags clusterCommandFlags
 
-func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Add a new cluster using a CAPI template",
@@ -51,15 +52,14 @@ gitops add cluster --from-template <template-name> \
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, username, password, client),
 	}
 
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
-	cmd.Flags().StringVar(&flags.Template, "from-template", "", "Specify the CAPI template to create a cluster from")
-	cmd.Flags().StringSliceVar(&flags.ParameterValues, "set", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
 	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
+	internal.AddTemplateFlags(cmd, &flags.Template, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
 	return cmd
@@ -75,9 +75,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
-		creds := capi.Credentials{}
+		creds := templates.Credentials{}
 		if flags.Credentials != "" {
 			creds, err = r.RetrieveCredentialsByName(flags.Credentials)
 			if err != nil {
@@ -105,7 +105,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 		}
 
 		if flags.DryRun {
-			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
+			return templates.RenderTemplateWithParameters(templates.CAPITemplateKind, flags.Template, vals, creds, r, os.Stdout)
 		}
 
 		if flags.RepositoryURL == "" {
@@ -122,8 +122,9 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return err
 		}
 
-		params := capi.CreatePullRequestFromTemplateParams{
+		params := templates.CreatePullRequestFromTemplateParams{
 			GitProviderToken: token,
+			TemplateKind:     templates.CAPITemplateKind.String(),
 			TemplateName:     flags.Template,
 			ParameterValues:  vals,
 			RepositoryURL:    flags.RepositoryURL,
@@ -136,12 +137,12 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			ProfileValues:    profilesValues,
 		}
 
-		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
 }
 
-func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
-	var profilesValues []capi.ProfileValues
+func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
+	var profilesValues []templates.ProfileValues
 
 	// Validate values include alphanumeric or - or .
 	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
@@ -168,7 +169,7 @@ func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
 			return nil, err
 		}
 
-		var profileValues capi.ProfileValues
+		var profileValues templates.ProfileValues
 
 		err = json.Unmarshal(profileJson, &profileValues)
 		if err != nil {

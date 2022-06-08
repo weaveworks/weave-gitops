@@ -1,4 +1,3 @@
-
 syntax = "proto3";
 
 package gitops_core.v1;
@@ -11,16 +10,19 @@ message Interval {
     int64 seconds = 3;
 }
 
-message SourceRef {
-    enum SourceKind {
-      GitRepository  = 0;
-      Bucket         = 1;
-      HelmRepository = 2;
-      HelmChart      = 3;
-    };
-    SourceKind kind      = 1;
-    string     name      = 2;
-    string     namespace = 3;
+enum FluxObjectKind {
+    KindGitRepository  = 0;
+    KindBucket         = 1;
+    KindHelmRepository = 2;
+    KindHelmChart      = 3;
+    KindKustomization  = 4;
+    KindHelmRelease    = 5;
+};
+
+message ObjectRef {
+    FluxObjectKind kind      = 1;
+    string         name      = 2;
+    string         namespace = 3;
 }
 
 message Condition {
@@ -49,21 +51,21 @@ message Kustomization {
     string    namespace                  = 1;
     string    name                       = 2;
     string    path                       = 3;
-    SourceRef sourceRef                  = 4;
+    ObjectRef sourceRef                  = 4;
     Interval  interval                   = 5;
     repeated  Condition conditions       = 6;
     string    lastAppliedRevision        = 7;
     string    lastAttemptedRevision      = 8;
-    string    lastHandledReconciledAt    = 9;
-    repeated  GroupVersionKind inventory = 10;
-    bool      suspended                  = 11;
-    string    clusterName                = 12;
+    repeated  GroupVersionKind inventory = 9;
+    bool      suspended                  = 10;
+    string    clusterName                = 11;
+    string    apiVersion                 = 12;
 }
 
 message HelmChart {
     string    namespace            = 1;
     string    name                 = 2;
-    SourceRef sourceRef            = 3;
+    ObjectRef sourceRef            = 3;
     string    chart                = 4;
     string    version              = 5;
     Interval  interval             = 6;
@@ -71,6 +73,7 @@ message HelmChart {
     bool      suspended            = 8;
     string    lastUpdatedAt        = 9;
     string    clusterName          = 10;
+    string    apiVersion           = 11;
 }
 
 message HelmRelease {
@@ -82,9 +85,11 @@ message HelmRelease {
     repeated  Condition conditions       = 6;
     repeated  GroupVersionKind inventory = 10;
     bool      suspended                  = 11;
-    string    lastUpdatedAt              = 12;
-    string    clusterName                = 13;
-    string    helmChartName              = 14;
+    string    clusterName                = 12;
+    string    helmChartName              = 13;
+    string    lastAppliedRevision        = 14;
+    string    lastAttemptedRevision      = 15;
+    string    apiVersion                 = 16;
 }
 
 message GitRepository {
@@ -98,6 +103,7 @@ message GitRepository {
     bool             suspended            = 8;
     string           lastUpdatedAt        = 9;
     string           clusterName          = 10;
+    string           apiVersion           = 11;
 }
 
 message HelmRepository {
@@ -109,6 +115,7 @@ message HelmRepository {
     bool     suspended            = 6;
     string   lastUpdatedAt        = 7;
     string   clusterName          = 8;
+    string   apiVersion           = 9;
 }
 
 message Bucket {
@@ -131,6 +138,12 @@ message Bucket {
     bool     suspended            = 12;
     string   lastUpdatedAt        = 13;
     string   clusterName          = 14;
+    string   apiVersion           = 15;
+}
+
+message Object {
+    string payload     = 1;
+    string clusterName = 2;
 }
 
 message Deployment {
@@ -140,13 +153,6 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
-}
-
-enum AutomationKind {
-    // enums populate a global namespace, so spell these out.
-    // `Kustomization` and `HelmRelease` are already taken as names.
-    KustomizationAutomation = 0;
-    HelmReleaseAutomation   = 1;
 }
 
 // UnstructuredObject is a Kubernetes object of an unknown type
@@ -159,6 +165,7 @@ message UnstructuredObject {
     repeated         Condition conditions = 6;
     bool             suspended            = 7;
     string           clusterName          = 8;
+    repeated         string images        = 9;
 }
 
 message Namespace {
@@ -177,10 +184,4 @@ message Event {
     string component = 5;
     string host      = 6;
     string name      = 7;
-}
-
-message ObjectReference {
-    string kind      = 1;
-    string namespace = 2;
-    string name      = 3;
 }

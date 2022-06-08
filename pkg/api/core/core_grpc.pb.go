@@ -43,6 +43,9 @@ type CoreClient interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error)
 	//
+	// GetObject gets data about a single primary object from a cluster.
+	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
+	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	//
@@ -64,7 +67,16 @@ type CoreClient interface {
 	ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
-	SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error)
+	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
+	//
+	// GetVersion returns version information about the server
+	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
+	//
+	// GetFeatureFlags returns configuration information about the server
+	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
+	//
+	// ToggleSuspendResource suspends or resumes a flux object.
+	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 }
 
 type coreClient struct {
@@ -147,6 +159,15 @@ func (c *coreClient) ListBuckets(ctx context.Context, in *ListBucketRequest, opt
 	return out, nil
 }
 
+func (c *coreClient) GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error) {
+	out := new(GetObjectResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error) {
 	out := new(ListFluxRuntimeObjectsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxRuntimeObjects", in, out, opts...)
@@ -201,9 +222,36 @@ func (c *coreClient) ListFluxEvents(ctx context.Context, in *ListFluxEventsReque
 	return out, nil
 }
 
-func (c *coreClient) SyncAutomation(ctx context.Context, in *SyncAutomationRequest, opts ...grpc.CallOption) (*SyncAutomationResponse, error) {
-	out := new(SyncAutomationResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/SyncAutomation", in, out, opts...)
+func (c *coreClient) SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error) {
+	out := new(SyncFluxObjectResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/SyncFluxObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error) {
+	out := new(GetVersionResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetVersion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error) {
+	out := new(GetFeatureFlagsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetFeatureFlags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error) {
+	out := new(ToggleSuspendResourceResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ToggleSuspendResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -239,6 +287,9 @@ type CoreServer interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error)
 	//
+	// GetObject gets data about a single primary object from a cluster.
+	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
+	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	//
@@ -260,7 +311,16 @@ type CoreServer interface {
 	ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
-	SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error)
+	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
+	//
+	// GetVersion returns version information about the server
+	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
+	//
+	// GetFeatureFlags returns configuration information about the server
+	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
+	//
+	// ToggleSuspendResource suspends or resumes a flux object.
+	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -292,6 +352,9 @@ func (UnimplementedCoreServer) ListHelmRepositories(context.Context, *ListHelmRe
 func (UnimplementedCoreServer) ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
 }
+func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
+}
 func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
 }
@@ -310,8 +373,17 @@ func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRe
 func (UnimplementedCoreServer) ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxEvents not implemented")
 }
-func (UnimplementedCoreServer) SyncAutomation(context.Context, *SyncAutomationRequest) (*SyncAutomationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SyncAutomation not implemented")
+func (UnimplementedCoreServer) SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncFluxObject not implemented")
+}
+func (UnimplementedCoreServer) GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVersion not implemented")
+}
+func (UnimplementedCoreServer) GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeatureFlags not implemented")
+}
+func (UnimplementedCoreServer) ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendResource not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -470,6 +542,24 @@ func _Core_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_GetObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetObject(ctx, req.(*GetObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Core_ListFluxRuntimeObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListFluxRuntimeObjectsRequest)
 	if err := dec(in); err != nil {
@@ -578,20 +668,74 @@ func _Core_ListFluxEvents_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Core_SyncAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncAutomationRequest)
+func _Core_SyncFluxObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncFluxObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CoreServer).SyncAutomation(ctx, in)
+		return srv.(CoreServer).SyncFluxObject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/SyncAutomation",
+		FullMethod: "/gitops_core.v1.Core/SyncFluxObject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).SyncAutomation(ctx, req.(*SyncAutomationRequest))
+		return srv.(CoreServer).SyncFluxObject(ctx, req.(*SyncFluxObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetVersion",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetVersion(ctx, req.(*GetVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetFeatureFlags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeatureFlagsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetFeatureFlags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetFeatureFlags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetFeatureFlags(ctx, req.(*GetFeatureFlagsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ToggleSuspendResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ToggleSuspendResourceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ToggleSuspendResource(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ToggleSuspendResource",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ToggleSuspendResource(ctx, req.(*ToggleSuspendResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -636,6 +780,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_ListBuckets_Handler,
 		},
 		{
+			MethodName: "GetObject",
+			Handler:    _Core_GetObject_Handler,
+		},
+		{
 			MethodName: "ListFluxRuntimeObjects",
 			Handler:    _Core_ListFluxRuntimeObjects_Handler,
 		},
@@ -660,8 +808,20 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_ListFluxEvents_Handler,
 		},
 		{
-			MethodName: "SyncAutomation",
-			Handler:    _Core_SyncAutomation_Handler,
+			MethodName: "SyncFluxObject",
+			Handler:    _Core_SyncFluxObject_Handler,
+		},
+		{
+			MethodName: "GetVersion",
+			Handler:    _Core_GetVersion_Handler,
+		},
+		{
+			MethodName: "GetFeatureFlags",
+			Handler:    _Core_GetFeatureFlags_Handler,
+		},
+		{
+			MethodName: "ToggleSuspendResource",
+			Handler:    _Core_ToggleSuspendResource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

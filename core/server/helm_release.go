@@ -16,24 +16,28 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &helmv2.HelmReleaseList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist); err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
 		return nil, err
 	}
 
 	var results []*pb.HelmRelease
 
-	for n, lists := range clist.Lists() {
+	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*helmv2.HelmReleaseList)
 			if !ok {
@@ -41,12 +45,12 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 			}
 
 			for _, helmrelease := range list.Items {
-				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, msg.ClusterName)
+				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
 				if err != nil {
 					return nil, err
 				}
 
-				results = append(results, types.HelmReleaseToProto(&helmrelease, n, inv))
+				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv))
 			}
 		}
 	}
@@ -57,8 +61,12 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 }
 
 func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
+	apiVersion := helmv2.GroupVersion.String()
 	helmRelease := helmv2.HelmRelease{}
 	key := client.ObjectKey{
 		Name:      msg.Name,
@@ -74,21 +82,19 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory)
+
+	res.ApiVersion = apiVersion
+
 	return &pb.GetHelmReleaseResponse{
-		HelmRelease: types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory),
+		HelmRelease: res,
 	}, err
 }
 
 func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
-	storageNamespace := helmRelease.GetNamespace()
-	if helmRelease.Spec.StorageNamespace != "" {
-		storageNamespace = helmRelease.Spec.StorageNamespace
-	}
+	storageNamespace := helmRelease.GetStorageNamespace()
 
-	storageName := helmRelease.GetName()
-	if helmRelease.Spec.ReleaseName != "" {
-		storageName = helmRelease.Spec.ReleaseName
-	}
+	storageName := helmRelease.GetReleaseName()
 
 	storageVersion := helmRelease.Status.LastReleaseRevision
 	if storageVersion < 1 {

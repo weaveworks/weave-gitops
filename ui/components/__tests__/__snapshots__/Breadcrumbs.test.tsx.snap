@@ -10,9 +10,9 @@ exports[`snapshots renders 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ izdIGU"
+      className="sc-gsDKAQ iZjEZq"
       color="primary"
-      size="normal"
+      size="medium"
     >
       Applications
     </span>
@@ -30,9 +30,9 @@ exports[`snapshots renders child route 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ izdIGU"
+      className="sc-gsDKAQ iZjEZq"
       color="primary"
-      size="normal"
+      size="medium"
     >
       Applications
     </span>
@@ -57,9 +57,9 @@ exports[`snapshots renders child route 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ eouEkA"
+      className="sc-gsDKAQ eOAACW"
       color="primary"
-      size="normal"
+      size="medium"
     >
       flux
     </span>
@@ -77,34 +77,9 @@ exports[`snapshots renders on the root page 1`] = `
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ izdIGU"
+      className="sc-gsDKAQ iZjEZq"
       color="primary"
-      size="normal"
-    />
-  </a>
-  <div
-    className="sc-bdvvtL dVdTOU sc-dkPtRN hTjxvJ"
-  >
-    <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root"
-      focusable="false"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
-      />
-    </svg>
-  </div>
-  <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
-    href="/"
-    onClick={[Function]}
-  >
-    <span
-      className="sc-gsDKAQ eouEkA"
-      color="primary"
-      size="normal"
+      size="medium"
     />
   </a>
 </div>

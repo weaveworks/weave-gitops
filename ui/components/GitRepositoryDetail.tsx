@@ -3,24 +3,31 @@ import styled from "styled-components";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { GitRepository, SourceRefSourceKind } from "../lib/api/core/types.pb";
-import { convertGitURLToGitProvider } from "../lib/utils";
+import { FluxObjectKind, GitRepository } from "../lib/api/core/types.pb";
+import { convertGitURLToGitProvider, removeKind } from "../lib/utils";
 
 type Props = {
   className?: string;
   name: string;
   namespace: string;
+  clusterName: string;
 };
 
-function GitRepositoryDetail({ name, namespace, className }: Props) {
+function GitRepositoryDetail({
+  name,
+  namespace,
+  className,
+  clusterName,
+}: Props) {
   return (
     <SourceDetail
       className={className}
       name={name}
       namespace={namespace}
-      type={SourceRefSourceKind.GitRepository}
+      clusterName={clusterName}
+      type={FluxObjectKind.KindGitRepository}
       info={(s: GitRepository) => [
-        ["Type", SourceRefSourceKind.GitRepository],
+        ["Type", removeKind(FluxObjectKind.KindGitRepository)],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(s.url)}>

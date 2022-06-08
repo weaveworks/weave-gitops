@@ -3,11 +3,12 @@ package profiles
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -19,7 +20,7 @@ const AddCommitMessage = "Add profile manifests"
 
 // Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
 // provided that such a HelmRelease does not exist with the same profile name and version in the same namespace and cluster.
-func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts Options) error {
+func (s *ProfilesSvc) Add(ctx context.Context, r ProfilesRetriever, gitProvider gitproviders.GitProvider, opts Options) error {
 	configRepoURL, err := gitproviders.NewRepoURL(opts.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -37,7 +38,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	helmRepo, version, err := s.discoverHelmRepository(ctx, GetOptions{
+	helmRepo, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -94,12 +95,14 @@ func prInfo(opts Options, action, defaultBranch string, commitFile gitprovider.C
 		title = opts.Title
 	}
 
-	description := fmt.Sprintf("%s manifest for %s profile", strings.Title(action), opts.Name)
+	titleCaser := cases.Title(language.AmericanEnglish)
+
+	description := fmt.Sprintf("%s manifest for %s profile", titleCaser.String(action), opts.Name)
 	if opts.Description != "" {
 		description = opts.Description
 	}
 
-	commitMessage := fmt.Sprintf("%s profile manifests", strings.Title(action))
+	commitMessage := fmt.Sprintf("%s profile manifests", titleCaser.String(action))
 	if opts.Message != "" {
 		commitMessage = opts.Message
 	}

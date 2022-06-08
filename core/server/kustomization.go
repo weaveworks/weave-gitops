@@ -2,17 +2,22 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
@@ -24,8 +29,17 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		opts = append(opts, client.Continue(msg.Pagination.PageToken))
 	}
 
-	if err := clustersClient.ClusteredList(ctx, clist, opts...); err != nil {
-		return nil, err
+	respErrors := []*pb.ListError{}
+
+	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
+		var errs clustersmngr.ClusteredListError
+		if !errors.As(err, &errs) {
+			return nil, err
+		}
+
+		for _, e := range errs.Errors {
+			respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Namespace: e.Namespace, Message: e.Err.Error()})
+		}
 	}
 
 	var results []*pb.Kustomization
@@ -51,12 +65,17 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 	return &pb.ListKustomizationsResponse{
 		Kustomizations: results,
 		NextPageToken:  clist.GetContinue(),
+		Errors:         respErrors,
 	}, nil
 }
 
 func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomizationRequest) (*pb.GetKustomizationResponse, error) {
-	clustersClient := clustersmngr.ClientFromCtx(ctx)
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
 
+	apiVersion := kustomizev1.GroupVersion.String()
 	k := &kustomizev1.Kustomization{}
 	key := client.ObjectKey{
 		Name:      msg.Name,
@@ -71,6 +90,8 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
 	}
+
+	res.ApiVersion = apiVersion
 
 	return &pb.GetKustomizationResponse{Kustomization: res}, nil
 }

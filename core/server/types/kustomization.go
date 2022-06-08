@@ -11,15 +11,15 @@ import (
 )
 
 func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string) (*pb.Kustomization, error) {
-	var kind pb.SourceRef_SourceKind
+	var kind pb.FluxObjectKind
 
 	switch kustomization.Spec.SourceRef.Kind {
 	case sourcev1.GitRepositoryKind:
-		kind = pb.SourceRef_GitRepository
+		kind = pb.FluxObjectKind_KindGitRepository
 	case sourcev1.HelmRepositoryKind:
-		kind = pb.SourceRef_HelmRepository
+		kind = pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
-		kind = pb.SourceRef_Bucket
+		kind = pb.FluxObjectKind_KindBucket
 	}
 
 	inv, err := getKustomizeInventory(kustomization)
@@ -27,23 +27,32 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		return nil, fmt.Errorf("coverting kustomization to proto: %w", err)
 	}
 
+	var sourceNamespace string
+	if kustomization.Spec.SourceRef.Namespace != "" {
+		sourceNamespace = kustomization.Spec.SourceRef.Namespace
+	} else {
+		sourceNamespace = kustomization.Namespace
+	}
+
+	version, _ := kustomization.GroupVersionKind().ToAPIVersionAndKind()
+
 	return &pb.Kustomization{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
 		Path:      kustomization.Spec.Path,
-		SourceRef: &pb.SourceRef{
+		SourceRef: &pb.ObjectRef{
 			Kind:      kind,
 			Name:      kustomization.Spec.SourceRef.Name,
-			Namespace: kustomization.Spec.SourceRef.Namespace,
+			Namespace: sourceNamespace,
 		},
-		Interval:                durationToInterval(kustomization.Spec.Interval),
-		Conditions:              mapConditions(kustomization.Status.Conditions),
-		LastAppliedRevision:     kustomization.Status.LastAppliedRevision,
-		LastAttemptedRevision:   kustomization.Status.LastAttemptedRevision,
-		LastHandledReconciledAt: kustomization.Status.LastHandledReconcileAt,
-		Inventory:               inv,
-		Suspended:               kustomization.Spec.Suspend,
-		ClusterName:             clusterName,
+		Interval:              durationToInterval(kustomization.Spec.Interval),
+		Conditions:            mapConditions(kustomization.Status.Conditions),
+		LastAppliedRevision:   kustomization.Status.LastAppliedRevision,
+		LastAttemptedRevision: kustomization.Status.LastAttemptedRevision,
+		Inventory:             inv,
+		Suspended:             kustomization.Spec.Suspend,
+		ClusterName:           clusterName,
+		ApiVersion:            version,
 	}, nil
 }
 

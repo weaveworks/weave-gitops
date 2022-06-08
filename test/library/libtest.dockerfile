@@ -1,4 +1,4 @@
-FROM golang:1.17
+FROM golang:1.18
 RUN apt-get update
 RUN apt-get -y install curl gnupg
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash -

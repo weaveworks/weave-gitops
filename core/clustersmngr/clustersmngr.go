@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -23,10 +23,6 @@ const (
 	ClientQPS = 1000
 	// ClientBurst is the burst to use while creating the k8s clients
 	ClientBurst = 2000
-)
-
-var (
-	scheme = kube.CreateScheme()
 )
 
 // Cluster defines a leaf cluster
@@ -64,12 +60,13 @@ type ClusterFetcher interface {
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
 	Add(cfg ClusterClientConfig, cluster Cluster) error
-	Clients() map[string]ClusterClient
-	Client(cluster string) (ClusterClient, error)
+	Clients() map[string]client.Client
+	Client(cluster string) (client.Client, error)
 }
 
 type clientsPool struct {
-	clients map[string]ClusterClient
+	clients map[string]client.Client
+	scheme  *apiruntime.Scheme
 }
 
 type ClusterClientConfig func(Cluster) *rest.Config
@@ -91,9 +88,10 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 }
 
 // NewClustersClientsPool initializes a new ClientsPool
-func NewClustersClientsPool() ClientsPool {
+func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 	return &clientsPool{
-		clients: map[string]ClusterClient{},
+		clients: map[string]client.Client{},
+		scheme:  scheme,
 	}
 }
 
@@ -102,41 +100,27 @@ func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 	config := cfg(cluster)
 
 	leafClient, err := client.New(config, client.Options{
-		Scheme: scheme,
+		Scheme: cp.scheme,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}
 
-	cp.clients[cluster.Name] = cfgWrapper{leafClient, config}
+	cp.clients[cluster.Name] = leafClient
 
 	return nil
 }
 
 // Clients returns the clusters clients
-func (cp *clientsPool) Clients() map[string]ClusterClient {
+func (cp *clientsPool) Clients() map[string]client.Client {
 	return cp.clients
 }
 
 // Client returns the client for the given cluster
-func (cp *clientsPool) Client(name string) (ClusterClient, error) {
+func (cp *clientsPool) Client(name string) (client.Client, error) {
 	if c, found := cp.clients[name]; found && c != nil {
 		return c, nil
 	}
 
 	return nil, ClusterNotFoundError{Cluster: name}
-}
-
-type ClusterClient interface {
-	client.Client
-	RestConfig() *rest.Config
-}
-
-type cfgWrapper struct {
-	client.Client
-	cfg *rest.Config
-}
-
-func (cw cfgWrapper) RestConfig() *rest.Config {
-	return cw.cfg
 }

@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/templates"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func CredentialCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func CredentialCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "credential",
 		Aliases: []string{"credentials"},
@@ -23,7 +23,7 @@ gitops get credentials
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getCredentialCmdPreRunE(endpoint, client),
-		RunE:          getCredentialCmdRunE(endpoint, client),
+		RunE:          getCredentialCmdRunE(endpoint, username, password, client),
 	}
 
 	return cmd
@@ -39,16 +39,17 @@ func getCredentialCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra
 	}
 }
 
-func getCredentialCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getCredentialCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
 
 		w := printers.GetNewTabWriter(os.Stdout)
+
 		defer w.Flush()
 
-		return capi.GetCredentials(r, w)
+		return templates.GetCredentials(r, w)
 	}
 }

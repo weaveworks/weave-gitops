@@ -8,7 +8,7 @@ import {
   ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
-import { SourceRefSourceKind } from "../lib/api/core/types.pb";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { NoNamespace, RequestError, Source } from "../lib/types";
 
 export function useListSources(
@@ -37,19 +37,19 @@ export function useListSources(
         return [
           ..._.map(repos, (r) => ({
             ...r,
-            type: SourceRefSourceKind.GitRepository,
+            kind: FluxObjectKind.KindGitRepository,
           })),
           ..._.map(hrs, (c) => ({
             ...c,
-            type: SourceRefSourceKind.HelmRepository,
+            kind: FluxObjectKind.KindHelmRepository,
           })),
           ..._.map(buckets, (b) => ({
             ...b,
-            type: SourceRefSourceKind.Bucket,
+            kind: FluxObjectKind.KindBucket,
           })),
           ..._.map(charts, (ch) => ({
             ...ch,
-            type: SourceRefSourceKind.HelmChart,
+            kind: FluxObjectKind.KindHelmChart,
           })),
         ];
       });

@@ -3,27 +3,43 @@ import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
 import {
-  AutomationKind,
+  FluxObjectKind,
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { statusSortHelper } from "../lib/utils";
+import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
+
 export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
   namespace?: string;
-  automationKind: AutomationKind;
+  automationKind: FluxObjectKind;
   kinds: GroupVersionKind[];
   clusterName: string;
 }
+
+const kindsFrom = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+];
+
+const kindsTo = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+  FluxObjectKind.KindGitRepository,
+  FluxObjectKind.KindHelmRepository,
+  FluxObjectKind.KindBucket,
+];
 
 function ReconciledObjectsTable({
   className,
@@ -50,6 +66,8 @@ function ReconciledObjectsTable({
     ...filterConfigForStatus(objs),
   };
 
+  const shouldDisplayLinks = kindsFrom.includes(automationKind);
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FilterableTable
@@ -57,7 +75,23 @@ function ReconciledObjectsTable({
         className={className}
         fields={[
           {
-            value: "name",
+            value: (u: UnstructuredObject) => {
+              const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
+
+              return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
+                <Link
+                  to={formatURL(objectTypeToRoute(kind), {
+                    name: u.name,
+                    namespace: u.namespace,
+                    clusterName: u.clusterName,
+                  })}
+                >
+                  {u.name}
+                </Link>
+              ) : (
+                u.name
+              );
+            },
             label: "Name",
             maxWidth: 600,
           },
@@ -93,6 +127,12 @@ function ReconciledObjectsTable({
             sortValue: ({ conditions }) => computeMessage(conditions),
             maxWidth: 600,
           },
+          {
+            label: "Images",
+            value: (u: UnstructuredObject) => makeImageString(u.images),
+            sortType: SortType.string,
+            sortValue: (u: UnstructuredObject) => makeImageString(u.images),
+          },
         ]}
         rows={objs}
       />
@@ -102,4 +142,13 @@ function ReconciledObjectsTable({
 
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
-})``;
+})`
+  td:nth-child(5),
+  td:nth-child(6) {
+    white-space: pre-wrap;
+  }
+  td:nth-child(5) {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;
