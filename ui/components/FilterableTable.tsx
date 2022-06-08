@@ -27,54 +27,15 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
-type FilterHelper = string | ((k: any) => any);
-
-export function filterConfig(rows, keyOrCallback: FilterHelper): FilterConfig {
-  if (typeof keyOrCallback === "string") {
-    const typeFilterConfig = _.reduce(
-      rows,
-      (r, v) => {
-        const t = v[keyOrCallback];
-
-        if (!_.includes(r, t)) {
-          r.push(t);
-        }
-
-        return r;
-      },
-      []
-    );
-
-    return { [keyOrCallback]: typeFilterConfig };
-  } else {
-    return { ["key"]: [] };
-  }
-}
-
-export function filterConfigForStatus(rows) {
-  const statusFilterConfig = _.reduce(
-    rows,
-    (r, v) => {
-      let t;
-      if (v.suspended) t = "Suspended";
-      else if (computeReady(v.conditions)) t = "Ready";
-      else t = "Not Ready";
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
-      return r;
-    },
-    []
-  );
-
-  return { status: statusFilterConfig };
-}
-
-export function filterConfigForType(rows) {
+export function filterConfig(
+  rows,
+  key: string,
+  callback?: (k: any) => any
+): FilterConfig {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
-      const t = _.get(v, "groupVersionKind.kind");
+      const t = callback ? callback(v) : v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -85,7 +46,7 @@ export function filterConfigForType(rows) {
     []
   );
 
-  return { type: typeFilterConfig };
+  return { [key]: typeFilterConfig };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {

@@ -5,7 +5,6 @@ import React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
-  filterConfigForStatus,
   filterConfig,
   filterRows,
   filterSelectionsToQueryString,
@@ -250,7 +249,7 @@ describe("FilterableTable", () => {
   });
   it("should filter by status", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status"),
     };
     render(
       withTheme(
@@ -294,7 +293,7 @@ describe("FilterableTable", () => {
   });
   it("should select/deselect all when category checkbox is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status"),
     };
     render(
       withTheme(
@@ -324,7 +323,7 @@ describe("FilterableTable", () => {
   });
   it("should change select all box status when other checkboxes effect state", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status"),
     };
     render(
       withTheme(

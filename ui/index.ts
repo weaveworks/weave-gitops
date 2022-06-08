@@ -2,10 +2,7 @@ import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
 import { SortType } from "./components/DataTable";
-import FilterableTable, {
-  filterConfigForStatus,
-  filterConfig,
-} from "./components/FilterableTable";
+import FilterableTable, { filterConfig } from "./components/FilterableTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
@@ -72,7 +69,6 @@ export {
   Flex,
   FilterableTable,
   filterConfig,
-  filterConfigForStatus,
   FluxRuntime,
   Footer,
   getCallbackState,
