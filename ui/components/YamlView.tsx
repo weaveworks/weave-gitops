@@ -47,9 +47,11 @@ function YamlView({ yaml, object, className }: Props) {
             setCopied(true);
           }}
         >
-          <Icon type={IconType.FileCopyIcon} size="small" />
+          <Icon
+            type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
+            size="small"
+          />
         </CopyButton>
-        {copied && " Copied!"}
       </YamlHeader>
       <pre>
         {yaml.split("\n").map((yaml, index) => (
