@@ -11,6 +11,7 @@ import FilterableTable, {
   parseFilterStateFromURL,
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
+import { computeReady } from "../KubeStatusIndicator";
 
 const addTextSearchInput = (term: string) => {
   const input = document.getElementById("table-search");
@@ -249,7 +250,11 @@ describe("FilterableTable", () => {
   });
   it("should filter by status", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status"),
+      ...filterConfig(rows, "status", (v) => {
+        if (v.suspended) return "Suspended";
+        else if (computeReady(v.conditions)) return "Ready";
+        else return "Not Ready";
+      }),
     };
     render(
       withTheme(
@@ -293,7 +298,11 @@ describe("FilterableTable", () => {
   });
   it("should select/deselect all when category checkbox is clicked", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status"),
+      ...filterConfig(rows, "status", (v) => {
+        if (v.suspended) return "Suspended";
+        else if (computeReady(v.conditions)) return "Ready";
+        else return "Not Ready";
+      }),
     };
     render(
       withTheme(
@@ -323,7 +332,11 @@ describe("FilterableTable", () => {
   });
   it("should change select all box status when other checkboxes effect state", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status"),
+      ...filterConfig(rows, "status", (v) => {
+        if (v.suspended) return "Suspended";
+        else if (computeReady(v.conditions)) return "Ready";
+        else return "Not Ready";
+      }),
     };
     render(
       withTheme(
