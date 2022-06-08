@@ -27,11 +27,11 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
-export type FilterConfigCallback = (any) => any;
+export type FilterConfigCallback = (v: any) => any;
 
 export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
-  else if (computeReady(v.conditions)) return "Ready";
+  else if (computeReady(v["conditions"])) return "Ready";
   else return "Not Ready";
 };
 
@@ -41,7 +41,7 @@ export const filterByTypeCallback: FilterConfigCallback = (v) =>
 export function filterConfig(
   rows,
   key: string,
-  computeValue?: (initialValue: any) => any
+  computeValue?: FilterConfigCallback
 ): FilterConfig {
   const config = _.reduce(
     rows,
