@@ -4,7 +4,7 @@ import Button from "./components/Button";
 import { SortType } from "./components/DataTable";
 import FilterableTable, {
   filterConfigForStatus,
-  filterConfigForString,
+  filterConfig,
 } from "./components/FilterableTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
@@ -71,7 +71,7 @@ export {
   CoreClientContextProvider,
   Flex,
   FilterableTable,
-  filterConfigForString,
+  filterConfig,
   filterConfigForStatus,
   FluxRuntime,
   Footer,

@@ -6,7 +6,7 @@ import { withContext, withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
   filterConfigForStatus,
-  filterConfigForString,
+  filterConfig,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
@@ -209,7 +209,7 @@ describe("FilterableTable", () => {
   });
   it("should filter on click", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
     render(
       withTheme(
@@ -353,7 +353,7 @@ describe("FilterableTable", () => {
   });
   it("should remove a param when a single chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
     render(
       withTheme(
@@ -392,7 +392,7 @@ describe("FilterableTable", () => {
   });
   it("should clear filtering when the `clear all` chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
     render(
       withTheme(
@@ -437,7 +437,7 @@ describe("FilterableTable", () => {
 
   it("should add a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
     render(
       withTheme(
@@ -463,7 +463,7 @@ describe("FilterableTable", () => {
   });
   it("should remove a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
     render(
       withTheme(
@@ -492,7 +492,7 @@ describe("FilterableTable", () => {
   });
   it("filters by a text field", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     render(
@@ -570,7 +570,7 @@ describe("FilterableTable", () => {
   });
   it("adds an initial filter selection state", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     render(
@@ -594,7 +594,7 @@ describe("FilterableTable", () => {
   });
   it("adds filter selection from a URL", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     const search = `?filters=type%3Afoo_`;
@@ -620,7 +620,7 @@ describe("FilterableTable", () => {
   });
   it("returns a query string on filter change", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     const recorder = jest.fn();

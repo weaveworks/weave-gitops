@@ -14,7 +14,7 @@ import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfigForStatus,
   filterConfigForType,
-  filterConfigForString,
+  filterConfig,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -64,7 +64,7 @@ function ReconciledObjectsTable({
 
   const initialFilterState = {
     ...filterConfigForType(objs),
-    ...filterConfigForString(objs, "namespace"),
+    ...filterConfig(objs, "namespace"),
     ...filterConfigForStatus(objs),
   };
 

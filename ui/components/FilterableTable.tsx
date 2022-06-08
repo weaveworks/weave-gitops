@@ -27,7 +27,7 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
-export function filterConfigForString(rows, key: string) {
+export function filterConfig(rows, key: string) {
   const typeFilterConfig = _.reduce(
     rows,
     (r, v) => {
