@@ -1,18 +1,64 @@
 import * as React from "react";
 import styled from "styled-components";
-
+import { ObjectRef } from "../lib/api/core/types.pb";
+import { fluxObjectKindToKind } from "../lib/objects";
+import { IconButton } from "./Button";
+import Icon, { IconType } from "./Icon";
 type Props = {
   className?: string;
   yaml: string;
+  object?: ObjectRef;
 };
+const YamlHeader = styled.div`
+  background: ${(props) => props.theme.colors.neutral10};
+  padding: ${(props) => props.theme.spacing.small};
+  width: 100%;
+  border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};
+  font-family: monospace;
+  color: ${(props) => props.theme.colors.primary10};
+  text-overflow: ellipsis;
+`;
 
-function YamlView({ yaml, className }: Props) {
+const CopyButton = styled(IconButton)`
+  &.MuiButton-outlinedPrimary {
+    border: 1px solid ${(props) => props.theme.colors.neutral10};
+    padding: ${(props) => props.theme.spacing.xs};
+  }
+  &.MuiButton-root {
+    height: initial;
+    width: initial;
+    min-width: 0px;
+  }
+`;
+
+function YamlView({ yaml, object, className }: Props) {
+  const [copied, setCopied] = React.useState(false);
+  const headerText = `kubectl get ${fluxObjectKindToKind(
+    object.kind
+  ).toLowerCase()} ${object.name} -n ${object.namespace} -o yaml `;
+
   return (
-    <pre className={className}>
-      {yaml.split("\n").map((yaml, index) => (
-        <code key={index}>{yaml}</code>
-      ))}
-    </pre>
+    <div className={className}>
+      <YamlHeader>
+        {headerText}
+        <CopyButton
+          onClick={() => {
+            navigator.clipboard.writeText(headerText);
+            setCopied(true);
+          }}
+        >
+          <Icon
+            type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
+            size="small"
+          />
+        </CopyButton>
+      </YamlHeader>
+      <pre>
+        {yaml.split("\n").map((yaml, index) => (
+          <code key={index}>{yaml}</code>
+        ))}
+      </pre>
+    </div>
   );
 }
 
@@ -23,9 +69,9 @@ export default styled(YamlView).attrs({
   font-size: ${(props) => props.theme.fontSizes.small};
   border: 1px solid ${(props) => props.theme.colors.neutral20};
   border-radius: 8px;
-  padding: ${(props) => props.theme.spacing.small};
   overflow: scroll;
   pre {
+    padding: ${(props) => props.theme.spacing.small};
     white-space: pre-wrap;
   }
 

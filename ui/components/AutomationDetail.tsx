@@ -13,14 +13,14 @@ import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
+import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import Metadata from "./Metadata";
-import YamlView from "./YamlView";
 import SyncButton from "./SyncButton";
+import YamlView from "./YamlView";
 
 type Props = {
   automation?: Automation;
@@ -140,9 +140,18 @@ function AutomationDetail({ automation, className, info }: Props) {
         </RouterTab>
         {object ? (
           <RouterTab name="yaml" path={`${path}/yaml`}>
-            <YamlView yaml={object.yaml()} />
+            <YamlView
+              yaml={object.yaml()}
+              object={{
+                kind: automation?.kind,
+                name: automation?.name,
+                namespace: automation?.namespace,
+              }}
+            />
           </RouterTab>
-        ) : (<></>)}
+        ) : (
+          <></>
+        )}
       </SubRouterTabs>
     </Flex>
   );
