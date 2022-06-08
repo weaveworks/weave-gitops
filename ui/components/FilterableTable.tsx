@@ -29,7 +29,7 @@ export type FilterableTableProps = {
 
 type FilterHelper = string | ((k: any) => any);
 
-export function filterConfig(rows, keyOrCallback: FilterHelper) {
+export function filterConfig(rows, keyOrCallback: FilterHelper): FilterConfig {
   if (typeof keyOrCallback === "string") {
     const typeFilterConfig = _.reduce(
       rows,
@@ -47,7 +47,7 @@ export function filterConfig(rows, keyOrCallback: FilterHelper) {
 
     return { [keyOrCallback]: typeFilterConfig };
   } else {
-    return [];
+    return { ["key"]: [] };
   }
 }
 

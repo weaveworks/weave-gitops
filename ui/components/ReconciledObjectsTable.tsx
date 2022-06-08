@@ -70,6 +70,8 @@ function ReconciledObjectsTable({
 
   const shouldDisplayLinks = kindsFrom.includes(automationKind);
 
+  console.log(initialFilterState);
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FilterableTable
