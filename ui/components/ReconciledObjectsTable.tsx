@@ -16,10 +16,7 @@ import FilterableTable, {
   typeCallback,
   statusCallback,
 } from "./FilterableTable";
-import KubeStatusIndicator, {
-  computeMessage,
-  computeReady,
-} from "./KubeStatusIndicator";
+import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
 

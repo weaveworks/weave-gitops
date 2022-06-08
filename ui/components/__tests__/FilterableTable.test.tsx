@@ -12,7 +12,6 @@ import FilterableTable, {
   statusCallback,
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
-import { computeReady } from "../KubeStatusIndicator";
 
 const addTextSearchInput = (term: string) => {
   const input = document.getElementById("table-search");
