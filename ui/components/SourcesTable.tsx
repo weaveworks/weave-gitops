@@ -15,7 +15,7 @@ import {
   statusSortHelper,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
-import { filterConfig } from "./FilterableTable";
+import { filterConfig, statusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -36,7 +36,7 @@ function SourcesTable({ className, sources }: Props) {
   const initialFilterState = {
     ...filterConfig(sources, "type"),
     ...filterConfig(sources, "namespace"),
-    ...filterConfig(sources, "status"),
+    ...filterConfig(sources, "status", statusCallback),
     ...filterConfig(sources, "clusterName"),
   };
 
