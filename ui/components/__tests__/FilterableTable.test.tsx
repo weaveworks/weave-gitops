@@ -9,8 +9,8 @@ import FilterableTable, {
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
-  typeCallback,
-  statusCallback,
+  filterByTypeCallback,
+  filterByStatusCallback,
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
 
@@ -251,7 +251,7 @@ describe("FilterableTable", () => {
   });
   it("should filter by status", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status", statusCallback),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
 
     render(
@@ -343,7 +343,7 @@ describe("FilterableTable", () => {
     ];
 
     const initialFilterState = {
-      ...filterConfig(rows, "type", typeCallback),
+      ...filterConfig(rows, "type", filterByTypeCallback),
     };
 
     render(
@@ -398,7 +398,7 @@ describe("FilterableTable", () => {
   });
   it("should select/deselect all when category checkbox is clicked", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status", statusCallback),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
 
     render(
@@ -429,7 +429,7 @@ describe("FilterableTable", () => {
   });
   it("should change select all box status when other checkboxes effect state", () => {
     const initialFilterState = {
-      ...filterConfig(rows, "status", statusCallback),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
 
     render(

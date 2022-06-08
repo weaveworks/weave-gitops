@@ -13,8 +13,8 @@ import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import FilterableTable, {
   filterConfig,
-  typeCallback,
-  statusCallback,
+  filterByTypeCallback,
+  filterByStatusCallback,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -63,9 +63,9 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfig(objs, "type", typeCallback),
+    ...filterConfig(objs, "type", filterByTypeCallback),
     ...filterConfig(objs, "namespace"),
-    ...filterConfig(objs, "status", statusCallback),
+    ...filterConfig(objs, "status", filterByStatusCallback),
   };
 
   const shouldDisplayLinks = kindsFrom.includes(automationKind);

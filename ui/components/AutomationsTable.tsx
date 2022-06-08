@@ -7,7 +7,7 @@ import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
-import { filterConfig, statusCallback } from "./FilterableTable";
+import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
@@ -29,7 +29,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
     ...filterConfig(automations, "clusterName"),
-    ...filterConfig(automations, "status", statusCallback),
+    ...filterConfig(automations, "status", filterByStatusCallback),
   };
 
   let fields: Field[] = [

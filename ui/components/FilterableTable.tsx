@@ -29,13 +29,13 @@ export type FilterableTableProps = {
 
 export type FilterConfigCallback = (any) => any;
 
-export const statusCallback: FilterConfigCallback = (v) => {
+export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
   else if (computeReady(v.conditions)) return "Ready";
   else return "Not Ready";
 };
 
-export const typeCallback: FilterConfigCallback = (v) =>
+export const filterByTypeCallback: FilterConfigCallback = (v) =>
   _.get(v, "groupVersionKind.kind");
 
 export function filterConfig(
