@@ -41,12 +41,12 @@ export const typeCallback: FilterConfigCallback = (v) =>
 export function filterConfig(
   rows,
   key: string,
-  callback?: (k: any) => any
+  computeValue?: (initialValue: any) => any
 ): FilterConfig {
-  const typeFilterConfig = _.reduce(
+  const config = _.reduce(
     rows,
     (r, v) => {
-      const t = callback ? callback(v) : v[key];
+      const t = computeValue ? computeValue(v) : v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -57,7 +57,7 @@ export function filterConfig(
     []
   );
 
-  return { [key]: typeFilterConfig };
+  return { [key]: config };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
