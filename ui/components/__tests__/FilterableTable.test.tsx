@@ -6,11 +6,11 @@ import { withContext, withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
   filterConfig,
+  filterByTypeCallback,
+  filterByStatusCallback,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
-  filterByTypeCallback,
-  filterByStatusCallback,
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
 
