@@ -27,6 +27,17 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
+export type FilterConfigCallback = (any) => any;
+
+export const statusCallback: FilterConfigCallback = (v) => {
+  if (v.suspended) return "Suspended";
+  else if (computeReady(v.conditions)) return "Ready";
+  else return "Not Ready";
+};
+
+export const typeCallback: FilterConfigCallback = (v) =>
+  _.get(v, "groupVersionKind.kind");
+
 export function filterConfig(
   rows,
   key: string,

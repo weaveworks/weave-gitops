@@ -11,7 +11,11 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, { filterConfig } from "./FilterableTable";
+import FilterableTable, {
+  filterConfig,
+  typeCallback,
+  statusCallback,
+} from "./FilterableTable";
 import KubeStatusIndicator, {
   computeMessage,
   computeReady,
@@ -62,13 +66,9 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfig(objs, "type", (v) => _.get(v, "groupVersionKind.kind")),
+    ...filterConfig(objs, "type", typeCallback),
     ...filterConfig(objs, "namespace"),
-    ...filterConfig(objs, "status", (v) => {
-      if (v.suspended) return "Suspended";
-      else if (computeReady(v.conditions)) return "Ready";
-      else return "Not Ready";
-    }),
+    ...filterConfig(objs, "status", statusCallback),
   };
 
   const shouldDisplayLinks = kindsFrom.includes(automationKind);
