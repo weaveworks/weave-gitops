@@ -7,6 +7,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
 import LogoutIcon from "@material-ui/icons/ExitToApp";
+import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
@@ -49,6 +50,7 @@ export enum IconType {
   SuccessIcon,
   FailedIcon,
   SuspendedIcon,
+  FileCopyIcon,
 }
 
 type Props = {
@@ -129,6 +131,9 @@ function getIcon(i: IconType) {
 
     case IconType.ArrowDropDownIcon:
       return ArrowDropDownIcon;
+
+    case IconType.FileCopyIcon:
+      return FileCopyIcon;
 
     default:
       break;
