@@ -53,6 +53,12 @@ import { V2Routes } from "./lib/types";
 import { statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
+import InfoList from "./components/InfoList";
+import EventsTable from "./components/EventsTable";
+import { useGetObject } from "./hooks/objects";
+import Metadata from "./components/Metadata";
+import { fluxObjectKindToKind } from "./lib/objects";
 
 export {
   AppContextProvider,
@@ -69,11 +75,13 @@ export {
   coreClient,
   UnAuthorizedInterceptor,
   CoreClientContextProvider,
+  EventsTable,
   Flex,
   FilterableTable,
   filterConfigForString,
   filterConfigForStatus,
   FluxRuntime,
+  fluxObjectKindToKind,
   Footer,
   getCallbackState,
   getProviderToken,
@@ -85,15 +93,19 @@ export {
   Icon,
   IconType,
   Interval,
+  InfoList,
   KubeStatusIndicator,
   KustomizationDetail,
   LoadingPage,
+  Metadata,
   muiTheme,
   OAuthCallback,
   Page,
   RepoInputWithAuth,
+  RouterTab,
   SignIn,
   statusSortHelper,
+  SubRouterTabs,
   SortType,
   FluxObjectKind,
   SourcesTable,
@@ -102,6 +114,7 @@ export {
   useIsAuthenticated,
   useListSources,
   useFeatureFlags,
+  useGetObject,
   useGetKustomization,
   useGetHelmRelease,
   useListAutomations,
