@@ -72,13 +72,11 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
       let value;
       // status
       if (category === "status") {
-        if (row["suspended"]) value = "Suspended";
-        else if (computeReady(row["conditions"])) value = "Ready";
-        else value = "Not Ready";
+        value = filterByStatusCallback(row);
       }
       // type
       else if (category === "type" && typeof row[category] !== "string") {
-        value = _.get(row, "groupVersionKind.kind");
+        value = filterByTypeCallback(row);
       }
       // strings
       else value = row[category];
