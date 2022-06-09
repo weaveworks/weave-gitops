@@ -31,7 +31,6 @@ type Props = {
 function AutomationDetail({ automation, className, info }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
-
   const { data: object } = useGetObject(
     automation.name,
     automation.namespace,
@@ -100,6 +99,7 @@ function AutomationDetail({ automation, className, info }: Props) {
           {automation?.suspended ? "Resume" : "Suspend"}
         </Button>
       </Flex>
+
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <>
