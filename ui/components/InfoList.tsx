@@ -25,11 +25,15 @@ const InfoList = styled(
     );
   }
 )`
+  border-spacing: 0;
   tbody tr td:first-child {
     min-width: 200px;
   }
   td {
+    padding: ${(props) => props.theme.spacing.xxs} 0;
     word-break: break-all;
+    vertical-align: top;
+    white-space: pre-wrap;
   }
   tr {
     height: 16px;
