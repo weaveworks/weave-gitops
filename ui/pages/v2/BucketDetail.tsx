@@ -13,7 +13,11 @@ type Props = {
 function BucketDetail({ className, name, namespace, clusterName }: Props) {
   return (
     <Page error={null} className={className}>
-      <BucketDetailComponent name={name} namespace={namespace} clusterName={clusterName} />
+      <BucketDetailComponent
+        name={name}
+        namespace={namespace}
+        clusterName={clusterName}
+      />
     </Page>
   );
 }

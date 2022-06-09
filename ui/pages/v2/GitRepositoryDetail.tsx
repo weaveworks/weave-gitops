@@ -10,10 +10,19 @@ type Props = {
   clusterName: string;
 };
 
-function GitRepositoryDetail({ className, name, namespace, clusterName }: Props) {
+function GitRepositoryDetail({
+  className,
+  name,
+  namespace,
+  clusterName,
+}: Props) {
   return (
     <Page error={null} className={className}>
-      <GitRepositoryDetailComponent name={name} namespace={namespace} clusterName={clusterName} />
+      <GitRepositoryDetailComponent
+        name={name}
+        namespace={namespace}
+        clusterName={clusterName}
+      />
     </Page>
   );
 }
