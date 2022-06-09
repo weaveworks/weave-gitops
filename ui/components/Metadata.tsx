@@ -1,8 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
-import Text from "./Text";
+import { isHTTP } from "../lib/utils";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
+import Link from "./Link";
+import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -14,9 +16,20 @@ function Metadata({ metadata, className }: Props) {
     return <></>;
   }
 
+  metadata.forEach((pair) => {
+    if (isHTTP(pair[1]))
+      pair[1] = (
+        <Link newTab href={pair[1]}>
+          {pair[1]}
+        </Link>
+      );
+  });
+
   return (
     <Flex wide column className={className}>
-      <Text size="large">Metadata</Text>
+      <Text size="large" color="neutral30">
+        Metadata
+      </Text>
       <InfoList items={metadata} />
     </Flex>
   );

@@ -32,7 +32,7 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
-  sources = sources.map((s) => {
+  sources = sources?.map((s) => {
     return { ...s, type: removeKind(s.kind) };
   });
 
