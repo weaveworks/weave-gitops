@@ -7,11 +7,11 @@ import InfoList from "./InfoList";
 type Props = {
   className?: string;
   metadata: any;
-}
+};
 
 function Metadata({ metadata, className }: Props) {
   if (!metadata?.length) {
-    return (<></>);
+    return <></>;
   }
 
   return (

@@ -2,13 +2,13 @@ import _ from "lodash";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { useListSources } from "../hooks/sources";
 import { useGetObject } from "../hooks/objects";
+import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { fluxObjectKindToKind } from "../lib/objects";
-import { AppContext } from "../contexts/AppContext";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
@@ -17,12 +17,12 @@ import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
 import LoadingPage from "./LoadingPage";
+import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import Metadata from "./Metadata";
-import YamlView from "./YamlView";
 import SyncButton from "./SyncButton";
+import YamlView from "./YamlView";
 
 type Props = {
   className?: string;
@@ -34,12 +34,24 @@ type Props = {
   info: <T>(s: T) => InfoField[];
 };
 
-function SourceDetail({ className, name, namespace, clusterName, info, type }: Props) {
+function SourceDetail({
+  className,
+  name,
+  namespace,
+  clusterName,
+  info,
+  type,
+}: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { data: sources, isLoading, error } = useListSources();
   const { data: automations } = useListAutomations();
   const { path } = useRouteMatch();
-  const { data: object } = useGetObject(name, namespace, fluxObjectKindToKind(type), clusterName);
+  const { data: object } = useGetObject(
+    name,
+    namespace,
+    fluxObjectKindToKind(type),
+    clusterName
+  );
   const [isSuspended, setIsSuspended] = React.useState(false);
 
   const suspend = useToggleSuspend(
@@ -59,8 +71,6 @@ function SourceDetail({ className, name, namespace, clusterName, info, type }: P
     clusterName,
     kind: type,
   });
-
-
 
   if (isLoading) {
     return <LoadingPage />;
@@ -126,8 +136,7 @@ function SourceDetail({ className, name, namespace, clusterName, info, type }: P
             title="Error"
             message={error.message || suspend.error.message}
           />
-        ))
-      }
+        ))}
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
       <Flex wide start>
         <SyncButton
@@ -165,9 +174,18 @@ function SourceDetail({ className, name, namespace, clusterName, info, type }: P
         </RouterTab>
         {object ? (
           <RouterTab name="yaml" path={`${path}/yaml`}>
-            <YamlView yaml={object.yaml()} />
+            <YamlView
+              yaml={object.yaml()}
+              object={{
+                kind: source?.kind,
+                name: source?.name,
+                namespace: source?.namespace,
+              }}
+            />
           </RouterTab>
-        ) : (<></>)}
+        ) : (
+          <></>
+        )}
       </SubRouterTabs>
     </Flex>
   );

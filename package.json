@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.8.1",
+  "version": "0.9.0-rc.1",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -23,6 +23,8 @@
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui --max-warnings 0 && npm run typecheck",
+    "prettify:check": "prettier --check ui",
+    "prettify:format": "prettier --write ui",
     "test": "jest",
     "watch": "jest --runInBand --watch",
     "coverage": "jest --coverage",
@@ -66,7 +68,8 @@
     "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
-    "styled-components": "^5.3.0"
+    "styled-components": "^5.3.0",
+    "yaml": "^2.1.1"
   },
   "jest": {
     "preset": "ts-jest",
@@ -102,6 +105,7 @@
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
     "parcel": "^2.3.2",
+    "prettier": "^2.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.0.7",

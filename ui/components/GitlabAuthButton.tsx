@@ -11,9 +11,8 @@ type Props = ButtonProps;
 
 function GitlabAuthButton({ ...props }: Props) {
   const { callbackState } = React.useContext(CallbackStateContext);
-  const { applicationsClient, navigate, storeCallbackState } = React.useContext(
-    AppContext
-  );
+  const { applicationsClient, navigate, storeCallbackState } =
+    React.useContext(AppContext);
 
   const handleClick = (e) => {
     e.preventDefault();
