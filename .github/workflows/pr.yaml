@@ -129,6 +129,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         if: github.event_name == 'push'
 
+
   ci-generate-tag:
     name: CI Generate Image Tag
     runs-on: ubuntu-latest
@@ -179,8 +180,8 @@ jobs:
     # Make sure we only upload images if tests etc have passed
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
     permissions:
-      contents: "read"
-      id-token: "write"
+      contents: 'read'
+      id-token: 'write'
     if: github.event_name == 'push'
     strategy:
       matrix:
@@ -217,30 +218,30 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     if: github.event_name == 'push'
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.18.X
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Clean
-        run: make clean
-      - id: gitsha
-        run: |
-          gitsha=$(git rev-parse --short ${{ github.sha }})
-          echo "::set-output name=sha::$gitsha"
-      - name: build
-        run: |
-          make gitops
-      - name: publish to s3
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-      - run: |
-          aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
-          aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18.X
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Clean
+      run: make clean
+    - id: gitsha
+      run: |
+        gitsha=$(git rev-parse --short ${{ github.sha }})
+        echo "::set-output name=sha::$gitsha"
+    - name: build
+      run: |
+        make gitops
+    - name: publish to s3
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+    - run: |
+        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
@@ -272,12 +273,12 @@ jobs:
       - finish-ci-merge
     if: ${{ failure() }}
     steps:
-      - name: Send alert
-        if: github.event_name == 'push'
-        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
-        with:
-          slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
-          message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
-          channel: proj-core-reloaded
-          color: red
-          verbose: false
+    - name: Send alert
+      if: github.event_name == 'push'
+      uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+      with:
+        slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
+        message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
+        channel: proj-core-reloaded
+        color: red
+        verbose: false
