@@ -8,22 +8,23 @@ import { Kind, FluxObject } from "../lib/objects";
 
 function convertResponse(response: ResponseObject): FluxObject {
   const fluxObject = new FluxObject(response);
-  return fluxObject
+  return fluxObject;
 }
 
 export function useGetObject(
   name: string,
   namespace: string,
   kind: Kind,
-  clusterName: string,
+  clusterName: string
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<FluxObject, RequestError>(
     ["object", clusterName, kind, namespace, name],
-    () => api.GetObject({ name, namespace, kind, clusterName }).then(
-      (result: GetObjectResponse) => (convertResponse(result.object))
-    ),
+    () =>
+      api
+        .GetObject({ name, namespace, kind, clusterName })
+        .then((result: GetObjectResponse) => convertResponse(result.object)),
     { retry: false, refetchInterval: 5000 }
-  )
+  );
 }
