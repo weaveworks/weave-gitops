@@ -17,10 +17,11 @@ function Metadata({ metadata, className }: Props) {
   }
 
   metadata.forEach((pair) => {
-    if (isHTTP(pair[1]))
+    const data = pair[1];
+    if (isHTTP(data))
       pair[1] = (
-        <Link newTab href={pair[1]}>
-          {pair[1]}
+        <Link newTab href={data}>
+          {data}
         </Link>
       );
   });
