@@ -9,7 +9,7 @@ import FilterableTable, {
   filterConfigForString,
   filterRows,
   filterSelectionsToQueryString,
-  parseFilterStateFromURL,
+  parseFilterStateFromURL
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
 
@@ -649,7 +649,7 @@ describe("FilterableTable", () => {
 
     expect(args["type:foo"]).toEqual(true);
     const queryString = filterSelectionsToQueryString(args);
-    expect(queryString).toEqual("?filters=type%3Afoo_");
+    expect(queryString).toEqual("filters=type%3Afoo_");
     expect(parseFilterStateFromURL(queryString)).toEqual({
       "type:foo": true,
     });
