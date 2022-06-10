@@ -9,7 +9,7 @@ import FilterDialog, {
   FilterConfig,
   FilterSelections,
   filterSeparator,
-  selectionsToFilters
+  selectionsToFilters,
 } from "./FilterDialog";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
@@ -184,7 +184,7 @@ export function filterSelectionsToQueryString(sel: FilterSelections) {
   //if there are any filters, reassign/create filter query key
   if (url) query["filters"] = url;
   //if the update leaves no filters, remove the filter query key from the object
-  else if (query['filters']) query = _.omit(query, 'filters');
+  else if (query["filters"]) query = _.omit(query, "filters");
   //this turns a parsed search into a legit query string
   return qs.stringify(query);
 }

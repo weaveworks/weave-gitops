@@ -9,7 +9,7 @@ import FilterableTable, {
   filterConfigForString,
   filterRows,
   filterSelectionsToQueryString,
-  parseFilterStateFromURL
+  parseFilterStateFromURL,
 } from "../FilterableTable";
 import { FilterSelections } from "../FilterDialog";
 

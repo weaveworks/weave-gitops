@@ -4,7 +4,7 @@ import styled from "styled-components";
 import FilterableTable, {
   FilterableTableProps,
   filterSelectionsToQueryString,
-  parseFilterStateFromURL
+  parseFilterStateFromURL,
 } from "./FilterableTable";
 import { FilterSelections } from "./FilterDialog";
 

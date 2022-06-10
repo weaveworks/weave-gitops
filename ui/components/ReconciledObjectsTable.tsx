@@ -5,7 +5,7 @@ import { useGetReconciledObjects } from "../hooks/flux";
 import {
   FluxObjectKind,
   GroupVersionKind,
-  UnstructuredObject
+  UnstructuredObject,
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
@@ -13,7 +13,7 @@ import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import {
   filterConfigForStatus,
-  filterConfigForString
+  filterConfigForString,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
