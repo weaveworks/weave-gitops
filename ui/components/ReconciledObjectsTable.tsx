@@ -11,7 +11,7 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, {
+import {
   filterConfig,
   filterByTypeCallback,
   filterByStatusCallback,
@@ -19,6 +19,7 @@ import FilterableTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
+import URLAddressableTable from "./URLAddressableTable";
 
 export interface ReconciledVisualizationProps {
   className?: string;
@@ -72,7 +73,7 @@ function ReconciledObjectsTable({
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <FilterableTable
+      <URLAddressableTable
         filters={initialFilterState}
         className={className}
         fields={[
