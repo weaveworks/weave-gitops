@@ -150,7 +150,6 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
     },
     {}
   );
-
   return allFilters;
 }
 
@@ -170,7 +169,6 @@ export function parseFilterStateFromURL(search: string): FilterSelections {
     });
     return next;
   }
-
   return null;
 }
 
@@ -181,12 +179,14 @@ export function filterSelectionsToQueryString(sel: FilterSelections) {
       url += `${key}_`;
     }
   });
-  const query = location.search;
-  let prefix = "";
-  if (query && !query.includes("filters") && url) prefix = "&?filters=";
-  else if (url) prefix = "?filters=";
-
-  return prefix + encodeURIComponent(url);
+  //this is an object with all the different queries as keys
+  let query = qs.parse(location.search);
+  //if there are any filters, reassign/create filter query key
+  if (url) query["filters"] = url;
+  //if the update leaves no filters, remove the filter query key from the object
+  else if (query["filters"]) query = _.omit(query, "filters");
+  //this turns a parsed search into a legit query string
+  return qs.stringify(query);
 }
 
 type State = {
