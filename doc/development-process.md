@@ -164,6 +164,8 @@ Good luck!
 
 ## Tips & tricks
 
+Is your local build failing with an error along the lines of "no space left on device"? This (likely) isn't the storage on your machine - it's Docker! You can go to Preferences -> Resources in Docker Desktop and pump up that image size a bit, but the size grows every time tilt rebuilds the image, so eventually you're going to want to run `docker system prune -a` to clear things out.
+
 ### The server keeps restarting and it's annoying
 
 Tilt has a feature where it automatically restarts the pod whenever
