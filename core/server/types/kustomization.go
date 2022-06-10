@@ -71,10 +71,10 @@ func getKustomizeInventory(kustomization *kustomizev1.Kustomization) ([]*pb.Grou
 			return gvk, fmt.Errorf("invalid inventory item '%s', error: %w", entry.ID, err)
 		}
 
-		idstr := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
+		gvkId := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
 
-		if !found[idstr] {
-			found[idstr] = true
+		if !found[gvkId] {
+			found[gvkId] = true
 
 			gvk = append(gvk, &pb.GroupVersionKind{
 				Group:   objMeta.GroupKind.Group,
