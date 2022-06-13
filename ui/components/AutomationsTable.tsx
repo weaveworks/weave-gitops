@@ -7,10 +7,7 @@ import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
-import {
-  filterConfigForStatus,
-  filterConfigForString,
-} from "./FilterableTable";
+import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
@@ -28,11 +25,11 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
-  const filterConfig = {
-    ...filterConfigForString(automations, "type"),
-    ...filterConfigForString(automations, "namespace"),
-    ...filterConfigForString(automations, "clusterName"),
-    ...filterConfigForStatus(automations),
+  const initialFilterState = {
+    ...filterConfig(automations, "type"),
+    ...filterConfig(automations, "namespace"),
+    ...filterConfig(automations, "clusterName"),
+    ...filterConfig(automations, "status", filterByStatusCallback),
   };
 
   let fields: Field[] = [
@@ -141,7 +138,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   return (
     <URLAddressableTable
       fields={fields}
-      filters={filterConfig}
+      filters={initialFilterState}
       rows={automations}
       className={className}
     />
