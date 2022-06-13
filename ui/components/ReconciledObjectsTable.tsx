@@ -96,6 +96,8 @@ function ReconciledObjectsTable({
               );
             },
             label: "Name",
+            sortValue: (u: UnstructuredObject) => u.name || "",
+            textSearchable: true,
             maxWidth: 600,
           },
           {
