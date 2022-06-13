@@ -164,7 +164,7 @@ func TestGetChildObjects(t *testing.T) {
 	// first := res.Objects[0]
 	// g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
 	// g.Expect(first.Name).To(Equal(rs.Name))
-}
+} //nolint
 
 func TestListFluxRuntimeObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
