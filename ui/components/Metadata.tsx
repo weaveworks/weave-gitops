@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { isHTTP } from "../lib/utils";
+import { formatMetadataKey, isHTTP } from "../lib/utils";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
 import Link from "./Link";
@@ -16,7 +16,17 @@ function Metadata({ metadata, className }: Props) {
     return <></>;
   }
 
-  metadata.forEach((pair) => {
+  let metadataCopy = [];
+
+  for (var i = 0; i < metadata.length; i++) {
+    metadataCopy[i] = metadata[i].slice();
+  }
+
+  console.log(metadataCopy);
+
+  metadataCopy.forEach((pair) => {
+    pair[0] = formatMetadataKey(pair[0]);
+
     const data = pair[1];
     if (isHTTP(data))
       pair[1] = (
@@ -31,7 +41,7 @@ function Metadata({ metadata, className }: Props) {
       <Text size="large" color="neutral30">
         Metadata
       </Text>
-      <InfoList items={metadata} />
+      <InfoList items={metadataCopy} />
     </Flex>
   );
 }

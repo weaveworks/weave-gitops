@@ -89,3 +89,7 @@ export function makeImageString(images: string[]) {
   }
   return imageString;
 }
+
+export function formatMetadataKey(key: string) {
+  return key;
+}
