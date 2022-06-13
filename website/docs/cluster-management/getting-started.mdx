@@ -211,6 +211,19 @@ Then update the `GITOPS_REPO` variable to point to your cluster
   {CapiGitopsCDC}
 </CodeBlock>
 
+Add Monitoring Dashboards to your cluster
+
+In order to add dashboards to your cluster, you'll need to use metadata annotations following the below pattern.
+
+```
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  annotations:
+    metadata.weave.works/dashboard.grafana: https://grafana.com/
+    metadata.weave.works/dashboard.prometheus: https://prometheus.io/
+```
+
 ## Test
 
 You should now be able to create a new cluster from your template and install profiles onto it with a single Pull Request via the WGE UI!
