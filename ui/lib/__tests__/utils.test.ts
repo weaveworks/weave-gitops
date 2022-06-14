@@ -66,12 +66,12 @@ describe("utils lib", () => {
     const pageTitle = "Page Title";
     const appName = "App Name";
 
-    it("returns correct page title with appName", () => {
+    it("returns correct page title with app name", () => {
       expect(pageTitleWithAppName(pageTitle, appName)).toEqual(
         `${pageTitle} for ${appName}`
       );
     });
-    it("returns correct page title without appName", () => {
+    it("returns correct page title without app name", () => {
       expect(pageTitleWithAppName(pageTitle)).toEqual(pageTitle);
     });
   });
@@ -135,7 +135,7 @@ describe("utils lib", () => {
     });
   });
   describe("addKind", () => {
-    it("adds prefix if string does not start with Kind", () => {
+    it("adds the prefix if string does not start with Kind", () => {
       expect(addKind("HelmRelease")).toEqual("KindHelmRelease");
     });
     it("does not add prefix if string starts with Kind", () => {
@@ -143,10 +143,10 @@ describe("utils lib", () => {
     });
   });
   describe("removeKind", () => {
-    it("removes prefix if string starts with Kind", () => {
+    it("removes the prefix if string starts with Kind", () => {
       expect(removeKind("KindHelmRelease")).toEqual("HelmRelease");
     });
-    it("does not remove prefix if string does not start with Kind", () => {
+    it("does not remove the prefix if string does not start with Kind", () => {
       expect(removeKind("GitRepository")).toEqual("GitRepository");
     });
   });
@@ -154,7 +154,7 @@ describe("utils lib", () => {
     it("returns a hyphen if the first image string is empty", () => {
       expect(makeImageString([""])).toEqual("-");
     });
-    it("returns the first string if the first string is not empty", () => {
+    it("returns the first string if the first string is the only string available and it is not empty", () => {
       expect(makeImageString(["image string 1"])).toEqual("image string 1");
     });
     it("returns the first string if the first string is not empty and the second string is empty", () => {
