@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestHelmRepository(t *testing.T) {
+func TestHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	format.UseStringerRepresentation = true // Makes the representation more compact
