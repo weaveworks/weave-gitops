@@ -20,6 +20,11 @@ enum FluxObjectKind {
     KindCluster        = 6;
 };
 
+enum HelmRepositoryType {
+    Default = 0;
+    OCI     = 1;
+};
+
 message ObjectRef {
     FluxObjectKind kind      = 1;
     string         name      = 2;
@@ -108,15 +113,16 @@ message GitRepository {
 }
 
 message HelmRepository {
-    string   namespace            = 1;
-    string   name                 = 2;
-    string   url                  = 3;
-    Interval interval             = 4;
-    repeated Condition conditions = 5;
-    bool     suspended            = 6;
-    string   lastUpdatedAt        = 7;
-    string   clusterName          = 8;
-    string   apiVersion           = 9;
+    string             namespace            = 1;
+    string             name                 = 2;
+    string             url                  = 3;
+    Interval           interval             = 4;
+    repeated           Condition conditions = 5;
+    bool               suspended            = 6;
+    string             lastUpdatedAt        = 7;
+    string             clusterName          = 8;
+    string             apiVersion           = 9;
+    HelmRepositoryType repositoryType       = 10;
 }
 
 message Bucket {
