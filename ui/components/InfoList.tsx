@@ -10,8 +10,8 @@ const InfoList = styled(
     return (
       <table className={className}>
         <tbody>
-          {_.map(items, ([k, v]) => (
-            <tr key={k}>
+          {_.map(items, ([k, v], index) => (
+            <tr key={`item ${index}`}>
               <td>
                 <Text capitalize semiBold color="neutral30">
                   {k}:
