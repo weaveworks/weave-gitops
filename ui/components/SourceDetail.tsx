@@ -44,7 +44,8 @@ function SourceDetail({
 }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { data: sources, isLoading, error } = useListSources();
-  const { data: automations } = useListAutomations();
+  const { data: automations, isLoading: automationsLoading } =
+    useListAutomations();
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
     name,
@@ -72,7 +73,7 @@ function SourceDetail({
     kind: type,
   });
 
-  if (isLoading) {
+  if (isLoading || automationsLoading) {
     return <LoadingPage />;
   }
 

@@ -127,26 +127,26 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	result := []unstructured.Unstructured{}
 
 	for _, gvk := range msg.Kinds {
-		l := unstructured.UnstructuredList{}
+		listResult := unstructured.UnstructuredList{}
 
-		l.SetGroupVersionKind(schema.GroupVersionKind{
+		listResult.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   gvk.Group,
 			Kind:    gvk.Kind,
 			Version: gvk.Version,
 		})
 
-		if err := clustersClient.List(ctx, msg.ClusterName, &l, opts); err != nil {
+		if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 			if k8serrors.IsForbidden(err) {
 				// Our service account (or impersonated user) may not have the ability to see the resource in question,
-				// in the given namespace.
-				// We pretend it doesn't exist and keep looping.
+				// in the given namespace. We pretend it doesn't exist and keep looping.
+				// We need logging to make this error more visible.
 				continue
 			}
 
 			return nil, fmt.Errorf("listing unstructured object: %w", err)
 		}
 
-		result = append(result, l.Items...)
+		result = append(result, listResult.Items...)
 	}
 
 	objects := []*pb.UnstructuredObject{}
@@ -189,27 +189,27 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	l := unstructured.UnstructuredList{}
+	listResult := unstructured.UnstructuredList{}
 
-	l.SetGroupVersionKind(schema.GroupVersionKind{
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   msg.GroupVersionKind.Group,
 		Version: msg.GroupVersionKind.Version,
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := clustersClient.List(ctx, msg.ClusterName, &l); err != nil {
+	if err := clustersClient.List(ctx, msg.ClusterName, &listResult); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
 	objects := []*pb.UnstructuredObject{}
 
-Items:
-	for _, obj := range l.Items {
+ItemsLoop:
+	for _, obj := range listResult.Items {
 		refs := obj.GetOwnerReferences()
 		if len(refs) == 0 {
 			// Ignore items without OwnerReference.
 			// for example: dev-weave-gitops-test-connection
-			continue Items
+			continue ItemsLoop
 		}
 
 		for _, ref := range refs {
@@ -217,7 +217,7 @@ Items:
 				// Assuming all owner references have the same parent UID,
 				// this is not the child we are looking for.
 				// Skip the rest of the operations in Items loops.
-				continue Items
+				continue ItemsLoop
 			}
 		}
 
@@ -232,6 +232,11 @@ Items:
 		case "Pod":
 			images = getPodContainerImages(obj.Object)
 		case "ReplicaSet":
+			replicasFound := status.GetIntField(obj.UnstructuredContent(), ".status.replicas", 0)
+
+			if replicasFound == 0 {
+				continue ItemsLoop
+			}
 			images = getReplicaSetPodContainerImages(obj.Object)
 		}
 

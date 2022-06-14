@@ -27,11 +27,26 @@ export type FilterableTableProps = {
   onFilterChange?: (sel: FilterSelections) => void;
 };
 
-export function filterConfigForString(rows, key: string) {
-  const typeFilterConfig = _.reduce(
+export type FilterConfigCallback = (v: any) => any;
+
+export const filterByStatusCallback: FilterConfigCallback = (v) => {
+  if (v.suspended) return "Suspended";
+  else if (computeReady(v["conditions"])) return "Ready";
+  else return "Not Ready";
+};
+
+export const filterByTypeCallback: FilterConfigCallback = (v) =>
+  _.get(v, "groupVersionKind.kind");
+
+export function filterConfig(
+  rows,
+  key: string,
+  computeValue?: FilterConfigCallback
+): FilterConfig {
+  const config = _.reduce(
     rows,
     (r, v) => {
-      const t = v[key];
+      const t = computeValue ? computeValue(v) : v[key];
 
       if (!_.includes(r, t)) {
         r.push(t);
@@ -42,26 +57,7 @@ export function filterConfigForString(rows, key: string) {
     []
   );
 
-  return { [key]: typeFilterConfig };
-}
-
-export function filterConfigForStatus(rows) {
-  const statusFilterConfig = _.reduce(
-    rows,
-    (r, v) => {
-      let t;
-      if (v.suspended) t = "Suspended";
-      else if (computeReady(v.conditions)) t = "Ready";
-      else t = "Not Ready";
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
-      return r;
-    },
-    []
-  );
-
-  return { status: statusFilterConfig };
+  return { [key]: config };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -74,11 +70,13 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 
     _.each(filters, (vals, category) => {
       let value;
-      //status
+      // status
       if (category === "status") {
-        if (row["suspended"]) value = "Suspended";
-        else if (computeReady(row["conditions"])) value = "Ready";
-        else value = "Not Ready";
+        value = filterByStatusCallback(row);
+      }
+      // type
+      else if (category === "type" && typeof row[category] !== "string") {
+        value = filterByTypeCallback(row);
       }
       // strings
       else value = row[category];
@@ -150,7 +148,6 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
     },
     {}
   );
-
   return allFilters;
 }
 
@@ -170,7 +167,6 @@ export function parseFilterStateFromURL(search: string): FilterSelections {
     });
     return next;
   }
-
   return null;
 }
 
@@ -181,12 +177,14 @@ export function filterSelectionsToQueryString(sel: FilterSelections) {
       url += `${key}_`;
     }
   });
-  const query = location.search;
-  let prefix = "";
-  if (query && !query.includes("filters") && url) prefix = "&?filters=";
-  else if (url) prefix = "?filters=";
-
-  return prefix + encodeURIComponent(url);
+  //this is an object with all the different queries as keys
+  let query = qs.parse(location.search);
+  //if there are any filters, reassign/create filter query key
+  if (url) query["filters"] = url;
+  //if the update leaves no filters, remove the filter query key from the object
+  else if (query["filters"]) query = _.omit(query, "filters");
+  //this turns a parsed search into a legit query string
+  return qs.stringify(query);
 }
 
 type State = {
