@@ -8,7 +8,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  metadata: [string, string][] | undefined;
+  metadata?: [string, string][];
 };
 
 function Metadata({ metadata, className }: Props) {
