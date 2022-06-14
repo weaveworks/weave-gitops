@@ -2,15 +2,15 @@
 
 exports[`snapshots renders 1`] = `
 <div
-  className="sc-bdvvtL dVdTOU"
+  className="sc-bczRLJ iDpicH"
 >
   <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
+    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ iZjEZq"
+      className="sc-gsnTZi hkopcK"
       color="primary"
       size="medium"
     >
@@ -22,15 +22,15 @@ exports[`snapshots renders 1`] = `
 
 exports[`snapshots renders child route 1`] = `
 <div
-  className="sc-bdvvtL dVdTOU"
+  className="sc-bczRLJ iDpicH"
 >
   <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
+    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ iZjEZq"
+      className="sc-gsnTZi hkopcK"
       color="primary"
       size="medium"
     >
@@ -38,7 +38,7 @@ exports[`snapshots renders child route 1`] = `
     </span>
   </a>
   <div
-    className="sc-bdvvtL dVdTOU sc-dkPtRN hTjxvJ"
+    className="sc-bczRLJ iDpicH sc-dkzDqf fphFew"
   >
     <svg
       aria-hidden={true}
@@ -52,12 +52,12 @@ exports[`snapshots renders child route 1`] = `
     </svg>
   </div>
   <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
+    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
     href="/kustomization?name=flux"
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ eOAACW"
+      className="sc-gsnTZi cZFkGq"
       color="primary"
       size="medium"
     >
@@ -69,15 +69,15 @@ exports[`snapshots renders child route 1`] = `
 
 exports[`snapshots renders on the root page 1`] = `
 <div
-  className="sc-bdvvtL dVdTOU"
+  className="sc-bczRLJ iDpicH"
 >
   <a
-    className="sc-eCImPb sc-jRQBWg FjdOF eKqFqk"
+    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
     href="/"
     onClick={[Function]}
   >
     <span
-      className="sc-gsDKAQ iZjEZq"
+      className="sc-gsnTZi hkopcK"
       color="primary"
       size="medium"
     />

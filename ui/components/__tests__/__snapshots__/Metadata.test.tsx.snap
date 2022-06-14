@@ -4,23 +4,23 @@ exports[`snapshots renders nothing without data 1`] = `null`;
 
 exports[`snapshots renders with data 1`] = `
 <div
-  className="sc-bdvvtL jFYFyX sc-gKclnd thVwy Metadata"
+  className="sc-bczRLJ jlXWNk sc-gKXOVf eJrSXq Metadata"
 >
   <span
-    className="sc-gsDKAQ iLgApi"
+    className="sc-gsnTZi bZyXoC"
     color="neutral30"
     size="large"
   >
     Metadata
   </span>
   <table
-    className="sc-eCImPb heNLgc"
+    className="sc-eCYdqJ esIiKS"
   >
     <tbody>
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -35,7 +35,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -50,7 +50,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -65,7 +65,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -80,7 +80,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -95,7 +95,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -105,13 +105,13 @@ exports[`snapshots renders with data 1`] = `
         </td>
         <td>
           <a
-            className="sc-jRQBWg itTnfW"
+            className="sc-jSMfEi caUCVB"
             href="https://google.com"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="sc-gsDKAQ eOAACW"
+              className="sc-gsnTZi cZFkGq"
               color="primary"
               size="medium"
             >
@@ -123,7 +123,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
@@ -140,7 +140,7 @@ This is second line
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="sc-gsnTZi haPVfR"
             color="neutral30"
             size="medium"
           >
