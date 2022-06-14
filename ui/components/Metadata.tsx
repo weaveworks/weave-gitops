@@ -22,6 +22,8 @@ function Metadata({ metadata, className }: Props) {
     metadataCopy[i] = metadata[i].slice();
   }
 
+  metadataCopy.sort((a, b) => a[0].localeCompare(b[0]));
+
   metadataCopy.forEach((pair) => {
     pair[0] = formatMetadataKey(pair[0]);
 
