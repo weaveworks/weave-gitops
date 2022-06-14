@@ -28,7 +28,7 @@ export function poller(cb, interval) {
 }
 
 export function isHTTP(uri) {
-  return uri.includes("http") || uri.includes("https");
+  return uri.includes("http");
 }
 
 export function convertGitURLToGitProvider(uri: string) {
