@@ -91,5 +91,7 @@ export function makeImageString(images: string[]) {
 }
 
 export function formatMetadataKey(key: string) {
-  return key;
+  return key
+    .replace(/-/g, " ")
+    .replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
 }

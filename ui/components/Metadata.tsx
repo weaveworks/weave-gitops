@@ -8,7 +8,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  metadata: any;
+  metadata: [string, string][] | undefined;
 };
 
 function Metadata({ metadata, className }: Props) {
@@ -21,8 +21,6 @@ function Metadata({ metadata, className }: Props) {
   for (var i = 0; i < metadata.length; i++) {
     metadataCopy[i] = metadata[i].slice();
   }
-
-  console.log(metadataCopy);
 
   metadataCopy.forEach((pair) => {
     pair[0] = formatMetadataKey(pair[0]);
