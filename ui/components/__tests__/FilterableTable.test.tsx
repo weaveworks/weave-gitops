@@ -5,8 +5,9 @@ import React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";
 import { Field } from "../DataTable";
 import FilterableTable, {
-  filterConfigForStatus,
-  filterConfigForString,
+  filterConfig,
+  filterByTypeCallback,
+  filterByStatusCallback,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
@@ -173,7 +174,6 @@ describe("FilterableTable", () => {
     expect(b2).toBeTruthy();
     expect(c2).toBeFalsy();
   });
-
   it("should show all rows", () => {
     render(
       withTheme(
@@ -209,8 +209,9 @@ describe("FilterableTable", () => {
   });
   it("should filter on click", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
+
     render(
       withTheme(
         withContext(
@@ -250,8 +251,9 @@ describe("FilterableTable", () => {
   });
   it("should filter by status", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
+
     render(
       withTheme(
         withContext(
@@ -292,10 +294,113 @@ describe("FilterableTable", () => {
     const chip2 = screen.getByText("status:Suspended");
     expect(chip2).toBeTruthy();
   });
+  it("should filter by type with callback", () => {
+    const rows = [
+      {
+        name: "cool",
+        groupVersionKind: {
+          kind: "foo",
+        },
+      },
+      {
+        name: "slick",
+        groupVersionKind: {
+          kind: "bar",
+        },
+      },
+      {
+        name: "neat",
+        groupVersionKind: {
+          kind: "bar",
+        },
+      },
+      {
+        name: "rad",
+        groupVersionKind: {
+          kind: "bar",
+        },
+      },
+    ];
+
+    const fields: Field[] = [
+      {
+        label: "Name",
+        value: "name",
+        textSearchable: true,
+      },
+      {
+        label: "Type",
+        value: (v: any) => v.groupVersionKind.kind,
+      },
+      {
+        label: "Status",
+        value: "success",
+      },
+      {
+        label: "Qty",
+        value: "count",
+      },
+    ];
+
+    const initialFilterState = {
+      ...filterConfig(rows, "type", filterByTypeCallback),
+    };
+
+    render(
+      withTheme(
+        withContext(
+          <FilterableTable
+            fields={fields}
+            rows={rows}
+            filters={initialFilterState}
+            dialogOpen
+          />,
+          "/applications",
+          {}
+        )
+      )
+    );
+
+    const tableRows1 = document.querySelectorAll("tbody tr");
+
+    expect(tableRows1).toHaveLength(4);
+    expect(tableRows1[0].innerHTML).toContain("foo");
+
+    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    fireEvent.click(checkbox1);
+
+    const tableRows2 = document.querySelectorAll("tbody tr");
+    expect(tableRows2).toHaveLength(1);
+    expect(tableRows2[0].innerHTML).toContain("foo");
+
+    const chip1 = screen.getByText("type:foo");
+    expect(chip1).toBeTruthy();
+
+    const clearAll = screen.getByText("Clear All");
+    const svgButton = clearAll.parentElement.getElementsByTagName("svg")[0];
+    fireEvent.click(svgButton);
+
+    const tableRows3 = document.querySelectorAll("tbody tr");
+
+    expect(tableRows3).toHaveLength(rows.length);
+
+    const checkbox2 = document.getElementById("type:bar") as HTMLInputElement;
+    fireEvent.click(checkbox2);
+
+    const tableRows4 = document.querySelectorAll("tbody tr");
+    expect(tableRows4).toHaveLength(3);
+    expect(tableRows4[0].innerHTML).toContain("bar");
+    expect(tableRows4[1].innerHTML).toContain("bar");
+    expect(tableRows4[2].innerHTML).toContain("bar");
+
+    const chip2 = screen.getByText("type:bar");
+    expect(chip2).toBeTruthy();
+  });
   it("should select/deselect all when category checkbox is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
+
     render(
       withTheme(
         withContext(
@@ -324,8 +429,9 @@ describe("FilterableTable", () => {
   });
   it("should change select all box status when other checkboxes effect state", () => {
     const initialFilterState = {
-      ...filterConfigForStatus(rows),
+      ...filterConfig(rows, "status", filterByStatusCallback),
     };
+
     render(
       withTheme(
         withContext(
@@ -353,8 +459,9 @@ describe("FilterableTable", () => {
   });
   it("should remove a param when a single chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
+
     render(
       withTheme(
         withContext(
@@ -392,8 +499,9 @@ describe("FilterableTable", () => {
   });
   it("should clear filtering when the `clear all` chip is clicked", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
+
     render(
       withTheme(
         withContext(
@@ -434,11 +542,11 @@ describe("FilterableTable", () => {
 
     expect(tableRows3).toHaveLength(rows.length);
   });
-
   it("should add a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
+
     render(
       withTheme(
         withContext(
@@ -463,8 +571,9 @@ describe("FilterableTable", () => {
   });
   it("should remove a text filter", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
+
     render(
       withTheme(
         withContext(
@@ -492,7 +601,7 @@ describe("FilterableTable", () => {
   });
   it("filters by a text field", () => {
     const initialFilterState = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     render(
@@ -570,7 +679,7 @@ describe("FilterableTable", () => {
   });
   it("adds an initial filter selection state", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     render(
@@ -594,7 +703,7 @@ describe("FilterableTable", () => {
   });
   it("adds filter selection from a URL", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     const search = `?filters=type%3Afoo_`;
@@ -620,7 +729,7 @@ describe("FilterableTable", () => {
   });
   it("returns a query string on filter change", () => {
     const initialFilterConfig = {
-      ...filterConfigForString(rows, "type"),
+      ...filterConfig(rows, "type"),
     };
 
     const recorder = jest.fn();
@@ -649,7 +758,7 @@ describe("FilterableTable", () => {
 
     expect(args["type:foo"]).toEqual(true);
     const queryString = filterSelectionsToQueryString(args);
-    expect(queryString).toEqual("?filters=type%3Afoo_");
+    expect(queryString).toEqual("filters=type%3Afoo_");
     expect(parseFilterStateFromURL(queryString)).toEqual({
       "type:foo": true,
     });

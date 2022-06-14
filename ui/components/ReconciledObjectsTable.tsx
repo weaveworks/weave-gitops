@@ -11,13 +11,15 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, {
-  filterConfigForStatus,
-  filterConfigForString,
+import {
+  filterConfig,
+  filterByTypeCallback,
+  filterByStatusCallback,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
+import URLAddressableTable from "./URLAddressableTable";
 
 export interface ReconciledVisualizationProps {
   className?: string;
@@ -62,15 +64,16 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfigForString(objs, "namespace"),
-    ...filterConfigForStatus(objs),
+    ...filterConfig(objs, "type", filterByTypeCallback),
+    ...filterConfig(objs, "namespace"),
+    ...filterConfig(objs, "status", filterByStatusCallback),
   };
 
   const shouldDisplayLinks = kindsFrom.includes(automationKind);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <FilterableTable
+      <URLAddressableTable
         filters={initialFilterState}
         className={className}
         fields={[
@@ -93,6 +96,8 @@ function ReconciledObjectsTable({
               );
             },
             label: "Name",
+            sortValue: (u: UnstructuredObject) => u.name || "",
+            textSearchable: true,
             maxWidth: 600,
           },
           {

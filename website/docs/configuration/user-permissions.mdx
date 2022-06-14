@@ -29,12 +29,27 @@ rules:
 - apiGroups: ["source.toolkit.fluxcd.io"]
   resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
   verbs: [ "get", "list", "patch" ]
+- apiGroups: ["infra.contrib.fluxcd.io"]
+  resources: ["terraforms"]
+  verbs: [ "get", "list", "patch" ]
 # Resources managed via Flux
 - apiGroups: [""]
-  resources: ["secrets", "pods" ]
+  resources: ["configmaps", "secrets", "pods", "services", "namespaces", "persistentvolumes", "persistentvolumeclaims"]
   verbs: [ "get", "list" ]
 - apiGroups: ["apps"]
-  resources: [ "deployments", "replicasets"]
+  resources: [ "deployments", "replicasets", "statefulsets"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["batch"]
+  resources: [ "jobs", "cronjobs"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "clusterroles", "rolebindings", "clusterrolebindings"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
   verbs: [ "get", "list" ]
 # Feedback
 - apiGroups: [""]
@@ -45,14 +60,14 @@ rules:
 
 ### Flux Resources
 
-The resources that Flux works with directly.
-
+The resources that Flux works with directly, including the one from TF-controller.
 
 | Api Group                   | Resources                                              | Permissions      |
 |-----------------------------|--------------------------------------------------------|------------------|
 | kustomize.toolkit.fluxcd.io | kustomizations                                         | get, list, patch |
 | helm.toolkit.fluxcd.io      | helmreleases                                           | get, list, patch |
 | source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories | get, list, patch |
+| infra.contrib.fluxcd.io     | terraforms                                             | get, list, patch |
 
 In order for Weave GitOps to be able to accurately display the state of Flux it
 needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses. This is done using the
@@ -64,11 +79,14 @@ of the resource in the same way `flux reconcile` does on the CLI.
 
 ### Resources managed via Flux
 
-| Api Group | Resources                | Permissions |
-|-----------|--------------------------|-------------|
-| ""        | secrets, pods            | get, list   |
-| apps      | deployments, replicasets | get, list   |
-
+| Api Group                 | Resources                                                                      | Permissions |
+|---------------------------|--------------------------------------------------------------------------------|-------------|
+| ""                        | configmaps, secrets, pods, services, persistentvolumes, persistentvolumeclaims | get, list   |
+| apps                      | deployments, replicasets, statefulsets                                         | get, list   |
+| batch                     | jobs, cronjobs                                                                 | get, list   |
+| autoscaling               | horizontalpodautoscalers                                                       | get, list   |
+| rbac.authorization.k8s.io | roles, clusterroles, rolebindings, clusterrolebindings                         | get, list   |
+| networking.k8s.io         | ingresses                                                                      | get, list   |
 
 Weave GitOps reads basic resources so that it can monitor the effect that Flux has
 on what's running.

@@ -27,8 +27,8 @@ export function poller(cb, interval) {
   return setInterval(cb, interval);
 }
 
-export function isHTTP(uri) {
-  return uri.includes("http") || uri.includes("https");
+export function isHTTP(uri: string) {
+  return uri.includes("http");
 }
 
 export function convertGitURLToGitProvider(uri: string) {
@@ -88,4 +88,10 @@ export function makeImageString(images: string[]) {
     for (let i = 1; i < images.length; i++) imageString += `\n${images[i]}`;
   }
   return imageString;
+}
+
+export function formatMetadataKey(key: string) {
+  return key
+    .replace(/-/g, " ")
+    .replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
 }

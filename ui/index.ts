@@ -3,8 +3,10 @@ import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
 import { SortType } from "./components/DataTable";
 import FilterableTable, {
-  filterConfigForStatus,
-  filterConfigForString,
+  filterConfig,
+  FilterConfigCallback,
+  filterByStatusCallback,
+  filterByTypeCallback,
 } from "./components/FilterableTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
@@ -78,8 +80,10 @@ export {
   EventsTable,
   Flex,
   FilterableTable,
-  filterConfigForString,
-  filterConfigForStatus,
+  filterConfig,
+  FilterConfigCallback,
+  filterByStatusCallback,
+  filterByTypeCallback,
   FluxRuntime,
   fluxObjectKindToKind,
   Footer,
