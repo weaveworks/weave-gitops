@@ -232,6 +232,11 @@ ItemsLoop:
 		case "Pod":
 			images = getPodContainerImages(obj.Object)
 		case "ReplicaSet":
+			replicasFound := status.GetIntField(obj.UnstructuredContent(), ".status.replicas", 0)
+
+			if replicasFound == 0 {
+				continue ItemsLoop
+			}
 			images = getReplicaSetPodContainerImages(obj.Object)
 		}
 
