@@ -27,7 +27,7 @@ export function poller(cb, interval) {
   return setInterval(cb, interval);
 }
 
-export function isHTTP(uri) {
+export function isHTTP(uri: string) {
   return uri.includes("http");
 }
 
