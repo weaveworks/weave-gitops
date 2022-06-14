@@ -16,9 +16,9 @@ function Metadata({ metadata, className }: Props) {
     return <></>;
   }
 
-  let metadataCopy = [];
+  const metadataCopy = [];
 
-  for (var i = 0; i < metadata.length; i++) {
+  for (let i = 0; i < metadata.length; i++) {
     metadataCopy[i] = metadata[i].slice();
   }
 
