@@ -38,12 +38,41 @@ describe("utils lib", () => {
   describe("isHTTP", () => {
     it("detects HTTP", () => {
       expect(isHTTP("http://www.google.com")).toEqual(true);
+      expect(isHTTP("http://www.google.com/")).toEqual(true);
+      expect(
+        isHTTP("http://github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(true);
+      expect(
+        isHTTP("http://github.com/weaveworks/weave-gitops-clusters/")
+      ).toEqual(true);
     });
     it("detects HTTPS", () => {
       expect(isHTTP("https://www.google.com")).toEqual(true);
+      expect(isHTTP("https://www.google.com/")).toEqual(true);
+      expect(
+        isHTTP("https://github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(true);
+      expect(
+        isHTTP("https://github.com/weaveworks/weave-gitops-clusters/")
+      ).toEqual(true);
     });
     it("detects non-HTTP string", () => {
       expect(isHTTP("test string")).toEqual(false);
+      expect(isHTTP("smtp://server/")).toEqual(false);
+      expect(isHTTP("smtp://http/")).toEqual(false);
+      expect(isHTTP("smtp://https/")).toEqual(false);
+      expect(isHTTP("this is a random http sentence")).toEqual(false);
+      expect(isHTTP("this is a random https sentence")).toEqual(false);
+      expect(isHTTP("http:// this is a random http sentence")).toEqual(false);
+      expect(isHTTP("https:// this is a random https sentence")).toEqual(false);
+      expect(
+        isHTTP("ssh://git@github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(false);
+      expect(isHTTP("github.com/weaveworks/weave-gitops-clusters")).toEqual(
+        false
+      );
+      expect(isHTTP("foo/file.html")).toEqual(false);
+      expect(isHTTP("//.com")).toEqual(false);
     });
   });
   describe("convertGitURLToGitProvider", () => {
@@ -60,6 +89,13 @@ describe("utils lib", () => {
       expect(() => {
         convertGitURLToGitProvider(uri);
       }).toThrow(new Error(`could not parse url "${uri}"`));
+    });
+    it("returns the original HTTP URL", () => {
+      expect(
+        convertGitURLToGitProvider(
+          "https://github.com/weaveworks/weave-gitops-clusters"
+        )
+      ).toEqual("https://github.com/weaveworks/weave-gitops-clusters");
     });
   });
   describe("pageTitleWithAppName", () => {

@@ -14,11 +14,11 @@ export function notifyError(message: string) {
 
 // Must be one of the valid URLs that we have already
 // configured on the Gitlab backend for our Oauth app.
-export function gitlabOAuthRedirectURI() {
+export function gitlabOAuthRedirectURI(): string {
   return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
 }
 
-export function poller(cb, interval) {
+export function poller(cb, interval): any {
   if (process.env.NODE_ENV === "test") {
     // Stay synchronous in tests
     return cb();
@@ -27,11 +27,17 @@ export function poller(cb, interval) {
   return setInterval(cb, interval);
 }
 
-export function isHTTP(uri: string) {
-  return uri.includes("http");
+export function isHTTP(uri: string): boolean {
+  // Regex from Diego Perini's gist: https://gist.github.com/dperini/729294
+  // It works better than other regular expressions for validating HTTP and HTTPS URLs.
+  const regex = new RegExp(
+    /^(?:(?:(?:https?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i
+  );
+
+  return regex.test(uri);
 }
 
-export function convertGitURLToGitProvider(uri: string) {
+export function convertGitURLToGitProvider(uri: string): string {
   if (isHTTP(uri)) {
     return uri;
   }
@@ -45,7 +51,7 @@ export function convertGitURLToGitProvider(uri: string) {
   return `https://${provider}/${org}/${repo}`;
 }
 
-export function pageTitleWithAppName(title: string, appName?: string) {
+export function pageTitleWithAppName(title: string, appName?: string): string {
   return `${title}${appName ? ` for ${appName}` : ""}`;
 }
 
@@ -54,7 +60,10 @@ interface Statusable {
   suspended: boolean;
 }
 
-export function statusSortHelper({ suspended, conditions }: Statusable) {
+export function statusSortHelper({
+  suspended,
+  conditions,
+}: Statusable): number {
   if (suspended) return 2;
   if (computeReady(conditions)) return 3;
   else return 1;
@@ -80,7 +89,7 @@ export function removeKind(kind: string): string {
   return kind;
 }
 
-export function makeImageString(images: string[]) {
+export function makeImageString(images: string[]): string {
   let imageString = "";
   if (!images[0]) return "-";
   else imageString += images[0];
@@ -90,7 +99,7 @@ export function makeImageString(images: string[]) {
   return imageString;
 }
 
-export function formatMetadataKey(key: string) {
+export function formatMetadataKey(key: string): string {
   return key
     .replace(/-/g, " ")
     .replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
