@@ -52,10 +52,10 @@ export const formatSourceURL = (
   namespace: string = NoNamespace,
   clusterName: string
 ) => {
-  return formatURL(sourceTypeToRoute(kind), { name, namespace, clusterName });
+  return formatURL(objectTypeToRoute(kind), { name, namespace, clusterName });
 };
 
-export function sourceTypeToRoute(t: FluxObjectKind): V2Routes {
+export function objectTypeToRoute(t: FluxObjectKind): V2Routes {
   switch (t) {
     case FluxObjectKind.KindGitRepository:
       return V2Routes.GitRepo;
@@ -68,6 +68,12 @@ export function sourceTypeToRoute(t: FluxObjectKind): V2Routes {
 
     case FluxObjectKind.KindHelmChart:
       return V2Routes.HelmChart;
+
+    case FluxObjectKind.KindKustomization:
+      return V2Routes.Kustomization;
+
+    case FluxObjectKind.KindHelmRelease:
+      return V2Routes.HelmRelease;
 
     default:
       break;

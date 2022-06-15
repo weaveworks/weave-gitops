@@ -47,7 +47,7 @@ Step one, make sure you've installed the tools listed at the very top of this fi
 
 Step two, now you **must** **ALSO** have the following installed.
 
-* [node](https://nodejs.org/en/) v16.13.2 - Install Node.js
+* [node](https://nodejs.org/en/) v16 - Install Node.js
 
 Now you have those things installed, lets go!
 
@@ -163,6 +163,8 @@ Woop! It's working? Probably. Maybe. Or you may need to faff around with resolvi
 Good luck!
 
 ## Tips & tricks
+
+Is your local build failing with an error along the lines of "no space left on device"? This (likely) isn't the storage on your machine - it's Docker! You can go to Preferences -> Resources in Docker Desktop and pump up that image size a bit, but the size grows every time tilt rebuilds the image, so eventually you're going to want to run `docker system prune -a` to clear things out.
 
 ### The server keeps restarting and it's annoying
 

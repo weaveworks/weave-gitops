@@ -41,6 +41,13 @@ rbac:
   # -- If non-empty, this limits the secrets that can be accessed by
   # the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']`
   viewSecretsResourceNames: ["cluster-user-auth", "oidc-auth"]
+  # -- If non-empty, these additional rules will be appended to the RBAC role and the cluster role.
+  # for example,
+  # additionalRules:
+  # - apiGroups: ["infra.contrib.fluxcd.io"]
+  #   resources: ["terraforms"]
+  #   verbs: [ "get", "list", "patch" ]
+  additionalRules: []
 adminUser:
   # -- Whether the local admin user should be created.
   # If you use this make sure you add it to `rbac.impersonationResourceNames`.

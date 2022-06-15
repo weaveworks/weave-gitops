@@ -29,6 +29,12 @@ export const PARENT_CHILD_LOOKUP = {
       },
     ],
   },
+  StatefulSet: {
+    group: "apps",
+    version: "v1",
+    kind: "StatefulSet",
+    children: [{ version: "v1", kind: "Pod" }],
+  },
 };
 
 export const getChildrenRecursive = async (

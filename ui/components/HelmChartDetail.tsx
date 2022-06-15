@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { displayKind } from "../lib/utils";
+import { removeKind } from "../lib/utils";
 import { FluxObjectKind, HelmChart } from "../lib/api/core/types.pb";
 
 type Props = {
@@ -22,7 +22,7 @@ function HelmChartDetail({ name, namespace, className, clusterName }: Props) {
       className={className}
       clusterName={clusterName}
       info={(ch: HelmChart) => [
-        ["Type", displayKind(FluxObjectKind.KindHelmChart)],
+        ["Type", removeKind(FluxObjectKind.KindHelmChart)],
         ["Chart", ch?.chart],
         ["Ref", ch?.sourceRef?.name],
         ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],

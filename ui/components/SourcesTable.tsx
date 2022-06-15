@@ -6,19 +6,16 @@ import {
   GitRepository,
   HelmRepository,
 } from "../lib/api/core/types.pb";
-import { formatURL, sourceTypeToRoute } from "../lib/nav";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
 import { Source } from "../lib/types";
 import {
   convertGitURLToGitProvider,
-  displayKind,
+  removeKind,
   statusSortHelper,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
-import {
-  filterConfigForStatus,
-  filterConfigForString,
-} from "./FilterableTable";
+import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -32,15 +29,15 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
-  sources = sources.map((s) => {
-    return { ...s, type: displayKind(s.kind) };
+  sources = sources?.map((s) => {
+    return { ...s, type: removeKind(s.kind) };
   });
 
   const initialFilterState = {
-    ...filterConfigForString(sources, "type"),
-    ...filterConfigForString(sources, "namespace"),
-    ...filterConfigForStatus(sources),
-    ...filterConfigForString(sources, "clusterName"),
+    ...filterConfig(sources, "type"),
+    ...filterConfig(sources, "namespace"),
+    ...filterConfig(sources, "status", filterByStatusCallback),
+    ...filterConfig(sources, "clusterName"),
   };
 
   return (
@@ -55,7 +52,7 @@ function SourcesTable({ className, sources }: Props) {
           label: "Name",
           value: (s: Source) => (
             <Link
-              to={formatURL(sourceTypeToRoute(s.kind), {
+              to={formatURL(objectTypeToRoute(s.kind), {
                 name: s?.name,
                 namespace: s?.namespace,
                 clusterName: s?.clusterName,

@@ -13,7 +13,7 @@ COPY --chown=node:node ui /home/app/ui
 RUN make ui
 
 # Go build
-FROM golang:1.17 AS go-build
+FROM golang:1.18 AS go-build
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh

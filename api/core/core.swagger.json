@@ -111,7 +111,8 @@
               "KindHelmRepository",
               "KindHelmChart",
               "KindKustomization",
-              "KindHelmRelease"
+              "KindHelmRelease",
+              "KindCluster"
             ],
             "default": "KindGitRepository"
           },
@@ -849,7 +850,8 @@
         "KindHelmRepository",
         "KindHelmChart",
         "KindKustomization",
-        "KindHelmRelease"
+        "KindHelmRelease",
+        "KindCluster"
       ],
       "default": "KindGitRepository"
     },

@@ -7,15 +7,19 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
-import { statusSortHelper } from "../lib/utils";
+import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
-import FilterableTable, {
-  filterConfigForStatus,
-  filterConfigForString,
+import {
+  filterConfig,
+  filterByTypeCallback,
+  filterByStatusCallback,
 } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
+import URLAddressableTable from "./URLAddressableTable";
 
 export interface ReconciledVisualizationProps {
   className?: string;
@@ -25,6 +29,19 @@ export interface ReconciledVisualizationProps {
   kinds: GroupVersionKind[];
   clusterName: string;
 }
+
+const kindsFrom = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+];
+
+const kindsTo = [
+  FluxObjectKind.KindKustomization,
+  FluxObjectKind.KindHelmRelease,
+  FluxObjectKind.KindGitRepository,
+  FluxObjectKind.KindHelmRepository,
+  FluxObjectKind.KindBucket,
+];
 
 function ReconciledObjectsTable({
   className,
@@ -47,19 +64,40 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfigForString(objs, "namespace"),
-    ...filterConfigForStatus(objs),
+    ...filterConfig(objs, "type", filterByTypeCallback),
+    ...filterConfig(objs, "namespace"),
+    ...filterConfig(objs, "status", filterByStatusCallback),
   };
+
+  const shouldDisplayLinks = kindsFrom.includes(automationKind);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <FilterableTable
+      <URLAddressableTable
         filters={initialFilterState}
         className={className}
         fields={[
           {
-            value: "name",
+            value: (u: UnstructuredObject) => {
+              const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
+
+              return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
+                <Link
+                  to={formatURL(objectTypeToRoute(kind), {
+                    name: u.name,
+                    namespace: u.namespace,
+                    clusterName: u.clusterName,
+                  })}
+                >
+                  {u.name}
+                </Link>
+              ) : (
+                u.name
+              );
+            },
             label: "Name",
+            sortValue: (u: UnstructuredObject) => u.name || "",
+            textSearchable: true,
             maxWidth: 600,
           },
           {
@@ -94,6 +132,12 @@ function ReconciledObjectsTable({
             sortValue: ({ conditions }) => computeMessage(conditions),
             maxWidth: 600,
           },
+          {
+            label: "Images",
+            value: (u: UnstructuredObject) => makeImageString(u.images),
+            sortType: SortType.string,
+            sortValue: (u: UnstructuredObject) => makeImageString(u.images),
+          },
         ]}
         rows={objs}
       />
@@ -104,8 +148,11 @@ function ReconciledObjectsTable({
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
 })`
-  td:nth-child(5) {
+  td:nth-child(5),
+  td:nth-child(6) {
     white-space: pre-wrap;
+  }
+  td:nth-child(5) {
     overflow-wrap: break-word;
     word-wrap: break-word;
   }

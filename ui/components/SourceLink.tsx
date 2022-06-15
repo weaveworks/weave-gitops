@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { ObjectRef } from "../lib/api/core/types.pb";
-import { displayKind } from "../lib/utils";
+import { removeKind } from "../lib/utils";
 import { formatSourceURL } from "../lib/nav";
 import Link from "./Link";
 
@@ -19,9 +19,14 @@ function SourceLink({ className, sourceRef, clusterName, short }: Props) {
   return (
     <Link
       className={className}
-      to={formatSourceURL(sourceRef.kind, sourceRef.name, sourceRef.namespace, clusterName)}
+      to={formatSourceURL(
+        sourceRef.kind,
+        sourceRef.name,
+        sourceRef.namespace,
+        clusterName
+      )}
     >
-      {!short && displayKind(sourceRef.kind) + "/"}
+      {!short && removeKind(sourceRef.kind) + "/"}
       {sourceRef.name}
     </Link>
   );

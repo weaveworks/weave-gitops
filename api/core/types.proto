@@ -17,6 +17,7 @@ enum FluxObjectKind {
     KindHelmChart      = 3;
     KindKustomization  = 4;
     KindHelmRelease    = 5;
+    KindCluster        = 6;
 };
 
 message ObjectRef {

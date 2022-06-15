@@ -27,8 +27,8 @@ export function poller(cb, interval) {
   return setInterval(cb, interval);
 }
 
-export function isHTTP(uri) {
-  return uri.includes("http") || uri.includes("https");
+export function isHTTP(uri: string) {
+  return uri.includes("http");
 }
 
 export function convertGitURLToGitProvider(uri: string) {
@@ -64,9 +64,34 @@ export function automationLastUpdated(a: Kustomization | HelmRelease): string {
   return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
 }
 
-export function displayKind(kind: string): string {
-  if (kind.startsWith("Kind")) {
-    return kind.slice(4);
+const kindPrefix = "Kind";
+
+export function addKind(kind: string): string {
+  if (!kind.startsWith(kindPrefix)) {
+    return `${kindPrefix}${kind}`;
   }
   return kind;
+}
+
+export function removeKind(kind: string): string {
+  if (kind.startsWith(kindPrefix)) {
+    return kind.slice(kindPrefix.length);
+  }
+  return kind;
+}
+
+export function makeImageString(images: string[]) {
+  let imageString = "";
+  if (!images[0]) return "-";
+  else imageString += images[0];
+  if (images[1]) {
+    for (let i = 1; i < images.length; i++) imageString += `\n${images[i]}`;
+  }
+  return imageString;
+}
+
+export function formatMetadataKey(key: string) {
+  return key
+    .replace(/-/g, " ")
+    .replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
 }

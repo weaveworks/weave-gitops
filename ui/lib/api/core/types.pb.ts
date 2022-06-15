@@ -11,6 +11,7 @@ export enum FluxObjectKind {
   KindHelmChart = "KindHelmChart",
   KindKustomization = "KindKustomization",
   KindHelmRelease = "KindHelmRelease",
+  KindCluster = "KindCluster",
 }
 
 export enum BucketProvider {
