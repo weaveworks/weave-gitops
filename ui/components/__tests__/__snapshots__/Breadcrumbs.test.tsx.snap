@@ -1,16 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`snapshots renders 1`] = `
+exports[`Breadcrumbs snapshots renders 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c1 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c1.title-bar-button {
+  width: 250px;
+}
+
+.c2 .c3 {
+  font-size: 20px;
+  color: #ffffff;
+}
+
 <div
-  className="sc-bczRLJ iDpicH"
+  className="c0"
 >
   <a
-    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
+    className="c1 c2"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="sc-gsnTZi hkopcK"
+      className="c3 c4"
       color="primary"
       size="medium"
     >
@@ -20,17 +57,86 @@ exports[`snapshots renders 1`] = `
 </div>
 `;
 
-exports[`snapshots renders child route 1`] = `
+exports[`Breadcrumbs snapshots renders child route 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c5 svg {
+  fill: #ffffff !important;
+  height: 32px;
+  width: 32px;
+}
+
+.c5.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c5.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c5 .c3 {
+  margin-left: 4px;
+  color: #ffffff;
+}
+
+.c1 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c1.title-bar-button {
+  width: 250px;
+}
+
+.c2 .c3 {
+  font-size: 20px;
+  color: #ffffff;
+}
+
 <div
-  className="sc-bczRLJ iDpicH"
+  className="c0"
 >
   <a
-    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
+    className="c1 c2"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="sc-gsnTZi hkopcK"
+      className="c3 c4"
       color="primary"
       size="medium"
     >
@@ -38,7 +144,7 @@ exports[`snapshots renders child route 1`] = `
     </span>
   </a>
   <div
-    className="sc-bczRLJ iDpicH sc-dkzDqf fphFew"
+    className="c0 c5"
   >
     <svg
       aria-hidden={true}
@@ -52,12 +158,12 @@ exports[`snapshots renders child route 1`] = `
     </svg>
   </div>
   <a
-    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
+    className="c1 c2"
     href="/kustomization?name=flux"
     onClick={[Function]}
   >
     <span
-      className="sc-gsnTZi cZFkGq"
+      className="c3 c6"
       color="primary"
       size="medium"
     >
@@ -67,17 +173,54 @@ exports[`snapshots renders child route 1`] = `
 </div>
 `;
 
-exports[`snapshots renders on the root page 1`] = `
+exports[`Breadcrumbs snapshots renders on the root page 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c1 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c1.title-bar-button {
+  width: 250px;
+}
+
+.c2 .c3 {
+  font-size: 20px;
+  color: #ffffff;
+}
+
 <div
-  className="sc-bczRLJ iDpicH"
+  className="c0"
 >
   <a
-    className="sc-eCYdqJ sc-jSMfEi kYfFWP bYfIap"
+    className="c1 c2"
     href="/"
     onClick={[Function]}
   >
     <span
-      className="sc-gsnTZi hkopcK"
+      className="c3 c4"
       color="primary"
       size="medium"
     />
