@@ -12,6 +12,10 @@ on:
     paths:
       - 'charts/**'
 
+env:
+  REGISTRY: ghcr.io
+  CHART_LOCATION: weaveworks/charts
+
 jobs:
   helm-verify:
     runs-on: ubuntu-latest
@@ -43,6 +47,11 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
+      - name: Find new version
+        id: new_version
+        run: |
+          NEW_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          echo "::set-output name=version::$NEW_VERSION"
       - name: Generate new chart
         run: |
           URL=https://helm.gitops.weave.works
@@ -60,3 +69,12 @@ jobs:
           path: helm-release
           destination: helm.gitops.weave.works
           parent: false
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish chart as an OCI image
+        run: |
+          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}  

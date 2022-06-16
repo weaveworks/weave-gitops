@@ -1,0 +1,158 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshots renders nothing without data 1`] = `null`;
+
+exports[`snapshots renders with data 1`] = `
+<div
+  className="sc-bdvvtL jFYFyX sc-gKclnd thVwy Metadata"
+>
+  <span
+    className="sc-gsDKAQ iLgApi"
+    color="neutral30"
+    size="large"
+  >
+    Metadata
+  </span>
+  <table
+    className="sc-eCImPb heNLgc"
+  >
+    <tbody>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Created By
+            :
+          </span>
+        </td>
+        <td>
+          Value 2
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            CreatedBy
+            :
+          </span>
+        </td>
+        <td>
+          Value 3
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            CreatedBy
+            :
+          </span>
+        </td>
+        <td>
+          Value 4
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Description
+            :
+          </span>
+        </td>
+        <td>
+          Value 1
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Html
+            :
+          </span>
+        </td>
+        <td>
+          &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Link To Google
+            :
+          </span>
+        </td>
+        <td>
+          <a
+            className="sc-jRQBWg itTnfW"
+            href="https://google.com"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <span
+              className="sc-gsDKAQ eOAACW"
+              color="primary"
+              size="medium"
+            >
+              https://google.com
+            </span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Multi Lines
+            :
+          </span>
+        </td>
+        <td>
+          This is first line
+This is second line
+
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span
+            className="sc-gsDKAQ jYnRIx"
+            color="neutral30"
+            size="medium"
+          >
+            Version
+            :
+          </span>
+        </td>
+        <td>
+          some version
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
