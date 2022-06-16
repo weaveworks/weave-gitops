@@ -208,7 +208,7 @@ In the above screenshot you can see:
 -  a `Kustomization` called `flux-system`, which was created when Flux was bootstrapped onto the Cluster, and is deploying the GitOps Toolkit controllers. It is also deploying further Flux objects defined in the same repo, so that Flux will deploy additional workloads which includes our Helm Chart for Weave GitOps.
 - a `HelmRelease` called `ww-gitops` which deploys the aforementioned Helm Chart.
 
-This table view shows the reported status so you can understand whether a reconciliation has been successful, and when they have last been updated. You can also see where the Flux objects are deployed and which `Source` object, for example a `GitRepository`, they are reconciling from; clicking the name of the Source it will take you to a detail view for the given source object. The view automatically updates every few seconds so you know the current state of your system.
+This table view shows the reported status so you can understand whether a reconciliation has been successful, and when they have last been updated. You can also see where the Flux objects are deployed and which `Source` object they are reconciling from; clicking the name of the Source it will take you to a detail view for the given source object. The view automatically updates every few seconds so you know the current state of your system.
 
 You can search for and filter objects by `Name` by clicking the magnifying glass, or filter by `Type` by clicking the strawberry icon to its right.
 
@@ -216,7 +216,7 @@ Clicking the Name of an object will take you to a detailed view for the given Ku
 
 ### The Sources view
 
-Clicking on Sources in the left hand menu will bring you to the Sources view, which shows the status of resources which are synchronizing content from where you have declared the desired state of your system, for example Git repositories. This shows summary information from `gitrepository`, `helmrepository` and `bucket` objects.
+Clicking on Sources in the left hand menu will bring you to the Sources view. This view shows you where flux pulls its application definitions from, for example Git repositories, and the current state of that synchronization. This shows summary information from `gitrepository`, `helmrepository`, `helmchart` and `bucket` objects.
 
 ![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-sources.png)
 
@@ -271,7 +271,7 @@ Underneath the summary information are four tabs:
 ![Application detail view showing the yaml display](/img/dashboard-application-yaml.png)
 
 #### Source details view
-Finally lets look at the Source in more detail, click `GitRepository/flux-system` from the summary at the top of the page.
+Finally lets look at the Source in more detail - go back to the Details tab, and click `GitRepository/flux-system` from the summary at the top of the page.
 
 ![Source detail view showing details for an object](/img/dashboard-source-flux.png)
 
