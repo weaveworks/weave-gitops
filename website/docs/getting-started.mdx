@@ -255,17 +255,21 @@ Let's explore the `flux-system` kustomization. Navigate back to the `Application
 
 After a few moments loading the data, you should see similar to the above screenshot. From here you can see key information about how this resource is defined: which `Source` it is reading from, the latest applied commit, the exact path with the Source repository that is being deployed, and the `Interval` in which Flux will look to reconcile any difference between the declared and live state - i.e. if a kubectl patch had been applied on the cluster, it would effectively be reverted. If a longer error message was being reported by this object, you would be able to see it in its entirety on this page.
 
-Underneath the summary information are three tabs:
+Underneath the summary information are four tabs:
 
 - Details (default) is a table view which shows all the Kubernetes objects (including flux objects, deployments, pods, services, etc) managed and deployed through this `kustomization`.
 - Events (shown below) shows any related Kubernetes events to help you diagnose issues and understand health over time.
 - Reconciliation Graph (shown below) provides a directional graph alternative to the Details view to help you understand how the various objects relate to each other.
+- Yaml (shown below) provides a raw dump on the current object as it currently exists inside your cluster. Note that this will be different from what's in your gitops repository, since this yaml view will contain the current status of the object.
 
 **Events tab**
 ![Application detail view showing events for an object](/img/dashboard-application-events.png)
 
 **Reconciliation Graph tab**
 ![Application detail view showing reconciliation graph - a directional graph showing object relationships](/img/dashboard-application-reconciliation.png)
+
+**Yaml tab**
+![Application detail view showing the yaml display](/img/dashboard-application-yaml.png)
 
 #### Source details view
 Finally lets look at the Source in more detail, click `GitRepository/flux-system` from the summary at the top of the page.
