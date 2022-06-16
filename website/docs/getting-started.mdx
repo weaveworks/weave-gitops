@@ -95,8 +95,7 @@ $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
 3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
-```
-# weave-gitops-values.yaml
+```yaml title="./weave-gitops-values.yaml"
 adminUser:
   create: true
   username: admin
@@ -128,7 +127,7 @@ flux create source helm ww-gitops \
 
 The generated file should look like this:
 
-```
+```yaml title="./clusters/my-cluster/weave-gitops-source.yaml"
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -342,10 +341,25 @@ Click on podinfo and you will see details about the deployment, including that t
 
 To customize a deployment from a repository you don’t control, you can use Flux in-line patches. The following example shows how to use in-line patches to change the podinfo deployment.
 
-1. Add the following to the field spec of your podinfo-kustomization.yaml file:
+1. Add the `patches` section as shown below to the field spec of your podinfo-kustomization.yaml file so it looks like this:
 
-```
-patches:
+```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: podinfo
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  path: ./kustomize
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: podinfo
+  targetNamespace: flux-system
+// highlight-start
+  patches:
     - patch: |-
         apiVersion: autoscaling/v2beta2
         kind: HorizontalPodAutoscaler
@@ -356,6 +370,7 @@ patches:
       target:
         name: podinfo
         kind: HorizontalPodAutoscaler
+// highlight-end
 ```
 
 2. Commit and push the podinfo-kustomization.yaml changes:
