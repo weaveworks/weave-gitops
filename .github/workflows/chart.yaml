@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  CHART_IMAGE_NAME: weaveworks/charts/weave-gitops
+  CHART_LOCATION: weaveworks/charts
 
 jobs:
   helm-verify:
@@ -77,4 +77,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish chart as an OCI image
         run: |
-          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_IMAGE_NAME }}  
+          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}  
