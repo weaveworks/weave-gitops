@@ -374,21 +374,17 @@ git push
 
 Suspending updates to a kustomization allows you to directly edit objects applied from a kustomization, without your changes being reverted by the state in Git.
 
-To suspend updates for a kustomization, run the command:
+To suspend updates for a kustomization, from the details page, click on the suspend button at the top, and you should see it be suspended:
 
-```
-flux suspend kustomization podinfo
-```
+![Podinfo details showing Podinfo suspended](/img/dashboard-podinfo-details-suspended.png)
 
 This shows in the applications view with a yellow warning status indicating it is now suspended
 
 ![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
 
-To resume updates run the command
+To resume updates, go back to the details page, click the resume button, and after a few seconds reconsolidation will continue:
 
-```
-flux resume kustomization podinfo
-```
+![Applications details view for podinfo being resumed](/img/dashboard-podinfo-updated.png)
 
 ## Complete!
 
