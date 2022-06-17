@@ -67,7 +67,7 @@ A Terraform resource can be created from a template by specifying the template's
 gitops add terraform --from-template sample-wge-tf-controller-template --set="RESOURCE_NAME"="name" --username=<username> --password=<password> --endpoint https://localhost:8000 --url <config-repo>
 ```
 
-This will create a PR in your config repository with the manifest of the Terraform resource. Once the PR is merged, TF-Controller will apply the manifest, create the Terraform resource, and reconcile any changes to the Terraform manifest in your config repo! 
+This will create a PR in your config repository with the manifest of the Terraform resource. Once the PR is merged, TF-Controller will apply the Terraform manifest, create the resources, and reconcile any changes that you make to the Terraform manifest in your config repo! 
 
 ### 3. List available templates
 Get a specific template that can be used to create a Terraform resource:
@@ -92,3 +92,87 @@ gitops get template terraform tf-controller-aurora --list-parameters --endpoint 
 NAME            REQUIRED   DESCRIPTION     OPTIONS
 RESOURCE_NAME   false      Resource Name
 ```
+
+## Use Case: Aurora RDS  
+:::tip BONUS
+
+Ready for a more advanced example? Here is a template to create an Aurora DB using WGE and the TF-Controller. 
+:::
+
+### Pre-requisites
+- Everything from the [previous section](#pre-requisites)
+- Set credentials with the Terraform AWS Provider
+
+### 2. Add a template to your cluster
+
+In the yaml file below, at `spec.resourcetemplates.path`, `./rds.tf` is a Terraform manifest that can be found [here](TODO: where should I add the example? Is there an [examples](https://www.github.com/weaveworks/eksctl/tree/main/examples/) dir in the `weave-gitops` repo?).
+
+This Terraform manifest will create an S3 bucket and an [Aurora DB](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.html).
+
+```title=“./clusters/<name-of-cluster>/sample-tf-template-2.yaml”
+---
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: sample-aurora-tf-template
+  namespace: default
+spec:
+  description: This is a sample Aurora RDS template.
+  params:
+    - name: RESOURCE_NAME
+      description: Resource Name
+    - name: CLUSTER_IDENTIFIER
+      description: Cluster Identifier
+    - name: DATABASE_BASE
+      description: Database Base
+    - name: BACKUP_RETENTION_PERIOD
+      description: Backup Retention Period
+    - name: REGION
+      description: Region
+    - name: S3_IMPORT_BUCKET
+      description: S3 Import Bucket
+    - name: MAIN_USERNAME
+      description: Main Username
+    - name: MAIN_PASSWORD
+      description: Main Password
+  resourcetemplates:
+    - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+      kind: Terraform
+      metadata:
+        name: ${RESOURCE_NAME}
+        namespace: flux-system
+      spec:
+        interval: 1h // Set the interval at which Flux will fetch the Git source and reconcile changes
+        path: ./_artifacts/rds
+        approvePlan: “auto” // See TF-Controller docs on [“The manual mode: plan and manual apply”](https://weaveworks.github.io/tf-controller/use_cases/#the-manual-mode-plan-and-manual-apply)
+        vars:
+        - name: cluster_identifier
+          value: ${CLUSTER_IDENTIFIER}
+        - name: database_name
+          value: ${DATABASE_NAME}
+        - name: backup_retention_period
+          value: ${BACKUP_RETENTION_PERIOD}
+        - name: region
+          value: ${REGION}
+        - name: s3_import_bucket
+          value: ${S3_IMPORT_BUCKET}
+        - main_username
+          value: ${MAIN_USERNAME}
+        - main_password
+          value: ${MAIN_PASSWORD}
+        sourceRef: // This is the Git source. It is configured to reconcile your config repo.
+          kind: GitRepository
+          name: flux-system
+          namespace: flux-system
+```
+
+### 3. Create the TF resource
+```bash
+gitops add terraform --from-template sample-aurora-tf-template \
+--username=<username> --password=<password> \
+--endpoint https://localhost:8000 \
+--url <config-repo> \
+--set “RESOURCE_NAME”=“tf-controller-aurora”,“CLUSTER_IDENTIFIER”=“super-awesome-aurora”,“DATABASE_BASE”=“super-awesome-db-name”,“BACKUP_RETENTION_PERIOD”=5,“REGION”=“us-west-2",“S3_IMPORT_BUCKET”=“my-super-amazing-aurora-instance-import-bucket-777" 
+```
+
+TODO: Is there an alternative for how to pass values to `--set`? A `-f values.yaml` would be nice, but  yet another `.yaml` file. Multi-line comma-separate map of strings? 
