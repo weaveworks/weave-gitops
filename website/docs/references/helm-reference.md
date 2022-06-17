@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 2.0.9 which installs weave gitops v0.8.1.
+This reference was generated for the chart version 2.0.10 which installs weave gitops v0.8.1.
 
 ## Values
 
@@ -32,6 +32,7 @@ This reference was generated for the chart version 2.0.9 which installs weave gi
 | nodeSelector | object | `{}` |  |
 | podAnnotations | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
+| rbac.additionalRules | list | `[]` | If non-empty, these additional rules will be appended to the RBAC role and the cluster role. for example, additionalRules: - apiGroups: ["infra.contrib.fluxcd.io"]   resources: ["terraforms"]   verbs: [ "get", "list", "patch" ] |
 | rbac.create | bool | `true` | Specifies whether the clusterRole & binding to the service account should be created |
 | rbac.impersonationResourceNames | list | `[]` | If non-empty, this limits the resources that the service account can impersonate. This applies to both users and groups, e.g. `['user1@corporation.com', 'user2@corporation.com', 'operations']` |
 | rbac.impersonationResources | list | `["users","groups"]` | Limit the type of principal that can be impersonated |
