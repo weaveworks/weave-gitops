@@ -7,6 +7,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -73,7 +74,7 @@ type ClusterClientConfig func(Cluster) *rest.Config
 
 func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 	return func(cluster Cluster) *rest.Config {
-		return &rest.Config{
+		config := &rest.Config{
 			Host:            cluster.Server,
 			BearerToken:     cluster.BearerToken,
 			TLSClientConfig: cluster.TLSConfig,
@@ -81,9 +82,22 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 				UserName: user.ID,
 				Groups:   user.Groups,
 			},
-			QPS:   ClientQPS,
-			Burst: ClientBurst,
 		}
+
+		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
+		if err == nil && enabled {
+			// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
+			// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
+			config.QPS = -1
+			config.Burst = -1
+
+			return config
+		}
+
+		config.QPS = ClientQPS
+		config.Burst = ClientBurst
+
+		return config
 	}
 }
 
