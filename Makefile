@@ -1,4 +1,4 @@
-.PHONY: all test install clean fmt vet dependencies gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
+.PHONY: all test install clean fmt vet gitops gitops-server _docker docker-gitops docker-gitops-server lint ui ui-audit ui-lint ui-test unit-tests proto proto-deps fakes
 
 CURRENT_DIR=$(shell pwd)
 
@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION?=$(shell [ -f '$(CURRENT_DIR)/tools/bin/stoml' ] && $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+FLUX_VERSION=0.31.0
 
 # Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
@@ -31,8 +31,6 @@ DEFAULT_DOCKER_REPO=localhost:5001
 DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
 DOCKER_IMAGE?=gitops-server
 
-KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell which go > /dev/null && go env GOBIN))
 GOBIN=$(shell which go > /dev/null && go env GOPATH)/bin
@@ -40,20 +38,23 @@ else
 GOBIN=$(shell which go > /dev/null && go env GOBIN)
 endif
 
+# Make sure GOBIN is in PATH, so go install-ed binaries work
+export PATH := $(PATH):$(GOBIN)
+
 ifeq ($(BINARY_NAME),)
 BINARY_NAME := gitops
 endif
 
 ##@ Default target
-all: gitops gitops-server ## Install dependencies and build Gitops binary. targets: gitops gitops-server
+all: gitops gitops-server ## Build Gitops binary. targets: gitops gitops-server
 
 TEST_TO_RUN?=./...
 ##@ Test
-unit-tests: dependencies ## Run unit tests
-	@go install github.com/onsi/ginkgo/v2/ginkgo
-	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
-
+unit-tests: ## Run unit tests
+	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
+	# This tool doesn't have releases - it also is only a shim
+	@go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.19.2) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -103,13 +104,8 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
-
-.deps:
-	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
-	@touch .deps
-
-dependencies: .deps ## Install build dependencies
 
 check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
 check-format: ## Check go format
@@ -122,12 +118,14 @@ proto-deps: ## Update protobuf dependencies
 	buf mod update
 
 proto: ## Generate protobuf files
+	# The ones with no version use the library inside the code already
+	# so always use same version
 	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
 	  github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-	  github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
-	  google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-	  google.golang.org/protobuf/cmd/protoc-gen-go \
-	  github.com/bufbuild/buf/cmd/buf
+	  google.golang.org/protobuf/cmd/protoc-gen-go
+	@go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts@v1.1.1
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
+	@go install github.com/bufbuild/buf/cmd/buf@v1.1.0
 	buf generate
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
@@ -191,42 +189,9 @@ lib-test: dependencies ## Run the library integration test
 		 gitops-library-test
 
 
-# Test coverage
-
-# JS coverage info
-coverage/lcov.info:
-	npm run test -- --coverage
-
-# Golang gocov data. Not compatible with coveralls at this point.
-unittest.out: dependencies
-	go get github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api,api,integration -o unittest.out ./... -- -v --timeout=496s -tags test,unittest
-	@go mod tidy
-
-integrationtest.out: dependencies
-	go get github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
-	@go mod tidy
-
-coverage:
-	@mkdir -p coverage
-
-# Convert gocov to lcov for coveralls
-coverage/unittest.info: coverage unittest.out
-	@go get -u github.com/jandelgado/gcov2lcov
-	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
-
-coverage/integrationtest.info: coverage integrationtest.out
-	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info
-
-# Concat the JS and Go coverage files for the coveralls report/
-# Note: you need to install `lcov` to run this locally.
-# There are no deps listed here to avoid re-running tests. If this fails run the other coverage/ targets first
-merged.lcov:
-	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
-
 ##@ Utilities
 tls-files:
+	@go install filippo.io/mkcert@v1.4.3
 	mkcert localhost
 
 

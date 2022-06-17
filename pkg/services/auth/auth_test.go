@@ -115,7 +115,7 @@ type actualFluxRunner struct {
 }
 
 func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
-	cmd := "../../../tools/bin/flux"
+	cmd := "flux"
 
 	return r.Runner.Run(cmd, args...)
 }
