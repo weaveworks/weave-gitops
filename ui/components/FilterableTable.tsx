@@ -31,6 +31,8 @@ export type FilterConfigCallback = (v: any) => any;
 
 export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
+  else if (computeReady(v["conditions"]) === "Reconciling")
+    return "Reconciling";
   else if (computeReady(v["conditions"])) return "Ready";
   else return "Not Ready";
 };
@@ -47,7 +49,6 @@ export function filterConfig(
     rows,
     (r, v) => {
       const t = computeValue ? computeValue(v) : v[key];
-
       if (!_.includes(r, t)) {
         r.push(t);
       }

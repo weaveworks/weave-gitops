@@ -65,7 +65,8 @@ export function statusSortHelper({
   conditions,
 }: Statusable): number {
   if (suspended) return 2;
-  if (computeReady(conditions)) return 3;
+  if (computeReady(conditions) === "Reconciling") return 3;
+  else if (computeReady(conditions)) return 4;
   else return 1;
 }
 

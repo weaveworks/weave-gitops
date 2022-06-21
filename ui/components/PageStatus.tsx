@@ -23,7 +23,9 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
           suspended
             ? IconType.SuspendedIcon
             : ok
-            ? IconType.CheckCircleIcon
+            ? ok === "Reconciling"
+              ? IconType.ReconcileIcon
+              : IconType.CheckCircleIcon
             : IconType.FailedIcon
         }
         color={ok ? "success" : "alert"}
