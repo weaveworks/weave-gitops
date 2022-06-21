@@ -4,6 +4,7 @@
 package tools
 
 import (
+	_ "github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 )
 

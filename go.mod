@@ -23,6 +23,7 @@ require (
 	github.com/google/go-cmp v0.5.7
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.1
+	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
@@ -57,6 +58,7 @@ require (
 
 require (
 	cloud.google.com/go/compute v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
@@ -64,6 +66,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
+	github.com/iancoleman/strcase v0.1.2 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
