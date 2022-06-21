@@ -126,6 +126,8 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 	result := []unstructured.Unstructured{}
 
+	checkDup := map[types.UID]bool{}
+
 	for _, gvk := range msg.Kinds {
 		listResult := unstructured.UnstructuredList{}
 
@@ -146,7 +148,14 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			return nil, fmt.Errorf("listing unstructured object: %w", err)
 		}
 
-		result = append(result, listResult.Items...)
+		for _, u := range listResult.Items {
+			uid := u.GetUID()
+
+			if !checkDup[uid] {
+				result = append(result, u)
+				checkDup[uid] = true
+			}
+		}
 	}
 
 	objects := []*pb.UnstructuredObject{}
