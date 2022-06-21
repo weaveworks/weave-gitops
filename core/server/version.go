@@ -16,9 +16,11 @@ var (
 
 func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
 	return &pb.GetVersionResponse{
-		Semver:    Version,
-		Commit:    GitCommit,
-		Branch:    Branch,
-		BuildTime: Buildtime,
+		Semver:      Version,
+		Commit:      GitCommit,
+		Branch:      Branch,
+		BuildTime:   Buildtime,
+		FluxVersion: "",
+		KubeVersion: "",
 	}, nil
 }
