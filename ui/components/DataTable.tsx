@@ -82,7 +82,7 @@ function defaultSortFunc(sort: Field): Sorter {
 
 export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
-  return (rows || []).sort((a: Row, b: Row) => {
+  return (rows?.slice() || []).sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);
