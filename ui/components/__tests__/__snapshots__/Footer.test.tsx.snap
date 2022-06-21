@@ -240,7 +240,7 @@ exports[`Footer snapshots no api version 1`] = `
   >
     <a
       class="c5"
-      href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.9.0-rc.3"
+      href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.9.0"
       rel="noreferrer"
       target="_blank"
     >
@@ -248,7 +248,7 @@ exports[`Footer snapshots no api version 1`] = `
         class="c6"
         color="primary"
       >
-        v0.9.0-rc.3
+        v0.9.0
       </span>
     </a>
     <div

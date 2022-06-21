@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.8.1"
+  tag: "v0.9.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
