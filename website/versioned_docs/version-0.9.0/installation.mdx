@@ -19,6 +19,7 @@ This version of Weave GitOps is tested against the following Kubernetes releases
 * 1.21
 * 1.22
 * 1.23
+* 1.24
 
 Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
 
@@ -27,6 +28,8 @@ Weave GitOps is an extension to Flux and therefore requires that Flux 0.29 or la
 
 This version of Weave GitOps is tested against the following Flux releases:
 * 0.29
+* 0.30
+* 0.31
 
 ### Install the Helm Chart
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
