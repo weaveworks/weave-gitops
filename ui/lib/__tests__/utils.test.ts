@@ -151,6 +151,22 @@ describe("utils lib", () => {
             },
           ],
         })
+      ).toEqual(4);
+    });
+    it("computes reconciling status", () => {
+      expect(
+        statusSortHelper({
+          suspended: false,
+          conditions: [
+            {
+              type: "Ready",
+              status: "Unknown",
+              reason: "Progressing",
+              message: "HealthCheckFailed",
+              timestamp: "2022-03-03 16:55:29 +0000 UTC",
+            },
+          ],
+        })
       ).toEqual(3);
     });
     it("computes default status", () => {

@@ -13,16 +13,17 @@ type Props = {
   suspended?: boolean;
 };
 
-export function computeReady(conditions: Condition[]): string | boolean {
-  const ready =
+export function computeReady(conditions: Condition[]): string {
+  if (
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available")
-      ? _.find(conditions, (c) => c.status === "Unknown") &&
-        _.find(conditions, (c) => c.reason === "Progressing")
-        ? "Reconciling"
-        : "True"
-      : false;
-  return ready;
+  ) {
+    return _.find(conditions, (c) => c.status === "Unknown") &&
+      _.find(conditions, (c) => c.reason === "Progressing")
+      ? "Reconciling"
+      : "True";
+  }
+  return undefined;
 }
 
 export function computeMessage(conditions: Condition[]) {
