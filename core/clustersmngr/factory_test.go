@@ -53,6 +53,32 @@ func TestGetImpersonatedClient(t *testing.T) {
 	})
 }
 
+func TestGetImpersonatedDiscoveryClient(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+
+	ns1 := createNamespace(g)
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns1}, nil)
+
+	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
+	err := clientsFactory.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	err = clientsFactory.UpdateNamespaces(ctx)
+	g.Expect(err).To(BeNil())
+
+	dc, err := clientsFactory.GetImpersonatedDiscoveryClient(ctx, &auth.UserPrincipal{ID: "user-id"}, clustersmngr.DefaultCluster)
+	g.Expect(err).To(BeNil())
+
+	_, err = dc.ServerVersion()
+	g.Expect(err).To(BeNil())
+}
+
 func TestUpdateNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
