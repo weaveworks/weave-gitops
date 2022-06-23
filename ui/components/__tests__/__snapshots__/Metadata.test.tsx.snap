@@ -1,26 +1,100 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`snapshots renders nothing without data 1`] = `null`;
+exports[`Metadata snapshots renders nothing without data 1`] = `null`;
 
-exports[`snapshots renders with data 1`] = `
+exports[`Metadata snapshots renders with data 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+}
+
+.c2 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c4 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: capitalize;
+  font-style: normal;
+  color: #737373;
+}
+
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c3 {
+  border-spacing: 0;
+}
+
+.c3 tbody tr td:first-child {
+  min-width: 200px;
+}
+
+.c3 td {
+  padding: 4px 0;
+  word-break: break-all;
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.c3 tr {
+  height: 16px;
+}
+
+.c5 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c5.title-bar-button {
+  width: 250px;
+}
+
+.c1 {
+  margin-top: 24px;
+}
+
 <div
-  className="sc-bdvvtL jFYFyX sc-gKclnd thVwy Metadata"
+  className="c0 c1 Metadata"
 >
   <span
-    className="sc-gsDKAQ iLgApi"
+    className="c2"
     color="neutral30"
     size="large"
   >
     Metadata
   </span>
   <table
-    className="sc-eCImPb heNLgc"
+    className="c3"
   >
     <tbody>
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -35,7 +109,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -50,7 +124,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -65,7 +139,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -80,7 +154,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -95,7 +169,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -105,13 +179,13 @@ exports[`snapshots renders with data 1`] = `
         </td>
         <td>
           <a
-            className="sc-jRQBWg itTnfW"
+            className="c5"
             href="https://google.com"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="sc-gsDKAQ eOAACW"
+              className="c6"
               color="primary"
               size="medium"
             >
@@ -123,7 +197,7 @@ exports[`snapshots renders with data 1`] = `
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >
@@ -140,7 +214,7 @@ This is second line
       <tr>
         <td>
           <span
-            className="sc-gsDKAQ jYnRIx"
+            className="c4"
             color="neutral30"
             size="medium"
           >

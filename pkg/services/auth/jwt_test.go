@@ -19,7 +19,7 @@ var _ = Describe("JWT tokens", func() {
 		token := "token"
 		cli := auth.NewJwtClient(secretKey)
 
-		jwtToken, err := cli.GenerateJWT(time.Millisecond, gitproviders.GitProviderGitHub, token)
+		jwtToken, err := cli.GenerateJWT(1*time.Second, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
 		claims, err := cli.VerifyJWT(jwtToken)
@@ -40,7 +40,7 @@ var _ = Describe("JWT tokens", func() {
 		token := "token"
 		cli := auth.NewJwtClient(secretKey)
 
-		jwtToken, err := cli.GenerateJWT(time.Millisecond, gitproviders.GitProviderGitLab, token)
+		jwtToken, err := cli.GenerateJWT(1*time.Second, gitproviders.GitProviderGitLab, token)
 		Expect(err).NotTo(HaveOccurred())
 
 		claims, err := cli.VerifyJWT(jwtToken)

@@ -7,14 +7,23 @@ import (
 
 func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName string) *pb.HelmRepository {
 	return &pb.HelmRepository{
-		Name:          helmRepository.Name,
-		Namespace:     helmRepository.Namespace,
-		Url:           helmRepository.Spec.URL,
-		Interval:      durationToInterval(helmRepository.Spec.Interval),
-		Conditions:    mapConditions(helmRepository.Status.Conditions),
-		Suspended:     helmRepository.Spec.Suspend,
-		LastUpdatedAt: lastUpdatedAt(helmRepository),
-		ClusterName:   clusterName,
-		ApiVersion:    helmRepository.APIVersion,
+		Name:           helmRepository.Name,
+		Namespace:      helmRepository.Namespace,
+		Url:            helmRepository.Spec.URL,
+		Interval:       durationToInterval(helmRepository.Spec.Interval),
+		Conditions:     mapConditions(helmRepository.Status.Conditions),
+		Suspended:      helmRepository.Spec.Suspend,
+		LastUpdatedAt:  lastUpdatedAt(helmRepository),
+		ClusterName:    clusterName,
+		ApiVersion:     helmRepository.APIVersion,
+		RepositoryType: typeToRepositoryType(helmRepository.Spec.Type),
+	}
+}
+
+func typeToRepositoryType(k8sType string) pb.HelmRepositoryType {
+	if k8sType == "oci" {
+		return pb.HelmRepositoryType_OCI
+	} else {
+		return pb.HelmRepositoryType_Default
 	}
 }
