@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -29,8 +30,19 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Kind:    "Namespace",
 	})
 
+	fmt.Println("msg.Namespace")
+	fmt.Println(msg.Namespace)
+
+	var ns string
+
+	if msg.Namespace != "" {
+		ns = msg.Namespace
+	} else {
+		ns = wego.DefaultNamespace
+	}
+
 	key := client.ObjectKey{
-		Name: "flux-system",
+		Name: ns,
 	}
 
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))

@@ -364,7 +364,9 @@ message SyncFluxObjectRequest {
 message SyncFluxObjectResponse {
 }
 
-message GetVersionRequest {}
+message GetVersionRequest {
+    string namespace = 1;
+}
 
 message GetVersionResponse {
     string semver    = 1;

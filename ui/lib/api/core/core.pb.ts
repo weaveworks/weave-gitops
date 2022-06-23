@@ -170,6 +170,7 @@ export type SyncFluxObjectResponse = {
 }
 
 export type GetVersionRequest = {
+  namespace?: string
 }
 
 export type GetVersionResponse = {

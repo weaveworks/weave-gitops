@@ -19,7 +19,18 @@ func TestGetVersion(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 
-	resp, err := c.GetVersion(context.Background(), &pb.GetVersionRequest{})
+	ctx := context.Background()
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: kube.CreateScheme(),
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ns := newNamespace(ctx, k, g)
+
+	resp, err := c.GetVersion(ctx, &pb.GetVersionRequest{
+		Namespace: ns.Name,
+	})
 
 	g.Expect(err).NotTo(HaveOccurred())
 
