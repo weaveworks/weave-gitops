@@ -16,21 +16,18 @@ type StatusProps = {
 function PageStatus({ conditions, suspended, className }: StatusProps) {
   const ok = suspended ? false : computeReady(conditions);
   const msg = suspended ? "Suspended" : computeMessage(conditions);
+
+  let iconType;
+  if (suspended) iconType = IconType.SuspendedIcon;
+  else if (ok)
+    ok === ReadyType.Reconciling
+      ? (iconType = IconType.ReconcileIcon)
+      : (iconType = IconType.CheckCircleIcon);
+  else iconType = IconType.FailedIcon;
+
   return (
     <Flex align className={className}>
-      <Icon
-        type={
-          suspended
-            ? IconType.SuspendedIcon
-            : ok
-            ? ok === ReadyType.Reconciling
-              ? IconType.ReconcileIcon
-              : IconType.CheckCircleIcon
-            : IconType.FailedIcon
-        }
-        color={ok ? "success" : "alert"}
-        size="medium"
-      />
+      <Icon type={iconType} size="medium" />
       <Spacer padding="xs" />
       <Text color="neutral30">{msg}</Text>
     </Flex>
