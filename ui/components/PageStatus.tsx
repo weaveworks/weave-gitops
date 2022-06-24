@@ -27,7 +27,7 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
 
   return (
     <Flex align className={className}>
-      <Icon type={iconType} size="medium" />
+      <Icon type={iconType} color={ok ? "success" : "alert"} size="medium" />
       <Spacer padding="xs" />
       <Text color="neutral30">{msg}</Text>
     </Flex>
