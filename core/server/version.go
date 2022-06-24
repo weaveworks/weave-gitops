@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -9,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,7 +22,11 @@ var (
 	Buildtime = ""
 )
 
-func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
+const (
+	defaultVersion = ""
+)
+
+func (cs *coreServer) GetFluxVersion(ctx context.Context, key types.NamespacedName) (string, error) {
 	u := &unstructured.Unstructured{}
 
 	u.SetGroupVersionKind(schema.GroupVersionKind{
@@ -29,6 +35,40 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Kind:    "Namespace",
 	})
 
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+
+	if err != nil {
+		return defaultVersion, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
+	if err != nil {
+		return defaultVersion, fmt.Errorf("error getting scoped client: %w", err)
+	}
+
+	err = c.Get(ctx, key, u)
+	if err != nil {
+		return defaultVersion, fmt.Errorf("error getting object: %w", err)
+	} else {
+		return u.GetLabels()["app.kubernetes.io/version"], nil
+	}
+}
+
+func (cs *coreServer) GetKubeVersion(ctx context.Context, key types.NamespacedName) (string, error) {
+	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	if err != nil {
+		return defaultVersion, fmt.Errorf("error creating discovery client: %w", err)
+	}
+
+	sVersion, err := dc.ServerVersion()
+	if err != nil {
+		return defaultVersion, fmt.Errorf("error getting server version: %w", err)
+	} else {
+		return sVersion.GitVersion, nil
+	}
+}
+
+func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
 	var ns string
 
 	if msg.Namespace != "" {
@@ -41,38 +81,14 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Name: ns,
 	}
 
-	fluxVersion := ""
-
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	fluxVersion, err := cs.GetFluxVersion(ctx, key)
 	if err != nil {
-		cs.logger.Error(err, "error getting impersonating client")
-	} else {
-		c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
-		if err != nil {
-			cs.logger.Error(err, "error getting scoped client")
-		} else {
-			err = c.Get(ctx, key, u)
-			if err != nil {
-				cs.logger.Error(err, "error getting object")
-			} else {
-				fluxVersion = u.GetLabels()["app.kubernetes.io/version"]
-			}
-		}
+		cs.logger.Error(err, "error getting flux version")
 	}
 
-	kubeVersion := ""
-
-	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	kubeVersion, err := cs.GetKubeVersion(ctx, key)
 	if err != nil {
-		cs.logger.Error(err, "error creating discovery client")
-	} else {
-		sVersion, err := dc.ServerVersion()
-
-		if err != nil {
-			cs.logger.Error(err, "error getting server version")
-		} else {
-			kubeVersion = sVersion.GitVersion
-		}
+		cs.logger.Error(err, "error getting k8s version")
 	}
 
 	return &pb.GetVersionResponse{
