@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import { computeMessage, computeReady } from "./KubeStatusIndicator";
+import { computeMessage, computeReady, ReadyType } from "./KubeStatusIndicator";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -23,7 +23,7 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
           suspended
             ? IconType.SuspendedIcon
             : ok
-            ? ok === "Reconciling"
+            ? ok === ReadyType.Reconciling
               ? IconType.ReconcileIcon
               : IconType.CheckCircleIcon
             : IconType.FailedIcon

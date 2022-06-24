@@ -12,6 +12,11 @@ type Props = {
   short?: boolean;
   suspended?: boolean;
 };
+export enum ReadyType {
+  Ready = "Ready",
+  NotReady = "NotReady",
+  Reconciling = "Reconciling",
+}
 
 export function computeReady(conditions: Condition[]): string {
   if (
@@ -20,8 +25,8 @@ export function computeReady(conditions: Condition[]): string {
   ) {
     return _.find(conditions, (c) => c.status === "Unknown") &&
       _.find(conditions, (c) => c.reason === "Progressing")
-      ? "Reconciling"
-      : "True";
+      ? ReadyType.Reconciling
+      : ReadyType.Ready;
   }
   return undefined;
 }
@@ -48,15 +53,15 @@ function KubeStatusIndicator({
   } else {
     const ready = computeReady(conditions);
     if (ready) {
-      if (ready === "Reconciling") {
-        readyText = "Reconciling";
+      if (ready === ReadyType.Reconciling) {
+        readyText = ReadyType.Reconciling;
         icon = IconType.ReconcileIcon;
       } else {
-        readyText = "Ready";
+        readyText = ReadyType.Ready;
         icon = IconType.SuccessIcon;
       }
     } else {
-      readyText = "Not Ready";
+      readyText = ReadyType.NotReady;
       icon = IconType.FailedIcon;
     }
   }

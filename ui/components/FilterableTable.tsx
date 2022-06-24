@@ -13,7 +13,7 @@ import FilterDialog, {
 } from "./FilterDialog";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import { computeReady } from "./KubeStatusIndicator";
+import { computeReady, ReadyType } from "./KubeStatusIndicator";
 import SearchField from "./SearchField";
 
 export type FilterableTableProps = {
@@ -31,10 +31,10 @@ export type FilterConfigCallback = (v: any) => any;
 
 export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
-  else if (computeReady(v["conditions"]) === "Reconciling")
-    return "Reconciling";
-  else if (computeReady(v["conditions"])) return "Ready";
-  else return "Not Ready";
+  else if (computeReady(v["conditions"]) === ReadyType.Reconciling)
+    return ReadyType.Reconciling;
+  else if (computeReady(v["conditions"])) return ReadyType.Ready;
+  else return ReadyType.NotReady;
 };
 
 export const filterByTypeCallback: FilterConfigCallback = (v) =>
