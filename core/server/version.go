@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -30,9 +29,6 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Kind:    "Namespace",
 	})
 
-	fmt.Println("msg.Namespace")
-	fmt.Println(msg.Namespace)
-
 	var ns string
 
 	if msg.Namespace != "" {
@@ -45,47 +41,46 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Name: ns,
 	}
 
+	fluxVersion := ""
+
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+		cs.logger.Error(err, "error getting impersonating client")
+	} else {
+		c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
+		if err != nil {
+			cs.logger.Error(err, "error getting scoped client")
+		} else {
+			err = c.Get(ctx, key, u)
+			if err != nil {
+				cs.logger.Error(err, "error getting object")
+			} else {
+				fluxVersion = u.GetLabels()["app.kubernetes.io/version"]
+			}
+		}
 	}
 
-	c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
-	if err != nil {
-		return nil, fmt.Errorf("error getting scoped client: %w", err)
-	}
-
-	err = c.Get(ctx, key, u)
-	if err != nil {
-		return nil, fmt.Errorf("error getting object: %w", err)
-	}
-
-	fmt.Println("unstructured object:")
-	fmt.Println(u)
-	fmt.Println("labels:")
-	fmt.Println(u.GetLabels())
+	kubeVersion := ""
 
 	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
-		return nil, fmt.Errorf("error creating discovery client: %w", err)
+		cs.logger.Error(err, "error creating discovery client")
+	} else {
+		sVersion, err := dc.ServerVersion()
+
+		if err != nil {
+			cs.logger.Error(err, "error getting server version")
+		} else {
+			kubeVersion = sVersion.GitVersion
+		}
 	}
-
-	fmt.Println("error:")
-	fmt.Println(err)
-	fmt.Println("discovery client:")
-	fmt.Println(dc)
-	fmt.Println("server version:")
-
-	v, _ := dc.ServerVersion()
-
-	fmt.Println(v)
 
 	return &pb.GetVersionResponse{
 		Semver:      Version,
 		Commit:      GitCommit,
 		Branch:      Branch,
 		BuildTime:   Buildtime,
-		FluxVersion: "",
-		KubeVersion: "",
+		FluxVersion: fluxVersion,
+		KubeVersion: kubeVersion,
 	}, nil
 }
