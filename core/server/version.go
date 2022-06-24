@@ -26,7 +26,7 @@ const (
 	defaultVersion = ""
 )
 
-func (cs *coreServer) GetFluxVersion(ctx context.Context, key types.NamespacedName) (string, error) {
+func (cs *coreServer) getFluxVersion(ctx context.Context, key types.NamespacedName) (string, error) {
 	u := &unstructured.Unstructured{}
 
 	u.SetGroupVersionKind(schema.GroupVersionKind{
@@ -54,7 +54,7 @@ func (cs *coreServer) GetFluxVersion(ctx context.Context, key types.NamespacedNa
 	}
 }
 
-func (cs *coreServer) GetKubeVersion(ctx context.Context, key types.NamespacedName) (string, error) {
+func (cs *coreServer) getKubeVersion(ctx context.Context, key types.NamespacedName) (string, error) {
 	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
 		return defaultVersion, fmt.Errorf("error creating discovery client: %w", err)
@@ -81,12 +81,12 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 		Name: ns,
 	}
 
-	fluxVersion, err := cs.GetFluxVersion(ctx, key)
+	fluxVersion, err := cs.getFluxVersion(ctx, key)
 	if err != nil {
 		cs.logger.Error(err, "error getting flux version")
 	}
 
-	kubeVersion, err := cs.GetKubeVersion(ctx, key)
+	kubeVersion, err := cs.getKubeVersion(ctx, key)
 	if err != nil {
 		cs.logger.Error(err, "error getting k8s version")
 	}
