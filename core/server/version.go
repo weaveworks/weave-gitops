@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -26,35 +26,37 @@ const (
 	defaultVersion = ""
 )
 
-func (cs *coreServer) getFluxVersion(ctx context.Context, key types.NamespacedName) (string, error) {
-	u := &unstructured.Unstructured{}
-
-	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Version: "v1",
-		Kind:    "Namespace",
-	})
-
+func (cs *coreServer) createScopedClient(ctx context.Context) (client.Client, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
-
 	if err != nil {
-		return defaultVersion, fmt.Errorf("error getting impersonating client: %w", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
 	if err != nil {
-		return defaultVersion, fmt.Errorf("error getting scoped client: %w", err)
+		return nil, fmt.Errorf("error getting scoped client: %w", err)
 	}
 
-	err = c.Get(ctx, key, u)
-	if err != nil {
-		return defaultVersion, fmt.Errorf("error getting object: %w", err)
-	} else {
-		return u.GetLabels()["app.kubernetes.io/version"], nil
-	}
+	return c, nil
 }
 
-func (cs *coreServer) getKubeVersion(ctx context.Context, key types.NamespacedName) (string, error) {
+func (cs *coreServer) getFluxVersion(ctx context.Context, obj unstructured.Unstructured) (string, error) {
+	labels := obj.GetLabels()
+
+	if labels == nil {
+		return defaultVersion, fmt.Errorf("error getting labels")
+	}
+
+	fluxVersion := labels[flux.VersionLabelKey]
+
+	if fluxVersion == "" {
+		return defaultVersion, fmt.Errorf("error getting server version")
+	}
+
+	return fluxVersion, nil
+}
+
+func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
 	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
 		return defaultVersion, fmt.Errorf("error creating discovery client: %w", err)
@@ -69,24 +71,43 @@ func (cs *coreServer) getKubeVersion(ctx context.Context, key types.NamespacedNa
 }
 
 func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
-	var ns string
+	c, err := cs.createScopedClient(ctx)
+	if err != nil {
+		cs.logger.Error(err, "error creating scoped client")
+	}
 
-	if msg.Namespace != "" {
-		ns = msg.Namespace
+	listResult := unstructured.UnstructuredList{}
+
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	})
+
+	opts := client.MatchingLabels{
+		coretypes.PartOfLabel: FluxNamespacePartOf,
+	}
+
+	u := unstructured.Unstructured{}
+
+	err = c.List(ctx, &listResult, opts)
+	if err != nil {
+		cs.logger.Error(err, "error getting list")
 	} else {
-		ns = wego.DefaultNamespace
+		for _, item := range listResult.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				u = item
+				break
+			}
+		}
 	}
 
-	key := client.ObjectKey{
-		Name: ns,
-	}
-
-	fluxVersion, err := cs.getFluxVersion(ctx, key)
+	fluxVersion, err := cs.getFluxVersion(ctx, u)
 	if err != nil {
 		cs.logger.Error(err, "error getting flux version")
 	}
 
-	kubeVersion, err := cs.getKubeVersion(ctx, key)
+	kubeVersion, err := cs.getKubeVersion(ctx)
 	if err != nil {
 		cs.logger.Error(err, "error getting k8s version")
 	}
