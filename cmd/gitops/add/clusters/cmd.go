@@ -10,6 +10,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
+	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
@@ -33,7 +34,7 @@ type clusterCommandFlags struct {
 
 var flags clusterCommandFlags
 
-func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Add a new cluster using a CAPI template",
@@ -41,7 +42,7 @@ func ClusterCommand(endpoint, username, password *string, client *resty.Client) 
 # Add a new cluster using a CAPI template
 gitops add cluster --from-template <template-name> --set key=val
 
-# View a CAPI template populated with parameter values 
+# View a CAPI template populated with parameter values
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 
@@ -51,8 +52,8 @@ gitops add cluster --from-template <template-name> \
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, username, password, client),
+		PreRunE:       getClusterCmdPreRunE(&opts.Endpoint),
+		RunE:          getClusterCmdRunE(opts, client),
 	}
 
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
@@ -65,7 +66,7 @@ gitops add cluster --from-template <template-name> \
 	return cmd
 }
 
-func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
@@ -75,9 +76,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

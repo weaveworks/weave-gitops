@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
@@ -25,7 +26,7 @@ type clustersDeleteFlags struct {
 
 var flags clustersDeleteFlags
 
-func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -36,8 +37,8 @@ gitops delete cluster <cluster-name>
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, username, password, client),
+		PreRunE:       getClusterCmdPreRunE(&opts.Endpoint),
+		RunE:          getClusterCmdRunE(opts, client),
 		Args:          cobra.MinimumNArgs(1),
 	}
 
@@ -51,7 +52,7 @@ gitops delete cluster <cluster-name>
 	return cmd
 }
 
-func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
@@ -61,9 +62,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

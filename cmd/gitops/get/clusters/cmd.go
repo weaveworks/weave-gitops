@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
@@ -18,7 +19,7 @@ type clustersGetFlags struct {
 
 var clustersGetCmdFlags clustersGetFlags
 
-func ClusterCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -34,8 +35,8 @@ gitops get cluster <cluster-name>
 gitops get cluster <cluster-name> --kubeconfig`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE:       getClusterCmdPreRunE(endpoint, client),
-		RunE:          getClusterCmdRunE(endpoint, username, password, client),
+		PreRunE:       getClusterCmdPreRunE(&opts.Endpoint),
+		RunE:          getClusterCmdRunE(opts, client),
 	}
 
 	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
@@ -43,7 +44,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 	return cmd
 }
 
-func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
@@ -53,9 +54,9 @@ func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 	}
 }
 
-func getClusterCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
 		if err != nil {
 			return err
 		}

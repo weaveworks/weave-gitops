@@ -4,6 +4,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
+	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/credentials"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
@@ -11,7 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates/terraform"
 )
 
-func GetCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func GetCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Display one or many Weave GitOps resources",
@@ -26,14 +27,14 @@ gitops get credentials
 gitops get clusters`,
 	}
 
-	templateCommand := templates.TemplateCommand(endpoint, username, password, client)
-	terraformCommand := terraform.TerraformCommand(endpoint, username, password, client)
+	templateCommand := templates.TemplateCommand(opts, client)
+	terraformCommand := terraform.TerraformCommand(opts, client)
 	templateCommand.AddCommand(terraformCommand)
 
 	cmd.AddCommand(templateCommand)
-	cmd.AddCommand(credentials.CredentialCommand(endpoint, username, password, client))
-	cmd.AddCommand(clusters.ClusterCommand(endpoint, username, password, client))
-	cmd.AddCommand(profiles.ProfilesCommand(endpoint, username, password, client))
+	cmd.AddCommand(credentials.CredentialCommand(opts, client))
+	cmd.AddCommand(clusters.ClusterCommand(opts, client))
+	cmd.AddCommand(profiles.ProfilesCommand(opts, client))
 
 	return cmd
 }
