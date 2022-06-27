@@ -7,6 +7,7 @@ import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
+import Version, { VersionProps } from "./Version";
 
 type Props = {
   className?: string;
@@ -30,34 +31,30 @@ function Footer({ className }: Props) {
     versionData.branch &&
     versionData.commit;
 
-  const versionText = shouldDisplayApiVersion
+  const wegoVersionText = shouldDisplayApiVersion
     ? `${versionData.branch}-${versionData.commit}`
     : `v${p.version}`;
-  const versionHref = shouldDisplayApiVersion
+  const wegoVersionHref = shouldDisplayApiVersion
     ? `${REPO_URL}/commit/${versionData.commit}`
     : `${REPO_URL}/releases/tag/v${p.version}`;
 
-  const fluxVersionText = versionData.fluxVersion;
-  const fluxVersion =
-    !isLoading && fluxVersionText !== "" ? (
-      <>
-        <Text semiBold>Flux:</Text>
-        <Spacer padding="xxs" />
-        <Text>{fluxVersionText}</Text>
-        <Spacer padding="xxs" />
-      </>
-    ) : null;
-
-  const kubeVersionText = versionData.kubeVersion;
-  const kubeVersion =
-    !isLoading && kubeVersionText !== "" ? (
-      <>
-        <Text semiBold>Kubernetes:</Text>
-        <Spacer padding="xxs" />
-        <Text>{kubeVersionText}</Text>
-        <Spacer padding="xxs" />
-      </>
-    ) : null;
+  const versions: VersionProps[] = !isLoading
+    ? [
+        {
+          productName: "Kubernetes",
+          versionText: versionData.kubeVersion,
+        },
+        {
+          productName: "Flux",
+          versionText: versionData.fluxVersion,
+        },
+        {
+          productName: "Weave GitOps",
+          versionText: wegoVersionText,
+          versionHref: wegoVersionHref,
+        },
+      ]
+    : [];
 
   return (
     <Flex as="footer" wide between className={className} role="footer">
@@ -69,20 +66,13 @@ function Footer({ className }: Props) {
         </Link>
       </LeftFoot>
       <RightFoot>
-        {!isLoading && (
-          <>
-            <Spacer padding="xxs" />
-            {kubeVersion}
-            {fluxVersion}
-            <Text semiBold noWrap>
-              Weave GitOps:
-            </Text>
-            <Spacer padding="xxs" />
-            <Link newTab href={versionHref}>
-              <Text semiBold>{versionText}</Text>
-            </Link>
-          </>
-        )}
+        {!isLoading &&
+          versions.map((version, index) => (
+            <>
+              <Spacer padding="xxs" />
+              <Version key={`key ${index}`} {...version} />
+            </>
+          ))}
         <Spacer padding="xxs" />
         <Text noWrap>© 2022 Weaveworks</Text>
       </RightFoot>

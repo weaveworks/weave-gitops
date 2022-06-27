@@ -34,6 +34,23 @@ exports[`Footer snapshots default 1`] = `
   align-items: start;
 }
 
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -52,15 +69,16 @@ exports[`Footer snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c8 {
+.c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
+  white-space: nowrap;
 }
 
-.c9 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -68,13 +86,12 @@ exports[`Footer snapshots default 1`] = `
   font-style: normal;
 }
 
-.c10 {
+.c11 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-  white-space: nowrap;
 }
 
 .c5 {
@@ -133,59 +150,78 @@ exports[`Footer snapshots default 1`] = `
     <div
       class="c4"
     />
-    <span
-      class="c8"
-    >
-      Kubernetes:
-    </span>
     <div
-      class="c4"
-    />
-    <span
-      class="c9"
-    />
-    <div
-      class="c4"
-    />
-    <span
-      class="c8"
-    >
-      Flux:
-    </span>
-    <div
-      class="c4"
-    />
-    <span
-      class="c9"
-    />
-    <div
-      class="c4"
-    />
-    <span
-      class="c10"
-    >
-      Weave GitOps:
-    </span>
-    <div
-      class="c4"
-    />
-    <a
-      class="c5"
-      href="https://github.com/weaveworks/weave-gitops/commit/123abcd"
-      rel="noreferrer"
-      target="_blank"
+      class="c8 Version"
     >
       <span
-        class="c6"
-        color="primary"
+        class="c9"
+      >
+        Kubernetes
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <span
+        class="c10"
+      >
+        -
+      </span>
+    </div>
+    <div
+      class="c4"
+    />
+    <div
+      class="c8 Version"
+    >
+      <span
+        class="c9"
+      >
+        Flux
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <span
+        class="c10"
+      >
+        -
+      </span>
+    </div>
+    <div
+      class="c4"
+    />
+    <div
+      class="c8 Version"
+    >
+      <span
+        class="c9"
+      >
+        Weave GitOps
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <a
+        class="c5"
+        href="https://github.com/weaveworks/weave-gitops/commit/123abcd"
+        rel="noreferrer"
+        target="_blank"
       >
         <span
-          class="c8"
+          class="c6"
+          color="primary"
         >
-          mybranch-123abcd
+          <span
+            class="c11"
+          >
+            mybranch-123abcd
+          </span>
         </span>
-      </span>
-    </a>
+      </a>
+    </div>
     <div
       class="c4"
     />
@@ -232,6 +268,23 @@ exports[`Footer snapshots no api version 1`] = `
   align-items: start;
 }
 
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -250,15 +303,16 @@ exports[`Footer snapshots no api version 1`] = `
   color: #00b3ec;
 }
 
-.c8 {
+.c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
+  white-space: nowrap;
 }
 
-.c9 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -266,13 +320,12 @@ exports[`Footer snapshots no api version 1`] = `
   font-style: normal;
 }
 
-.c10 {
+.c11 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-  white-space: nowrap;
 }
 
 .c5 {
@@ -331,59 +384,78 @@ exports[`Footer snapshots no api version 1`] = `
     <div
       class="c4"
     />
-    <span
-      class="c8"
-    >
-      Kubernetes:
-    </span>
     <div
-      class="c4"
-    />
-    <span
-      class="c9"
-    />
-    <div
-      class="c4"
-    />
-    <span
-      class="c8"
-    >
-      Flux:
-    </span>
-    <div
-      class="c4"
-    />
-    <span
-      class="c9"
-    />
-    <div
-      class="c4"
-    />
-    <span
-      class="c10"
-    >
-      Weave GitOps:
-    </span>
-    <div
-      class="c4"
-    />
-    <a
-      class="c5"
-      href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.9.0"
-      rel="noreferrer"
-      target="_blank"
+      class="c8 Version"
     >
       <span
-        class="c6"
-        color="primary"
+        class="c9"
+      >
+        Kubernetes
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <span
+        class="c10"
+      >
+        -
+      </span>
+    </div>
+    <div
+      class="c4"
+    />
+    <div
+      class="c8 Version"
+    >
+      <span
+        class="c9"
+      >
+        Flux
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <span
+        class="c10"
+      >
+        -
+      </span>
+    </div>
+    <div
+      class="c4"
+    />
+    <div
+      class="c8 Version"
+    >
+      <span
+        class="c9"
+      >
+        Weave GitOps
+        :
+      </span>
+      <div
+        class="c4"
+      />
+      <a
+        class="c5"
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.9.0"
+        rel="noreferrer"
+        target="_blank"
       >
         <span
-          class="c8"
+          class="c6"
+          color="primary"
         >
-          v0.9.0
+          <span
+            class="c11"
+          >
+            v0.9.0
+          </span>
         </span>
-      </span>
-    </a>
+      </a>
+    </div>
     <div
       class="c4"
     />
