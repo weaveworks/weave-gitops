@@ -26,7 +26,7 @@ const (
 	defaultVersion = ""
 )
 
-func (cs *coreServer) createScopedClient(ctx context.Context) (client.Client, error) {
+func (cs *coreServer) getScopedClient(ctx context.Context) (client.Client, error) {
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -43,12 +43,12 @@ func (cs *coreServer) createScopedClient(ctx context.Context) (client.Client, er
 func (cs *coreServer) getFluxVersion(ctx context.Context, obj unstructured.Unstructured) (string, error) {
 	labels := obj.GetLabels()
 	if labels == nil {
-		return defaultVersion, fmt.Errorf("error getting labels")
+		return "", fmt.Errorf("error getting labels")
 	}
 
 	fluxVersion := labels[flux.VersionLabelKey]
 	if fluxVersion == "" {
-		return defaultVersion, fmt.Errorf("error getting server version")
+		return "", fmt.Errorf("error getting server version")
 	}
 
 	return fluxVersion, nil
@@ -57,19 +57,19 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, obj unstructured.Unstr
 func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
 	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
-		return defaultVersion, fmt.Errorf("error creating discovery client: %w", err)
+		return "", fmt.Errorf("error creating discovery client: %w", err)
 	}
 
 	serverVersion, err := dc.ServerVersion()
 	if err != nil {
-		return defaultVersion, fmt.Errorf("error getting server version: %w", err)
+		return "", fmt.Errorf("error getting server version: %w", err)
 	} else {
 		return serverVersion.GitVersion, nil
 	}
 }
 
 func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
-	c, err := cs.createScopedClient(ctx)
+	c, err := cs.getScopedClient(ctx)
 	if err != nil {
 		cs.logger.Error(err, "error creating scoped client")
 	}
@@ -103,11 +103,15 @@ func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest)
 	fluxVersion, err := cs.getFluxVersion(ctx, u)
 	if err != nil {
 		cs.logger.Error(err, "error getting flux version")
+
+		fluxVersion = defaultVersion
 	}
 
 	kubeVersion, err := cs.getKubeVersion(ctx)
 	if err != nil {
 		cs.logger.Error(err, "error getting k8s version")
+
+		kubeVersion = defaultVersion
 	}
 
 	return &pb.GetVersionResponse{
