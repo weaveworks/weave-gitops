@@ -12,10 +12,11 @@ import { NoNamespace } from "../lib/types";
 import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
 import { SortType } from "./DataTable";
 import {
-  filterConfig,
-  filterByTypeCallback,
   filterByStatusCallback,
+  filterByTypeCallback,
+  filterConfig,
 } from "./FilterableTable";
+import ImageLink from "./ImageLink";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
@@ -134,7 +135,9 @@ function ReconciledObjectsTable({
           },
           {
             label: "Images",
-            value: (u: UnstructuredObject) => makeImageString(u.images),
+            value: (u: UnstructuredObject) => (
+              <ImageLink image={makeImageString(u.images)} />
+            ),
             sortType: SortType.string,
             sortValue: (u: UnstructuredObject) => makeImageString(u.images),
           },

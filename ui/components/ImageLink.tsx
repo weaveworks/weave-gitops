@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Link from "./Link";
+import Text from "./Text";
 
 export const convertImage = (image: string) => {
   const split = image.split("/");
@@ -55,11 +56,13 @@ type Props = {
 };
 
 function ImageLink({ className, image = "" }: Props) {
-  return (
-    <Link className={className} href={convertImage(image)} newTab>
-      {image}
-    </Link>
-  );
+  if (image !== "-")
+    return (
+      <Link className={className} href={convertImage(image)} newTab>
+        {image}
+      </Link>
+    );
+  else return <Text>{image}</Text>;
 }
 
 export default styled(ImageLink).attrs({ className: ImageLink.name })``;
