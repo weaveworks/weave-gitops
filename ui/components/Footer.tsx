@@ -37,10 +37,32 @@ function Footer({ className }: Props) {
     ? `${REPO_URL}/commit/${versionData.commit}`
     : `${REPO_URL}/releases/tag/v${p.version}`;
 
+  const fluxVersionText = versionData.fluxVersion;
+  const fluxVersion =
+    !isLoading && fluxVersionText !== "" ? (
+      <>
+        <Text semiBold>Flux:</Text>
+        <Spacer padding="xxs" />
+        <Text>{fluxVersionText}</Text>
+        <Spacer padding="xxs" />
+      </>
+    ) : null;
+
+  const kubeVersionText = versionData.kubeVersion;
+  const kubeVersion =
+    !isLoading && kubeVersionText !== "" ? (
+      <>
+        <Text semiBold>Kubernetes:</Text>
+        <Spacer padding="xxs" />
+        <Text>{kubeVersionText}</Text>
+        <Spacer padding="xxs" />
+      </>
+    ) : null;
+
   return (
     <Flex as="footer" wide between className={className} role="footer">
       <LeftFoot>
-        <Text color="neutral30">Need help? Contact us at</Text>
+        <Text>Need help? Contact us at</Text>
         <Spacer padding="xxs" />
         <Link newTab href="mailto:support@weave.works">
           support@weave.works
@@ -48,12 +70,21 @@ function Footer({ className }: Props) {
       </LeftFoot>
       <RightFoot>
         {!isLoading && (
-          <Link newTab href={versionHref}>
-            {versionText}
-          </Link>
+          <>
+            <Spacer padding="xxs" />
+            {kubeVersion}
+            {fluxVersion}
+            <Text semiBold noWrap>
+              Weave GitOps:
+            </Text>
+            <Spacer padding="xxs" />
+            <Link newTab href={versionHref}>
+              <Text semiBold>{versionText}</Text>
+            </Link>
+          </>
         )}
         <Spacer padding="xxs" />
-        <Text color="neutral30">© 2022 Weaveworks</Text>
+        <Text>© 2022 Weaveworks</Text>
       </RightFoot>
     </Flex>
   );

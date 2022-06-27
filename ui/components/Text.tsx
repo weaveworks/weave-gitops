@@ -11,6 +11,7 @@ export interface TextProps {
   italic?: boolean;
   color?: keyof typeof colors;
   uppercase?: boolean;
+  noWrap?: boolean;
 }
 
 function textTransform(props) {
@@ -37,6 +38,8 @@ const Text = styled.span<TextProps>`
 
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
   color: ${(props) => props.theme.colors[props.color as any]};
+
+  ${(props) => props.noWrap && "white-space: nowrap;"};
 `;
 
 Text.defaultProps = {

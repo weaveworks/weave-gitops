@@ -32,23 +32,21 @@ func (cs *coreServer) createScopedClient(ctx context.Context) (client.Client, er
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	c, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
+	scopedClient, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
 	if err != nil {
 		return nil, fmt.Errorf("error getting scoped client: %w", err)
 	}
 
-	return c, nil
+	return scopedClient, nil
 }
 
 func (cs *coreServer) getFluxVersion(ctx context.Context, obj unstructured.Unstructured) (string, error) {
 	labels := obj.GetLabels()
-
 	if labels == nil {
 		return defaultVersion, fmt.Errorf("error getting labels")
 	}
 
 	fluxVersion := labels[flux.VersionLabelKey]
-
 	if fluxVersion == "" {
 		return defaultVersion, fmt.Errorf("error getting server version")
 	}
@@ -62,11 +60,11 @@ func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
 		return defaultVersion, fmt.Errorf("error creating discovery client: %w", err)
 	}
 
-	sVersion, err := dc.ServerVersion()
+	serverVersion, err := dc.ServerVersion()
 	if err != nil {
 		return defaultVersion, fmt.Errorf("error getting server version: %w", err)
 	} else {
-		return sVersion.GitVersion, nil
+		return serverVersion.GitVersion, nil
 	}
 }
 

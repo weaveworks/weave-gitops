@@ -79,7 +79,6 @@ exports[`Page snapshots default 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  color: #737373;
 }
 
 .c10 {
@@ -145,7 +144,6 @@ exports[`Page snapshots default 1`] = `
     >
       <span
         className="c7"
-        color="neutral30"
         size="medium"
       >
         Need help? Contact us at
@@ -176,7 +174,6 @@ exports[`Page snapshots default 1`] = `
       />
       <span
         className="c7"
-        color="neutral30"
         size="medium"
       >
         © 2022 Weaveworks

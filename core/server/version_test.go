@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	someVersion = "some-version"
+	testVersion = "some-version"
 )
 
 func TestGetVersion(t *testing.T) {
@@ -41,12 +41,12 @@ func TestGetVersion(t *testing.T) {
 	fluxNs.Name = "flux-ns-test"
 	fluxNs.Labels = map[string]string{
 		coretypes.PartOfLabel: server.FluxNamespacePartOf,
-		flux.VersionLabelKey:  someVersion,
+		flux.VersionLabelKey:  testVersion,
 	}
 	g.Expect(k.Create(ctx, fluxNs)).To(Succeed())
 
 	resp, err := c.GetVersion(ctx, &pb.GetVersionRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.Semver).To(Equal("v0.0.0"))
-	g.Expect(resp.FluxVersion).To(Equal(someVersion))
+	g.Expect(resp.FluxVersion).To(Equal(testVersion))
 }
