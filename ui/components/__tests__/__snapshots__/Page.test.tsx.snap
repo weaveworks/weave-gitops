@@ -79,6 +79,7 @@ exports[`Page snapshots default 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
+  white-space: nowrap;
 }
 
 .c10 {

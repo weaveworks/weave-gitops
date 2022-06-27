@@ -40,6 +40,7 @@ exports[`Footer snapshots default 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
+  white-space: nowrap;
 }
 
 .c6 {
@@ -60,6 +61,14 @@ exports[`Footer snapshots default 1`] = `
 }
 
 .c9 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -133,7 +142,7 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <span
-      class="c3"
+      class="c9"
     />
     <div
       class="c4"
@@ -147,13 +156,13 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <span
-      class="c3"
+      class="c9"
     />
     <div
       class="c4"
     />
     <span
-      class="c9"
+      class="c10"
     >
       Weave GitOps:
     </span>
@@ -229,6 +238,7 @@ exports[`Footer snapshots no api version 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
+  white-space: nowrap;
 }
 
 .c6 {
@@ -249,6 +259,14 @@ exports[`Footer snapshots no api version 1`] = `
 }
 
 .c9 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -322,7 +340,7 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <span
-      class="c3"
+      class="c9"
     />
     <div
       class="c4"
@@ -336,13 +354,13 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <span
-      class="c3"
+      class="c9"
     />
     <div
       class="c4"
     />
     <span
-      class="c9"
+      class="c10"
     >
       Weave GitOps:
     </span>

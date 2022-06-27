@@ -62,7 +62,7 @@ function Footer({ className }: Props) {
   return (
     <Flex as="footer" wide between className={className} role="footer">
       <LeftFoot>
-        <Text>Need help? Contact us at</Text>
+        <Text noWrap>Need help? Contact us at</Text>
         <Spacer padding="xxs" />
         <Link newTab href="mailto:support@weave.works">
           support@weave.works
@@ -84,7 +84,7 @@ function Footer({ className }: Props) {
           </>
         )}
         <Spacer padding="xxs" />
-        <Text>© 2022 Weaveworks</Text>
+        <Text noWrap>© 2022 Weaveworks</Text>
       </RightFoot>
     </Flex>
   );
