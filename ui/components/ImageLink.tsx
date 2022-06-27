@@ -56,9 +56,10 @@ type Props = {
 };
 
 function ImageLink({ className, image = "" }: Props) {
-  if (image !== "-")
+  const imageUrl = convertImage(image);
+  if (imageUrl && image !== "-")
     return (
-      <Link className={className} href={convertImage(image)} newTab>
+      <Link className={className} href={imageUrl} newTab>
         {image}
       </Link>
     );
