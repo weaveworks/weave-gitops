@@ -133,7 +133,15 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		Namespace: v1alpha1.DefaultNamespace,
 		Name:      auth.OIDCAuthSecretName,
 	}, &secret); err == nil {
+		if len(options.OIDC.ClientSecret) > 0 && len(secret.Data["clientSecret"]) > 0 {
+			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
+		}
 		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
+
+	}
+
+	if len(oidcConfig.ClientSecret) > 0 {
+		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
 	}
 
 	tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
