@@ -47,6 +47,7 @@ type Options struct {
 	HelmRepoName                  string
 	Path                          string
 	LogLevel                      string
+	OIDCSecret                    string
 	OIDC                          auth.OIDCConfig
 	NotificationControllerAddress string
 	TLSCertFile                   string
@@ -77,6 +78,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
+
+	cmd.Flags().StringVar(&options.OIDCSecret, "oidc-secret-name", auth.DefaultOIDCAuthSecretName, "Name of the secret that contains OIDC configuration")
 
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
@@ -131,13 +134,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	var secret corev1.Secret
 	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
 		Namespace: v1alpha1.DefaultNamespace,
-		Name:      auth.OIDCAuthSecretName,
+		Name:      options.OIDCSecret,
 	}, &secret); err == nil {
 		if len(options.OIDC.ClientSecret) > 0 && len(secret.Data["clientSecret"]) > 0 {
 			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
 		}
 		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
-
 	}
 
 	if len(oidcConfig.ClientSecret) > 0 {
