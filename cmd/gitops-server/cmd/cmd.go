@@ -130,6 +130,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	oidcConfig := options.OIDC
 
+	if options.OIDCSecret != auth.DefaultOIDCAuthSecretName {
+		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", options.OIDCSecret)
+	}
+
 	// If OIDC auth secret is found prefer that over CLI parameters
 	var secret corev1.Secret
 	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
@@ -140,6 +144,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
 		}
 		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
+	} else if err != nil {
+		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", options.OIDCSecret, "error", err)
 	}
 
 	if len(oidcConfig.ClientSecret) > 0 {
