@@ -119,6 +119,11 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	return &AuthServer{cfg, provider}, nil
 }
 
+// SetOidcEnabled is intended for test use only
+func SetOidcEnabled(newVal bool) {
+	isOidcEnabled = newVal
+}
+
 func OidcEnabled() bool {
 	return isOidcEnabled
 }

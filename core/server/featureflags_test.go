@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"context"
 	"testing"
 
@@ -27,6 +28,7 @@ func TestGetFeatureFlags(t *testing.T) {
 		envSet   func()
 		envUnset func()
 		state    []client.Object
+		oidcEnabled bool
 		result   map[string]string
 	}{
 		{
@@ -34,6 +36,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			envSet:   func() {},
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
+			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "true",
 				"OIDC_AUTH":         "false",
@@ -44,6 +47,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			envSet:   func() {},
 			envUnset: func() {},
 			state:    []client.Object{},
+			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
 				"OIDC_AUTH":         "false",
@@ -54,6 +58,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			envSet:   func() {},
 			envUnset: func() {},
 			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
+			oidcEnabled: true,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
 				"OIDC_AUTH":         "true",
@@ -64,6 +69,7 @@ func TestGetFeatureFlags(t *testing.T) {
 			envSet:   func() {},
 			envUnset: func() {},
 			state:    []client.Object{},
+			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
 				"OIDC_AUTH":         "false",
@@ -74,6 +80,8 @@ func TestGetFeatureFlags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})
+
+			auth.SetOidcEnabled(tt.oidcEnabled)
 
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
 			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
