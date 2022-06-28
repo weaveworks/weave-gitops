@@ -21,7 +21,7 @@ function Version({
   const formattedVersionText = versionText || "-";
 
   return (
-    <Flex className={className} wrap>
+    <Flex className={className}>
       <Text semiBold noWrap>
         {productName}:
       </Text>

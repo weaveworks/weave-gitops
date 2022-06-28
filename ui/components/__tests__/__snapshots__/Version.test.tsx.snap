@@ -13,9 +13,6 @@ exports[`Version snapshots renders a dash as plain text without version text and
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
 }
 
 .c1 {
@@ -74,9 +71,6 @@ exports[`Version snapshots renders a dash without version text and without versi
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
 }
 
 .c1 {
@@ -135,9 +129,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
 }
 
 .c1 {
@@ -227,9 +218,6 @@ exports[`Version snapshots renders plain text with version text and without vers
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
 }
 
 .c1 {

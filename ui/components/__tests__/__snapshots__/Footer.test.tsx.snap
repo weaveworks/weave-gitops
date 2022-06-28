@@ -34,23 +34,6 @@ exports[`Footer snapshots default 1`] = `
   align-items: start;
 }
 
-.c8 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-}
-
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -69,7 +52,7 @@ exports[`Footer snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c9 {
+.c8 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -78,7 +61,7 @@ exports[`Footer snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c10 {
+.c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -86,7 +69,7 @@ exports[`Footer snapshots default 1`] = `
   font-style: normal;
 }
 
-.c11 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -151,10 +134,10 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Kubernetes
         :
@@ -163,7 +146,7 @@ exports[`Footer snapshots default 1`] = `
         class="c4"
       />
       <span
-        class="c10"
+        class="c9"
       >
         -
       </span>
@@ -172,10 +155,10 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Flux
         :
@@ -184,7 +167,7 @@ exports[`Footer snapshots default 1`] = `
         class="c4"
       />
       <span
-        class="c10"
+        class="c9"
       >
         -
       </span>
@@ -193,10 +176,10 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Weave GitOps
         :
@@ -215,7 +198,7 @@ exports[`Footer snapshots default 1`] = `
           color="primary"
         >
           <span
-            class="c11"
+            class="c10"
           >
             mybranch-123abcd
           </span>
@@ -268,23 +251,6 @@ exports[`Footer snapshots no api version 1`] = `
   align-items: start;
 }
 
-.c8 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-}
-
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -303,7 +269,7 @@ exports[`Footer snapshots no api version 1`] = `
   color: #00b3ec;
 }
 
-.c9 {
+.c8 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -312,7 +278,7 @@ exports[`Footer snapshots no api version 1`] = `
   white-space: nowrap;
 }
 
-.c10 {
+.c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -320,7 +286,7 @@ exports[`Footer snapshots no api version 1`] = `
   font-style: normal;
 }
 
-.c11 {
+.c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -385,10 +351,10 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Kubernetes
         :
@@ -397,7 +363,7 @@ exports[`Footer snapshots no api version 1`] = `
         class="c4"
       />
       <span
-        class="c10"
+        class="c9"
       >
         -
       </span>
@@ -406,10 +372,10 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Flux
         :
@@ -418,7 +384,7 @@ exports[`Footer snapshots no api version 1`] = `
         class="c4"
       />
       <span
-        class="c10"
+        class="c9"
       >
         -
       </span>
@@ -427,10 +393,10 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <div
-      class="c8 Version"
+      class="c2 Version"
     >
       <span
-        class="c9"
+        class="c8"
       >
         Weave GitOps
         :
@@ -449,7 +415,7 @@ exports[`Footer snapshots no api version 1`] = `
           color="primary"
         >
           <span
-            class="c11"
+            class="c10"
           >
             v0.9.0
           </span>
