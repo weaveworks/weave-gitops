@@ -16,7 +16,7 @@ import {
   statusSortHelper,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
-import { filterConfig, filterByStatusCallback } from "./FilterableTable";
+import { filterByStatusCallback, filterConfig } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";

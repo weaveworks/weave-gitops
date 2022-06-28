@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import { computeMessage, computeReady } from "./KubeStatusIndicator";
+import { computeMessage, computeReady, ReadyType } from "./KubeStatusIndicator";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -16,19 +16,18 @@ type StatusProps = {
 function PageStatus({ conditions, suspended, className }: StatusProps) {
   const ok = suspended ? false : computeReady(conditions);
   const msg = suspended ? "Suspended" : computeMessage(conditions);
+
+  let iconType;
+  if (suspended) iconType = IconType.SuspendedIcon;
+  else if (ok)
+    ok === ReadyType.Reconciling
+      ? (iconType = IconType.ReconcileIcon)
+      : (iconType = IconType.CheckCircleIcon);
+  else iconType = IconType.FailedIcon;
+
   return (
     <Flex align className={className}>
-      <Icon
-        type={
-          suspended
-            ? IconType.SuspendedIcon
-            : ok
-            ? IconType.CheckCircleIcon
-            : IconType.FailedIcon
-        }
-        color={ok ? "success" : "alert"}
-        size="medium"
-      />
+      <Icon type={iconType} color={ok ? "success" : "alert"} size="medium" />
       <Spacer padding="xs" />
       <Text color="neutral30">{msg}</Text>
     </Flex>

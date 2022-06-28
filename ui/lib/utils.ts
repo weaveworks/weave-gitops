@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
-import { computeReady } from "../components/KubeStatusIndicator";
+import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { Condition, HelmRelease, Kustomization } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
@@ -65,7 +65,8 @@ export function statusSortHelper({
   conditions,
 }: Statusable): number {
   if (suspended) return 2;
-  if (computeReady(conditions)) return 3;
+  if (computeReady(conditions) === ReadyType.Reconciling) return 3;
+  else if (computeReady(conditions)) return 4;
   else return 1;
 }
 

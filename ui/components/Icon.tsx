@@ -51,6 +51,7 @@ export enum IconType {
   FailedIcon,
   SuspendedIcon,
   FileCopyIcon,
+  ReconcileIcon,
 }
 
 type Props = {
@@ -128,6 +129,9 @@ function getIcon(i: IconType) {
 
     case IconType.SuspendedIcon:
       return () => <img src={images.suspendedSrc} />;
+
+    case IconType.ReconcileIcon:
+      return () => <img src={images.reconcileSrc} />;
 
     case IconType.ArrowDropDownIcon:
       return ArrowDropDownIcon;

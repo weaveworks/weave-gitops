@@ -12,15 +12,23 @@ type Props = {
   short?: boolean;
   suspended?: boolean;
 };
+export enum ReadyType {
+  Ready = "Ready",
+  NotReady = "NotReady",
+  Reconciling = "Reconciling",
+}
 
-export function computeReady(conditions: Condition[]): boolean {
-  const ready =
-    _.find(conditions, { type: "Ready" }) ||
-    // Deployment conditions work slightly differently;
-    // they show "Available" instead of 'Ready'
-    _.find(conditions, { type: "Available" });
-
-  return ready?.status == "True";
+export function computeReady(conditions: Condition[]): string {
+  if (
+    _.find(conditions, (c) => c.type === "Ready") ||
+    _.find(conditions, (c) => c.type === "Available")
+  ) {
+    return _.find(conditions, (c) => c.status === "Unknown") &&
+      _.find(conditions, (c) => c.reason === "Progressing")
+      ? ReadyType.Reconciling
+      : ReadyType.Ready;
+  }
+  return undefined;
 }
 
 export function computeMessage(conditions: Condition[]) {
@@ -40,12 +48,22 @@ function KubeStatusIndicator({
   let readyText;
   let icon;
   if (suspended) {
-    icon = IconType.SuspendedIcon;
     readyText = "Suspended";
+    icon = IconType.SuspendedIcon;
   } else {
     const ready = computeReady(conditions);
-    readyText = ready ? "Ready" : "Not Ready";
-    icon = readyText === "Ready" ? IconType.SuccessIcon : IconType.FailedIcon;
+    if (ready) {
+      if (ready === ReadyType.Reconciling) {
+        readyText = ReadyType.Reconciling;
+        icon = IconType.ReconcileIcon;
+      } else {
+        readyText = ReadyType.Ready;
+        icon = IconType.SuccessIcon;
+      }
+    } else {
+      readyText = ReadyType.NotReady;
+      icon = IconType.FailedIcon;
+    }
   }
 
   let text = computeMessage(conditions);
