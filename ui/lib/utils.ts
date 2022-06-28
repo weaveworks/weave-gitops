@@ -112,11 +112,12 @@ export const convertImage = (image: string) => {
   let url = "";
 
   const makeUrl = (url: string, parts: string[]) => {
+    let newUrl = url;
     parts.forEach((part, index) => {
-      if (index === split.length - 1) url += part;
-      else url += `${part}/`;
+      if (index === split.length - 1) newUrl += part;
+      else newUrl += `${part}/`;
     });
-    return url;
+    return newUrl;
   };
 
   //Github GHCR or Google GCR
