@@ -9,8 +9,9 @@ hide_title: true
 We ❤️ your comments and suggestions as we look to make successfully adopting a cloud-native approach, to application deployment on Kubernetes with GitOps, easier and easier. There are a number of ways you can reach out:
 
 - Raise an [issue](https://github.com/weaveworks/weave-gitops/issues)
-- Chat to us in [Slack](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)
-- Set up time with one of our team: [David](https://calendly.com/david-harris-weaveworks) - Product Manager (UK) or [James](https://calendly.com/james-weave-works/product-interview) - Engineering Manager (US - East Coast)
+- Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave Users Slack</a>.
+- Chat to us on the [#weave-gitops](https://weave-community.slack.com/messages/weave-gitops/) slack channel.
+- Set up time with one of our team: [David](https://calendly.com/david-harris-weaveworks) - Product Manager (UK) or [James](https://calendly.com/james-weave-works/product-interview) - Product Director (US - East Coast)
 - Come along to one of our [events](https://www.meetup.com/Weave-User-Group/)
 
 ## Telemetry
