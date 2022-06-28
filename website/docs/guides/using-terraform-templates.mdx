@@ -1,0 +1,94 @@
+---
+title: Using Terraform templates
+sidebar_position: 5
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Using Terraform templates <TierLabel tiers="enterprise" />
+
+This guide will show you how to use a template to create a Terraform resource in Weave GitOps Enterprise.
+
+### Pre-requisites
+- Install [Weave GitOps Enterprise](installation.mdx#weave-gitops-enterprise) with [TF-Controller installed](installation.mdx#tf-controller) and [TLS enabled](../configuration/tls.md).
+
+### 1. Add a template to your cluster 
+
+Add a Terraform `GitOpsTemplate` manifest, such as the one below, to your config repository at `./clusters/<cluster-name>/tf-template.yaml` or any path that Flux is configured to watch. Commit and push these changes. Once a template is available in the cluster, it can be used to create a Terraform resource, which will be shown in the next step.
+
+```yaml title="./clusters/my-cluster/tf-template.yaml"
+---
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: tf-template
+  namespace: default
+spec:
+  description: 
+    This is a sample WGE template that will be translated into a tf-controller specific template.
+  params:
+    - name: RESOURCE_NAME
+      description: Resource Name
+  resourcetemplates:
+    - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+      kind: Terraform
+      metadata:
+        name: ${RESOURCE_NAME}
+        namespace: flux-system
+      spec:
+        interval: 1h
+        path: ./
+        approvePlan: "auto"
+        sourceRef:
+          kind: GitRepository
+          name: flux-system
+          namespace: flux-system
+```
+
+Verify that your template is in the cluster:
+```bash
+kubectl get gitopstemplates.clustertemplates.weave.works -A
+NAME                                AGE
+sample-wge-tf-controller-template   14m
+```
+
+If the template does not appear immediately, reconcile the changes with Flux:
+```bash
+flux reconcile kustomization flux-system
+► annotating Kustomization flux-system in flux-system namespace
+✔ Kustomization annotated
+◎ waiting for Kustomization reconciliation
+✔ applied revision main/e6f5f0c3925bcfecdb50bceb12af9a87677d2213
+```
+
+### 2. Create a Terraform resource
+A Terraform resource can be created from a template by specifying the template's name and supplying values to it, as well as your Weave GitOps Enterprise username, password, and HTTP API endpoint.
+```bash
+gitops add terraform --from-template sample-wge-tf-controller-template --set="RESOURCE_NAME"="name" --username=<username> --password=<password> --endpoint https://localhost:8000 --url <config-repo>
+```
+
+This will create a PR in your config repository with the manifest of the Terraform resource. Once the PR is merged, TF-Controller will apply the manifest, create the Terraform resource, and reconcile any changes to the Terraform manifest in your config repo! 
+
+### 3. List available templates
+Get a specific template that can be used to create a Terraform resource:
+```bash
+gitops get template terraform sample-wge-tf-controller-template --endpoint https://localhost:8000 --username=<username> --password=<password>
+NAME                                PROVIDER   DESCRIPTION                                                                                     ERROR
+sample-wge-tf-controller-template              This is a sample WGE template that will be translated into a tf-controller specific template.
+```
+
+List all the templates available on the cluster:
+```bash
+gitops get template terraform --endpoint https://localhost:8000 --username=<username> --password=<password>
+NAME                                PROVIDER   DESCRIPTION                                                                                     ERROR
+sample-aurora-tf-template                      This is a sample Aurora RDS template.
+sample-wge-tf-controller-template              This is a sample WGE template that will be translated into a tf-controller specific template.
+```
+
+### 4. List the parameters of a template
+List all the parameters that can be defined on a specific template:
+```bash
+gitops get template terraform tf-controller-aurora --list-parameters --endpoint https://localhost:8000 --username=<username> --password=<password>
+NAME            REQUIRED   DESCRIPTION     OPTIONS
+RESOURCE_NAME   false      Resource Name
+```
