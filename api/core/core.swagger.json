@@ -977,6 +977,12 @@
         },
         "buildTime": {
           "type": "string"
+        },
+        "fluxVersion": {
+          "type": "string"
+        },
+        "kubeVersion": {
+          "type": "string"
         }
       }
     },

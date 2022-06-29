@@ -56,7 +56,7 @@ const StyleLinkTab = styled(LinkTab)`
 
 const AppContainer = styled.div`
   width: 100%;
-  min-width: 768px;
+  min-width: 900px;
   max-width: 100vw;
   min-height: 100vh;
   margin: 0 auto;
@@ -120,7 +120,7 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
-  min-width: 768px;
+  min-width: 900px;
   max-width: 100%;
   //without a hard value in the height property, min-height in the Page component doesn't work
   height: 1px;
@@ -144,7 +144,7 @@ const TopToolBar = styled(Flex)`
   position: fixed;
   background-color: ${(props) => props.theme.colors.primary};
   height: ${topBarHeight};
-  min-width: 768px;
+  min-width: 900px;
   ${UserSettings} {
     justify-self: flex-end;
     margin-left: auto;

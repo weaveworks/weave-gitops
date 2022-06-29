@@ -1,0 +1,264 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Version snapshots renders a dash as plain text without version text and with version href 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c2 {
+  padding: 4px;
+}
+
+<div
+  className="c0 Version"
+>
+  <span
+    className="c1"
+    size="medium"
+  >
+    product name
+    :
+  </span>
+  <div
+    className="c2"
+  />
+  <span
+    className="c3"
+    size="medium"
+  >
+    -
+  </span>
+</div>
+`;
+
+exports[`Version snapshots renders a dash without version text and without version href 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c2 {
+  padding: 4px;
+}
+
+<div
+  className="c0 Version"
+>
+  <span
+    className="c1"
+    size="medium"
+  >
+    product name
+    :
+  </span>
+  <div
+    className="c2"
+  />
+  <span
+    className="c3"
+    size="medium"
+  >
+    -
+  </span>
+</div>
+`;
+
+exports[`Version snapshots renders a link with version text and version href 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.c4 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c5 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c3 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c3.title-bar-button {
+  width: 250px;
+}
+
+.c2 {
+  padding: 4px;
+}
+
+<div
+  className="c0 Version"
+>
+  <span
+    className="c1"
+    size="medium"
+  >
+    product name
+    :
+  </span>
+  <div
+    className="c2"
+  />
+  <a
+    className="c3"
+    href="https://github.com/weaveworks/weave-gitops"
+    rel="noreferrer"
+    target="_blank"
+  >
+    <span
+      className="c4"
+      color="primary"
+      size="medium"
+    >
+      <span
+        className="c5"
+        size="medium"
+      >
+        version text
+      </span>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`Version snapshots renders plain text with version text and without version href 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c2 {
+  padding: 4px;
+}
+
+<div
+  className="c0 Version"
+>
+  <span
+    className="c1"
+    size="medium"
+  >
+    product name
+    :
+  </span>
+  <div
+    className="c2"
+  />
+  <span
+    className="c3"
+    size="medium"
+  >
+    version text
+  </span>
+</div>
+`;
