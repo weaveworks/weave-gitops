@@ -65,6 +65,7 @@ function YamlView({ yaml, object, className }: Props) {
 export default styled(YamlView).attrs({
   className: YamlView.name,
 })`
+  margin-bottom: ${(props) => props.theme.spacing.small};
   width: calc(100% - ${(props) => props.theme.spacing.medium});
   font-size: ${(props) => props.theme.fontSizes.small};
   border: 1px solid ${(props) => props.theme.colors.neutral20};
@@ -80,6 +81,7 @@ export default styled(YamlView).attrs({
   }
 
   code {
+    width: 100%;
     counter-increment: listing;
     text-align: left;
     float: left;
