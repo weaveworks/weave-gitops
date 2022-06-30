@@ -108,6 +108,13 @@ export function formatMetadataKey(key: string): string {
 
 export const convertImage = (image: string) => {
   const split = image.split("/");
+
+  //remove tags
+  const tag = split[split.length - 1];
+  if (tag.includes(":"))
+    split[split.length - 1] = tag.slice(0, tag.indexOf(":"));
+  const noTag = split.join("/");
+
   const prefix = split.shift();
   let url = "";
 
@@ -121,7 +128,7 @@ export const convertImage = (image: string) => {
   };
 
   //Github GHCR or Google GCR
-  if (prefix === "ghcr.io" || prefix === "gcr.io") return "https://" + image;
+  if (prefix === "ghcr.io" || prefix === "gcr.io") return "https://" + noTag;
   //Quay.io
   else if (prefix === "quay.io") {
     url = "https://quay.io/repository/";
@@ -147,9 +154,9 @@ export const convertImage = (image: string) => {
     !prefix.includes("public.ecr.aws") &&
     !prefix.includes("amazonaws.com")
   ) {
-    if (!split[0]) return "https://hub.docker.com/r/_/" + image;
+    if (!split[0]) return "https://hub.docker.com/r/_/" + noTag;
     else {
-      return "https://hub.docker.com/r/" + image;
+      return "https://hub.docker.com/r/" + noTag;
     }
   } else return "";
 };

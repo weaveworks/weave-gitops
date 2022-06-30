@@ -263,5 +263,10 @@ describe("utils lib", () => {
         "https://gcr.io/cloud-builders/gcloud"
       );
     });
+    it("should remove tags", () => {
+      expect(
+        convertImage("ghcr.io/weaveworks/charts/weave-gitops:10.4.5.2335224")
+      ).toEqual("https://ghcr.io/weaveworks/charts/weave-gitops");
+    });
   });
 });
