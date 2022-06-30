@@ -9,14 +9,9 @@ import Flex from "./Flex";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
-type Props<N> = {
-  className?: string;
-  nodes: { id: any; data: N; label: (v: N) => string }[];
-  edges: { source: any; target: any }[];
-  scale?: number;
-  labelType?: "html" | "text";
-  labelShape: "rect" | "ellipse";
-};
+const loadingText = `Fetching all reconciled objects, \
+    building directional relationship, \
+    determining central node...`;
 
 const SliderFlex = styled(Flex)`
   padding-top: ${(props) => props.theme.spacing.base};
@@ -48,6 +43,27 @@ const Svg = styled.svg`
   }
 `;
 
+function calculateZoomRatio(zoomPercent): number {
+  return (zoomPercent + 20) / 1500;
+}
+
+type DirectedGraphState = {
+  zoomRatio: number;
+  nodeOffsetX: number;
+};
+
+type LabelType = "html" | "text";
+type LabelShape = "rect" | "ellipse";
+
+type Props<N> = {
+  className?: string;
+  nodes: { id: any; data: N; label: (v: N) => string }[];
+  edges: { source: any; target: any }[];
+  scale: number;
+  labelType?: LabelType;
+  labelShape?: LabelShape;
+};
+
 function DirectedGraph<T>({
   className,
   nodes,
@@ -58,7 +74,12 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
-  const [zoomPercent, setZoomPercent] = React.useState(20);
+
+  const [zoomPercent, setZoomPercent] = React.useState<number>(scale);
+  const [state, setState] = React.useState<DirectedGraphState>({
+    zoomRatio: calculateZoomRatio(scale),
+    nodeOffsetX: 0,
+  });
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -70,11 +91,13 @@ function DirectedGraph<T>({
       return;
     }
 
+    const { nodeOffsetX } = state;
+
     const graph = new D3Graph(svgRef.current, {
       labelShape,
       labelType,
-      scale,
-      initialZoom: zoomPercent,
+      initialZoom: scale,
+      initialNodeOffsetX: nodeOffsetX,
     });
     graph.update(nodes, edges);
     graph.render();
@@ -82,7 +105,29 @@ function DirectedGraph<T>({
   }, []);
 
   React.useEffect(() => {
-    graphRef.current.zoom(zoomPercent);
+    const { nodeOffsetX } = state;
+
+    let newNodeOffsetX = 0;
+
+    if (nodeOffsetX === 0) {
+      const d3Graph = graphRef.current.graph;
+      const graphNodes = d3Graph ? d3Graph.nodes() : null;
+      const rootNode = graphNodes
+        ? d3Graph.node(graphNodes[graphNodes.length - 1])
+        : null;
+
+      const newZoomRatio = calculateZoomRatio(zoomPercent);
+      newNodeOffsetX = rootNode
+        ? -zoomPercent * 1.25 + (rootNode.x - rootNode.width) * newZoomRatio
+        : 0;
+
+      setState({
+        nodeOffsetX: newNodeOffsetX,
+        zoomRatio: newZoomRatio,
+      });
+    }
+
+    graphRef.current.zoom(zoomPercent, nodeOffsetX || newNodeOffsetX);
   }, [zoomPercent]);
 
   React.useEffect(() => {
@@ -90,28 +135,16 @@ function DirectedGraph<T>({
     graphRef.current.render();
   }, [nodes, edges]);
 
-  const d3Graph = graphRef?.current?.graph;
-  const graphNodes = d3Graph ? d3Graph.nodes() : null;
-  const rootNode = graphNodes
-    ? d3Graph.node(graphNodes[graphNodes.length - 1])
-    : null;
-  const nodeOffsetX = rootNode
-    ? ((rootNode.x - rootNode.width) * (zoomPercent + 20)) / 1000
-    : 0;
+  const { nodeOffsetX } = state;
 
-  const viewBoxOffsetX = -zoomPercent * 1.25 + nodeOffsetX;
-
-  const isLoadingGraph = !rootNode;
-
-  const loadingText =
-    "Fetching all reconciled objects, building directional relationship, determining central node...";
+  const isLoadingGraph = nodeOffsetX === 0;
 
   return (
     <GraphFlex wide tall className={className}>
       {isLoadingGraph && <LoadingText>{loadingText}</LoadingText>}
 
       <Svg
-        viewBox={`${viewBoxOffsetX} 0 100 100`}
+        viewBox="0 0 100 100"
         preserveAspectRatio="xMidYMid meet"
         ref={svgRef}
         className={isLoadingGraph ? "loading" : ""}
@@ -169,6 +202,13 @@ export default styled(DirectedGraph)`
   }
 `;
 
+type D3GraphOptions = {
+  initialZoom: number;
+  initialNodeOffsetX: number;
+  labelType?: LabelType;
+  labelShape?: LabelShape;
+};
+
 // D3 doesn't play nicely with React, as they both manipulate the DOM.
 // Since polling was added, we re-render the graph after every poll.
 // Split the D3 graphic logic into a class to avoid resetting transform state on every render.
@@ -178,25 +218,28 @@ class D3Graph {
   graph;
   opts;
 
-  constructor(element, opts) {
+  constructor(element, opts: D3GraphOptions) {
     const dagreD3LibRef = dagreD3;
     this.graph = new dagreD3LibRef.graphlib.Graph();
     this.opts = opts;
     this.containerEl = element;
     this.svg = d3.select(element);
     this.svg.append("g");
-    this.zoom(opts.initialZoom);
+    this.zoom(opts.initialZoom, opts.initialNodeOffsetX);
   }
 
-  zoom(zoomPercent) {
+  zoom(zoomPercent, nodeOffsetX) {
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 20) / 1000;
+      e.transform.k = (zoomPercent + 20) / 1500;
       this.svg.select("g").attr("transform", e.transform);
     });
 
     this.svg
       .call(zoom)
-      .call(zoom.transform, d3.zoomIdentity.scale(zoomPercent))
+      .call(
+        zoom.transform,
+        d3.zoomIdentity.translate(-nodeOffsetX, 0).scale(zoomPercent)
+      )
       .on("wheel.zoom", null);
   }
 
