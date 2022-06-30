@@ -1,8 +1,8 @@
 package server_test
 
 import (
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"context"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -24,18 +24,18 @@ func TestGetFeatureFlags(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	tests := []struct {
-		name     string
-		envSet   func()
-		envUnset func()
-		state    []client.Object
+		name        string
+		envSet      func()
+		envUnset    func()
+		state       []client.Object
 		oidcEnabled bool
-		result   map[string]string
+		result      map[string]string
 	}{
 		{
-			name:     "Cluster auth secret set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
+			name:        "Cluster auth secret set",
+			envSet:      func() {},
+			envUnset:    func() {},
+			state:       []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "cluster-user-auth"}}},
 			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "true",
@@ -43,10 +43,10 @@ func TestGetFeatureFlags(t *testing.T) {
 			},
 		},
 		{
-			name:     "Cluster auth secret not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
+			name:        "Cluster auth secret not set",
+			envSet:      func() {},
+			envUnset:    func() {},
+			state:       []client.Object{},
 			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
@@ -54,10 +54,10 @@ func TestGetFeatureFlags(t *testing.T) {
 			},
 		},
 		{
-			name:     "OIDC secret set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
+			name:        "OIDC secret set",
+			envSet:      func() {},
+			envUnset:    func() {},
+			state:       []client.Object{&corev1.Secret{ObjectMeta: metav1.ObjectMeta{Namespace: "flux-system", Name: "oidc-auth"}}},
 			oidcEnabled: true,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
@@ -65,10 +65,10 @@ func TestGetFeatureFlags(t *testing.T) {
 			},
 		},
 		{
-			name:     "OIDC secret not set",
-			envSet:   func() {},
-			envUnset: func() {},
-			state:    []client.Object{},
+			name:        "OIDC secret not set",
+			envSet:      func() {},
+			envUnset:    func() {},
+			state:       []client.Object{},
 			oidcEnabled: false,
 			result: map[string]string{
 				"CLUSTER_USER_AUTH": "false",
