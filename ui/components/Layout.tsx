@@ -185,7 +185,6 @@ function Layout({ className, children }: Props) {
             </Tabs>
           </NavContent>
         </NavContainer>
-
         <ContentContainer>{children}</ContentContainer>
       </Main>
     </AppContainer>
