@@ -1,0 +1,105 @@
+---
+title: Manual Gating Canary Deployments with Flagger
+sidebar_position: 6
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+For manual approval of a canary deployment you can use the `confirm-rollout` and
+`confirm-promotion` webhooks. Flagger will halt on given stage until the
+provided URL returns with a `200 OK` status code.
+
+For manual rollback of a canary deployment you can use the `rollback` webhook.
+The rollback hook will be called during the analysis and confirmation states. If
+a rollback webhook returns a successful HTTP status code, Flagger will shift all
+traffic back to the primary instance and fail the canary.
+
+Manual gating with Flagger's tester:
+
+```yaml
+  analysis:
+    webhooks:
+      - name: "gate"
+        type: confirm-rollout
+        url: http://flagger-loadtester.test/gate/halt
+```
+
+The `/gate/halt` endpoint returns with a `403` status code, so it blocks the
+rollout, until it gets `200` status code. To approve, update the webhook to use
+the approve endpoint on the loadtester app:
+
+```yaml
+  analysis:
+    webhooks:
+      - name: "gate"
+        type: confirm-rollout
+        url: http://flagger-loadtester.test/gate/approve
+```
+
+If you have notifications enabled, Flagger will post a message to Slack or MS
+Teams if a canary rollout is waiting for approval. To disable notification
+`muteAlert` has to be set to `true`:
+
+```yaml
+  analysis:
+    webhooks:
+      - name: "gate"
+        type: confirm-rollout
+        url: http://flagger-loadtester.test/gate/halt
+        muteAlert: true
+```
+
+Manual gating can be driven with Flagger's tester API. Set the confirmation URL
+to `/gate/check`:
+
+```yaml
+  analysis:
+    webhooks:
+      - name: "ask for confirmation"
+        type: confirm-rollout
+        url: http://flagger-loadtester.test/gate/check
+```
+
+This allows us to close and open the gate without changing the Canary
+definition. To open or close the gate we can use the loadtester container:
+
+```
+$ kubectl -n test exec -it flagger-loadtester-xxxx-xxxx sh
+
+# to open
+> curl -d '{"name": "app","namespace":"test"}' http://localhost:8080/gate/open
+
+# to close
+> curl -d '{"name": "app","namespace":"test"}' http://localhost:8080/gate/close
+```
+
+Any URL can be used as a webhook target, if will approve if it returns with a
+`200 OK` status code, and halt if it's `403 Forbidden`.
+
+The webhook will receive a JSON payload that can be unmarshaled as
+`CanaryWebhookPayload`:
+
+```go
+type CanaryWebhookPayload struct {
+	// Name of the canary
+	Name string `json:"name"`
+
+	// Namespace of the canary
+	Namespace string `json:"namespace"`
+
+	// Phase of the canary analysis
+	Phase CanaryPhase `json:"phase"`
+
+	// Metadata (key-value pairs) for this webhook
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+```
+
+**References:**
+
+* [Official Flagger documentation](https://docs.flagger.app/usage/webhooks#manual-gating)
