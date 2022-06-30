@@ -140,7 +140,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		Namespace: v1alpha1.DefaultNamespace,
 		Name:      options.OIDCSecret,
 	}, &secret); err == nil {
-		if len(options.OIDC.ClientSecret) > 0 && len(secret.Data["clientSecret"]) > 0 {
+		if options.OIDC.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
 			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
 		}
 		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
@@ -148,7 +148,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", options.OIDCSecret, "error", err)
 	}
 
-	if len(oidcConfig.ClientSecret) > 0 {
+	if oidcConfig.ClientSecret != "" {
 		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
 	}
 

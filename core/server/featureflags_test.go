@@ -81,7 +81,7 @@ func TestGetFeatureFlags(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})
 
-			auth.SetOidcEnabled(tt.oidcEnabled)
+			auth.SetOIDCEnabled(tt.oidcEnabled)
 
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithObjects(tt.state...).Build()
 			fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)

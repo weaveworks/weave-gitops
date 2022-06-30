@@ -37,7 +37,7 @@ func (cs *coreServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFla
 		flags["CLUSTER_USER_AUTH"] = "true"
 	}
 
-	flags["OIDC_AUTH"] = strconv.FormatBool(serverauth.OidcEnabled())
+	flags["OIDC_AUTH"] = strconv.FormatBool(serverauth.OIDCEnabled())
 
 	return &pb.GetFeatureFlagsResponse{
 		Flags: flags,
