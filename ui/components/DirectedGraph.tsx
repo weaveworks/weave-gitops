@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { muiTheme } from "../lib/theme";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
+import Text from "./Text";
 
 type Props<N> = {
   className?: string;
@@ -30,6 +31,21 @@ const PercentFlex = styled(Flex)`
   padding: 10px;
   background: rgba(0, 179, 236, 0.1);
   border-radius: 2px;
+`;
+
+const GraphFlex = styled(Flex)`
+  position: relative;
+`;
+
+const LoadingText = styled(Text)`
+  position: absolute;
+`;
+
+const Svg = styled.svg`
+  &.loading {
+    opacity: 0;
+    pointer-events: none;
+  }
 `;
 
 function DirectedGraph<T>({
@@ -74,14 +90,31 @@ function DirectedGraph<T>({
     graphRef.current.render();
   }, [nodes, edges]);
 
-  const viewBoxOffsetX = -zoomPercent * 1.25;
+  const d3Graph = graphRef?.current?.graph;
+  const graphNodes = d3Graph ? d3Graph.nodes() : null;
+  const rootNode = graphNodes
+    ? d3Graph.node(graphNodes[graphNodes.length - 1])
+    : null;
+  const nodeOffsetX = rootNode
+    ? ((rootNode.x - rootNode.width) * (zoomPercent + 20)) / 1000
+    : 0;
+
+  const viewBoxOffsetX = -zoomPercent * 1.25 + nodeOffsetX;
+
+  const isLoadingGraph = !rootNode;
+
+  const loadingText =
+    "Fetching all reconciled objects, building directional relationship, determining central node...";
 
   return (
-    <Flex wide tall className={className}>
-      <svg
+    <GraphFlex wide tall className={className}>
+      {isLoadingGraph && <LoadingText>{loadingText}</LoadingText>}
+
+      <Svg
         viewBox={`${viewBoxOffsetX} 0 100 100`}
         preserveAspectRatio="xMidYMid meet"
         ref={svgRef}
+        className={isLoadingGraph ? "loading" : ""}
       />
 
       <Flex tall>
@@ -96,7 +129,7 @@ function DirectedGraph<T>({
           <PercentFlex>{zoomPercent}%</PercentFlex>
         </SliderFlex>
       </Flex>
-    </Flex>
+    </GraphFlex>
   );
 }
 
