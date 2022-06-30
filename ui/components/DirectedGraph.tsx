@@ -91,13 +91,16 @@ function DirectedGraph<T>({
       return;
     }
 
-    const { nodeOffsetX } = state;
+    const { zoomRatio, nodeOffsetX } = state;
 
     const graph = new D3Graph(svgRef.current, {
       labelShape,
       labelType,
-      initialZoom: scale,
-      initialNodeOffsetX: nodeOffsetX,
+      initialZoomOptions: {
+        zoomPercent: scale,
+        zoomRatio: zoomRatio,
+        nodeOffsetX: nodeOffsetX,
+      },
     });
     graph.update(nodes, edges);
     graph.render();
@@ -105,9 +108,10 @@ function DirectedGraph<T>({
   }, []);
 
   React.useEffect(() => {
-    const { nodeOffsetX } = state;
+    const { zoomRatio, nodeOffsetX } = state;
 
     let newNodeOffsetX = 0;
+    const newZoomRatio = calculateZoomRatio(zoomPercent);
 
     if (nodeOffsetX === 0) {
       const d3Graph = graphRef.current.graph;
@@ -116,7 +120,6 @@ function DirectedGraph<T>({
         ? d3Graph.node(graphNodes[graphNodes.length - 1])
         : null;
 
-      const newZoomRatio = calculateZoomRatio(zoomPercent);
       newNodeOffsetX = rootNode
         ? -zoomPercent * 1.25 + (rootNode.x - rootNode.width) * newZoomRatio
         : 0;
@@ -127,7 +130,11 @@ function DirectedGraph<T>({
       });
     }
 
-    graphRef.current.zoom(zoomPercent, nodeOffsetX || newNodeOffsetX);
+    graphRef.current.zoom({
+      zoomPercent,
+      zoomRatio: newZoomRatio,
+      nodeOffsetX: nodeOffsetX || newNodeOffsetX,
+    });
   }, [zoomPercent]);
 
   React.useEffect(() => {
@@ -202,9 +209,14 @@ export default styled(DirectedGraph)`
   }
 `;
 
+type ZoomOptions = {
+  zoomPercent: number;
+  zoomRatio: number;
+  nodeOffsetX: number;
+};
+
 type D3GraphOptions = {
-  initialZoom: number;
-  initialNodeOffsetX: number;
+  initialZoomOptions: ZoomOptions;
   labelType?: LabelType;
   labelShape?: LabelShape;
 };
@@ -220,17 +232,20 @@ class D3Graph {
 
   constructor(element, opts: D3GraphOptions) {
     const dagreD3LibRef = dagreD3;
+
     this.graph = new dagreD3LibRef.graphlib.Graph();
     this.opts = opts;
     this.containerEl = element;
     this.svg = d3.select(element);
     this.svg.append("g");
-    this.zoom(opts.initialZoom, opts.initialNodeOffsetX);
+    this.zoom(opts.initialZoomOptions);
   }
 
-  zoom(zoomPercent, nodeOffsetX) {
+  zoom(opts: ZoomOptions) {
+    const { zoomPercent, zoomRatio, nodeOffsetX } = opts;
+
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = (zoomPercent + 20) / 1500;
+      e.transform.k = zoomRatio;
       this.svg.select("g").attr("transform", e.transform);
     });
 
