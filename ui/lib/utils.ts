@@ -113,26 +113,17 @@ export const convertImage = (image: string) => {
   const tag = split[split.length - 1];
   if (tag.includes(":"))
     split[split.length - 1] = tag.slice(0, tag.indexOf(":"));
-  const noTag = split.join("/");
 
   const prefix = split.shift();
+  const noTag = split.join("/");
   let url = "";
 
-  const makeUrl = (url: string, parts: string[]) => {
-    let newUrl = url;
-    parts.forEach((part, index) => {
-      if (index === split.length - 1) newUrl += part;
-      else newUrl += `${part}/`;
-    });
-    return newUrl;
-  };
-
   //Github GHCR or Google GCR
-  if (prefix === "ghcr.io" || prefix === "gcr.io") return "https://" + noTag;
+  if (prefix === "ghcr.io" || prefix === "gcr.io")
+    return `https://${prefix}/${noTag}`;
   //Quay.io
   if (prefix === "quay.io") {
-    url = "https://quay.io/repository/";
-    return makeUrl(url, split);
+    return `https://quay.io/repository/${noTag}`;
   }
   //complex docker prefix case
   if (prefix === "docker.io") {
@@ -142,13 +133,16 @@ export const convertImage = (image: string) => {
     //global
     if (!split[1]) return url + "_/" + split[0];
     //namespaced
-    return makeUrl(url, split);
+    return url + noTag;
   }
   //docker without prefix
   if (prefix === "library") return "https://hub.docker.com/r/_/" + split[0];
   //this one's at risk if we have to add others - global docker images can just be one word apparently
   if (!split[0]) {
-    return "https://hub.docker.com/r/_/" + noTag;
+    return "https://hub.docker.com/r/_/" + prefix;
   }
-  return "https://hub.docker.com/r/" + noTag;
+  //any other url
+  if (prefix.includes(".")) return false;
+  //one slash docker images w/o docker.io
+  return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
