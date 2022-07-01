@@ -60,6 +60,7 @@ const TableButton = styled(Button)`
   &.MuiButton-root {
     margin: 0;
     text-transform: none;
+    letter-spacing: 0;
   }
   &.MuiButton-text {
     min-width: 0px;
