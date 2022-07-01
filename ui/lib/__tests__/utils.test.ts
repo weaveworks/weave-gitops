@@ -16,7 +16,7 @@ import {
   statusSortHelper,
 } from "../utils";
 
-const floatDiff = 0.0000000000000000001;
+const floatPrecision = 19;
 
 describe("utils lib", () => {
   describe("gitlabOAuthRedirectURI", () => {
@@ -284,15 +284,15 @@ describe("utils lib", () => {
   });
   describe("calculateZoomRatio", () => {
     it("calculates zoom ratio", () => {
-      expect(
-        Math.abs(calculateZoomRatio(0) - 0.013333333333333334)
-      ).toBeLessThanOrEqual(floatDiff);
-      expect(
-        Math.abs(calculateZoomRatio(20) - 0.02666666666666667)
-      ).toBeLessThanOrEqual(floatDiff);
-      expect(Math.abs(calculateZoomRatio(100) - 0.08)).toBeLessThanOrEqual(
-        floatDiff
+      expect(calculateZoomRatio(0)).toBeCloseTo(
+        0.013333333333333334,
+        floatPrecision
       );
+      expect(calculateZoomRatio(20)).toBeCloseTo(
+        0.02666666666666667,
+        floatPrecision
+      );
+      expect(calculateZoomRatio(100)).toBeCloseTo(0.08, floatPrecision);
     });
   });
   describe("calculateNodeOffsetX", () => {
@@ -306,47 +306,32 @@ describe("utils lib", () => {
     };
     it("calculates x-offset for the node", () => {
       expect(
-        Math.abs(
-          calculateNodeOffsetX(rootNode, 0, 0.013333333333333334) -
-            -40.400000000000006
-        )
-      ).toBeLessThanOrEqual(floatDiff);
+        calculateNodeOffsetX(rootNode, 0, 0.013333333333333334)
+      ).toBeCloseTo(-40.400000000000006, floatPrecision);
       expect(
-        Math.abs(
-          calculateNodeOffsetX(rootNode, 20, 0.02666666666666667) -
-            -55.80000000000001
-        )
-      ).toBeLessThanOrEqual(floatDiff);
+        calculateNodeOffsetX(rootNode, 20, 0.02666666666666667)
+      ).toBeCloseTo(-55.80000000000001, floatPrecision);
       expect(
-        Math.abs(
-          calculateNodeOffsetX(rootNode, 50, 0.04666666666666667) - -78.9
-        )
-      ).toBeLessThanOrEqual(floatDiff);
-      expect(
-        Math.abs(calculateNodeOffsetX(rootNode, 100, 0.08) - -117.4)
-      ).toBeLessThanOrEqual(floatDiff);
+        calculateNodeOffsetX(rootNode, 50, 0.04666666666666667)
+      ).toBeCloseTo(-78.9, floatPrecision);
+      expect(calculateNodeOffsetX(rootNode, 100, 0.08)).toBeCloseTo(
+        -117.4,
+        floatPrecision
+      );
     });
   });
   describe("mapScaleToZoomPercent", () => {
     it("maps zoom percent to scale", () => {
       expect(mapScaleToZoomPercent(0)).toEqual(0);
-      expect(Math.abs(mapScaleToZoomPercent(20) - 10)).toBeLessThanOrEqual(
-        floatDiff
-      );
-      expect(Math.abs(mapScaleToZoomPercent(100) - 50)).toBeLessThanOrEqual(
-        floatDiff
-      );
+      expect(mapScaleToZoomPercent(20)).toBeCloseTo(10, floatPrecision);
+      expect(mapScaleToZoomPercent(100)).toBeCloseTo(50, floatPrecision);
     });
   });
   describe("mapZoomPercentToScale", () => {
     it("maps scale to zoom percent", () => {
       expect(mapZoomPercentToScale(0)).toEqual(0);
-      expect(Math.abs(mapZoomPercentToScale(20) - 40)).toBeLessThanOrEqual(
-        floatDiff
-      );
-      expect(Math.abs(mapZoomPercentToScale(100) - 200)).toBeLessThanOrEqual(
-        floatDiff
-      );
+      expect(mapZoomPercentToScale(20)).toBeCloseTo(40, floatPrecision);
+      expect(mapZoomPercentToScale(100)).toBeCloseTo(200, floatPrecision);
     });
   });
 });
