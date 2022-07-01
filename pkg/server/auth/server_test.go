@@ -632,6 +632,8 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	t.Helper()
 	g := gomega.NewGomegaWithT(t)
 
+	auth.SetOIDCEnabled(false) // Reset this
+
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
 
