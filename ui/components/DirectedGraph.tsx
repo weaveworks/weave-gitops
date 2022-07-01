@@ -37,7 +37,9 @@ const PercentFlex = styled(Flex)`
 `;
 
 const GraphFlex = styled(Flex)`
-  position: relative;
+  &.loading {
+    position: relative;
+  }
 `;
 
 const LoadingText = styled(Text)`
@@ -155,15 +157,17 @@ function DirectedGraph<T>({
 
   const isLoadingGraph = nodeOffsetX === 0;
 
+  const loadingClassName = isLoadingGraph ? "loading" : "";
+
   return (
-    <GraphFlex wide tall className={className}>
+    <GraphFlex wide tall className={`${className} ${loadingClassName}`}>
       {isLoadingGraph && <LoadingText>{loadingText}</LoadingText>}
 
       <Svg
         viewBox="0 0 100 100"
         preserveAspectRatio="xMidYMid meet"
         ref={svgRef}
-        className={isLoadingGraph ? "loading" : ""}
+        className={loadingClassName}
       />
 
       <Flex tall>
