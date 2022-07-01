@@ -69,7 +69,9 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          history.push("/");
+          const prev = history.location.state;
+          if (prev) history.push(prev.pathname + prev.search);
+          else history.push("/");
         });
       })
       .finally(() => setLoading(false));
