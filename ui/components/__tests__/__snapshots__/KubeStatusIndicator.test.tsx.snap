@@ -81,7 +81,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
       className="c5 c6"
       size="medium"
     >
-      There was a problem
+      Not Ready
     </span>
   </div>
 </div>
