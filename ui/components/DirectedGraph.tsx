@@ -5,9 +5,17 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { muiTheme } from "../lib/theme";
+import {
+  calculateZoomRatio,
+  calculateNodeOffsetX,
+  mapScaleToZoomPercent,
+  mapZoomPercentToScale,
+} from "../lib/utils";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
 import Text from "./Text";
+
+export const defaultScale = 40;
 
 const loadingText = `Fetching all reconciled objects, \
     building directional relationship, \
@@ -43,10 +51,6 @@ const Svg = styled.svg`
   }
 `;
 
-function calculateZoomRatio(zoomPercent): number {
-  return (zoomPercent + 20) / 1500;
-}
-
 type DirectedGraphState = {
   zoomRatio: number;
   nodeOffsetX: number;
@@ -75,9 +79,12 @@ function DirectedGraph<T>({
   const svgRef = React.useRef();
   const graphRef = React.useRef<D3Graph>();
 
-  const [zoomPercent, setZoomPercent] = React.useState<number>(scale);
+  const initialZoomPercent = mapScaleToZoomPercent(scale);
+
+  const [zoomPercent, setZoomPercent] =
+    React.useState<number>(initialZoomPercent);
   const [state, setState] = React.useState<DirectedGraphState>({
-    zoomRatio: calculateZoomRatio(scale),
+    zoomRatio: calculateZoomRatio(initialZoomPercent),
     nodeOffsetX: 0,
   });
 
@@ -97,7 +104,7 @@ function DirectedGraph<T>({
       labelShape,
       labelType,
       initialZoomOptions: {
-        zoomPercent: scale,
+        zoomPercent: initialZoomPercent,
         zoomRatio: zoomRatio,
         nodeOffsetX: nodeOffsetX,
       },
@@ -108,7 +115,7 @@ function DirectedGraph<T>({
   }, []);
 
   React.useEffect(() => {
-    const { zoomRatio, nodeOffsetX } = state;
+    const { nodeOffsetX } = state;
 
     let newNodeOffsetX = 0;
     const newZoomRatio = calculateZoomRatio(zoomPercent);
@@ -120,9 +127,11 @@ function DirectedGraph<T>({
         ? d3Graph.node(graphNodes[graphNodes.length - 1])
         : null;
 
-      newNodeOffsetX = rootNode
-        ? -zoomPercent * 1.25 + (rootNode.x - rootNode.width) * newZoomRatio
-        : 0;
+      newNodeOffsetX = calculateNodeOffsetX(
+        rootNode,
+        zoomPercent,
+        newZoomRatio
+      );
 
       setState({
         nodeOffsetX: newNodeOffsetX,
@@ -160,13 +169,15 @@ function DirectedGraph<T>({
       <Flex tall>
         <SliderFlex column center align>
           <Slider
-            onChange={(e, value: number) => setZoomPercent(value)}
-            defaultValue={20}
+            onChange={(_, value: number) =>
+              setZoomPercent(mapScaleToZoomPercent(value))
+            }
+            defaultValue={scale}
             orientation="vertical"
             aria-label="zoom"
           />
           <Spacer padding="base" />
-          <PercentFlex>{zoomPercent}%</PercentFlex>
+          <PercentFlex>{mapZoomPercentToScale(zoomPercent)}%</PercentFlex>
         </SliderFlex>
       </Flex>
     </GraphFlex>
@@ -253,7 +264,7 @@ class D3Graph {
       .call(zoom)
       .call(
         zoom.transform,
-        d3.zoomIdentity.translate(-nodeOffsetX, 0).scale(zoomPercent)
+        d3.zoomIdentity.translate(nodeOffsetX, 0).scale(zoomPercent)
       )
       .on("wheel.zoom", null);
   }

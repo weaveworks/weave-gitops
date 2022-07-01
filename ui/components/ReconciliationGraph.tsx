@@ -10,7 +10,7 @@ import {
 } from "../lib/api/core/types.pb";
 import images from "../lib/images";
 import { removeKind } from "../lib/utils";
-import DirectedGraph from "./DirectedGraph";
+import DirectedGraph, { defaultScale } from "./DirectedGraph";
 import Flex from "./Flex";
 import { computeReady } from "./KubeStatusIndicator";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
@@ -170,7 +170,7 @@ function ReconciliationGraph({
     <RequestStateHandler loading={isLoading} error={error}>
       <div className={className} style={{ height: "100%", width: "100%" }}>
         <DirectedGraph
-          scale={20}
+          scale={defaultScale}
           nodes={nodes}
           edges={edges}
           labelShape="rect"

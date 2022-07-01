@@ -68,10 +68,10 @@ function Footer({ className }: Props) {
       <RightFoot>
         {!isLoading &&
           versions.map((version, index) => (
-            <>
+            <React.Fragment key={`version ${index}`}>
               <Spacer padding="xxs" />
-              <Version key={`key ${index}`} {...version} />
-            </>
+              <Version {...version} />
+            </React.Fragment>
           ))}
         <Spacer padding="xxs" />
         <Text noWrap>© 2022 Weaveworks</Text>
