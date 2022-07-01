@@ -245,7 +245,7 @@ class D3Graph {
   graph;
   opts;
 
-  constructor(element, opts: D3GraphOptions) {
+  constructor(element: any, opts: D3GraphOptions) {
     const dagreD3LibRef = dagreD3;
 
     this.graph = new dagreD3LibRef.graphlib.Graph();
