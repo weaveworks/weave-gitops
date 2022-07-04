@@ -10,7 +10,7 @@ Weave GitOps is a simple open source developer platform for people who want clou
 
 From Kubernetes run Weave GitOps to get:
 
-1. Application Operations: see the automations that are running your deployments 
+1. Application Operations: manage and automate deployment pipelines for apps and more 
 2. Platforms: the easy way to have your own custom PaaS on cloud or on premise
 3. Extensions: coordinate Kubernetes rollouts with eg. VMs, DBs and cloud services
 
