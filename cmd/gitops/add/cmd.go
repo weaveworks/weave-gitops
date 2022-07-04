@@ -3,10 +3,10 @@ package add
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/terraform"
+	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 )
 
 func GetCommand(opts *config.Options, client *resty.Client) *cobra.Command {

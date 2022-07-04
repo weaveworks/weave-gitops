@@ -4,12 +4,12 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
-	"github.com/weaveworks/weave-gitops/cmd/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/credentials"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates/terraform"
+	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 )
 
 func GetCommand(opts *config.Options, client *resty.Client) *cobra.Command {
