@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -37,6 +39,8 @@ import (
 const (
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
+	// Env var prefix that will be set as a feature flag automatically
+	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -100,6 +104,21 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
+
+	for _, envVar := range os.Environ() {
+		keyVal := strings.SplitN(envVar, "=", 2)
+		if len(keyVal) != 2 {
+			continue
+		}
+
+		key, val := keyVal[0], keyVal[1]
+
+		if !strings.HasPrefix(key, featureFlagPrefix) {
+			continue
+		}
+
+		featureflags.Set(key, val)
+	}
 
 	mux := http.NewServeMux()
 
