@@ -22,8 +22,11 @@ const (
 	LoginOIDC                 string = "oidc"
 	LoginUsername             string = "username"
 	ClusterUserAuthSecretName string = "cluster-user-auth"
-	OIDCAuthSecretName        string = "oidc-auth"
+	DefaultOIDCAuthSecretName string = "oidc-auth"
 )
+
+// This is a horrible global setting but I think this is the easiest way to do this
+var isOIDCEnabled bool = false
 
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
@@ -109,9 +112,20 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
+		// Set isOIDCEnabled now we have a valid provider
+		isOIDCEnabled = true
 	}
 
 	return &AuthServer{cfg, provider}, nil
+}
+
+// SetOIDCEnabled is intended for test use only
+func SetOIDCEnabled(newVal bool) {
+	isOIDCEnabled = newVal
+}
+
+func OIDCEnabled() bool {
+	return isOIDCEnabled
 }
 
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
@@ -121,7 +135,7 @@ func (s *AuthServer) SetRedirectURL(url string) {
 }
 
 func (s *AuthServer) oidcEnabled() bool {
-	return s.config.IssuerURL != ""
+	return OIDCEnabled()
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -155,7 +169,7 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 
 func (s *AuthServer) OAuth2Flow() http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		if !s.oidcEnabled() {
+		if !OIDCEnabled() {
 			JSONError(s.Log, rw, "oidc provider not configured", http.StatusBadRequest)
 			return
 		}
@@ -344,7 +358,7 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
-		if !s.oidcEnabled() {
+		if !OIDCEnabled() {
 			ui := UserInfo{}
 			toJson(rw, ui, s.Log)
 

@@ -32,15 +32,15 @@ In order to login via your OIDC provider, you need to create a Kubernetes secret
 
 | Parameter         |  Description                                                                                                                      | Default   |
 | ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `IssuerURL`       |  The URL of the issuer, typically the discovery URL without a path                                                                |           |
-| `ClientID`        |  The client ID that has been setup for Weave GitOps in the issuer                                                                 |           |
-| `ClientSecret`    |  The client secret that has been setup for Weave GitOps in the issuer                                                             |           |
-| `RedirectURL`     |  The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |           |
-| `TokenDuration`   |  The time duration that the ID Token will remain valid, after successful authentication                               | "1h0m0s"  |           |
+| `issuerURL`       |  The URL of the issuer, typically the discovery URL without a path                                                                |           |
+| `clientID`        |  The client ID that has been setup for Weave GitOps in the issuer                                                                 |           |
+| `clientSecret`    |  The client secret that has been setup for Weave GitOps in the issuer                                                             |           |
+| `redirectURL`     |  The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |           |
+| `tokenDuration`   |  The time duration that the ID Token will remain valid, after successful authentication                                           | "1h0m0s"  |
 
 Ensure that your OIDC provider has been setup with a client ID/secret and the redirect URL of the dashboard.
 
-Create a secret named `oidc-auth` in the `wego-system` namespace with these parameters set:
+Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
 
 ```sh
 kubectl create secret generic oidc-auth \

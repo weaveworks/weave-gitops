@@ -14,19 +14,21 @@ type Props = {
 };
 export enum ReadyType {
   Ready = "Ready",
-  NotReady = "NotReady",
+  NotReady = "Not Ready",
   Reconciling = "Reconciling",
 }
 
 export function computeReady(conditions: Condition[]): string {
-  if (
+  const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
-    _.find(conditions, (c) => c.type === "Available")
-  ) {
-    return _.find(conditions, (c) => c.status === "Unknown") &&
-      _.find(conditions, (c) => c.reason === "Progressing")
-      ? ReadyType.Reconciling
-      : ReadyType.Ready;
+    _.find(conditions, (c) => c.type === "Available");
+  if (readyCondition) {
+    if (readyCondition.status === "True") return ReadyType.Ready;
+    if (
+      readyCondition.status === "Unknown" &&
+      readyCondition.reason === "Progressing"
+    )
+      return ReadyType.Reconciling;
   }
   return undefined;
 }

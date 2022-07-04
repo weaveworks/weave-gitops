@@ -7,6 +7,7 @@ import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
+import Version, { VersionProps } from "./Version";
 
 type Props = {
   className?: string;
@@ -30,30 +31,50 @@ function Footer({ className }: Props) {
     versionData.branch &&
     versionData.commit;
 
-  const versionText = shouldDisplayApiVersion
+  const wegoVersionText = shouldDisplayApiVersion
     ? `${versionData.branch}-${versionData.commit}`
     : `v${p.version}`;
-  const versionHref = shouldDisplayApiVersion
+  const wegoVersionHref = shouldDisplayApiVersion
     ? `${REPO_URL}/commit/${versionData.commit}`
     : `${REPO_URL}/releases/tag/v${p.version}`;
+
+  const versions: VersionProps[] = !isLoading
+    ? [
+        {
+          productName: "Kubernetes",
+          versionText: versionData.kubeVersion,
+        },
+        {
+          productName: "Flux",
+          versionText: versionData.fluxVersion,
+        },
+        {
+          productName: "Weave GitOps",
+          versionText: wegoVersionText,
+          versionHref: wegoVersionHref,
+        },
+      ]
+    : [];
 
   return (
     <Flex as="footer" wide between className={className} role="footer">
       <LeftFoot>
-        <Text color="neutral30">Need help? Contact us at</Text>
+        <Text noWrap>Need help? Contact us at</Text>
         <Spacer padding="xxs" />
         <Link newTab href="mailto:support@weave.works">
           support@weave.works
         </Link>
       </LeftFoot>
       <RightFoot>
-        {!isLoading && (
-          <Link newTab href={versionHref}>
-            {versionText}
-          </Link>
-        )}
+        {!isLoading &&
+          versions.map((version, index) => (
+            <React.Fragment key={`version ${index}`}>
+              <Spacer padding="xxs" />
+              <Version {...version} />
+            </React.Fragment>
+          ))}
         <Spacer padding="xxs" />
-        <Text color="neutral30">© 2022 Weaveworks</Text>
+        <Text noWrap>© 2022 Weaveworks</Text>
       </RightFoot>
     </Flex>
   );

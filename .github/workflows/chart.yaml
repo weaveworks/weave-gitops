@@ -16,6 +16,11 @@ env:
   REGISTRY: ghcr.io
   CHART_LOCATION: weaveworks/charts
 
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
 jobs:
   helm-verify:
     runs-on: ubuntu-latest

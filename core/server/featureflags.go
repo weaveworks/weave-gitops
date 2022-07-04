@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -36,20 +37,7 @@ func (cs *coreServer) GetFeatureFlags(ctx context.Context, msg *pb.GetFeatureFla
 		flags["CLUSTER_USER_AUTH"] = "true"
 	}
 
-	err = cl.Get(ctx, client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
-		Name:      serverauth.OIDCAuthSecretName,
-	}, &secret)
-
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			flags["OIDC_AUTH"] = "false"
-		} else {
-			cs.logger.Error(err, "could not get secret for oidc")
-		}
-	} else {
-		flags["OIDC_AUTH"] = "true"
-	}
+	flags["OIDC_AUTH"] = strconv.FormatBool(serverauth.OIDCEnabled())
 
 	return &pb.GetFeatureFlagsResponse{
 		Flags: flags,
