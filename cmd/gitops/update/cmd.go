@@ -3,11 +3,12 @@ package update
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update/profiles"
+	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 
 	"github.com/spf13/cobra"
 )
 
-func UpdateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func UpdateCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update a Weave GitOps resource",
@@ -17,7 +18,7 @@ func UpdateCommand(endpoint, username, password *string, client *resty.Client) *
 		`,
 	}
 
-	cmd.AddCommand(profiles.UpdateCommand(endpoint, username, password, client))
+	cmd.AddCommand(profiles.UpdateCommand(opts, client))
 
 	return cmd
 }

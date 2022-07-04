@@ -11,6 +11,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
@@ -33,7 +34,7 @@ var providers = []string{
 	"vsphere",
 }
 
-func TemplateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func TemplateCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
@@ -50,8 +51,8 @@ gitops get template <template-name> --list-parameters
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
-		RunE:          getTemplateCmdRunE(endpoint, username, password, client),
+		PreRunE:       getTemplateCmdPreRunE(&opts.Endpoint),
+		RunE:          getTemplateCmdRunE(opts, client),
 		Args:          cobra.MaximumNArgs(1),
 	}
 
@@ -62,7 +63,7 @@ gitops get template <template-name> --list-parameters
 	return cmd
 }
 
-func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, args []string) error {
 		if c.Flag("provider").Changed && !contains(providers, c.Flag("provider").Value.String()) {
 			return fmt.Errorf("provider %q is not valid", c.Flag("provider").Value.String())
@@ -76,9 +77,9 @@ func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 	}
 }
 
-func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
 		if err != nil {
 			return err
 		}
