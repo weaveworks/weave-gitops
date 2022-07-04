@@ -513,16 +513,33 @@ template which created it._
 
 ### Step 5: Install Weave GitOps
 
-Copy the Chart URL from Usage Instructions, or download the file from the Deployment template to your workstation.
+Copy the Chart URL from the Usage Instructions in AWS Marketplace, or download the file from the Deployment template to your workstation.
 
+To be able to log in to your new installation, you need to set up authentication. Create a new file `values.yaml` where you set your username, and a bcrypt hash of your desired password, like so:
+
+```yaml title="./values.yaml"
+gitops:
+  adminUser:
+    create: true
+    username: <UPDATE>
+    passwordHash: <UPDATE>
+```
+
+Then install it:
 ```bash
 helm install wego <URL/PATH> \
-  --set serviceAccountRole="$SA_ARN"
+  --namespace=flux-system \
+  --create-namespace \
+  --set serviceAccountRole="$SA_ARN" \
+  --values ./values.yaml
 
 # if you changed the name of the service account
 helm install wego <URL/PATH> \
+  --namespace=flux-system \
+  --create-namespace \
   --set serviceAccountName='<name>' \
-  --set serviceAccountRole="$SA_ARN"
+  --set serviceAccountRole="$SA_ARN" \
+  --values ./values.yaml
 ```
 
 ### Step 6: Check your installation
@@ -533,12 +550,17 @@ Run the following from your workstation:
 kubectl get pods -n flux-system
 # you should see something like the following returned
 flux-system          helm-controller-5b96d94c7f-tds9n                    1/1     Running   0          53s
-flux-system          image-automation-controller-5cf75fd555-zqm89        1/1     Running   0          53s
-flux-system          image-reflector-controller-6787985855-l4q4g         1/1     Running   0          53s
 flux-system          kustomize-controller-8467b8b884-x2cpd               1/1     Running   0          53s
 flux-system          notification-controller-55f94bc746-ggmwc            1/1     Running   0          53s
 flux-system          source-controller-78bfb8576-stnr5                   1/1     Running   0          53s
 flux-system          wego-metering-f7jqp                                 1/1     Running   0          53s
+flux-system          ww-gitops-weave-gitops-5bdc9f7744-vkh65             1/1     Running   0          53s
 ```
 
 Your Weave GitOps installation is now ready!
+
+The quickest way to access your dashboard is by setting up a port forward:
+```
+kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+```
+Then, [open the dashboard](http://localhost:9001/).
