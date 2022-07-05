@@ -27,7 +27,6 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 		SilenceErrors: true,
 		PreRunE:       betaRunCommandPreRunE(&opts.Endpoint),
 		RunE:          betaRunCommandRunE(opts, client),
-		Args:          cobra.MinimumNArgs(1),
 	}
 
 	return cmd
@@ -35,8 +34,14 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 
 func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if *endpoint == "" {
-			return cmderrors.ErrNoWGEEndpoint
+		numArgs := len(args)
+
+		if numArgs == 0 {
+			return cmderrors.ErrNoFilePath
+		}
+
+		if numArgs > 1 {
+			return cmderrors.ErrMultipleFilePaths
 		}
 
 		return nil
