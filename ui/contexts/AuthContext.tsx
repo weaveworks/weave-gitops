@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Redirect, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -16,19 +16,19 @@ interface AuthCheckProps {
 
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
-
+  const history = useHistory();
+  console.log("auth check running");
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
     return Loader ? <Loader /> : null;
   }
-
   // Signed in! Show app
   if (userInfo?.email) {
     return children;
   }
-
   // User appears not be logged in, off to signin
-  return <Redirect to={AuthRoutes.AUTH_PATH_SIGNIN} />;
+  history.push(AuthRoutes.AUTH_PATH_SIGNIN);
+  return children;
 };
 
 export type AuthContext = {
@@ -69,8 +69,7 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          const prev = history.location.state;
-          if (prev) history.push(prev.pathname + prev.search);
+          if (history.length > 1) history.goBack();
           else history.push("/");
         });
       })
@@ -78,6 +77,7 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   const getUserInfo = React.useCallback(() => {
+    console.log("user info running");
     setLoading(true);
     return request(AuthRoutes.USER_INFO)
       .then((response) => {
@@ -102,7 +102,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
+        window.location.assign(AuthRoutes.AUTH_PATH_SIGNIN);
       })
       .finally(() => setLoading(false));
   }, []);
