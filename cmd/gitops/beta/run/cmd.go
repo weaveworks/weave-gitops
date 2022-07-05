@@ -50,6 +50,24 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		// If there is no cluster in the kube config, return an error.
+
+		// If there is a valid connection to a cluster when the command is run, connect to the currently selected cluster.
+
+		// If Flux is not installed on the cluster then the prerequisites will be installed to initiate the reconciliation process.
+		// This includes all default controllers to set up a reconciliation loop such as the notification-controller, helm-controller, kustomization-controller, and source-controller.
+		// This will also add all relevant CRDs from the controllers above such as Kustomizations, Helm Releases, Git Repository, Helm Repository, Bucket, Alerts, Providers, and Receivers.
+
+		// If Flux is installed on the cluster then we do not need to install flux.
+		// ^^^ this should be easy! :-)
+
+		// Note:
+		// This should be able to work with local (kind and k3d) and remote clusters.
+
+		// Out of scope:
+		// This just includes installing Flux onto the cluster but does not involve creating the prerequisite reconciliation.
+		// This does not include image auto CRDs and controller from Flux. These are not normally installed by default and will be dealt with in a future story.
+
 		return nil
 	}
 }
