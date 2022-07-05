@@ -26,6 +26,7 @@ require (
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jarcoal/httpmock v1.0.8
+	github.com/johannesboyne/gofakes3 v0.0.0-00010101000000-000000000000
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/onsi/ginkgo/v2 v2.1.3
@@ -61,6 +62,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/aws/aws-sdk-go v1.17.4 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
@@ -74,6 +76,8 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
+	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
+	github.com/shabbyrobe/gocovmerge v0.0.0-20180507124511-f6ea450bfb63 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/kustomize/api v0.11.4 // indirect
@@ -240,3 +244,6 @@ require (
 
 // Fix for CVE-2022-1996
 replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
+
+// Use patched version that fixed recursive gets
+replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220701141756-18761244febb
