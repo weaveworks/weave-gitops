@@ -1,10 +1,13 @@
 package run
 
 import (
+	"fmt"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type runCommandFlags struct{}
@@ -51,8 +54,48 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// If there is no cluster in the kube config, return an error.
+		config, contextName, err := kube.RestConfig()
+		if err != nil {
+			return cmderrors.ErrNoCluster
+		}
 
 		// If there is a valid connection to a cluster when the command is run, connect to the currently selected cluster.
+		c, err := kube.NewKubeHTTPClientWithConfig(config, contextName)
+		fmt.Println("client:", c)
+		fmt.Println("error:", err)
+
+		// Check if Flux is installed on the cluster.
+
+		// c, err := cs.getScopedClient(ctx)
+		// if err != nil {
+		// 	cs.logger.Error(err, "error creating scoped client")
+		// }
+
+		// listResult := unstructured.UnstructuredList{}
+
+		// listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		// 	Group:   "",
+		// 	Version: "v1",
+		// 	Kind:    "Namespace",
+		// })
+
+		// opts := client.MatchingLabels{
+		// 	coretypes.PartOfLabel: FluxNamespacePartOf,
+		// }
+
+		// u := unstructured.Unstructured{}
+
+		// err = c.List(ctx, &listResult, opts)
+		// if err != nil {
+		// 	cs.logger.Error(err, "error getting list")
+		// } else {
+		// 	for _, item := range listResult.Items {
+		// 		if item.GetLabels()[flux.VersionLabelKey] != "" {
+		// 			u = item
+		// 			break
+		// 		}
+		// 	}
+		// }
 
 		// If Flux is not installed on the cluster then the prerequisites will be installed to initiate the reconciliation process.
 		// This includes all default controllers to set up a reconciliation loop such as the notification-controller, helm-controller, kustomization-controller, and source-controller.
