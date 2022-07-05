@@ -41,6 +41,9 @@ function UnstyledButton({ loading, ...props }: Props) {
 
 const Button = styled(UnstyledButton)`
   &.MuiButton-root {
+    height: 32px;
+    font-size: 12px;
+    letter-spacing: 1px;
     line-height: 1;
     border-radius: ${(props) => props.theme.borderRadius.soft};
     font-weight: 600;
