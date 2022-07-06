@@ -1,13 +1,19 @@
 package run
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type runCommandFlags struct{}
@@ -51,55 +57,79 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
+func getFluxVersion(obj unstructured.Unstructured) (string, error) {
+	labels := obj.GetLabels()
+	if labels == nil {
+		return "", fmt.Errorf("error getting labels")
+	}
+
+	fluxVersion := labels[flux.VersionLabelKey]
+	if fluxVersion == "" {
+		return "", fmt.Errorf("error getting flux version")
+	}
+
+	return fluxVersion, nil
+}
+
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// If there is no cluster in the kube config, return an error.
-		config, contextName, err := kube.RestConfig()
+		config, ctx, err := kube.RestConfig()
 		if err != nil {
 			return cmderrors.ErrNoCluster
 		}
 
 		// If there is a valid connection to a cluster when the command is run, connect to the currently selected cluster.
-		c, err := kube.NewKubeHTTPClientWithConfig(config, contextName)
-		fmt.Println("client:", c)
-		fmt.Println("error:", err)
+		c, err := kube.NewKubeHTTPClientWithConfig(config, ctx)
+		if err != nil {
+			return cmderrors.ErrGetKubeClient
+		}
 
 		// Check if Flux is installed on the cluster.
 
-		// c, err := cs.getScopedClient(ctx)
-		// if err != nil {
-		// 	cs.logger.Error(err, "error creating scoped client")
-		// }
+		listResult := unstructured.UnstructuredList{}
 
-		// listResult := unstructured.UnstructuredList{}
+		listResult.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Namespace",
+		})
 
-		// listResult.SetGroupVersionKind(schema.GroupVersionKind{
-		// 	Group:   "",
-		// 	Version: "v1",
-		// 	Kind:    "Namespace",
-		// })
+		ctx2 := context.Background()
 
-		// opts := client.MatchingLabels{
-		// 	coretypes.PartOfLabel: FluxNamespacePartOf,
-		// }
+		listOptions := ctrlclient.MatchingLabels{
+			coretypes.PartOfLabel: "flux",
+		}
 
-		// u := unstructured.Unstructured{}
+		u := unstructured.Unstructured{}
 
-		// err = c.List(ctx, &listResult, opts)
-		// if err != nil {
-		// 	cs.logger.Error(err, "error getting list")
-		// } else {
-		// 	for _, item := range listResult.Items {
-		// 		if item.GetLabels()[flux.VersionLabelKey] != "" {
-		// 			u = item
-		// 			break
-		// 		}
-		// 	}
-		// }
+		err = c.List(ctx2, &listResult, listOptions)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			for _, item := range listResult.Items {
+				if item.GetLabels()[flux.VersionLabelKey] != "" {
+					u = item
+					break
+				}
+			}
+		}
+
+		fluxVersion, err := getFluxVersion(u)
+		if err != nil {
+			fmt.Println(err)
+
+			fluxVersion = ""
+		}
+		fmt.Println("fluxVersion:", fluxVersion)
 
 		// If Flux is not installed on the cluster then the prerequisites will be installed to initiate the reconciliation process.
 		// This includes all default controllers to set up a reconciliation loop such as the notification-controller, helm-controller, kustomization-controller, and source-controller.
 		// This will also add all relevant CRDs from the controllers above such as Kustomizations, Helm Releases, Git Repository, Helm Repository, Bucket, Alerts, Providers, and Receivers.
+
+		if fluxVersion == "" {
+
+		}
 
 		// If Flux is installed on the cluster then we do not need to install flux.
 		// ^^^ this should be easy! :-)
