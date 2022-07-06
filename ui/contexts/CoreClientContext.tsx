@@ -27,6 +27,7 @@ export function UnAuthorizedInterceptor(api: any) {
         if (err.code === 401) {
           window.location.replace(
             AuthRoutes.AUTH_PATH_SIGNIN +
+              "?" +
               qs.stringify({
                 redirect: location.pathname + location.search,
               })
