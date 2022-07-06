@@ -3,7 +3,10 @@ package run
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"time"
 
+	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -17,6 +20,10 @@ import (
 )
 
 type runCommandFlags struct{}
+
+const (
+	filenameSuffix = "/flux-system/gotk-components.yaml"
+)
 
 // TODO: Add flags when adding the actual run command.
 var flags runCommandFlags //nolint
@@ -71,6 +78,28 @@ func getFluxVersion(obj unstructured.Unstructured) (string, error) {
 	return fluxVersion, nil
 }
 
+func installFlux(filename string) error {
+	fmt.Println("filename:", filename)
+
+	opts := install.Options{
+		BaseURL:      install.MakeDefaultOptions().BaseURL,
+		Version:      "v0.31.2",
+		Namespace:    "flux-system",
+		Components:   []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"},
+		ManifestFile: "flux-system.yaml",
+		Timeout:      5 * time.Second,
+	}
+
+	manifest, err := install.Generate(opts, "")
+	if err != nil {
+		return fmt.Errorf("couldn't generate manifests: %+v", err)
+	}
+
+	fmt.Print(manifest.Content)
+
+	return nil
+}
+
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// If there is no cluster in the kube config, return an error.
@@ -105,7 +134,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 		err = c.List(ctx2, &listResult, listOptions)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("error getting list:", err)
 		} else {
 			for _, item := range listResult.Items {
 				if item.GetLabels()[flux.VersionLabelKey] != "" {
@@ -121,6 +150,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 			fluxVersion = ""
 		}
+
 		fmt.Println("fluxVersion:", fluxVersion)
 
 		// If Flux is not installed on the cluster then the prerequisites will be installed to initiate the reconciliation process.
@@ -128,7 +158,9 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 		// This will also add all relevant CRDs from the controllers above such as Kustomizations, Helm Releases, Git Repository, Helm Repository, Bucket, Alerts, Providers, and Receivers.
 
 		if fluxVersion == "" {
-
+			filePath := args[0]
+			err = installFlux(filepath.Join(filePath, filenameSuffix))
+			fmt.Println("error:", err)
 		}
 
 		// If Flux is installed on the cluster then we do not need to install flux.
