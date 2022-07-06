@@ -51,6 +51,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 }
 
 type principalCtxKey struct{}
+type tokenCtxKey struct{}
 
 // Principal gets the principal from the context.
 func Principal(ctx context.Context) *UserPrincipal {
@@ -62,6 +63,15 @@ func Principal(ctx context.Context) *UserPrincipal {
 	return nil
 }
 
+// BearerToken gets the bearer token from the context.
+func BearerToken(ctx context.Context) string {
+	if token, ok := ctx.Value(tokenCtxKey{}).(string); ok {
+		return token
+	}
+
+	return ""
+}
+
 // UserPrincipal is a simple model for the user, including their ID and Groups.
 type UserPrincipal struct {
 	ID     string   `json:"id"`
@@ -71,6 +81,11 @@ type UserPrincipal struct {
 // WithPrincipal sets the principal into the context.
 func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 	return context.WithValue(ctx, principalCtxKey{}, p)
+}
+
+// WithBearerToken stores the bearer token from the request into the context.
+func WithBearerToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, tokenCtxKey{}, token)
 }
 
 // WithAPIAuth middleware adds auth validation to API handlers.
@@ -89,6 +104,12 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if IsPublicRoute(r.URL, publicRoutes) {
 			next.ServeHTTP(rw, r)
+			return
+		}
+
+		// If a BearerToken is provided then ignore cookie validation and proceed.
+		if len(r.Header.Get("Authorization")) != 0 {
+			next.ServeHTTP(rw, r.Clone(WithBearerToken(r.Context(), r.Header.Get("Authorization"))))
 			return
 		}
 
