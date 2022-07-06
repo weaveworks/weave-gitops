@@ -1,5 +1,6 @@
+import qs from "query-string";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -14,10 +15,16 @@ interface AuthCheckProps {
   Loader?: React.ElementType;
 }
 
+const makeRedirect = () => {
+  const search = location.search;
+  const query = qs.parse(search);
+  console.log(query);
+  if (!query.redirect) query.redirect = location.pathname + search;
+  return qs.stringify(query);
+};
+
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
-  const history = useHistory();
-  console.log("auth check running");
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
     return Loader ? <Loader /> : null;
@@ -27,8 +34,11 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
     return children;
   }
   // User appears not be logged in, off to signin
-  history.push(AuthRoutes.AUTH_PATH_SIGNIN);
-  return children;
+  return (
+    <Redirect
+      to={{ pathname: AuthRoutes.AUTH_PATH_SIGNIN, search: makeRedirect() }}
+    />
+  );
 };
 
 export type AuthContext = {
@@ -69,8 +79,7 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          if (history.length > 1) history.goBack();
-          else history.push("/");
+          history.push(qs.parse(location.search).redirect || "/");
         });
       })
       .finally(() => setLoading(false));
@@ -102,7 +111,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.assign(AuthRoutes.AUTH_PATH_SIGNIN);
+        window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
       })
       .finally(() => setLoading(false));
   }, []);
