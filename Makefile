@@ -92,6 +92,8 @@ gitops: bin/gitops ## Build the Gitops CLI, accepts a 'DEBUG' flag
 
 gitops-server: bin/gitops-server ## Build the Gitops UI server, accepts a 'DEBUG' flag
 
+gitops-bucket-server: bin/gitops-bucket-server ## Build the GitOps bucket server, accepts a 'DEBUG' flag
+
 # Clean up images and binaries
 clean: ## Clean up images and binaries
 #	Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
@@ -142,6 +144,9 @@ docker-gitops: _docker ## Build a Docker image of the gitops CLI
 
 docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
 docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
+
+docker-gitops-bucket-server: DOCKERFILE:=gitops-bucket-server.dockerfile
+docker-gitops-bucket-server: _docker ## Build a Docker image of the Gitops UI Server
 
 ##@ UI
 # Build the UI for embedding
