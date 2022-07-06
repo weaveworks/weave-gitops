@@ -1,6 +1,5 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
 import { Core } from "../lib/api/core/core.pb";
 import { AuthRoutes } from "./AuthContext";
 
@@ -26,15 +25,11 @@ export function UnAuthorizedInterceptor(api: any) {
     wrapped[method] = (req, initReq) => {
       return api[method](req, initReq).catch((err) => {
         if (err.code === 401) {
-          return (
-            <Redirect
-              to={{
-                pathname: AuthRoutes.AUTH_PATH_SIGNIN,
-                search: qs.stringify({
-                  redirect: location.pathname + location.search,
-                }),
-              }}
-            />
+          return window.location.replace(
+            AuthRoutes.AUTH_PATH_SIGNIN +
+              qs.stringify({
+                redirect: location.pathname + location.search,
+              })
           );
         }
         throw err;
