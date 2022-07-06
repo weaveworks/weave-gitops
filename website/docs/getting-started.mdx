@@ -90,7 +90,7 @@ cd fleet-infra
 
 ```
 PASSWORD="<your password>"
-docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+docker run -it --rm golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
