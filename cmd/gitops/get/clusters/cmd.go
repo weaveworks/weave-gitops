@@ -39,7 +39,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 		RunE:          getClusterCmdRunE(opts, client),
 	}
 
-	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
+	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "print-kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
 
 	return cmd
 }
