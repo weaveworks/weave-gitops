@@ -1,5 +1,6 @@
+import qs from "query-string";
 import * as React from "react";
-import { Redirect, useLocation } from "react-router-dom";
+import { Redirect } from "react-router-dom";
 import { Core } from "../lib/api/core/core.pb";
 import { AuthRoutes } from "./AuthContext";
 
@@ -15,7 +16,7 @@ export type CoreClientContextType = {
 export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
-export function UnAuthorizedInterceptor(api: any, location: any) {
+export function UnAuthorizedInterceptor(api: any) {
   const wrapped = {} as any;
   //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
@@ -28,8 +29,10 @@ export function UnAuthorizedInterceptor(api: any, location: any) {
           return (
             <Redirect
               to={{
-                path: AuthRoutes.AUTH_PATH_SIGNIN,
-                state: { from: location },
+                pathname: AuthRoutes.AUTH_PATH_SIGNIN,
+                search: qs.stringify({
+                  redirect: location.pathname + location.search,
+                }),
               }}
             />
           );
@@ -42,8 +45,7 @@ export function UnAuthorizedInterceptor(api: any, location: any) {
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {
-  const location = useLocation();
-  const wrapped = UnAuthorizedInterceptor(api, location) as typeof Core;
+  const wrapped = UnAuthorizedInterceptor(api) as typeof Core;
 
   return (
     <CoreClientContext.Provider value={{ api: wrapped }}>

@@ -15,14 +15,6 @@ interface AuthCheckProps {
   Loader?: React.ElementType;
 }
 
-const makeRedirect = () => {
-  const search = location.search;
-  const query = qs.parse(search);
-  console.log(query);
-  if (!query.redirect) query.redirect = location.pathname + search;
-  return qs.stringify(query);
-};
-
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
   // Wait until userInfo is loaded before showing signin or app content
@@ -36,7 +28,10 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   // User appears not be logged in, off to signin
   return (
     <Redirect
-      to={{ pathname: AuthRoutes.AUTH_PATH_SIGNIN, search: makeRedirect() }}
+      to={{
+        pathname: AuthRoutes.AUTH_PATH_SIGNIN,
+        search: qs.stringify({ redirect: location.pathname + location.search }),
+      }}
     />
   );
 };
@@ -86,7 +81,6 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   const getUserInfo = React.useCallback(() => {
-    console.log("user info running");
     setLoading(true);
     return request(AuthRoutes.USER_INFO)
       .then((response) => {
@@ -111,7 +105,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
+        window.location.replace(AuthRoutes.AUTH_PATH_SIGNIN);
       })
       .finally(() => setLoading(false));
   }, []);
