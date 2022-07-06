@@ -3,6 +3,7 @@ package run
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -22,7 +23,8 @@ import (
 type runCommandFlags struct{}
 
 const (
-	filenameSuffix = "/flux-system/gotk-components.yaml"
+	fluxDirectory = "flux-system"
+	shortFilename = "gotk-components.yaml"
 )
 
 // TODO: Add flags when adding the actual run command.
@@ -78,8 +80,9 @@ func getFluxVersion(obj unstructured.Unstructured) (string, error) {
 	return fluxVersion, nil
 }
 
-func installFlux(filename string) error {
-	fmt.Println("filename:", filename)
+func installFlux(filePath string, shortFilename string) error {
+	fmt.Println("filepath:", filePath)
+	fmt.Println("shortFilename:", shortFilename)
 
 	opts := install.Options{
 		BaseURL:      install.MakeDefaultOptions().BaseURL,
@@ -95,7 +98,17 @@ func installFlux(filename string) error {
 		return fmt.Errorf("couldn't generate manifests: %+v", err)
 	}
 
-	fmt.Print(manifest.Content)
+	content := []byte(manifest.Content)
+
+	err = os.MkdirAll(filePath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("couldn't create file %+v", err)
+	}
+
+	err = os.WriteFile(filepath.Join(filePath, shortFilename), content, 0666)
+	if err != nil {
+		return fmt.Errorf("couldn't write flux manifests to file %+v", err)
+	}
 
 	return nil
 }
@@ -159,7 +172,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 		if fluxVersion == "" {
 			filePath := args[0]
-			err = installFlux(filepath.Join(filePath, filenameSuffix))
+			err = installFlux(filepath.Join(filePath, fluxDirectory), shortFilename)
 			fmt.Println("error:", err)
 		}
 
