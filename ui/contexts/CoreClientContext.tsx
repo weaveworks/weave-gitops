@@ -25,7 +25,7 @@ export function UnAuthorizedInterceptor(api: any) {
     wrapped[method] = (req, initReq) => {
       return api[method](req, initReq).catch((err) => {
         if (err.code === 401) {
-          return window.location.replace(
+          window.location.replace(
             AuthRoutes.AUTH_PATH_SIGNIN +
               qs.stringify({
                 redirect: location.pathname + location.search,
