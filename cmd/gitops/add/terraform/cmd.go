@@ -63,7 +63,7 @@ func addTerraformCmdPreRunE(endpoint *string) func(*cobra.Command, []string) err
 
 func addTerraformCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
 		if err != nil {
 			return err
 		}

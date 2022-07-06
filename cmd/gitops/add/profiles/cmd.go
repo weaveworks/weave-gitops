@@ -71,7 +71,7 @@ func addProfileCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
 		if err != nil {
 			return err
 		}
