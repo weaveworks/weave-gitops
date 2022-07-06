@@ -2,8 +2,8 @@ package update
 
 import (
 	"github.com/go-resty/resty/v2"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update/profiles"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 
 	"github.com/spf13/cobra"
 )

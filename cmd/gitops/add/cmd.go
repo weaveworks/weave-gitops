@@ -6,7 +6,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/terraform"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 func GetCommand(opts *config.Options, client *resty.Client) *cobra.Command {
