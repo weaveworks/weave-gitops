@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -85,7 +86,8 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 
 // WithBearerToken stores the bearer token from the request into the context.
 func WithBearerToken(ctx context.Context, token string) context.Context {
-	return context.WithValue(ctx, tokenCtxKey{}, token)
+	t := strings.TrimPrefix(token, "Bearer ")
+	return context.WithValue(ctx, tokenCtxKey{}, t)
 }
 
 // WithAPIAuth middleware adds auth validation to API handlers.
