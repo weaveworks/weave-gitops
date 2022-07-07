@@ -87,7 +87,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
-			log.Info("missing or invalid token.")
+			log.V(logger.LogLevelDebug).Info("missing or invalid token.")
 			// No token specified. Nothing to be done.
 			// We do NOT return 400 here because there may be some 'unauthenticated' routes (ie /login)
 			h.ServeHTTP(w, r)
