@@ -60,6 +60,7 @@ func TestPayload(t *testing.T) {
 		"dev-cluster",
 		"--url=https://github.com/weaveworks/test-repo",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -92,6 +93,7 @@ func TestGitProviderToken(t *testing.T) {
 		"dev-cluster",
 		"--url=https://github.com/weaveworks/test-repo",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -106,6 +108,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 		"delete", "cluster",
 		"dev-cluster",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -121,6 +124,7 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 		"dev-cluster",
 		"--url=invalid_url",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()

@@ -28,8 +28,9 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 				"--endpoint", "http://localhost:8000",
+				"--skip-auth",
 			},
 		},
 		{
@@ -37,7 +38,7 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 				"--endpoint", "not_a_valid_url",
 			},
 			errString: "failed to parse endpoint: parse \"not_a_valid_url\": invalid URI for request",
@@ -47,7 +48,7 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 			},
 			errString: "the Weave GitOps Enterprise HTTP API endpoint flag (--endpoint) has not been set",
 		},

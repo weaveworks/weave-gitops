@@ -61,6 +61,7 @@ func TestGitProviderToken(t *testing.T) {
 		"--set=TEMPLATE_PATH=./",
 		"--set=GIT_REPO_NAME=test-repo",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -80,6 +81,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 		"--set=TEMPLATE_PATH=./",
 		"--set=GIT_REPO_NAME=test-repo",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -100,6 +102,7 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 		"--set=TEMPLATE_PATH=./",
 		"--set=GIT_REPO_NAME=test-repo",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()

@@ -34,6 +34,7 @@ func NewImpersonatingConfigGetter(cfg *rest.Config, insecure bool) *Impersonatin
 // use the default service account credentials.
 func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
 	shallowCopy := *r.cfg
+
 	var hasToken bool
 
 	if t := auth.BearerToken(ctx); len(t) != 0 {

@@ -27,6 +27,7 @@ func TestProviderIsNotValid(t *testing.T) {
 		"get", "template",
 		"--provider",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -42,6 +43,7 @@ func TestTemplateNameIsRequired(t *testing.T) {
 		"--list-parameters",
 		"--provider", "aws",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()

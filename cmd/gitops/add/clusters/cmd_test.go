@@ -48,6 +48,7 @@ func TestSetSeparateValues(t *testing.T) {
 		"--set=KUBERNETES_VERSION=1.19",
 		"--dry-run",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -84,6 +85,7 @@ func TestSetMultipleValues(t *testing.T) {
 		"--set=CLUSTER_NAME=dev,AWS_REGION=us-east-1,AWS_SSH_KEY_NAME=ssh_key,KUBERNETES_VERSION=1.19",
 		"--dry-run",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -122,6 +124,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 		"--set=KUBERNETES_VERSION=1.19",
 		"--dry-run",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -175,6 +178,7 @@ func TestGitProviderToken(t *testing.T) {
 		"--set=AWS_SSH_KEY_NAME=ssh_key",
 		"--set=KUBERNETES_VERSION=1.19",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -193,6 +197,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 		"--set=AWS_SSH_KEY_NAME=ssh_key",
 		"--set=KUBERNETES_VERSION=1.19",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -212,6 +217,7 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 		"--set=AWS_SSH_KEY_NAME=ssh_key",
 		"--set=KUBERNETES_VERSION=1.19",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -249,6 +255,7 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 		"--set=KUBERNETES_VERSION=1.19",
 		"--profile=name=foo-profile,version=0.0.1",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -286,6 +293,7 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 		"--set=KUBERNETES_VERSION=1.19",
 		"--profile=test=foo-profile",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -323,6 +331,7 @@ func TestParseProfiles_InvalidValue(t *testing.T) {
 		"--set=KUBERNETES_VERSION=1.19",
 		"--profile=name=foo;profile",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()

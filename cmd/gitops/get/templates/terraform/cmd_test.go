@@ -28,6 +28,7 @@ func TestTemplateNameIsRequired(t *testing.T) {
 		"get", "template", "terraform",
 		"--list-parameters",
 		"--endpoint", "http://localhost:8000",
+		"--skip-auth",
 	})
 
 	err := cmd.Execute()

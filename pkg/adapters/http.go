@@ -85,7 +85,7 @@ func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error 
 	// controller-runtime config getter does not allow us to pass a kubeconfig location
 	// but does support the --kubeconfig flag via the `flag` stdlib package. Therefore
 	// set this flag with the kubeconfig location if the user has passed one via the CLI.
-	flag.Set("kubeconfig", opts.Kubeconfig)
+	_ = flag.Set("kubeconfig", opts.Kubeconfig)
 
 	restConfig, err := kubecfg.GetConfig()
 	if err != nil {

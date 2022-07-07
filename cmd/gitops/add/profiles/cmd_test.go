@@ -50,6 +50,7 @@ var _ = Describe("Add a Profile", func() {
 				"--cluster", "cluster",
 				"--config-repo", "config-repo",
 				"--endpoint", "localhost:8080",
+				"--skip-auth",
 			})
 			err := cmd.Execute()
 			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
@@ -63,6 +64,7 @@ var _ = Describe("Add a Profile", func() {
 				"--cluster", "prod",
 				"--version", "&%*/v",
 				"--endpoint", "localhost:8080",
+				"--skip-auth",
 			})
 
 			err := cmd.Execute()

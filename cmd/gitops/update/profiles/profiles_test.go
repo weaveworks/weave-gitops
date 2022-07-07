@@ -27,6 +27,7 @@ var _ = Describe("Update Profile(s)", func() {
 				"--config-repo", "https://ssh@github:test/test.git",
 				"--auto-merge", "true",
 				"--endpoint", "localhost:8080",
+				"--skip-auth",
 			})
 
 			err := cmd.Execute()
@@ -53,6 +54,7 @@ var _ = Describe("Update Profile(s)", func() {
 				"--cluster", "prod",
 				"--version", "&%*/v",
 				"--endpoint", "localhost:8080",
+				"--skip-auth",
 			})
 
 			err := cmd.Execute()

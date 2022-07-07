@@ -12,6 +12,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -55,12 +56,18 @@ func TestCreatePullRequestFromTemplate_CAPI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			opts := &config.Options{
+				Endpoint: testutils.BaseURI,
+				Username: "",
+				Password: "",
+				SkipAuth: true,
+			}
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
+			c, err := adapters.NewHttpClient(opts, client, os.Stdout)
 			assert.NoError(t, err)
 
 			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.CAPITemplateKind.String()})
@@ -107,12 +114,18 @@ func TestCreatePullRequestFromTemplate_Terraform(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			opts := &config.Options{
+				Endpoint: testutils.BaseURI,
+				Username: "",
+				Password: "",
+				SkipAuth: true,
+			}
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/tfcontrollers", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
+			c, err := adapters.NewHttpClient(opts, client, os.Stdout)
 			assert.NoError(t, err)
 			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.GitOpsTemplateKind.String()})
 			tt.assertFunc(t, result, err)
