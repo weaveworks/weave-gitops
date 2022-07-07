@@ -1,13 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { ObjectRef } from "../lib/api/core/types.pb";
+import { FluxObjectRef } from "../lib/api/core/types.pb";
 import { removeKind } from "../lib/utils";
 import { formatSourceURL } from "../lib/nav";
 import Link from "./Link";
 
 type Props = {
   className?: string;
-  sourceRef?: ObjectRef;
+  sourceRef?: FluxObjectRef;
   clusterName: string;
   short?: boolean;
 };

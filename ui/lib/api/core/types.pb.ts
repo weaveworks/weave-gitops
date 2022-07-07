@@ -31,8 +31,14 @@ export type Interval = {
   seconds?: string
 }
 
-export type ObjectRef = {
+export type FluxObjectRef = {
   kind?: FluxObjectKind
+  name?: string
+  namespace?: string
+}
+
+export type ObjectRef = {
+  kind?: string
   name?: string
   namespace?: string
 }
@@ -62,7 +68,7 @@ export type Kustomization = {
   namespace?: string
   name?: string
   path?: string
-  sourceRef?: ObjectRef
+  sourceRef?: FluxObjectRef
   interval?: Interval
   conditions?: Condition[]
   lastAppliedRevision?: string
@@ -76,7 +82,7 @@ export type Kustomization = {
 export type HelmChart = {
   namespace?: string
   name?: string
-  sourceRef?: ObjectRef
+  sourceRef?: FluxObjectRef
   chart?: string
   version?: string
   interval?: Interval

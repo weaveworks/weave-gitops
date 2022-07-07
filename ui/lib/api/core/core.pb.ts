@@ -150,11 +150,11 @@ export type ListNamespacesResponse = {
   namespaces?: Gitops_coreV1Types.Namespace[]
 }
 
-export type ListFluxEventsRequest = {
+export type ListEventsRequest = {
   involvedObject?: Gitops_coreV1Types.ObjectRef
 }
 
-export type ListFluxEventsResponse = {
+export type ListEventsResponse = {
   events?: Gitops_coreV1Types.Event[]
 }
 
@@ -242,8 +242,8 @@ export class Core {
   static ListNamespaces(req: ListNamespacesRequest, initReq?: fm.InitReq): Promise<ListNamespacesResponse> {
     return fm.fetchReq<ListNamespacesRequest, ListNamespacesResponse>(`/v1/namespaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
-  static ListFluxEvents(req: ListFluxEventsRequest, initReq?: fm.InitReq): Promise<ListFluxEventsResponse> {
-    return fm.fetchReq<ListFluxEventsRequest, ListFluxEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
     return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})

@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -16,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEventsRequest) (*pb.ListFluxEventsResponse, error) {
+func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest) (*pb.ListEventsResponse, error) {
 	k8s, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, doClientError(err)
@@ -30,11 +29,15 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		return &corev1.EventList{}
 	})
 
-	kind := msg.InvolvedObject.Kind.String()
-	kind = strings.TrimPrefix(kind, "Kind")
+	kind := msg.InvolvedObject.Kind
+
+	gvk, err := cs.primaryKinds.Lookup(kind)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: not a recognized object kind")
+	}
 
 	fields := client.MatchingFields{
-		"involvedObject.kind":      kind,
+		"involvedObject.kind":      gvk.Kind,
 		"involvedObject.name":      msg.InvolvedObject.Name,
 		"involvedObject.namespace": msg.InvolvedObject.Namespace,
 	}
@@ -66,7 +69,7 @@ func (cs *coreServer) ListFluxEvents(ctx context.Context, msg *pb.ListFluxEvents
 		}
 	}
 
-	return &pb.ListFluxEventsResponse{Events: events}, nil
+	return &pb.ListEventsResponse{Events: events}, nil
 }
 
 func list(ctx context.Context, k8s clustersmngr.Client, appName, namespace string, list clustersmngr.ClusteredObjectList, extraOpts ...client.ListOption) error {

@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func TestListFluxEvents(t *testing.T) {
+func TestListEvents(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ctx := context.Background()
@@ -83,11 +84,11 @@ func TestListFluxEvents(t *testing.T) {
 	g.Expect(k.Create(ctx, otherEvent)).To(Succeed())
 
 	// Get kustomization events
-	res, err := c.ListFluxEvents(ctx, &pb.ListFluxEventsRequest{
+	res, err := c.ListEvents(ctx, &pb.ListEventsRequest{
 		InvolvedObject: &pb.ObjectRef{
 			Name:      kustomizationObjectName,
 			Namespace: ns.Name,
-			Kind:      pb.FluxObjectKind_KindKustomization,
+			Kind:      kustomizev1.KustomizationKind,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -97,11 +98,11 @@ func TestListFluxEvents(t *testing.T) {
 	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
 
 	// Get helmrelease events
-	res, err = c.ListFluxEvents(ctx, &pb.ListFluxEventsRequest{
+	res, err = c.ListEvents(ctx, &pb.ListEventsRequest{
 		InvolvedObject: &pb.ObjectRef{
 			Name:      helmObjectName,
 			Namespace: ns.Name,
-			Kind:      pb.FluxObjectKind_KindHelmRelease,
+			Kind:      helmv2.HelmReleaseKind,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
