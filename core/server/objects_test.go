@@ -9,7 +9,11 @@ import (
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetObject(t *testing.T) {
@@ -69,4 +73,50 @@ func TestGetObject(t *testing.T) {
 		ClusterName: "Defauult",
 	})
 	g.Expect(err).To(HaveOccurred())
+}
+
+func TestGetObjectOtherKinds(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	ns := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	appName := "myapp"
+	dep := newDeployment(appName, ns.Name)
+
+	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(&ns, dep).Build()
+	cfg := makeServerConfig(client, t)
+
+	c := makeServer(cfg, t)
+
+	_, err := c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        appName,
+		Namespace:   ns.Name,
+		Kind:        "deployment",
+		ClusterName: "Default",
+	})
+	g.Expect(err).To(HaveOccurred())
+
+	err = cfg.PrimaryKinds.Add("deployment", schema.GroupVersionKind{
+		Group:   "apps",
+		Version: "v1",
+		Kind:    "Deployment",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	c = makeServer(cfg, t)
+
+	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        appName,
+		Namespace:   ns.Name,
+		Kind:        "deployment",
+		ClusterName: "Default",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Object.ClusterName).To(Equal("Default"))
+	g.Expect(res.Object.Payload).NotTo(BeEmpty())
 }
