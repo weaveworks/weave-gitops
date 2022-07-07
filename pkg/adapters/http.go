@@ -62,9 +62,11 @@ func NewHttpClient(opts *config.Options, client *resty.Client, out io.Writer) (*
 		client:  client,
 	}
 
-	err = configureAuthForClient(opts, httpClient)
-	if err != nil {
-		return nil, fmt.Errorf("error: could not configure auth for client: %w", err)
+	if !opts.SkipAuth {
+		err = configureAuthForClient(opts, httpClient)
+		if err != nil {
+			return nil, fmt.Errorf("error: could not configure auth for client: %w", err)
+		}
 	}
 
 	return httpClient, nil
@@ -87,7 +89,7 @@ func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error 
 
 	restConfig, err := kubecfg.GetConfig()
 	if err != nil {
-		return fmt.Errorf("error: could not load config for kubeconfig: %w")
+		return fmt.Errorf("error: could not load config for kubeconfig: %w", err)
 	}
 
 	roundtripper, err := rest.TransportFor(restConfig)
