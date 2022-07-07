@@ -1,3 +1,4 @@
+import qs from "query-string";
 import * as React from "react";
 import { Redirect, useHistory } from "react-router-dom";
 import { AppContext } from "./AppContext";
@@ -16,19 +17,23 @@ interface AuthCheckProps {
 
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
-
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
     return Loader ? <Loader /> : null;
   }
-
   // Signed in! Show app
   if (userInfo?.email) {
     return children;
   }
-
   // User appears not be logged in, off to signin
-  return <Redirect to={AuthRoutes.AUTH_PATH_SIGNIN} />;
+  return (
+    <Redirect
+      to={{
+        pathname: AuthRoutes.AUTH_PATH_SIGNIN,
+        search: qs.stringify({ redirect: location.pathname + location.search }),
+      }}
+    />
+  );
 };
 
 export type AuthContext = {
@@ -69,7 +74,7 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          history.push("/");
+          history.push(qs.parse(location.search).redirect || "/");
         });
       })
       .finally(() => setLoading(false));
@@ -100,7 +105,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.pathname = AuthRoutes.AUTH_PATH_SIGNIN;
+        window.location.replace(AuthRoutes.AUTH_PATH_SIGNIN);
       })
       .finally(() => setLoading(false));
   }, []);
