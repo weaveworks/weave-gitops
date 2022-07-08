@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -91,9 +90,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 		// This will also add all relevant CRDs from the controllers above such as Kustomizations, Helm Releases, Git Repository, Helm Repository, Bucket, Alerts, Providers, and Receivers.
 
 		if fluxVersion == "" {
-			filePath := args[0]
-
-			err = run.InstallFlux(log, ctx2, kubeClient, filepath.Join(filePath, run.FluxDirectory), run.ShortManifestFilename)
+			err = run.InstallFlux(log, ctx2, kubeClient)
 			if err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			}

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
@@ -20,11 +19,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	FluxDirectory         = "flux-system"
-	ShortManifestFilename = "gotk-components.yaml"
 )
 
 func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
@@ -67,7 +61,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	return fluxVersion, nil
 }
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, filePath string, shortFilename string) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) error {
 	opts := install.Options{
 		BaseURL:      install.MakeDefaultOptions().BaseURL,
 		Version:      "v0.31.2",
@@ -83,16 +77,6 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	}
 
 	content := []byte(manifest.Content)
-
-	err = os.MkdirAll(filePath, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("couldn't create file %+v", err)
-	}
-
-	err = os.WriteFile(filepath.Join(filePath, shortFilename), content, 0666)
-	if err != nil {
-		return fmt.Errorf("couldn't write flux manifests to file %+v", err)
-	}
 
 	var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
 
@@ -120,9 +104,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	// rootCmd.RegisterFlagCompletionFunc("context", contextsCompletionFunc)
 	// rootCmd.RegisterFlagCompletionFunc("namespace", resourceNamesCompletionFunc(corev1.SchemeGroupVersion.WithKind("Namespace")))
 
-	manifestPath := filepath.Join(filePath, FluxDirectory)
-
-	applyOutput, err := apply(log, ctx, kubeClient, kubeconfigArgs, kubeclientOptions, manifestPath, content)
+	applyOutput, err := apply(log, ctx, kubeClient, kubeconfigArgs, kubeclientOptions, content)
 	if err != nil {
 		return fmt.Errorf("install failed: %w", err)
 	}
@@ -164,7 +146,7 @@ func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	return man.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
 
-func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, opts *runclient.Options, manifestPath string, manifestContent []byte) (string, error) {
+func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, opts *runclient.Options, manifestContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestContent))
 
 	if err != nil {
@@ -172,7 +154,7 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	}
 
 	if len(objs) == 0 {
-		return "", fmt.Errorf("no Kubernetes objects found at: %s", manifestPath)
+		return "", fmt.Errorf("no Kubernetes objects found in the manifest")
 	}
 
 	if err := ssa.SetNativeKindsDefaults(objs); err != nil {
