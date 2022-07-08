@@ -18,6 +18,9 @@ const (
 	// IDTokenCookieName is the name of the cookie that holds the ID Token once
 	// the user has authenticated successfully with the OIDC Provider.
 	IDTokenCookieName = "id_token"
+	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
+	// used for token passthrough authentication.
+	AuthorizationTokenHeaderName = "Authorization"
 	// ScopeProfile is the "profile" scope
 	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
@@ -77,6 +80,7 @@ func BearerToken(ctx context.Context) string {
 type UserPrincipal struct {
 	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
+	Token  string   `json:"-"`
 }
 
 // WithPrincipal sets the principal into the context.
@@ -95,7 +99,8 @@ func WithBearerToken(ctx context.Context, token string) context.Context {
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
 	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
-	multi := MultiAuthPrincipal{adminAuth}
+	tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName)
+	multi := MultiAuthPrincipal{adminAuth, tokenAuth}
 
 	if srv.oidcEnabled() {
 		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
@@ -106,12 +111,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if IsPublicRoute(r.URL, publicRoutes) {
 			next.ServeHTTP(rw, r)
-			return
-		}
-
-		// If a BearerToken is provided then ignore cookie validation and proceed.
-		if len(r.Header.Get("Authorization")) != 0 {
-			next.ServeHTTP(rw, r.Clone(WithBearerToken(r.Context(), r.Header.Get("Authorization"))))
 			return
 		}
 
