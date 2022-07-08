@@ -17,3 +17,6 @@ adminUser:
 
 additionalArgs:
   - "--dev-mode"
+
+metrics:
+  enabled: true
