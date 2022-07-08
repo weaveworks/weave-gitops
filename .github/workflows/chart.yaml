@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  CHART_LOCATION: weaveworks/charts
+  CHART_LOCATION: weaveworks/charts/weave-gitops
 
 permissions:
   contents: write
