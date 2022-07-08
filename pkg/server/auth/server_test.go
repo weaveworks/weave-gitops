@@ -17,6 +17,7 @@ import (
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
@@ -423,7 +424,18 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"username": []byte("anything"),
+			"password": []byte("hash"),
+		},
+	}
+	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, true)
 
 	signed, err := tokenSignerVerifier.Sign("wego-admin")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -452,7 +464,19 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"username": []byte("anything"),
+			"password": []byte("hash"),
+		},
+	}
+	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
+
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, true)
 
 	signed, err := tokenSignerVerifier.Sign("dev")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -481,7 +505,19 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, nil, tokenSignerVerifier, true)
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"username": []byte("anything"),
+			"password": []byte("hash"),
+		},
+	}
+	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
+
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, true)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	req.AddCookie(&http.Cookie{
@@ -632,7 +668,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	t.Helper()
 	g := gomega.NewGomegaWithT(t)
 
-	auth.SetOIDCEnabled(false) // Reset this
+	featureflags.Set("OIDC_AUTH", "") // Reset this
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -645,6 +681,10 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 
 	if disableProvider {
 		cfg.Issuer = ""
+	}
+
+	if client == nil {
+		client = ctrlclientfake.NewClientBuilder().Build()
 	}
 
 	oidcCfg := auth.OIDCConfig{
@@ -660,4 +700,62 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	g.Expect(err).NotTo(HaveOccurred())
 
 	return s, m
+}
+
+func TestAuthMethods(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	featureflags.Set("OIDC_AUTH", "")
+	featureflags.Set("CLUSTER_USER_AUTH", "")
+
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).To(HaveOccurred())
+
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: "flux-system",
+		},
+		Data: map[string][]byte{
+			"username": []byte("anything"),
+			"password": []byte("hash"),
+		},
+	}
+	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
+
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("true"))
+
+	m, err := mockoidc.Run()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		_ = m.Shutdown()
+	})
+
+	cfg := m.Config()
+	oidcCfg := auth.OIDCConfig{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		IssuerURL:    cfg.Issuer,
+	}
+
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
 }
