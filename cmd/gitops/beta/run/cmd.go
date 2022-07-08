@@ -3,19 +3,16 @@ package run
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/cmd/internal/config"
-	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type runCommandFlags struct{}
@@ -63,48 +60,24 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		// If there is no cluster in the kube config, return an error.
-		cfg, ctx, err := kube.RestConfig()
+		cfg, clusterName, err := kube.RestConfig()
 		if err != nil {
 			return cmderrors.ErrNoCluster
 		}
 
 		// If there is a valid connection to a cluster when the command is run, connect to the currently selected cluster.
-		kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, ctx)
+		kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
 
+		log := internal.NewCLILogger(os.Stdout)
+
 		// Check if Flux is installed on the cluster.
-
-		listResult := unstructured.UnstructuredList{}
-
-		listResult.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "",
-			Version: "v1",
-			Kind:    "Namespace",
-		})
 
 		ctx2 := context.Background()
 
-		listOptions := ctrlclient.MatchingLabels{
-			coretypes.PartOfLabel: "flux",
-		}
-
-		u := unstructured.Unstructured{}
-
-		err = kubeClient.List(ctx2, &listResult, listOptions)
-		if err != nil {
-			fmt.Println("error getting list:", err)
-		} else {
-			for _, item := range listResult.Items {
-				if item.GetLabels()[flux.VersionLabelKey] != "" {
-					u = item
-					break
-				}
-			}
-		}
-
-		fluxVersion, err := run.GetFluxVersion(u)
+		fluxVersion, err := run.GetFluxVersion(log, ctx2, kubeClient)
 		if err != nil {
 			fmt.Println("error getting flux version", err)
 
@@ -120,7 +93,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 		if fluxVersion == "" {
 			filePath := args[0]
 
-			err = run.InstallFlux(kubeClient, ctx2, filepath.Join(filePath, run.FluxDirectory), run.ShortManifestFilename)
+			err = run.InstallFlux(log, ctx2, kubeClient, filepath.Join(filePath, run.FluxDirectory), run.ShortManifestFilename)
 			if err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			}

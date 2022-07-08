@@ -11,8 +11,12 @@ import (
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	runclient "github.com/fluxcd/pkg/runtime/client"
 	"github.com/fluxcd/pkg/ssa"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,8 +27,34 @@ const (
 	ShortManifestFilename = "gotk-components.yaml"
 )
 
-func GetFluxVersion(obj unstructured.Unstructured) (string, error) {
-	labels := obj.GetLabels()
+func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
+	listResult := unstructured.UnstructuredList{}
+
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	})
+
+	listOptions := ctrlclient.MatchingLabels{
+		coretypes.PartOfLabel: "flux",
+	}
+
+	u := unstructured.Unstructured{}
+
+	err := kubeClient.List(ctx, &listResult, listOptions)
+	if err != nil {
+		fmt.Println("error getting list:", err)
+	} else {
+		for _, item := range listResult.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				u = item
+				break
+			}
+		}
+	}
+
+	labels := u.GetLabels()
 	if labels == nil {
 		return "", fmt.Errorf("error getting labels")
 	}
@@ -37,7 +67,7 @@ func GetFluxVersion(obj unstructured.Unstructured) (string, error) {
 	return fluxVersion, nil
 }
 
-func InstallFlux(kubeClient ctrlclient.Client, ctx context.Context, filePath string, shortFilename string) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, filePath string, shortFilename string) error {
 	opts := install.Options{
 		BaseURL:      install.MakeDefaultOptions().BaseURL,
 		Version:      "v0.31.2",
@@ -92,7 +122,7 @@ func InstallFlux(kubeClient ctrlclient.Client, ctx context.Context, filePath str
 
 	manifestPath := filepath.Join(filePath, FluxDirectory)
 
-	applyOutput, err := apply(kubeClient, ctx, kubeconfigArgs, kubeclientOptions, manifestPath, content)
+	applyOutput, err := apply(log, ctx, kubeClient, kubeconfigArgs, kubeclientOptions, manifestPath, content)
 	if err != nil {
 		return fmt.Errorf("install failed: %w", err)
 	}
@@ -102,7 +132,7 @@ func InstallFlux(kubeClient ctrlclient.Client, ctx context.Context, filePath str
 	return nil
 }
 
-func newManager(kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
+func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
 	restMapper, err := rcg.ToRESTMapper()
 	if err != nil {
 		return nil, err
@@ -116,8 +146,8 @@ func newManager(kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGe
 	}), nil
 }
 
-func applySet(kubeClient ctrlclient.Client, ctx context.Context, rcg genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
-	man, err := newManager(kubeClient, rcg)
+func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
+	man, err := newManager(log, ctx, kubeClient, rcg)
 	if err != nil {
 		return nil, err
 	}
@@ -125,8 +155,8 @@ func applySet(kubeClient ctrlclient.Client, ctx context.Context, rcg genericclio
 	return man.ApplyAll(ctx, objects, ssa.DefaultApplyOptions())
 }
 
-func waitForSet(kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, changeSet *ssa.ChangeSet) error {
-	man, err := newManager(kubeClient, rcg)
+func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, changeSet *ssa.ChangeSet) error {
+	man, err := newManager(log, ctx, kubeClient, rcg)
 	if err != nil {
 		return err
 	}
@@ -134,7 +164,7 @@ func waitForSet(kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGe
 	return man.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
 
-func apply(kubeClient ctrlclient.Client, ctx context.Context, rcg genericclioptions.RESTClientGetter, opts *runclient.Options, manifestPath string, manifestContent []byte) (string, error) {
+func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, opts *runclient.Options, manifestPath string, manifestContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestContent))
 
 	if err != nil {
@@ -166,7 +196,7 @@ func apply(kubeClient ctrlclient.Client, ctx context.Context, rcg genericcliopti
 	}
 
 	if len(stageOne) > 0 {
-		cs, err := applySet(kubeClient, ctx, rcg, stageOne)
+		cs, err := applySet(log, ctx, kubeClient, rcg, stageOne)
 		if err != nil {
 			return "", err
 		}
@@ -174,12 +204,12 @@ func apply(kubeClient ctrlclient.Client, ctx context.Context, rcg genericcliopti
 		changeSet.Append(cs.Entries)
 	}
 
-	if err := waitForSet(kubeClient, rcg, changeSet); err != nil {
+	if err := waitForSet(log, ctx, kubeClient, rcg, changeSet); err != nil {
 		return "", err
 	}
 
 	if len(stageTwo) > 0 {
-		cs, err := applySet(kubeClient, ctx, rcg, stageTwo)
+		cs, err := applySet(log, ctx, kubeClient, rcg, stageTwo)
 		if err != nil {
 			return "", err
 		}
