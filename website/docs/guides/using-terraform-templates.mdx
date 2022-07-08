@@ -69,7 +69,13 @@ flux reconcile kustomization flux-system
 ### 2. Use the template to create a resource
 A resource can be created from a template by specifying the template's name and supplying values to it, as well as your Weave GitOps Enterprise username, password, and HTTP API endpoint.
 ```bash
-gitops add terraform --from-template sample-wge-tf-controller-template --set="RESOURCE_NAME"="name" --username=<username> --password=<password> --endpoint https://localhost:8000 --url <config-repo>
+gitops add terraform --from-template sample-wge-tf-controller-template \ 
+--set="RESOURCE_NAME"="name" \
+--username=<username> --password=<password> \
+--endpoint https://localhost:8000 \
+--url https://github.com/myawesomeorg/myawesomerepo
+
+Created pull request: https://github.com/myawesomeorg/myawesomerepo/pull/5
 ```
 
 This will create a PR in your Git repository with a TF-Controller manifest. Once the PR is merged, TF-Controller will supply the values to the Terraform manifest, apply the Terraform manifest to create the resource, and reconcile any changes that you make to the Terraform manifest!
@@ -293,9 +299,10 @@ You can change the location where you keep your Terraform manifests in your Git 
 gitops add terraform --from-template rds-template \
 --username=<username> --password=<password> \
 --endpoint https://localhost:8000 \
---url <config-repo> \
+--url https://github.com/myawesomeorg/myawesomerepo \
 --set "RESOURCE_NAME"="tf-controller-aurora","CLUSTER_IDENTIFIER"="super-awesome-aurora","DATABASE_NAME"="db1","BACKUP_RETENTION_PERIOD"=5,"REGION"="us-west-2"
-Created pull request: https://github.com/nikimanoledaki/wge-dev/pull/6
+
+Created pull request: https://github.com/myawesomeorg/myawesomerepo/pull/6
 ```
 
 Merge the PR in your Git repository to add the TF-Controller manifest. TF-Controller will supply the values to the Terraform manifest, apply the Terraform manifest to create the resource, and reconcile any changes that you make to the Terraform manifest.
