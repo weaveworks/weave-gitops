@@ -1,0 +1,8 @@
+tenants:
+  - name: test-tenant1
+    namespaces:
+    - test-ns1
+  - name: test-tenant2
+    namespaces:
+    - test-ns2
+    - test-ns3

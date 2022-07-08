@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant1
+  name: test-ns1
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant1
+  name: test-tenant1
+  namespace: test-ns1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant1
+  name: test-tenant1
+  namespace: test-ns1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:test-ns1:reconciler
+- kind: ServiceAccount
+  name: test-tenant1
+  namespace: test-ns1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-ns2
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-tenant2
+  namespace: test-ns2
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-tenant2
+  namespace: test-ns2
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:test-ns2:reconciler
+- kind: ServiceAccount
+  name: test-tenant2
+  namespace: test-ns2
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-ns3
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-tenant2
+  namespace: test-ns3
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant2
+  name: test-tenant2
+  namespace: test-ns3
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: gotk:test-ns3:reconciler
+- kind: ServiceAccount
+  name: test-tenant2
+  namespace: test-ns3
+---
