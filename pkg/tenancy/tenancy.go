@@ -38,6 +38,7 @@ func (t Tenant) Validate() error {
 	if t.Name == "" {
 		result = multierror.Append(result, errors.New("name is required"))
 	}
+
 	if len(t.Namespaces) == 0 {
 		result = multierror.Append(result, errors.New("namespaces required"))
 	}
@@ -45,6 +46,7 @@ func (t Tenant) Validate() error {
 	return result
 }
 
+// CreateTenants creates resources for tenants.
 func CreateTenants(ctx context.Context, filename string, c client.Client) error {
 	b, err := os.ReadFile(filename)
 	if err != nil {
@@ -63,6 +65,7 @@ func CreateTenants(ctx context.Context, filename string, c client.Client) error 
 
 	for _, resource := range resources {
 		obj := convertToResource(resource)
+
 		err = createObject(ctx, c, obj)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", obj.GetName(), err)
@@ -80,15 +83,19 @@ func convertToResource(resource runtime.Object) client.Object {
 	if resource.GetObjectKind().GroupVersionKind().Kind == "Namespace" {
 		return resource.(*corev1.Namespace)
 	}
+
 	if resource.GetObjectKind().GroupVersionKind().Kind == "ServiceAccount" {
 		return resource.(*corev1.ServiceAccount)
 	}
+
 	if resource.GetObjectKind().GroupVersionKind().Kind == "RoleBinding" {
 		return resource.(*rbacv1.RoleBinding)
 	}
+
 	return nil
 }
 
+// ExportTenants exports all the tenants to a file.
 func ExportTenants(filename string, out io.Writer) error {
 	b, err := os.ReadFile(filename)
 	if err != nil {
@@ -113,10 +120,12 @@ func marshalOutput(out io.Writer, output runtime.Object) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %v", err)
 	}
+
 	_, err = fmt.Fprintf(out, "%s", data)
 	if err != nil {
 		return fmt.Errorf("failed to write data: %v", err)
 	}
+
 	return nil
 }
 
@@ -125,14 +134,19 @@ func outputResources(out io.Writer, resources []runtime.Object) error {
 		if err := marshalOutput(out, v); err != nil {
 			return fmt.Errorf("failed outputting tenant: %w", err)
 		}
-		out.Write([]byte("---\n"))
+
+		if _, err := out.Write([]byte("---\n")); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
 // GenerateTenantResources creates all the resources for tenants.
 func GenerateTenantResources(tenants ...Tenant) ([]runtime.Object, error) {
 	generated := []runtime.Object{}
+
 	for _, tenant := range tenants {
 		if err := tenant.Validate(); err != nil {
 			return nil, err
@@ -176,6 +190,7 @@ func newRoleBinding(name, namespace, clusterRole string, labels map[string]strin
 	if clusterRole == "" {
 		clusterRole = "cluster-admin"
 	}
+
 	return &rbacv1.RoleBinding{
 		TypeMeta: roleBindingTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
@@ -216,6 +231,7 @@ func Parse(tenantsYAML []byte) ([]Tenant, error) {
 	var tenancy struct {
 		Tenants []Tenant `yaml:"tenants"`
 	}
+
 	err := yaml.Unmarshal(tenantsYAML, &tenancy)
 	if err != nil {
 		return nil, err

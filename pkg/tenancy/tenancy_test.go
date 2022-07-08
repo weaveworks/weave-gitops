@@ -211,7 +211,6 @@ func TestGenerateTenantResources_WithMultipleTenants(t *testing.T) {
 	resourceForTenants, err := GenerateTenantResources(tenant1, tenant2)
 	assert.NoError(t, err)
 	assert.Equal(t, append(resourceForTenant1, resourceForTenant2...), resourceForTenants)
-
 }
 
 func TestParse(t *testing.T) {
@@ -225,6 +224,7 @@ tenants:
     - test-ns2
     - test-ns3
 `)
+
 	tenants, err := Parse(raw)
 	if err != nil {
 		t.Fatal(err)
@@ -272,19 +272,24 @@ func Test_newRoleBinding(t *testing.T) {
 
 func readGoldenFile(t *testing.T, filename string) string {
 	t.Helper()
+
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	return string(b)
 }
 
 func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 	t.Helper()
+
 	scheme := runtime.NewScheme()
+
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		t.Fatal(err)
 	}
+
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(objs...).
