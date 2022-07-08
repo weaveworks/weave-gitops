@@ -14,7 +14,7 @@ func CreateCommand() *cobra.Command {
 gitops create tenants --file tenants.yaml`,
 	}
 
-	cmd.AddCommand(tenants.TenantsCommand())
+	cmd.AddCommand(tenants.TenantsCommand)
 
 	return cmd
 }
