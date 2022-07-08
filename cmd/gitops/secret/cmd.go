@@ -47,7 +47,13 @@ func SecretCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 			return errors.New("password must be one continuous string")
 		}
 
-		fmt.Println(bcrypt.GenerateFromPassword([]byte(args[0]), 10))
+		secret, error := bcrypt.GenerateFromPassword([]byte(args[0]), 10)
+
+		if error != nil {
+			return error
+		}
+
+		fmt.Println(string(secret))
 
 		return nil
 	}
