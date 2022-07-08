@@ -158,3 +158,15 @@ serverTLS:
   # kubectl create secret tls my-tls-secret \
   #  --cert=path/to/cert/file \
   #  --key=path/to/key/file
+
+metrics:
+  # -- Start the metrics exporter
+  enabled: false
+  service:
+    # -- Port to start the metrics exporter on
+    port: 2112
+    # -- Annotations to set on the service
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "{{ .Values.metrics.service.port }}"
