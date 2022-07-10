@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -13,11 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 )
-
-type runCommandFlags struct{}
-
-// TODO: Add flags when adding the actual run command.
-var flags runCommandFlags //nolint
 
 func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
@@ -74,15 +68,19 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 		fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient)
 		if err != nil {
-			fmt.Println("error getting flux version", err)
+			log.Failuref("Error getting Flux version: %w", err)
 
 			fluxVersion = ""
 		}
 
 		if fluxVersion == "" {
+			log.Actionf("Installing Flux...")
+
 			err = run.InstallFlux(log, ctx, kubeClient)
 			if err != nil {
-				return fmt.Errorf("flux installation failed: %w", err)
+
+				log.Failuref("Flux installation failed: %w", err)
+				return err
 			}
 		}
 
