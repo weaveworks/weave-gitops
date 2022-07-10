@@ -61,7 +61,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	return fluxVersion, nil
 }
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigOptions genericclioptions.RESTClientGetter) error {
 	opts := install.Options{
 		BaseURL:      install.MakeDefaultOptions().BaseURL,
 		Version:      "v0.31.2",
@@ -78,33 +78,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 
 	content := []byte(manifest.Content)
 
-	var kubeconfigArgs = genericclioptions.NewConfigFlags(false)
-
-	var kubeclientOptions = new(runclient.Options)
-
-	// *kubeconfigArgs.Namespace = rootArgs.defaults.Namespace
-	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
-	if fromEnv != "" {
-		kubeconfigArgs.Namespace = &fromEnv
-	}
-
-	kubeconfigArgs.APIServer = nil // prevent AddFlags from configuring --server flag
-	kubeconfigArgs.Timeout = nil   // prevent AddFlags from configuring --request-timeout flag, we have --timeout instead
-	// kubeconfigArgs.AddFlags(rootCmd.PersistentFlags())
-
-	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
-	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
-	// on the CLI interface.
-	apiServer := ""
-	kubeconfigArgs.APIServer = &apiServer
-	// rootCmd.PersistentFlags().StringVar(kubeconfigArgs.APIServer, "server", *kubeconfigArgs.APIServer, "The address and port of the Kubernetes API server")
-
-	// kubeclientOptions.BindFlags(rootCmd.PersistentFlags())
-
-	// rootCmd.RegisterFlagCompletionFunc("context", contextsCompletionFunc)
-	// rootCmd.RegisterFlagCompletionFunc("namespace", resourceNamesCompletionFunc(corev1.SchemeGroupVersion.WithKind("Namespace")))
-
-	applyOutput, err := apply(log, ctx, kubeClient, kubeconfigArgs, kubeclientOptions, content)
+	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigOptions, content)
 	if err != nil {
 		return fmt.Errorf("install failed: %w", err)
 	}
@@ -114,8 +88,59 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	return nil
 }
 
-func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
-	restMapper, err := rcg.ToRESTMapper()
+func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
+	var kubeConfigOptions = genericclioptions.NewConfigFlags(false)
+
+	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
+	if fromEnv != "" {
+		kubeConfigOptions.Namespace = &fromEnv
+	}
+
+	kubeConfigOptions.APIServer = nil // prevent AddFlags from configuring --server flag
+	kubeConfigOptions.Timeout = nil   // prevent AddFlags from configuring --request-timeout flag, we have --timeout instead
+	// kubeConfigOptions.AddFlags(rootCmd.PersistentFlags())
+
+	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
+	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
+	// on the CLI interface.
+	apiServer := ""
+	kubeConfigOptions.APIServer = &apiServer
+	// rootCmd.PersistentFlags().StringVar(kubeConfigOptions.APIServer, "server", *kubeConfigOptions.APIServer, "The address and port of the Kubernetes API server")
+
+	// rootCmd.RegisterFlagCompletionFunc("context", contextsCompletionFunc)
+	// rootCmd.RegisterFlagCompletionFunc("namespace", resourceNamesCompletionFunc(corev1.SchemeGroupVersion.WithKind("Namespace")))
+
+	return kubeConfigOptions
+}
+
+func GetKubeClientOptions() *runclient.Options {
+	var kubeClientOptions = new(runclient.Options)
+
+	// kubeclientOptions.BindFlags(rootCmd.PersistentFlags())
+
+	return kubeClientOptions
+}
+
+func GetKubeClient(clusterName string, kubeConfigOptions genericclioptions.RESTClientGetter, kubeClientOptions *runclient.Options) (*kube.KubeHTTP, error) {
+	cfg, err := kubeConfigOptions.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// avoid throttling request when some Flux CRDs are not registered
+	cfg.QPS = kubeClientOptions.QPS
+	cfg.Burst = kubeClientOptions.Burst
+
+	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
+	}
+
+	return kubeClient, nil
+}
+
+func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
+	restMapper, err := kubeConfigOptions.ToRESTMapper()
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +153,8 @@ func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	}), nil
 }
 
-func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
-	man, err := newManager(log, ctx, kubeClient, rcg)
+func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
+	man, err := newManager(log, ctx, kubeClient, kubeConfigOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +171,7 @@ func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	return man.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
 
-func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, opts *runclient.Options, manifestContent []byte) (string, error) {
+func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, manifestContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestContent))
 
 	if err != nil {
@@ -178,7 +203,7 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	}
 
 	if len(stageOne) > 0 {
-		cs, err := applySet(log, ctx, kubeClient, rcg, stageOne)
+		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageOne)
 		if err != nil {
 			return "", err
 		}
@@ -186,12 +211,12 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 		changeSet.Append(cs.Entries)
 	}
 
-	if err := waitForSet(log, ctx, kubeClient, rcg, changeSet); err != nil {
+	if err := waitForSet(log, ctx, kubeClient, kubeConfigOptions, changeSet); err != nil {
 		return "", err
 	}
 
 	if len(stageTwo) > 0 {
-		cs, err := applySet(log, ctx, kubeClient, rcg, stageTwo)
+		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageTwo)
 		if err != nil {
 			return "", err
 		}

@@ -52,12 +52,15 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		cfg, clusterName, err := kube.RestConfig()
+		_, clusterName, err := kube.RestConfig()
 		if err != nil {
 			return cmderrors.ErrNoCluster
 		}
 
-		kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
+		kubeConfigOptions := run.GetKubeConfigOptions()
+		kubeClientOptions := run.GetKubeClientOptions()
+
+		kubeClient, err := run.GetKubeClient(clusterName, kubeConfigOptions, kubeClientOptions)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
@@ -68,7 +71,7 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 		fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient)
 		if err != nil {
-			log.Failuref("Error getting Flux version: %w", err)
+			log.Failuref("Error getting Flux version: %v", err)
 
 			fluxVersion = ""
 		}
@@ -76,9 +79,9 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 		if fluxVersion == "" {
 			log.Actionf("Installing Flux...")
 
-			err = run.InstallFlux(log, ctx, kubeClient)
+			err = run.InstallFlux(log, ctx, kubeClient, kubeConfigOptions)
 			if err != nil {
-				log.Failuref("Flux installation failed: %w", err)
+				log.Failuref("Flux installation failed: %v", err)
 				return err
 			}
 		}
