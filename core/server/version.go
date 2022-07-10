@@ -57,7 +57,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 
 	err := k8sClient.List(ctx, &listResult, opts)
 	if err != nil {
-		cs.logger.Error(err, "error getting list")
+		return "", fmt.Errorf("error getting list of objects")
 	} else {
 		for _, item := range listResult.Items {
 			if item.GetLabels()[flux.VersionLabelKey] != "" {

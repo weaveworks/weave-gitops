@@ -78,7 +78,6 @@ func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 			err = run.InstallFlux(log, ctx, kubeClient)
 			if err != nil {
-
 				log.Failuref("Flux installation failed: %w", err)
 				return err
 			}

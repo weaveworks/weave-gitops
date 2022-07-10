@@ -38,7 +38,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 
 	err := kubeClient.List(ctx, &listResult, listOptions)
 	if err != nil {
-		fmt.Println("error getting list:", err)
+		return "", fmt.Errorf("error getting list of objects")
 	} else {
 		for _, item := range listResult.Items {
 			if item.GetLabels()[flux.VersionLabelKey] != "" {
