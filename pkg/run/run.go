@@ -98,25 +98,18 @@ func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
 
 	kubeConfigOptions.APIServer = nil // prevent AddFlags from configuring --server flag
 	kubeConfigOptions.Timeout = nil   // prevent AddFlags from configuring --request-timeout flag, we have --timeout instead
-	// kubeConfigOptions.AddFlags(rootCmd.PersistentFlags())
 
 	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
 	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
 	// on the CLI interface.
 	apiServer := ""
 	kubeConfigOptions.APIServer = &apiServer
-	// rootCmd.PersistentFlags().StringVar(kubeConfigOptions.APIServer, "server", *kubeConfigOptions.APIServer, "The address and port of the Kubernetes API server")
-
-	// rootCmd.RegisterFlagCompletionFunc("context", contextsCompletionFunc)
-	// rootCmd.RegisterFlagCompletionFunc("namespace", resourceNamesCompletionFunc(corev1.SchemeGroupVersion.WithKind("Namespace")))
 
 	return kubeConfigOptions
 }
 
 func GetKubeClientOptions() *runclient.Options {
 	var kubeClientOptions = new(runclient.Options)
-
-	// kubeclientOptions.BindFlags(rootCmd.PersistentFlags())
 
 	return kubeClientOptions
 }
