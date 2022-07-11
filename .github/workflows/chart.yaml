@@ -9,12 +9,10 @@ on:
   pull_request:
     branches:
       - 'main'
-    paths:
-      - 'charts/**'
 
 env:
   REGISTRY: ghcr.io
-  CHART_LOCATION: weaveworks/charts/weave-gitops
+  CHART_LOCATION: weaveworks/charts
 
 permissions:
   contents: write
@@ -49,7 +47,7 @@ jobs:
 
   helm-release:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - name: Find new version
@@ -64,22 +62,13 @@ jobs:
           helm package charts/gitops-server/ -d helm-release
           curl -O $URL/index.yaml
           helm repo index helm-release --merge=index.yaml --url=$URL
-      - id: auth
-        uses: google-github-actions/auth@v0.4.0
-        with:
-          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
-      - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v0.4.0
-        with:
-          path: helm-release
-          destination: helm.gitops.weave.works
-          parent: false
       - name: Log in to the Container registry
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
       - name: Publish chart as an OCI image
         run: |
-          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}  
+          helm version
+          helm push --debug helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}
