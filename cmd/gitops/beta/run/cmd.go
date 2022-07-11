@@ -1,10 +1,10 @@
 package run
 
 import (
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 type runCommandFlags struct{}
@@ -12,7 +12,7 @@ type runCommandFlags struct{}
 // TODO: Add flags when adding the actual run command.
 var flags runCommandFlags //nolint
 
-func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func RunCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Set up an interactive sync between your cluster and your local file system",
@@ -48,7 +48,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func betaRunCommandRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		return nil
 	}

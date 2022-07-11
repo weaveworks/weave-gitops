@@ -1,18 +1,18 @@
 package profiles_test
 
 import (
-	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 var _ = Describe("Add a Profile", func() {
 	var cmd *cobra.Command
 
 	BeforeEach(func() {
-		client := resty.New()
+		client := adapters.NewHTTPClient()
 		cmd = root.RootCmd(client)
 	})
 
@@ -50,7 +50,6 @@ var _ = Describe("Add a Profile", func() {
 				"--cluster", "cluster",
 				"--config-repo", "config-repo",
 				"--endpoint", "localhost:8080",
-				"--skip-auth",
 			})
 			err := cmd.Execute()
 			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
@@ -64,7 +63,6 @@ var _ = Describe("Add a Profile", func() {
 				"--cluster", "prod",
 				"--version", "&%*/v",
 				"--endpoint", "localhost:8080",
-				"--skip-auth",
 			})
 
 			err := cmd.Execute()

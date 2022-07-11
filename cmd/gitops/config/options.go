@@ -8,5 +8,4 @@ type Options struct {
 	Username              string
 	Password              string
 	Kubeconfig            string
-	SkipAuth              bool
 }

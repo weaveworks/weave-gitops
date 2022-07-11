@@ -1,6 +1,7 @@
 package adapters
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"flag"
@@ -27,8 +28,10 @@ const (
 
 // An HTTP client of the cluster service.
 type HTTPClient struct {
-	baseURI *url.URL
-	client  *resty.Client
+	baseURI    *url.URL
+	client     *resty.Client
+	authFunc   func(*config.Options, *HTTPClient) error
+	configured bool
 }
 
 type ServiceError struct {
@@ -36,15 +39,31 @@ type ServiceError struct {
 	Message string `json:"message"`
 }
 
-// NewHttpClient creates a new HTTP client of the cluster service.
-// The endpoint is expected to be an absolute HTTP URI.
-func NewHttpClient(opts *config.Options, client *resty.Client, out io.Writer) (*HTTPClient, error) {
+// NewHTTPClient returns a new HTTP client for requests to Weave GitOps services.
+func NewHTTPClient() *HTTPClient {
+	return &HTTPClient{
+		client: resty.New(),
+	}
+}
+
+// EnableCLIAuth configures client to authenticate automatically with
+// with either username or password, or kubeconfig, when a request is executed.
+func (c *HTTPClient) EnableCLIAuth() *HTTPClient {
+	c.authFunc = configureAuthForClient
+	return c
+}
+
+// ConfigureClientWithOptions accepts a config.Options object that configures the client
+// with the necessary options to make a request.
+func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Writer) error {
 	u, err := url.ParseRequestURI(opts.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
+		return fmt.Errorf("failed to parse endpoint: %w", err)
 	}
 
-	client = client.SetHostURL(u.String()).
+	c.baseURI = u
+
+	c.client = c.client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
@@ -57,19 +76,20 @@ func NewHttpClient(opts *config.Options, client *resty.Client, out io.Writer) (*
 			return nil
 		})
 
-	httpClient := &HTTPClient{
-		baseURI: u,
-		client:  client,
-	}
-
-	if !opts.SkipAuth {
-		err = configureAuthForClient(opts, httpClient)
+	if c.authFunc != nil {
+		err = c.authFunc(opts, c)
 		if err != nil {
-			return nil, fmt.Errorf("error: could not configure auth for client: %w", err)
+			return fmt.Errorf("error: could not configure auth for client: %w", err)
 		}
 	}
 
-	return httpClient, nil
+	if opts.InsecureSkipTLSVerify {
+		c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
+
+	c.configured = true
+
+	return nil
 }
 
 func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error {
@@ -147,8 +167,25 @@ func (c *HTTPClient) Source() string {
 	return c.baseURI.String()
 }
 
+// GetClient returns the internal *resty.Client object.
+func (c *HTTPClient) GetClient() *resty.Client {
+	return c.client
+}
+
+// GetBaseClient returns the underlying http.Client object.
+func (c *HTTPClient) GetBaseClient() *http.Client {
+	return c.client.GetClient()
+}
+
+// SetTransport method sets custom `*http.Transport` or any `http.RoundTripper`
+// compatible interface implementation in the client.
 func (c *HTTPClient) SetTransport(transport http.RoundTripper) {
 	c.client.SetTransport(transport)
+}
+
+// SetTLSClientConfig method sets TLSClientConfig for underling client Transport.
+func (c *HTTPClient) SetTLSClientConfig(config *tls.Config) {
+	c.client.SetTLSClientConfig(config)
 }
 
 // RetrieveTemplates returns the list of all templates from the cluster service.

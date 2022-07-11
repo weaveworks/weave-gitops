@@ -3,13 +3,13 @@ package credentials_test
 import (
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 func TestEndpointNotSet(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
 		"get", "credentials",

@@ -80,18 +80,15 @@ func TestRetrieveTemplates(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplates(tt.kind)
+			ts, err := client.RetrieveTemplates(tt.kind)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -164,18 +161,15 @@ func TestRetrieveTemplate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/"+tt.templateName, tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplate(tt.templateName, tt.kind)
+			ts, err := client.RetrieveTemplate(tt.templateName, tt.kind)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -220,18 +214,15 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplates(templates.CAPITemplateKind)
+			ts, err := client.RetrieveTemplates(templates.CAPITemplateKind)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -302,18 +293,15 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params?template_kind="+tt.kind.String(), tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := r.RetrieveTemplateParameters(tt.kind, "cluster-template")
+			ts, err := client.RetrieveTemplateParameters(tt.kind, "cluster-template")
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -438,18 +426,15 @@ spec:
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/templates/cluster-template/render?template_kind="+tt.kind.String(), tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			result, err := r.RenderTemplateWithParameters(tt.kind, "cluster-template", nil, templates.Credentials{})
+			result, err := client.RenderTemplateWithParameters(tt.kind, "cluster-template", nil, templates.Credentials{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -503,18 +488,15 @@ func TestRetrieveCredentials(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			creds, err := r.RetrieveCredentials()
+			creds, err := client.RetrieveCredentials()
 			tt.assertFunc(t, creds, err)
 		})
 	}
@@ -545,18 +527,15 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/credentials", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			creds, err := r.RetrieveCredentialsByName("aws-creds")
+			creds, err := client.RetrieveCredentialsByName("aws-creds")
 			tt.assertFunc(t, creds, err)
 		})
 	}
@@ -626,18 +605,15 @@ func TestRetrieveClusters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			cs, err := r.RetrieveClusters()
+			cs, err := client.RetrieveClusters()
 			tt.assertFunc(t, cs, err)
 		})
 	}
@@ -683,18 +659,15 @@ func TestGetClusterKubeconfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/clusters/dev/kubeconfig", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			k, err := r.GetClusterKubeconfig("dev")
+			k, err := client.GetClusterKubeconfig("dev")
 			tt.assertFunc(t, k, err)
 		})
 	}
@@ -740,18 +713,15 @@ func TestDeleteClusters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("DELETE", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			result, err := c.DeleteClusters(clusters.DeleteClustersParams{})
+			result, err := client.DeleteClusters(clusters.DeleteClustersParams{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -760,23 +730,20 @@ func TestDeleteClusters(t *testing.T) {
 func TestEntitlementExpiredHeader(t *testing.T) {
 	opts := &config.Options{
 		Endpoint: testutils.BaseURI,
-		Username: "",
-		Password: "",
-		SkipAuth: true,
 	}
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 	response := httpmock.NewStringResponse(http.StatusOK, "")
 	response.Header.Add("Entitlement-Expired-Message", "This is a test message")
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates", httpmock.ResponderFromResponse(response))
 
 	var buf bytes.Buffer
-	c, err := adapters.NewHttpClient(opts, client, &buf)
+	err := client.ConfigureClientWithOptions(opts, &buf)
 	assert.NoError(t, err)
-	_, err = c.RetrieveTemplates(templates.CAPITemplateKind)
+	_, err = client.RetrieveTemplates(templates.CAPITemplateKind)
 	assert.NoError(t, err)
 	b, err := io.ReadAll(&buf)
 	assert.NoError(t, err)
@@ -833,18 +800,15 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &config.Options{
 				Endpoint: testutils.BaseURI,
-				Username: "",
-				Password: "",
-				SkipAuth: true,
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/profiles", tt.responder)
 
-			r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			tps, err := r.RetrieveTemplateProfiles("cluster-template")
+			tps, err := client.RetrieveTemplateProfiles("cluster-template")
 			tt.assertFunc(t, tps, err)
 		})
 	}
@@ -896,13 +860,13 @@ func TestSignin(t *testing.T) {
 				Username: "username",
 				Password: "pass",
 			}
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient().EnableCLIAuth()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/oauth2/sign_in", tt.responder)
 
-			_, err := adapters.NewHttpClient(opts, client, os.Stdout)
-			tt.assertFunc(t, client, err)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
+			tt.assertFunc(t, client.GetClient(), err)
 		})
 	}
 }

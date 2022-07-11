@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 
@@ -34,7 +33,7 @@ var providers = []string{
 	"vsphere",
 }
 
-func TemplateCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func TemplateCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
@@ -77,9 +76,9 @@ func getTemplateCmdPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func getTemplateCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -92,7 +91,7 @@ func getTemplateCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], r, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], client, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -100,18 +99,18 @@ func getTemplateCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateProfiles(args[0], r, w)
+			return templates.GetTemplateProfiles(args[0], client, w)
 		}
 
 		if len(args) == 0 {
 			if flags.Provider != "" {
-				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, r, w)
+				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, client, w)
 			}
 
-			return templates.GetTemplates(templates.CAPITemplateKind, r, w)
+			return templates.GetTemplates(templates.CAPITemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.CAPITemplateKind, r, w)
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, client, w)
 	}
 }
 

@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -23,7 +22,7 @@ import (
 var profileOpts profiles.Options
 
 // AddCommand provides support for adding a profile to a cluster.
-func AddCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func AddCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Short:         "Add a profile to a cluster",
@@ -64,14 +63,14 @@ func addProfileCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error
 	}
 }
 
-func addProfileCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func addProfileCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -99,7 +98,7 @@ func addProfileCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 			return fmt.Errorf("failed to get git clients: %w", err)
 		}
 
-		return profiles.NewService(log).Add(context.Background(), r, gitProvider, profileOpts)
+		return profiles.NewService(log).Add(context.Background(), client, gitProvider, profileOpts)
 	}
 }
 

@@ -1,7 +1,6 @@
 package get
 
 import (
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -10,9 +9,10 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates/terraform"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
-func GetCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Display one or many Weave GitOps resources",

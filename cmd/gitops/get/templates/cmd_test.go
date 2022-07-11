@@ -3,13 +3,13 @@ package templates_test
 import (
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 func TestEndpointNotSet(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
 		"get", "templates",
@@ -20,14 +20,13 @@ func TestEndpointNotSet(t *testing.T) {
 }
 
 func TestProviderIsNotValid(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
 		"get", "template",
 		"--provider",
 		"--endpoint", "http://localhost:8000",
-		"--skip-auth",
 	})
 
 	err := cmd.Execute()
@@ -35,7 +34,7 @@ func TestProviderIsNotValid(t *testing.T) {
 }
 
 func TestTemplateNameIsRequired(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -43,7 +42,6 @@ func TestTemplateNameIsRequired(t *testing.T) {
 		"--list-parameters",
 		"--provider", "aws",
 		"--endpoint", "http://localhost:8000",
-		"--skip-auth",
 	})
 
 	err := cmd.Execute()

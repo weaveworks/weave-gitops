@@ -3,7 +3,6 @@ package credentials
 import (
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -12,7 +11,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func CredentialCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func CredentialCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "credential",
 		Aliases: []string{"credentials"},
@@ -40,9 +39,9 @@ func getCredentialCmdPreRunE(endpoint *string) func(*cobra.Command, []string) er
 	}
 }
 
-func getCredentialCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getCredentialCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -51,6 +50,6 @@ func getCredentialCmdRunE(opts *config.Options, client *resty.Client) func(*cobr
 
 		defer w.Flush()
 
-		return templates.GetCredentials(r, w)
+		return templates.GetCredentials(client, w)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -14,7 +13,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func ProfilesCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func ProfilesCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Aliases:       []string{"profiles"},
@@ -43,9 +42,9 @@ func getProfilesCmdPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func getProfilesCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getProfilesCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
-		r, err := adapters.NewHttpClient(opts, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -54,6 +53,6 @@ func getProfilesCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.
 
 		defer w.Flush()
 
-		return profiles.NewService(internal.NewCLILogger(os.Stdout)).Get(context.Background(), r, w)
+		return profiles.NewService(internal.NewCLILogger(os.Stdout)).Get(context.Background(), client, w)
 	}
 }
