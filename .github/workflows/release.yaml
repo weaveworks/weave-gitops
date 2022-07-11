@@ -103,6 +103,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v1
       - name: Unshallow
         run: |
           git fetch --prune --unshallow
@@ -131,6 +134,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: gitops-server.dockerfile
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
 
   merge-pr:
     runs-on: ubuntu-latest
