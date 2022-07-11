@@ -75,13 +75,13 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 		Timeout:      5 * time.Second,
 	}
 
-	manifest, err := install.Generate(opts, "")
+	manifests, err := install.Generate(opts, "")
 	if err != nil {
 		log.Failuref("couldn't generate manifests")
 		return err
 	}
 
-	content := []byte(manifest.Content)
+	content := []byte(manifests.Content)
 
 	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigOptions, content)
 	if err != nil {
@@ -175,15 +175,15 @@ func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	return man.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
 
-func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, manifestContent []byte) (string, error) {
-	objs, err := ssa.ReadObjects(bytes.NewReader(manifestContent))
+func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, manifestsContent []byte) (string, error) {
+	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
-		log.Failuref("Error reading Kubernetes objects from the manifest")
+		log.Failuref("Error reading Kubernetes objects from the manifests")
 		return "", err
 	}
 
 	if len(objs) == 0 {
-		return "", fmt.Errorf("no Kubernetes objects found in the manifest")
+		return "", fmt.Errorf("no Kubernetes objects found in the manifests")
 	}
 
 	if err := ssa.SetNativeKindsDefaults(objs); err != nil {
