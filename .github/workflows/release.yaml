@@ -113,6 +113,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set build-time flags
+        run: |
+          echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
+          echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v3
@@ -123,6 +127,10 @@ jobs:
             type=semver,pattern={{version}},value=${{ needs.tag-release.outputs.version }}
           flavor: |
             latest=true
+          build-args: |
+            FLUX_VERSION=${{ env.FLUX_VERSION }}
+            LDFLAGS=${{ env.LDFLAGS }}
+            GIT_COMMIT=${{ github.sha }}
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
