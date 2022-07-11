@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
@@ -55,7 +54,6 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 }
 
 type principalCtxKey struct{}
-type tokenCtxKey struct{}
 
 // Principal gets the principal from the context.
 func Principal(ctx context.Context) *UserPrincipal {
@@ -65,15 +63,6 @@ func Principal(ctx context.Context) *UserPrincipal {
 	}
 
 	return nil
-}
-
-// BearerToken gets the bearer token from the context.
-func BearerToken(ctx context.Context) string {
-	if token, ok := ctx.Value(tokenCtxKey{}).(string); ok {
-		return token
-	}
-
-	return ""
 }
 
 // UserPrincipal is a simple model for the user, including their ID and Groups.
@@ -86,12 +75,6 @@ type UserPrincipal struct {
 // WithPrincipal sets the principal into the context.
 func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 	return context.WithValue(ctx, principalCtxKey{}, p)
-}
-
-// WithBearerToken stores the bearer token from the request into the context.
-func WithBearerToken(ctx context.Context, token string) context.Context {
-	t := strings.TrimPrefix(token, "Bearer ")
-	return context.WithValue(ctx, tokenCtxKey{}, t)
 }
 
 // WithAPIAuth middleware adds auth validation to API handlers.
