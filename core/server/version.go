@@ -40,15 +40,41 @@ func (cs *coreServer) getScopedClient(ctx context.Context) (client.Client, error
 	return scopedClient, nil
 }
 
-func (cs *coreServer) getFluxVersion(ctx context.Context, obj unstructured.Unstructured) (string, error) {
-	labels := obj.GetLabels()
+func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Client) (string, error) {
+	listResult := unstructured.UnstructuredList{}
+
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	})
+
+	opts := client.MatchingLabels{
+		coretypes.PartOfLabel: FluxNamespacePartOf,
+	}
+
+	u := unstructured.Unstructured{}
+
+	err := k8sClient.List(ctx, &listResult, opts)
+	if err != nil {
+		return "", fmt.Errorf("error getting list of objects")
+	} else {
+		for _, item := range listResult.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				u = item
+				break
+			}
+		}
+	}
+
+	labels := u.GetLabels()
 	if labels == nil {
 		return "", fmt.Errorf("error getting labels")
 	}
 
 	fluxVersion := labels[flux.VersionLabelKey]
 	if fluxVersion == "" {
-		return "", fmt.Errorf("error getting server version")
+		return "", fmt.Errorf("no flux version found")
 	}
 
 	return fluxVersion, nil
@@ -69,38 +95,12 @@ func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
 }
 
 func (cs *coreServer) GetVersion(ctx context.Context, msg *pb.GetVersionRequest) (*pb.GetVersionResponse, error) {
-	c, err := cs.getScopedClient(ctx)
+	k8sClient, err := cs.getScopedClient(ctx)
 	if err != nil {
 		cs.logger.Error(err, "error creating scoped client")
 	}
 
-	listResult := unstructured.UnstructuredList{}
-
-	listResult.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Version: "v1",
-		Kind:    "Namespace",
-	})
-
-	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: FluxNamespacePartOf,
-	}
-
-	u := unstructured.Unstructured{}
-
-	err = c.List(ctx, &listResult, opts)
-	if err != nil {
-		cs.logger.Error(err, "error getting list")
-	} else {
-		for _, item := range listResult.Items {
-			if item.GetLabels()[flux.VersionLabelKey] != "" {
-				u = item
-				break
-			}
-		}
-	}
-
-	fluxVersion, err := cs.getFluxVersion(ctx, u)
+	fluxVersion, err := cs.getFluxVersion(ctx, k8sClient)
 	if err != nil {
 		cs.logger.Error(err, "error getting flux version")
 
