@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -52,38 +53,41 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		log := internal.NewCLILogger(os.Stdout)
+
+		log.Actionf("Checking for a cluster in the kube config...")
+
 		_, clusterName, err := kube.RestConfig()
 		if err != nil {
+			log.Failuref("Error getting a restconfig: %v", err.Error())
 			return cmderrors.ErrNoCluster
 		}
+
+		log.Actionf("Getting a kube client...")
 
 		kubeConfigOptions := run.GetKubeConfigOptions()
 		kubeClientOptions := run.GetKubeClientOptions()
 
-		kubeClient, err := run.GetKubeClient(clusterName, kubeConfigOptions, kubeClientOptions)
+		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigOptions, kubeClientOptions)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
 
-		log := internal.NewCLILogger(os.Stdout)
-
 		ctx := context.Background()
+
+		log.Actionf("Checking that Flux is installed...")
 
 		fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient)
 		if err != nil {
-			log.Failuref("Error getting Flux version: %v", err)
+			log.Failuref("Error getting Flux version: %v", err.Error())
 
-			fluxVersion = ""
-		}
-
-		if fluxVersion == "" {
-			log.Actionf("Installing Flux...")
-
-			err = run.InstallFlux(log, ctx, kubeClient, kubeConfigOptions)
-			if err != nil {
-				log.Failuref("Flux installation failed: %v", err)
-				return err
+			if err := run.InstallFlux(log, ctx, kubeClient, kubeConfigOptions); err != nil {
+				return fmt.Errorf("flux installation failed: %w", err)
+			} else {
+				log.Successf("Flux successfully installed")
 			}
+		} else {
+			log.Successf("Flux version: %s", fluxVersion)
 		}
 
 		return nil

@@ -22,6 +22,8 @@ import (
 )
 
 func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
+	log.Actionf("Getting Flux version...")
+
 	listResult := unstructured.UnstructuredList{}
 
 	listResult.SetGroupVersionKind(schema.GroupVersionKind{
@@ -36,9 +38,9 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 
 	u := unstructured.Unstructured{}
 
-	err := kubeClient.List(ctx, &listResult, listOptions)
-	if err != nil {
-		return "", fmt.Errorf("error getting list of objects")
+	if err := kubeClient.List(ctx, &listResult, listOptions); err != nil {
+		log.Failuref("error getting list of objects")
+		return "", err
 	} else {
 		for _, item := range listResult.Items {
 			if item.GetLabels()[flux.VersionLabelKey] != "" {
@@ -55,13 +57,15 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 
 	fluxVersion := labels[flux.VersionLabelKey]
 	if fluxVersion == "" {
-		return "", fmt.Errorf("no flux version found in labels")
+		return "", fmt.Errorf("no flux version found")
 	}
 
 	return fluxVersion, nil
 }
 
 func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigOptions genericclioptions.RESTClientGetter) error {
+	log.Actionf("Installing Flux...")
+
 	opts := install.Options{
 		BaseURL:      install.MakeDefaultOptions().BaseURL,
 		Version:      "v0.31.2",
@@ -73,23 +77,25 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 
 	manifest, err := install.Generate(opts, "")
 	if err != nil {
-		return fmt.Errorf("couldn't generate manifests: %+v", err)
+		log.Failuref("couldn't generate manifests")
+		return err
 	}
 
 	content := []byte(manifest.Content)
 
 	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigOptions, content)
 	if err != nil {
-		return fmt.Errorf("install failed: %w", err)
+		log.Failuref("Flux install failed")
+		return err
 	}
 
-	fmt.Println(applyOutput)
+	log.Println(applyOutput)
 
 	return nil
 }
 
 func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
-	var kubeConfigOptions = genericclioptions.NewConfigFlags(false)
+	kubeConfigOptions := genericclioptions.NewConfigFlags(false)
 
 	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
 	if fromEnv != "" {
@@ -109,14 +115,15 @@ func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
 }
 
 func GetKubeClientOptions() *runclient.Options {
-	var kubeClientOptions = new(runclient.Options)
+	kubeClientOptions := new(runclient.Options)
 
 	return kubeClientOptions
 }
 
-func GetKubeClient(clusterName string, kubeConfigOptions genericclioptions.RESTClientGetter, kubeClientOptions *runclient.Options) (*kube.KubeHTTP, error) {
+func GetKubeClient(log logger.Logger, clusterName string, kubeConfigOptions genericclioptions.RESTClientGetter, kubeClientOptions *runclient.Options) (*kube.KubeHTTP, error) {
 	cfg, err := kubeConfigOptions.ToRESTConfig()
 	if err != nil {
+		log.Failuref("Error getting a restconfig: %v", err.Error())
 		return nil, err
 	}
 
@@ -126,7 +133,8 @@ func GetKubeClient(clusterName string, kubeConfigOptions genericclioptions.RESTC
 
 	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
 	if err != nil {
-		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
+		log.Failuref("Kubernetes client initialization failed: %v", err.Error())
+		return nil, err
 	}
 
 	return kubeClient, nil
@@ -135,6 +143,7 @@ func GetKubeClient(clusterName string, kubeConfigOptions genericclioptions.RESTC
 func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
 	restMapper, err := kubeConfigOptions.ToRESTMapper()
 	if err != nil {
+		log.Failuref("Error getting a restmapper")
 		return nil, err
 	}
 
@@ -149,6 +158,7 @@ func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
 	man, err := newManager(log, ctx, kubeClient, kubeConfigOptions)
 	if err != nil {
+		log.Failuref("Error applying set")
 		return nil, err
 	}
 
@@ -158,6 +168,7 @@ func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Clie
 func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, rcg genericclioptions.RESTClientGetter, changeSet *ssa.ChangeSet) error {
 	man, err := newManager(log, ctx, kubeClient, rcg)
 	if err != nil {
+		log.Failuref("Error waiting for set")
 		return err
 	}
 
@@ -166,8 +177,8 @@ func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 
 func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, manifestContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestContent))
-
 	if err != nil {
+		log.Failuref("Error reading Kubernetes objects from the manifest")
 		return "", err
 	}
 
@@ -176,6 +187,7 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	}
 
 	if err := ssa.SetNativeKindsDefaults(objs); err != nil {
+		log.Failuref("Error setting native kinds defaults")
 		return "", err
 	}
 
@@ -198,6 +210,7 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	if len(stageOne) > 0 {
 		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageOne)
 		if err != nil {
+			log.Failuref("Error applying stage one objects")
 			return "", err
 		}
 
@@ -205,12 +218,14 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	}
 
 	if err := waitForSet(log, ctx, kubeClient, kubeConfigOptions, changeSet); err != nil {
+		log.Failuref("Error waiting for set")
 		return "", err
 	}
 
 	if len(stageTwo) > 0 {
 		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageTwo)
 		if err != nil {
+			log.Failuref("Error applying stage two objects")
 			return "", err
 		}
 

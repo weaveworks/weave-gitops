@@ -74,7 +74,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 
 	fluxVersion := labels[flux.VersionLabelKey]
 	if fluxVersion == "" {
-		return "", fmt.Errorf("error getting server version")
+		return "", fmt.Errorf("no flux version found")
 	}
 
 	return fluxVersion, nil
