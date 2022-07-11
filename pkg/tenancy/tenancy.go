@@ -131,12 +131,12 @@ func marshalOutput(out io.Writer, output runtime.Object) error {
 
 func outputResources(out io.Writer, resources []runtime.Object) error {
 	for _, v := range resources {
-		if err := marshalOutput(out, v); err != nil {
-			return fmt.Errorf("failed outputting tenant: %w", err)
-		}
-
 		if _, err := out.Write([]byte("---\n")); err != nil {
 			return err
+		}
+
+		if err := marshalOutput(out, v); err != nil {
+			return fmt.Errorf("failed outputting tenant: %w", err)
 		}
 	}
 
