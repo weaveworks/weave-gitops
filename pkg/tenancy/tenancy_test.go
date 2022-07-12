@@ -19,7 +19,12 @@ import (
 func Test_CreateTenants(t *testing.T) {
 	fc := newFakeClient(t)
 
-	err := CreateTenants(context.TODO(), "testdata/example.yaml", fc)
+	tenants, err := Parse("testdata/example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = CreateTenants(context.TODO(), tenants, fc)
 	assert.NoError(t, err)
 
 	accounts := corev1.ServiceAccountList{}
@@ -214,18 +219,7 @@ func TestGenerateTenantResources_WithMultipleTenants(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
-	raw := []byte(`
-tenants:
-  - name: test-tenant1
-    namespaces:
-    - test-ns1
-  - name: test-tenant2
-    namespaces:
-    - test-ns2
-    - test-ns3
-`)
-
-	tenants, err := Parse(raw)
+	tenants, err := Parse("testdata/example.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}

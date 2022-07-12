@@ -46,21 +46,11 @@ func (t Tenant) Validate() error {
 	return result
 }
 
-// CreateTenants creates resources for tenants.
-func CreateTenants(ctx context.Context, filename string, c client.Client) error {
-	b, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("failed to read tenants file for export: %w", err)
-	}
-
-	tenants, err := Parse(b)
-	if err != nil {
-		return fmt.Errorf("failed to parse tenants file %s for export: %w", filename, err)
-	}
-
+// CreateTenants creates resources for tenants given a file for definition.
+func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error {
 	resources, err := GenerateTenantResources(tenants...)
 	if err != nil {
-		return fmt.Errorf("failed to generate tenant output from %s: %w", filename, err)
+		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
 
 	for _, resource := range resources {
@@ -97,12 +87,7 @@ func convertToResource(resource runtime.Object) client.Object {
 
 // ExportTenants exports all the tenants to a file.
 func ExportTenants(filename string, out io.Writer) error {
-	b, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("failed to read tenants file for export: %w", err)
-	}
-
-	tenants, err := Parse(b)
+	tenants, err := Parse(filename)
 	if err != nil {
 		return fmt.Errorf("failed to parse tenants file %s for export: %w", filename, err)
 	}
@@ -227,12 +212,17 @@ func typeMeta(kind, apiVersion string) metav1.TypeMeta {
 
 // Parse a raw tenant declaration, and parses it from the YAML and returns the
 // extracted Tenants.
-func Parse(tenantsYAML []byte) ([]Tenant, error) {
+func Parse(filename string) ([]Tenant, error) {
+	tenantsYAML, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tenants file for export: %w", err)
+	}
+
 	var tenancy struct {
 		Tenants []Tenant `yaml:"tenants"`
 	}
 
-	err := yaml.Unmarshal(tenantsYAML, &tenancy)
+	err = yaml.Unmarshal(tenantsYAML, &tenancy)
 	if err != nil {
 		return nil, err
 	}
