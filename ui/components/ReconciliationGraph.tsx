@@ -8,6 +8,7 @@ import {
   ObjectRef,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
+import { UnstructuredObjectWithChildren } from "../lib/graph";
 import images from "../lib/images";
 import { removeKind } from "../lib/utils";
 import DirectedGraph, { defaultScale } from "./DirectedGraph";
@@ -22,6 +23,7 @@ export type Props = ReconciledVisualizationProps & {
     namespace?: string;
     conditions?: Condition[];
     suspended?: boolean;
+    children?: UnstructuredObjectWithChildren[];
   };
   source: ObjectRef;
 };
@@ -110,6 +112,9 @@ function ReconciliationGraph({
         clusterName
       )
     : { data: [], error: null, isLoading: false };
+
+  const rootNode = parentObject;
+  rootNode.children = objects;
 
   const edges = _.reduce(
     objects,
