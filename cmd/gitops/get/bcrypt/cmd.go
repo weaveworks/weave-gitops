@@ -1,0 +1,69 @@
+package bcrypt
+
+import (
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/crypto/ssh/terminal"
+)
+
+func HashCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bcrypt-hash",
+		Short: "Generates a hashed secret",
+		Example: `
+# PASSWORD="<your password>"
+# echo $PASSWORD | gitops get bcrypt-hash
+`,
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          HashCommandRunE(),
+	}
+
+	return cmd
+}
+
+func HashCommandRunE() func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		file := os.Stdin
+		stats, err := file.Stat()
+
+		if err != nil {
+			return err
+		}
+
+		var p []byte
+
+		if stats.Size() == 0 {
+			fmt.Print("error: no password found\nEnter Password: ")
+
+			p, err = terminal.ReadPassword(int(os.Stdin.Fd()))
+
+			if err != nil {
+				return nil
+			}
+		} else {
+			p, err = io.ReadAll(os.Stdin)
+			if err != nil {
+				return err
+			}
+		}
+
+		fmt.Println("Generating secret...")
+
+		secret, err := bcrypt.GenerateFromPassword(p, bcrypt.DefaultCost)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(secret))
+
+		return nil
+	}
+}

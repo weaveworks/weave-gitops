@@ -4,6 +4,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/get/bcrypt"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/credentials"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
@@ -35,6 +36,7 @@ gitops get clusters`,
 	cmd.AddCommand(credentials.CredentialCommand(opts, client))
 	cmd.AddCommand(clusters.ClusterCommand(opts, client))
 	cmd.AddCommand(profiles.ProfilesCommand(opts, client))
+	cmd.AddCommand(bcrypt.HashCommand(opts, client))
 
 	return cmd
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/secret"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
@@ -115,7 +115,6 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options, client))
-	rootCmd.AddCommand(secret.SecretCommand(options, client))
 
 	return rootCmd
 }
