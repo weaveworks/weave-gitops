@@ -52,6 +52,8 @@ type ClientsFactory interface {
 	Start(ctx context.Context)
 }
 
+type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
+
 type clientsFactory struct {
 	clustersFetcher ClusterFetcher
 	nsChecker       nsaccess.Checker
@@ -68,9 +70,10 @@ type clientsFactory struct {
 
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
+	newClustersPool     ClusterPoolFactoryFn
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme) ClientsFactory {
+func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn) ClientsFactory {
 	return &clientsFactory{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -80,6 +83,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
+		newClustersPool:     clusterPoolFactory,
 	}
 }
 
@@ -183,7 +187,7 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 		return nil, errors.New("no user supplied")
 	}
 
-	pool := NewClustersClientsPool(cf.scheme)
+	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
@@ -221,7 +225,7 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 }
 
 func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
-	pool := NewClustersClientsPool(cf.scheme)
+	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(restConfigFromCluster, cluster); err != nil {
