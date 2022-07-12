@@ -69,12 +69,12 @@ const navWidth = "200px";
 const topBarHeight = "60px";
 
 const NavContainer = styled.div`
-  position: fixed;
   width: ${navWidth};
-  //topBarHeight + correct margins of 36px
-  height: calc(100% - 84px);
+  min-width: ${navWidth};
+  height: calc(100% - 24px);
   margin-top: ${(props) => props.theme.spacing.small};
-  margin-bottom: ${(props) => props.theme.spacing.small};
+  //topBarHeight + small margin
+  transform: translateY(72);
 `;
 
 const NavContent = styled.div`
@@ -129,7 +129,6 @@ const ContentContainer = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.small};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
-  margin-left: ${navWidth};
   overflow: hidden;
   overflow-y: scroll;
   box-sizing: border-box;
@@ -144,7 +143,8 @@ const TopToolBar = styled(Flex)`
   position: fixed;
   background-color: ${(props) => props.theme.colors.primary};
   height: ${topBarHeight};
-  min-width: 900px;
+  min-width: 650px;
+  width: 100%;
   ${UserSettings} {
     justify-self: flex-end;
     margin-left: auto;
