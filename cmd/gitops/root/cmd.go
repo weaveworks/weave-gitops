@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
-
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
