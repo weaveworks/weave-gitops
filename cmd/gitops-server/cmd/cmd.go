@@ -13,10 +13,15 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	httpmiddleware "github.com/slok/go-http-metrics/middleware"
+	httpmiddlewarestd "github.com/slok/go-http-metrics/middleware/std"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -25,6 +30,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -37,6 +43,8 @@ import (
 const (
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
+	// Env var prefix that will be set as a feature flag automatically
+	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -56,6 +64,8 @@ type Options struct {
 	MTLS                          bool
 	DevMode                       bool
 	DevUser                       string
+	EnableMetrics                 bool
+	MetricsAddress                string
 }
 
 var options Options
@@ -90,6 +100,9 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
 	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
 
+	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
+	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
+
 	return cmd
 }
 
@@ -100,6 +113,21 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
+
+	for _, envVar := range os.Environ() {
+		keyVal := strings.SplitN(envVar, "=", 2)
+		if len(keyVal) != 2 {
+			continue
+		}
+
+		key, val := keyVal[0], keyVal[1]
+
+		if !strings.HasPrefix(key, featureFlagPrefix) {
+			continue
+		}
+
+		featureflags.Set(key, val)
+	}
 
 	mux := http.NewServeMux()
 
@@ -221,9 +249,20 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	addr := net.JoinHostPort(options.Host, options.Port)
 
+	handler := http.Handler(mux)
+
+	if options.EnableMetrics {
+		mdlw := httpmiddleware.New(httpmiddleware.Config{
+			Recorder: metrics.NewRecorder(metrics.Config{}),
+		})
+		handler = httpmiddlewarestd.Handler("", mdlw, mux)
+	}
+
+	handler = middleware.WithLogging(log, handler)
+
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: middleware.WithLogging(log, mux),
+		Handler: handler,
 	}
 
 	go func() {
@@ -234,6 +273,26 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			os.Exit(1)
 		}
 	}()
+
+	var metricsServer *http.Server
+
+	if options.EnableMetrics {
+		metricsMux := http.NewServeMux()
+		metricsMux.Handle("/metrics", promhttp.Handler())
+
+		metricsServer = &http.Server{
+			Addr:    options.MetricsAddress,
+			Handler: metricsMux,
+		}
+
+		go func() {
+			log.Info("Starting metrics endpoint", "address", metricsServer.Addr)
+
+			if err := metricsServer.ListenAndServe(); err != nil {
+				log.Error(err, "Error starting metrics endpoint, continuing anyway")
+			}
+		}()
+	}
 
 	// graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -247,7 +306,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("Server Shutdown Failed: %w", err)
+		return fmt.Errorf("Server shutdown failed: %w", err)
+	}
+
+	if options.EnableMetrics {
+		if err := metricsServer.Shutdown(ctx); err != nil {
+			return fmt.Errorf("Metrics server shutdown failed: %w", err)
+		}
 	}
 
 	return nil

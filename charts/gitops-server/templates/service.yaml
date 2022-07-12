@@ -5,9 +5,12 @@ metadata:
   name: {{ include "chart.fullname" . }}
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
   annotations:
+  {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.metrics.enabled }}
+    {{- tpl (.Values.metrics.service.annotations | toYaml) $ | nindent 4 }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}
@@ -16,6 +19,12 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.service.port }}
+      targetPort: {{ .Values.metrics.service.port }}
+      protocol: TCP
+      name: http-metrics
+    {{- end }}
   selector:
     {{- include "chart.selectorLabels" . | nindent 4 }}
 {{- end -}}
