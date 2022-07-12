@@ -76,15 +76,15 @@ func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Wri
 			return nil
 		})
 
+	if opts.InsecureSkipTLSVerify {
+		c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
+
 	if c.authFunc != nil {
 		err = c.authFunc(opts, c)
 		if err != nil {
 			return fmt.Errorf("error: could not configure auth for client: %w", err)
 		}
-	}
-
-	if opts.InsecureSkipTLSVerify {
-		c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 
 	c.configured = true
@@ -110,6 +110,10 @@ func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error 
 	restConfig, err := kubecfg.GetConfig()
 	if err != nil {
 		return fmt.Errorf("error: could not load config for kubeconfig: %w", err)
+	}
+
+	if opts.InsecureSkipTLSVerify {
+		restConfig.TLSClientConfig = rest.TLSClientConfig{Insecure: true}
 	}
 
 	roundtripper, err := rest.TransportFor(restConfig)
