@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 func HashCommand(opts *config.Options, client *resty.Client) *cobra.Command {
@@ -22,13 +22,13 @@ func HashCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 `,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE:          HashCommandRunE(),
+		RunE:          hashCommandRunE(),
 	}
 
 	return cmd
 }
 
-func HashCommandRunE() func(*cobra.Command, []string) error {
+func hashCommandRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		file := os.Stdin
 		stats, err := file.Stat()
@@ -42,7 +42,7 @@ func HashCommandRunE() func(*cobra.Command, []string) error {
 		if stats.Size() == 0 {
 			fmt.Print("error: no password found\nEnter Password: ")
 
-			p, err = terminal.ReadPassword(int(os.Stdin.Fd()))
+			p, err = term.ReadPassword(int(os.Stdin.Fd()))
 
 			if err != nil {
 				return nil
@@ -53,8 +53,6 @@ func HashCommandRunE() func(*cobra.Command, []string) error {
 				return err
 			}
 		}
-
-		fmt.Println("Generating secret...")
 
 		secret, err := bcrypt.GenerateFromPassword(p, bcrypt.DefaultCost)
 
