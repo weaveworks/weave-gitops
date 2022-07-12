@@ -109,7 +109,7 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
-	rootCmd.AddCommand(beta.GetCommand(options, client))
+	rootCmd.AddCommand(beta.GetCommand(options))
 
 	return rootCmd
 }
