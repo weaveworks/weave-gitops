@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	runclient "github.com/fluxcd/pkg/runtime/client"
 	"github.com/fluxcd/pkg/ssa"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
@@ -22,7 +21,7 @@ import (
 )
 
 func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
-	log.Actionf("Getting Flux version...")
+	log.Actionf("Getting Flux version ...")
 
 	listResult := unstructured.UnstructuredList{}
 
@@ -39,7 +38,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	u := unstructured.Unstructured{}
 
 	if err := kubeClient.List(ctx, &listResult, listOptions); err != nil {
-		log.Failuref("error getting list of objects")
+		log.Failuref("error getting the list of Flux objects")
 		return "", err
 	} else {
 		for _, item := range listResult.Items {
@@ -52,7 +51,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 
 	labels := u.GetLabels()
 	if labels == nil {
-		return "", fmt.Errorf("error getting labels")
+		return "", fmt.Errorf("error getting Flux labels")
 	}
 
 	fluxVersion := labels[flux.VersionLabelKey]
@@ -61,37 +60,6 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	}
 
 	return fluxVersion, nil
-}
-
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigOptions genericclioptions.RESTClientGetter) error {
-	log.Actionf("Installing Flux...")
-
-	opts := install.Options{
-		BaseURL:      install.MakeDefaultOptions().BaseURL,
-		Version:      "v0.31.2",
-		Namespace:    "flux-system",
-		Components:   []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"},
-		ManifestFile: "flux-system.yaml",
-		Timeout:      5 * time.Second,
-	}
-
-	manifests, err := install.Generate(opts, "")
-	if err != nil {
-		log.Failuref("couldn't generate manifests")
-		return err
-	}
-
-	content := []byte(manifests.Content)
-
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigOptions, content)
-	if err != nil {
-		log.Failuref("Flux install failed")
-		return err
-	}
-
-	log.Println(applyOutput)
-
-	return nil
 }
 
 func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
