@@ -23,16 +23,23 @@ type runCommandFlags struct {
 	Components      []string
 	ComponentsExtra []string
 	Timeout         time.Duration
-	KubeConfig      string
-	Context         string
-	Cluster         string
-	// global flags
+	// Global flags.
 	Namespace string
+	// Flags, created by genericclioptions.
+	KubeConfig string
+	Context    string
+	Cluster    string
 }
 
 var flags runCommandFlags
 
+<<<<<<< HEAD
 func RunCommand(opts *config.Options) *cobra.Command {
+=======
+var kubeConfigArgs = run.GetKubeConfigArgs()
+
+func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+>>>>>>> 8f31ebcd (Fix `kubeConfigArgs` options.)
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Set up an interactive sync between your cluster and your local file system",
@@ -50,14 +57,22 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 		DisableAutoGenTag: true,
 	}
 
-	cmd.Flags().StringVar(&flags.FluxVersion, "flux-version", "", "")
-	cmd.Flags().StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "")
-	cmd.Flags().StringSliceVar(&flags.Components, "components", flags.Components, "")
-	cmd.Flags().StringSliceVar(&flags.ComponentsExtra, "components-extra", flags.ComponentsExtra, "")
-	cmd.Flags().DurationVar(&flags.Timeout, "timeout", flags.Timeout, "")
-	cmd.Flags().StringVar(&flags.KubeConfig, "kube-config", "", "")
-	cmd.Flags().StringVar(&flags.Context, "context", "", "")
-	cmd.Flags().StringVar(&flags.Cluster, "cluster", "", "")
+	cmdFlags := cmd.Flags()
+
+	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "", "")
+	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "")
+	cmdFlags.StringSliceVar(&flags.Components, "components", flags.Components, "")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", flags.ComponentsExtra, "")
+	cmdFlags.DurationVar(&flags.Timeout, "timeout", flags.Timeout, "")
+
+	kubeConfigArgs = run.GetKubeConfigArgs()
+	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
+	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
+	// on the CLI interface.
+	apiServer := ""
+	kubeConfigArgs.APIServer = &apiServer
+
+	kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
 }
@@ -120,8 +135,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return cmderrors.ErrNoCluster
 		}
 
-		kubeConfigArgs := run.GetKubeConfigArgs()
 		kubeClientOpts := run.GetKubeClientOptions()
+		kubeClientOpts.BindFlags(cmd.Flags())
 
 		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigArgs, kubeClientOpts)
 		if err != nil {

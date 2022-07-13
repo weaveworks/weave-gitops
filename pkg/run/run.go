@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	runclient "github.com/fluxcd/pkg/runtime/client"
@@ -62,22 +61,24 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	return fluxVersion, nil
 }
 
-func GetKubeConfigArgs() genericclioptions.RESTClientGetter {
+func GetKubeConfigArgs() *genericclioptions.ConfigFlags {
 	kubeConfigArgs := genericclioptions.NewConfigFlags(false)
 
-	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
-	if fromEnv != "" {
-		kubeConfigArgs.Namespace = &fromEnv
-	}
-
-	kubeConfigArgs.APIServer = nil // prevent AddFlags from configuring --server flag
-	kubeConfigArgs.Timeout = nil   // prevent AddFlags from configuring --request-timeout flag, we have --timeout instead
-
-	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
-	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
-	// on the CLI interface.
-	apiServer := ""
-	kubeConfigArgs.APIServer = &apiServer
+	// Prevent AddFlags from configuring unnecessary flags.
+	kubeConfigArgs.Insecure = nil
+	kubeConfigArgs.Timeout = nil
+	kubeConfigArgs.CacheDir = nil
+	kubeConfigArgs.AuthInfoName = nil
+	kubeConfigArgs.Namespace = nil
+	kubeConfigArgs.APIServer = nil
+	kubeConfigArgs.TLSServerName = nil
+	kubeConfigArgs.CertFile = nil
+	kubeConfigArgs.KeyFile = nil
+	kubeConfigArgs.CAFile = nil
+	kubeConfigArgs.BearerToken = nil
+	kubeConfigArgs.Impersonate = nil
+	kubeConfigArgs.ImpersonateUID = nil
+	kubeConfigArgs.ImpersonateGroup = nil
 
 	return kubeConfigArgs
 }
