@@ -12,6 +12,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -35,8 +36,9 @@ type Tenant struct {
 // Validate returns an error if any of the fields isn't valid
 func (t Tenant) Validate() error {
 	var result error
-	if t.Name == "" {
-		result = multierror.Append(result, errors.New("name is required"))
+
+	if err := validation.IsQualifiedName(t.Name); len(err) > 0 {
+		result = multierror.Append(result, fmt.Errorf("invalid tenant name: %s", err))
 	}
 
 	if len(t.Namespaces) == 0 {
@@ -86,15 +88,10 @@ func convertToResource(resource runtime.Object) client.Object {
 }
 
 // ExportTenants exports all the tenants to a file.
-func ExportTenants(filename string, out io.Writer) error {
-	tenants, err := Parse(filename)
-	if err != nil {
-		return fmt.Errorf("failed to parse tenants file %s for export: %w", filename, err)
-	}
-
+func ExportTenants(tenants []Tenant, out io.Writer) error {
 	resources, err := GenerateTenantResources(tenants...)
 	if err != nil {
-		return fmt.Errorf("failed to generate tenant output from %s: %w", filename, err)
+		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
 
 	return outputResources(out, resources)

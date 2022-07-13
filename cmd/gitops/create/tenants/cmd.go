@@ -49,8 +49,26 @@ func init() {
 
 func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		tenants := []tenancy.Tenant{}
+
+		if flags.fromFile != "" {
+			parsedTenants, err := tenancy.Parse(flags.fromFile)
+			if err != nil {
+				return fmt.Errorf("failed to parse tenants file %s for export: %w", flags.fromFile, err)
+			}
+
+			tenants = append(tenants, parsedTenants...)
+		}
+
+		if flags.name != "" {
+			tenants = append(tenants, tenancy.Tenant{
+				Name:       flags.name,
+				Namespaces: flags.namespaces,
+			})
+		}
+
 		if flags.export {
-			err := tenancy.ExportTenants(flags.fromFile, os.Stdout)
+			err := tenancy.ExportTenants(tenants, os.Stdout)
 			if err != nil {
 				return err
 			}
@@ -65,34 +83,9 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
 
-		if flags.fromFile != "" {
-			tenants, err := tenancy.Parse(flags.fromFile)
-			if err != nil {
-				return fmt.Errorf("failed to parse tenants file %s for export: %w", flags.fromFile, err)
-			}
-
-			err = tenancy.CreateTenants(ctx, tenants, kubeClient)
-			if err != nil {
-				return err
-			}
-		}
-
-		if flags.name != "" {
-			if len(flags.namespaces) == 0 {
-				return fmt.Errorf("at least one namespace is required for tenant: %s", flags.name)
-			}
-
-			tenant := []tenancy.Tenant{
-				{
-					Name:       flags.name,
-					Namespaces: flags.namespaces,
-				},
-			}
-
-			err = tenancy.CreateTenants(ctx, tenant, kubeClient)
-			if err != nil {
-				return err
-			}
+		err = tenancy.CreateTenants(ctx, tenants, kubeClient)
+		if err != nil {
+			return err
 		}
 
 		return nil

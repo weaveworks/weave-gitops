@@ -1,8 +1,8 @@
 tenants:
-  - name: test-tenant1
+  - name: foo-tenant
     namespaces:
-    - test-ns1
-  - name: test-tenant2
+    - foo-ns
+  - name: bar-tenant
     namespaces:
-    - test-ns2
-    - test-ns3
+    - bar-ns
+    - foobar-ns

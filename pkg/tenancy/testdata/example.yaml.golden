@@ -3,8 +3,8 @@ kind: Namespace
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant1
-  name: test-ns1
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-ns
 spec: {}
 status: {}
 ---
@@ -13,18 +13,18 @@ kind: ServiceAccount
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant1
-  name: test-tenant1
-  namespace: test-ns1
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant
+  namespace: foo-ns
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant1
-  name: test-tenant1
-  namespace: test-ns1
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant
+  namespace: foo-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -32,18 +32,18 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: gotk:test-ns1:reconciler
+  name: gotk:foo-ns:reconciler
 - kind: ServiceAccount
-  name: test-tenant1
-  namespace: test-ns1
+  name: foo-tenant
+  namespace: foo-ns
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-ns2
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-ns
 spec: {}
 status: {}
 ---
@@ -52,18 +52,18 @@ kind: ServiceAccount
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-tenant2
-  namespace: test-ns2
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: bar-ns
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-tenant2
-  namespace: test-ns2
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: bar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -71,18 +71,18 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: gotk:test-ns2:reconciler
+  name: gotk:bar-ns:reconciler
 - kind: ServiceAccount
-  name: test-tenant2
-  namespace: test-ns2
+  name: bar-tenant
+  namespace: bar-ns
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-ns3
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: foobar-ns
 spec: {}
 status: {}
 ---
@@ -91,18 +91,18 @@ kind: ServiceAccount
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-tenant2
-  namespace: test-ns3
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: foobar-ns
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
   labels:
-    toolkit.fluxcd.io/tenant: test-tenant2
-  name: test-tenant2
-  namespace: test-ns3
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: foobar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -110,8 +110,8 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: gotk:test-ns3:reconciler
+  name: gotk:foobar-ns:reconciler
 - kind: ServiceAccount
-  name: test-tenant2
-  namespace: test-ns3
+  name: bar-tenant
+  namespace: foobar-ns
 ---

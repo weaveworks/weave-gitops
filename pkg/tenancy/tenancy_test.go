@@ -28,7 +28,7 @@ func Test_CreateTenants(t *testing.T) {
 	assert.NoError(t, err)
 
 	accounts := corev1.ServiceAccountList{}
-	if err := fc.List(context.TODO(), &accounts, client.InNamespace("test-ns1")); err != nil {
+	if err := fc.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,11 +39,11 @@ func Test_CreateTenants(t *testing.T) {
 				Kind:       "ServiceAccount",
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:            "test-tenant1",
-				Namespace:       "test-ns1",
+				Name:            "foo-tenant",
+				Namespace:       "foo-ns",
 				ResourceVersion: "1",
 				Labels: map[string]string{
-					"toolkit.fluxcd.io/tenant": "test-tenant1",
+					"toolkit.fluxcd.io/tenant": "foo-tenant",
 				},
 			},
 		},
@@ -53,7 +53,13 @@ func Test_CreateTenants(t *testing.T) {
 
 func Test_ExportTenants(t *testing.T) {
 	out := &bytes.Buffer{}
-	err := ExportTenants("testdata/example.yaml", out)
+
+	tenants, err := Parse("testdata/example.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = ExportTenants(tenants, out)
 	assert.NoError(t, err)
 
 	rendered := out.String()
@@ -73,17 +79,17 @@ func TestGenerateTenantResources(t *testing.T) {
 			tenant: Tenant{
 				Name: "test-tenant",
 				Namespaces: []string{
-					"test-namespace-1",
+					"foo-ns",
 				},
 			},
 			want: []runtime.Object{
-				newNamespace("test-namespace-1", map[string]string{
+				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newServiceAccount("test-tenant", "test-namespace-1", map[string]string{
+				newServiceAccount("test-tenant", "foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newRoleBinding("test-tenant", "test-namespace-1", "", map[string]string{
+				newRoleBinding("test-tenant", "foo-ns", "", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 			},
@@ -93,27 +99,27 @@ func TestGenerateTenantResources(t *testing.T) {
 			tenant: Tenant{
 				Name: "test-tenant",
 				Namespaces: []string{
-					"test-namespace-1",
-					"test-namespace-2",
+					"foo-ns",
+					"bar-ns",
 				},
 			},
 			want: []runtime.Object{
-				newNamespace("test-namespace-1", map[string]string{
+				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newServiceAccount("test-tenant", "test-namespace-1", map[string]string{
+				newServiceAccount("test-tenant", "foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newRoleBinding("test-tenant", "test-namespace-1", "", map[string]string{
+				newRoleBinding("test-tenant", "foo-ns", "", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newNamespace("test-namespace-2", map[string]string{
+				newNamespace("bar-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newServiceAccount("test-tenant", "test-namespace-2", map[string]string{
+				newServiceAccount("test-tenant", "bar-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newRoleBinding("test-tenant", "test-namespace-2", "", map[string]string{
+				newRoleBinding("test-tenant", "bar-ns", "", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 			},
@@ -123,18 +129,18 @@ func TestGenerateTenantResources(t *testing.T) {
 			tenant: Tenant{
 				Name: "test-tenant",
 				Namespaces: []string{
-					"test-namespace-1",
+					"foo-ns",
 				},
 				ClusterRole: "demo-cluster-role",
 			},
 			want: []runtime.Object{
-				newNamespace("test-namespace-1", map[string]string{
+				newNamespace("foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newServiceAccount("test-tenant", "test-namespace-1", map[string]string{
+				newServiceAccount("test-tenant", "foo-ns", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
-				newRoleBinding("test-tenant", "test-namespace-1", "demo-cluster-role", map[string]string{
+				newRoleBinding("test-tenant", "foo-ns", "demo-cluster-role", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 			},
@@ -157,9 +163,9 @@ func TestGenerateTenantResources(t *testing.T) {
 
 func TestGenerateTenantResources_WithErrors(t *testing.T) {
 	generationTests := []struct {
-		name         string
-		tenant       Tenant
-		errorMessage string
+		name          string
+		tenant        Tenant
+		errorMessages []string
 	}{
 		{
 			name: "simple tenant with no namespace",
@@ -167,45 +173,48 @@ func TestGenerateTenantResources_WithErrors(t *testing.T) {
 				Name:       "test-tenant",
 				Namespaces: []string{},
 			},
-			errorMessage: "namespaces required",
+			errorMessages: []string{"namespaces required"},
 		},
 		{
 			name: "tenant with no name",
 			tenant: Tenant{
 				Namespaces: []string{
-					"test-namespace-1",
+					"foo-ns",
 				},
 			},
-			errorMessage: "name is required",
+			errorMessages: []string{"invalid tenant name"},
 		},
 		{
 			name: "tenant with no name and no namespace",
 			tenant: Tenant{
 				Namespaces: []string{},
 			},
-			errorMessage: "name is required\n\t* namespaces required",
+			errorMessages: []string{"invalid tenant name", "namespaces required"},
 		},
 	}
 
 	for _, tt := range generationTests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := GenerateTenantResources(tt.tenant)
-			assert.ErrorContains(t, err, tt.errorMessage)
+
+			for _, errMessage := range tt.errorMessages {
+				assert.ErrorContains(t, err, errMessage)
+			}
 		})
 	}
 }
 
 func TestGenerateTenantResources_WithMultipleTenants(t *testing.T) {
 	tenant1 := Tenant{
-		Name: "test-tenant1",
+		Name: "foo-tenant",
 		Namespaces: []string{
-			"test-namespace-1",
+			"foo-ns",
 		},
 	}
 	tenant2 := Tenant{
-		Name: "test-tenant2",
+		Name: "bar-tenant",
 		Namespaces: []string{
-			"test-namespace-1",
+			"foo-ns",
 		},
 	}
 
@@ -226,7 +235,7 @@ func TestParse(t *testing.T) {
 
 	assert.Equal(t, len(tenants), 2)
 	assert.Equal(t, len(tenants[1].Namespaces), 2)
-	assert.Equal(t, tenants[1].Namespaces[1], "test-ns3")
+	assert.Equal(t, tenants[1].Namespaces[1], "foobar-ns")
 }
 
 func Test_newNamespace(t *testing.T) {
@@ -234,7 +243,7 @@ func Test_newNamespace(t *testing.T) {
 		"toolkit.fluxcd.io/tenant": "test-tenant",
 	}
 
-	ns := newNamespace("test-namespace-1", labels)
+	ns := newNamespace("foo-ns", labels)
 	assert.Equal(t, ns.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 }
 
