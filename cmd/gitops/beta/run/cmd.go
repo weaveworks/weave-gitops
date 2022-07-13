@@ -27,8 +27,7 @@ type runCommandFlags struct {
 	Context         string
 	Cluster         string
 	// global flags
-	Namespace             string
-	InsecureSkipTlsVerify bool
+	Namespace string
 }
 
 var flags runCommandFlags
@@ -108,10 +107,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var err error
 
 		if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
-			return err
-		}
-
-		if flags.InsecureSkipTlsVerify, err = cmd.Flags().GetBool("insecure-skip-tls-verify"); err != nil {
 			return err
 		}
 
