@@ -125,10 +125,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return cmderrors.ErrNoCluster
 		}
 
-		kubeConfigOptions := run.GetKubeConfigOptions()
-		kubeClientOptions := run.GetKubeClientOptions()
+		kubeConfigArgs := run.GetKubeConfigArgs()
+		kubeClientOpts := run.GetKubeClientOptions()
 
-		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigOptions, kubeClientOptions)
+		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigArgs, kubeClientOpts)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
@@ -157,7 +157,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 				Timeout:         flags.Timeout,
 			}
 
-			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigOptions); err != nil {
+			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigArgs); err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			} else {
 				log.Successf("Flux has been installed")

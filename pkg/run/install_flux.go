@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigOptions genericclioptions.RESTClientGetter) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
 	log.Actionf("Installing Flux ...")
 
 	manifests, err := install.Generate(installOptions, "")
@@ -25,7 +25,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 
 	content := []byte(manifests.Content)
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigOptions, content)
+	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, content)
 	if err != nil {
 		log.Failuref("Flux install failed")
 		return err
