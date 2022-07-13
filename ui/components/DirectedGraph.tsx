@@ -6,8 +6,8 @@ import * as React from "react";
 import styled from "styled-components";
 import { muiTheme } from "../lib/theme";
 import {
-  calculateZoomRatio,
   calculateNodeOffsetX,
+  calculateZoomRatio,
   mapScaleToZoomPercent,
   mapZoomPercentToScale,
 } from "../lib/utils";

@@ -104,6 +104,5 @@ export const getChildren = async (
     );
     result.push(obj);
   }
-  console.log(result);
   return _.flatten(result);
 };
