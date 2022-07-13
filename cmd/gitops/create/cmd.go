@@ -8,7 +8,7 @@ import (
 func CreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "create new resources",
+		Short: "Create new resources",
 		Example: `
 # Create a new tenant
 gitops create tenants --from-file tenants.yaml`,

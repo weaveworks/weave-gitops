@@ -21,15 +21,28 @@ var flags tenantCommandFlags
 
 var TenantsCommand = &cobra.Command{
 	Use:   "tenants",
-	Short: "create and update tenant resources",
-	RunE:  createTenantsCmdRunE(),
+	Short: "Create or update tenant resources",
+	Example: `
+	  # Create a tenant using name and namespace flags
+	  gitops create tenants --name test-tenant1 --namespace test-ns1 --namespace test-ns2
+
+	  # Create tenants from a file
+	  gitops create tenants --from-file tenants.yaml
+
+	  # Export tenant resources to a file
+	  gitops create tenants --from-file tenants.yaml --export > tenants.yaml
+
+	  # Export tenant resources to stdout
+	  gitops create tenants --from-file tenants.yaml --export
+	`,
+	RunE: createTenantsCmdRunE(),
 }
 
 func init() {
-	TenantsCommand.PersistentFlags().StringVar(&flags.name, "name", "", "the file containing the tenant declarations")
-	TenantsCommand.PersistentFlags().StringSliceVar(&flags.namespaces, "namespace", []string{}, "the file containing the tenant declarations")
-	TenantsCommand.PersistentFlags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
-	TenantsCommand.PersistentFlags().BoolVar(&flags.export, "export", false, "the file to export the generated resources to")
+	TenantsCommand.Flags().StringVar(&flags.name, "name", "", "the name of the tenant to be created")
+	TenantsCommand.Flags().StringSliceVar(&flags.namespaces, "namespace", []string{}, "a list of namespaces for the tenant")
+	TenantsCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
+	TenantsCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
 
 	cobra.CheckErr(TenantsCommand.MarkPersistentFlagRequired("from-file"))
 }
