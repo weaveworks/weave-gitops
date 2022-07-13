@@ -15,8 +15,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetReconciledObjects(t *testing.T) {
@@ -86,20 +86,19 @@ func TestGetChildObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-
 	automationName := "my-automation"
-	ns := newNamespace(ctx, k, g)
+
+	ns := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-deployment",
 			Namespace: ns.Name,
+			UID:       "this-is-not-an-uid",
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
@@ -120,9 +119,6 @@ func TestGetChildObjects(t *testing.T) {
 			},
 		},
 	}
-	g.Expect(k.Create(ctx, deployment)).Should(Succeed())
-	// Get after Create to get a populated UID
-	g.Expect(k.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment)).To(Succeed())
 
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -133,6 +129,9 @@ func TestGetChildObjects(t *testing.T) {
 			Template: deployment.Spec.Template,
 			Selector: deployment.Spec.Selector,
 		},
+		Status: appsv1.ReplicaSetStatus{
+			Replicas: 1,
+		},
 	}
 
 	rs.SetOwnerReferences([]metav1.OwnerReference{{
@@ -142,7 +141,9 @@ func TestGetChildObjects(t *testing.T) {
 		Name:       deployment.Name,
 	}})
 
-	g.Expect(k.Create(ctx, rs)).Should(Succeed())
+	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(&ns, deployment, rs).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
 
 	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
 		ParentUid: string(deployment.UID),
@@ -155,16 +156,13 @@ func TestGetChildObjects(t *testing.T) {
 		ClusterName: clustersmngr.DefaultCluster,
 	})
 
-	// TODO: The length should be 1, but it is always 0.
-	// Restore the length to 1 and uncomment the next test
-	// after mocking the API calls is reworked.
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.Objects).To(HaveLen(0))
+	g.Expect(res.Objects).To(HaveLen(1))
 
-	// first := res.Objects[0]
-	// g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-	// g.Expect(first.Name).To(Equal(rs.Name))
-} //nolint
+	first := res.Objects[0]
+	g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
+	g.Expect(first.Name).To(Equal(rs.Name))
+}
 
 func TestListFluxRuntimeObjects(t *testing.T) {
 	g := NewGomegaWithT(t)

@@ -28,7 +28,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -65,7 +65,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -85,7 +85,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -126,7 +126,7 @@ func TestUpdateUsers(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme())
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
