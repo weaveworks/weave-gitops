@@ -9,14 +9,18 @@ import TierLabel from "../_components/TierLabel";
 
 This guide will show you how to use a template to create a Terraform resource in Weave GitOps Enterprise.
 
+## CLI guide
+
 ### Pre-requisites
 - Install [Weave GitOps Enterprise](installation.mdx#weave-gitops-enterprise) with [TF-Controller installed](installation.mdx#tf-controller) and [TLS enabled](../configuration/tls.md).
 
-### 1. Add a template to your cluster 
+### 1. Add a template to your cluster
 
-Add a Terraform `GitOpsTemplate` manifest, such as the one below, to your config repository at `./clusters/<cluster-name>/tf-template.yaml` or any path that Flux is configured to watch. Commit and push these changes. Once a template is available in the cluster, it can be used to create a Terraform resource, which will be shown in the next step.
+Add the following template to a path in your Git repository that is synced by Flux. For example, in the [quickstart guide](https://docs.gitops.weave.works/docs/installation/#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set the path that is synced by Flux to `./clusters/management`.
 
-```yaml title="./clusters/my-cluster/tf-template.yaml"
+Commit and push these changes. Once a template is available in the cluster, it can be used to create a resource, which will be shown in the next step.
+
+```yaml title="./clusters/management/tf-template.yaml"
 ---
 apiVersion: clustertemplates.weave.works/v1alpha1
 kind: GitOpsTemplate
@@ -24,7 +28,7 @@ metadata:
   name: tf-template
   namespace: default
 spec:
-  description: 
+  description:
     This is a sample WGE template that will be translated into a tf-controller specific template.
   params:
     - name: RESOURCE_NAME
@@ -38,7 +42,8 @@ spec:
       spec:
         interval: 1h
         path: ./
-        approvePlan: "auto"
+        approvePlan: auto
+        alwaysCleanupRunnerPod: true
         sourceRef:
           kind: GitRepository
           name: flux-system
@@ -61,13 +66,21 @@ flux reconcile kustomization flux-system
 ✔ applied revision main/e6f5f0c3925bcfecdb50bceb12af9a87677d2213
 ```
 
-### 2. Create a Terraform resource
-A Terraform resource can be created from a template by specifying the template's name and supplying values to it, as well as your Weave GitOps Enterprise username, password, and HTTP API endpoint.
+### 2. Use the template to create a resource
+A resource can be created from a template by specifying the template's name and supplying values to it, as well as your Weave GitOps Enterprise username, password, and HTTP API endpoint.
 ```bash
-gitops add terraform --from-template sample-wge-tf-controller-template --set="RESOURCE_NAME"="name" --username=<username> --password=<password> --endpoint https://localhost:8000 --url <config-repo>
+gitops add terraform --from-template sample-wge-tf-controller-template \ 
+--set="RESOURCE_NAME"="name" \
+--username=<username> --password=<password> \
+--endpoint https://localhost:8000 \
+--url https://github.com/myawesomeorg/myawesomerepo
+
+Created pull request: https://github.com/myawesomeorg/myawesomerepo/pull/5
 ```
 
-This will create a PR in your config repository with the manifest of the Terraform resource. Once the PR is merged, TF-Controller will apply the manifest, create the Terraform resource, and reconcile any changes to the Terraform manifest in your config repo! 
+This will create a PR in your Git repository with a TF-Controller manifest. Once the PR is merged, TF-Controller will supply the values to the Terraform manifest, apply the Terraform manifest to create the resource, and reconcile any changes that you make to the Terraform manifest!
+
+This template can be used to create multiple resources out of the same Terraform manifest by supplying different values to the template. Any changes to the Terraform manifest will be reconciled automatically to all resources.
 
 ### 3. List available templates
 Get a specific template that can be used to create a Terraform resource:
@@ -92,3 +105,210 @@ gitops get template terraform tf-controller-aurora --list-parameters --endpoint 
 NAME            REQUIRED   DESCRIPTION     OPTIONS
 RESOURCE_NAME   false      Resource Name
 ```
+
+## Use Case: Create an Aurora RDS with WGE
+:::tip BONUS
+
+For a more advanced example, here is a template to create an Aurora RDS cluster using WGE with Flux and the TF-Controller.
+:::
+
+### Pre-requisites
+- Everything from the [previous section](#pre-requisites)
+- Get (or create) an AWS Access Key ID and Secret Access Key. Check the [AWS docs](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html) for details on how to do this.
+- Create an AWS IAM Role for the Terraform AWS Provider. Its policy should include `iam:CreateRole`. More info [here](https://support.hashicorp.com/hc/en-us/articles/360041289933-Using-AWS-AssumeRole-with-the-AWS-Terraform-Provider).
+
+### 1. Configure a way to manage secrets
+
+Configure a way to safely store Secrets. One method is to use the Mozilla SOPS CLI, but there are other ways, such as Sealed Secrets or Vaults.
+
+Follow the steps in the [Flux docs](https://fluxcd.io/docs/guides/mozilla-sops/) **except** for the "Configure in-cluster secrets decryption" step! This step looks slightly different for WGE. Instead of re-creating the controllers, you can configure the `kustomize-controller` as instructed below.
+
+In your Git repository source, add the following to your `kustomize-controller` configuration:
+```bash
+cat <<EOF >> ./clusters/<cluster-name>/flux-system/gotk-sync.yaml
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+EOF
+```
+
+### 2. Encrypt and store your credentials in your Git repository
+Create a Secret to store sensitive values such as the following:
+- DB username
+- DB password
+- AWS Access Key ID
+- AWS Secret Access Key
+- AWS Role ARN
+
+:::note
+If following the Flux guide, this steps corresponds to ["Encrypting secrets using OpenPGP"](https://fluxcd.io/docs/guides/mozilla-sops/#encrypting-secrets-using-openpgp). You can stop following the Flux guide at this step.
+:::
+
+For example, here is what you would do if using the SOPS method:
+```bash
+kubectl -n flux-system create secret generic tf-controller-auth \
+--from-literal=master_username=admin \
+--from-literal=master_password=change-me \
+--from-literal=aws_access_key=AKIAIOSFODNN7EXAMPLE \
+--from-literal=aws_secret_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
+--from-literal=aws_role_arn="arn:aws:iam::012345678910:role/wge-tf-controller-example" \
+--dry-run=client \
+-o yaml > tf-controller-auth.yaml
+```
+
+Then, encrypt the secret:
+```bash
+sops --encrypt --in-place tf-controller-auth.yaml
+```
+
+Commit and push your changes. You can now store encrypted secrets to your Git repository.
+
+### 4. Add the manifests to your cluster
+
+Add the following Terraform manifest to the root of your Git repository.
+
+```yaml title="./rds.tf"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+variable "cluster_identifier" {}
+variable "database_name" {}
+variable "master_username" {}
+variable "master_password" {}
+variable "backup_retention_period" {}
+variable "region" {}
+variable "aws_access_key" {}
+variable "aws_secret_key" {}
+variable "aws_role_arn" {}
+
+provider "aws" {
+  region = var.region
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+
+  assume_role {
+    role_arn    = var.aws_role_arn
+  }
+}
+
+locals {
+  engine         = "aurora-mysql"
+  engine_version = "5.7.mysql_aurora.2.07.5"
+  port           = 3306
+}
+
+data "aws_availability_zones" "available" {
+  state    = "available"
+
+  filter {
+    name   = "group-name"
+    values = [var.region]
+  }
+}
+
+resource "aws_rds_cluster" "mycluster" {
+  cluster_identifier      = var.cluster_identifier
+  engine                  = local.engine
+  engine_version          = local.engine_version
+  port                    = local.port
+  availability_zones      = slice(data.aws_availability_zones.available.names, 0, 3)
+  database_name           = var.database_name
+  master_username         = var.master_username
+  master_password         = var.master_password
+  backup_retention_period = var.backup_retention_period
+  skip_final_snapshot     = true
+  apply_immediately       = true
+}
+
+resource "aws_rds_cluster_instance" "cluster_instance" {
+  count              = 1
+  identifier         = "${aws_rds_cluster.mycluster.id}-${count.index}"
+  cluster_identifier = aws_rds_cluster.mycluster.id
+  instance_class     = "db.t3.small"
+  engine             = aws_rds_cluster.mycluster.engine
+  engine_version     = aws_rds_cluster.mycluster.engine_version
+}
+```
+
+Add the following template to a path in your Git repository that is synced by Flux. In the [quickstart guide](https://docs.gitops.weave.works/docs/installation/#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set this path to `./clusters/management`.
+
+```yaml title="./clusters/management/rds-template.yaml"
+---
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: rds-template
+  namespace: default
+spec:
+  description: This is a sample Aurora RDS template.
+  params:
+    - name: RESOURCE_NAME
+      description: Resource Name
+    - name: CLUSTER_IDENTIFIER
+      description: Cluster Identifier
+    - name: DATABASE_NAME
+      description: Database Name
+    - name: BACKUP_RETENTION_PERIOD
+      description: Backup Retention Period
+    - name: REGION
+      description: Region
+  resourcetemplates:
+    - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+      kind: Terraform
+      metadata:
+        name: ${RESOURCE_NAME}
+        namespace: flux-system
+      spec:
+        interval: 1h
+        path: ./
+        approvePlan: auto
+        alwaysCleanupRunnerPod: true
+        vars:
+        - name: cluster_identifier
+          value: ${CLUSTER_IDENTIFIER}
+        - name: database_name
+          value: ${DATABASE_NAME}
+        - name: backup_retention_period
+          value: ${BACKUP_RETENTION_PERIOD}
+        - name: region
+          value: ${REGION}
+        varsFrom:
+        - kind: Secret
+          name: tf-controller-auth
+        sourceRef:
+          kind: GitRepository
+          name: flux-system
+          namespace: flux-system
+```
+
+Commit and push your changes.
+
+:::tip
+You can change the location where you keep your Terraform manifests in your Git source (which the TF-Controller will reconcile) by configuring `spec.resourcetemplates.spec.path`.
+:::
+
+### 5. Use the template to create the RDS
+```bash
+gitops add terraform --from-template rds-template \
+--username=<username> --password=<password> \
+--endpoint https://localhost:8000 \
+--url https://github.com/myawesomeorg/myawesomerepo \
+--set "RESOURCE_NAME"="tf-controller-aurora","CLUSTER_IDENTIFIER"="super-awesome-aurora","DATABASE_NAME"="db1","BACKUP_RETENTION_PERIOD"=5,"REGION"="us-west-2"
+
+Created pull request: https://github.com/myawesomeorg/myawesomerepo/pull/6
+```
+
+Merge the PR in your Git repository to add the TF-Controller manifest. TF-Controller will supply the values to the Terraform manifest, apply the Terraform manifest to create the resource, and reconcile any changes that you make to the Terraform manifest.
+
+Any changes to your Terraform manifest will be automatically reconciled by the TF-controller with Flux.
+
+You can re-use this template to create multiple Terraform resources, each with a different set of values!
+
+Make sure to delete the newly created RDS resources to not incur additional costs.

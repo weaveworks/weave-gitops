@@ -1,16 +1,20 @@
 package run
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/run"
 )
-
-type runCommandFlags struct{}
-
-// TODO: Add flags when adding the actual run command.
-var flags runCommandFlags //nolint
 
 func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
@@ -23,10 +27,11 @@ gitops beta run . [flags]
 
 # Run the sync against the dev overlay path
 gitops beta run ./deploy/overlays/dev [flags]`,
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		PreRunE:       betaRunCommandPreRunE(&opts.Endpoint),
-		RunE:          betaRunCommandRunE(opts, client),
+		SilenceUsage:      true,
+		SilenceErrors:     true,
+		PreRunE:           betaRunCommandPreRunE(&opts.Endpoint),
+		RunE:              betaRunCommandRunE(opts, client),
+		DisableAutoGenTag: true,
 	}
 
 	return cmd
@@ -48,8 +53,85 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
+// isLocalCluster checks if it's a local cluster. See https://skaffold.dev/docs/environment/local-cluster/
+func isLocalCluster(kubeClient *kube.KubeHTTP) bool {
+	const (
+		// cluster context prefixes
+		kindPrefix = "kind-"
+		k3dPrefix  = "k3d-"
+
+		// cluster context names
+		minikube         = "minikube"
+		dockerForDesktop = "docker-for-desktop"
+		dockerDesktop    = "docker-desktop"
+	)
+
+	if strings.HasPrefix(kubeClient.ClusterName, kindPrefix) ||
+		strings.HasPrefix(kubeClient.ClusterName, k3dPrefix) ||
+		kubeClient.ClusterName == minikube ||
+		kubeClient.ClusterName == dockerForDesktop ||
+		kubeClient.ClusterName == dockerDesktop {
+		return true
+	} else {
+		return false
+	}
+}
+
 func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		log := internal.NewCLILogger(os.Stdout)
+
+		log.Actionf("Checking for a cluster in the kube config ...")
+
+		_, clusterName, err := kube.RestConfig()
+		if err != nil {
+			log.Failuref("Error getting a restconfig: %v", err.Error())
+			return cmderrors.ErrNoCluster
+		}
+
+		kubeConfigOptions := run.GetKubeConfigOptions()
+		kubeClientOptions := run.GetKubeClientOptions()
+
+		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigOptions, kubeClientOptions)
+		if err != nil {
+			return cmderrors.ErrGetKubeClient
+		}
+
+		if !isLocalCluster(kubeClient) {
+			return errors.New("allowed to run against a local cluster only")
+		}
+
+		ctx := context.Background()
+
+		log.Actionf("Checking if Flux is already installed ...")
+
+		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+			log.Warningf("Flux is not found: %v", err.Error())
+
+			if err := run.InstallFlux(log, ctx, kubeClient, kubeConfigOptions); err != nil {
+				return fmt.Errorf("flux installation failed: %w", err)
+			} else {
+				log.Successf("Flux has been installed")
+			}
+		} else {
+			log.Successf("Flux version %s is found", fluxVersion)
+		}
+
+		const fluxSystemNS = "flux-system"
+		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
+			log.Actionf("Waiting for %s/%s to be ready ...", fluxSystemNS, controllerName)
+
+			if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, fluxSystemNS); err != nil {
+				return err
+			}
+
+			log.Successf("%s/%s is now ready ...", fluxSystemNS, controllerName)
+		}
+
+		if err := run.InstallBucketServer(log, kubeClient); err != nil {
+			return err
+		}
+
 		return nil
 	}
 }
