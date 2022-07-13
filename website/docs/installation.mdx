@@ -564,3 +564,23 @@ The quickest way to access your dashboard is by setting up a port forward:
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 Then, [open the dashboard](http://localhost:9001/).
+
+## Installing the TF-Controller
+
+The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way. 
+
+With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest. 
+
+Check out our guide on how to [use Terraform templates](./../guides/using-terraform-templates), and why not try your hands at using it with the RDS example!
+
+Install the TF-Controller to a cluster using Helm:
+```bash
+# Add tf-controller helm repository
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
+
+Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-controller/getting_started/) documentation for more details on which parameters are configurable and how to install a specific version. 
