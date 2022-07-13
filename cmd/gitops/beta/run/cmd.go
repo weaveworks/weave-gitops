@@ -19,7 +19,7 @@ import (
 
 type runCommandFlags struct {
 	FluxVersion     string
-	AllowK8sCluster string
+	AllowK8sContext string
 	Components      []string
 	ComponentsExtra []string
 	Timeout         time.Duration
@@ -52,7 +52,7 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 	}
 
 	cmd.Flags().StringVar(&flags.FluxVersion, "flux-version", "", "")
-	cmd.Flags().StringVar(&flags.AllowK8sCluster, "allow-k8s-cluster", "", "")
+	cmd.Flags().StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "")
 	cmd.Flags().StringSliceVar(&flags.Components, "components", flags.Components, "")
 	cmd.Flags().StringSliceVar(&flags.ComponentsExtra, "components-extra", flags.ComponentsExtra, "")
 	cmd.Flags().DurationVar(&flags.Timeout, "timeout", flags.Timeout, "")
@@ -133,7 +133,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return cmderrors.ErrGetKubeClient
 		}
 
-		if !isLocalCluster(kubeClient) {
+		contextName := kubeClient.ClusterName
+		if flags.AllowK8sContext == contextName {
+			log.Infow("Explicitly allow GitOps Run on %s context", contextName)
+		} else if !isLocalCluster(kubeClient) {
 			return errors.New("allowed to run against a local cluster only")
 		}
 
