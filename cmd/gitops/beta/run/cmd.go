@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -14,6 +16,22 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 )
+
+type runCommandFlags struct {
+	FluxVersion     string
+	AllowK8sCluster string
+	Components      []string
+	ComponentsExtra []string
+	Timeout         time.Duration
+	KubeConfig      string
+	Context         string
+	Cluster         string
+	// global flags
+	Namespace             string
+	InsecureSkipTlsVerify bool
+}
+
+var flags runCommandFlags
 
 func RunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
@@ -32,6 +50,15 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 		RunE:              betaRunCommandRunE(opts),
 		DisableAutoGenTag: true,
 	}
+
+	cmd.Flags().StringVar(&flags.FluxVersion, "flux-version", "", "")
+	cmd.Flags().StringVar(&flags.AllowK8sCluster, "allow-k8s-cluster", "", "")
+	cmd.Flags().StringSliceVar(&flags.Components, "components", flags.Components, "")
+	cmd.Flags().StringSliceVar(&flags.ComponentsExtra, "components-extra", flags.ComponentsExtra, "")
+	cmd.Flags().DurationVar(&flags.Timeout, "timeout", flags.Timeout, "")
+	cmd.Flags().StringVar(&flags.KubeConfig, "kube-config", "", "")
+	cmd.Flags().StringVar(&flags.Context, "context", "", "")
+	cmd.Flags().StringVar(&flags.Cluster, "cluster", "", "")
 
 	return cmd
 }
@@ -78,6 +105,16 @@ func isLocalCluster(kubeClient *kube.KubeHTTP) bool {
 
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		var err error
+
+		if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
+			return err
+		}
+
+		if flags.InsecureSkipTlsVerify, err = cmd.Flags().GetBool("insecure-skip-tls-verify"); err != nil {
+			return err
+		}
+
 		log := internal.NewCLILogger(os.Stdout)
 
 		log.Actionf("Checking for a cluster in the kube config ...")
@@ -107,7 +144,17 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
-			if err := run.InstallFlux(log, ctx, kubeClient, kubeConfigOptions); err != nil {
+			installOpts := install.Options{
+				BaseURL:         install.MakeDefaultOptions().BaseURL,
+				Version:         flags.FluxVersion,
+				Namespace:       flags.Namespace,
+				Components:      flags.Components,
+				ComponentsExtra: flags.ComponentsExtra,
+				ManifestFile:    "flux-system.yaml",
+				Timeout:         flags.Timeout,
+			}
+
+			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigOptions); err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			} else {
 				log.Successf("Flux has been installed")

@@ -14,19 +14,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigOptions genericclioptions.RESTClientGetter) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigOptions genericclioptions.RESTClientGetter) error {
 	log.Actionf("Installing Flux ...")
 
-	opts := install.Options{
-		BaseURL:      install.MakeDefaultOptions().BaseURL,
-		Version:      "v0.31.2",
-		Namespace:    "flux-system",
-		Components:   []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"},
-		ManifestFile: "flux-system.yaml",
-		Timeout:      5 * time.Second,
-	}
-
-	manifests, err := install.Generate(opts, "")
+	manifests, err := install.Generate(installOptions, "")
 	if err != nil {
 		log.Failuref("Couldn't generate manifests")
 		return err
