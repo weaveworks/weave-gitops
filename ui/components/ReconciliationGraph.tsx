@@ -175,31 +175,6 @@ function ReconciliationGraph({
     target: parentObject.name,
   });
 
-  const drag = (simulation) => {
-    function dragstarted(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
-    }
-
-    function dragged(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
-    }
-
-    function dragended(event, d) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
-    }
-
-    return d3
-      .drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended);
-  };
-
   type GraphProps = {
     width: number;
     height: number;
@@ -207,69 +182,65 @@ function ReconciliationGraph({
   };
 
   const MakeGraph = ({ width, height, rootNode }: GraphProps) => {
-    const root = d3.hierarchy(rootNode);
+    const rootNodeWithSource = {
+      ...source,
+      kind: removeKind(source.kind),
+      children: [rootNode],
+    };
+    const root = d3.hierarchy(rootNodeWithSource);
     const links = root.links();
     const nodes = root.descendants();
     const svgRef = React.useRef();
+    const dx = 650;
+    const dy = 200;
 
-    // console.log(root);
-    // console.log(nodes);
+    const tree = d3.tree().nodeSize([dx, dy]);
 
-    const simulation = d3
-      .forceSimulation(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink(links)
-          .id((d) => d.id)
-          .distance(0)
-          .strength(1)
-      )
-      .force("charge", d3.forceManyBody().strength(-10000))
-      .force("x", d3.forceX())
-      .force("y", d3.forceY());
+    let x0 = Infinity;
+    let x1 = -x0;
+    tree(root).each((d) => {
+      console.log(d);
+      if (d.x > x1) x1 = d.x;
+      if (d.x < x0) x0 = d.x;
+    });
 
     React.useEffect(() => {
       const svg = d3
         .select(svgRef.current)
-        .attr("viewBox", [-width / 2, -height / 2, width, height]);
+        .attr("viewBox", [0, 0, 1000, x1 - x0 + dx * 2]);
 
-      const link = svg
+      const g = svg
+        .append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("transform", `translate(${0},${dx - x0})`);
+
+      const link = g
         .append("g")
         .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
         .selectAll("line")
         .data(links)
-        .join("line");
+        .join("line")
+        .attr("x1", (edge) => edge.source.x)
+        .attr("x2", (edge) => edge.target.x)
+        .attr("y1", (edge) => edge.source.y)
+        .attr("y2", (edge) => edge.target.y);
 
-      const node = svg
-
+      const node1 = g
         .append("g")
-        .selectAll("foreignObject")
-        .data(nodes)
-        .join("foreignObject")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 3)
+        .selectAll("g")
+        .data(root.descendants())
+        .join("g")
+        .attr("transform", (d) => `translate(${d.x},${d.y})`);
 
-        .html((d) => {
-          console.log(d.data);
-          const html = renderToString(<NodeHtml object={d.data} />);
-          console.log(html);
-          return html;
-        })
-
-        .call(drag(simulation));
-
-      simulation.on("tick", () => {
-        link
-          .attr("x1", (d) => d.source.x)
-          .attr("y1", (d) => d.source.y)
-          .attr("x2", (d) => d.target.x)
-          .attr("y2", (d) => d.target.y);
-
-        node.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      const node = node1.append("foreignObject").html((d) => {
+        const html = renderToString(<NodeHtml object={d.data} />);
+        return html;
       });
     }, []);
-
-    // invalidation.then(() => simulation.stop());
 
     return <svg ref={svgRef} />;
   };
@@ -368,6 +339,8 @@ export default styled(ReconciliationGraph)`
   }
 
   foreignObject {
+    display: flex;
+    flex-direction: column;
     width: 375px;
     height: 100px;
   }
