@@ -3,7 +3,6 @@ package forwarder
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"net/http"
 	"net/url"
 	"os"
@@ -22,12 +21,7 @@ import (
 var once sync.Once
 
 //WithForwarders forward ports per the options. Cancel the context will stop the forwarder.
-func WithForwarders(ctx context.Context, options []*Option) (*Result, error) {
-	config, _, err := kube.RestConfig()
-	if err != nil {
-		return nil, err
-	}
-
+func WithForwarders(ctx context.Context, config *rest.Config, options []*Option) (*Result, error) {
 	return forwarders(ctx, options, config)
 }
 

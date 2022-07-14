@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -90,13 +91,7 @@ func GetKubeClientOptions() *runclient.Options {
 	return kubeClientOpts
 }
 
-func GetKubeClient(log logger.Logger, contextName string, kubeConfigArgs genericclioptions.RESTClientGetter, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
-	cfg, err := kubeConfigArgs.ToRESTConfig()
-	if err != nil {
-		log.Failuref("Error getting a restconfig: %v", err.Error())
-		return nil, err
-	}
-
+func GetKubeClient(log logger.Logger, contextName string, cfg *rest.Config, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
 	// avoid throttling request when some Flux CRDs are not registered
 	cfg.QPS = kubeClientOpts.QPS
 	cfg.Burst = kubeClientOpts.Burst

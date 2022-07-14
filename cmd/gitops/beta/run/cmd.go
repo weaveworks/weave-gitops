@@ -152,11 +152,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		kubeClientOpts := run.GetKubeClientOptions()
 		kubeClientOpts.BindFlags(cmd.Flags())
 
-		_, err = kubeConfigArgs.ToRESTConfig()
-		if err != nil {
-			return fmt.Errorf("error converting kube config args to a restconfig: %w", err)
-		}
-
 		var contextName string
 		if flags.Context != "" {
 			contextName = flags.Context
@@ -164,7 +159,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			contextName = cfgContextName
 		}
 
-		kubeClient, err := run.GetKubeClient(log, contextName, kubeConfigArgs, kubeClientOpts)
+		cfg, err := kubeConfigArgs.ToRESTConfig()
+		if err != nil {
+			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
+		}
+
+		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
@@ -213,7 +213,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("%s/%s is now ready ...", fluxSystemNS, controllerName)
 		}
 
-		if err := run.InstallBucketServer(log, kubeClient); err != nil {
+		if err := run.InstallBucketServer(log, kubeClient, cfg); err != nil {
 			return err
 		}
 
