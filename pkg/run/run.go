@@ -70,6 +70,7 @@ func GetKubeConfigArgs() *genericclioptions.ConfigFlags {
 	kubeConfigArgs.Timeout = nil
 	kubeConfigArgs.KubeConfig = nil
 	kubeConfigArgs.CacheDir = nil
+	kubeConfigArgs.ClusterName = nil
 	kubeConfigArgs.AuthInfoName = nil
 	kubeConfigArgs.Namespace = nil
 	kubeConfigArgs.APIServer = nil

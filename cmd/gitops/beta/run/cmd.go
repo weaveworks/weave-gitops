@@ -28,8 +28,7 @@ type runCommandFlags struct {
 	Namespace  string
 	KubeConfig string
 	// Flags, created by genericclioptions.
-	ClusterName string
-	Context     string
+	Context string
 }
 
 var flags runCommandFlags
@@ -56,18 +55,13 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "v0.31.3", "")
-	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "")
-	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "")
-	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Second, "")
+	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "v0.31.3", "The version of Flux to install")
+	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the kubeconfig context to allow explicitly")
+	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install, as a comma-separated list: --components=component1,component2,component3")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, as a comma-separated list: --components=component1,component2,component3")
+	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Second, "The timeout for Flux installation")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
-	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
-	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
-	// on the CLI interface.
-	apiServer := ""
-	kubeConfigArgs.APIServer = &apiServer
 
 	kubeConfigArgs.AddFlags(cmd.Flags())
 
@@ -127,10 +121,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		}
 
 		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
-			return err
-		}
-
-		if flags.ClusterName, err = cmd.Flags().GetString("cluster"); err != nil {
 			return err
 		}
 
