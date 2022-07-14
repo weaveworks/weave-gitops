@@ -5,12 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
@@ -30,7 +29,7 @@ type terraformCommandFlags struct {
 
 var flags terraformCommandFlags
 
-func AddCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func AddCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "terraform",
 		Short: "Add a new Terraform resource using a TF template",
@@ -61,9 +60,9 @@ func addTerraformCmdPreRunE(endpoint *string) func(*cobra.Command, []string) err
 	}
 }
 
-func addTerraformCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func addTerraformCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -104,6 +103,6 @@ func addTerraformCmdRunE(opts *config.Options, client *resty.Client) func(*cobra
 			CommitMessage:    flags.CommitMessage,
 		}
 
-		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)
 	}
 }

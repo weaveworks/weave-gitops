@@ -2,8 +2,8 @@ package profiles_test
 
 import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 
-	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
@@ -13,7 +13,7 @@ var _ = Describe("Update Profile(s)", func() {
 	var cmd *cobra.Command
 
 	BeforeEach(func() {
-		cmd = root.RootCmd(resty.New())
+		cmd = root.RootCmd(adapters.NewHTTPClient())
 	})
 
 	When("the flags are valid", func() {

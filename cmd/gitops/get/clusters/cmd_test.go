@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 func TestGetCluster(t *testing.T) {
@@ -28,7 +28,7 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 				"--endpoint", "http://localhost:8000",
 			},
 		},
@@ -37,7 +37,7 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 				"--endpoint", "not_a_valid_url",
 			},
 			errString: "failed to parse endpoint: parse \"not_a_valid_url\": invalid URI for request",
@@ -47,7 +47,7 @@ func TestGetCluster(t *testing.T) {
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",
-				"--kubeconfig",
+				"--print-kubeconfig",
 			},
 			errString: "the Weave GitOps Enterprise HTTP API endpoint flag (--endpoint) has not been set",
 		},
@@ -55,8 +55,8 @@ func TestGetCluster(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder(
 				http.MethodGet,

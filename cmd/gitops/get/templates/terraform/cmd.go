@@ -4,12 +4,11 @@ import (
 	"errors"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
@@ -20,7 +19,7 @@ type templateCommandFlags struct {
 
 var flags templateCommandFlags
 
-func TerraformCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func TerraformCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "terraform",
 		Aliases: []string{"terraform"},
@@ -54,9 +53,9 @@ func getTerraformTemplateCmdPreRunE(endpoint *string) func(*cobra.Command, []str
 	}
 }
 
-func getTerraformTemplateCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -69,13 +68,13 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *resty.Client) fun
 				return errors.New("terraform template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], r, w)
+			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], client, w)
 		}
 
 		if len(args) == 0 {
-			return templates.GetTemplates(templates.GitOpsTemplateKind, r, w)
+			return templates.GetTemplates(templates.GitOpsTemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, r, w)
+		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, client, w)
 	}
 }

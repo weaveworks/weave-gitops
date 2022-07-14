@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 
@@ -16,9 +15,9 @@ import (
 )
 
 func TestSetSeparateValues(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
@@ -55,9 +54,9 @@ func TestSetSeparateValues(t *testing.T) {
 }
 
 func TestSetMultipleValues(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
@@ -91,9 +90,9 @@ func TestSetMultipleValues(t *testing.T) {
 }
 
 func TestSetMultipleAndSeparateValues(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodPost,
@@ -129,7 +128,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 }
 
 func TestEndpointNotSet(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
@@ -148,9 +147,9 @@ func TestEndpointNotSet(t *testing.T) {
 func TestGitProviderToken(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder(
@@ -182,7 +181,7 @@ func TestGitProviderToken(t *testing.T) {
 }
 
 func TestGitProviderToken_NoURL(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -200,7 +199,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 }
 
 func TestGitProviderToken_InvalidURL(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -221,9 +220,9 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 func TestParseProfiles_ValidRequest(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder(
@@ -258,9 +257,9 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 func TestParseProfiles_InvalidKey(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder(
@@ -295,9 +294,9 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 func TestParseProfiles_InvalidValue(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder(

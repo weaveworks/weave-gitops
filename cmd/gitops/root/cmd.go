@@ -1,26 +1,25 @@
 package root
 
 import (
-	"crypto/tls"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -39,7 +38,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
-func RootCmd(client *resty.Client) *cobra.Command {
+func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -77,10 +76,6 @@ func RootCmd(client *resty.Client) *cobra.Command {
 				kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			}
 
-			if options.InsecureSkipTLSVerify {
-				client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-			}
-
 			err = cmd.Flags().Set("username", viper.GetString("username"))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -102,6 +97,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.PersistentFlags().BoolVar(&options.OverrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	rootCmd.PersistentFlags().StringToStringVar(&options.GitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	rootCmd.PersistentFlags().BoolVar(&options.InsecureSkipTLSVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
+	rootCmd.PersistentFlags().StringVar(&options.Kubeconfig, "kubeconfig", "", "Paths to a kubeconfig. Only required if out-of-cluster.")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
@@ -113,7 +109,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
-	rootCmd.AddCommand(beta.GetCommand(options, client))
+	rootCmd.AddCommand(beta.GetCommand(options))
 
 	return rootCmd
 }
