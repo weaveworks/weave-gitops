@@ -67,6 +67,7 @@ func GetKubeConfigArgs() *genericclioptions.ConfigFlags {
 	// Prevent AddFlags from configuring unnecessary flags.
 	kubeConfigArgs.Insecure = nil
 	kubeConfigArgs.Timeout = nil
+	kubeConfigArgs.KubeConfig = nil
 	kubeConfigArgs.CacheDir = nil
 	kubeConfigArgs.AuthInfoName = nil
 	kubeConfigArgs.Namespace = nil
@@ -89,7 +90,7 @@ func GetKubeClientOptions() *runclient.Options {
 	return kubeClientOpts
 }
 
-func GetKubeClient(log logger.Logger, clusterName string, kubeConfigArgs genericclioptions.RESTClientGetter, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
+func GetKubeClient(log logger.Logger, contextName string, kubeConfigArgs genericclioptions.RESTClientGetter, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
 	cfg, err := kubeConfigArgs.ToRESTConfig()
 	if err != nil {
 		log.Failuref("Error getting a restconfig: %v", err.Error())
@@ -100,7 +101,7 @@ func GetKubeClient(log logger.Logger, clusterName string, kubeConfigArgs generic
 	cfg.QPS = kubeClientOpts.QPS
 	cfg.Burst = kubeClientOpts.Burst
 
-	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
+	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, contextName)
 	if err != nil {
 		log.Failuref("Kubernetes client initialization failed: %v", err.Error())
 		return nil, err

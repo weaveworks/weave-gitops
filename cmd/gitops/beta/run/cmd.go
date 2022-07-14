@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 type runCommandFlags struct {
@@ -24,22 +25,18 @@ type runCommandFlags struct {
 	ComponentsExtra []string
 	Timeout         time.Duration
 	// Global flags.
-	Namespace string
-	// Flags, created by genericclioptions.
+	Namespace  string
 	KubeConfig string
-	Context    string
-	Cluster    string
+	// Flags, created by genericclioptions.
+	ClusterName string
+	Context     string
 }
 
 var flags runCommandFlags
 
-<<<<<<< HEAD
-func RunCommand(opts *config.Options) *cobra.Command {
-=======
-var kubeConfigArgs = run.GetKubeConfigArgs()
+var kubeConfigArgs *genericclioptions.ConfigFlags
 
-func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
->>>>>>> 8f31ebcd (Fix `kubeConfigArgs` options.)
+func RunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Set up an interactive sync between your cluster and your local file system",
@@ -59,11 +56,11 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "", "")
+	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "v0.31.3", "")
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "")
-	cmdFlags.StringSliceVar(&flags.Components, "components", flags.Components, "")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", flags.ComponentsExtra, "")
-	cmdFlags.DurationVar(&flags.Timeout, "timeout", flags.Timeout, "")
+	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "")
+	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Second, "")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
@@ -125,11 +122,28 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
+		if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
+			return err
+		}
+
+		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
+			return err
+		}
+
+		if flags.ClusterName, err = cmd.Flags().GetString("cluster"); err != nil {
+			return err
+		}
+
+		kubeConfigArgs.Namespace = &flags.Namespace
+		if flags.KubeConfig != "" {
+			kubeConfigArgs.KubeConfig = &flags.KubeConfig
+		}
+
 		log := internal.NewCLILogger(os.Stdout)
 
 		log.Actionf("Checking for a cluster in the kube config ...")
 
-		_, clusterName, err := kube.RestConfig()
+		_, cfgContextName, err := kube.RestConfig()
 		if err != nil {
 			log.Failuref("Error getting a restconfig: %v", err.Error())
 			return cmderrors.ErrNoCluster
@@ -138,14 +152,26 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		kubeClientOpts := run.GetKubeClientOptions()
 		kubeClientOpts.BindFlags(cmd.Flags())
 
-		kubeClient, err := run.GetKubeClient(log, clusterName, kubeConfigArgs, kubeClientOpts)
+		_, err = kubeConfigArgs.ToRESTConfig()
+		if err != nil {
+			return fmt.Errorf("error converting kube config args to a restconfig: %w", err)
+		}
+
+		var contextName string
+		if flags.Context != "" {
+			contextName = flags.Context
+		} else {
+			contextName = cfgContextName
+		}
+
+		kubeClient, err := run.GetKubeClient(log, contextName, kubeConfigArgs, kubeClientOpts)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
 
-		contextName := kubeClient.ClusterName
+		contextName = kubeClient.ClusterName
 		if flags.AllowK8sContext == contextName {
-			log.Infow("Explicitly allow GitOps Run on %s context", contextName)
+			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 		} else if !isLocalCluster(kubeClient) {
 			return errors.New("allowed to run against a local cluster only")
 		}
