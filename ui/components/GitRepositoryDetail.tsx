@@ -3,8 +3,9 @@ import styled from "styled-components";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { FluxObjectKind, GitRepository } from "../lib/api/core/types.pb";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { convertGitURLToGitProvider, removeKind } from "../lib/utils";
+import { GitRepository } from "../lib/objects";
 
 type Props = {
   className?: string;
