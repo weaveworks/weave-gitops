@@ -1,0 +1,473 @@
+---
+title: Progressive Delivery using Flagger
+hide_title: true
+sidebar_position: 6
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Progressive Delivery using Flagger <TierLabel tiers="enterprise" />
+
+[Flagger](https://docs.flagger.app/) is a progressive delivery operator for Kubernetes. It is designed to reduce risks when introducing new software versions and to improve time to delivery through automating production releases. Weave GitOps Enterprise's UI allows you to view the state of these progressive delivery rollouts, and how they are configured using Flagger's [canary](https://docs.flagger.app/usage/how-it-works#canary-resource) object, through the Applications > Delivery view.
+
+This guide uses Flux manifests to install Flagger and Linkerd. Using Flux allows us to manage our cluster applications in a declarative way through changes in a Git repository.
+
+## Installing Flagger using Flux
+
+For the Flagger installation, a Kustomization file will be used.
+
+First, add a Namespace resource for Flagger:
+
+```yaml title="flagger/namespace.yaml"
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flagger
+```
+
+Then, to make the Flagger Helm repository available in the cluster, add the following manifest to the cluster repository:
+
+```yaml title="flagger/source.yaml"
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: flagger
+spec:
+  interval: 1h
+  url: https://flagger.app
+```
+
+Then, to install the latest version of Flagger and the load tester app (which is used to generate traffic during the analysis phase), add the following `HelmRelease` manifests to the cluster repository:
+
+```yaml title="flagger/releases.yaml"
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: flagger
+spec:
+  releaseName: flagger
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  interval: 10m
+  chart:
+    spec:
+      chart: flagger
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: flagger
+  values:
+    metricsServer: http://prometheus.linkerd-viz:9090
+    meshProvider: linkerd
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: loadtester
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: loadtester
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: flagger
+```
+
+In this case, Flagger is configured to work with the Linkerd service mesh. [Other providers](https://docs.flagger.app/install/flagger-install-on-kubernetes) may also be used instead of Linkerd to integrate with Flagger.
+
+Finally,  add the following Kustomization file that references all the previous files that were added:
+
+```yaml title="flagger/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flagger
+resources:
+- namespace.yaml
+- source.yaml
+- releases.yaml
+```
+
+## Installing Linkerd using Flux
+
+For the Linkerd installation, a Kustomization file will be used.
+
+In order to support mTLS connections between meshed pods, Linkerd requires a trust anchor certificate and an issuer certificate with its corresponding key. These certificates are automatically created when the `linkerd install` command is used but when using a Helm chart to install Linkerd, these certificates need to be provided.
+
+Follow [these instructions](https://linkerd.io/2.11/tasks/generate-certificates/#generating-the-certificates-with-step) to generate the certificates using the `step` CLI.
+
+To generate the trust anchor certificate run:
+```bash
+step certificate create root.linkerd.cluster.local ca.crt ca.key \
+--profile root-ca --no-password --insecure
+```
+
+To generate the issuer certificate run:
+```bash
+step certificate create identity.linkerd.cluster.local issuer.crt issuer.key \
+--profile intermediate-ca --not-after 8760h --no-password --insecure \
+--ca ca.crt --ca-key ca.key
+```
+
+Add the `ca.crt`, `issuer.crt` and `issuer.key` files to the cluster repository under a `linkerd` directory.
+
+To control where the Linkerd components get installed, we need to add a Namespace resource:
+
+```yaml title="linkerd/namespace.yaml"
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: linkerd
+  labels:
+    config.linkerd.io/admission-webhooks: disabled
+```
+
+Make the Linkerd Helm repository available in the cluster, by adding the following manifest to the cluster repository:
+
+```yaml title="linkerd/source.yaml"
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: linkerd
+spec:
+  interval: 1h
+  url: https://helm.linkerd.io/stable
+```
+
+Then, to install the latest version of Linkerd, add the following `HelmRelease` manifests to the cluster repository:
+
+```yaml title="linkerd/releases.yaml"
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: linkerd
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: linkerd2
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: linkerd
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+  valuesFrom:
+    - kind: Secret
+      name: linkerd-certs
+      valuesKey: ca.crt
+      targetPath: identityTrustAnchorsPEM
+    - kind: Secret
+      name: linkerd-certs
+      valuesKey: issuer.crt
+      targetPath: identity.issuer.tls.crtPEM
+    - kind: Secret
+      name: linkerd-certs
+      valuesKey: issuer.key
+      targetPath: identity.issuer.tls.keyPEM
+  values:
+    installNamespace: false
+    identity:
+      issuer:
+        crtExpiry: "2023-07-18T20:00:00Z"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: linkerd-viz
+spec:
+  interval: 10m
+  dependsOn:
+    - name: linkerd
+  chart:
+    spec:
+      chart: linkerd-viz
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: linkerd
+```
+
+The value for the `spec.values.identity.issuer.crtExpiry` field above depends on the parameter value used during the creation of the issuer certificate previously. In this example, it should be set to 1 year from the certificate creation.
+
+Then, add the following file to instruct Kustomize to patch any `Secrets` that are referenced in `HelmRelease` manifests:
+
+```yaml title="linkerd/kustomizeconfig.yaml"
+nameReference:
+  - kind: Secret
+    version: v1
+    fieldSpecs:
+      - path: spec/valuesFrom/name
+        kind: HelmRelease
+```
+
+Finally, add the following Kustomization file that references all the previous files that were added:
+
+```yaml title="linkerd/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: linkerd
+configurations:
+- kustomizeconfig.yaml
+resources:
+- namespace.yaml
+- source.yaml
+- releases.yaml
+secretGenerator:
+  - name: linkerd-certs
+    files:
+      - ca.crt
+      - issuer.crt
+      - issuer.key
+```
+
+The `secretGenerator` is used to generate Secrets from the generated files. 
+
+The `linkerd` directory in the cluster repository should look like this:
+
+```bash
+> tree linkerd
+linkerd
+├── ca.crt
+├── issuer.crt
+├── issuer.key
+├── kustomization.yaml
+├── kustomizeconfig.yaml
+├── namespace.yaml
+├── releases.yaml
+└── source.yaml
+```
+
+Once Flux reconciles this directory to the cluster, Linkerd should get installed.
+
+## Setup a canary release
+
+To demonstrate the progressive rollout of an application, `podinfo` will be used.
+
+Add a Namespace resource:
+
+```yaml title="test/namespace.yaml"
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  annotations:
+    linkerd.io/inject: enabled
+```
+
+Then, add a Deployment resource and a HorizontalPodAutoscaler resource for the `podinfo` application:
+
+```yaml title="test/deployment.yaml"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo
+  labels:
+    app: podinfo
+spec:
+  minReadySeconds: 5
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: podinfo
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9797"
+      labels:
+        app: podinfo
+    spec:
+      containers:
+      - name: podinfod
+        image: ghcr.io/stefanprodan/podinfo:6.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9898
+          protocol: TCP
+        - name: http-metrics
+          containerPort: 9797
+          protocol: TCP
+        - name: grpc
+          containerPort: 9999
+          protocol: TCP
+        command:
+        - ./podinfo
+        - --port=9898
+        - --port-metrics=9797
+        - --grpc-port=9999
+        - --grpc-service-name=podinfo
+        - --level=info
+        - --random-delay=false
+        - --random-error=false
+        env:
+        - name: PODINFO_UI_COLOR
+          value: "#34577c"
+        livenessProbe:
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/healthz
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/readyz
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: podinfo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: podinfo
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # scale up if usage is above
+          # 99% of the requested CPU (100m)
+          averageUtilization: 99
+```
+
+Then, add a Canary resource that references the Deployment and HorizontalPodAutoscaler resources:
+
+```yaml title="test/canary.yaml"
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: podinfo
+spec:
+  # deployment reference
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: podinfo
+  # HPA reference (optional)
+  autoscalerRef:
+    apiVersion: autoscaling/v2beta2
+    kind: HorizontalPodAutoscaler
+    name: podinfo
+  # the maximum time in seconds for the canary deployment
+  # to make progress before it is rollback (default 600s)
+  progressDeadlineSeconds: 60
+  service:
+    # ClusterIP port number
+    port: 9898
+    # container port number or name (optional)
+    targetPort: 9898
+  analysis:
+    # schedule interval (default 60s)
+    interval: 30s
+    # max number of failed metric checks before rollback
+    threshold: 5
+    # max traffic percentage routed to canary
+    # percentage (0-100)
+    maxWeight: 50
+    # canary increment step
+    # percentage (0-100)
+    stepWeight: 5
+    # Linkerd Prometheus checks
+    metrics:
+    - name: request-success-rate
+      # minimum req success rate (non 5xx responses)
+      # percentage (0-100)
+      thresholdRange:
+        min: 99
+      interval: 1m
+    - name: request-duration
+      # maximum req duration P99
+      # milliseconds
+      thresholdRange:
+        max: 500
+      interval: 30s
+    # testing (optional)
+    webhooks:
+      - name: acceptance-test
+        type: pre-rollout
+        url: http://loadtester.flagger/
+        timeout: 30s
+        metadata:
+          type: bash
+          cmd: "curl -sd 'test' http://podinfo-canary.test:9898/token | grep token"
+      - name: load-test
+        type: rollout
+        url: http://loadtester.flagger/
+        metadata:
+          cmd: "hey -z 2m -q 10 -c 2 http://podinfo-canary.test:9898/"
+```
+
+Finally, add a Kustomization file to apply all resources to the `test` namespace:
+
+```yaml title="test/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: test
+resources:
+- namespace.yaml
+- deployment.yaml
+- canary.yaml
+```
+
+After a short time, the status of the canary object should be set to `Initialized`:
+
+```bash
+> kubectl -n test get canary podinfo
+NAME      STATUS        WEIGHT   LASTTRANSITIONTIME
+podinfo   Initialized   0        2022-07-19T11:57:17Z
+```
+
+Now trigger a new rollout by bumping the version of `podinfo`:
+
+```bash
+> kubectl -n test set image deployment/podinfo podinfod=ghcr.io/stefanprodan/podinfo:6.0.1
+```
+
+During the progressive rollout, the canary object reports on its current status:
+
+```bash
+> k -n test get canary podinfo
+NAME      STATUS        WEIGHT   LASTTRANSITIONTIME
+podinfo   Progressing   35       2022-07-19T12:25:04
+```
+
+After a short time the rollout is completed and the status of the canary object is set to `Succeeded`:
+
+```bash
+> kubectl -n test get canary podinfo
+NAME      STATUS      WEIGHT   LASTTRANSITIONTIME
+podinfo   Succeeded   0        2022-07-19T12:28:04Z
+```
