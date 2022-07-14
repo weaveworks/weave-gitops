@@ -116,6 +116,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
+		kubeConfigArgs.Namespace = &flags.Namespace
+
 		if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
 			return err
 		}
@@ -124,35 +126,38 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		kubeConfigArgs.Namespace = &flags.Namespace
+		log := internal.NewCLILogger(os.Stdout)
+
 		if flags.KubeConfig != "" {
 			kubeConfigArgs.KubeConfig = &flags.KubeConfig
-		}
 
-		log := internal.NewCLILogger(os.Stdout)
+			if flags.Context == "" {
+				log.Failuref("A context should be provided if a kubeconfig is provided")
+				return cmderrors.ErrNoContextForKubeConfig
+			}
+		}
 
 		log.Actionf("Checking for a cluster in the kube config ...")
 
-		_, cfgContextName, err := kube.RestConfig()
-		if err != nil {
-			log.Failuref("Error getting a restconfig: %v", err.Error())
-			return cmderrors.ErrNoCluster
-		}
-
-		kubeClientOpts := run.GetKubeClientOptions()
-		kubeClientOpts.BindFlags(cmd.Flags())
-
 		var contextName string
+
 		if flags.Context != "" {
 			contextName = flags.Context
 		} else {
-			contextName = cfgContextName
+			_, contextName, err = kube.RestConfig()
+			if err != nil {
+				log.Failuref("Error getting a restconfig: %v", err.Error())
+				return cmderrors.ErrNoCluster
+			}
 		}
 
 		cfg, err := kubeConfigArgs.ToRESTConfig()
 		if err != nil {
 			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
 		}
+
+		kubeClientOpts := run.GetKubeClientOptions()
+		kubeClientOpts.BindFlags(cmd.Flags())
 
 		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
 		if err != nil {
