@@ -44,7 +44,7 @@ func init() {
 	TenantsCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
 	TenantsCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
 
-	cobra.CheckErr(TenantsCommand.MarkPersistentFlagRequired("from-file"))
+	cobra.CheckErr(TenantsCommand.MarkFlagRequired("from-file"))
 }
 
 func createTenantsCmdRunE() func(*cobra.Command, []string) error {
