@@ -4,10 +4,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 	"k8s.io/cli-runtime/pkg/printers"
@@ -19,7 +18,7 @@ type clustersGetFlags struct {
 
 var clustersGetCmdFlags clustersGetFlags
 
-func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -39,7 +38,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 		RunE:          getClusterCmdRunE(opts, client),
 	}
 
-	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
+	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "print-kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
 
 	return cmd
 }
@@ -54,9 +53,9 @@ func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error
 	}
 }
 
-func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -70,13 +69,13 @@ func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 				return errors.New("cluster name is required")
 			}
 
-			return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
+			return clusters.GetClusterKubeconfig(args[0], client, os.Stdout)
 		}
 
 		if len(args) == 1 {
-			return clusters.GetClusterByName(args[0], r, w)
+			return clusters.GetClusterByName(args[0], client, w)
 		}
 
-		return clusters.GetClusters(r, w)
+		return clusters.GetClusters(client, w)
 	}
 }

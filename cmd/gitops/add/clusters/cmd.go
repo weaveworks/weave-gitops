@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
@@ -34,7 +33,7 @@ type clusterCommandFlags struct {
 
 var flags clusterCommandFlags
 
-func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Add a new cluster using a CAPI template",
@@ -76,9 +75,9 @@ func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error
 	}
 }
 
-func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -94,7 +93,7 @@ func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 
 		creds := templates.Credentials{}
 		if flags.Credentials != "" {
-			creds, err = r.RetrieveCredentialsByName(flags.Credentials)
+			creds, err = client.RetrieveCredentialsByName(flags.Credentials)
 			if err != nil {
 				return err
 			}
@@ -106,7 +105,7 @@ func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 		}
 
 		if flags.DryRun {
-			return templates.RenderTemplateWithParameters(templates.CAPITemplateKind, flags.Template, vals, creds, r, os.Stdout)
+			return templates.RenderTemplateWithParameters(templates.CAPITemplateKind, flags.Template, vals, creds, client, os.Stdout)
 		}
 
 		if flags.RepositoryURL == "" {
@@ -138,7 +137,7 @@ func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 			ProfileValues:    profilesValues,
 		}
 
-		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)
 	}
 }
 

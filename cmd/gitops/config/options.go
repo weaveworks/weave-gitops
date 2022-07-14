@@ -7,5 +7,5 @@ type Options struct {
 	InsecureSkipTLSVerify bool
 	Username              string
 	Password              string
-	KubeconfigLocation    string
+	Kubeconfig            string
 }

@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 )
 
 func main() {
-	if err := root.RootCmd(resty.New()).Execute(); err != nil {
+	client := adapters.NewHTTPClient().EnableCLIAuth()
+
+	if err := root.RootCmd(client).Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

@@ -5,16 +5,16 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
+	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
 func TestEndpointNotSet(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
@@ -28,9 +28,9 @@ func TestEndpointNotSet(t *testing.T) {
 func TestPayload(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodDelete,
@@ -69,9 +69,9 @@ func TestPayload(t *testing.T) {
 func TestGitProviderToken(t *testing.T) {
 	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
 
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
-	httpmock.ActivateNonDefault(client.GetClient())
+	httpmock.ActivateNonDefault(client.GetBaseClient())
 	defer httpmock.DeactivateAndReset()
 
 	httpmock.RegisterResponder(
@@ -99,7 +99,7 @@ func TestGitProviderToken(t *testing.T) {
 }
 
 func TestGitProviderToken_NoURL(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{
@@ -113,7 +113,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 }
 
 func TestGitProviderToken_InvalidURL(t *testing.T) {
-	client := resty.New()
+	client := adapters.NewHTTPClient()
 
 	cmd := root.RootCmd(client)
 	cmd.SetArgs([]string{

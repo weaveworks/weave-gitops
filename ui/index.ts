@@ -1,7 +1,7 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
-import { SortType } from "./components/DataTable";
+import DataTable, { SortType } from "./components/DataTable";
 import FilterableTable, {
   filterConfig,
   FilterConfigCallback,
@@ -77,6 +77,7 @@ export {
   coreClient,
   UnAuthorizedInterceptor,
   CoreClientContextProvider,
+  DataTable,
   EventsTable,
   Flex,
   FilterableTable,

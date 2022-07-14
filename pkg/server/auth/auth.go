@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -17,6 +18,9 @@ const (
 	// IDTokenCookieName is the name of the cookie that holds the ID Token once
 	// the user has authenticated successfully with the OIDC Provider.
 	IDTokenCookieName = "id_token"
+	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
+	// used for token passthrough authentication.
+	AuthorizationTokenHeaderName = "Authorization"
 	// ScopeProfile is the "profile" scope
 	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
@@ -66,6 +70,12 @@ func Principal(ctx context.Context) *UserPrincipal {
 type UserPrincipal struct {
 	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
+	Token  string   `json:"-"`
+}
+
+// String returns the Principal ID and Groups as a string.
+func (p *UserPrincipal) String() string {
+	return fmt.Sprintf("id=%q groups=%v", p.ID, p.Groups)
 }
 
 // WithPrincipal sets the principal into the context.
@@ -78,7 +88,8 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
 	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
-	multi := MultiAuthPrincipal{adminAuth}
+	tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName)
+	multi := MultiAuthPrincipal{adminAuth, tokenAuth}
 
 	if srv.oidcEnabled() {
 		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
