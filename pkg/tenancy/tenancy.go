@@ -139,6 +139,7 @@ func GenerateTenantResources(tenants ...Tenant) ([]runtime.Object, error) {
 		if tenantLabels == nil {
 			tenantLabels = map[string]string{}
 		}
+
 		tenantLabels[tenantLabel] = tenant.Name
 
 		for _, namespace := range tenant.Namespaces {
