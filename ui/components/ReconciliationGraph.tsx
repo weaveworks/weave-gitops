@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
@@ -120,61 +119,6 @@ function ReconciliationGraph({
   const rootNode = parentObject;
   rootNode.children = objects;
 
-  const edges = _.reduce(
-    objects,
-    (r, v: any) => {
-      if (v.parentUid) {
-        r.push({ source: v.parentUid, target: v.uid });
-      } else {
-        r.push({ source: parentObject.name, target: v.uid });
-      }
-      return r;
-    },
-    []
-  );
-
-  const sourceId = `source/${source?.namespace}/${source?.name}`;
-
-  const nodes = [
-    ..._.map(objects, (r) => ({
-      id: r.uid,
-      data: r,
-      label: (u: UnstructuredObject) => renderToString(<NodeHtml object={u} />),
-    })),
-    {
-      id: parentObject.name,
-      data: { ...parentObject, status: findParentStatus(parentObject) },
-      label: (u: Props["parentObject"]) =>
-        renderToString(
-          <NodeHtml
-            object={{
-              ...u,
-              groupVersionKind: { kind: removeKind(automationKind) },
-            }}
-          />
-        ),
-    },
-    // Add a node to show the source on the graph
-    {
-      id: sourceId,
-      data: {
-        ...source,
-        kind: removeKind(source.kind),
-      },
-      label: (s: ObjectRef) =>
-        renderToString(
-          <NodeHtml
-            object={{ ...s, groupVersionKind: { kind: removeKind(s.kind) } }}
-          />
-        ),
-    },
-  ];
-  // Edge connecting the source to the automation
-  edges.push({
-    source: sourceId,
-    target: parentObject.name,
-  });
-
   type GraphProps = {
     width: number;
     height: number;
@@ -190,10 +134,9 @@ function ReconciliationGraph({
     };
     const root = d3.hierarchy(rootNodeWithSource);
     const links = root.links();
-    const nodes = root.descendants();
     const svgRef = React.useRef();
-    const dx = 375;
-    const dy = 100;
+    const dx = 650;
+    const dy = 200;
 
     //returns function
     const tree = d3.tree().nodeSize([dx, dy]);
@@ -206,11 +149,11 @@ function ReconciliationGraph({
     });
 
     React.useEffect(() => {
-      const svg = d3
-        .select(svgRef.current)
-        .attr("viewBox", [0, 0, 500, x1 - x0 + dx * 2]);
+      console.log(x1 - x0 + dx * 2);
+      const svg = d3.select(svgRef.current);
+      // .attr("viewBox", [0, 0, 1000, x1 - x0 + dx * 2]);
 
-      const g = svg.append("g").attr("transform", `translate(${0},${dx - x0})`);
+      const g = svg.append("g");
 
       const link = g
         .append("g")
@@ -259,8 +202,8 @@ function ReconciliationGraph({
 export default styled(ReconciliationGraph)`
   .node {
     font-size: 8px;
-    width: 375px;
-    height: 100px;
+    width: 650px;
+    height: 200px;
     display: flex;
     justify-content: space-between;
   }
@@ -336,7 +279,7 @@ export default styled(ReconciliationGraph)`
   foreignObject {
     display: flex;
     flex-direction: column;
-    width: 375px;
-    height: 100px;
+    width: 650px;
+    height: 200px;
   }
 `;
