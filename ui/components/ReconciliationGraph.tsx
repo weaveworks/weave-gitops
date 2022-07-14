@@ -182,6 +182,7 @@ function ReconciliationGraph({
   };
 
   const MakeGraph = ({ width, height, rootNode }: GraphProps) => {
+    //add source to tree
     const rootNodeWithSource = {
       ...source,
       kind: removeKind(source.kind),
@@ -191,15 +192,15 @@ function ReconciliationGraph({
     const links = root.links();
     const nodes = root.descendants();
     const svgRef = React.useRef();
-    const dx = 650;
-    const dy = 200;
+    const dx = 375;
+    const dy = 100;
 
+    //returns function
     const tree = d3.tree().nodeSize([dx, dy]);
 
     let x0 = Infinity;
     let x1 = -x0;
     tree(root).each((d) => {
-      console.log(d);
       if (d.x > x1) x1 = d.x;
       if (d.x < x0) x0 = d.x;
     });
@@ -207,13 +208,9 @@ function ReconciliationGraph({
     React.useEffect(() => {
       const svg = d3
         .select(svgRef.current)
-        .attr("viewBox", [0, 0, 1000, x1 - x0 + dx * 2]);
+        .attr("viewBox", [0, 0, 500, x1 - x0 + dx * 2]);
 
-      const g = svg
-        .append("g")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("transform", `translate(${0},${dx - x0})`);
+      const g = svg.append("g").attr("transform", `translate(${0},${dx - x0})`);
 
       const link = g
         .append("g")
@@ -227,16 +224,14 @@ function ReconciliationGraph({
         .attr("y1", (edge) => edge.source.y)
         .attr("y2", (edge) => edge.target.y);
 
-      const node1 = g
+      const node = g
         .append("g")
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 3)
         .selectAll("g")
         .data(root.descendants())
         .join("g")
         .attr("transform", (d) => `translate(${d.x},${d.y})`);
 
-      const node = node1.append("foreignObject").html((d) => {
+      const data = node.append("foreignObject").html((d) => {
         const html = renderToString(<NodeHtml object={d.data} />);
         return html;
       });
