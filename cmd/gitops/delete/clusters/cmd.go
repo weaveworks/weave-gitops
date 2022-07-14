@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -26,7 +25,7 @@ type clustersDeleteFlags struct {
 
 var flags clustersDeleteFlags
 
-func ClusterCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -62,9 +61,9 @@ func getClusterCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error
 	}
 }
 
-func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(opts.Endpoint, opts.Username, opts.Password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -92,6 +91,6 @@ func getClusterCmdRunE(opts *config.Options, client *resty.Client) func(*cobra.C
 			Description:      flags.Description,
 			ClustersNames:    args,
 			CommitMessage:    flags.CommitMessage,
-		}, r, os.Stdout)
+		}, client, os.Stdout)
 	}
 }

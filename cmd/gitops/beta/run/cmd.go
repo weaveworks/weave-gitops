@@ -7,16 +7,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/cmd/internal/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 )
 
-func RunCommand(opts *config.Options, client *resty.Client) *cobra.Command {
+func RunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Set up an interactive sync between your cluster and your local file system",
@@ -30,7 +29,7 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
 		PreRunE:           betaRunCommandPreRunE(&opts.Endpoint),
-		RunE:              betaRunCommandRunE(opts, client),
+		RunE:              betaRunCommandRunE(opts),
 		DisableAutoGenTag: true,
 	}
 
@@ -77,7 +76,7 @@ func isLocalCluster(kubeClient *kube.KubeHTTP) bool {
 	}
 }
 
-func betaRunCommandRunE(opts *config.Options, client *resty.Client) func(*cobra.Command, []string) error {
+func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 
