@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/format"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -16,38 +16,30 @@ func TestHelmRepository(t *testing.T) {
 
 	format.UseStringerRepresentation = true // Makes the representation more compact
 
-	d123, err := time.ParseDuration("1h2m3s")
-	g.Expect(err).NotTo(HaveOccurred())
-	d321, err := time.ParseDuration("3h2m1s")
+	d, err := time.ParseDuration("1h2m3s")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tests := []struct {
 		name        string
 		clusterName string
-		state       v2beta1.HelmRelease
-		result      *pb.HelmRelease
+		state       v1beta2.HelmRepository
+		result      *pb.HelmRepository
 	}{
 		{
 			"empty",
 			"Default",
-			v2beta1.HelmRelease{},
-			&pb.HelmRelease{
-				HelmChart: &pb.HelmChart{
-					Name: "-",
-					SourceRef: &pb.ObjectRef{
-						Kind: -1, // This is invalid?
-					},
-				},
-				Interval:    &pb.Interval{},
-				Inventory:   []*pb.GroupVersionKind{},
-				Conditions:  []*pb.Condition{},
-				ClusterName: "Default",
+			v1beta2.HelmRepository{},
+			&pb.HelmRepository{
+				Interval:       &pb.Interval{},
+				Conditions:     []*pb.Condition{},
+				ClusterName:    "Default",
+				RepositoryType: pb.HelmRepositoryType_Default,
 			},
 		},
 		{
-			"same-ns",
+			"chart-repository",
 			"Default",
-			v2beta1.HelmRelease{
+			v1beta2.HelmRepository{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "some-chart",
 					Namespace: "namespace-of-all-objects",
@@ -55,96 +47,104 @@ func TestHelmRepository(t *testing.T) {
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "some-version",
 				},
-				Spec: v2beta1.HelmReleaseSpec{
-					Chart: v2beta1.HelmChartTemplate{
-						Spec: v2beta1.HelmChartTemplateSpec{
-							SourceRef: v2beta1.CrossNamespaceObjectReference{
-								Name: "source-object",
-								Kind: "GitRepository",
-							},
+				Spec: v1beta2.HelmRepositorySpec{
+					URL:      "http://some-domain.example",
+					Type:     "Default",
+					Interval: metav1.Duration{Duration: d},
+					Suspend:  true,
+				},
+				Status: v1beta2.HelmRepositoryStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:               "Ready",
+							Status:             metav1.ConditionTrue,
+							Reason:             "InstallSucceeded",
+							Message:            "Release reconciliation succeeded",
+							LastTransitionTime: metav1.Time{Time: time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)},
 						},
+					},
+					Artifact: &v1beta2.Artifact{
+						Checksum:       "1234",
+						LastUpdateTime: metav1.Time{Time: time.Date(2023, time.January, 1, 1, 1, 1, 0, time.UTC)},
 					},
 				},
 			},
-			&pb.HelmRelease{
+			&pb.HelmRepository{
 				Name:      "some-chart",
 				Namespace: "namespace-of-all-objects",
-				HelmChart: &pb.HelmChart{
-					Name:      "namespace-of-all-objects-some-chart",
-					Namespace: "namespace-of-all-objects",
-					SourceRef: &pb.ObjectRef{
-						Name:      "source-object",
-						Namespace: "namespace-of-all-objects",
-						Kind:      pb.FluxObjectKind_KindGitRepository,
+				Url:       "http://some-domain.example",
+				Interval:  &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
+				Conditions: []*pb.Condition{
+					{
+						Type:      "Ready",
+						Status:    "True",
+						Reason:    "InstallSucceeded",
+						Message:   "Release reconciliation succeeded",
+						Timestamp: "2022-01-01T01:01:01Z",
 					},
 				},
-				Interval:    &pb.Interval{},
-				Inventory:   []*pb.GroupVersionKind{},
-				Conditions:  []*pb.Condition{},
-				ClusterName: "Default",
-				ApiVersion:  "some-version",
+				ClusterName:    "Default",
+				LastUpdatedAt:  "2023-01-01T01:01:01Z",
+				ApiVersion:     "some-version",
+				Suspended:      true,
+				RepositoryType: pb.HelmRepositoryType_Default,
 			},
 		},
 		{
-			"cross-ns",
+			"oci-repository",
 			"Default",
-			v2beta1.HelmRelease{
+			v1beta2.HelmRepository{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "some-chart",
-					Namespace: "namespace-of-object",
+					Namespace: "namespace-of-all-objects",
 				},
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "some-version",
 				},
-				Spec: v2beta1.HelmReleaseSpec{
-					Interval: metav1.Duration{Duration: d123},
-					Chart: v2beta1.HelmChartTemplate{
-						Spec: v2beta1.HelmChartTemplateSpec{
-							Chart:    "chart-name",
-							Version:  "semver-version",
-							Interval: &metav1.Duration{Duration: d321},
-							SourceRef: v2beta1.CrossNamespaceObjectReference{
-								Kind:      "HelmRepository",
-								Name:      "some-helm-repository",
-								Namespace: "namespace-of-source",
-							},
+				Spec: v1beta2.HelmRepositorySpec{
+					URL:      "oci://some-domain.example",
+					Type:     "oci",
+					Interval: metav1.Duration{Duration: d},
+					Suspend:  true,
+				},
+				Status: v1beta2.HelmRepositoryStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:               "Ready",
+							Status:             metav1.ConditionTrue,
+							Reason:             "InstallSucceeded",
+							Message:            "Release reconciliation succeeded",
+							LastTransitionTime: metav1.Time{Time: time.Date(2022, time.January, 1, 1, 1, 1, 0, time.UTC)},
 						},
 					},
-				},
-				Status: v2beta1.HelmReleaseStatus{
-					LastAppliedRevision:   "1.0",
-					LastAttemptedRevision: "2.0",
+					// OCI repositories don't have artifacts - the artifact is per-chart
 				},
 			},
-			&pb.HelmRelease{
+			&pb.HelmRepository{
 				Name:      "some-chart",
-				Namespace: "namespace-of-object",
-				HelmChart: &pb.HelmChart{
-					Name:      "namespace-of-object-some-chart",
-					Namespace: "namespace-of-source",
-					SourceRef: &pb.ObjectRef{
-						Name:      "some-helm-repository",
-						Namespace: "namespace-of-source",
-						Kind:      pb.FluxObjectKind_KindHelmRepository,
+				Namespace: "namespace-of-all-objects",
+				Url:       "oci://some-domain.example",
+				Interval:  &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
+				Conditions: []*pb.Condition{
+					{
+						Type:      "Ready",
+						Status:    "True",
+						Reason:    "InstallSucceeded",
+						Message:   "Release reconciliation succeeded",
+						Timestamp: "2022-01-01T01:01:01Z",
 					},
-					Chart:    "chart-name",
-					Version:  "semver-version",
-					Interval: &pb.Interval{Hours: 3, Minutes: 2, Seconds: 1},
 				},
-				Interval:              &pb.Interval{Hours: 1, Minutes: 2, Seconds: 3},
-				Inventory:             []*pb.GroupVersionKind{},
-				Conditions:            []*pb.Condition{},
-				LastAppliedRevision:   "1.0",
-				LastAttemptedRevision: "2.0",
-				ClusterName:           "Default",
-				ApiVersion:            "some-version",
+				ClusterName:    "Default",
+				ApiVersion:     "some-version",
+				Suspended:      true,
+				RepositoryType: pb.HelmRepositoryType_OCI,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := HelmReleaseToProto(&tt.state, tt.clusterName, []*pb.GroupVersionKind{})
+			res := HelmRepositoryToProto(&tt.state, tt.clusterName)
 
 			g.Expect(res).To(Equal(tt.result))
 		})

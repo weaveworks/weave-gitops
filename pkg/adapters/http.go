@@ -1,18 +1,23 @@
 package adapters
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
+	"k8s.io/client-go/rest"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
+	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 const (
@@ -23,8 +28,10 @@ const (
 
 // An HTTP client of the cluster service.
 type HTTPClient struct {
-	baseURI *url.URL
-	client  *resty.Client
+	baseURI    *url.URL
+	client     *resty.Client
+	authFunc   func(*config.Options, *HTTPClient) error
+	configured bool
 }
 
 type ServiceError struct {
@@ -32,15 +39,31 @@ type ServiceError struct {
 	Message string `json:"message"`
 }
 
-// NewHttpClient creates a new HTTP client of the cluster service.
-// The endpoint is expected to be an absolute HTTP URI.
-func NewHttpClient(endpoint, username, password string, client *resty.Client, out io.Writer) (*HTTPClient, error) {
-	u, err := url.ParseRequestURI(endpoint)
+// NewHTTPClient returns a new HTTP client for requests to Weave GitOps services.
+func NewHTTPClient() *HTTPClient {
+	return &HTTPClient{
+		client: resty.New(),
+	}
+}
+
+// EnableCLIAuth configures client to authenticate automatically with
+// with either username or password, or kubeconfig, when a request is executed.
+func (c *HTTPClient) EnableCLIAuth() *HTTPClient {
+	c.authFunc = configureAuthForClient
+	return c
+}
+
+// ConfigureClientWithOptions accepts a config.Options object that configures the client
+// with the necessary options to make a request.
+func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Writer) error {
+	u, err := url.ParseRequestURI(opts.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse endpoint: %w", err)
+		return fmt.Errorf("failed to parse endpoint: %w", err)
 	}
 
-	client = client.SetHostURL(u.String()).
+	c.baseURI = u
+
+	c.client = c.client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
@@ -53,19 +76,54 @@ func NewHttpClient(endpoint, username, password string, client *resty.Client, ou
 			return nil
 		})
 
-	httpClient := &HTTPClient{
-		baseURI: u,
-		client:  client,
+	if opts.InsecureSkipTLSVerify {
+		c.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 
-	if username != "" && password != "" {
-		err = httpClient.signIn(username, password)
+	if c.authFunc != nil {
+		err = c.authFunc(opts, c)
 		if err != nil {
-			return nil, err
+			return fmt.Errorf("error: could not configure auth for client: %w", err)
 		}
 	}
 
-	return httpClient, nil
+	c.configured = true
+
+	return nil
+}
+
+func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error {
+	if opts.Username != "" && opts.Password != "" {
+		err := httpClient.signIn(opts.Username, opts.Password)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// controller-runtime config getter does not allow us to pass a kubeconfig location
+	// but does support the --kubeconfig flag via the `flag` stdlib package. Therefore
+	// set this flag with the kubeconfig location if the user has passed one via the CLI.
+	_ = flag.Set("kubeconfig", opts.Kubeconfig)
+
+	restConfig, err := kubecfg.GetConfig()
+	if err != nil {
+		return fmt.Errorf("error: could not load config for kubeconfig: %w", err)
+	}
+
+	if opts.InsecureSkipTLSVerify {
+		restConfig.TLSClientConfig = rest.TLSClientConfig{Insecure: true}
+	}
+
+	roundtripper, err := rest.TransportFor(restConfig)
+	if err != nil {
+		return err
+	}
+
+	httpClient.SetTransport(roundtripper)
+
+	return nil
 }
 
 func getAuthCookie(cookies []*http.Cookie) (*http.Cookie, error) {
@@ -111,6 +169,27 @@ func (c *HTTPClient) signIn(username, password string) error {
 // Source returns the endpoint of the cluster service.
 func (c *HTTPClient) Source() string {
 	return c.baseURI.String()
+}
+
+// GetClient returns the internal *resty.Client object.
+func (c *HTTPClient) GetClient() *resty.Client {
+	return c.client
+}
+
+// GetBaseClient returns the underlying http.Client object.
+func (c *HTTPClient) GetBaseClient() *http.Client {
+	return c.client.GetClient()
+}
+
+// SetTransport method sets custom `*http.Transport` or any `http.RoundTripper`
+// compatible interface implementation in the client.
+func (c *HTTPClient) SetTransport(transport http.RoundTripper) {
+	c.client.SetTransport(transport)
+}
+
+// SetTLSClientConfig method sets TLSClientConfig for underling client Transport.
+func (c *HTTPClient) SetTLSClientConfig(config *tls.Config) {
+	c.client.SetTLSClientConfig(config)
 }
 
 // RetrieveTemplates returns the list of all templates from the cluster service.

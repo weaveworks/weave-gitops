@@ -60,6 +60,7 @@ const TableButton = styled(Button)`
   &.MuiButton-root {
     margin: 0;
     text-transform: none;
+    letter-spacing: 0;
   }
   &.MuiButton-text {
     min-width: 0px;
@@ -82,7 +83,7 @@ function defaultSortFunc(sort: Field): Sorter {
 
 export const sortWithType = (rows: Row[], sort: Field) => {
   const sortFn = sort.sortValue || defaultSortFunc(sort);
-  return (rows || []).sort((a: Row, b: Row) => {
+  return (rows?.slice() || []).sort((a: Row, b: Row) => {
     switch (sort.sortType) {
       case SortType.number:
         return sortFn(a) - sortFn(b);

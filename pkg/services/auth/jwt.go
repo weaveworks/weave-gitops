@@ -20,7 +20,7 @@ var ErrUnauthorizedToken = errors.New("unauthorized token")
 
 // Claims is a custom JWT claims that contains some token information
 type Claims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	Provider      gitproviders.GitProviderName `json:"provider"`
 	ProviderToken string                       `json:"provider_token"`
 }
@@ -44,8 +44,8 @@ type internalJWTClient struct {
 // GenerateJWT generates and signs a new token
 func (i *internalJWTClient) GenerateJWT(expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
 	claims := Claims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(expirationTime).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
 		},
 		Provider:      providerName,
 		ProviderToken: providerToken,
@@ -55,7 +55,7 @@ func (i *internalJWTClient) GenerateJWT(expirationTime time.Duration, providerNa
 		// It is possible for the GitLab backend to specify an `expires_in` of 0.
 		// Edit the `Expire access tokens` setting to enable/disable expiring tokens.
 		// Gitlab defaults to 2 hour expiration, so replicate it here I guess?
-		claims.StandardClaims.ExpiresAt = time.Now().Add(2 * time.Hour).Unix()
+		claims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(2 * time.Hour))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)

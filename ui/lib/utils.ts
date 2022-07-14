@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
-import { computeReady } from "../components/KubeStatusIndicator";
+import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { Condition, HelmRelease, Kustomization } from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
@@ -65,7 +65,8 @@ export function statusSortHelper({
   conditions,
 }: Statusable): number {
   if (suspended) return 2;
-  if (computeReady(conditions)) return 3;
+  if (computeReady(conditions) === ReadyType.Reconciling) return 3;
+  else if (computeReady(conditions)) return 4;
   else return 1;
 }
 
@@ -103,4 +104,69 @@ export function formatMetadataKey(key: string): string {
   return key
     .replace(/-/g, " ")
     .replace(/\w+/g, (w) => w[0].toUpperCase() + w.slice(1));
+}
+
+export const convertImage = (image: string) => {
+  const split = image.split("/");
+
+  //remove tags
+  const tag = split[split.length - 1];
+  if (tag.includes(":"))
+    split[split.length - 1] = tag.slice(0, tag.indexOf(":"));
+
+  const prefix = split.shift();
+  const noTag = split.join("/");
+  let url = "";
+
+  //Github GHCR or Google GCR
+  if (prefix === "ghcr.io" || prefix === "gcr.io")
+    return `https://${prefix}/${noTag}`;
+  //Quay.io
+  if (prefix === "quay.io") {
+    return `https://quay.io/repository/${noTag}`;
+  }
+  //complex docker prefix case
+  if (prefix === "docker.io") {
+    url = "https://hub.docker.com/r/";
+    //library alias
+    if (split[0] === "library") return url + "_/" + split[1];
+    //global
+    if (!split[1]) return url + "_/" + split[0];
+    //namespaced
+    return url + noTag;
+  }
+  //docker without prefix
+  if (prefix === "library") return "https://hub.docker.com/r/_/" + split[0];
+  //this one's at risk if we have to add others - global docker images can just be one word apparently
+  if (!split[0]) {
+    return "https://hub.docker.com/r/_/" + prefix;
+  }
+  //any other url
+  if (prefix.includes(".")) return false;
+  //one slash docker images w/o docker.io
+  return `https://hub.docker.com/r/${prefix}/${noTag}`;
+};
+
+export function calculateZoomRatio(zoomPercent: number): number {
+  return (zoomPercent + 20) / 1500;
+}
+
+export function calculateNodeOffsetX(
+  rootNode: any,
+  zoomPercent: number,
+  zoomRatio: number
+): number {
+  if (!rootNode) {
+    return 0;
+  }
+
+  return zoomPercent * 1.25 + (rootNode.width - rootNode.x) * zoomRatio;
+}
+
+export function mapScaleToZoomPercent(scale: number): number {
+  return scale * 0.5;
+}
+
+export function mapZoomPercentToScale(zoomPercent: number): number {
+  return Math.round(zoomPercent * 2);
 }

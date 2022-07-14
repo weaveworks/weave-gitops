@@ -10,7 +10,7 @@ import (
 )
 
 type AdminClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type TokenSigner interface {
@@ -49,10 +49,10 @@ func NewHMACTokenSignerVerifier(expireAfter time.Duration) (*HMACTokenSignerVeri
 
 func (sv *HMACTokenSignerVerifier) Sign(subject string) (string, error) {
 	claims := AdminClaims{
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  time.Now().UTC().Unix(),
-			ExpiresAt: time.Now().Add(sv.expireAfter).UTC().Unix(),
-			NotBefore: time.Now().UTC().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(sv.expireAfter).UTC()),
+			NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 			Subject:   subject,
 		},
 	}
@@ -65,10 +65,10 @@ func (sv *HMACTokenSignerVerifier) Sign(subject string) (string, error) {
 func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, error) {
 	if sv.devUser != "" {
 		claims := AdminClaims{
-			StandardClaims: jwt.StandardClaims{
-				IssuedAt:  time.Now().UTC().Unix(),
-				ExpiresAt: time.Now().Add(sv.expireAfter).UTC().Unix(),
-				NotBefore: time.Now().UTC().Unix(),
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(sv.expireAfter).UTC()),
+				NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 				Subject:   sv.devUser,
 			},
 		}

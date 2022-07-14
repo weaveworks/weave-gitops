@@ -977,6 +977,12 @@
         },
         "buildTime": {
           "type": "string"
+        },
+        "fluxVersion": {
+          "type": "string"
+        },
+        "kubeVersion": {
+          "type": "string"
         }
       }
     },
@@ -1176,8 +1182,19 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "repositoryType": {
+          "$ref": "#/definitions/v1HelmRepositoryType"
         }
       }
+    },
+    "v1HelmRepositoryType": {
+      "type": "string",
+      "enum": [
+        "Default",
+        "OCI"
+      ],
+      "default": "Default"
     },
     "v1Interval": {
       "type": "object",

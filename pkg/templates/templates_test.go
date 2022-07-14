@@ -8,10 +8,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -55,15 +55,18 @@ func TestCreatePullRequestFromTemplate_CAPI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			opts := &config.Options{
+				Endpoint: testutils.BaseURI,
+			}
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/clusters", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
 
-			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.CAPITemplateKind.String()})
+			result, err := client.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.CAPITemplateKind.String()})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -107,14 +110,17 @@ func TestCreatePullRequestFromTemplate_Terraform(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := resty.New()
-			httpmock.ActivateNonDefault(client.GetClient())
+			opts := &config.Options{
+				Endpoint: testutils.BaseURI,
+			}
+			client := adapters.NewHTTPClient()
+			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
 			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/tfcontrollers", tt.responder)
 
-			c, err := adapters.NewHttpClient(testutils.BaseURI, "", "", client, os.Stdout)
+			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.GitOpsTemplateKind.String()})
+			result, err := client.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{TemplateKind: templates.GitOpsTemplateKind.String()})
 			tt.assertFunc(t, result, err)
 		})
 	}

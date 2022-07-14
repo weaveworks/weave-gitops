@@ -1,11 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-import Interval from "../components/Interval";
-import Link from "../components/Link";
-import SourceDetail from "../components/SourceDetail";
-import Timestamp from "../components/Timestamp";
 import { removeKind } from "../lib/utils";
 import { FluxObjectKind, HelmRepository } from "../lib/api/core/types.pb";
+import Interval from "./Interval";
+import Link from "./Link";
+import SourceDetail from "./SourceDetail";
+import Timestamp from "./Timestamp";
 
 type Props = {
   className?: string;
@@ -30,19 +30,30 @@ function HelmRepositoryDetail({
       // Guard against an undefined repo with a default empty object
       info={(hr: HelmRepository = {}) => [
         ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
+        ["Repository Type", hr.repositoryType.toLowerCase()],
+        ["URL", tryLink(hr.url)],
         [
-          "URL",
-          <Link newTab href={hr.url}>
-            {hr.url}
-          </Link>,
+          "Last Updated",
+          hr.lastUpdatedAt ? <Timestamp time={hr.lastUpdatedAt} /> : "-",
         ],
-        ["Last Updated", <Timestamp time={hr.lastUpdatedAt} />],
         ["Interval", <Interval interval={hr.interval} />],
         ["Cluster", hr.clusterName],
         ["Namespace", hr.namespace],
       ]}
     />
   );
+}
+
+export function tryLink(url: string): React.ReactElement<any, any> | string {
+  if (url.startsWith("http")) {
+    return (
+      <Link newTab href={url}>
+        {url}
+      </Link>
+    );
+  } else {
+    return url;
+  }
 }
 
 export default styled(HelmRepositoryDetail).attrs({

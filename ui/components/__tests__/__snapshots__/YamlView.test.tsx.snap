@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`YamlView snapshots renders 1`] = `
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c5 svg {
+  fill: !important;
+  height: 12px;
+  width: 12px;
+}
+
+.c5.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c5.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c2.MuiButton-root {
+  border-radius: 50%;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+}
+
+.c2.MuiButton-text {
+  padding: 0;
+}
+
+.c1 {
+  background: #f5f5f5;
+  padding: 12px;
+  width: 100%;
+  border-bottom: 1px solid #d8d8d8;
+  font-family: monospace;
+  color: #009CCC;
+  text-overflow: ellipsis;
+}
+
+.c3.MuiButton-outlinedPrimary {
+  border: 1px solid #f5f5f5;
+  padding: 8px;
+}
+
+.c3.MuiButton-root {
+  height: initial;
+  width: initial;
+  min-width: 0px;
+}
+
+.c0 {
+  margin-bottom: 12px;
+  width: calc(100% - 24px);
+  font-size: 12px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  overflow: scroll;
+}
+
+.c0 pre {
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.c0 pre::before {
+  counter-reset: listing;
+}
+
+.c0 code {
+  width: 100%;
+  counter-increment: listing;
+  text-align: left;
+  float: left;
+  clear: left;
+}
+
+.c0 code::before {
+  width: 28px;
+  color: #009CCC;
+  content: counter(listing);
+  display: inline-block;
+  float: left;
+  height: auto;
+  padding-left: auto;
+  margin-right: 12px;
+  text-align: right;
+}
+
+<div
+  className="c0 YamlView"
+>
+  <div
+    className="c1"
+  >
+    kubectl get kustomization podinfo -n flux-system -o yaml 
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c4 c5"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11l-6-6zM8 21V7h6v5h5v9H8z"
+            />
+          </svg>
+        </div>
+      </span>
+    </button>
+  </div>
+  <pre>
+    <code>
+      yaml\\nyaml\\nyaml\\n
+    </code>
+  </pre>
+</div>
+`;

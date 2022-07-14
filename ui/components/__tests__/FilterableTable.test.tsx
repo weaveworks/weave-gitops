@@ -3,11 +3,12 @@ import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";
-import { Field } from "../DataTable";
+import { statusSortHelper } from "../../lib/utils";
+import { Field, SortType } from "../DataTable";
 import FilterableTable, {
-  filterConfig,
-  filterByTypeCallback,
   filterByStatusCallback,
+  filterByTypeCallback,
+  filterConfig,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
@@ -69,7 +70,7 @@ describe("FilterableTable", () => {
           reason: "ArtifactFailed",
           status: "False",
           timestamp: "2022-04-13 20:23:15 +0000 UTC",
-          type: "Ready",
+          type: "Not Ready",
         },
       ],
       count: 500,
@@ -86,7 +87,7 @@ describe("FilterableTable", () => {
           reason: "ArtifactFailed",
           status: "False",
           timestamp: "2022-04-13 20:23:15 +0000 UTC",
-          type: "Ready",
+          type: "Not Ready",
         },
       ],
       count: 500,
@@ -106,6 +107,8 @@ describe("FilterableTable", () => {
     {
       label: "Status",
       value: "success",
+      sortType: SortType.number,
+      sortValue: statusSortHelper,
     },
     {
       label: "Qty",

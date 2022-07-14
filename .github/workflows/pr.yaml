@@ -37,7 +37,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - run: make node_modules
       - name: Check that package.json & package-lock.json were updated in commit
         run: |
@@ -71,10 +70,7 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-      - name: Set up kubebuilder
-        uses: fluxcd/pkg/actions/kubebuilder@main
-      - run: make dependencies
-      - run: go mod download
+      - run: curl -s https://fluxcd.io/install.sh | sudo bash
       - run: make unit-tests
       # - run: make lib-test
 
@@ -91,7 +87,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-      - run: make dependencies
       - run: make check-format
       - run: make lint
       - run: go mod tidy
@@ -151,7 +146,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-buildx-action@v1
-      - run: SKIP_MKCERT_INSTALLATION=1 make dependencies
       - name: Set build-time flags
         run: |
           echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV

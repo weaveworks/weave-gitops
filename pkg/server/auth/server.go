@@ -12,9 +12,12 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -22,7 +25,10 @@ const (
 	LoginOIDC                 string = "oidc"
 	LoginUsername             string = "username"
 	ClusterUserAuthSecretName string = "cluster-user-auth"
-	OIDCAuthSecretName        string = "oidc-auth"
+	DefaultOIDCAuthSecretName string = "oidc-auth"
+	FeatureFlagClusterUser    string = "CLUSTER_USER_AUTH"
+	FeatureFlagOIDCAuth       string = "OIDC_AUTH"
+	FeatureFlagSet            string = "true"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -100,15 +106,38 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
+	var secret corev1.Secret
+	err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+		Namespace: v1alpha1.DefaultNamespace,
+		Name:      ClusterUserAuthSecretName,
+	}, &secret)
+
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			featureflags.Set(FeatureFlagClusterUser, "false")
+		} else {
+			cfg.Log.Error(err, "could not get secret for cluster user")
+		}
+	} else {
+		featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+	}
+
 	var provider *oidc.Provider
 
-	if cfg.config.IssuerURL != "" {
+	if cfg.config.IssuerURL == "" {
+		featureflags.Set(FeatureFlagOIDCAuth, "false")
+	} else {
 		var err error
 
 		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
+		featureflags.Set(FeatureFlagOIDCAuth, FeatureFlagSet)
+	}
+
+	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
+		return nil, fmt.Errorf("Neither OIDC auth or local auth enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil
@@ -121,7 +150,7 @@ func (s *AuthServer) SetRedirectURL(url string) {
 }
 
 func (s *AuthServer) oidcEnabled() bool {
-	return s.config.IssuerURL != ""
+	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {

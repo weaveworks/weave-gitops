@@ -10,7 +10,7 @@ Weave GitOps is a simple open source developer platform for people who want clou
 
 From Kubernetes run Weave GitOps to get:
 
-1. Application Operations: see the automations that are running your deployments 
+1. Application Operations: manage and automate deployment pipelines for apps and more 
 2. Platforms: the easy way to have your own custom PaaS on cloud or on premise
 3. Extensions: coordinate Kubernetes rollouts with eg. VMs, DBs and cloud services
 
@@ -37,7 +37,7 @@ We use GitOps tools throughout.  Today Weave GitOps defaults are Flux, Kustomize
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.8.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.9.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

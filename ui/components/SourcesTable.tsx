@@ -5,6 +5,7 @@ import {
   FluxObjectKind,
   GitRepository,
   HelmRepository,
+  HelmRepositoryType,
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
@@ -15,7 +16,7 @@ import {
   statusSortHelper,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
-import { filterConfig, filterByStatusCallback } from "./FilterableTable";
+import { filterByStatusCallback, filterConfig } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -108,8 +109,12 @@ function SourcesTable({ className, sources }: Props) {
                 return "-";
               case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
-                url = text;
-                link = true;
+                if (
+                  (s as HelmRepository).repositoryType != HelmRepositoryType.OCI
+                ) {
+                  url = text;
+                  link = true;
+                }
                 break;
             }
             return link ? (
@@ -141,9 +146,8 @@ function SourcesTable({ className, sources }: Props) {
         },
         {
           label: "Last Updated",
-          value: (s: Source) => (
-            <Timestamp time={(s as GitRepository).lastUpdatedAt} />
-          ),
+          value: (s: Source) =>
+            s.lastUpdatedAt ? <Timestamp time={s.lastUpdatedAt} /> : "-",
         },
       ]}
     />

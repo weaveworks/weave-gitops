@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.8.1"
+  tag: "v0.9.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -21,6 +21,17 @@ logLevel: info
 # Any other environment variables:
 # envVars:
 
+# Should the 'oidc-auth' secret be created. For a detailed
+# explanation of these attributes please see our documentation:
+# https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/#login-via-an-oidc-provider
+oidcSecret:
+  create: false
+  # clientID:
+  # clientSecret:
+  # issuerURL:
+  # redirectURL:
+
+
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -29,6 +40,7 @@ serviceAccount:
   # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
 rbac:
   # -- Specifies whether the clusterRole & binding to the service account should be created
   create: true
@@ -48,6 +60,7 @@ rbac:
   #   resources: ["terraforms"]
   #   verbs: [ "get", "list", "patch" ]
   additionalRules: []
+
 adminUser:
   # -- Whether the local admin user should be created.
   # If you use this make sure you add it to `rbac.impersonationResourceNames`.
@@ -69,6 +82,7 @@ adminUser:
   # This needs to have been hashed using the bcrypt
   # algorithm. E.g. `go install github.com/bitnami/bcrypt-cli@v1.0.2 && bcrypt-cli <<< $PASSWORD`
   passwordHash:
+
 podAnnotations: {}
 podSecurityContext: {}
 # fsGroup: 2000
@@ -144,3 +158,15 @@ serverTLS:
   # kubectl create secret tls my-tls-secret \
   #  --cert=path/to/cert/file \
   #  --key=path/to/key/file
+
+metrics:
+  # -- Start the metrics exporter
+  enabled: false
+  service:
+    # -- Port to start the metrics exporter on
+    port: 2112
+    # -- Annotations to set on the service
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/path: "/metrics"
+      prometheus.io/port: "{{ .Values.metrics.service.port }}"

@@ -64,9 +64,9 @@ describe("KubeStatusIndicator", () => {
         timestamp: "2022-03-03 17:00:38 +0000 UTC",
       },
     ];
-    render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+    render(withTheme(<KubeStatusIndicator conditions={conditions} short />));
 
-    const msg = screen.getByText(conditions[0].message);
+    const msg = screen.getByText("Not Ready");
     expect(msg).toBeTruthy();
   });
   it("1593 - handles unhealthy", () => {
@@ -88,9 +88,9 @@ describe("KubeStatusIndicator", () => {
       },
     ];
 
-    render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+    render(withTheme(<KubeStatusIndicator conditions={conditions} short />));
 
-    const msg = screen.getByText(conditions[0].message);
+    const msg = screen.getByText("Not Ready");
     expect(msg).toBeTruthy();
   });
   it("handles suspended", () => {
@@ -139,7 +139,9 @@ describe("KubeStatusIndicator", () => {
         },
       ];
       const tree = renderer
-        .create(withTheme(<KubeStatusIndicator conditions={conditions} />))
+        .create(
+          withTheme(<KubeStatusIndicator conditions={conditions} short />)
+        )
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

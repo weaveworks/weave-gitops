@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -18,10 +18,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 )
 
-var opts profiles.Options
+var profileOpts profiles.Options
 
 // UpdateCommand provides support for updating a profile that is installed on a cluster.
-func UpdateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func UpdateCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Short:         "Update a profile installation",
@@ -31,16 +31,16 @@ func UpdateCommand(endpoint, username, password *string, client *resty.Client) *
 	# Update a profile that is installed on a cluster
 	gitops update profile --name=podinfo --cluster=prod --config-repo=ssh://git@github.com/owner/config-repo.git  --version=1.0.0
 		`,
-		PreRunE: updateProfileCmdPreRunE(endpoint, client),
-		RunE:    updateProfileCmdRunE(endpoint, username, password, client),
+		PreRunE: updateProfileCmdPreRunE(&opts.Endpoint),
+		RunE:    updateProfileCmdRunE(opts, client),
 	}
 
-	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
-	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
-	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
-	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster where the profile is installed")
-	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops update profile' will merge automatically into the repository's branch")
-	internal.AddPRFlags(cmd, &opts.HeadBranch, &opts.BaseBranch, &opts.Description, &opts.Message, &opts.Title)
+	cmd.Flags().StringVar(&profileOpts.Name, "name", "", "Name of the profile")
+	cmd.Flags().StringVar(&profileOpts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
+	cmd.Flags().StringVar(&profileOpts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
+	cmd.Flags().StringVar(&profileOpts.Cluster, "cluster", "", "Name of the cluster where the profile is installed")
+	cmd.Flags().BoolVar(&profileOpts.AutoMerge, "auto-merge", false, "If set, 'gitops update profile' will merge automatically into the repository's branch")
+	internal.AddPRFlags(cmd, &profileOpts.HeadBranch, &profileOpts.BaseBranch, &profileOpts.Description, &profileOpts.Message, &profileOpts.Title)
 
 	requiredFlags := []string{"name", "config-repo", "cluster", "version"}
 	for _, f := range requiredFlags {
@@ -52,7 +52,7 @@ func UpdateCommand(endpoint, username, password *string, client *resty.Client) *
 	return cmd
 }
 
-func updateProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func updateProfileCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
@@ -62,25 +62,25 @@ func updateProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra
 	}
 }
 
-func updateProfileCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func updateProfileCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, internal.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
 
-		if opts.Version != "latest" {
-			if _, err := semver.StrictNewVersion(opts.Version); err != nil {
-				return fmt.Errorf("error parsing --version=%s: %w", opts.Version, err)
+		if profileOpts.Version != "latest" {
+			if _, err := semver.StrictNewVersion(profileOpts.Version); err != nil {
+				return fmt.Errorf("error parsing --version=%s: %w", profileOpts.Version, err)
 			}
 		}
 
-		if opts.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
+		if profileOpts.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
 			return err
 		}
 
@@ -90,8 +90,8 @@ func updateProfileCmdRunE(endpoint, username, password *string, client *resty.Cl
 		}
 
 		_, gitProvider, err := factory.GetGitClients(context.Background(), kubeClient, providerClient, services.GitConfigParams{
-			ConfigRepo:       opts.ConfigRepo,
-			Namespace:        opts.Namespace,
+			ConfigRepo:       profileOpts.ConfigRepo,
+			Namespace:        profileOpts.Namespace,
 			IsHelmRepository: true,
 			DryRun:           false,
 		})
@@ -99,6 +99,6 @@ func updateProfileCmdRunE(endpoint, username, password *string, client *resty.Cl
 			return fmt.Errorf("failed to get git clients: %w", err)
 		}
 
-		return profiles.NewService(log).Update(context.Background(), r, gitProvider, opts)
+		return profiles.NewService(log).Update(context.Background(), client, gitProvider, profileOpts)
 	}
 }

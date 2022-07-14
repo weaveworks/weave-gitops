@@ -14,6 +14,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -33,6 +34,8 @@ const (
 type ClientsFactory interface {
 	// GetImpersonatedClient returns the clusters client for the given user
 	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// GetImpersonatedDiscoveryClient returns the discovery for the given user and for the given cluster
+	GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error)
 	// UpdateClusters updates the clusters list
 	UpdateClusters(ctx context.Context) error
 	// UpdateNamespaces updates the namespaces all namespaces for all clusters
@@ -48,6 +51,8 @@ type ClientsFactory interface {
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
 }
+
+type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 
 type clientsFactory struct {
 	clustersFetcher ClusterFetcher
@@ -65,9 +70,10 @@ type clientsFactory struct {
 
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
+	newClustersPool     ClusterPoolFactoryFn
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme) ClientsFactory {
+func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn) ClientsFactory {
 	return &clientsFactory{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -77,6 +83,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
+		newClustersPool:     clusterPoolFactory,
 	}
 }
 
@@ -180,7 +187,7 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 		return nil, errors.New("no user supplied")
 	}
 
-	pool := NewClustersClientsPool(cf.scheme)
+	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
@@ -191,8 +198,34 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	return NewClient(pool, cf.userNsList(ctx, user)), nil
 }
 
+func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
+	if user == nil {
+		return nil, errors.New("no user supplied")
+	}
+
+	var config *rest.Config
+
+	for _, cluster := range cf.clusters.Get() {
+		if cluster.Name == clusterName {
+			config = ClientConfigWithUser(user)(cluster)
+			break
+		}
+	}
+
+	if config == nil {
+		return nil, fmt.Errorf("cluster not found: %s", clusterName)
+	}
+
+	dc, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, fmt.Errorf("error creating discovery client for config: %w", err)
+	}
+
+	return dc, nil
+}
+
 func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
-	pool := NewClustersClientsPool(cf.scheme)
+	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
 		if err := pool.Add(restConfigFromCluster, cluster); err != nil {

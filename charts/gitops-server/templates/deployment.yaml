@@ -42,6 +42,10 @@ spec:
             {{- else }}
             - "--insecure"
             {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - "--enable-metrics"
+            - "--metrics-address=:{{ .Values.metrics.service.port }}"
+            {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}

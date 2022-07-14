@@ -14,6 +14,11 @@ export enum FluxObjectKind {
   KindCluster = "KindCluster",
 }
 
+export enum HelmRepositoryType {
+  Default = "Default",
+  OCI = "OCI",
+}
+
 export enum BucketProvider {
   Generic = "Generic",
   AWS = "AWS",
@@ -122,6 +127,7 @@ export type HelmRepository = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  repositoryType?: HelmRepositoryType
 }
 
 export type Bucket = {

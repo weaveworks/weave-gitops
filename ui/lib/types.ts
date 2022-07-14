@@ -46,6 +46,7 @@ export interface Source {
   interval?: Interval;
   suspended?: boolean;
   clusterName?: string;
+  lastUpdatedAt?: string;
 }
 
 export interface Syncable {

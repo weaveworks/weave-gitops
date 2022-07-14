@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/printers"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
@@ -33,7 +33,7 @@ var providers = []string{
 	"vsphere",
 }
 
-func TemplateCommand(endpoint, username, password *string, client *resty.Client) *cobra.Command {
+func TemplateCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
@@ -50,8 +50,8 @@ gitops get template <template-name> --list-parameters
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
-		RunE:          getTemplateCmdRunE(endpoint, username, password, client),
+		PreRunE:       getTemplateCmdPreRunE(&opts.Endpoint),
+		RunE:          getTemplateCmdRunE(opts, client),
 		Args:          cobra.MaximumNArgs(1),
 	}
 
@@ -62,7 +62,7 @@ gitops get template <template-name> --list-parameters
 	return cmd
 }
 
-func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, args []string) error {
 		if c.Flag("provider").Changed && !contains(providers, c.Flag("provider").Value.String()) {
 			return fmt.Errorf("provider %q is not valid", c.Flag("provider").Value.String())
@@ -76,9 +76,9 @@ func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 	}
 }
 
-func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(*endpoint, *username, *password, client, os.Stdout)
+		err := client.ConfigureClientWithOptions(opts, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], r, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], client, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -99,18 +99,18 @@ func getTemplateCmdRunE(endpoint, username, password *string, client *resty.Clie
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateProfiles(args[0], r, w)
+			return templates.GetTemplateProfiles(args[0], client, w)
 		}
 
 		if len(args) == 0 {
 			if flags.Provider != "" {
-				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, r, w)
+				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, client, w)
 			}
 
-			return templates.GetTemplates(templates.CAPITemplateKind, r, w)
+			return templates.GetTemplates(templates.CAPITemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.CAPITemplateKind, r, w)
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, client, w)
 	}
 }
 
