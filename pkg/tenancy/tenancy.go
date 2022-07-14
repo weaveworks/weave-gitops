@@ -28,9 +28,10 @@ var (
 // Tenant represents a tenant that we generate resources for in the tenancy
 // system.
 type Tenant struct {
-	Name        string   `yaml:"name"`
-	Namespaces  []string `yaml:"namespaces"`
-	ClusterRole string   `yaml:"clusterRole"`
+	Name        string            `yaml:"name"`
+	Namespaces  []string          `yaml:"namespaces"`
+	ClusterRole string            `yaml:"clusterRole"`
+	Labels      map[string]string `yaml:"labels"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -134,9 +135,12 @@ func GenerateTenantResources(tenants ...Tenant) ([]runtime.Object, error) {
 			return nil, err
 		}
 		// TODO: validate tenant name for creation of namespace.
-		tenantLabels := map[string]string{
-			tenantLabel: tenant.Name,
+		tenantLabels := tenant.Labels
+		if tenantLabels == nil {
+			tenantLabels = map[string]string{}
 		}
+		tenantLabels[tenantLabel] = tenant.Name
+
 		for _, namespace := range tenant.Namespaces {
 			generated = append(generated, newNamespace(namespace, tenantLabels))
 			generated = append(generated, newServiceAccount(tenant.Name, namespace, tenantLabels))

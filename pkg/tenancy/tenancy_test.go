@@ -145,6 +145,36 @@ func TestGenerateTenantResources(t *testing.T) {
 				}),
 			},
 		},
+		{
+			name: "tenant with additional labels",
+			tenant: Tenant{
+				Name: "test-tenant",
+				Namespaces: []string{
+					"foo-ns",
+				},
+				Labels: map[string]string{
+					"environment": "dev",
+					"provisioner": "gitops",
+				},
+			},
+			want: []runtime.Object{
+				newNamespace("foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+					"environment":              "dev",
+					"provisioner":              "gitops",
+				}),
+				newServiceAccount("test-tenant", "foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+					"environment":              "dev",
+					"provisioner":              "gitops",
+				}),
+				newRoleBinding("test-tenant", "foo-ns", "cluster-admin", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+					"environment":              "dev",
+					"provisioner":              "gitops",
+				}),
+			},
+		},
 	}
 
 	for _, tt := range generationTests {
