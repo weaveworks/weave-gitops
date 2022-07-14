@@ -88,7 +88,7 @@ import TOCInline from "@theme/TOCInline";
            return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
            })()} />
 
-### 1. Setting up a Management Cluster with `flux`
+### 1. Set up a Management Cluster with `flux`
 
 To get you started in this document we'll cover:
 
@@ -369,7 +369,7 @@ kubectl create secret generic cluster-user-auth \
   --from-literal=password='$2a$.......'
 ```
 
-### 7. Checking that WGE is installed
+### 7. Check that WGE is installed
 
 You should now be able to load the WGE UI by port forwarding. 
 
@@ -385,6 +385,26 @@ Head over to either:
 
 - [Getting started](./cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
 - [Deploying CAPA with EKS](./guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
+
+### (Optional) Install the TF-Controller
+
+The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way. 
+
+With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest. 
+
+Check out our guide on how to [use Terraform templates](./../guides/using-terraform-templates), and why not try your hands at using it with the RDS example!
+
+Install the TF-Controller to a cluster using Helm:
+```bash
+# Add tf-controller helm repository
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
+
+Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-controller/getting_started/) documentation for more details on which parameters are configurable and how to install a specific version. 
 
 ## AWS Marketplace
 Weave GitOps is also available via the AWS Marketplace.

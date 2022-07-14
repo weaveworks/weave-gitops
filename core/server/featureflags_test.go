@@ -11,9 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetFeatureFlags(t *testing.T) {
@@ -22,9 +20,7 @@ func TestGetFeatureFlags(t *testing.T) {
 	featureflags.Set("this is a flag", "you won't find it anywhere else")
 
 	cfg := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})
-	k8s := fake.NewClientBuilder().Build()
-	fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
-	coreSrv, err := server.NewCoreServer(cfg, server.WithClientGetter(fakeClientGetter))
+	coreSrv, err := server.NewCoreServer(cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	resp, err := coreSrv.GetFeatureFlags(context.Background(), &pb.GetFeatureFlagsRequest{})
