@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -55,7 +56,7 @@ gitops beta run ./deploy/overlays/dev [flags]`,
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", "v0.31.3", "The version of Flux to install")
+	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install")
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the kubeconfig context to allow explicitly")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install, as a comma-separated list: --components=component1,component2,component3")
 	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, as a comma-separated list: --components=component1,component2,component3")
