@@ -16,6 +16,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -24,7 +25,7 @@ const (
 	port      = 9000
 )
 
-func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP) error {
+func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config) error {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -184,7 +185,7 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP) error {
 
 	defer cancel()
 
-	ret, err := forwarder.WithForwarders(ctx, options)
+	ret, err := forwarder.WithForwarders(ctx, config, options)
 	if err != nil {
 		return err
 	}
