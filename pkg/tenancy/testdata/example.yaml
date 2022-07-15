@@ -1,0 +1,8 @@
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+  - name: bar-tenant
+    namespaces:
+    - bar-ns
+    - foobar-ns
