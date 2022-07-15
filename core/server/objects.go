@@ -17,7 +17,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	gvk, err := types.GetGVK(msg.Kind)
+	gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 	if err != nil {
 		return nil, err
 	}

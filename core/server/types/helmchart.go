@@ -9,7 +9,7 @@ func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string) *pb.Hel
 	return &pb.HelmChart{
 		Name:      helmchart.Name,
 		Namespace: helmchart.Namespace,
-		SourceRef: &pb.ObjectRef{
+		SourceRef: &pb.FluxObjectRef{
 			Kind: getSourceKind(helmchart.Spec.SourceRef.Kind),
 			Name: helmchart.Name,
 		},

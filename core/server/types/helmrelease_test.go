@@ -34,7 +34,7 @@ func TestHelmRelease(t *testing.T) {
 			&pb.HelmRelease{
 				HelmChart: &pb.HelmChart{
 					Name: "-",
-					SourceRef: &pb.ObjectRef{
+					SourceRef: &pb.FluxObjectRef{
 						Kind: -1, // This is invalid?
 					},
 				},
@@ -72,7 +72,7 @@ func TestHelmRelease(t *testing.T) {
 				HelmChart: &pb.HelmChart{
 					Name:      "namespace-of-all-objects-some-chart",
 					Namespace: "namespace-of-all-objects",
-					SourceRef: &pb.ObjectRef{
+					SourceRef: &pb.FluxObjectRef{
 						Name:      "source-object",
 						Namespace: "namespace-of-all-objects",
 						Kind:      pb.FluxObjectKind_KindGitRepository,
@@ -122,7 +122,7 @@ func TestHelmRelease(t *testing.T) {
 				HelmChart: &pb.HelmChart{
 					Name:      "namespace-of-object-some-chart",
 					Namespace: "namespace-of-source",
-					SourceRef: &pb.ObjectRef{
+					SourceRef: &pb.FluxObjectRef{
 						Name:      "some-helm-repository",
 						Namespace: "namespace-of-source",
 						Kind:      pb.FluxObjectKind_KindHelmRepository,

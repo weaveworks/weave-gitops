@@ -1,13 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { ObjectRef } from "../lib/api/core/types.pb";
+import { FluxObjectRef } from "../lib/api/core/types.pb";
 import { fluxObjectKindToKind } from "../lib/objects";
 import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
 type Props = {
   className?: string;
   yaml: string;
-  object?: ObjectRef;
+  object?: FluxObjectRef;
 };
 const YamlHeader = styled.div`
   background: ${(props) => props.theme.colors.neutral10};

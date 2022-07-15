@@ -1,7 +1,7 @@
 import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import { useListFluxEvents } from "../hooks/events";
+import { useListEvents } from "../hooks/events";
 import { Event, ObjectRef } from "../lib/api/core/types.pb";
 import Alert from "./Alert";
 import DataTable from "./DataTable";
@@ -17,7 +17,7 @@ type Props = {
 };
 
 function EventsTable({ className, involvedObject }: Props) {
-  const { data, isLoading, error } = useListFluxEvents(involvedObject);
+  const { data, isLoading, error } = useListEvents(involvedObject);
 
   if (isLoading) {
     return (
