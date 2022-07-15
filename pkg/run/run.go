@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	runclient "github.com/fluxcd/pkg/runtime/client"
@@ -16,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -62,44 +62,42 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	return fluxVersion, nil
 }
 
-func GetKubeConfigOptions() genericclioptions.RESTClientGetter {
-	kubeConfigOptions := genericclioptions.NewConfigFlags(false)
+func GetKubeConfigArgs() *genericclioptions.ConfigFlags {
+	kubeConfigArgs := genericclioptions.NewConfigFlags(false)
 
-	fromEnv := os.Getenv("FLUX_SYSTEM_NAMESPACE")
-	if fromEnv != "" {
-		kubeConfigOptions.Namespace = &fromEnv
-	}
+	// Prevent AddFlags from configuring unnecessary flags.
+	kubeConfigArgs.Insecure = nil
+	kubeConfigArgs.Timeout = nil
+	kubeConfigArgs.KubeConfig = nil
+	kubeConfigArgs.CacheDir = nil
+	kubeConfigArgs.ClusterName = nil
+	kubeConfigArgs.AuthInfoName = nil
+	kubeConfigArgs.Namespace = nil
+	kubeConfigArgs.APIServer = nil
+	kubeConfigArgs.TLSServerName = nil
+	kubeConfigArgs.CertFile = nil
+	kubeConfigArgs.KeyFile = nil
+	kubeConfigArgs.CAFile = nil
+	kubeConfigArgs.BearerToken = nil
+	kubeConfigArgs.Impersonate = nil
+	kubeConfigArgs.ImpersonateUID = nil
+	kubeConfigArgs.ImpersonateGroup = nil
 
-	kubeConfigOptions.APIServer = nil // prevent AddFlags from configuring --server flag
-	kubeConfigOptions.Timeout = nil   // prevent AddFlags from configuring --request-timeout flag, we have --timeout instead
-
-	// Since some subcommands use the `-s` flag as a short version for `--silent`, we manually configure the server flag
-	// without the `-s` short version. While we're no longer on par with kubectl's flags, we maintain backwards compatibility
-	// on the CLI interface.
-	apiServer := ""
-	kubeConfigOptions.APIServer = &apiServer
-
-	return kubeConfigOptions
+	return kubeConfigArgs
 }
 
 func GetKubeClientOptions() *runclient.Options {
-	kubeClientOptions := new(runclient.Options)
+	kubeClientOpts := new(runclient.Options)
 
-	return kubeClientOptions
+	return kubeClientOpts
 }
 
-func GetKubeClient(log logger.Logger, clusterName string, kubeConfigOptions genericclioptions.RESTClientGetter, kubeClientOptions *runclient.Options) (*kube.KubeHTTP, error) {
-	cfg, err := kubeConfigOptions.ToRESTConfig()
-	if err != nil {
-		log.Failuref("Error getting a restconfig: %v", err.Error())
-		return nil, err
-	}
-
+func GetKubeClient(log logger.Logger, contextName string, cfg *rest.Config, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
 	// avoid throttling request when some Flux CRDs are not registered
-	cfg.QPS = kubeClientOptions.QPS
-	cfg.Burst = kubeClientOptions.Burst
+	cfg.QPS = kubeClientOpts.QPS
+	cfg.Burst = kubeClientOpts.Burst
 
-	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, clusterName)
+	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, contextName)
 	if err != nil {
 		log.Failuref("Kubernetes client initialization failed: %v", err.Error())
 		return nil, err
@@ -108,8 +106,8 @@ func GetKubeClient(log logger.Logger, clusterName string, kubeConfigOptions gene
 	return kubeClient, nil
 }
 
-func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
-	restMapper, err := kubeConfigOptions.ToRESTMapper()
+func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
+	restMapper, err := kubeConfigArgs.ToRESTMapper()
 	if err != nil {
 		log.Failuref("Error getting a restmapper")
 		return nil, err
@@ -123,8 +121,8 @@ func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	}), nil
 }
 
-func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
-	man, err := newManager(log, ctx, kubeClient, kubeConfigOptions)
+func applySet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
+	man, err := newManager(log, ctx, kubeClient, kubeConfigArgs)
 	if err != nil {
 		log.Failuref("Error applying set")
 		return nil, err
@@ -143,7 +141,7 @@ func waitForSet(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 	return man.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
 
-func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigOptions genericclioptions.RESTClientGetter, manifestsContent []byte) (string, error) {
+func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter, manifestsContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
 		log.Failuref("Error reading Kubernetes objects from the manifests")
@@ -176,7 +174,7 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 	}
 
 	if len(stageOne) > 0 {
-		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageOne)
+		cs, err := applySet(log, ctx, kubeClient, kubeConfigArgs, stageOne)
 		if err != nil {
 			log.Failuref("Error applying stage one objects")
 			return "", err
@@ -185,13 +183,13 @@ func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client,
 		changeSet.Append(cs.Entries)
 	}
 
-	if err := waitForSet(log, ctx, kubeClient, kubeConfigOptions, changeSet); err != nil {
+	if err := waitForSet(log, ctx, kubeClient, kubeConfigArgs, changeSet); err != nil {
 		log.Failuref("Error waiting for set")
 		return "", err
 	}
 
 	if len(stageTwo) > 0 {
-		cs, err := applySet(log, ctx, kubeClient, kubeConfigOptions, stageTwo)
+		cs, err := applySet(log, ctx, kubeClient, kubeConfigArgs, stageTwo)
 		if err != nil {
 			log.Failuref("Error applying stage two objects")
 			return "", err

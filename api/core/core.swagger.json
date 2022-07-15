@@ -83,13 +83,13 @@
     },
     "/v1/events": {
       "get": {
-        "summary": "ListFluxEvents returns with a list of events based on Flux labels",
-        "operationId": "Core_ListFluxEvents",
+        "summary": "ListEvents returns with a list of events",
+        "operationId": "Core_ListEvents",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListFluxEventsResponse"
+              "$ref": "#/definitions/v1ListEventsResponse"
             }
           },
           "default": {
@@ -104,17 +104,7 @@
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,
-            "type": "string",
-            "enum": [
-              "KindGitRepository",
-              "KindBucket",
-              "KindHelmRepository",
-              "KindHelmChart",
-              "KindKustomization",
-              "KindHelmRelease",
-              "KindCluster"
-            ],
-            "default": "KindGitRepository"
+            "type": "string"
           },
           {
             "name": "involvedObject.name",
@@ -855,6 +845,20 @@
       ],
       "default": "KindGitRepository"
     },
+    "v1FluxObjectRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChildObjectsRequest": {
       "type": "object",
       "properties": {
@@ -1069,7 +1073,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1ObjectRef"
+          "$ref": "#/definitions/v1FluxObjectRef"
         },
         "chart": {
           "type": "string"
@@ -1226,7 +1230,7 @@
           "type": "string"
         },
         "sourceRef": {
-          "$ref": "#/definitions/v1ObjectRef"
+          "$ref": "#/definitions/v1FluxObjectRef"
         },
         "interval": {
           "$ref": "#/definitions/v1Interval"
@@ -1291,7 +1295,7 @@
         }
       }
     },
-    "v1ListFluxEventsResponse": {
+    "v1ListEventsResponse": {
       "type": "object",
       "properties": {
         "events": {
@@ -1453,7 +1457,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
+          "type": "string"
         },
         "name": {
           "type": "string"

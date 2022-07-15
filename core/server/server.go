@@ -33,6 +33,7 @@ type coreServer struct {
 	logger         logr.Logger
 	nsChecker      nsaccess.Checker
 	clientsFactory clustersmngr.ClientsFactory
+	primaryKinds   *PrimaryKinds
 }
 
 type CoreServerConfig struct {
@@ -41,6 +42,7 @@ type CoreServerConfig struct {
 	clusterName    string
 	NSAccess       nsaccess.Checker
 	ClientsFactory clustersmngr.ClientsFactory
+	PrimaryKinds   *PrimaryKinds
 }
 
 func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clusterClientFactory clustersmngr.ClientsFactory) CoreServerConfig {
@@ -50,6 +52,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 		clusterName:    clusterName,
 		NSAccess:       nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		ClientsFactory: clusterClientFactory,
+		PrimaryKinds:   DefaultPrimaryKinds(),
 	}
 }
 
@@ -58,5 +61,6 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 		logger:         cfg.log,
 		nsChecker:      cfg.NSAccess,
 		clientsFactory: cfg.ClientsFactory,
+		primaryKinds:   cfg.PrimaryKinds,
 	}, nil
 }

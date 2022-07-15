@@ -107,6 +107,9 @@ function SourceDetail({
     if (!source) {
       return false;
     }
+    if (a.clusterName != clusterName) {
+      return false;
+    }
 
     if (
       type == FluxObjectKind.KindHelmChart &&

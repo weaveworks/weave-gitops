@@ -156,9 +156,9 @@ service Core {
         };
     }
     /*
-     * ListFluxEvents returns with a list of events based on Flux labels
+     * ListEvents returns with a list of events
      */
-    rpc ListFluxEvents(ListFluxEventsRequest) returns (ListFluxEventsResponse) {
+    rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
         option (google.api.http) = {
             get: "/v1/events"
         };
@@ -345,11 +345,11 @@ message ListNamespacesResponse {
   repeated Namespace namespaces = 1;
 }
 
-message ListFluxEventsRequest {
+message ListEventsRequest {
     ObjectRef involvedObject = 2;
 }
 
-message ListFluxEventsResponse {
+message ListEventsResponse {
     repeated Event events = 1;
 }
 

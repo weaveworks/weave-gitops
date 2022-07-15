@@ -30,7 +30,7 @@ func TestKustomization(t *testing.T) {
 			"Default",
 			kustomizev1.Kustomization{},
 			&pb.Kustomization{
-				SourceRef:   &pb.ObjectRef{},
+				SourceRef:   &pb.FluxObjectRef{},
 				Interval:    &pb.Interval{},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
@@ -59,7 +59,7 @@ func TestKustomization(t *testing.T) {
 			&pb.Kustomization{
 				Name:      "some-object",
 				Namespace: "namespace-of-all-objects",
-				SourceRef: &pb.ObjectRef{
+				SourceRef: &pb.FluxObjectRef{
 					Kind:      pb.FluxObjectKind_KindGitRepository,
 					Name:      "some-git-repository",
 					Namespace: "namespace-of-all-objects",
@@ -93,7 +93,7 @@ func TestKustomization(t *testing.T) {
 			&pb.Kustomization{
 				Name:      "some-object",
 				Namespace: "namespace-of-object",
-				SourceRef: &pb.ObjectRef{
+				SourceRef: &pb.FluxObjectRef{
 					Kind:      pb.FluxObjectKind_KindHelmRepository,
 					Name:      "some-helm-repository",
 					Namespace: "namespace-of-source",
@@ -155,7 +155,7 @@ func TestKustomization(t *testing.T) {
 				Namespace: "namespace-of-object",
 				Name:      "some-object",
 				Path:      "./my-cluster",
-				SourceRef: &pb.ObjectRef{
+				SourceRef: &pb.FluxObjectRef{
 					Kind:      pb.FluxObjectKind_KindBucket,
 					Name:      "some-bucket",
 					Namespace: "namespace-of-source",

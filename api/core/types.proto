@@ -25,8 +25,14 @@ enum HelmRepositoryType {
     OCI     = 1;
 };
 
-message ObjectRef {
+message FluxObjectRef {
     FluxObjectKind kind      = 1;
+    string         name      = 2;
+    string         namespace = 3;
+}
+
+message ObjectRef {
+    string         kind      = 1;
     string         name      = 2;
     string         namespace = 3;
 }
@@ -54,32 +60,32 @@ message GroupVersionKind {
 }
 
 message Kustomization {
-    string    namespace                  = 1;
-    string    name                       = 2;
-    string    path                       = 3;
-    ObjectRef sourceRef                  = 4;
-    Interval  interval                   = 5;
-    repeated  Condition conditions       = 6;
-    string    lastAppliedRevision        = 7;
-    string    lastAttemptedRevision      = 8;
-    repeated  GroupVersionKind inventory = 9;
-    bool      suspended                  = 10;
-    string    clusterName                = 11;
-    string    apiVersion                 = 12;
+    string        namespace                  = 1;
+    string        name                       = 2;
+    string        path                       = 3;
+    FluxObjectRef sourceRef                  = 4;
+    Interval      interval                   = 5;
+    repeated      Condition conditions       = 6;
+    string        lastAppliedRevision        = 7;
+    string        lastAttemptedRevision      = 8;
+    repeated      GroupVersionKind inventory = 9;
+    bool          suspended                  = 10;
+    string        clusterName                = 11;
+    string        apiVersion                 = 12;
 }
 
 message HelmChart {
-    string    namespace            = 1;
-    string    name                 = 2;
-    ObjectRef sourceRef            = 3;
-    string    chart                = 4;
-    string    version              = 5;
-    Interval  interval             = 6;
-    repeated  Condition conditions = 7;
-    bool      suspended            = 8;
-    string    lastUpdatedAt        = 9;
-    string    clusterName          = 10;
-    string    apiVersion           = 11;
+    string        namespace            = 1;
+    string        name                 = 2;
+    FluxObjectRef sourceRef            = 3;
+    string        chart                = 4;
+    string        version              = 5;
+    Interval      interval             = 6;
+    repeated      Condition conditions = 7;
+    bool          suspended            = 8;
+    string        lastUpdatedAt        = 9;
+    string        clusterName          = 10;
+    string        apiVersion           = 11;
 }
 
 message HelmRelease {

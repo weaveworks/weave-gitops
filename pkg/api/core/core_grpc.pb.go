@@ -63,8 +63,8 @@ type CoreClient interface {
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
 	//
-	// ListFluxEvents returns with a list of events based on Flux labels
-	ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error)
+	// ListEvents returns with a list of events
+	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
@@ -213,9 +213,9 @@ func (c *coreClient) ListNamespaces(ctx context.Context, in *ListNamespacesReque
 	return out, nil
 }
 
-func (c *coreClient) ListFluxEvents(ctx context.Context, in *ListFluxEventsRequest, opts ...grpc.CallOption) (*ListFluxEventsResponse, error) {
-	out := new(ListFluxEventsResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxEvents", in, out, opts...)
+func (c *coreClient) ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error) {
+	out := new(ListEventsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -307,8 +307,8 @@ type CoreServer interface {
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
 	//
-	// ListFluxEvents returns with a list of events based on Flux labels
-	ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error)
+	// ListEvents returns with a list of events
+	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
@@ -370,8 +370,8 @@ func (UnimplementedCoreServer) GetFluxNamespace(context.Context, *GetFluxNamespa
 func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
 }
-func (UnimplementedCoreServer) ListFluxEvents(context.Context, *ListFluxEventsRequest) (*ListFluxEventsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFluxEvents not implemented")
+func (UnimplementedCoreServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
 }
 func (UnimplementedCoreServer) SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncFluxObject not implemented")
@@ -650,20 +650,20 @@ func _Core_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Core_ListFluxEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFluxEventsRequest)
+func _Core_ListEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CoreServer).ListFluxEvents(ctx, in)
+		return srv.(CoreServer).ListEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListFluxEvents",
+		FullMethod: "/gitops_core.v1.Core/ListEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListFluxEvents(ctx, req.(*ListFluxEventsRequest))
+		return srv.(CoreServer).ListEvents(ctx, req.(*ListEventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -804,8 +804,8 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_ListNamespaces_Handler,
 		},
 		{
-			MethodName: "ListFluxEvents",
-			Handler:    _Core_ListFluxEvents_Handler,
+			MethodName: "ListEvents",
+			Handler:    _Core_ListEvents_Handler,
 		},
 		{
 			MethodName: "SyncFluxObject",
