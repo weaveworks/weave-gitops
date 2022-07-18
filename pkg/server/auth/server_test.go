@@ -638,17 +638,21 @@ func TestLogoutSuccess(t *testing.T) {
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	var cookie *http.Cookie
+	cookies := make(map[string]*http.Cookie)
 
 	for _, c := range resp.Cookies() {
-		if c.Name == auth.IDTokenCookieName {
-			cookie = c
-			break
+		if c.Name == auth.IDTokenCookieName || c.Name == auth.AccessTokenCookieName {
+			cookies[c.Name] = c
 		}
 	}
 
-	g.Expect(cookie).ToNot(BeNil())
-	g.Expect(cookie.Value).To(Equal(""))
+	g.Expect(cookies).To(HaveKey(auth.IDTokenCookieName))
+	g.Expect(cookies).To(HaveKey(auth.AccessTokenCookieName))
+
+	for _, c := range cookies {
+		g.Expect(c).ToNot(BeNil())
+		g.Expect(c.Value).To(Equal(""))
+	}
 }
 
 func TestLogoutWithWrongMethod(t *testing.T) {
