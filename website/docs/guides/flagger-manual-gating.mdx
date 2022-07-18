@@ -38,7 +38,7 @@ gate whether a rollout proceeds at certain points:
 - Before traffic weight is increased with `confirm-traffic-increase`.
 - Before a new version is promoted following successful canary analysis with `confirm-promotion`.
 
-Any URL can be used as a webhook target, if will approve if it returns with a
+Any URL can be used as a webhook target, it will approve if it returns with a
 `200 OK` status code, and halt if it's `403 Forbidden`.
 
 The webhook will receive a JSON payload that can be unmarshaled as
@@ -132,7 +132,7 @@ complete the progressive delivery rollout :tada:
 
 ![Podinfo Canary succeeded - promoting](/img/pd-table-promoting.png)
 
-![Podinfo Canary succeeded - promoting](/img/pd-table-succeeded.png)
+![Podinfo Canary succeeded - promoted](/img/pd-table-succeeded.png)
 
 
 To manually close the gate again you can issue:
