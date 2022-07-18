@@ -98,8 +98,20 @@ example by bumping the container image tag. A full list of ways to trigger
 a rollout is available 
 [here](https://docs.flagger.app/faq#how-to-retry-a-failed-release).
 
+You can watch the progression of a Canary in Weave GitOps Enterprise (WGE) 
+through the Applications > Delivery view:
+
+![Podinfo Canary progressing](/img/pd-table-progressing.png)
+
+
 ### Wait for the Canary analysis to complete
-TODO: add screenshots and explain with WGE UI
+Once the Canary analysis has successfully completed, Flagger will call the 
+`confirm-promotion` webhook and change status to `WaitingPromotion` as you 
+can see in the screenshots below:
+
+![Podinfo Canary showing Waiting Promotion - table view](/img/pd-table-waiting.png)
+
+![Podinfo Canary showing Waiting Promotion - details view](/img/pd-details-waiting.png)
 
 ### Open the gate
 To open the gate and therefore confirm that you are happy for the new 
@@ -115,6 +127,13 @@ $ kubectl -n test exec -it flagger-loadtester-xxxx-xxxx sh
 
 Flagger will now proceed to promote the Canary version to the primary and 
 complete the progressive delivery rollout :tada:
+
+![Podinfo Canary succeeded - full events history](/img/pd-events-gate-passed.png)
+
+![Podinfo Canary succeeded - promoting](/img/pd-table-promoting.png)
+
+![Podinfo Canary succeeded - promoting](/img/pd-table-succeeded.png)
+
 
 To manually close the gate again you can issue:
 
