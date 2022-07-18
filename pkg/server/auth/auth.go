@@ -18,6 +18,10 @@ const (
 	// IDTokenCookieName is the name of the cookie that holds the ID Token once
 	// the user has authenticated successfully with the OIDC Provider.
 	IDTokenCookieName = "id_token"
+	// AccessTokenCookieName is the name of the cookie that holds the access token once
+	// the user has authenticated successfully with the OIDC Provider. It's used for further
+	// resource requests from the provider.
+	AccessTokenCookieName = "access_token"
 	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
 	// used for token passthrough authentication.
 	AuthorizationTokenHeaderName = "Authorization"

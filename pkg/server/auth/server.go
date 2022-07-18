@@ -277,6 +277,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 
 		// Issue ID token cookie
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
+		http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -356,11 +357,21 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
-		c, err := r.Cookie(IDTokenCookieName)
+		// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
+		// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
+		// users can use both ways to log into weave-gitops.
+		c, err := r.Cookie(AccessTokenCookieName)
 		if err != nil {
-			rw.WriteHeader(http.StatusBadRequest)
+			if err != http.ErrNoCookie {
+				rw.WriteHeader(http.StatusBadRequest)
+				return
+			}
 
-			return
+			c, err = r.Cookie(IDTokenCookieName)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				return
+			}
 		}
 
 		claims, err := s.tokenSignerVerifier.Verify(c.Value)
@@ -454,6 +465,7 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 		}
 
 		http.SetCookie(rw, s.clearCookie(IDTokenCookieName))
+		http.SetCookie(rw, s.clearCookie(AccessTokenCookieName))
 		rw.WriteHeader(http.StatusOK)
 	}
 }
