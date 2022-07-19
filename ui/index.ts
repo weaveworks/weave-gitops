@@ -22,10 +22,12 @@ import InfoList from "./components/InfoList";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
+import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
 import Metadata from "./components/Metadata";
 import Page from "./components/Page";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
+import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
 import Timestamp from "./components/Timestamp";
@@ -62,13 +64,14 @@ import { V2Routes } from "./lib/types";
 import { statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import { formatURL } from "./lib/nav";
 
 export {
   AppContextProvider,
   applicationsClient,
   Auth,
-  AuthContextProvider,
   AuthCheck,
+  AuthContextProvider,
   Automation,
   AutomationsTable,
   BucketDetail,
@@ -76,19 +79,20 @@ export {
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
-  UnAuthorizedInterceptor,
   CoreClientContextProvider,
   DataTable,
   EventsTable,
   Flex,
   FilterableTable,
-  filterConfig,
-  FilterConfigCallback,
   filterByStatusCallback,
   filterByTypeCallback,
-  FluxRuntime,
+  filterConfig,
+  FilterConfigCallback,
+  FluxObjectKind,
   fluxObjectKindToKind,
+  FluxRuntime,
   Footer,
+  formatURL,
   getCallbackState,
   getProviderToken,
   GithubDeviceAuthModal,
@@ -98,10 +102,11 @@ export {
   HelmRepositoryDetail,
   Icon,
   IconType,
-  Interval,
   InfoList,
+  Interval,
   KubeStatusIndicator,
   KustomizationDetail,
+  Link,
   LoadingPage,
   Metadata,
   muiTheme,
@@ -110,21 +115,22 @@ export {
   RepoInputWithAuth,
   RouterTab,
   SignIn,
+  SortType,
+  SourceLink,
+  SourcesTable,
   statusSortHelper,
   SubRouterTabs,
-  SortType,
-  FluxObjectKind,
-  SourcesTable,
   theme,
   Timestamp,
-  useIsAuthenticated,
-  useListSources,
+  UnAuthorizedInterceptor,
   useFeatureFlags,
-  useGetObject,
-  useGetKustomization,
   useGetHelmRelease,
+  useGetKustomization,
+  useGetObject,
+  useIsAuthenticated,
   useListAutomations,
   useListFluxRuntimeObjects,
+  useListSources,
   UserSettings,
   V2Routes,
   YamlView,
