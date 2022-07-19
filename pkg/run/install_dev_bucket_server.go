@@ -3,14 +3,10 @@ package run
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/run/forwarder"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -25,7 +21,8 @@ const (
 	port      = 9000
 )
 
-func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config) error {
+// InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
+func InstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config) (func(), error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -49,7 +46,7 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *r
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &devBucketNamespace); err != nil {
 			log.Failuref("Error creating namespace %s: %v", devBucket, err.Error())
-			return err
+			return nil, err
 		} else {
 			log.Successf("Created namespace %s", devBucket)
 		}
@@ -82,7 +79,7 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *r
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &devBucketService); err != nil {
 			log.Failuref("Error creating service %s/%s: %v", devBucket, devBucket, err.Error())
-			return err
+			return nil, err
 		} else {
 			log.Successf("Created service %s/%s", devBucket, devBucket)
 		}
@@ -111,7 +108,7 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *r
 					Containers: []corev1.Container{
 						{
 							Name:  devBucket,
-							Image: "ghcr.io/weaveworks/gitops-bucket-server:dev",
+							Image: "ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290",
 							Env: []corev1.EnvVar{
 								{Name: "MINIO_ROOT_USER", Value: "user"},
 								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
@@ -136,7 +133,7 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *r
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &devBucketDeployment); err != nil {
 			log.Failuref("Error creating deployment %s/%s: %v", devBucket, devBucket, err.Error())
-			return err
+			return nil, err
 		} else {
 			log.Successf("Created deployment %s/%s", devBucket, devBucket)
 		}
@@ -170,46 +167,51 @@ func InstallBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *r
 		log.Failuref("Max retry exceeded waiting for deployment to be ready")
 	}
 
-	options := []*forwarder.Option{
-		{
-			LocalPort:   port,
-			RemotePort:  port,
-			ServiceName: devBucket,
-			Namespace:   devBucket,
+	specMap := &PortForwardSpec{
+		Namespace:     devBucket,
+		Name:          devBucket,
+		Kind:          "service",
+		HostPort:      "9000",
+		ContainerPort: "9000",
+	}
+	// get pod from specMap
+	pod, err := GetPodFromSpecMap(specMap, kubeClient)
+	if err != nil {
+		log.Failuref("Error getting pod from specMap: %v", err)
+	}
+
+	if pod != nil {
+		waitFwd := make(chan struct{}, 1)
+		readyChannel := make(chan struct{})
+		cancelPortFwd := func() {
+			close(waitFwd)
+		}
+
+		log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
+
+		go func() {
+			if err := ForwardPort(pod, config, specMap, waitFwd, readyChannel); err != nil {
+				log.Failuref("Error forwarding port: %v", err)
+			}
+		}()
+		<-readyChannel
+
+		log.Successf("Port forwarding for dev-bucket is ready.")
+
+		return cancelPortFwd, nil
+	}
+
+	return nil, fmt.Errorf("pod not found")
+}
+
+// UninstallDevBucketServer deletes the dev-bucket namespace.
+func UninstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP) error {
+	// create namespace
+	devBucketNamespace := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: devBucket,
 		},
 	}
-
-	log.Actionf("Forwarding dev-bucket port :%d to localhost ...", port)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	defer cancel()
-
-	ret, err := forwarder.WithForwarders(ctx, config, options)
-	if err != nil {
-		return err
-	}
-	// defer to close the forwarding after the function ends
-	defer ret.Close()
-
-	// wait forwarding ready
-	// the remote and local ports are listed
-	log.Actionf("Waiting for dev-bucket port forwarding to be ready ...")
-
-	if _, err := ret.Ready(); err != nil {
-		return err
-	}
-
-	log.Successf("Port forwarding for dev-bucket is ready.")
-
-	// wait for ctrl+C
-	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
-
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
-	cancel()
-	fmt.Println()
 
 	log.Actionf("Removing namespace %s ...", devBucket)
 

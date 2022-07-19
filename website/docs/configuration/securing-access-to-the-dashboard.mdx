@@ -49,14 +49,14 @@ Once the HTTP server starts unauthenticated users will have to click the 'login 
 
 ## Login via a cluster user account
 
-Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one:
+Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI:
 
 Generate the password by running:
 
 ```sh
 PASSWORD="<your password>"
-docker run -it golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
-$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+echo  $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
 Now create a Kubernetes secret to store your chosen username and the password hash:

@@ -30,6 +30,7 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/johannesboyne/gofakes3 v0.0.0-00010101000000-000000000000
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
+	github.com/minio/minio-go/v7 v7.0.31
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.19.0
@@ -69,6 +70,7 @@ require (
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/fluxcd/pkg/kustomize v0.5.2 // indirect
 	github.com/fluxcd/pkg/untar v0.1.0 // indirect
@@ -79,12 +81,16 @@ require (
 	github.com/google/go-github/v42 v42.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/iancoleman/strcase v0.1.2 // indirect
+	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/matryer/is v1.4.0 // indirect
+	github.com/minio/md5-simd v1.1.0 // indirect
+	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
+	github.com/rs/xid v1.2.1 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20180507124511-f6ea450bfb63 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -137,7 +143,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.3 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.4.2 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/go-errors/errors v1.4.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
@@ -225,7 +231,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129
-	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/text v0.3.7
@@ -253,5 +259,5 @@ require (
 // Fix for CVE-2022-1996
 replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
 
-// Use patched version that fixed recursive gets
-replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220701141756-18761244febb
+// Use patched version that fixed recursive gets, and force delete for buckets
+replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b

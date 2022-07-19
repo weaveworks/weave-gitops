@@ -79,8 +79,8 @@ adminUser:
   # k8s. Requires `adminUser.create` and `adminUser.createSecret`.
   username: gitops-test-user
   # -- (string) Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret`
-  # This needs to have been hashed using the bcrypt
-  # algorithm. E.g. `go install github.com/bitnami/bcrypt-cli@v1.0.2 && bcrypt-cli <<< $PASSWORD`
+  # This needs to have been hashed using bcrypt.
+  # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
 
 podAnnotations: {}
