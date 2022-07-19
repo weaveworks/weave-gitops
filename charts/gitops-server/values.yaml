@@ -80,7 +80,7 @@ adminUser:
   username: gitops-test-user
   # -- (string) Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret`
   # This needs to have been hashed using bcrypt.
-  # You can access one via our CLI with `gitops get bcrypt-hash`.
+  # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
 
 podAnnotations: {}
