@@ -356,7 +356,7 @@ In order to login to the WGE UI, you need to generate a bcrypt hash for your cho
 
 There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
 
-```
+```bash
 PASSWORD="<your password>"
 echo  $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
@@ -368,7 +368,7 @@ Use the hashed output to create a Kubernetes username/password secret.
 kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
   --from-literal=username=wego-admin \
-  --from-literal=password='$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+  --from-literal=password='$2a$.......'
 ```
 
 ### 7. Check that WGE is installed
