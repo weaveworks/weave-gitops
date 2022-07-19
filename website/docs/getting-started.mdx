@@ -13,8 +13,8 @@ If you haven't already, be sure to check out our [introduction](./intro.md) to W
 ## Before you begin
 
 We will provide a complete walkthrough of getting Flux installed and Weave GitOps configured. However, if you have:
--  an existing cluster bootstrapped Flux 🎉
--  followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
+- an existing cluster bootstrapped Flux 🎉
+- followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
 
 Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃
 but note ⚠️ you may need to alter commands where we are committing files to GitHub ⚠️.
@@ -77,7 +77,7 @@ The bootstrap command above does following:
 ### Configure access to the dashboard
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
-We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses a Go Docker image to generate one.
+We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
 
 1. Clone your git repository where Flux has been bootstrapped (you could skip this step if you performed previous steps in this doc).
 
@@ -86,11 +86,11 @@ git clone https://github.com/$GITHUB_USER/fleet-infra
 cd fleet-infra
 ```
 
-2. Generate the password using a golang image:
+2. Generate the password:
 
 ```
 PASSWORD="<your password>"
-docker run -it --rm golang:1.17 bash -c "go install github.com/bitnami/bcrypt-cli@v1.0.2 2> /dev/null && echo -n '$PASSWORD' | bcrypt-cli"
+echo  $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
