@@ -1,46 +1,60 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import DataTable, { SortType } from "../components/DataTable";
+import { SortType } from "../components/DataTable";
 import KubeStatusIndicator from "../components/KubeStatusIndicator";
 import Link from "../components/Link";
 import { Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
+import FilterableTable, {
+  filterConfig,
+  filterByStatusCallback,
+} from "./FilterableTable";
 
 type Props = {
   className?: string;
   deployments?: Deployment[];
 };
 
-function FluxRuntime(props: Props) {
+function FluxRuntime({ className, deployments }: Props) {
+  const initialFilterState = {
+    ...filterConfig(deployments, "clusterName"),
+    ...filterConfig(deployments, "status", filterByStatusCallback),
+  };
+
   return (
-    <DataTable
-      className={props.className}
-      defaultSort={2}
+    <FilterableTable
+      className={className}
+      filters={initialFilterState}
+      rows={deployments}
       fields={[
         {
           label: "Name",
           value: "name",
+          textSearchable: true,
+          maxWidth: 600,
         },
         {
-          value: (v: Deployment) => (
-            <KubeStatusIndicator
-              conditions={v.conditions}
-              suspended={v.suspended}
-            />
-          ),
           label: "Status",
-          sortValue: statusSortHelper,
+          value: (d: Deployment) =>
+            d.conditions.length > 0 ? (
+              <KubeStatusIndicator
+                short
+                conditions={d.conditions}
+                suspended={d.suspended}
+              />
+            ) : null,
           sortType: SortType.number,
+          sortValue: statusSortHelper,
         },
         {
           label: "Cluster",
           value: "clusterName",
         },
         {
-          value: (v: Deployment) => (
+          value: (d: Deployment) => (
             <>
-              {_.map(v.images, (img) => (
+              {_.map(d.images, (img) => (
                 <Link href={`https://${img}`} key={img} newTab>
                   {img}
                 </Link>
@@ -50,8 +64,7 @@ function FluxRuntime(props: Props) {
           label: "Image",
         },
       ]}
-      rows={props.deployments}
-    />
+    ></FilterableTable>
   );
 }
 
