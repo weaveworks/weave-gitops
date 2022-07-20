@@ -5,7 +5,6 @@ import {
   FluxObjectKind,
   GitRepository,
   HelmRepository,
-  HelmRepositoryType,
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
@@ -109,12 +108,8 @@ function SourcesTable({ className, sources }: Props) {
                 return "-";
               case FluxObjectKind.KindHelmRepository:
                 text = (s as HelmRepository).url;
-                if (
-                  (s as HelmRepository).repositoryType != HelmRepositoryType.OCI
-                ) {
-                  url = text;
-                  link = true;
-                }
+                url = text;
+                link = true;
                 break;
             }
             return link ? (

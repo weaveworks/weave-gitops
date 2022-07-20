@@ -61,7 +61,7 @@ import {
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { statusSortHelper } from "./lib/utils";
+import { statusSortHelper, isAllowedLink } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
@@ -104,6 +104,7 @@ export {
   IconType,
   InfoList,
   Interval,
+  isAllowedLink,
   KubeStatusIndicator,
   KustomizationDetail,
   Link,

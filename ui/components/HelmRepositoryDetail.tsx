@@ -31,7 +31,7 @@ function HelmRepositoryDetail({
       info={(hr: HelmRepository = {}) => [
         ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
         ["Repository Type", hr.repositoryType.toLowerCase()],
-        ["URL", tryLink(hr.url)],
+        ["URL", <Link>hr.url</Link>],
         [
           "Last Updated",
           hr.lastUpdatedAt ? <Timestamp time={hr.lastUpdatedAt} /> : "-",
@@ -42,18 +42,6 @@ function HelmRepositoryDetail({
       ]}
     />
   );
-}
-
-export function tryLink(url: string): React.ReactElement<any, any> | string {
-  if (url.startsWith("http")) {
-    return (
-      <Link newTab href={url}>
-        {url}
-      </Link>
-    );
-  } else {
-    return url;
-  }
 }
 
 export default styled(HelmRepositoryDetail).attrs({
