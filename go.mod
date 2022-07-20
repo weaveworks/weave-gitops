@@ -28,7 +28,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/johannesboyne/gofakes3 v0.0.0-00010101000000-000000000000
+	github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/minio/minio-go/v7 v7.0.31
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
