@@ -8,6 +8,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -15,6 +16,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
 
@@ -54,6 +56,20 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.K
 	fmt.Println(applyOutput)
 
 	return nil
+}
+
+func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) bool {
+	helmChart := sourcev1.HelmChart{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: wego.DefaultNamespace,
+			Name:      fmt.Sprintf("%s-ww-gitops", wego.DefaultNamespace),
+		},
+	}
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
+		return false
+	}
+
+	return true
 }
 
 func generateManifests(secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {

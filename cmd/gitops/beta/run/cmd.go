@@ -242,16 +242,21 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
-		prompt := promptui.Prompt{
-			Label:     "Would you like to install the GitOps Dashboard",
-			IsConfirm: true,
-		}
-		_, err = prompt.Run()
+		installed := run.IsDashboardInstalled(log, ctx, kubeClient)
+		if installed {
+			log.Successf("GitOps Dashboard is found")
+		} else {
+			prompt := promptui.Prompt{
+				Label:     "Would you like to install the GitOps Dashboard",
+				IsConfirm: true,
+			}
+			_, err = prompt.Run()
 
-		if err == nil {
-			err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
-			if err != nil {
-				return fmt.Errorf("gitops dashboard installation failed: %w", err)
+			if err == nil {
+				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+				if err != nil {
+					return fmt.Errorf("gitops dashboard installation failed: %w", err)
+				}
 			}
 		}
 
