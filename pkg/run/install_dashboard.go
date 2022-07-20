@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Installs the GitOps Dashboard.
 func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigArgs *genericclioptions.ConfigFlags) error {
 	password, err := utils.ReadPasswordFromStdin("Please enter your password to generate your secret: ")
 	if err != nil {
@@ -58,6 +59,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.K
 	return nil
 }
 
+// Checks if the GitOps Dashboard is installed.
 func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) bool {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
@@ -72,6 +74,7 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *ku
 	return true
 }
 
+// Generates GitOps Dashboard manifests from objects.
 func generateManifests(secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
@@ -92,6 +95,7 @@ func generateManifests(secret string, helmRepository *sourcev1.HelmRepository, h
 	return content, nil
 }
 
+// Creates a HelmRepository object for installing the GitOps Dashboard.
 func makeHelmRepository() *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -113,6 +117,7 @@ func makeHelmRepository() *sourcev1.HelmRepository {
 	return helmRepository
 }
 
+// Creates a HelmRelease object for installing the GitOps Dashboard.
 func makeHelmRelease(secret string) *helmv2.HelmRelease {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
@@ -149,12 +154,14 @@ func makeHelmRelease(secret string) *helmv2.HelmRelease {
 	return helmRelease
 }
 
+// Creates a values object for installing the GitOps Dashboard.
 func makeValues(secret string) ([]byte, error) {
-	valuesMap := make(map[string]interface{})
-	valuesMap["adminUser"] = map[string]interface{}{
-		"create":       true,
-		"passwordHash": secret,
-		"username":     "admin",
+	valuesMap := map[string]interface{}{
+		"adminUser": map[string]interface{}{
+			"create":       true,
+			"passwordHash": secret,
+			"username":     "admin",
+		},
 	}
 
 	jsonRaw, err := json.Marshal(valuesMap)
