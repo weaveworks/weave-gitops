@@ -39,10 +39,10 @@ function DirectedGraph({ className, descendants, links, hierarchy }: Props) {
       .join("path")
       .attr(
         "d",
-        d3
-          .linkHorizontal()
-          .source((d) => [d.x, d.y])
-          .target((d) => [d.x, d.y])
+        (d) =>
+          `M${d.source.x + 550} ${d.source.y + 50}H${d.target.x + 550}V${
+            d.target.y + 50
+          }`
       );
   }, [descendants, links]);
 
@@ -50,12 +50,27 @@ function DirectedGraph({ className, descendants, links, hierarchy }: Props) {
     <svg width={1000} height={1000}>
       <g>
         {_.map(descendants, (d) => {
-          return <rect width={100} height={100} x={d.x} y={d.y}></rect>;
+          return (
+            <rect
+              width={100}
+              height={100}
+              x={d.x + 500}
+              y={d.y}
+              fill="white"
+              strokeWidth={2}
+              stroke={"#737373"}
+              style={{ borderRadius: 10 }}
+            ></rect>
+          );
         })}
       </g>
-      <g ref={gLinks} />
+      <g ref={gLinks} stroke={"purple"} strokeWidth={2} fill="none" />
     </svg>
   );
 }
 
-export default styled(DirectedGraph).attrs({ className: DirectedGraph.name })``;
+export default styled(DirectedGraph).attrs({ className: DirectedGraph.name })`
+  rect {
+    border-radius: 10px;
+  }
+`;
