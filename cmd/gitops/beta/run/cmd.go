@@ -4,12 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,11 +12,20 @@ import (
 	"syscall"
 	"time"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/spf13/cobra"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/fsnotify/fsnotify"
+	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -237,6 +240,19 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
+		}
+
+		prompt := promptui.Prompt{
+			Label:     "Would you like to install the GitOps Dashboard",
+			IsConfirm: true,
+		}
+		_, err = prompt.Run()
+
+		if err == nil {
+			err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
+				return fmt.Errorf("gitops dashboard installation failed: %w", err)
+			}
 		}
 
 		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {

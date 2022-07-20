@@ -29,6 +29,7 @@ require (
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/johannesboyne/gofakes3 v0.0.0-00010101000000-000000000000
+	github.com/manifoldco/promptui v0.9.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/minio/minio-go/v7 v7.0.31
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
@@ -69,6 +70,7 @@ require (
 	github.com/aws/aws-sdk-go v1.17.4 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/containerd/cgroups v1.0.4 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect

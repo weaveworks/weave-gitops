@@ -2,16 +2,22 @@ package run
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
@@ -34,6 +40,48 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	log.Println(applyOutput)
 
 	return nil
+}
+
+func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
+	log.Actionf("Getting Flux version ...")
+
+	listResult := unstructured.UnstructuredList{}
+
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	})
+
+	listOptions := ctrlclient.MatchingLabels{
+		coretypes.PartOfLabel: "flux",
+	}
+
+	u := unstructured.Unstructured{}
+
+	if err := kubeClient.List(ctx, &listResult, listOptions); err != nil {
+		log.Failuref("error getting the list of Flux objects")
+		return "", err
+	} else {
+		for _, item := range listResult.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				u = item
+				break
+			}
+		}
+	}
+
+	labels := u.GetLabels()
+	if labels == nil {
+		return "", fmt.Errorf("error getting Flux labels")
+	}
+
+	fluxVersion := labels[flux.VersionLabelKey]
+	if fluxVersion == "" {
+		return "", fmt.Errorf("no flux version found")
+	}
+
+	return fluxVersion, nil
 }
 
 func WaitForDeploymentToBeReady(log logger.Logger, kubeClient *kube.KubeHTTP, deploymentName string, namespace string) error {
