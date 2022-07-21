@@ -12,7 +12,7 @@ type Props = {
 
 const nodeBorderRadius = "50px";
 const titleFontSize = "48px";
-const kindFontSize = "32px";
+const kindFontSize = "36px";
 
 const GraphIcon = styled.img`
   height: ${titleFontSize};
@@ -21,8 +21,7 @@ const GraphIcon = styled.img`
 
 const Node = styled(Flex)`
   background: white;
-  border: 5px solid #7a7a7a;
-  border-left: none;
+  border: 5px solid ${(props) => props.theme.colors.neutral30};
   border-radius: ${nodeBorderRadius};
 `;
 
@@ -60,7 +59,7 @@ const StatusLine = styled.div<StatusLineProps>`
       return props.theme.colors.primary10;
     else if (props.status === ReadyType.NotReady)
       return props.theme.colors.alert;
-    else return "white";
+    else return "transparent";
   }};
 `;
 
@@ -102,52 +101,5 @@ function GraphNode({ className, object }: Props) {
     </Node>
   );
 }
-
-`
-  .status {
-    display: flex;
-    align-items: center;
-  }
-  .kind-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 28px;
-  }
-  .status-line {
-    width: 2.5%;
-    border-radius: 10px 0px 0px 10px;
-  }
-  .Current {
-    color: ${(props) => props.theme.colors.success};
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.success};
-    }
-  }
-  .InProgress {
-    color: ${(props) => props.theme.colors.suspended};
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.suspended};
-    }
-  }
-  .Failed {
-    color: ${(props) => props.theme.colors.alert};
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.alert};
-    }
-  }
-  .name {
-    color: ${(props) => props.theme.colors.black};
-    font-weight: 800;
-    font-size: 28px;
-    white-space: pre-wrap;
-  }
-  .kind {
-    color: ${(props) => props.theme.colors.neutral30};
-  }
-  .edgePath path {
-    stroke: ${(props) => props.theme.colors.neutral30};
-    stroke-width: 1px;
-  }
-`;
 
 export default styled(GraphNode).attrs({ className: GraphNode.name })``;
