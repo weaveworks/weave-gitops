@@ -276,15 +276,13 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		}
 
 		if dashboardInstalled {
-			podName := "ww-gitops-weave-gitops"
+			log.Actionf("Request reconciliation of dashboard ...")
 
-			log.Actionf("Waiting for %s/%s to be ready ...", "flux-system", podName)
-
-			if err := run.WaitForDeploymentToBeReady(log, kubeClient, podName, "flux-system"); err != nil {
-				return err
+			if err := reconcileDashboard(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+				log.Failuref("Error requesting reconciliation: %v", err)
 			}
 
-			log.Successf("%s/%s is now ready ...", flags.Namespace, podName)
+			log.Successf("Reconciliation is done.")
 		}
 
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
@@ -556,6 +554,58 @@ func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, 
 		}
 
 		return apimeta.IsStatusConditionPresentAndEqual(devKs.Status.Conditions, kustomizev1.HealthyCondition, metav1.ConditionTrue), nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// reconcileDashboard reconciles the dashboard.
+func reconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
+	const interval = 3 * time.Second / 2
+
+	// reconcile dashboard
+	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
+		types.NamespacedName{
+			Namespace: namespace,
+			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
+		}, schema.GroupVersionKind{
+			Group:   "source.toolkit.fluxcd.io",
+			Version: "v1beta2",
+			Kind:    "HelmChart",
+		})
+	if err != nil {
+		return err
+	}
+
+	// wait for the reconciliation of dashboard to be done
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		dashboard := &sourcev1.HelmChart{}
+		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+			Namespace: namespace,
+			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
+		}, dashboard); err != nil {
+			return false, err
+		}
+
+		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
+	}); err != nil {
+		return err
+	}
+
+	// wait for dashboard to be ready
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		dashboard := &sourcev1.HelmChart{}
+
+		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+			Namespace: namespace,
+			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
+		}, dashboard); err != nil {
+			return false, err
+		}
+
+		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
 	}); err != nil {
 		return err
 	}
