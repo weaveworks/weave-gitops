@@ -11,11 +11,13 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -72,6 +74,49 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *ku
 	}
 
 	return true
+}
+
+const (
+	dashboard = "ww-gitops-weave-gitops"
+)
+
+// Checks if the GitOps Dashboard is installed.
+func OpenDashboardPort(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, dashboardPort string) (func(), error) {
+	specMap := &PortForwardSpec{
+		Namespace:     "flux-system",
+		Name:          dashboard,
+		Kind:          "service",
+		HostPort:      dashboardPort,
+		ContainerPort: server.DefaultPort,
+	}
+	// get pod from specMap
+	pod, err := GetPodFromSpecMap(specMap, kubeClient)
+	if err != nil {
+		log.Failuref("Error getting pod from specMap: %v", err)
+	}
+
+	if pod != nil {
+		waitFwd := make(chan struct{}, 1)
+		readyChannel := make(chan struct{})
+		cancelPortFwd := func() {
+			close(waitFwd)
+		}
+
+		log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
+
+		go func() {
+			if err := ForwardPort(pod, config, specMap, waitFwd, readyChannel); err != nil {
+				log.Failuref("Error forwarding port: %v", err)
+			}
+		}()
+		<-readyChannel
+
+		log.Successf("Port forwarding for dev-bucket is ready.")
+
+		return cancelPortFwd, nil
+	}
+
+	return nil, fmt.Errorf("pod not found")
 }
 
 // Generates GitOps Dashboard manifests from objects.

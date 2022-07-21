@@ -44,7 +44,7 @@ type runCommandFlags struct {
 	ComponentsExtra []string
 	Timeout         time.Duration
 	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
-	PortDashboard   string
+	DashboardPort   string
 	RootDir         string
 	// Global flags.
 	Namespace  string
@@ -95,7 +95,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
-	cmdFlags.StringVar(&flags.PortDashboard, "port-dashboard", "9001", "GitOps Dashboard port")
+	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
@@ -244,8 +244,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
-		installed := run.IsDashboardInstalled(log, ctx, kubeClient)
-		if installed {
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient)
+		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
 		} else {
 			prompt := promptui.Prompt{
@@ -259,6 +259,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
+				} else {
+					dashboardInstalled = true
 				}
 			}
 		}
@@ -273,9 +275,30 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 		}
 
+		if dashboardInstalled {
+			podName := "ww-gitops-weave-gitops"
+
+			log.Actionf("Waiting for %s/%s to be ready ...", "flux-system", podName)
+
+			if err := run.WaitForDeploymentToBeReady(log, kubeClient, podName, "flux-system"); err != nil {
+				return err
+			}
+
+			log.Successf("%s/%s is now ready ...", flags.Namespace, podName)
+		}
+
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
 		if err != nil {
 			return err
+		}
+
+		var cancelDashboardPortForwarding func() = nil
+
+		if dashboardInstalled {
+			cancelDashboardPortForwarding, err = run.OpenDashboardPort(log, kubeClient, cfg, flags.DashboardPort)
+			if err != nil {
+				return err
+			}
 		}
 
 		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs); err != nil {
@@ -407,6 +430,11 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
 		cancelDevBucketPortForwarding()
+
+		if cancelDashboardPortForwarding != nil {
+			cancelDashboardPortForwarding()
+		}
+
 		ticker.Stop()
 
 		if err := run.CleanupBucketSourceAndKS(log, kubeClient, "flux-system"); err != nil {
