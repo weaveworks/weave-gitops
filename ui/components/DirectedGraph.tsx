@@ -43,10 +43,10 @@ function DirectedGraph({ className, descendants, links, nodeSize }: Props) {
           //turn each descendant into a GraphNode
           return (
             <foreignObject
-              width={750}
-              height={300}
+              width={nodeSize.width}
+              height={nodeSize.height}
               key={index}
-              transform={`translate(${d.x - 375}, ${d.y})`}
+              transform={`translate(${d.x - nodeSize.width / 2}, ${d.y})`}
               fill="white"
               strokeWidth={2}
               stroke={"#737373"}

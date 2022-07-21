@@ -33,7 +33,8 @@ export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
   else if (computeReady(v["conditions"]) === ReadyType.Reconciling)
     return ReadyType.Reconciling;
-  else if (computeReady(v["conditions"])) return ReadyType.Ready;
+  else if (computeReady(v["conditions"]) === ReadyType.Ready)
+    return ReadyType.Ready;
   else return ReadyType.NotReady;
 };
 

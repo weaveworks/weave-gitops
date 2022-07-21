@@ -19,6 +19,7 @@ export enum ReadyType {
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
+  if (!conditions) return undefined;
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
@@ -30,7 +31,7 @@ export function computeReady(conditions: Condition[]): ReadyType {
     )
       return ReadyType.Reconciling;
   }
-  return undefined;
+  return ReadyType.NotReady;
 }
 
 export function computeMessage(conditions: Condition[]) {
@@ -54,14 +55,12 @@ function KubeStatusIndicator({
     icon = IconType.SuspendedIcon;
   } else {
     const ready = computeReady(conditions);
-    if (ready) {
-      if (ready === ReadyType.Reconciling) {
-        readyText = ReadyType.Reconciling;
-        icon = IconType.ReconcileIcon;
-      } else {
-        readyText = ReadyType.Ready;
-        icon = IconType.SuccessIcon;
-      }
+    if (ready === ReadyType.Reconciling) {
+      readyText = ReadyType.Reconciling;
+      icon = IconType.ReconcileIcon;
+    } else if (ready === ReadyType.Ready) {
+      readyText = ReadyType.Ready;
+      icon = IconType.SuccessIcon;
     } else {
       readyText = ReadyType.NotReady;
       icon = IconType.FailedIcon;

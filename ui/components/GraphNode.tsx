@@ -58,7 +58,9 @@ const StatusLine = styled.div<StatusLineProps>`
       return props.theme.colors.success;
     else if (props.status === ReadyType.Reconciling)
       return props.theme.colors.primary10;
-    else return props.theme.colors.alert;
+    else if (props.status === ReadyType.NotReady)
+      return props.theme.colors.alert;
+    else return "white";
   }};
 `;
 
