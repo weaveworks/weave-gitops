@@ -18,7 +18,7 @@ export enum ReadyType {
   Reconciling = "Reconciling",
 }
 
-export function computeReady(conditions: Condition[]): string {
+export function computeReady(conditions: Condition[]): ReadyType {
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");

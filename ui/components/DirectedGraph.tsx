@@ -1,76 +1,64 @@
-import * as d3 from "d3";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import GraphNode from "./GraphNode";
+
+type nodeSize = {
+  width: number;
+  height: number;
+  verticalSeparation: number;
+  horizontalSeparation: number;
+};
 
 type Props = {
   className?: string;
-  descendants?: any[];
-  links?: any[];
-  hierarchy?: any;
+  descendants: any[];
+  links: any[];
+  nodeSize: nodeSize;
 };
 
-function DirectedGraph({ className, descendants, links, hierarchy }: Props) {
-  const [nodes, setNodes] = React.useState(null);
-  const [paths, setPaths] = React.useState(null);
-  const gLinks = React.useRef(null);
-
-  // const scaleX = () =>
-  //   d3
-  //     .scaleLinear()
-  //     .domain(
-  //       d3.extent((d) => {
-  //         console.log(d);
-  //         d.x;
-  //       })
-  //     )
-  //     .range([20, 1000]);
-  // const scaleY = (d) =>
-  //   d3
-  //     .scaleLinear(d)
-  //     .domain(d3.extent((d) => d.y))
-  //     .range([20, 1000]);
-
-  React.useEffect(() => {
-    setNodes(descendants);
-    d3.select(gLinks.current)
-      .selectAll("path")
-      .data(links)
-      .join("path")
-      .attr(
-        "d",
-        (d) =>
-          `M${d.source.x + 550} ${d.source.y + 50}H${d.target.x + 550}V${
-            d.target.y + 50
-          }`
-      );
-  }, [descendants, links]);
-
+function DirectedGraph({ className, descendants, links, nodeSize }: Props) {
   return (
-    <svg width={1000} height={1000}>
-      <g>
-        {_.map(descendants, (d) => {
+    <svg width="100%" height="100%" viewBox="0 0 5000 5000">
+      <g
+        stroke="#7a7a7a"
+        strokeWidth={5}
+        fill="none"
+        transform="translate(2500, 50)"
+      >
+        {_.map(links, (l, index) => {
+          // l is an object with a source and target node, each with an x and y value. M tells the path where to start, H draws a straight horizontal line, and V draws a straight vertical line
           return (
-            <rect
-              width={100}
-              height={100}
-              x={d.x + 500}
-              y={d.y}
-              fill="white"
-              strokeWidth={2}
-              stroke={"#737373"}
-              style={{ borderRadius: 10 }}
-            ></rect>
+            <path
+              key={index}
+              d={`M${l.source.x} ${l.source.y + nodeSize.verticalSeparation}H${
+                l.target.x
+              }V${l.target.y + nodeSize.verticalSeparation}`}
+            />
           );
         })}
       </g>
-      <g ref={gLinks} stroke={"purple"} strokeWidth={2} fill="none" />
+      <g transform="translate(2500, 50)">
+        {_.map(descendants, (d, index) => {
+          //turn each descendant into a GraphNode
+          return (
+            <foreignObject
+              width={750}
+              height={300}
+              key={index}
+              transform={`translate(${d.x - 375}, ${d.y})`}
+              fill="white"
+              strokeWidth={2}
+              stroke={"#737373"}
+              overflow="visible"
+            >
+              <GraphNode object={d.data} />
+            </foreignObject>
+          );
+        })}
+      </g>
     </svg>
   );
 }
 
-export default styled(DirectedGraph).attrs({ className: DirectedGraph.name })`
-  rect {
-    border-radius: 10px;
-  }
-`;
+export default styled(DirectedGraph).attrs({ className: DirectedGraph.name })``;

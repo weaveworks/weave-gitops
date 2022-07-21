@@ -2,17 +2,10 @@ import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import {
-  Condition,
-  ObjectRef,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
+import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import { UnstructuredObjectWithChildren } from "../lib/graph";
-import images from "../lib/images";
 import { removeKind } from "../lib/utils";
 import DirectedGraph from "./DirectedGraph";
-import Flex from "./Flex";
-import { computeReady } from "./KubeStatusIndicator";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
@@ -27,73 +20,6 @@ export type Props = ReconciledVisualizationProps & {
   source: ObjectRef;
 };
 
-const GraphIcon = styled.img`
-  height: 16px;
-  width: 16px;
-`;
-
-function getStatusIcon(status: string, suspended: boolean) {
-  if (suspended) return <GraphIcon src={images.suspendedSrc} />;
-  switch (status) {
-    case "Current":
-      return <GraphIcon src={images.successSrc} />;
-
-    case "InProgress":
-      return <GraphIcon src={images.suspendedSrc} />;
-
-    case "Failed":
-      return <GraphIcon src={images.failedSrc} />;
-
-    default:
-      return "";
-  }
-}
-
-type NodeHtmlProps = {
-  object: UnstructuredObject & { kind?: string };
-};
-
-const NodeHtml = ({ object }: NodeHtmlProps) => {
-  return (
-    <div className="node">
-      <Flex
-        className={`status-line ${
-          object.suspended ? "InProgress" : object.status
-        }`}
-      />
-      <Flex column className="nodeText">
-        <Flex start wide align className="name">
-          <div
-            className={`status ${
-              object.suspended ? "InProgress" : object.status
-            }`}
-          >
-            {getStatusIcon(object.status, object.suspended)}
-          </div>
-          <div style={{ padding: 4 }} />
-          {object.name}
-        </Flex>
-        <Flex start wide align className="kind">
-          <div className="kind-text">
-            {object.groupVersionKind
-              ? object.groupVersionKind.kind
-              : object.kind}
-          </div>
-        </Flex>
-        <Flex start wide align className="kind">
-          <div className="kind-text">{object.namespace}</div>
-        </Flex>
-      </Flex>
-    </div>
-  );
-};
-
-const findParentStatus = (parent) => {
-  if (parent.suspended) return "InProgress";
-  if (computeReady(parent.conditions)) return "Current";
-  return "Failed";
-};
-
 function ReconciliationGraph({
   className,
   parentObject,
@@ -102,6 +28,7 @@ function ReconciliationGraph({
   clusterName,
   source,
 }: Props) {
+  //grab data
   const {
     data: objects,
     error,
@@ -115,7 +42,7 @@ function ReconciliationGraph({
         clusterName
       )
     : { data: [], error: null, isLoading: false };
-
+  //add extra nodes
   const secondNode = parentObject;
   secondNode.children = objects;
   const rootNode = {
@@ -123,14 +50,24 @@ function ReconciliationGraph({
     kind: removeKind(source.kind),
     children: [secondNode],
   };
+  //graph numbers
+  const nodeSize = {
+    width: 750,
+    height: 300,
+    verticalSeparation: 150,
+    horizontalSeparation: 100,
+  };
+  //use d3 to create tree structure
   const root = d3.hierarchy(rootNode, (d) => d.children);
-  const makeTree = d3.tree().nodeSize([100, 100]);
+  const makeTree = d3
+    .tree()
+    .nodeSize([
+      nodeSize.width + nodeSize.horizontalSeparation,
+      nodeSize.height + nodeSize.verticalSeparation,
+    ]);
   const tree = makeTree(root);
-
   const descendants = tree.descendants();
   const links = tree.links();
-
-  console.log(tree);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
@@ -138,7 +75,7 @@ function ReconciliationGraph({
         <DirectedGraph
           descendants={descendants}
           links={links}
-          hierarchy={root}
+          nodeSize={nodeSize}
         />
       </div>
     </RequestStateHandler>
