@@ -326,3 +326,13 @@ func TestUserPrincipalValid(t *testing.T) {
 		})
 	}
 }
+
+func TestUserPrincipal_String(t *testing.T) {
+	// This is primarily to guard against leaking the auth token if the
+	// principal is logged out.
+	p := auth.UserPrincipal{ID: "testing", Groups: []string{"group1", "group2"}, Token: "test-token"}
+
+	if s := fmt.Sprintf("%v", p); s != `id="testing" groups=[group1 group2]` {
+		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
+	}
+}

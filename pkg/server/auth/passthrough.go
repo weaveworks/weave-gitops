@@ -60,3 +60,38 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 
 	return &UserPrincipal{Token: token}, nil
 }
+
+// NewJWTPassthroughCookiePrincipalGetter creates and returns a new
+// JWTPassthroughCookiePrincipalGetter.
+func NewJWTPassthroughCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string) PrincipalGetter {
+	return &JWTPassthroughCookiePrincipalGetter{
+		log:        log,
+		verifier:   verifier,
+		cookieName: cookieName,
+	}
+}
+
+// JWTPassthroughCookiePrincipalGetter inspects a cookie for a JWT token and returns a
+// principal value.
+//
+// The JWT Token is parsed, and the token and user/groups are available.
+type JWTPassthroughCookiePrincipalGetter struct {
+	log        logr.Logger
+	verifier   *oidc.IDTokenVerifier
+	cookieName string
+}
+
+func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
+	cookie, err := r.Cookie(pg.cookieName)
+	if err == http.ErrNoCookie {
+		return nil, nil
+	}
+
+	principal, err := parseJWTToken(r.Context(), pg.verifier, cookie.Value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse for passthrough: %w", err)
+	}
+	principal.Token = cookie.Value
+
+	return principal, nil
+}
