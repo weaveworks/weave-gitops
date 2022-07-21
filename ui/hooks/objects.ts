@@ -25,6 +25,6 @@ export function useGetObject(
       api
         .GetObject({ name, namespace, kind, clusterName })
         .then((result: GetObjectResponse) => convertResponse(result.object)),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }

@@ -18,6 +18,7 @@ export function useListEvents(obj: ObjectRef) {
     {
       retry: false,
       refetchOnWindowFocus: false,
+      refetchInterval: 5000,
     }
   );
 }

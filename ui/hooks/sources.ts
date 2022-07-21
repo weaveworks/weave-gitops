@@ -54,6 +54,6 @@ export function useListSources(
         ];
       });
     },
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }

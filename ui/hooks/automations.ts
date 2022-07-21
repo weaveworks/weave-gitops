@@ -8,12 +8,12 @@ import {
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
   SyncFluxObjectRequest,
-  SyncFluxObjectResponse
+  SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
 import {
   FluxObjectKind,
   HelmRelease,
-  Kustomization
+  Kustomization,
 } from "../lib/api/core/types.pb";
 import { NoNamespace, RequestError, Syncable } from "../lib/types";
 
@@ -52,7 +52,7 @@ export function useListAutomations(namespace = NoNamespace) {
         ];
       });
     },
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
@@ -67,7 +67,7 @@ export function useGetKustomization(
   return useQuery<GetKustomizationResponse, RequestError>(
     ["kustomizations", name],
     () => api.GetKustomization({ name, namespace, clusterName }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
@@ -81,7 +81,7 @@ export function useGetHelmRelease(
   return useQuery<GetHelmReleaseResponse, RequestError>(
     ["helmrelease", name],
     () => api.GetHelmRelease({ name, namespace, clusterName }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 

@@ -23,7 +23,7 @@ export function useListFluxRuntimeObjects(
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
     () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
-    { retry: false }
+    { retry: false, refetchInterval: 5000 }
   );
 }
 
@@ -39,7 +39,7 @@ export function useGetReconciledObjects(
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
     () => getChildren(api, name, namespace, type, kinds, clusterName),
-    { retry: false, refetchOnWindowFocus: false }
+    { retry: false, refetchOnWindowFocus: false, refetchInterval: 5000 }
   );
 }
 
