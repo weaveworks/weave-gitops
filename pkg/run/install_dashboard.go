@@ -9,7 +9,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -36,7 +35,7 @@ const (
 )
 
 // InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigArgs *genericclioptions.ConfigFlags) error {
+func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
@@ -86,7 +85,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.K
 }
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) bool {
+func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client) bool {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: wego.DefaultNamespace,
@@ -101,7 +100,7 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *ku
 }
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, namespace string, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
@@ -140,7 +139,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHT
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration, dashboardPort string) error {
+func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
 	// reconcile dashboard
