@@ -80,7 +80,6 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
   }
 }
 function GraphNode({ className, object }: Props) {
-  console.log(object);
   const status = computeReady(object.conditions);
   return (
     <Node wide tall between className={className}>

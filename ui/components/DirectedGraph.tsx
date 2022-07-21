@@ -15,17 +15,58 @@ type Props = {
   descendants: any[];
   links: any[];
   nodeSize: nodeSize;
+  zoomPercent: number;
 };
 
-function DirectedGraph({ className, descendants, links, nodeSize }: Props) {
+function DirectedGraph({
+  className,
+  descendants,
+  links,
+  nodeSize,
+  zoomPercent,
+}: Props) {
+  const zoomBox = 15000 - 14000 * (zoomPercent / 100);
+  const [mouseDown, setMouseDown] = React.useState<{
+    x: number;
+    y: number;
+    active: boolean;
+  }>({ x: 0, y: 0, active: false });
+  const [mouseMove, setMouseMove] = React.useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+
+  React.useEffect(() => {
+    // d3.select(draggable.current).call(
+    //   d3
+    //     .drag()
+    //     .subject(draggable.current)
+    //     .on("drag", (event) => {
+    //       d3.event.subject.fx = d3.event.x;
+    //       d3.event.subject.fy = d3.event.y;
+    //     })
+    // );
+  }, []);
   return (
-    <svg width="100%" height="100%" viewBox="0 0 5000 5000">
-      <g
-        stroke="#7a7a7a"
-        strokeWidth={5}
-        fill="none"
-        transform="translate(2500, 50)"
-      >
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`${mouseMove.x} ${mouseMove.y} ${zoomBox} ${zoomBox}`}
+      // onMouseDown={(e) =>
+      //   setMouseDown({ x: e.clientX, y: e.clientY, active: true })
+      // }
+      // onMouseMove={(e) => {
+      //   if (mouseDown.active)
+      //     setMouseMove({
+      //       x: e.clientX - mouseDown.x,
+      //       y: e.clientY - mouseDown.y,
+      //     });
+      // }}
+      // onMouseUp={(e) =>
+      //   setMouseDown({ x: e.clientX, y: e.clientY, active: false })
+      // }
+    >
+      <g stroke="#7a7a7a" strokeWidth={5} fill="none">
         {_.map(links, (l, index) => {
           // l is an object with a source and target node, each with an x and y value. M tells the path where to start, H draws a straight horizontal line, and V draws a straight vertical line
           return (
@@ -38,7 +79,7 @@ function DirectedGraph({ className, descendants, links, nodeSize }: Props) {
           );
         })}
       </g>
-      <g transform="translate(2500, 50)">
+      <g>
         {_.map(descendants, (d, index) => {
           //turn each descendant into a GraphNode
           return (
