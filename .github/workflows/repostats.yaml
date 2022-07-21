@@ -17,7 +17,7 @@ jobs:
       max-parallel: 1
     steps:
       - name: run-ghrs
-        uses: jgehrcke/github-repo-stats@dab4a915b37a7521cd54033a3147daaeb868ec5c
+        uses: jgehrcke/github-repo-stats@f1749165dc32fb4cc2c2bea60f11a9e528d92313 # v1.4.1
         with:
           repository: ${{ matrix.statsRepo }}
-          ghtoken: ${{ secrets.GHRS_TOKEN }}
+          ghtoken: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
