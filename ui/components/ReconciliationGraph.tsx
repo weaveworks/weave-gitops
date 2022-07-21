@@ -86,7 +86,7 @@ function ReconciliationGraph({
   const descendants = tree.descendants();
   const links = tree.links();
 
-  const defaultZoomPercent = 20;
+  const defaultZoomPercent = 85;
   const [zoomPercent, setZoomPercent] = React.useState(defaultZoomPercent);
 
   return (
