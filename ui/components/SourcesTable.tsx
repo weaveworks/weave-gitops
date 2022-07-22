@@ -69,6 +69,10 @@ function SourcesTable({ className, sources }: Props) {
         { label: "Type", value: "type" },
         { label: "Namespace", value: "namespace" },
         {
+          label: "Cluster",
+          value: (s: Source) => s.clusterName,
+        },
+        {
           label: "Status",
           value: (s: Source) => (
             <KubeStatusIndicator
@@ -84,10 +88,6 @@ function SourcesTable({ className, sources }: Props) {
           label: "Message",
           value: (s) => computeMessage(s.conditions),
           maxWidth: 600,
-        },
-        {
-          label: "Cluster",
-          value: (s: Source) => s.clusterName,
         },
         {
           label: "URL",
