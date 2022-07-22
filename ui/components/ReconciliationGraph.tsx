@@ -37,6 +37,11 @@ const PercentFlex = styled(Flex)`
   border-radius: 2px;
 `;
 
+const GraphDiv = styled.div`
+  width: 100%;
+  height: 100%;
+`;
+
 function ReconciliationGraph({
   className,
   parentObject,
@@ -86,18 +91,42 @@ function ReconciliationGraph({
   const descendants = tree.descendants();
   const links = tree.links();
 
+  //zoom
   const defaultZoomPercent = 85;
   const [zoomPercent, setZoomPercent] = React.useState(defaultZoomPercent);
+
+  //pan
+  const [pan, setPan] = React.useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = React.useState(false);
+  const handleMouseDown = (e) => {
+    setIsPanning(true);
+  };
+  const handleMouseMove = (e) => {
+    //viewBox change. e.movement is change since previous mouse event
+    if (isPanning) setPan({ x: pan.x + e.movementX, y: pan.y + e.movementY });
+  };
+  const handleMouseUp = (e) => {
+    setIsPanning(false);
+  };
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <Flex className={className} wide tall>
-        <DirectedGraph
-          descendants={descendants}
-          links={links}
-          nodeSize={nodeSize}
-          zoomPercent={zoomPercent}
-        />
+        <GraphDiv
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          //ends drag event if mouse leaves svg
+          onMouseLeave={handleMouseUp}
+        >
+          <DirectedGraph
+            descendants={descendants}
+            links={links}
+            nodeSize={nodeSize}
+            zoomPercent={zoomPercent}
+            pan={pan}
+          />
+        </GraphDiv>
         <SliderFlex tall column align>
           <Slider
             onChange={(_, value: number) => setZoomPercent(value)}

@@ -16,6 +16,7 @@ type Props = {
   links: any[];
   nodeSize: nodeSize;
   zoomPercent: number;
+  pan: { x: number; y: number };
 };
 
 function DirectedGraph({
@@ -24,47 +25,21 @@ function DirectedGraph({
   links,
   nodeSize,
   zoomPercent,
+  pan,
 }: Props) {
+  //minimum zoomBox is 1000
   const zoomBox = 15000 - 14000 * (zoomPercent / 100);
-  const [mouseDown, setMouseDown] = React.useState<{
-    x: number;
-    y: number;
-    active: boolean;
-  }>({ x: 0, y: 0, active: false });
-  const [mouseMove, setMouseMove] = React.useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+  //since viewbox is so large, make smaller mouse movements correspond to larger pan
+  const panScale = 300 / zoomPercent;
 
-  // React.useEffect(() => {
-  //   d3.select(draggable.current).call(
-  //     d3
-  //       .drag()
-  //       .subject(draggable.current)
-  //       .on("drag", (event) => {
-  //         d3.event.subject.fx = d3.event.x;
-  //         d3.event.subject.fy = d3.event.y;
-  //       })
-  //   );
-  // }, []);
   return (
     <svg
+      className={className}
       width="100%"
       height="100%"
-      viewBox={`${mouseMove.x} ${mouseMove.y} ${zoomBox} ${zoomBox}`}
-      // onMouseDown={(e) =>
-      //   setMouseDown({ x: e.clientX, y: e.clientY, active: true })
-      // }
-      // onMouseMove={(e) => {
-      //   if (mouseDown.active)
-      //     setMouseMove({
-      //       x: e.clientX - mouseDown.x,
-      //       y: e.clientY - mouseDown.y,
-      //     });
-      // }}
-      // onMouseUp={(e) =>
-      //   setMouseDown({ x: e.clientX, y: e.clientY, active: false })
-      // }
+      viewBox={`${-pan.x * panScale} ${
+        -pan.y * panScale
+      } ${zoomBox} ${zoomBox}`}
     >
       <g transform={`translate(${zoomBox / 2}, 50)`}>
         <g stroke="#7a7a7a" strokeWidth={5} fill="none">

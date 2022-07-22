@@ -23,6 +23,7 @@ const Node = styled(Flex)`
   background: white;
   border: 5px solid ${(props) => props.theme.colors.neutral30};
   border-radius: ${nodeBorderRadius};
+  user-select: none;
 `;
 
 const NodeText = styled(Flex)`
