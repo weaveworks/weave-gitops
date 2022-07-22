@@ -6,29 +6,43 @@
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
 
-Weave GitOps is a simple open source developer platform for people who want cloud native applications, without needing Kubernetes expertise.  Experience how easy it is to enable GitOps and run your apps in a cluster. Use git to collaborate with team members making new deployments easy and secure.  Start with what developers need to run apps, and then easily extend to define and run your own enterprise platform.
+Weave GitOps is a simple open source developer platform for people who want cloud native applications, without needing
+Kubernetes expertise. Experience how easy it is to enable GitOps and run your apps in a cluster. Use git to collaborate
+with team members making new deployments easy and secure. Start with what developers need to run apps, and then easily
+extend to define and run your own enterprise platform.
 
 From Kubernetes run Weave GitOps to get:
 
-1. Application Operations: manage and automate deployment pipelines for apps and more 
+1. Application Operations: manage and automate deployment pipelines for apps and more
 2. Platforms: the easy way to have your own custom PaaS on cloud or on premise
 3. Extensions: coordinate Kubernetes rollouts with eg. VMs, DBs and cloud services
 
-Our vision is that all cloud native applications should be easy for developers, including operations which should be automated and secure.  Weave GitOps is a highly extensible tool to achieve this by placing Kubernetes and GitOps at the core and building a platform around that.
+Our vision is that all cloud native applications should be easy for developers, including operations which should be
+automated and secure. Weave GitOps is a highly extensible tool to achieve this by placing Kubernetes and GitOps at the
+core and building a platform around that.
 
-We use GitOps tools throughout.  Today Weave GitOps defaults are Flux, Kustomize, Helm, Sops and Kubernetes CAPI.  If you use Flux already then you can easily add Weave GitOps to create a platform management overlay.
+We use GitOps tools throughout. Today Weave GitOps defaults are Flux, Kustomize, Helm, Sops and Kubernetes CAPI. If you
+use Flux already then you can easily add Weave GitOps to create a platform management overlay.
 
-### Manage and view applications all in one place
-![Application Page](./doc/img/01-apps.png)
+### Manage and view applications all in one place.
 
-### Easily see your continuous deployments and what is being produced via GitOps
-![Reconciliation Page](./doc/img/02-reconciliation.png)
+![Application Page](./doc/img/01-workloads.png)
 
-### Easily see your git repositories and helm charts
-![Source Page](./doc/img/03-sources.png)
+### Easily see your continuous deployments and what is being produced via GitOps. There are multiple views for debugging as well as being able to sync your latest git commits directly from the UI.
 
-### Quickly see the health of your continous deployment runtime
-![Flux Runtime](./doc/img/04-flux-runtime.png)
+![Reconciliation Page](./doc/img/02-workload-detail.png)
+
+### Leverage Kubernetes RBAC to control permissions in the dashboard.
+
+![Source Page](./doc/img/03-rbac.jpg)
+
+### See your entire source landscape whether it is a git repository, helm repository, or bucket.
+
+![Flux Runtime](./doc/img/04-sources.jpg)
+
+### Quickly see the health of your reconciliation deployment runtime. These are the workers that are ensuring your software is running on the Kubernetes cluster.
+
+![Flux Runtime](./doc/img/05-runtime.jpg)
 
 ## Getting Started
 
@@ -102,11 +116,14 @@ Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gi
 Need help or want to contribute? Please see the links below.
 
 - Getting Started?
-  - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
+    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
 - Need help?
-  - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
+    - Talk to us in
+      the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)
+      on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
 - Have feature proposals or want to contribute?
-  - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
+    - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
+    - Learn more about contributing [here](./CONTRIBUTING.md).
 
 ## License scan details
 
