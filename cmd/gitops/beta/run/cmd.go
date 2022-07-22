@@ -244,7 +244,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
+		log.Actionf("Checking if GitOps Dashboard is already installed ...")
+
 		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient)
+
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
 		} else {
@@ -254,13 +257,14 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 				Default:   "Y",
 			}
 			_, err = prompt.Run()
-
 			if err == nil {
 				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
 					dashboardInstalled = true
+
+					log.Successf("GitOps Dashboard has been installed")
 				}
 			}
 		}
@@ -278,11 +282,11 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard ...")
 
-			if err := reconcileDashboard(kubeClient, flags.Namespace, flags.Timeout); err != nil {
-				log.Failuref("Error requesting reconciliation: %v", err)
+			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			}
 
-			log.Successf("Reconciliation is done.")
+			log.Successf("Dashboard reconciliation is done.")
 		}
 
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
@@ -293,7 +297,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var cancelDashboardPortForwarding func() = nil
 
 		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = run.OpenDashboardPort(log, kubeClient, cfg, flags.DashboardPort)
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.DashboardPort)
 			if err != nil {
 				return err
 			}
@@ -554,58 +558,6 @@ func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, 
 		}
 
 		return apimeta.IsStatusConditionPresentAndEqual(devKs.Status.Conditions, kustomizev1.HealthyCondition, metav1.ConditionTrue), nil
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// reconcileDashboard reconciles the dashboard.
-func reconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
-	const interval = 3 * time.Second / 2
-
-	// reconcile dashboard
-	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
-		}, schema.GroupVersionKind{
-			Group:   "source.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "HelmChart",
-		})
-	if err != nil {
-		return err
-	}
-
-	// wait for the reconciliation of dashboard to be done
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard := &sourcev1.HelmChart{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
-		}, dashboard); err != nil {
-			return false, err
-		}
-
-		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
-	}); err != nil {
-		return err
-	}
-
-	// wait for dashboard to be ready
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard := &sourcev1.HelmChart{}
-
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      fmt.Sprintf("%s-ww-gitops", namespace),
-		}, dashboard); err != nil {
-			return false, err
-		}
-
-		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
 	}); err != nil {
 		return err
 	}

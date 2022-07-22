@@ -16,37 +16,60 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
 
-// Installs the GitOps Dashboard.
+const (
+	helmRepositoryName      = "ww-gitops"
+	helmReleaseName         = "ww-gitops"
+	helmChartName           = "weave-gitops"
+	helmChartNamespacedName = wego.DefaultNamespace + "-ww-gitops"
+	podName                 = "ww-gitops-weave-gitops"
+	helmRepositoryUrl       = "https://helm.gitops.weave.works"
+)
+
+// InstallDashboard installs the GitOps Dashboard.
 func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, kubeConfigArgs *genericclioptions.ConfigFlags) error {
-	password, err := utils.ReadPasswordFromStdin("Please enter your password to generate your secret: ")
+	log.Actionf("Installing the GitOps Dashboard ...")
+
+	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
 	if err != nil {
-		return fmt.Errorf("could not read password: %w", err)
+		log.Failuref("Could not read password")
+		return err
 	}
 
 	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Failuref("Error generating secret from password")
 		return err
 	}
 
 	log.Successf("Secret has been generated:")
 	fmt.Println(string(secret))
 
-	log.Actionf("Installing GitOps Dashboard ...")
+	log.Actionf("Installing the GitOps Dashboard ...")
 
 	helmRepository := makeHelmRepository()
-	helmRelease := makeHelmRelease(string(secret))
+	helmRelease, err := makeHelmRelease(log, string(secret))
 
-	manifests, err := generateManifests(string(secret), helmRepository, helmRelease)
 	if err != nil {
-		log.Failuref("Creating GitOps Dashboard manifests failed")
+		log.Failuref("Creating HelmRelease failed")
 		return err
 	}
+
+	manifests, err := generateManifests(log, string(secret), helmRepository, helmRelease)
+	if err != nil {
+		log.Failuref("Generating GitOps Dashboard manifests failed")
+		return err
+	}
+
+	log.Successf("Generated GitOps Dashboard manifests")
 
 	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, manifests)
 	if err != nil {
@@ -61,12 +84,12 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient *kube.K
 	return nil
 }
 
-// Checks if the GitOps Dashboard is installed.
+// IsDashboardInstalled checks if the GitOps Dashboard is installed.
 func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) bool {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: wego.DefaultNamespace,
-			Name:      fmt.Sprintf("%s-ww-gitops", wego.DefaultNamespace),
+			Name:      helmChartNamespacedName,
 		},
 	}
 	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
@@ -76,15 +99,11 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *ku
 	return true
 }
 
-const (
-	dashboard = "ww-gitops-weave-gitops"
-)
-
-// Checks if the GitOps Dashboard is installed.
-func OpenDashboardPort(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, dashboardPort string) (func(), error) {
+// EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
+func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
-		Namespace:     "flux-system",
-		Name:          dashboard,
+		Namespace:     wego.DefaultNamespace,
+		Name:          podName,
 		Kind:          "service",
 		HostPort:      dashboardPort,
 		ContainerPort: server.DefaultPort,
@@ -111,23 +130,76 @@ func OpenDashboardPort(log logger.Logger, kubeClient *kube.KubeHTTP, config *res
 		}()
 		<-readyChannel
 
-		log.Successf("Port forwarding for dev-bucket is ready.")
+		log.Successf("Port forwarding for dashboard is ready.")
 
 		return cancelPortFwd, nil
 	}
 
-	return nil, fmt.Errorf("pod not found")
+	return nil, fmt.Errorf("dashboard pod not found")
 }
 
-// Generates GitOps Dashboard manifests from objects.
-func generateManifests(secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+// ReconcileDashboard reconciles the dashboard.
+func ReconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
+	const interval = 3 * time.Second / 2
+
+	// reconcile dashboard
+	sourceRequestedAt, err := RequestReconciliation(context.Background(), kubeClient,
+		types.NamespacedName{
+			Namespace: namespace,
+			Name:      helmChartNamespacedName,
+		}, schema.GroupVersionKind{
+			Group:   "source.toolkit.fluxcd.io",
+			Version: "v1beta2",
+			Kind:    "HelmChart",
+		})
+	if err != nil {
+		return err
+	}
+
+	// wait for the reconciliation of dashboard to be done
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		dashboard := &sourcev1.HelmChart{}
+		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+			Namespace: namespace,
+			Name:      helmChartNamespacedName,
+		}, dashboard); err != nil {
+			return false, err
+		}
+
+		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
+	}); err != nil {
+		return err
+	}
+
+	// wait for dashboard to be ready
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		dashboard := &sourcev1.HelmChart{}
+		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+			Namespace: namespace,
+			Name:      helmChartNamespacedName,
+		}, dashboard); err != nil {
+			return false, err
+		}
+
+		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// generateManifests generates dashboard manifests from objects.
+func generateManifests(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
+		log.Failuref("Error generating HelmRepository manifest from object")
 		return nil, err
 	}
 
 	helmReleaseData, err := yaml.Marshal(helmRelease)
 	if err != nil {
+		log.Failuref("Error generating HelmRelease manifest from object")
 		return nil, err
 	}
 
@@ -140,7 +212,7 @@ func generateManifests(secret string, helmRepository *sourcev1.HelmRepository, h
 	return content, nil
 }
 
-// Creates a HelmRepository object for installing the GitOps Dashboard.
+// makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
 func makeHelmRepository() *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -148,11 +220,11 @@ func makeHelmRepository() *sourcev1.HelmRepository {
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ww-gitops",
-			Namespace: "flux-system",
+			Name:      helmRepositoryName,
+			Namespace: wego.DefaultNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
-			URL: "https://helm.gitops.weave.works",
+			URL: helmRepositoryUrl,
 			Interval: metav1.Duration{
 				Duration: time.Minute,
 			},
@@ -162,16 +234,16 @@ func makeHelmRepository() *sourcev1.HelmRepository {
 	return helmRepository
 }
 
-// Creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(secret string) *helmv2.HelmRelease {
+// makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
+func makeHelmRelease(log logger.Logger, secret string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
 			APIVersion: helmv2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "ww-gitops",
-			Namespace: "flux-system",
+			Name:      helmReleaseName,
+			Namespace: wego.DefaultNamespace,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Interval: metav1.Duration{
@@ -179,27 +251,30 @@ func makeHelmRelease(secret string) *helmv2.HelmRelease {
 			},
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:   "weave-gitops",
+					Chart:   helmChartName,
 					Version: "2.0.6",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: "HelmRepository",
-						Name: "ww-gitops",
+						Name: helmRepositoryName,
 					},
 					ReconcileStrategy: "ChartVersion",
 				},
 			},
-			Suspend: false,
 		},
 	}
 
-	valuesData, _ := makeValues(secret)
+	valuesData, err := makeValues(secret)
+	if err != nil {
+		log.Failuref("Error generating values from secret")
+		return nil, err
+	}
 
 	helmRelease.Spec.Values = &apiextensionsv1.JSON{Raw: valuesData}
 
-	return helmRelease
+	return helmRelease, nil
 }
 
-// Creates a values object for installing the GitOps Dashboard.
+// makeValues creates a values object for installing the GitOps Dashboard.
 func makeValues(secret string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
@@ -211,7 +286,7 @@ func makeValues(secret string) ([]byte, error) {
 
 	jsonRaw, err := json.Marshal(valuesMap)
 	if err != nil {
-		return nil, fmt.Errorf("marshaling values failed: %w", err)
+		return nil, fmt.Errorf("encoding values failed: %w", err)
 	}
 
 	return jsonRaw, nil

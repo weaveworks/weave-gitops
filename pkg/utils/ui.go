@@ -6,13 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"golang.org/x/term"
 )
 
 // readPasswordFromStdin reads a password from stdin and returns the input
 // with trailing newline and/or carriage return removed. It also makes sure that terminal
 // echoing is turned off if stdin is a terminal.
-func ReadPasswordFromStdin(prompt string) (string, error) {
+func ReadPasswordFromStdin(log logger.Logger, prompt string) (string, error) {
 	var (
 		out string
 		err error
@@ -31,7 +32,8 @@ func ReadPasswordFromStdin(prompt string) (string, error) {
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("could not read from stdin: %w", err)
+		log.Failuref("could not read from stdin: %v", err)
+		return "", err
 	}
 
 	fmt.Println()

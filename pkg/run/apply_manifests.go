@@ -13,6 +13,7 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// apply is the equivalent of 'kubectl apply --server-side -f'.
 func apply(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter, manifestsContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
