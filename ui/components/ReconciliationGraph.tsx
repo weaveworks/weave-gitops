@@ -101,14 +101,14 @@ function ReconciliationGraph({
   //pan
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = React.useState(false);
-  const handleMouseDown = (e) => {
+  const handleMouseDown = () => {
     setIsPanning(true);
   };
   const handleMouseMove = (e) => {
     //viewBox change. e.movement is change since previous mouse event
     if (isPanning) setPan({ x: pan.x + e.movementX, y: pan.y + e.movementY });
   };
-  const handleMouseUp = (e) => {
+  const handleMouseUp = () => {
     setIsPanning(false);
   };
 
