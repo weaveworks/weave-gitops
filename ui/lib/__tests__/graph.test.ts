@@ -81,10 +81,14 @@ describe("graph lib", () => {
       [{ group: "apps", version: "v1", kind: "Deployment" }],
       app.clusterName
     );
-    expect(objects[0].children.length).toEqual(1);
-    const dep = objects[0].children[0];
-
-    expect(dep.name).toEqual(rsName);
-    expect(dep.groupVersionKind.kind).toEqual("ReplicaSet");
+    const dep = objects[0];
+    expect(dep).toBeTruthy();
+    expect(dep.name).toEqual(name);
+    const rs = objects[0].children[0];
+    expect(rs.name).toEqual(rsName);
+    expect(rs.groupVersionKind.kind).toEqual("ReplicaSet");
+    const pod = objects[0].children[0].children[0];
+    expect(pod).toBeTruthy();
+    expect(pod.name).toEqual(podName);
   });
 });
