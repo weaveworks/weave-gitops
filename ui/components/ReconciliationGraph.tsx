@@ -65,8 +65,11 @@ function ReconciliationGraph({
       )
     : { data: [], error: null, isLoading: false };
   //add extra nodes
-  const secondNode = parentObject;
-  secondNode.children = objects;
+  const secondNode = {
+    ...parentObject,
+    kind: removeKind(automationKind),
+    children: objects,
+  };
   const rootNode = {
     ...source,
     kind: removeKind(source.kind),
