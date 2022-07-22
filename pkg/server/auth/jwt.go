@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"reflect"
 	"context"
 	"fmt"
 	"net/http"
@@ -137,16 +139,21 @@ func parseJWTAdminToken(verifier TokenSignerVerifier, rawIDToken string) (*UserP
 
 // MultiAuthPrincipal looks for a principal in an array of principal getters and
 // if it finds an error or a principal it returns, otherwise it returns (nil,nil).
-type MultiAuthPrincipal []PrincipalGetter
+type MultiAuthPrincipal struct{
+	Log 		logr.Logger
+	Getters []PrincipalGetter
+}
 
 func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
-	for _, v := range m {
+	for _, v := range m.Getters {
 		p, err := v.Principal(r)
 		if err != nil {
 			return nil, err
 		}
 
 		if p != nil {
+			m.Log.V(logger.LogLevelDebug).Info("Found principal", "user", p.ID, "groups", p.Groups, "tokenLength", len(p.Token), "method", reflect.TypeOf(v))
+
 			return p, nil
 		}
 	}

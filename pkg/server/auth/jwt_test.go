@@ -136,7 +136,7 @@ func TestMultiAuth(t *testing.T) {
 
 	for _, tt := range multiAuthTests {
 		t.Run(tt.name, func(t *testing.T) {
-			mg := auth.MultiAuthPrincipal(tt.auths)
+			mg := auth.MultiAuthPrincipal{Log: logr.Discard(), Getters: tt.auths}
 			req := httptest.NewRequest("GET", "http://example.com/", nil)
 
 			principal, err := mg.Principal(req)

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 )
@@ -93,12 +92,15 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
 	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 	tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
-	multi := MultiAuthPrincipal{adminAuth, tokenAuth}
+	multi := MultiAuthPrincipal{
+		Log: srv.Log,
+		Getters: []PrincipalGetter{adminAuth, tokenAuth},
+	}
 
 	if srv.oidcEnabled() {
 		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
 		cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-		multi = append(multi, headerAuth, cookieAuth)
+		multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
 	}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
