@@ -81,7 +81,7 @@ export const getChildren = async (
   automationKind: FluxObjectKind,
   kinds: GroupVersionKind[],
   clusterName
-): Promise<UnstructuredObject[]> => {
+): Promise<UnstructuredObjectWithChildren[]> => {
   const { objects } = await client.GetReconciledObjects({
     automationName,
     namespace,

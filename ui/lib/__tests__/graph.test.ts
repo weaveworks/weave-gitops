@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { FluxObjectKind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
 import { createCoreMockClient } from "../test-utils";
@@ -82,21 +81,10 @@ describe("graph lib", () => {
       [{ group: "apps", version: "v1", kind: "Deployment" }],
       app.clusterName
     );
+    expect(objects[0].children.length).toEqual(1);
+    const dep = objects[0].children[0];
 
-    expect(objects.length).toEqual(3);
-    const dep = _.find(
-      objects,
-      (o) => o.groupVersionKind.kind === "Deployment"
-    );
-    expect(dep).toBeTruthy();
-    expect(dep.name).toEqual(name);
-
-    const rs = _.find(objects, (o) => o.groupVersionKind.kind === "ReplicaSet");
-    expect(rs).toBeTruthy();
-    expect(rs.name).toEqual(rsName);
-
-    const pod = _.find(objects, (o) => o.groupVersionKind.kind === "Pod");
-    expect(pod).toBeTruthy();
-    expect(pod.name).toEqual(podName);
+    expect(dep.name).toEqual(rsName);
+    expect(dep.groupVersionKind.kind).toEqual("ReplicaSet");
   });
 });
