@@ -8,6 +8,7 @@ import {
   formatMetadataKey,
   gitlabOAuthRedirectURI,
   isHTTP,
+  isAllowedLink,
   makeImageString,
   mapScaleToZoomPercent,
   mapZoomPercentToScale,
@@ -80,6 +81,40 @@ describe("utils lib", () => {
       );
       expect(isHTTP("foo/file.html")).toEqual(false);
       expect(isHTTP("//.com")).toEqual(false);
+    });
+  });
+  describe("isAllowedLink", () => {
+    it("allows http", () => {
+      expect(isAllowedLink("http://www.google.com")).toEqual(true);
+      expect(isAllowedLink("http:// this is a random http sentence")).toEqual(
+        true
+      );
+    });
+    it("allows https", () => {
+      expect(isAllowedLink("https://www.google.com")).toEqual(true);
+      expect(isAllowedLink("https:// this is a random https sentence")).toEqual(
+        true
+      );
+    });
+    it("allows relative links", () => {
+      // Some of these are nonsensical, but if you _want_ them to be a
+      // relative link, it's not forbidden.
+      expect(isAllowedLink("/hello")).toEqual(true);
+      expect(isAllowedLink("test string")).toEqual(true);
+      expect(
+        isAllowedLink("github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(true);
+      expect(isAllowedLink("foo/file.html")).toEqual(true);
+      expect(isAllowedLink("//.com")).toEqual(true);
+    });
+    it("doesn't allow other links", () => {
+      expect(isAllowedLink("oci://server/")).toEqual(false);
+      expect(isAllowedLink("smtp://server/")).toEqual(false);
+      expect(isAllowedLink("smtp://http/")).toEqual(false);
+      expect(isAllowedLink("smtp://https/")).toEqual(false);
+      expect(
+        isAllowedLink("ssh://git@github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(false);
     });
   });
   describe("convertGitURLToGitProvider", () => {
