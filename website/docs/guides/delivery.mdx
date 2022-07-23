@@ -304,7 +304,14 @@ loadtester-855b4d77f6-scl6r   1/1     Running   0          4m
 
 ## Deploy a canary release
 
-To demonstrate the progressive rollout of an application, `podinfo` will be used.
+To demonstrate the progressive rollout of an application, [podinfo](https://github.com/stefanprodan/podinfo) will be used.
+
+We will configure a [Canary release strategy](https://docs.flagger.app/usage/deployment-strategies#canary-release), 
+where Flagger will scale up a new version of the application (the canary), alongisde the existing version 
+(the primary), and gradually increase traffic to the new version in increments of 5%, up to a maximum of 50%. 
+It will continuously monitor the new version for an acceptable request response rate and average 
+request duration. Based on this analysis, Flagger will either update the primary to the new version, 
+or abandon the promotion; then scale the canary back down to zero.
 
 Add a Namespace resource:
 
@@ -420,7 +427,9 @@ spec:
           averageUtilization: 99
 ```
 
-Then, add a Canary resource that references the Deployment and HorizontalPodAutoscaler resources:
+Then, add a Canary resource that references the Deployment and HorizontalPodAutoscaler resources, 
+note that we have not needed to define a service resource above, instead this is specified 
+within the Canary defintion and created by Flagger:
 
 ```yaml title="test/canary.yaml"
 apiVersion: flagger.app/v1beta1
