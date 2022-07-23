@@ -4,12 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -18,11 +12,20 @@ import (
 	"syscall"
 	"time"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/spf13/cobra"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/fsnotify/fsnotify"
+	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -41,6 +44,7 @@ type runCommandFlags struct {
 	ComponentsExtra []string
 	Timeout         time.Duration
 	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
+	DashboardPort   string
 	RootDir         string
 	// Global flags.
 	Namespace  string
@@ -91,6 +95,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
+	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
@@ -239,6 +244,31 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
+		log.Actionf("Checking if GitOps Dashboard is already installed ...")
+
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient)
+
+		if dashboardInstalled {
+			log.Successf("GitOps Dashboard is found")
+		} else {
+			prompt := promptui.Prompt{
+				Label:     "Would you like to install the GitOps Dashboard",
+				IsConfirm: true,
+				Default:   "Y",
+			}
+			_, err = prompt.Run()
+			if err == nil {
+				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+				if err != nil {
+					return fmt.Errorf("gitops dashboard installation failed: %w", err)
+				} else {
+					dashboardInstalled = true
+
+					log.Successf("GitOps Dashboard has been installed")
+				}
+			}
+		}
+
 		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
 			log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
 
@@ -249,9 +279,28 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 		}
 
+		if dashboardInstalled {
+			log.Actionf("Request reconciliation of dashboard ...")
+
+			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+			}
+
+			log.Successf("Dashboard reconciliation is done.")
+		}
+
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
 		if err != nil {
 			return err
+		}
+
+		var cancelDashboardPortForwarding func() = nil
+
+		if dashboardInstalled {
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.DashboardPort)
+			if err != nil {
+				return err
+			}
 		}
 
 		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs); err != nil {
@@ -383,6 +432,11 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
 		cancelDevBucketPortForwarding()
+
+		if cancelDashboardPortForwarding != nil {
+			cancelDashboardPortForwarding()
+		}
+
 		ticker.Stop()
 
 		if err := run.CleanupBucketSourceAndKS(log, kubeClient, "flux-system"); err != nil {
