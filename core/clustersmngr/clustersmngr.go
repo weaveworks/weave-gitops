@@ -76,12 +76,17 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 	return func(cluster Cluster) *rest.Config {
 		config := &rest.Config{
 			Host:            cluster.Server,
-			BearerToken:     cluster.BearerToken,
 			TLSClientConfig: cluster.TLSConfig,
-			Impersonate: rest.ImpersonationConfig{
+		}
+
+		if user.Token != "" {
+			config.BearerToken = user.Token
+		} else {
+			config.BearerToken = cluster.BearerToken
+			config.Impersonate = rest.ImpersonationConfig{
 				UserName: user.ID,
 				Groups:   user.Groups,
-			},
+			}
 		}
 
 		enabled, err := flowcontrol.IsEnabled(context.Background(), config)

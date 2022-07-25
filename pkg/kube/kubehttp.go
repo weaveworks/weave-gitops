@@ -14,6 +14,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
+	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -29,6 +30,7 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = extensionsv1.AddToScheme(scheme)
 	_ = appsv1.AddToScheme(scheme)
 	_ = rbacv1.AddToScheme(scheme)
+	_ = authv1.AddToScheme(scheme)
 
 	return scheme
 }
