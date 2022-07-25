@@ -10,19 +10,21 @@ type Props = {
   object?: UnstructuredObjectWithChildren & { kind: string };
 };
 
-const nodeBorderRadius = "50px";
+const nodeBorderRadius = 30;
 const titleFontSize = "48px";
 const kindFontSize = "36px";
 
 const GraphIcon = styled.img`
   height: ${titleFontSize};
   width: ${titleFontSize};
+  min-height: ${titleFontSize};
+  min-width: ${titleFontSize};
 `;
 
 const Node = styled(Flex)`
   background: white;
   border: 5px solid ${(props) => props.theme.colors.neutral30};
-  border-radius: ${nodeBorderRadius};
+  border-radius: ${nodeBorderRadius}px;
   user-select: none;
 `;
 
@@ -51,7 +53,7 @@ type StatusLineProps = {
 const StatusLine = styled.div<StatusLineProps>`
   width: 5%;
   height: 100%;
-  border-radius: ${nodeBorderRadius} 0 0 ${nodeBorderRadius};
+  border-radius: ${nodeBorderRadius - 4.5}px 0 0 ${nodeBorderRadius - 4.5}px;
   background-color: ${(props) => {
     if (props.suspended) return props.theme.colors.suspended;
     else if (props.status === ReadyType.Ready)

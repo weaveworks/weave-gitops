@@ -77,7 +77,7 @@ function ReconciliationGraph({
   };
   //graph numbers
   const nodeSize = {
-    width: 750,
+    width: 800,
     height: 300,
     verticalSeparation: 150,
     horizontalSeparation: 100,
