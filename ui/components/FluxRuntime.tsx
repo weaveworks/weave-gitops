@@ -8,10 +8,8 @@ import Link from "../components/Link";
 import Text from "../components/Text";
 import { Crd, Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import FilterableTable, {
-  filterByStatusCallback,
-  filterConfig,
-} from "./FilterableTable";
+import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -37,7 +35,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
       <Text size="large" semiBold titleHeight>
         Controllers
       </Text>
-      <FilterableTable
+      <URLAddressableTable
         className={className}
         filters={initialFilterState}
         rows={deployments}
@@ -82,7 +80,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
       <Text size="large" semiBold titleHeight>
         Custom Resource Definitions
       </Text>
-      <FilterableTable
+      <URLAddressableTable
         className={className}
         filters={crdFilterState}
         rows={crds}
