@@ -21,6 +21,13 @@ const (
 	port      = 9000
 )
 
+var (
+	// The variables below are to be set by flags passed to `go build`.
+	// Examples: -X run.DevBucketContainerImage=xxxxx
+
+	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290"
+)
+
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
 func InstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config) (func(), error) {
 	var (
@@ -108,7 +115,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config
 					Containers: []corev1.Container{
 						{
 							Name:  devBucket,
-							Image: "ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290",
+							Image: DevBucketContainerImage,
 							Env: []corev1.EnvVar{
 								{Name: "MINIO_ROOT_USER", Value: "user"},
 								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
