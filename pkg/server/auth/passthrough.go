@@ -43,8 +43,6 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 
 	token = extractToken(token)
 
-	authv1.AddToScheme(pg.kubernetesClient.Scheme())
-
 	tr := authv1.TokenReview{
 		Spec: authv1.TokenReviewSpec{
 			Token: token,
