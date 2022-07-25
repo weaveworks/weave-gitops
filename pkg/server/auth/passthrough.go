@@ -1,10 +1,16 @@
 package auth
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	authv1 "k8s.io/api/authentication/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 // BearerTokenPassthroughPrincipalGetter inspects the Authorization
@@ -35,5 +41,32 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 		return nil, nil
 	}
 
-	return &UserPrincipal{Token: extractToken(token)}, nil
+	token = extractToken(token)
+
+	config, err := kubecfg.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	tr := authv1.TokenReview{
+		Spec: authv1.TokenReviewSpec{
+			Token: token,
+		},
+	}
+
+	result, err := clientset.AuthenticationV1().TokenReviews().Create(context.Background(), &tr, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if !result.Status.Authenticated {
+		return nil, fmt.Errorf("error: user token authentication failed")
+	}
+
+	return &UserPrincipal{Token: token}, nil
 }
