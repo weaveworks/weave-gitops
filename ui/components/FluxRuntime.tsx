@@ -24,7 +24,6 @@ function FluxRuntime({ className, deployments, crds }: Props) {
   };
 
   const crdFilterState = {
-    ...filterConfig(crds, "name"),
     ...filterConfig(crds, "version"),
     ...filterConfig(crds, "kind"),
     ...filterConfig(crds, "clusterName"),
