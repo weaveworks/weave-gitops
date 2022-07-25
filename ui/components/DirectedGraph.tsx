@@ -30,7 +30,11 @@ function DirectedGraph({
   //minimum zoomBox is 1000
   const zoomBox = 15000 - 14000 * (zoomPercent / 100);
   //since viewbox is so large, make smaller mouse movements correspond to larger pan
-  const panScale = 300 / zoomPercent;
+  const svgRef = React.useRef<SVGSVGElement>();
+  let panScale = 1;
+  if (svgRef.current) {
+    panScale = zoomBox / svgRef.current.getBoundingClientRect().width;
+  }
 
   return (
     <svg
@@ -40,6 +44,7 @@ function DirectedGraph({
       viewBox={`${-pan.x * panScale} ${
         -pan.y * panScale
       } ${zoomBox} ${zoomBox}`}
+      ref={svgRef}
     >
       <g transform={`translate(${zoomBox / 2}, 50)`}>
         <g stroke="#7a7a7a" strokeWidth={5} fill="none">

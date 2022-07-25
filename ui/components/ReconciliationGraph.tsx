@@ -136,6 +136,7 @@ function ReconciliationGraph({
             defaultValue={defaultZoomPercent}
             orientation="vertical"
             aria-label="zoom"
+            min={5}
           />
           <Spacer padding="xs" />
           <PercentFlex>{zoomPercent}%</PercentFlex>
