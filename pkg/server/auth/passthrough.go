@@ -8,26 +8,26 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	authv1 "k8s.io/api/authentication/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // BearerTokenPassthroughPrincipalGetter inspects the Authorization
 // header (bearer token) and returns it within a principal object.
 type BearerTokenPassthroughPrincipalGetter struct {
-	log        logr.Logger
-	verifier   *oidc.IDTokenVerifier
-	headerName string
+	log              logr.Logger
+	verifier         *oidc.IDTokenVerifier
+	headerName       string
+	kubernetesClient client.Client
 }
 
 // NewBearerTokenPassthroughPrincipalGetter creates a new implementation of the PrincipalGetter
 // interface that can decode and verify OIDC Bearer tokens from a named request header.
-func NewBearerTokenPassthroughPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, headerName string) PrincipalGetter {
+func NewBearerTokenPassthroughPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, headerName string, kubernetesClient client.Client) PrincipalGetter {
 	return &BearerTokenPassthroughPrincipalGetter{
-		log:        log,
-		verifier:   verifier,
-		headerName: headerName,
+		log:              log,
+		verifier:         verifier,
+		headerName:       headerName,
+		kubernetesClient: kubernetesClient,
 	}
 }
 
@@ -43,15 +43,7 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 
 	token = extractToken(token)
 
-	config, err := kubecfg.GetConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
+	authv1.AddToScheme(pg.kubernetesClient.Scheme())
 
 	tr := authv1.TokenReview{
 		Spec: authv1.TokenReviewSpec{
@@ -59,12 +51,12 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 		},
 	}
 
-	result, err := clientset.AuthenticationV1().TokenReviews().Create(context.Background(), &tr, metav1.CreateOptions{})
+	err := pg.kubernetesClient.Create(context.Background(), &tr)
 	if err != nil {
 		return nil, err
 	}
 
-	if !result.Status.Authenticated {
+	if !tr.Status.Authenticated {
 		return nil, fmt.Errorf("error: user token authentication failed")
 	}
 
