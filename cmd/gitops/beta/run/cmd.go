@@ -7,11 +7,12 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -24,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
+	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
@@ -70,7 +71,7 @@ gitops beta run . [flags]
 # Run the sync against the dev overlay path
 gitops beta run ./deploy/overlays/dev
 
-# Run the sync on the dev directory and forward the port. 
+# Run the sync on the dev directory and forward the port.
 # Listen on port 8080 on localhost, forwarding to 5000 in a pod of the service app.
 gitops beta run ./dev --port-forward port=8080:5000,resource=svc/app
 
@@ -176,7 +177,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		log := internal.NewCLILogger(os.Stdout)
+		log := clilogger.NewCLILogger(os.Stdout)
 
 		if flags.KubeConfig != "" {
 			kubeConfigArgs.KubeConfig = &flags.KubeConfig
