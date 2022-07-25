@@ -12,6 +12,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
@@ -66,6 +67,53 @@ type LoginRequest struct {
 type UserInfo struct {
 	Email  string   `json:"email"`
 	Groups []string `json:"groups"`
+}
+
+// func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, devUser string, devMode bool, authMethods []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, devUser string, devMode bool) (*AuthServer, error) {
+	if oidcSecret != DefaultOIDCAuthSecretName {
+		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", oidcSecret)
+	}
+
+	// If OIDC auth secret is found prefer that over CLI parameters
+	var secret corev1.Secret
+	if err := rawKubernetesClient.Get(ctx, client.ObjectKey{
+		Namespace: v1alpha1.DefaultNamespace,
+		Name:      oidcSecret,
+	}, &secret); err == nil {
+		if oidcConfig.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
+			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
+		}
+
+		oidcConfig = NewOIDCConfigFromSecret(secret)
+	} else if err != nil {
+		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "error", err)
+	}
+
+	if oidcConfig.ClientSecret != "" {
+		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
+	}
+
+	tsv, err := NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
+	if err != nil {
+		return nil, fmt.Errorf("could not create HMAC token signer: %w", err)
+	}
+
+	if devMode {
+		log.V(logger.LogLevelWarn).Info("Dev-mode is enabled. This should be used for local work only.")
+		tsv.SetDevMode(devUser)
+	}
+
+	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv)
+	if err != nil {
+		return nil, err
+	}
+
+	authServer, err := NewAuthServer(ctx, authCfg)
+	if err != nil {
+		return nil, fmt.Errorf("could not create auth server: %w", err)
+	}
+	return authServer, err
 }
 
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {

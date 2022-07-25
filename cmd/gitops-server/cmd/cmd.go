@@ -35,7 +35,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -167,50 +166,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	oidcConfig := options.OIDC
-
-	if options.OIDCSecret != auth.DefaultOIDCAuthSecretName {
-		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", options.OIDCSecret)
-	}
-
-	// If OIDC auth secret is found prefer that over CLI parameters
-	var secret corev1.Secret
-	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
-		Name:      options.OIDCSecret,
-	}, &secret); err == nil {
-		if options.OIDC.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
-			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
-		}
-
-		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
-	} else if err != nil {
-		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", options.OIDCSecret, "error", err)
-	}
-
-	if oidcConfig.ClientSecret != "" {
-		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
-	}
-
-	tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
-	if err != nil {
-		return fmt.Errorf("could not create HMAC token signer: %w", err)
-	}
-
-	if options.DevMode {
-		log.Info("WARNING: dev mode enabled. This should be used for local work only")
-		tsv.SetDevMode(options.DevUser)
-	}
-
-	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
-	if err != nil {
-		return err
-	}
-
-	authServer, err := auth.NewAuthServer(cmd.Context(), authCfg)
-	if err != nil {
-		return fmt.Errorf("could not create auth server: %w", err)
-	}
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode)
 
 	log.Info("Registering auth routes")
 
