@@ -9,6 +9,7 @@ import (
 
 	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
@@ -28,6 +29,18 @@ const (
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 )
+
+// ClientError is an error returned by the GetImpersonatedClient function which contains
+// the details of the cluster that caused the error.
+type ClientError struct {
+	ClusterName string
+	Err         error
+}
+
+// Error() returns the error message of the underlying error.
+func (ce *ClientError) Error() string {
+	return ce.Err.Error()
+}
 
 // ClientsFactory is a factory for creating clients for clusters
 //counterfeiter:generate . ClientsFactory
@@ -188,14 +201,36 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	}
 
 	pool := cf.newClustersPool(cf.scheme)
+	errChan := make(chan error, len(cf.clusters.Get()))
+
+	var wg sync.WaitGroup
+
+	var mutex sync.Mutex
 
 	for _, cluster := range cf.clusters.Get() {
-		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
-			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
-		}
+		wg.Add(1)
+
+		go func(cluster Cluster, pool ClientsPool, mutex *sync.Mutex, errChan chan error) {
+			defer wg.Done()
+
+			mutex.Lock()
+			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+			mutex.Unlock()
+		}(cluster, pool, &mutex, errChan)
 	}
 
-	return NewClient(pool, cf.userNsList(ctx, user)), nil
+	wg.Wait()
+	close(errChan)
+
+	var result *multierror.Error
+
+	for err := range errChan {
+		result = multierror.Append(result, err)
+	}
+
+	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
 }
 
 func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
