@@ -81,7 +81,6 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 
 		if user.Token != "" {
 			config.BearerToken = user.Token
-			config.BearerTokenFile = ""
 		} else {
 			config.BearerToken = cluster.BearerToken
 			config.Impersonate = rest.ImpersonationConfig{
