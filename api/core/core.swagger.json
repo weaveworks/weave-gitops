@@ -147,6 +147,36 @@
         ]
       }
     },
+    "/v1/flux_crds": {
+      "get": {
+        "operationId": "Core_ListFluxCrds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFluxCrdsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -777,6 +807,23 @@
         }
       }
     },
+    "v1Crd": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
     "v1Deployment": {
       "type": "object",
       "properties": {
@@ -1302,6 +1349,23 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1ListFluxCrdsResponse": {
+      "type": "object",
+      "properties": {
+        "crds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Crd"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }

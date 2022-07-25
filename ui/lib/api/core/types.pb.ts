@@ -168,6 +168,13 @@ export type Deployment = {
   clusterName?: string
 }
 
+export type Crd = {
+  name?: string
+  version?: string
+  kind?: string
+  clusterName?: string
+}
+
 export type UnstructuredObject = {
   groupVersionKind?: GroupVersionKind
   name?: string

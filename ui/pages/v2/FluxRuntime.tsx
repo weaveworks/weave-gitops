@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import FluxRuntimeComponent from "../../components/FluxRuntime";
 import Page from "../../components/Page";
-import { useListFluxRuntimeObjects } from "../../hooks/flux";
+import { useListFluxCrds, useListFluxRuntimeObjects } from "../../hooks/flux";
 
 type Props = {
   className?: string;
@@ -10,10 +10,19 @@ type Props = {
 
 function FluxRuntime({ className }: Props) {
   const { data, isLoading, error } = useListFluxRuntimeObjects();
-
+  const {
+    data: crds,
+    isLoading: crdsLoading,
+    error: crdsError,
+  } = useListFluxCrds();
+  console.log(crds);
   return (
-    <Page loading={isLoading} error={error} className={className}>
-      <FluxRuntimeComponent deployments={data?.deployments} />
+    <Page
+      loading={isLoading || crdsLoading}
+      error={error || crdsError}
+      className={className}
+    >
+      <FluxRuntimeComponent deployments={data?.deployments} crds={crds?.crds} />
     </Page>
   );
 }
