@@ -44,6 +44,7 @@ type AuthConfig struct {
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
 	config              OIDCConfig
+	authMethods         map[AuthMethod]bool
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.

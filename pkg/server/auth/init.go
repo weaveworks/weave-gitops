@@ -13,7 +13,6 @@ import (
   "github.com/weaveworks/weave-gitops/core/logger"
   "github.com/weaveworks/weave-gitops/pkg/featureflags"
   corev1 "k8s.io/api/core/v1"
-  apierrors "k8s.io/apimachinery/pkg/api/errors"
   "sigs.k8s.io/controller-runtime/pkg/client"
   ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -28,27 +27,31 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
     return nil, fmt.Errorf("No authentication methods set")
   }
 
-  if oidcSecret != DefaultOIDCAuthSecretName {
-    log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", oidcSecret)
-  }
-
-  // If OIDC auth secret is found prefer that over CLI parameters
-  var secret corev1.Secret
-  if err := rawKubernetesClient.Get(ctx, client.ObjectKey{
-    Namespace: v1alpha1.DefaultNamespace,
-    Name:      oidcSecret,
-  }, &secret); err == nil {
-    if oidcConfig.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
-      log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
+  if authMethods[OIDC] {
+    if oidcSecret != DefaultOIDCAuthSecretName {
+      log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", oidcSecret)
     }
 
-    oidcConfig = NewOIDCConfigFromSecret(secret)
-  } else if err != nil {
-    log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "error", err)
-  }
+    // If OIDC auth secret is found prefer that over CLI parameters
+    var secret corev1.Secret
+    if err := rawKubernetesClient.Get(ctx, client.ObjectKey{
+      Namespace: v1alpha1.DefaultNamespace,
+      Name:      oidcSecret,
+    }, &secret); err == nil {
+      if oidcConfig.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
+        log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
+      }
 
-  if oidcConfig.ClientSecret != "" {
-    log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
+      oidcConfig = NewOIDCConfigFromSecret(secret)
+    } else if err != nil {
+      log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "error", err)
+    }
+
+    if oidcConfig.ClientSecret != "" {
+      log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
+    }
+  } else {
+    oidcConfig = OIDCConfig{} // Make sure there is no OIDC config if it's not an enabled authorization method
   }
 
   tsv, err := NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
@@ -92,12 +95,14 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 }
 
 func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, authMethods map[AuthMethod]bool) (AuthConfig, error) {
-  if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
-    return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
-  }
+  if authMethods[OIDC] {
+    if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
+      return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
+    }
 
-  if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
-    return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+    if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
+      return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+    }
   }
 
   return AuthConfig{
@@ -112,27 +117,27 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
-  var secret corev1.Secret
-  err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
-    Namespace: v1alpha1.DefaultNamespace,
-    Name:      ClusterUserAuthSecretName,
-  }, &secret)
+  if cfg.authMethods[UserAccount] {
+    var secret corev1.Secret
+    err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+      Namespace: v1alpha1.DefaultNamespace,
+      Name:      ClusterUserAuthSecretName,
+    }, &secret)
 
-  if err != nil {
-    if apierrors.IsNotFound(err) {
-      featureflags.Set(FeatureFlagClusterUser, "false")
+    if err != nil {
+      return nil, fmt.Errorf("Could not get secret for cluster user, %w", err)
     } else {
-      cfg.Log.Error(err, "could not get secret for cluster user")
+      featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
     }
   } else {
-    featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+    featureflags.Set(FeatureFlagClusterUser, "false")
   }
 
   var provider *oidc.Provider
 
   if cfg.config.IssuerURL == "" {
     featureflags.Set(FeatureFlagOIDCAuth, "false")
-  } else {
+  } else if cfg.authMethods[OIDC] {
     var err error
 
     provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)

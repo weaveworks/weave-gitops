@@ -54,6 +54,7 @@ type Options struct {
 	NotificationControllerAddress string
 	Path                          string
 	Port                          string
+	AuthMethods []string
 	// TLS config
 	Insecure                      bool
 	MTLS                          bool
@@ -89,6 +90,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), "Which auth methods to use, valid values are 'oidc' and 'user-account'")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
@@ -166,7 +168,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode)
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode, options.AuthMethods)
 
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
