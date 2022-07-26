@@ -706,6 +706,17 @@
       ],
       "default": "Generic"
     },
+    "CrdName": {
+      "type": "object",
+      "properties": {
+        "plural": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -811,7 +822,7 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "$ref": "#/definitions/CrdName"
         },
         "version": {
           "type": "string"

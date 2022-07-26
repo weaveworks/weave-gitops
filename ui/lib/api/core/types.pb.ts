@@ -168,8 +168,13 @@ export type Deployment = {
   clusterName?: string
 }
 
+export type CrdName = {
+  plural?: string
+  group?: string
+}
+
 export type Crd = {
-  name?: string
+  name?: CrdName
   version?: string
   kind?: string
   clusterName?: string

@@ -119,12 +119,14 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 	list := &apiextensions.CustomResourceDefinitionList{}
 
 	if err := clustersClient.List(ctx, msg.ClusterName, list, opts); err != nil {
-		respErrors = append(respErrors, &pb.ListError{ClusterName: msg.ClusterName, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+		respErrors = append(respErrors, &pb.ListError{ClusterName: msg.ClusterName, Message: fmt.Sprintf("%s, %s", errors.New("could not list CRDs"), err)})
 	}
 
 	for _, d := range list.Items {
 		r := &pb.Crd{
-			Name:        d.Spec.Names.Plural + "." + d.Spec.Group,
+			Name: &pb.Crd_Name{
+				Plural: d.Spec.Names.Plural,
+				Group:  d.Spec.Group},
 			Version:     d.Spec.Versions[0].Name,
 			Kind:        d.Spec.Names.Kind,
 			ClusterName: msg.ClusterName,

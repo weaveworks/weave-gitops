@@ -14,6 +14,7 @@ type Props = {
   className?: string;
   children?: any;
   rootPath: string;
+  clearQuery?: boolean;
 };
 
 type TabProps = {
@@ -48,7 +49,7 @@ export function RouterTab({ children }: TabProps) {
   );
 }
 
-function SubRouterTabs({ className, children, rootPath }: Props) {
+function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
   const query = qs.parse(window.location.search);
   const childs = findChildren(children);
 
@@ -71,7 +72,7 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
           <Tab
             component={ForwardedLink as typeof Link}
             key={i}
-            to={formatURL(`${route.path}`, query)}
+            to={formatURL(`${route.path}`, clearQuery ? "" : query)}
             className={`${
               window.location.pathname.includes(route.path) && "active-tab"
             }`}
@@ -86,7 +87,7 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
       <Spacer padding="xs" />
       <Switch>
         {children}
-        <Redirect from="*" to={formatURL(rootPath, query)} />
+        <Redirect from="*" to={formatURL(rootPath, clearQuery ? "" : query)} />
       </Switch>
     </Flex>
   );

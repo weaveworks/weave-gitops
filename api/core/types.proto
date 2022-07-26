@@ -169,7 +169,11 @@ message Deployment {
 }
 
 message Crd {
-    string   name                 = 1;
+    message Name {
+        string plural = 1;
+        string group  = 2;
+    }
+    Name     name                 = 1;
     string   version              = 2;
     string   kind                 = 3;
     string   clusterName          = 4;
