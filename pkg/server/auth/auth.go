@@ -76,7 +76,20 @@ func Principal(ctx context.Context) *UserPrincipal {
 type UserPrincipal struct {
 	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
-	Token  string   `json:"-"`
+	token  *string  `json:"-"`
+}
+
+// Token returns the private access token for this principal.
+func (p UserPrincipal) Token() string {
+	if p.token == nil {
+		return ""
+	}
+	return *p.token
+}
+
+// SetToken allows setting of the private access token.
+func (p *UserPrincipal) SetToken(t string) {
+	p.token = &t
 }
 
 // String returns the Principal ID and Groups as a string.
@@ -90,6 +103,36 @@ func (p *UserPrincipal) Valid() bool {
 	}
 
 	return true
+}
+
+// NewUserPrincipal creates a new Principal and applies the configuration options.
+func NewUserPrincipal(opts ...func(*UserPrincipal)) *UserPrincipal {
+	p := &UserPrincipal{}
+	for _, o := range opts {
+		o(p)
+	}
+	return p
+}
+
+// Token is an option func for NewUserPrincipal that sets the token.
+func Token(tok string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.SetToken(tok)
+	}
+}
+
+// Groups is an option func for NewUserPrincipal that configures the groups.
+func Groups(groups []string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.Groups = groups
+	}
+}
+
+// ID is an option func for NewUserPrincipal that configures the groups.
+func ID(id string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.ID = id
+	}
 }
 
 // WithPrincipal sets the principal into the context.
