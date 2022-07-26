@@ -13,6 +13,7 @@ import {
   convertGitURLToGitProvider,
   removeKind,
   statusSortHelper,
+  getTime,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
 import { filterByStatusCallback, filterConfig } from "./FilterableTable";
@@ -26,6 +27,13 @@ type Props = {
   sources?: Source[];
   appName?: string;
 };
+
+function sortSourcesByLastUpdatedTime(sources: Source[]): Source[] {
+  return sources.sort(
+    (pre, curr) =>
+      getTime(curr?.lastUpdatedAt || "") - getTime(pre?.lastUpdatedAt || "")
+  );
+}
 
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
@@ -44,7 +52,7 @@ function SourcesTable({ className, sources }: Props) {
     <URLAddressableTable
       className={className}
       filters={initialFilterState}
-      rows={sources}
+      rows={sortSourcesByLastUpdatedTime(sources)}
       dialogOpen={filterDialogOpen}
       onDialogClose={() => setFilterDialog(false)}
       fields={[
