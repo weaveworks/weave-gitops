@@ -1,10 +1,10 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { RequestError } from "../lib/types";
-import { Object as ResponseObject } from "../lib/api/core/types.pb";
 import { GetObjectResponse } from "../lib/api/core/core.pb";
-import { Kind, FluxObject } from "../lib/objects";
+import { Object as ResponseObject } from "../lib/api/core/types.pb";
+import { FluxObject, Kind } from "../lib/objects";
+import { RequestError } from "../lib/types";
 
 function convertResponse(response: ResponseObject): FluxObject {
   const fluxObject = new FluxObject(response);
