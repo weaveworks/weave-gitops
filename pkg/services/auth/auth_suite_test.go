@@ -18,5 +18,7 @@ func TestGitProviderAuth(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	k8sClient = fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+	scheme, err := kube.CreateScheme()
+	Expect(err).To(BeNil())
+	k8sClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 })

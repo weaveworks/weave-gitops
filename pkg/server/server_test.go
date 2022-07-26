@@ -300,7 +300,11 @@ var _ = Describe("ApplicationsServer", func() {
 				var log logr.Logger
 
 				log, sink = testutils.MakeFakeLogr()
-				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+				scheme, err := kube.CreateScheme()
+				Expect(err).To(BeNil())
+
+				k8s := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 				fakeFactory := &servicesfakes.FakeFactory{}
 
@@ -314,7 +318,7 @@ var _ = Describe("ApplicationsServer", func() {
 				appsSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler := middleware.WithLogging(log, mux)
-				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 
 				ts = httptest.NewServer(httpHandler)

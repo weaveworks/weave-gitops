@@ -56,7 +56,12 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool)
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker
@@ -140,7 +145,12 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 	fetcher.FetchReturns([]clustersmngr.Cluster{}, nil)
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, kube.CreateScheme(), func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
 		f := &clustersmngrfakes.FakeClientsPool{}
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
 		return f

@@ -19,8 +19,11 @@ func TestSuspend_Suspend(t *testing.T) {
 
 	ctx := context.Background()
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 

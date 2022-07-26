@@ -28,8 +28,11 @@ func TestListKustomizations(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -51,8 +54,11 @@ func TestListKustomizations_inMultipleNamespaces(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -86,8 +92,11 @@ func TestListKustomizationPagination(t *testing.T) {
 	ctx := context.Background()
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -139,8 +148,11 @@ func TestGetKustomization(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 

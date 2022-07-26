@@ -149,8 +149,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create client config: %w", err)
 	}
 
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		return fmt.Errorf("could not create scheme: %w", err)
+	}
+
 	rawClient, err := client.New(rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
@@ -211,7 +216,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
+	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.NewClustersClientsPool)
 	clusterClientsFactory.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)

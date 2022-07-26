@@ -36,8 +36,11 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 		}
 	}()
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	adminClient, err := client.New(testCfg, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -290,8 +293,13 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) *rest.Config {
 	t.Helper()
 
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	adminClient, err := client.New(testCfg, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 
 	if err != nil {

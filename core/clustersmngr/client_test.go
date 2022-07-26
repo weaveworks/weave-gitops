@@ -33,7 +33,7 @@ func TestClientGet(t *testing.T) {
 
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -80,7 +80,7 @@ func TestClientClusteredList(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -185,7 +185,8 @@ func TestClientClusteredListPagination(t *testing.T) {
 		createKust(appName, ns2.Name)
 	}
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
+
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
 		clustersmngr.Cluster{
@@ -237,7 +238,7 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -289,7 +290,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 
 	clusterName := "mycluster"
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -330,7 +331,7 @@ func TestClientList(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -377,7 +378,7 @@ func TestClientCreate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -422,7 +423,7 @@ func TestClientDelete(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -465,7 +466,7 @@ func TestClientUpdate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -513,7 +514,7 @@ func TestClientPatch(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := clustersmngr.NewClustersClientsPool(kube.CreateScheme())
+	clientsPool := createClusterClientsPool(g)
 
 	err := clientsPool.Add(
 		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
@@ -567,4 +568,13 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	g.Expect(k8sEnv.Client.Create(context.Background(), ns)).To(Succeed())
 
 	return ns
+}
+
+func createClusterClientsPool(g *GomegaWithT) clustersmngr.ClientsPool {
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsPool := clustersmngr.NewClustersClientsPool(scheme)
+
+	return clientsPool
 }
