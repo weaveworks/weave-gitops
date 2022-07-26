@@ -31,7 +31,7 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 		extensionsv1.AddToScheme,
 		appsv1.AddToScheme,
 		rbacv1.AddToScheme,
-    authv1.AddToScheme,
+		authv1.AddToScheme,
 	}
 
 	err := builder.AddToScheme(scheme)
