@@ -76,7 +76,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
-		return nil, fmt.Errorf("could not create scheme", err)
+		return nil, fmt.Errorf("could not create scheme: %w", err)
 	}
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
