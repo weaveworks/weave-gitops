@@ -27,8 +27,11 @@ func TestListHelmReleases(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -49,8 +52,11 @@ func TestListHelmReleases_inMultipleNamespaces(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -84,8 +90,11 @@ func TestGetHelmRelease(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -135,8 +144,11 @@ func TestGetHelmRelease_withInventory(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -219,8 +231,11 @@ func TestGetHelmRelease_withInventoryCompressed(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 

@@ -56,9 +56,10 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 }
 
 var _ = BeforeSuite(func() {
-	scheme = kube.CreateScheme()
-
 	var err error
+	scheme, err = kube.CreateScheme()
+	Expect(err).To(BeNil())
+
 	env, err = testutils.StartK8sTestEnvironment([]string{
 		"../../manifests/crds",
 		"../../tools/testcrds",

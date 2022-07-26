@@ -21,18 +21,25 @@ import (
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 )
 
-func CreateScheme() *apiruntime.Scheme {
+func CreateScheme() (*apiruntime.Scheme, error) {
 	scheme := apiruntime.NewScheme()
-	_ = sourcev1.AddToScheme(scheme)
-	_ = kustomizev2.AddToScheme(scheme)
-	_ = helmv2.AddToScheme(scheme)
-	_ = corev1.AddToScheme(scheme)
-	_ = extensionsv1.AddToScheme(scheme)
-	_ = appsv1.AddToScheme(scheme)
-	_ = rbacv1.AddToScheme(scheme)
-	_ = authv1.AddToScheme(scheme)
+	builder := apiruntime.SchemeBuilder{
+		sourcev1.AddToScheme,
+		kustomizev2.AddToScheme,
+		helmv2.AddToScheme,
+		corev1.AddToScheme,
+		extensionsv1.AddToScheme,
+		appsv1.AddToScheme,
+		rbacv1.AddToScheme,
+		authv1.AddToScheme,
+	}
 
-	return scheme
+	err := builder.AddToScheme(scheme)
+	if err != nil {
+		return nil, fmt.Errorf("could not add to scheme: %w", err)
+	}
+
+	return scheme, nil
 }
 
 const WeGOCRDName = "apps.wego.weave.works"
@@ -56,10 +63,16 @@ var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) 
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
 func NewKubeHTTPClientWithConfig(config *rest.Config, contextName string, additionalSchemes ...func(*apiruntime.Scheme) error) (*KubeHTTP, error) {
-	scheme := CreateScheme()
+	scheme, err := CreateScheme()
+	if err != nil {
+		return nil, fmt.Errorf("could not create scheme: %w", err)
+	}
 
 	for _, add := range additionalSchemes {
-		_ = add(scheme)
+		err = add(scheme)
+		if err != nil {
+			return nil, fmt.Errorf("could not add to scheme: %w", err)
+		}
 	}
 
 	rawClient, err := client.New(config, client.Options{

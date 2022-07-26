@@ -26,8 +26,11 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
 
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
 	k, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -141,7 +144,10 @@ func TestGetChildObjects(t *testing.T) {
 		Name:       deployment.Name,
 	}})
 
-	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(&ns, deployment, rs).Build()
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, deployment, rs).Build()
 	cfg := makeServerConfig(client, t)
 	c := makeServer(cfg, t)
 
