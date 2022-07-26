@@ -168,6 +168,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode)
 
+	if err != nil {
+		return fmt.Errorf("could not initialise authentication server: %w", err)
+	}
+
 	log.Info("Registering auth routes")
 
 	if err := auth.RegisterAuthServer(mux, "/oauth2", authServer, loginRequestRateLimit); err != nil {
