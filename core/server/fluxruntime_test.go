@@ -14,6 +14,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -245,4 +246,30 @@ func newDeployment(name, ns string) *appsv1.Deployment {
 			},
 		},
 	}
+}
+
+func TestListFluxCrds(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+		Name: {Plural: "plural", Group: "FakeCRDOne"},
+	}, Spec: apiextensions.CustomResourceDefinitionSpec{}}
+	crd2 := &pb.Crd{}
+
+	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(crd1, crd2).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{
+		ClusterName: clustersmngr.DefaultCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Crds).To(HaveLen(2))
+
+	first := res.Crds[0]
+	g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
+	g.Expect(first.Name).To(Equal(rs.Name))
 }
