@@ -269,8 +269,10 @@ func TestListFluxCrds(t *testing.T) {
 		Group:    "group",
 		Versions: []apiextensions.CustomResourceDefinitionVersion{{Name: "0"}},
 	}}
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(crd1, crd2).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(crd1, crd2).Build()
 	cfg := makeServerConfig(client, t)
 	c := makeServer(cfg, t)
 
