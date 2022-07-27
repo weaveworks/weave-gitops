@@ -18,6 +18,8 @@ import (
 )
 
 func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, devUser string, devMode bool, authMethodStrings []string) (*AuthServer, error) {
+  log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
+
   authMethods, err := ParseAuthMethodArray(authMethodStrings)
   if err != nil {
     return nil, err

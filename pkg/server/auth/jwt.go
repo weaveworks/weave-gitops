@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"reflect"
 	"context"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 // PrincipalGetter implementations are responsible for extracting a named
@@ -158,5 +158,5 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("Could not find valid principal")
 }
