@@ -8,7 +8,6 @@ import (
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,10 +16,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
+func InstallFlux(log logger.Logger, ctx context.Context, kubeClient client.Client, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
 	log.Actionf("Installing Flux ...")
 
 	manifests, err := install.Generate(installOptions, "")
@@ -42,7 +40,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	return nil
 }
 
-func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP) (string, error) {
+func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient client.Client) (string, error) {
 	log.Actionf("Getting Flux version ...")
 
 	listResult := unstructured.UnstructuredList{}
@@ -53,7 +51,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 		Kind:    "Namespace",
 	})
 
-	listOptions := ctrlclient.MatchingLabels{
+	listOptions := client.MatchingLabels{
 		coretypes.PartOfLabel: "flux",
 	}
 
@@ -84,7 +82,7 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient *kube.Kub
 	return fluxVersion, nil
 }
 
-func WaitForDeploymentToBeReady(log logger.Logger, kubeClient *kube.KubeHTTP, deploymentName string, namespace string) error {
+func WaitForDeploymentToBeReady(log logger.Logger, kubeClient client.Client, deploymentName string, namespace string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
