@@ -15,7 +15,6 @@ function FluxRuntime({ className }: Props) {
     isLoading: crdsLoading,
     error: crdsError,
   } = useListFluxCrds();
-  console.log(crds);
   return (
     <Page
       loading={isLoading || crdsLoading}

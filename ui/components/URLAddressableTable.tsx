@@ -14,7 +14,6 @@ function URLAddressableTable({ initialSelections, ...rest }: Props) {
   const history = useHistory();
   const location = useLocation();
   const search = location.search;
-  console.log(search);
 
   const handleFilterChange = (sel: FilterSelections) => {
     const filterQuery = filterSelectionsToQueryString(sel);
