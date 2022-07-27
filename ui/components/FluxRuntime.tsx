@@ -17,7 +17,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
   const { path } = useRouteMatch();
 
   return (
-    <Flex wide tall column>
+    <Flex wide tall column className={className}>
       <SubRouterTabs rootPath={`${path}/controllers`} clearQuery>
         <RouterTab name="Controllers" path={`${path}/controllers`}>
           <ControllersTable controllers={deployments} />
