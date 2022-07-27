@@ -131,10 +131,6 @@ jobs:
             type=semver,pattern={{version}},value=${{ needs.tag-release.outputs.version }}
           flavor: |
             latest=true
-          build-args: |
-            FLUX_VERSION=${{ env.FLUX_VERSION }}
-            LDFLAGS=${{ env.LDFLAGS }}
-            GIT_COMMIT=${{ github.sha }}
       - name: setup qemu
         uses: docker/setup-qemu-action@v2
       - name: setup docker buildx
@@ -148,6 +144,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: gitops-server.dockerfile
+          build-args: |
+            FLUX_VERSION=${{ env.FLUX_VERSION }}
+            LDFLAGS=${{ env.LDFLAGS }}
+            GIT_COMMIT=${{ github.sha }}
 
   merge-pr:
     runs-on: ubuntu-latest
