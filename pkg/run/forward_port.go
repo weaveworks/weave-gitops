@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -12,11 +17,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
-	"net/http"
-	"net/url"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 type PortForwardSpec struct {
@@ -117,7 +118,7 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*corev1.Pod, error) {
+func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP, podStatusPhase corev1.PodPhase) (*corev1.Pod, error) {
 	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
 
 	switch specMap.Kind {
@@ -152,12 +153,12 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 		}
 
 		for _, pod := range podList.Items {
-			if pod.Status.Phase == corev1.PodRunning {
+			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
 				return &pod, nil
 			}
 		}
 
-		return nil, errors.New("no running pods found for service")
+		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
@@ -180,12 +181,12 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 		}
 
 		for _, pod := range podList.Items {
-			if pod.Status.Phase == corev1.PodRunning {
+			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
 				return &pod, nil
 			}
 		}
 
-		return nil, errors.New("no running pods found for service")
+		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
 	}
 
 	return nil, errors.New("unsupported spec kind")

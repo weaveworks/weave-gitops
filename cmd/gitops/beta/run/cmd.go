@@ -32,6 +32,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -282,11 +283,11 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard ...")
 
-			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout, flags.DashboardPort); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+			} else {
+				log.Successf("Dashboard reconciliation is done.")
 			}
-
-			log.Successf("Dashboard reconciliation is done.")
 		}
 
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
@@ -297,7 +298,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var cancelDashboardPortForwarding func() = nil
 
 		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.DashboardPort)
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, flags.DashboardPort)
 			if err != nil {
 				return err
 			}
@@ -393,7 +394,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
+							pod, err := run.GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}
