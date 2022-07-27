@@ -81,7 +81,7 @@ export function statusSortHelper({
 }: Statusable): number {
   if (suspended) return 2;
   if (computeReady(conditions) === ReadyType.Reconciling) return 3;
-  else if (computeReady(conditions)) return 4;
+  else if (computeReady(conditions) === ReadyType.Ready) return 4;
   else return 1;
 }
 
