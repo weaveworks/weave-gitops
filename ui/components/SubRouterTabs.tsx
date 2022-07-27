@@ -124,6 +124,6 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
     height: 32px;
   }
   .PrivateTabIndicator-root-1 {
-    height 3px;
+    height: 3px;
   }
 `;
