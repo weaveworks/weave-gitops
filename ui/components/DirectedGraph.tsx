@@ -49,13 +49,17 @@ function DirectedGraph({
       <g transform={`translate(${zoomBox / 2}, 50)`}>
         <g stroke="#7a7a7a" strokeWidth={5} fill="none">
           {_.map(links, (l, index) => {
-            // l is an object with a source and target node, each with an x and y value. M tells the path where to start, H draws a straight horizontal line, and V draws a straight vertical line
+            // l is an object with a source and target node, each with an x and y value.
+            // M tells the path where to start,
+            // H draws a straight horizontal line (capital letter means absolute coordinates),
+            // and v draws a straight vertical line (lowercase letter means relative to current position)
             return (
               <path
                 key={index}
-                d={`M${l.source.x} ${
-                  l.source.y + nodeSize.verticalSeparation
-                }H${l.target.x}V${l.target.y + nodeSize.verticalSeparation}`}
+                d={`M${l.source.x}, ${l.source.y + nodeSize.verticalSeparation} 
+                v${(l.target.y - l.source.y) / 2} 
+                H${l.target.x} 
+                v${(l.target.y - l.source.y) / 2}`}
               />
             );
           })}
