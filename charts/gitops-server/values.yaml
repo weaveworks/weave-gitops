@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.9.0"
+  tag: "v0.9.1"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -30,8 +30,6 @@ oidcSecret:
   # clientSecret:
   # issuerURL:
   # redirectURL:
-
-
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -40,7 +38,6 @@ serviceAccount:
   # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
-
 rbac:
   # -- Specifies whether the clusterRole & binding to the service account should be created
   create: true
@@ -60,7 +57,6 @@ rbac:
   #   resources: ["terraforms"]
   #   verbs: [ "get", "list", "patch" ]
   additionalRules: []
-
 adminUser:
   # -- Whether the local admin user should be created.
   # If you use this make sure you add it to `rbac.impersonationResourceNames`.
@@ -82,7 +78,6 @@ adminUser:
   # This needs to have been hashed using bcrypt.
   # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
-
 podAnnotations: {}
 podSecurityContext: {}
 # fsGroup: 2000
@@ -158,7 +153,6 @@ serverTLS:
   # kubectl create secret tls my-tls-secret \
   #  --cert=path/to/cert/file \
   #  --key=path/to/key/file
-
 metrics:
   # -- Start the metrics exporter
   enabled: false
