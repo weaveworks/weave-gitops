@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -118,7 +117,7 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP, podStatusPhase corev1.PodPhase) (*corev1.Pod, error) {
+func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client, podStatusPhase corev1.PodPhase) (*corev1.Pod, error) {
 	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
 
 	switch specMap.Kind {

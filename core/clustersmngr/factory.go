@@ -9,6 +9,7 @@ import (
 
 	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
@@ -29,11 +30,25 @@ const (
 	watchNamespaceFrequency = 30 * time.Second
 )
 
+// ClientError is an error returned by the GetImpersonatedClient function which contains
+// the details of the cluster that caused the error.
+type ClientError struct {
+	ClusterName string
+	Err         error
+}
+
+// Error() returns the error message of the underlying error.
+func (ce *ClientError) Error() string {
+	return ce.Err.Error()
+}
+
 // ClientsFactory is a factory for creating clients for clusters
 //counterfeiter:generate . ClientsFactory
 type ClientsFactory interface {
 	// GetImpersonatedClient returns the clusters client for the given user
 	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// GetImpersonatedClientForCluster returns the client for the given user and cluster
+	GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error)
 	// GetImpersonatedDiscoveryClient returns the discovery for the given user and for the given cluster
 	GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error)
 	// UpdateClusters updates the clusters list
@@ -188,11 +203,57 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	}
 
 	pool := cf.newClustersPool(cf.scheme)
+	errChan := make(chan error, len(cf.clusters.Get()))
+
+	var wg sync.WaitGroup
 
 	for _, cluster := range cf.clusters.Get() {
-		if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
-			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
+		wg.Add(1)
+
+		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
+			defer wg.Done()
+
+			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+		}(cluster, pool, errChan)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	var result *multierror.Error
+
+	for err := range errChan {
+		result = multierror.Append(result, err)
+	}
+
+	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
+}
+
+func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
+	if user == nil {
+		return nil, errors.New("no user supplied")
+	}
+
+	pool := cf.newClustersPool(cf.scheme)
+	clusters := cf.clusters.Get()
+
+	var cl Cluster
+
+	for _, c := range clusters {
+		if c.Name == clusterName {
+			cl = c
+			break
 		}
+	}
+
+	if cl.Name == "" {
+		return nil, fmt.Errorf("cluster not found: %s", clusterName)
+	}
+
+	if err := pool.Add(ClientConfigWithUser(user), cl); err != nil {
+		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
 	return NewClient(pool, cf.userNsList(ctx, user)), nil

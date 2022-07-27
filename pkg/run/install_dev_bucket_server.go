@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -29,7 +28,7 @@ var (
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config) (func(), error) {
+func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config *rest.Config) (func(), error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -212,7 +211,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP, config
 }
 
 // UninstallDevBucketServer deletes the dev-bucket namespace.
-func UninstallDevBucketServer(log logger.Logger, kubeClient *kube.KubeHTTP) error {
+func UninstallDevBucketServer(log logger.Logger, kubeClient client.Client) error {
 	// create namespace
 	devBucketNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{

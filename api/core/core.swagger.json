@@ -1348,6 +1348,12 @@
           "items": {
             "$ref": "#/definitions/v1HelmChart"
           }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },

@@ -7,34 +7,34 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
 
+	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/spf13/cobra"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
-
-	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	corev1 "k8s.io/api/core/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -304,7 +304,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		}
 
-		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs); err != nil {
+		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs, flags.Timeout); err != nil {
 			return err
 		}
 
@@ -379,9 +379,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							log.Failuref("Error syncing dir: %v", err)
 						}
 
-						log.Actionf("Request reconciliation of dev-bucket, and dev-ks ...")
+						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
 
-						if err := reconcileDevBucketSourceAndKS(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+						if err := reconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
 							log.Failuref("Error requesting reconciliation: %v", err)
 						}
 
@@ -456,7 +456,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 func watchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os.FileInfo, err error) error {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("Error walking path: %v", err)
+			return fmt.Errorf("error walking path: %v", err)
 		}
 
 		if info.IsDir() {
@@ -475,7 +475,7 @@ func watchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os
 }
 
 // reconcileDevBucketSourceAndKS reconciles the dev-bucket and dev-ks asynchronously.
-func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
+func reconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
 	// reconcile dev-bucket
@@ -549,8 +549,8 @@ func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, 
 		return err
 	}
 
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devKs := &kustomizev1.Kustomization{}
+	devKs := &kustomizev1.Kustomization{}
+	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
 		if err := kubeClient.Get(context.Background(), types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-ks",
@@ -558,10 +558,24 @@ func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, 
 			return false, err
 		}
 
-		return apimeta.IsStatusConditionPresentAndEqual(devKs.Status.Conditions, kustomizev1.HealthyCondition, metav1.ConditionTrue), nil
-	}); err != nil {
-		return err
+		healthy := apimeta.IsStatusConditionPresentAndEqual(
+			devKs.Status.Conditions,
+			kustomizev1.HealthyCondition,
+			metav1.ConditionTrue,
+		)
+		return healthy, nil
+	})
+
+	if devKsErr != nil {
+		messages, err := run.FindConditionMessages(kubeClient, devKs)
+		if err != nil {
+			return err
+		}
+
+		for _, msg := range messages {
+			log.Failuref(msg)
+		}
 	}
 
-	return nil
+	return devKsErr
 }
