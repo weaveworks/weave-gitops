@@ -1,0 +1,229 @@
+---
+title: Getting started
+sidebar_position: 1
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Getting started <TierLabel tiers="enterprise" />
+
+## Creating your first CAPD Cluster
+
+If you've followed the [Upgrade steps](installation.mdx#weave-gitops-enterprise) in the [Installation guide](installation.mdx) you should have:
+
+1. Weave GitOps Enterprise installed
+2. A CAPI provider installed (With support for `ClusterResourceSet`s enabled).
+
+Next up we'll add a template and use it to create a cluster.
+
+### Directory structure
+
+Let's setup a directory structure to manage our clusters
+
+```bash
+mkdir -p clusters/bases \
+  clusters/management/capi/templates \
+  clusters/management/capi/bootstrap \
+  clusters/management/capi/profiles
+```
+
+Now we should have:
+
+```bash
+.
+└── clusters
+    ├── bases
+    └── management
+        └── capi
+            ├── bootstrap
+            ├── profiles
+            └── templates
+```
+
+This assumes that we've configured flux to reconcile everything in `clusters/management` into our management cluster.
+
+To keep things organized we've created some subpaths for the different resources:
+
+- `bases` for any common resources between clusters like RBAC and policy.
+- `templates` for `CAPITemplates`
+- `bootstrap` for `ClusterBootstrapConfig`, `ClusterResourceSet` and the `ConfigMap` they reference
+- `profiles` for the `HelmRepository` of the profiles for the newly created clusters
+
+Lets grab some sample resources to create our first cluster!
+
+### Add common RBAC to the repo
+
+When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-name>` and `./clusters/bases`.
+
+To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
+
+Adding common rbac rules to `./clusters/bases/rbac` is an easy way to configure this!
+
+import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/bases/rbac/wego-admin.yaml {window.location.protocol}//
+      {window.location.host}
+      {require("./assets/rbac/wego-admin.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/bases/rbac/wego-admin.yaml"
+  className="language-yaml"
+>
+  {WegoAdmin}
+</CodeBlock>
+
+### Add a template
+
+See [CAPI Templates](templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
+
+import CapdTemplate from "!!raw-loader!./assets/templates/capd-template.yaml";
+
+Download the template below to your config repository path, then commit and push to your git origin.
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/management/capi/templates/capd-template.yaml{" "}
+      {window.location.protocol}//{window.location.host}
+      {require("./assets/templates/capd-template.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/management/capi/templates/capd-template.yaml"
+  className="language-yaml"
+>
+  {CapdTemplate}
+</CodeBlock>
+
+## Automatically install a CNI with `ClusterResourceSet`s
+
+We can use `ClusterResourceSet`s to automatically install CNI's on a new cluster, here we use calico as an example.
+
+### Add a CRS to install a CNI
+
+Create a calico configmap and a CRS as follows:
+
+import CalicoCRS from "!!raw-loader!./assets/bootstrap/calico-crs.yaml";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/management/capi/bootstrap/calico-crs.yaml{" "}
+      {window.location.protocol}//{window.location.host}
+      {require("./assets/bootstrap/calico-crs.yaml").default}
+      {"\n"}
+      curl -o clusters/management/capi/bootstrap/calico-crs-configmap.yaml {
+        window.location.protocol
+      }//{window.location.host}
+      {require("./assets/bootstrap/calico-crs-configmap.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/management/capi/boostrap/calico-crs.yaml"
+  className="language-yaml"
+>
+  {CalicoCRS}
+</CodeBlock>
+
+The full [`calico-crs-configmap.yaml`](./assets/bootstrap/calico-crs-configmap.yaml) is a bit large to display inline here but make sure to download it to `clusters/management/capi/bootstrap/calico-crs-configmap.yaml` too, manually or with the above `curl` command.
+
+## Profiles and clusters
+
+WGE can automatically install profiles onto new clusters
+
+#### Add a helmrepo
+
+import ProfileRepo from "!!raw-loader!./assets/profiles/profile-repo.yaml";
+
+A profile is an enhanced helm chart. When publishing profiles to helm repositories make sure to include the `weave.works/profile` in `Chart.yaml`. These annotated profiles will appear in WGE
+
+```
+annotations:
+  weave.works/profile: nginx-profile
+```
+
+Download the profile repository below to your config repository path then commit and push. Make sure to update the url to point to a Helm repository containing your profiles.
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/management/capi/profiles/profile-repo.yaml{" "}
+      {window.location.protocol}
+      //{window.location.host}
+      {require("./assets/profiles/profile-repo.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title="clusters/management/capi/profiles/profile-repo.yaml"
+  className="language-yaml"
+>
+  {ProfileRepo}
+</CodeBlock>
+
+#### Add a cluster bootstrap config
+
+Create a cluster bootstrap config as follows:
+
+```bash
+ kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+```
+
+import CapiGitopsCDC from "!!raw-loader!./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml";
+
+Download the config with
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o
+      clusters/management/capi/bootstrap/capi-gitops-cluster-bootstrap-config.yaml{" "}
+      {window.location.protocol}
+      //{window.location.host}
+      {
+        require("./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml")
+          .default
+      }
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+Then update the `GITOPS_REPO` variable to point to your cluster
+
+<CodeBlock
+  title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
+  className="language-yaml"
+>
+  {CapiGitopsCDC}
+</CodeBlock>
+
+#### Add Monitoring Dashboards to your cluster
+
+In order to add dashboards to your cluster, you'll need to use metadata annotations following the below pattern.
+
+```
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  annotations:
+    metadata.weave.works/dashboard.grafana: https://grafana.com/
+    metadata.weave.works/dashboard.prometheus: https://prometheus.io/
+```
+
+## Test
+
+You should now be able to create a new cluster from your template and install profiles onto it with a single Pull Request via the WGE UI!
