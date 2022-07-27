@@ -123,11 +123,17 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 	}
 
 	for _, d := range list.Items {
+		version := ""
+
+		if len(d.Spec.Versions) > 0 {
+			version = d.Spec.Versions[0].Name
+		}
+
 		r := &pb.Crd{
 			Name: &pb.Crd_Name{
 				Plural: d.Spec.Names.Plural,
 				Group:  d.Spec.Group},
-			Version:     d.Spec.Versions[0].Name,
+			Version:     version,
 			Kind:        d.Spec.Names.Kind,
 			ClusterName: msg.ClusterName,
 		}

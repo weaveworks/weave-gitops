@@ -8,13 +8,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -254,9 +255,20 @@ func TestListFluxCrds(t *testing.T) {
 	ctx := context.Background()
 
 	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-		Name: {Plural: "plural", Group: "FakeCRDOne"},
-	}, Spec: apiextensions.CustomResourceDefinitionSpec{}}
-	crd2 := &pb.Crd{}
+		Name:   "crd1",
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+	}, Spec: apiextensions.CustomResourceDefinitionSpec{
+		Group:    "group",
+		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
+		Versions: []apiextensions.CustomResourceDefinitionVersion{},
+	}}
+	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+		Name:   "crd2",
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+	}, Spec: apiextensions.CustomResourceDefinitionSpec{
+		Group:    "group",
+		Versions: []apiextensions.CustomResourceDefinitionVersion{{Name: "0"}},
+	}}
 
 	client := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).WithRuntimeObjects(crd1, crd2).Build()
 	cfg := makeServerConfig(client, t)
@@ -270,6 +282,10 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(res.Crds).To(HaveLen(2))
 
 	first := res.Crds[0]
-	g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-	g.Expect(first.Name).To(Equal(rs.Name))
+	g.Expect(first.Version).To(Equal(""))
+	g.Expect(first.Name.Plural).To(Equal("plural"))
+	g.Expect(first.Name.Group).To(Equal("group"))
+	g.Expect(first.Kind).To(Equal("kind"))
+	g.Expect(first.ClusterName).To(Equal(clustersmngr.DefaultCluster))
+	g.Expect(res.Crds[1].Version).To(Equal("0"))
 }
