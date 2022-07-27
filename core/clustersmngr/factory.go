@@ -213,11 +213,9 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 		go func(cluster Cluster, pool ClientsPool, mutex *sync.Mutex, errChan chan error) {
 			defer wg.Done()
 
-			mutex.Lock()
-			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
+			if err := pool.AddSync(ClientConfigWithUser(user), cluster, mutex); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
-			mutex.Unlock()
 		}(cluster, pool, &mutex, errChan)
 	}
 

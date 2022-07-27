@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -14,9 +15,17 @@ import (
 )
 
 func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsRequest) (*pb.ListKustomizationsResponse, error) {
+	respErrors := []*pb.ListError{}
+
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -28,8 +37,6 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		opts = append(opts, client.Limit(msg.Pagination.PageSize))
 		opts = append(opts, client.Continue(msg.Pagination.PageToken))
 	}
-
-	respErrors := []*pb.ListError{}
 
 	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError

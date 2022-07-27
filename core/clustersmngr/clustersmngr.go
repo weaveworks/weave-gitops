@@ -3,6 +3,7 @@ package clustersmngr
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -61,6 +62,7 @@ type ClusterFetcher interface {
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
 	Add(cfg ClusterClientConfig, cluster Cluster) error
+	AddSync(cfg ClusterClientConfig, cluster Cluster, mutex *sync.Mutex) error
 	Clients() map[string]client.Client
 	Client(cluster string) (client.Client, error)
 }
@@ -126,6 +128,24 @@ func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 	}
 
 	cp.clients[cluster.Name] = leafClient
+
+	return nil
+}
+
+// Add adds a cluster client to the clients pool with the given user impersonation
+func (cp *clientsPool) AddSync(cfg ClusterClientConfig, cluster Cluster, mutex *sync.Mutex) error {
+	config := cfg(cluster)
+
+	leafClient, err := client.New(config, client.Options{
+		Scheme: cp.scheme,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create leaf client: %w", err)
+	}
+
+	mutex.Lock()
+	cp.clients[cluster.Name] = leafClient
+	mutex.Unlock()
 
 	return nil
 }

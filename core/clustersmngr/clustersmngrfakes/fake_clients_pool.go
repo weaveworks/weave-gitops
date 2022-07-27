@@ -21,6 +21,19 @@ type FakeClientsPool struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
+	AddSyncStub        func(clustersmngr.ClusterClientConfig, clustersmngr.Cluster, *sync.Mutex) error
+	addSyncMutex       sync.RWMutex
+	addSyncArgsForCall []struct {
+		arg1 clustersmngr.ClusterClientConfig
+		arg2 clustersmngr.Cluster
+		arg3 *sync.Mutex
+	}
+	addSyncReturns struct {
+		result1 error
+	}
+	addSyncReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ClientStub        func(string) (client.Client, error)
 	clientMutex       sync.RWMutex
 	clientArgsForCall []struct {
@@ -106,6 +119,69 @@ func (fake *FakeClientsPool) AddReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.addReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientsPool) AddSync(arg1 clustersmngr.ClusterClientConfig, arg2 clustersmngr.Cluster, arg3 *sync.Mutex) error {
+	fake.addSyncMutex.Lock()
+	ret, specificReturn := fake.addSyncReturnsOnCall[len(fake.addSyncArgsForCall)]
+	fake.addSyncArgsForCall = append(fake.addSyncArgsForCall, struct {
+		arg1 clustersmngr.ClusterClientConfig
+		arg2 clustersmngr.Cluster
+		arg3 *sync.Mutex
+	}{arg1, arg2, arg3})
+	stub := fake.AddSyncStub
+	fakeReturns := fake.addSyncReturns
+	fake.recordInvocation("AddSync", []interface{}{arg1, arg2, arg3})
+	fake.addSyncMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientsPool) AddSyncCallCount() int {
+	fake.addSyncMutex.RLock()
+	defer fake.addSyncMutex.RUnlock()
+	return len(fake.addSyncArgsForCall)
+}
+
+func (fake *FakeClientsPool) AddSyncCalls(stub func(clustersmngr.ClusterClientConfig, clustersmngr.Cluster, *sync.Mutex) error) {
+	fake.addSyncMutex.Lock()
+	defer fake.addSyncMutex.Unlock()
+	fake.AddSyncStub = stub
+}
+
+func (fake *FakeClientsPool) AddSyncArgsForCall(i int) (clustersmngr.ClusterClientConfig, clustersmngr.Cluster, *sync.Mutex) {
+	fake.addSyncMutex.RLock()
+	defer fake.addSyncMutex.RUnlock()
+	argsForCall := fake.addSyncArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeClientsPool) AddSyncReturns(result1 error) {
+	fake.addSyncMutex.Lock()
+	defer fake.addSyncMutex.Unlock()
+	fake.AddSyncStub = nil
+	fake.addSyncReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientsPool) AddSyncReturnsOnCall(i int, result1 error) {
+	fake.addSyncMutex.Lock()
+	defer fake.addSyncMutex.Unlock()
+	fake.AddSyncStub = nil
+	if fake.addSyncReturnsOnCall == nil {
+		fake.addSyncReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.addSyncReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -232,6 +308,8 @@ func (fake *FakeClientsPool) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.addSyncMutex.RLock()
+	defer fake.addSyncMutex.RUnlock()
 	fake.clientMutex.RLock()
 	defer fake.clientMutex.RUnlock()
 	fake.clientsMutex.RLock()
