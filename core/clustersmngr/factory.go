@@ -207,18 +207,16 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 
 	var wg sync.WaitGroup
 
-	var mutex sync.Mutex
-
 	for _, cluster := range cf.clusters.Get() {
 		wg.Add(1)
 
-		go func(cluster Cluster, pool ClientsPool, mutex *sync.Mutex, errChan chan error) {
+		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.AddSync(ClientConfigWithUser(user), cluster, mutex); err != nil {
+			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
-		}(cluster, pool, &mutex, errChan)
+		}(cluster, pool, errChan)
 	}
 
 	wg.Wait()
@@ -251,7 +249,7 @@ func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, u
 	}
 
 	if cl.Name == "" {
-		return nil, fmt.Errorf("cluster %s not found", clusterName)
+		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
 	if err := pool.Add(ClientConfigWithUser(user), cl); err != nil {
