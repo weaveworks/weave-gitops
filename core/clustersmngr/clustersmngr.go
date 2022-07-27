@@ -3,6 +3,7 @@ package clustersmngr
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -68,6 +69,7 @@ type ClientsPool interface {
 type clientsPool struct {
 	clients map[string]client.Client
 	scheme  *apiruntime.Scheme
+	mutex   sync.Mutex
 }
 
 type ClusterClientConfig func(Cluster) *rest.Config
@@ -111,6 +113,7 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 	return &clientsPool{
 		clients: map[string]client.Client{},
 		scheme:  scheme,
+		mutex:   sync.Mutex{},
 	}
 }
 
@@ -125,7 +128,9 @@ func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}
 
+	cp.mutex.Lock()
 	cp.clients[cluster.Name] = leafClient
+	cp.mutex.Unlock()
 
 	return nil
 }

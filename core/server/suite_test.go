@@ -143,7 +143,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	}
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{}, nil)
+	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
