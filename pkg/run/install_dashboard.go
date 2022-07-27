@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -100,16 +101,16 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient *ku
 }
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHTTP, config *rest.Config, namespace string, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
-		Namespace:     wego.DefaultNamespace,
+		Namespace:     namespace,
 		Name:          podName,
 		Kind:          "service",
 		HostPort:      dashboardPort,
 		ContainerPort: server.DefaultPort,
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient)
+	pod, err := GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -139,7 +140,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient *kube.KubeHT
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
+func ReconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
 	// reconcile dashboard
@@ -173,15 +174,20 @@ func ReconcileDashboard(kubeClient *kube.KubeHTTP, namespace string, timeout tim
 
 	// wait for dashboard to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard := &sourcev1.HelmChart{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      helmChartNamespacedName,
-		}, dashboard); err != nil {
+		specMap := &PortForwardSpec{
+			Namespace:     wego.DefaultNamespace,
+			Name:          podName,
+			Kind:          "service",
+			HostPort:      dashboardPort,
+			ContainerPort: server.DefaultPort,
+		}
+
+		dashboard, err := GetPodFromSpecMap(specMap, kubeClient, "")
+		if err != nil {
 			return false, err
 		}
 
-		return dashboard.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
+		return dashboard.Status.Phase == corev1.PodRunning, nil
 	}); err != nil {
 		return err
 	}
