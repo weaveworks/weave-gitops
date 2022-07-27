@@ -47,6 +47,8 @@ func (ce *ClientError) Error() string {
 type ClientsFactory interface {
 	// GetImpersonatedClient returns the clusters client for the given user
 	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// GetImpersonatedClientForCluster returns the client for the given user and cluster
+	GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error)
 	// GetImpersonatedDiscoveryClient returns the discovery for the given user and for the given cluster
 	GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error)
 	// UpdateClusters updates the clusters list
@@ -229,6 +231,34 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	}
 
 	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
+}
+
+func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
+	if user == nil {
+		return nil, errors.New("no user supplied")
+	}
+
+	pool := cf.newClustersPool(cf.scheme)
+	clusters := cf.clusters.Get()
+
+	var cl Cluster
+
+	for _, c := range clusters {
+		if c.Name == clusterName {
+			cl = c
+			break
+		}
+	}
+
+	if cl.Name == "" {
+		return nil, fmt.Errorf("cluster %s not found", clusterName)
+	}
+
+	if err := pool.Add(ClientConfigWithUser(user), cl); err != nil {
+		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
+	}
+
+	return NewClient(pool, cf.userNsList(ctx, user)), nil
 }
 
 func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
