@@ -90,6 +90,7 @@ export type ListHelmChartsRequest = {
 
 export type ListHelmChartsResponse = {
   helmCharts?: Gitops_coreV1Types.HelmChart[]
+  errors?: ListError[]
 }
 
 export type GetKustomizationRequest = {
