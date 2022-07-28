@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestUsersNamespaces(t *testing.T) {
@@ -60,26 +61,78 @@ func TestClusters(t *testing.T) {
 }
 
 func TestClustersNamespaces(t *testing.T) {
-	g := NewGomegaWithT(t)
+	testSuite := []struct {
+		name       string
+		namespaces []v1.Namespace
+	}{
+		{
+			name: "single namespace",
+			namespaces: []v1.Namespace{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "a",
+					},
+				},
+			},
+		},
+		{
+			name: "multiple namespaces",
+			namespaces: []v1.Namespace{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "a",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "c",
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "b",
+					},
+				},
+			},
+		},
+	}
 
-	cs := clustersmngr.ClustersNamespaces{}
+	for _, tc := range testSuite {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-	clusterName := "cluster-1"
+			cs := clustersmngr.ClustersNamespaces{}
+			clusterName := "cluster-1"
 
-	ns := v1.Namespace{}
-	ns.Name = "ns1"
+			// simulating concurrent access
+			go cs.Set(clusterName, []v1.Namespace{tc.namespaces[0]})
+			go cs.Set(clusterName, []v1.Namespace{tc.namespaces[0]})
 
-	// simulating concurrent access
-	go cs.Set(clusterName, []v1.Namespace{ns})
-	go cs.Set(clusterName, []v1.Namespace{ns})
+			cs.Set(clusterName, []v1.Namespace{tc.namespaces[0]})
 
-	cs.Set(clusterName, []v1.Namespace{ns})
+			if len(tc.namespaces) == 1 {
+				g.Expect(cs.Get(clusterName)).To(Equal([]v1.Namespace{tc.namespaces[0]}))
+				cs.Clear()
+				g.Expect(cs.Get(clusterName)).To(HaveLen(0))
+				return
+			}
 
-	g.Expect(cs.Get(clusterName)).To(Equal([]v1.Namespace{ns}))
+			for _, ns := range tc.namespaces[1:] {
+				cs.AddNamespace(clusterName, ns)
+			}
 
-	cs.Clear()
+			g.Expect(cs.Get(clusterName)).To(HaveLen(len(tc.namespaces)))
 
-	g.Expect(cs.Get(clusterName)).To(HaveLen(0))
+			cs.RemoveNamespace(clusterName, tc.namespaces[0])
+
+			g.Expect(cs.Get(clusterName)).To(HaveLen(len(tc.namespaces) - 1))
+
+			cs.Clear()
+
+			g.Expect(cs.Get(clusterName)).To(HaveLen(0))
+
+		})
+	}
 }
 
 func TestClusterSet_Set(t *testing.T) {

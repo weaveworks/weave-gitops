@@ -17,12 +17,15 @@ import (
 )
 
 func TestGetImpersonatedClient(t *testing.T) {
+	createdNS := make(map[string]struct{})
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 	ctx := context.Background()
 
 	ns1 := createNamespace(g)
+	createdNS[ns1.Name] = struct{}{}
 	ns2 := createNamespace(g)
+	createdNS[ns2.Name] = struct{}{}
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns2}, nil)
@@ -48,7 +51,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 		_, _, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
 		nsFound := 0
 		for _, n := range nss {
-			if n.Name == ns1.Name || n.Name == ns2.Name {
+			if _, ok := createdNS[n.Name]; ok {
 				nsFound++
 			}
 		}

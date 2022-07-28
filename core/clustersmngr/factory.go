@@ -14,12 +14,20 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
+	watchtools "k8s.io/client-go/tools/watch"
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -29,10 +37,10 @@ const (
 	// How often we need to stop the world and remove outdated records.
 	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
-	watchNamespaceFrequency = 30 * time.Second
 	kubeClientTimeout       = 8 * time.Second
 	kubeClientDialTimeout   = 5 * time.Second
 	kubeClientDialKeepAlive = 30 * time.Second
+	maxWatcherRetries       = 3
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -210,21 +218,12 @@ func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 	// waits the first load of cluster to start watching namespaces
 	<-cf.initialClustersLoad
 
-	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
-		if err := cf.UpdateNamespaces(ctx); err != nil {
-			if merr, ok := err.(*multierror.Error); ok {
-				for _, cerr := range merr.Errors {
-					cf.log.Error(cerr, "failed to update namespaces")
-				}
-			}
-		}
-
-		return false, nil
-	}); err != nil {
-		cf.log.Error(err, "failed polling namespaces")
+	if err := cf.UpdateNamespaces(ctx); err != nil {
+		cf.log.Error(err, "Failed to update namespaces")
 	}
 }
 
+// UpdateNamespaces updates all namespaces for all clusters
 func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 	var result *multierror.Error
 
@@ -238,6 +237,13 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 			}
 		}
 	}
+
+	configs, err := cf.restConfigForClusters(cf.clusters.Get())
+	if err != nil {
+		result = multierror.Append(result, fmt.Errorf("failed to get rest configs for clusters: %w", err))
+	}
+
+	errChan := make(chan error, len(configs))
 
 	cf.syncCaches()
 
@@ -258,11 +264,72 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 				continue
 			}
 
+			// set the namespaces for the cluster
 			cf.clustersNamespaces.Set(clusterName, list.Items)
+		}
+
+		// launch the namespace watcher for this cluster
+		if configs[clusterName] != nil {
+			go func(ctx context.Context, restConfig *rest.Config, clusterName string, errChan chan error) {
+				cf.updateNamespaceWithWatch(ctx, restConfig, clusterName, errChan)
+			}(ctx, configs[clusterName], clusterName, errChan)
 		}
 	}
 
+	// handle errors from the watchers in a separate goroutine
+	go func() {
+		retries := make(map[string]int)
+
+		for err := range errChan {
+			clientErr := err.(*ClientError)
+			if retries[clientErr.ClusterName] < maxWatcherRetries {
+				retries[clientErr.ClusterName] += 1
+
+				go func(ctx context.Context, restConfig *rest.Config, clusterName string, errChan chan error) {
+					cf.updateNamespaceWithWatch(ctx, restConfig, clusterName, errChan)
+				}(ctx, configs[clientErr.ClusterName], clientErr.ClusterName, errChan)
+				cf.log.Info("retrying namespaces watch for cluster", "cluster", clientErr.ClusterName)
+			} else {
+				cf.log.Error(err, "failed to update namespaces", "cluster", clientErr.ClusterName)
+			}
+		}
+	}()
+
 	return result.ErrorOrNil()
+}
+
+func (cf *clustersManager) updateNamespaceWithWatch(ctx context.Context, restConfig *rest.Config, clusterName string, errChan chan error) {
+	gvk := schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	}
+
+	restClient, err := apiutil.RESTClientForGVK(gvk, false, restConfig, serializer.NewCodecFactory(cf.scheme))
+	if err != nil {
+		errChan <- &ClientError{ClusterName: clusterName, Err: fmt.Errorf("failed to create REST client for cluster %s: %w", clusterName, err)}
+		return
+	}
+
+	lw := cache.NewListWatchFromClient(restClient, "namespaces", metav1.NamespaceAll, fields.Everything())
+	_, err = watchUntilWithSync(ctx, lw, &v1.Namespace{}, clusterName, cf.upDateNamespaceOnCondition)
+
+	if err != nil {
+		errChan <- &ClientError{ClusterName: clusterName, Err: fmt.Errorf("failed watching namespaces for cluster %s: %w", clusterName, err)}
+	}
+
+	cf.log.Info("stopped watching namespaces for cluster", "cluster", clusterName)
+}
+
+func (cf *clustersManager) upDateNamespaceOnCondition(event watch.EventType, clusterName string, namespace v1.Namespace) {
+	switch event {
+	case watch.Added:
+		cf.clustersNamespaces.AddNamespace(clusterName, namespace)
+	case watch.Modified:
+		cf.clustersNamespaces.UpdateNamespace(clusterName, namespace)
+	case watch.Deleted:
+		cf.clustersNamespaces.RemoveNamespace(clusterName, namespace)
+	}
 }
 
 func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
@@ -460,6 +527,24 @@ func ApplyKubeConfigOptions(config *rest.Config, options ...KubeConfigOption) (*
 	return config, nil
 }
 
+func (cf *clustersManager) restConfigForClusters(clusters []Cluster) (map[string]*rest.Config, error) {
+	var result *multierror.Error
+
+	configs := map[string]*rest.Config{}
+
+	for _, cluster := range clusters {
+		config, err := ClientConfigAsServer(cf.kubeConfigOptions...)(cluster)
+		if err != nil {
+			result = multierror.Append(result, err)
+			continue
+		}
+
+		configs[cluster.Name] = config
+	}
+
+	return configs, result.ErrorOrNil()
+}
+
 // restConfigFromCluster creates a generic rest.Config for a given cluster.
 // You should not call this directly, but rather via
 // ClientConfigAsServer or ClientConfigWithUser
@@ -534,4 +619,22 @@ func ClientConfigWithUser(user *auth.UserPrincipal, options ...KubeConfigOption)
 
 		return ApplyKubeConfigOptions(config, options...)
 	}
+}
+
+func watchUntilWithSync(ctx context.Context, lw cache.ListerWatcher, obj apiruntime.Object, clusterName string, conditionFunc func(event watch.EventType, cluster string, namespace v1.Namespace)) (bool, error) {
+	_, error := watchtools.UntilWithSync(ctx, lw, obj, nil, func(e watch.Event) (bool, error) {
+		obj := e.Object.(*v1.Namespace)
+		switch e.Type {
+		case watch.Added, watch.Modified:
+			conditionFunc(e.Type, clusterName, *obj)
+		case watch.Deleted:
+			conditionFunc(e.Type, clusterName, *obj)
+		default:
+			return false, nil
+		}
+
+		return false, nil
+	})
+
+	return false, error
 }

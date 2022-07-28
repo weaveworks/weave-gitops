@@ -30,5 +30,5 @@ rules:
   # The service account needs to read namespaces to know where it can query
   - apiGroups: [ "" ]
     resources: [ "namespaces" ]
-    verbs: [ "get", "list" ]
+    verbs: [ "get", "list", "watch" ]
 {{- end -}}

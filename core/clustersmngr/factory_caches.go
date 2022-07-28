@@ -8,17 +8,18 @@ import (
 
 	"github.com/cheshir/ttlcache"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"golang.org/x/exp/slices"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
+// Clusters is a list of clusters
 type Clusters struct {
 	sync.RWMutex
 	clusters    []Cluster
 	clustersMap map[string]Cluster
 }
 
-// Set updates Clusters.clusters, and returns the newly added clusters and removed clusters.
 func (c *Clusters) Set(clusters []Cluster) (added, removed []Cluster) {
 	c.Lock()
 	defer c.Unlock()
@@ -62,6 +63,7 @@ func appendClusters(clustersMap map[string]Cluster, keys []string) []Cluster {
 	return clusters
 }
 
+// Get will return the cached cluster list.
 func (c *Clusters) Get() []Cluster {
 	c.Lock()
 	defer c.Unlock()
@@ -69,6 +71,7 @@ func (c *Clusters) Get() []Cluster {
 	return c.clusters
 }
 
+// Hash will return a hash of the list of clusters by name.
 func (c *Clusters) Hash() string {
 	names := []string{}
 
@@ -81,11 +84,14 @@ func (c *Clusters) Hash() string {
 	return strings.Join(names, "")
 }
 
+// ClusterNamespaces is a list of namespaces indexed by cluster name.
 type ClustersNamespaces struct {
 	sync.RWMutex
 	namespaces map[string][]v1.Namespace
 }
 
+// Set will set the given namespace list in the cache.
+// It takes the cluster name as a parameter, so that the list can be indexed by cluster name.
 func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
 	cn.Lock()
 	defer cn.Unlock()
@@ -97,6 +103,95 @@ func (cn *ClustersNamespaces) Set(cluster string, namespaces []v1.Namespace) {
 	cn.namespaces[cluster] = namespaces
 }
 
+// AddNamespace will add the given namespace to the cache.
+// It takes the cluster name and the namespace as a parameter.
+func (cn *ClustersNamespaces) AddNamespace(cluster string, namespace v1.Namespace) {
+	cn.Lock()
+	defer cn.Unlock()
+
+	if cn.namespaces == nil {
+		cn.namespaces = make(map[string][]v1.Namespace)
+	}
+
+	namespaces, ok := cn.namespaces[cluster]
+	if !ok {
+		namespaces = []v1.Namespace{}
+	}
+
+	// Search for the namespace
+	index := slices.IndexFunc(namespaces, func(ns v1.Namespace) bool {
+		return ns.Name == namespace.Name
+	})
+
+	// if the namespace is already in the list, do nothing
+	if index != -1 {
+		return
+	}
+
+	namespaces = append(namespaces, namespace)
+	cn.namespaces[cluster] = namespaces
+}
+
+// RemoveNamespace will remove the given namespace from the cache.
+// It takes the cluster name and the namespace as a parameter.
+func (cn *ClustersNamespaces) RemoveNamespace(cluster string, namespace v1.Namespace) {
+	cn.Lock()
+	defer cn.Unlock()
+
+	if cn.namespaces == nil {
+		return
+	}
+
+	namespaces, ok := cn.namespaces[cluster]
+	if !ok {
+		return
+	}
+
+	// Search for the namespace
+	index := slices.IndexFunc(namespaces, func(ns v1.Namespace) bool {
+		return ns.Name == namespace.Name
+	})
+
+	if index == -1 {
+		return
+	}
+
+	namespaces = append(namespaces[:index], namespaces[index+1:]...)
+
+	cn.namespaces[cluster] = namespaces
+}
+
+// UpdateNamespace will update the namespace in the cache, and create a new one if it doesn't exist.
+// It takes the cluster name and the namespace as a parameter.
+func (cn *ClustersNamespaces) UpdateNamespace(cluster string, namespace v1.Namespace) {
+	cn.Lock()
+	defer cn.Unlock()
+
+	if cn.namespaces == nil {
+		return
+	}
+
+	namespaces, ok := cn.namespaces[cluster]
+	if !ok {
+		return
+	}
+
+	// Search for the namespace
+	index := slices.IndexFunc(namespaces, func(ns v1.Namespace) bool {
+		return ns.Name == namespace.Name
+	})
+
+	if index == -1 {
+		cn.AddNamespace(cluster, namespace)
+		return
+	}
+
+	namespaces[index] = namespace
+
+	cn.namespaces[cluster] = namespaces
+}
+
+// Clear will clear the cache.
 func (cn *ClustersNamespaces) Clear() {
 	cn.Lock()
 	defer cn.Unlock()

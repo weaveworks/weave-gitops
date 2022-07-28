@@ -44,6 +44,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
 	go.uber.org/zap v1.23.0
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
+	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c
 	google.golang.org/genproto v0.0.0-20220715211116-798f69b842b9
 	google.golang.org/grpc v1.48.0
