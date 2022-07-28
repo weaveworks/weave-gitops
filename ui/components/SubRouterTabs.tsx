@@ -123,7 +123,7 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
   .MuiTabs-fixed {
     height: 32px;
   }
-  .PrivateTabIndicator-root-1 {
+  .MuiTabs-indicator {
     height: 3px;
   }
 `;
