@@ -186,7 +186,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 			return false, err
 		}
 
-		return dashboard.Status.Phase == corev1.PodRunning, nil
+		return IsPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
 	}); err != nil {
 		return err
 	}
