@@ -181,7 +181,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 		ContainerPort: "9000",
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+	pod, err := GetPodFromSpecMap(specMap, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}

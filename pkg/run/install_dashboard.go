@@ -109,7 +109,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 		ContainerPort: server.DefaultPort,
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+	pod, err := GetPodFromSpecMap(specMap, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -181,7 +181,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 			ContainerPort: server.DefaultPort,
 		}
 
-		dashboard, err := GetPodFromSpecMap(specMap, kubeClient, "")
+		dashboard, err := GetPodFromSpecMap(specMap, kubeClient)
 		if err != nil {
 			return false, err
 		}

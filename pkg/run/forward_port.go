@@ -117,7 +117,7 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client, podStatusPhase corev1.PodPhase) (*corev1.Pod, error) {
+func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*corev1.Pod, error) {
 	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
 
 	switch specMap.Kind {
@@ -152,12 +152,12 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client, podSt
 		}
 
 		for _, pod := range podList.Items {
-			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
+			if pod.Status.Phase == corev1.PodRunning {
 				return &pod, nil
 			}
 		}
 
-		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
+		return nil, errors.New("no running pods found for service")
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
@@ -176,16 +176,16 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client, podSt
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, errors.New("no pods found for deployment")
 		}
 
 		for _, pod := range podList.Items {
-			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
+			if pod.Status.Phase == corev1.PodRunning {
 				return &pod, nil
 			}
 		}
 
-		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
+		return nil, errors.New("no running pods found for deployment")
 	}
 
 	return nil, errors.New("unsupported spec kind")

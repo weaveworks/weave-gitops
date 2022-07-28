@@ -30,7 +30,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -395,7 +394,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}
