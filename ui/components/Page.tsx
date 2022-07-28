@@ -2,6 +2,7 @@ import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
+import { ListError } from "../lib/api/core/core.pb";
 import { PageRoute, RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Flex from "./Flex";
@@ -16,7 +17,7 @@ export type PageProps = {
   breadcrumbs?: { page: PageRoute; query?: any }[];
   actions?: JSX.Element;
   loading?: boolean;
-  error?: RequestError | RequestError[];
+  error?: RequestError | RequestError[] | ListError[];
   isFetching?: boolean;
 };
 

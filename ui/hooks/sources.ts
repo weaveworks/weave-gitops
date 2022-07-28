@@ -4,6 +4,7 @@ import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListBucketsResponse,
+  ListError,
   ListGitRepositoriesResponse,
   ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
@@ -17,7 +18,7 @@ export function useListSources(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Source[], RequestError>(
+  return useQuery<{ result: Source[]; errors: ListError[] }, RequestError>(
     "sources",
     () => {
       const p = [
@@ -33,25 +34,33 @@ export function useListSources(
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
         const charts = (chartRes as ListHelmChartsResponse).helmCharts;
-
-        return [
-          ..._.map(repos, (r) => ({
-            ...r,
-            kind: FluxObjectKind.KindGitRepository,
-          })),
-          ..._.map(hrs, (c) => ({
-            ...c,
-            kind: FluxObjectKind.KindHelmRepository,
-          })),
-          ..._.map(buckets, (b) => ({
-            ...b,
-            kind: FluxObjectKind.KindBucket,
-          })),
-          ..._.map(charts, (ch) => ({
-            ...ch,
-            kind: FluxObjectKind.KindHelmChart,
-          })),
+        const ErrorList: ListError[] = [
+          ...repoRes.errors,
+          ...helmReleases.errors,
+          ...bucketsRes.errors,
+          ...chartRes.errors,
         ];
+        return {
+          result: [
+            ..._.map(repos, (r) => ({
+              ...r,
+              kind: FluxObjectKind.KindGitRepository,
+            })),
+            ..._.map(hrs, (c) => ({
+              ...c,
+              kind: FluxObjectKind.KindHelmRepository,
+            })),
+            ..._.map(buckets, (b) => ({
+              ...b,
+              kind: FluxObjectKind.KindBucket,
+            })),
+            ..._.map(charts, (ch) => ({
+              ...ch,
+              kind: FluxObjectKind.KindHelmChart,
+            })),
+          ],
+          errors: ErrorList,
+        };
       });
     },
     { retry: false, refetchInterval: 5000 }
