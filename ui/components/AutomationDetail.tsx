@@ -9,7 +9,6 @@ import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { fluxObjectKindToKind } from "../lib/objects";
 import Alert from "./Alert";
 import Button from "./Button";
-import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -20,6 +19,7 @@ import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
+import Text from "./Text";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -66,7 +66,9 @@ function AutomationDetail({ automation, className, info }: Props) {
 
   return (
     <Flex wide tall column className={className}>
-      <DetailTitle name={automation?.name} type={automation?.kind} />
+      <Text size="large" semiBold titleHeight>
+        {automation?.name}
+      </Text>
       {sync.isError && (
         <Alert
           severity="error"

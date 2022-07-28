@@ -168,6 +168,17 @@ message Deployment {
     string   clusterName          = 6;
 }
 
+message Crd {
+    message Name {
+        string plural = 1;
+        string group  = 2;
+    }
+    Name     name                 = 1;
+    string   version              = 2;
+    string   kind                 = 3;
+    string   clusterName          = 4;
+}
+
 // UnstructuredObject is a Kubernetes object of an unknown type
 message UnstructuredObject {
     GroupVersionKind groupVersionKind     = 1;

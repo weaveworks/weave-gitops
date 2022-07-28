@@ -84,6 +84,15 @@ export type ListFluxRuntimeObjectsResponse = {
   errors?: ListError[]
 }
 
+export type ListFluxCrdsRequest = {
+  clusterName?: string
+}
+
+export type ListFluxCrdsResponse = {
+  crds?: Gitops_coreV1Types.Crd[]
+  errors?: ListError[]
+}
+
 export type ListHelmChartsRequest = {
   namespace?: string
 }
@@ -230,6 +239,9 @@ export class Core {
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
+    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux_crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
