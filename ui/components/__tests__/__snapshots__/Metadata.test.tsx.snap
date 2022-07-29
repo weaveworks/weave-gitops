@@ -69,10 +69,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   text-decoration: none;
 }
 
-.c5.title-bar-button {
-  width: 250px;
-}
-
 .c1 {
   margin-top: 24px;
 }

@@ -82,10 +82,6 @@ exports[`Footer snapshots default 1`] = `
   text-decoration: none;
 }
 
-.c5.title-bar-button {
-  width: 250px;
-}
-
 .c4 {
   padding: 4px;
 }
@@ -297,10 +293,6 @@ exports[`Footer snapshots no api version 1`] = `
 .c5 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c5.title-bar-button {
-  width: 250px;
 }
 
 .c4 {
