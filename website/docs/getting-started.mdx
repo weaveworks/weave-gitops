@@ -122,7 +122,7 @@ cd fleet-infra
 ```
 flux create source helm ww-gitops \
   --interval=60m \
-  --url=https://helm.gitops.weave.works \
+  --url=oci://ghcr.io/weaveworks/charts \
   --export > ./clusters/my-cluster/weave-gitops-source.yaml
 ```
 
@@ -136,7 +136,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1h0m0s
-  url: https://helm.gitops.weave.works
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
 ```
 
 3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository

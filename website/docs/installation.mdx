@@ -62,7 +62,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 60m0s
-  url: https://helm.gitops.weave.works
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
 ```
 
 There are many other values you can configure - for more information, see [our value file reference](./references/helm-reference.md).
