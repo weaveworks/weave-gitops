@@ -32,6 +32,9 @@ This version of Weave GitOps is tested against the following Flux releases:
 * 0.31
 
 ### Install the Helm Chart
+
+⚠️ Note that the following instructions require Flux version 0.31.0 or later to make use of the OCI registry for Helm chart storage. If your Flux version is older, please upgrade prior to following the instructions below. ⚠️.
+
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
 
 ```
