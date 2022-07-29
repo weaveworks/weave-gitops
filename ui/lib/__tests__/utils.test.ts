@@ -1,23 +1,17 @@
 import { jest } from "@jest/globals";
 import {
   addKind,
-  calculateZoomRatio,
-  calculateNodeOffsetX,
   convertGitURLToGitProvider,
   convertImage,
   formatMetadataKey,
   gitlabOAuthRedirectURI,
-  isHTTP,
   isAllowedLink,
+  isHTTP,
   makeImageString,
-  mapScaleToZoomPercent,
-  mapZoomPercentToScale,
   pageTitleWithAppName,
   removeKind,
   statusSortHelper,
 } from "../utils";
-
-const floatPrecision = 19;
 
 describe("utils lib", () => {
   describe("gitlabOAuthRedirectURI", () => {
@@ -315,58 +309,6 @@ describe("utils lib", () => {
           "fakeimage.itisfake.donotdoit.io/fake/fake/fake.com.net.org"
         )
       ).toEqual(false);
-    });
-  });
-  describe("calculateZoomRatio", () => {
-    it("calculates zoom ratio", () => {
-      expect(calculateZoomRatio(0)).toBeCloseTo(
-        0.013333333333333334,
-        floatPrecision
-      );
-      expect(calculateZoomRatio(20)).toBeCloseTo(
-        0.02666666666666667,
-        floatPrecision
-      );
-      expect(calculateZoomRatio(100)).toBeCloseTo(0.08, floatPrecision);
-    });
-  });
-  describe("calculateNodeOffsetX", () => {
-    it("returns 0 if the node is undefined", () => {
-      expect(calculateNodeOffsetX(undefined, 20, 0.04)).toEqual(0);
-    });
-
-    const rootNode = {
-      width: 670,
-      x: 3700,
-    };
-    it("calculates x-offset for the node", () => {
-      expect(
-        calculateNodeOffsetX(rootNode, 0, 0.013333333333333334)
-      ).toBeCloseTo(-40.400000000000006, floatPrecision);
-      expect(
-        calculateNodeOffsetX(rootNode, 20, 0.02666666666666667)
-      ).toBeCloseTo(-55.80000000000001, floatPrecision);
-      expect(
-        calculateNodeOffsetX(rootNode, 50, 0.04666666666666667)
-      ).toBeCloseTo(-78.9, floatPrecision);
-      expect(calculateNodeOffsetX(rootNode, 100, 0.08)).toBeCloseTo(
-        -117.4,
-        floatPrecision
-      );
-    });
-  });
-  describe("mapScaleToZoomPercent", () => {
-    it("maps zoom percent to scale", () => {
-      expect(mapScaleToZoomPercent(0)).toEqual(0);
-      expect(mapScaleToZoomPercent(20)).toBeCloseTo(10, floatPrecision);
-      expect(mapScaleToZoomPercent(100)).toBeCloseTo(50, floatPrecision);
-    });
-  });
-  describe("mapZoomPercentToScale", () => {
-    it("maps scale to zoom percent", () => {
-      expect(mapZoomPercentToScale(0)).toEqual(0);
-      expect(mapZoomPercentToScale(20)).toBeCloseTo(40, floatPrecision);
-      expect(mapZoomPercentToScale(100)).toBeCloseTo(200, floatPrecision);
     });
   });
 });
