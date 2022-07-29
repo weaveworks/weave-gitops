@@ -221,14 +221,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
 
-	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
+	coreHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
-			AppConfig:        appConfig,
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},
@@ -237,7 +235,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
 
-	mux.Handle("/v1/", appAndProfilesHandlers)
+	mux.Handle("/v1/", coreHandlers)
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.

@@ -12,6 +12,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
 
+const DefaultPort = "9001"
+const DefaultHost = "0.0.0.0"
+
 var (
 	PublicRoutes = []string{
 		"/v1/featureflags",
@@ -19,8 +22,6 @@ var (
 )
 
 type Config struct {
-	AppConfig        *ApplicationsConfig
-	AppOptions       []ApplicationsOption
 	CoreServerConfig core.CoreServerConfig
 	AuthServer       *auth.AuthServer
 }
