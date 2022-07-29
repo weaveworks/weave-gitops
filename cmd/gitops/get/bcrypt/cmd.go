@@ -7,12 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
 )
 
-func HashCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func HashCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bcrypt-hash",
 		Short: "Generates a hashed secret",
