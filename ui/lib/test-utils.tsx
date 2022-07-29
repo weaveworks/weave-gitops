@@ -8,17 +8,6 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import CoreClientContextProvider from "../contexts/CoreClientContext";
 import {
-  Applications,
-  GetGithubAuthStatusRequest,
-  GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeRequest,
-  GetGithubDeviceCodeResponse,
-  ParseRepoURLRequest,
-  ParseRepoURLResponse,
-  ValidateProviderTokenRequest,
-  ValidateProviderTokenResponse,
-} from "./api/applications/applications.pb";
-import {
   Core,
   GetChildObjectsRequest,
   GetChildObjectsResponse,
@@ -58,42 +47,6 @@ export const createCoreMockClient = (
   );
 
   return promisified as typeof Core;
-};
-
-export type ApplicationOverrides = {
-  GetGithubDeviceCode?: (
-    req: GetGithubDeviceCodeRequest
-  ) => GetGithubDeviceCodeResponse;
-  GetGithubAuthStatus?: (
-    req: GetGithubAuthStatusRequest
-  ) => GetGithubAuthStatusResponse;
-  ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  ValidateProviderToken?: (
-    req: ValidateProviderTokenRequest
-  ) => ValidateProviderTokenResponse;
-};
-
-// Don't make the user wire up all the promise stuff to be interface-compliant
-export const createMockClient = (
-  ovr: ApplicationOverrides,
-  error?: RequestError
-): typeof Applications => {
-  const promisified = _.reduce(
-    ovr,
-    (result, handlerFn, method) => {
-      result[method] = (req) => {
-        if (error) {
-          return new Promise((_, reject) => reject(error));
-        }
-        return new Promise((accept) => accept(handlerFn(req) as any));
-      };
-
-      return result;
-    },
-    {}
-  );
-
-  return promisified as typeof Applications;
 };
 
 export function withTheme(element) {

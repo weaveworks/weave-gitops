@@ -12,7 +12,6 @@ import FilterableTable, {
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
-import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import GitRepositoryDetail from "./components/GitRepositoryDetail";
 import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
@@ -26,7 +25,6 @@ import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
 import Metadata from "./components/Metadata";
 import Page from "./components/Page";
-import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
@@ -35,7 +33,6 @@ import UserSettings from "./components/UserSettings";
 import YamlView from "./components/YamlView";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
-import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
@@ -47,28 +44,19 @@ import {
 } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxRuntimeObjects } from "./hooks/flux";
-import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useGetObject } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
-import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { FluxObjectKind } from "./lib/api/core/types.pb";
 import { fluxObjectKindToKind } from "./lib/objects";
-import {
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-} from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import { statusSortHelper, isAllowedLink } from "./lib/utils";
-import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
 
 export {
   AppContextProvider,
-  applicationsClient,
   Auth,
   AuthCheck,
   AuthContextProvider,
@@ -76,8 +64,6 @@ export {
   AutomationsTable,
   BucketDetail,
   Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
   coreClient,
   CoreClientContextProvider,
   DataTable,
@@ -93,9 +79,6 @@ export {
   FluxRuntime,
   Footer,
   formatURL,
-  getCallbackState,
-  getProviderToken,
-  GithubDeviceAuthModal,
   GitRepositoryDetail,
   HelmChartDetail,
   HelmReleaseDetail,
@@ -111,9 +94,7 @@ export {
   LoadingPage,
   Metadata,
   muiTheme,
-  OAuthCallback,
   Page,
-  RepoInputWithAuth,
   RouterTab,
   SignIn,
   SortType,
@@ -128,7 +109,6 @@ export {
   useGetHelmRelease,
   useGetKustomization,
   useGetObject,
-  useIsAuthenticated,
   useListAutomations,
   useListFluxRuntimeObjects,
   useListSources,

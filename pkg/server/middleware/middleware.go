@@ -9,7 +9,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/logger"
-	"golang.org/x/oauth2"
 )
 
 type statusRecorder struct {
@@ -64,16 +63,9 @@ func WithLogging(log logr.Logger, h http.Handler) http.Handler {
 	})
 }
 
-type contextVals struct {
-	ProviderToken *oauth2.Token
-}
-
-type key int
-
 const (
-	tokenKey               key = iota
-	GRPCAuthMetadataKey        = "grpc-auth"
-	GitProviderTokenHeader     = "Git-Provider-Token"
+	GRPCAuthMetadataKey    = "grpc-auth"
+	GitProviderTokenHeader = "Git-Provider-Token"
 )
 
 func ContextWithGRPCAuth(ctx context.Context, token string) context.Context {
