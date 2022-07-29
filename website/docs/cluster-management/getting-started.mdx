@@ -56,7 +56,7 @@ Lets grab some sample resources to create our first cluster!
 
 ### Add common RBAC to the repo
 
-When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-name>` and `./clusters/bases`.
+When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-namespace>/<cluster-name>` and `./clusters/bases`.
 
 To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
 

@@ -337,8 +337,8 @@ For example you might what to change it to `clusters/my-cluster/cluster` if you 
 
 #### `values.config.capi.repositoryClustersPath`
 The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
-By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.clusterName}/profiles.yaml`.
-When the new cluster is bootstrapped, flux will be sync the `./clusters/{.clusterName}` path.
+By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namespace}/{.clusterName}` path.
 
 Commit and push all the files
 

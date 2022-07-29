@@ -22,7 +22,11 @@ spec:
         kind: HelmRepository
         name: weave-gitops-enterprise-charts
         namespace: flux-system
-      version: 0.8.1-rc.3
+      version: 0.9.1
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
   interval: 1m
   values:
     # -- Configure TLS settings if needed
