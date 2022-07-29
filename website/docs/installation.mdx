@@ -44,10 +44,11 @@ spec:
   chart:
     spec:
       chart: weave-gitops
+      spec: 65m
       sourceRef:
         kind: HelmRepository
         name: ww-gitops
-  interval: 1m0s
+  interval: 50m
   values:
     adminUser:
       create: true
@@ -60,7 +61,7 @@ metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
-  interval: 1m0s
+  interval: 60m0s
   url: https://helm.gitops.weave.works
 ```
 
