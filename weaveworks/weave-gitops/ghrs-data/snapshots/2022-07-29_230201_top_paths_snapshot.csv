@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops,1148,433
+/weaveworks/weave-gitops/pulls,499,38
+/weaveworks/weave-gitops/issues,375,46
+/weaveworks/weave-gitops/tree/main/charts/gitops-server,114,42
+/weaveworks/weave-gitops/pull/2459,96,22
+/weaveworks/weave-gitops/search,77,8
+/weaveworks/weave-gitops/releases,62,24
+/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates,54,10
+/weaveworks/weave-gitops/pull/2476,51,8
+/weaveworks/weave-gitops/blob/main/charts/gitops-server/values.yaml,50,26
