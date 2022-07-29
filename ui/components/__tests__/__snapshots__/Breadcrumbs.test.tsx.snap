@@ -29,10 +29,6 @@ exports[`Breadcrumbs snapshots renders 1`] = `
   text-decoration: none;
 }
 
-.c1.title-bar-button {
-  width: 250px;
-}
-
 .c2 .c3 {
   font-size: 20px;
   color: #ffffff;
@@ -118,10 +114,6 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   text-decoration: none;
 }
 
-.c1.title-bar-button {
-  width: 250px;
-}
-
 .c2 .c3 {
   font-size: 20px;
   color: #ffffff;
@@ -200,10 +192,6 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
 .c1 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c1.title-bar-button {
-  width: 250px;
 }
 
 .c2 .c3 {

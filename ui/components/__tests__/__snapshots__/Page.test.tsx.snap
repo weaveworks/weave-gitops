@@ -96,10 +96,6 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
-.c9.title-bar-button {
-  width: 250px;
-}
-
 .c8 {
   padding: 4px;
 }

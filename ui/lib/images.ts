@@ -11,7 +11,6 @@ import reconcileSrc from "data-url:../images/reconcile.svg";
 import signInWheel from "data-url:../images/SignInWheel.svg";
 import successSrc from "data-url:../images/success.svg";
 import suspendedSrc from "data-url:../images/suspended.svg";
-import titleSrc from "data-url:../images/Title.svg";
 import weaveLogo from "data-url:../images/WeaveLogo.svg";
 
 export default {
@@ -24,7 +23,6 @@ export default {
   signInWheel,
   successSrc,
   suspendedSrc,
-  titleSrc,
   weaveLogo,
   reconcileSrc,
 };
