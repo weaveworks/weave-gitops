@@ -148,7 +148,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, ErrNoPodsForService
 		}
 
 		for _, pod := range podList.Items {
@@ -157,7 +157,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 			}
 		}
 
-		return nil, errors.New("no running pods found for service")
+		return nil, ErrNoRunningPodsForService
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
@@ -176,7 +176,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for deployment")
+			return nil, ErrNoPodsForDeployment
 		}
 
 		for _, pod := range podList.Items {
@@ -185,7 +185,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 			}
 		}
 
-		return nil, errors.New("no running pods found for deployment")
+		return nil, ErrNoRunningPodsForDeployment
 	}
 
 	return nil, errors.New("unsupported spec kind")
