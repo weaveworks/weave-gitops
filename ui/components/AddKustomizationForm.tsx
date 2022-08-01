@@ -70,7 +70,7 @@ function AddKustomizationForm({
               helperText="The git repository URL where the application YAML files are stored"
             >
               {data?.result?.length > 0 ? (
-                _.map(data.result, (s, i) => (
+                _.map(data?.result, (s, i) => (
                   <MenuItem value={s.name} key={i}>
                     {s.name}
                   </MenuItem>
