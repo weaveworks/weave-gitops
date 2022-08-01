@@ -5,6 +5,7 @@ import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   GetHelmReleaseResponse,
   GetKustomizationResponse,
+  ListError,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
   SyncFluxObjectRequest,
@@ -22,7 +23,7 @@ export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Automation[], RequestError>(
+  return useQuery<{ result: Automation[]; errors: ListError[] }, RequestError>(
     "automations",
     () => {
       const p = [
@@ -39,17 +40,28 @@ export function useListAutomations(namespace = NoNamespace) {
         const kustomizations = (kustRes as ListKustomizationsResponse)
           .kustomizations;
         const helmReleases = (helmRes as ListHelmReleasesResponse).helmReleases;
-
-        return [
-          ..._.map(kustomizations, (k) => ({
-            ...k,
-            kind: FluxObjectKind.KindKustomization,
-          })),
-          ..._.map(helmReleases, (h) => ({
-            ...h,
-            kind: FluxObjectKind.KindHelmRelease,
-          })),
-        ];
+        return {
+          result: [
+            ..._.map(kustomizations, (k) => ({
+              ...k,
+              kind: FluxObjectKind.KindKustomization,
+            })),
+            ..._.map(helmReleases, (h) => ({
+              ...h,
+              kind: FluxObjectKind.KindHelmRelease,
+            })),
+          ],
+          errors: [
+            ..._.map(kustRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindKustomization,
+            })),
+            ..._.map(helmRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmRelease,
+            })),
+          ],
+        };
       });
     },
     { retry: false, refetchInterval: 5000 }

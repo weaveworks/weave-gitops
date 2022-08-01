@@ -43,7 +43,7 @@ function SourceDetail({
   type,
 }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
-  const { data, isLoading, error } = useListSources();
+  const { data: sources, isLoading, error } = useListSources();
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
@@ -77,7 +77,7 @@ function SourceDetail({
     return <LoadingPage />;
   }
 
-  const source = _.find(data.result, {
+  const source = _.find(sources.result, {
     name,
     namespace,
     kind: type,
@@ -108,7 +108,7 @@ function SourceDetail({
     return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
-  const relevantAutomations = _.filter(automations, (a) => {
+  const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }

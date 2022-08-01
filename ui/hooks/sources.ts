@@ -34,12 +34,6 @@ export function useListSources(
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
         const charts = (chartRes as ListHelmChartsResponse).helmCharts;
-        const ErrorList: { [kind: string]: ListError } = {
-          [FluxObjectKind.KindGitRepository]: repoRes.errors,
-          [FluxObjectKind.KindHelmRelease]: helmReleases.errors,
-          [FluxObjectKind.KindBucket]: bucketsRes.errors,
-          [FluxObjectKind.KindHelmChart]: chartRes.errors,
-        };
         return {
           result: [
             ..._.map(repos, (r) => ({
@@ -59,7 +53,24 @@ export function useListSources(
               kind: FluxObjectKind.KindHelmChart,
             })),
           ],
-          errors: ErrorList,
+          errors: [
+            ..._.map(repoRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindGitRepository,
+            })),
+            ..._.map(helmReleases.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmRepository,
+            })),
+            ..._.map(bucketsRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindBucket,
+            })),
+            ..._.map(chartRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmChart,
+            })),
+          ],
         };
       });
     },
