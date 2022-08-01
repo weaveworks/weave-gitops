@@ -15,7 +15,7 @@ export interface Props {
 
 function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
   return (
-    <Flex className={className} align start>
+    <Flex className={className} wide align start>
       {_.map(chips, (chip, index) => {
         return (
           <Flex key={index}>
@@ -33,4 +33,5 @@ export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
     margin-right: ${(props) => props.theme.spacing.xxs};
   }
   margin: 4px 0px;
+  overflow: scroll;
 `;

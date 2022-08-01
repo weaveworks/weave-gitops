@@ -82,6 +82,9 @@ rules:
   - apiGroups: ["infra.contrib.fluxcd.io"]
     resources: ["terraforms"]
     verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["list"]
 {{- if gt (len $.Values.rbac.additionalRules) 0 -}}
 {{- toYaml $.Values.rbac.additionalRules | nindent 2 -}}
 {{- end -}}

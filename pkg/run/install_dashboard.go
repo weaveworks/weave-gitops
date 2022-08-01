@@ -35,7 +35,7 @@ const (
 )
 
 // InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags) error {
+func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags, namespace string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
@@ -55,8 +55,8 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 
 	log.Actionf("Installing the GitOps Dashboard ...")
 
-	helmRepository := makeHelmRepository()
-	helmRelease, err := makeHelmRelease(log, string(secret))
+	helmRepository := makeHelmRepository(namespace)
+	helmRelease, err := makeHelmRelease(log, string(secret), namespace)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -85,10 +85,10 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 }
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client) bool {
+func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) bool {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: wego.DefaultNamespace,
+			Namespace: namespace,
 			Name:      helmChartNamespacedName,
 		},
 	}
@@ -104,12 +104,12 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
-		Kind:          "service",
+		Kind:          "deployment",
 		HostPort:      dashboardPort,
 		ContainerPort: server.DefaultPort,
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+	pod, err := GetPodFromSpecMap(specMap, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -135,23 +135,26 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 		return cancelPortFwd, nil
 	}
 
-	return nil, fmt.Errorf("dashboard pod not found")
+	return nil, ErrDashboardPodNotFound
 }
 
 // ReconcileDashboard reconciles the dashboard.
 func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
+	namespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      helmChartNamespacedName,
+	}
+	gvk := schema.GroupVersionKind{
+		Group:   "source.toolkit.fluxcd.io",
+		Version: "v1beta2",
+		Kind:    "HelmChart",
+	}
+
 	// reconcile dashboard
 	sourceRequestedAt, err := RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      helmChartNamespacedName,
-		}, schema.GroupVersionKind{
-			Group:   "source.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "HelmChart",
-		})
+		namespacedName, gvk)
 	if err != nil {
 		return err
 	}
@@ -171,22 +174,23 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		return err
 	}
 
+	// wait for dashboard pod to be running
+	specMap := &PortForwardSpec{
+		Namespace:     namespace,
+		Name:          podName,
+		Kind:          "deployment",
+		HostPort:      dashboardPort,
+		ContainerPort: server.DefaultPort,
+	}
+
 	// wait for dashboard to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		specMap := &PortForwardSpec{
-			Namespace:     wego.DefaultNamespace,
-			Name:          podName,
-			Kind:          "service",
-			HostPort:      dashboardPort,
-			ContainerPort: server.DefaultPort,
+		dashboard, _ := GetPodFromSpecMap(specMap, kubeClient)
+		if dashboard == nil {
+			return false, nil
 		}
 
-		dashboard, err := GetPodFromSpecMap(specMap, kubeClient, "")
-		if err != nil {
-			return false, err
-		}
-
-		return dashboard.Status.Phase == corev1.PodRunning, nil
+		return IsPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
 	}); err != nil {
 		return err
 	}
@@ -218,7 +222,7 @@ func generateManifests(log logger.Logger, secret string, helmRepository *sourcev
 }
 
 // makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository() *sourcev1.HelmRepository {
+func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1.HelmRepositoryKind,
@@ -226,7 +230,7 @@ func makeHelmRepository() *sourcev1.HelmRepository {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      helmRepositoryName,
-			Namespace: wego.DefaultNamespace,
+			Namespace: namespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			URL: helmRepositoryUrl,
@@ -240,7 +244,7 @@ func makeHelmRepository() *sourcev1.HelmRepository {
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, secret string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -248,7 +252,7 @@ func makeHelmRelease(log logger.Logger, secret string) (*helmv2.HelmRelease, err
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      helmReleaseName,
-			Namespace: wego.DefaultNamespace,
+			Namespace: namespace,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Interval: metav1.Duration{

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"k8s.io/cli-runtime/pkg/printers"
@@ -53,6 +53,6 @@ func getProfilesCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 
 		defer w.Flush()
 
-		return profiles.NewService(internal.NewCLILogger(os.Stdout)).Get(context.Background(), client, w)
+		return profiles.NewService(logger.NewCLILogger(os.Stdout)).Get(context.Background(), client, w)
 	}
 }

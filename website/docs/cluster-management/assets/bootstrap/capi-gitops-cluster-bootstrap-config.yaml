@@ -25,7 +25,7 @@ spec:
               "--kubeconfig=/etc/gitops/value",
               "--owner=$GITHUB_USER",
               "--repository=fleet-infra",
-              "--path=./clusters/{{ .ObjectMeta.Name }}",
+              "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
             ]
           envFrom:
             - secretRef:
