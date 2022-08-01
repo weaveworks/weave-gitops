@@ -43,11 +43,7 @@ function SourceDetail({
   type,
 }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
-  const {
-    data: { result: sources },
-    isLoading,
-    error,
-  } = useListSources();
+  const { data, isLoading, error } = useListSources();
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
@@ -81,7 +77,12 @@ function SourceDetail({
     return <LoadingPage />;
   }
 
-  const source = _.find(sources, { name, namespace, kind: type, clusterName });
+  const source = _.find(data.result, {
+    name,
+    namespace,
+    kind: type,
+    clusterName,
+  });
 
   if (!source) {
     return (

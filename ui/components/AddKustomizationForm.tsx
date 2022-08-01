@@ -38,9 +38,7 @@ function AddKustomizationForm({
   initialState,
   loading,
 }: Props) {
-  const {
-    data: { result: sources = [] },
-  } = useListSources();
+  const { data } = useListSources();
 
   return (
     <div className={className}>
@@ -71,8 +69,8 @@ function AddKustomizationForm({
               required
               helperText="The git repository URL where the application YAML files are stored"
             >
-              {sources.length > 0 ? (
-                _.map(sources, (s, i) => (
+              {data?.result?.length > 0 ? (
+                _.map(data.result, (s, i) => (
                   <MenuItem value={s.name} key={i}>
                     {s.name}
                   </MenuItem>
