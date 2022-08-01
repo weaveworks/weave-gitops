@@ -7,11 +7,12 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -22,14 +23,14 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
+	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -70,7 +71,7 @@ gitops beta run . [flags]
 # Run the sync against the dev overlay path
 gitops beta run ./deploy/overlays/dev
 
-# Run the sync on the dev directory and forward the port. 
+# Run the sync on the dev directory and forward the port.
 # Listen on port 8080 on localhost, forwarding to 5000 in a pod of the service app.
 gitops beta run ./dev --port-forward port=8080:5000,resource=svc/app
 
@@ -176,7 +177,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		log := internal.NewCLILogger(os.Stdout)
+		log := clilogger.NewCLILogger(os.Stdout)
 
 		if flags.KubeConfig != "" {
 			kubeConfigArgs.KubeConfig = &flags.KubeConfig
@@ -247,7 +248,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, wego.DefaultNamespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -259,7 +260,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, wego.DefaultNamespace)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -281,7 +282,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		}
 
 		if dashboardInstalled {
-			log.Actionf("Request reconciliation of dashboard ...")
+			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
 			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout, flags.DashboardPort); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
@@ -394,7 +395,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}

@@ -48,6 +48,7 @@ type CoreClient interface {
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
+	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
 	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
@@ -177,6 +178,15 @@ func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRun
 	return out, nil
 }
 
+func (c *coreClient) ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error) {
+	out := new(ListFluxCrdsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxCrds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *coreClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error) {
 	out := new(GetReconciledObjectsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetReconciledObjects", in, out, opts...)
@@ -292,6 +302,7 @@ type CoreServer interface {
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
+	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
 	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
@@ -357,6 +368,9 @@ func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*G
 }
 func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
+}
+func (UnimplementedCoreServer) ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFluxCrds not implemented")
 }
 func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
@@ -578,6 +592,24 @@ func _Core_ListFluxRuntimeObjects_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_ListFluxCrds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFluxCrdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListFluxCrds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListFluxCrds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListFluxCrds(ctx, req.(*ListFluxCrdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Core_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetReconciledObjectsRequest)
 	if err := dec(in); err != nil {
@@ -786,6 +818,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxRuntimeObjects",
 			Handler:    _Core_ListFluxRuntimeObjects_Handler,
+		},
+		{
+			MethodName: "ListFluxCrds",
+			Handler:    _Core_ListFluxCrds_Handler,
 		},
 		{
 			MethodName: "GetReconciledObjects",

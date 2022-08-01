@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -64,9 +65,9 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		// FIXME: maybe a better way to do this?
 		upgradeCmdFlags.Namespace = namespace
 
-		log := internal.NewCLILogger(os.Stdout)
+		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, internal.Logr())
+		factory := services.NewFactory(fluxClient, logger.Logr())
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 

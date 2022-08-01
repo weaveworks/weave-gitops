@@ -57,7 +57,4 @@ function Link({
 
 export default styled(Link)`
   text-decoration: none;
-  &.title-bar-button {
-    width: 250px;
-  }
 `;

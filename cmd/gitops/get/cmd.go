@@ -36,7 +36,7 @@ gitops get clusters`,
 	cmd.AddCommand(credentials.CredentialCommand(opts, client))
 	cmd.AddCommand(clusters.ClusterCommand(opts, client))
 	cmd.AddCommand(profiles.ProfilesCommand(opts, client))
-	cmd.AddCommand(bcrypt.HashCommand(opts, client))
+	cmd.AddCommand(bcrypt.HashCommand(opts))
 
 	return cmd
 }
