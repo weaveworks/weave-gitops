@@ -77,7 +77,7 @@ function SourceDetail({
     return <LoadingPage />;
   }
 
-  const source = _.find(sources.result, {
+  const source = _.find(sources?.result, {
     name,
     namespace,
     kind: type,
