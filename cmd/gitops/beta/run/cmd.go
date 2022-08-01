@@ -23,6 +23,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
@@ -30,7 +31,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -248,7 +248,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, wego.DefaultNamespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -260,7 +260,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs)
+				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, wego.DefaultNamespace)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -282,7 +282,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		}
 
 		if dashboardInstalled {
-			log.Actionf("Request reconciliation of dashboard ...")
+			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
 			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout, flags.DashboardPort); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
@@ -395,7 +395,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient, corev1.PodRunning)
+							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}
