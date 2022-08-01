@@ -34,12 +34,12 @@ export function useListSources(
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
         const charts = (chartRes as ListHelmChartsResponse).helmCharts;
-        const ErrorList: ListError[] = [
-          ...repoRes.errors,
-          ...helmReleases.errors,
-          ...bucketsRes.errors,
-          ...chartRes.errors,
-        ];
+        const ErrorList: { [kind: string]: ListError } = {
+          [FluxObjectKind.KindGitRepository]: repoRes.errors,
+          [FluxObjectKind.KindHelmRelease]: helmReleases.errors,
+          [FluxObjectKind.KindBucket]: bucketsRes.errors,
+          [FluxObjectKind.KindHelmChart]: chartRes.errors,
+        };
         return {
           result: [
             ..._.map(repos, (r) => ({
@@ -59,7 +59,7 @@ export function useListSources(
               kind: FluxObjectKind.KindHelmChart,
             })),
           ],
-          errors: [..._.uniqBy(ErrorList, "clusterName")],
+          errors: ErrorList,
         };
       });
     },
