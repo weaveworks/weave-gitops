@@ -38,7 +38,9 @@ function AddKustomizationForm({
   initialState,
   loading,
 }: Props) {
-  const { data: sources = [] } = useListSources();
+  const {
+    data: { result: sources = [] },
+  } = useListSources();
 
   return (
     <div className={className}>

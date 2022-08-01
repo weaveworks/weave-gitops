@@ -9,14 +9,14 @@ type Props = {
 };
 
 function SourcesList({ className }: Props) {
-  const { data, error, isLoading } = useListSources();
+  const {
+    data: { result: sources },
+    error,
+    isLoading,
+  } = useListSources();
   return (
-    <Page
-      error={error || data?.errors}
-      loading={isLoading}
-      className={className}
-    >
-      <SourcesTable sources={data?.result} />
+    <Page error={error} loading={isLoading} className={className}>
+      <SourcesTable sources={sources} />
     </Page>
   );
 }

@@ -43,7 +43,11 @@ function SourceDetail({
   type,
 }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
-  const { data: sources, isLoading, error } = useListSources();
+  const {
+    data: { result: sources },
+    isLoading,
+    error,
+  } = useListSources();
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();

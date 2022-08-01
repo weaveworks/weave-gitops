@@ -59,7 +59,7 @@ export function useListSources(
               kind: FluxObjectKind.KindHelmChart,
             })),
           ],
-          errors: ErrorList,
+          errors: _.uniqBy(ErrorList, "clusterName"),
         };
       });
     },
