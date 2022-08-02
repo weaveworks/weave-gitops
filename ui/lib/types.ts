@@ -56,9 +56,9 @@ export interface Syncable {
   clusterName?: string;
 }
 
-export type MultiRequestError = {
+export interface MultiRequestError {
   kind?: FluxObjectKind;
   clusterName?: string;
   namespace?: string;
   message?: string;
-};
+}
