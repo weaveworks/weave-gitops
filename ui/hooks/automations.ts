@@ -5,7 +5,6 @@ import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   GetHelmReleaseResponse,
   GetKustomizationResponse,
-  ListError,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
   SyncFluxObjectRequest,
@@ -16,14 +15,22 @@ import {
   HelmRelease,
   Kustomization,
 } from "../lib/api/core/types.pb";
-import { NoNamespace, RequestError, Syncable } from "../lib/types";
+import {
+  NoNamespace,
+  RequestError,
+  Syncable,
+  MultiRequestError,
+} from "../lib/types";
 
 export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
 export function useListAutomations(namespace = NoNamespace) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<{ result: Automation[]; errors: ListError[] }, RequestError>(
+  return useQuery<
+    { result: Automation[]; errors: MultiRequestError[] },
+    RequestError
+  >(
     "automations",
     () => {
       const p = [

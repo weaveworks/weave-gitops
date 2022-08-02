@@ -4,13 +4,17 @@ import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListBucketsResponse,
-  ListError,
   ListGitRepositoriesResponse,
   ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { NoNamespace, RequestError, Source } from "../lib/types";
+import {
+  NoNamespace,
+  RequestError,
+  Source,
+  MultiRequestError,
+} from "../lib/types";
 
 export function useListSources(
   appName?: string,
@@ -18,7 +22,10 @@ export function useListSources(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<{ result: Source[]; errors: ListError[] }, RequestError>(
+  return useQuery<
+    { result: Source[]; errors: MultiRequestError[] },
+    RequestError
+  >(
     "sources",
     () => {
       const p = [
