@@ -37,6 +37,10 @@ type OIDCConfig struct {
 	TokenDuration time.Duration
 }
 
+// This is only used if the OIDCConfig doesn't have a TokenDuration set. If
+// that is set then it is used for both OIDC cookies and other cookies.
+const defaultCookieDuration time.Duration = time.Hour
+
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
 	Log                 logr.Logger

@@ -53,7 +53,9 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
       log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
     }
   } else {
-    oidcConfig = OIDCConfig{} // Make sure there is no OIDC config if it's not an enabled authorization method
+    // Make sure there is no OIDC config if it's not an enabled authorization method
+    // the TokenDuration needs to be set so cookies can use it
+    oidcConfig = OIDCConfig{TokenDuration: defaultCookieDuration}
   }
 
   tsv, err := NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
@@ -88,7 +90,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
   tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
   if err != nil {
-    tokenDuration = time.Hour
+    tokenDuration = defaultCookieDuration
   }
 
   cfg.TokenDuration = tokenDuration
