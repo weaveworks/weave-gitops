@@ -60,7 +60,7 @@ import {
   getProviderToken,
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
-import { V2Routes } from "./lib/types";
+import { V2Routes, MultiRequestError } from "./lib/types";
 import { statusSortHelper, isAllowedLink } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
@@ -135,4 +135,5 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
+  MultiRequestError,
 };
