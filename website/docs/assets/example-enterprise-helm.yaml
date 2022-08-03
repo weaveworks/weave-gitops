@@ -4,7 +4,7 @@ metadata:
   name: weave-gitops-enterprise-charts
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 60m
   secretRef:
     name: weave-gitops-enterprise-credentials
   url: https://charts.dev.wkp.weave.works/releases/charts-v3
@@ -17,6 +17,7 @@ metadata:
 spec:
   chart:
     spec:
+      interval: 65m
       chart: mccp
       sourceRef:
         kind: HelmRepository
@@ -27,7 +28,7 @@ spec:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
-  interval: 1m
+  interval: 50m
   values:
     # -- Configure TLS settings if needed
     # tls:

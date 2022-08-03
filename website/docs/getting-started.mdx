@@ -121,6 +121,7 @@ cd fleet-infra
 
 ```
 flux create source helm ww-gitops \
+  --interval=60m \
   --url=https://helm.gitops.weave.works \
   --export > ./clusters/my-cluster/weave-gitops-source.yaml
 ```
@@ -134,7 +135,7 @@ metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
-  interval: 1m0s
+  interval: 1h0m0s
   url: https://helm.gitops.weave.works
 ```
 
@@ -149,6 +150,7 @@ git push
 
 ```
 flux create helmrelease ww-gitops \
+  --interval=60m \
   --source=HelmRepository/ww-gitops \
   --chart=weave-gitops \
   --values=<path to weave-gitops-values.yaml> \
@@ -351,7 +353,7 @@ metadata:
   name: podinfo
   namespace: flux-system
 spec:
-  interval: 5m0s
+  interval: 60m0s
   path: ./kustomize
   prune: true
   sourceRef:
