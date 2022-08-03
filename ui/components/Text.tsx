@@ -12,6 +12,7 @@ export interface TextProps {
   color?: keyof typeof colors;
   uppercase?: boolean;
   noWrap?: boolean;
+  titleHeight?: boolean;
 }
 
 function textTransform(props) {
@@ -40,6 +41,7 @@ const Text = styled.span<TextProps>`
   color: ${(props) => props.theme.colors[props.color as any]};
 
   ${(props) => props.noWrap && "white-space: nowrap;"};
+  ${(props) => props.titleHeight && "line-height: 1.75"};
 `;
 
 Text.defaultProps = {

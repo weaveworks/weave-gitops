@@ -1,0 +1,71 @@
+---
+title: Securing access to the dashboard
+sidebar_position: 1
+---
+
+## Dashboard Login
+
+There are 2 supported methods for logging in to the dashboard:
+- Login via an OIDC provider
+- Login via a cluster user account
+
+The recommended method is to integrate with an OIDC provider, as this will let you control permissions for existing users and groups that have already been configured to use OIDC. However, it is also possible to use a cluster user account to login, if an OIDC provider is not available to use. Both methods work with standard Kubernetes RBAC.
+
+## Login via an OIDC provider
+
+You may decide to give your engineering teams access to the dashboard, in order to view and manage their workloads. In this case, you will want to secure access to the dashboard and restrict who can interact with it. Weave GitOps integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the permissions for the dashboard users.
+
+#### Background
+
+OIDC extends the OAuth2 authorization protocol by including an additional field (ID Token) that contains information (claims) about a user's identity. After a user successfully authenticates with the OIDC provider, this information is used by Weave GitOps to impersonate the user in any calls to the Kubernetes API. This allows cluster administrators to use RBAC rules to control access to the cluster and also the dashboard.
+
+#### Configuration
+
+In order to login via your OIDC provider, you need to create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
+
+| Parameter         |  Description                                                                                                                      | Default   |
+| ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `issuerURL`       |  The URL of the issuer, typically the discovery URL without a path                                                                |           |
+| `clientID`        |  The client ID that has been setup for Weave GitOps in the issuer                                                                 |           |
+| `clientSecret`    |  The client secret that has been setup for Weave GitOps in the issuer                                                             |           |
+| `redirectURL`     |  The redirect URL that has been setup for Weave GitOps in the issuer, typically the dashboard URL followed by `/oauth2/callback ` |           |
+| `tokenDuration`   |  The time duration that the ID Token will remain valid, after successful authentication                                           | "1h0m0s"  |
+
+Ensure that your OIDC provider has been setup with a client ID/secret and the redirect URL of the dashboard.
+
+Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
+
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=<oidc-issuer-url> \
+  --from-literal=clientID=<client-id> \
+  --from-literal=clientSecret=<client-secret> \
+  --from-literal=redirectURL=<redirect-url> \
+  --from-literal=tokenDuration=<token-duration>
+```
+
+Once the HTTP server starts unauthenticated users will have to click the 'login with OIDC provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identity will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly but it is recommended to read the [service account](service-account-permissions.mdx) and [user](user-permissions.mdx) permissions pages to understand which actions are needed for Weave GitOps to function correctly.
+
+## Login via a cluster user account
+
+Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI:
+
+Generate the password by running:
+
+```sh
+PASSWORD="<your password>"
+echo  $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```
+
+Now create a Kubernetes secret to store your chosen username and the password hash:
+
+```sh
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+```
+
+You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.

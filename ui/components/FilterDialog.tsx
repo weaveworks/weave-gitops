@@ -25,8 +25,7 @@ const SlideContainer = styled.div`
 `;
 
 const SlideContent = styled.div`
-  // this bg color factors in the opacity of the content container while keeping the filters opaque
-  background: rgb(250, 250, 250);
+  background: rbga(255, 255, 255, 0.75);
   height: 100%;
   width: 100%;
   border-left: 2px solid ${(props) => props.theme.colors.neutral20};

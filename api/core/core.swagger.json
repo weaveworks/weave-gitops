@@ -147,6 +147,36 @@
         ]
       }
     },
+    "/v1/flux_crds": {
+      "get": {
+        "operationId": "Core_ListFluxCrds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFluxCrdsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -676,6 +706,17 @@
       ],
       "default": "Generic"
     },
+    "CrdName": {
+      "type": "object",
+      "properties": {
+        "plural": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -773,6 +814,23 @@
           "type": "string"
         },
         "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Crd": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/CrdName"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -1306,6 +1364,23 @@
         }
       }
     },
+    "v1ListFluxCrdsResponse": {
+      "type": "object",
+      "properties": {
+        "crds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Crd"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1ListFluxRuntimeObjectsResponse": {
       "type": "object",
       "properties": {
@@ -1347,6 +1422,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmChart"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }

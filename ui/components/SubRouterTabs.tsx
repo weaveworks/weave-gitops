@@ -14,6 +14,7 @@ type Props = {
   className?: string;
   children?: any;
   rootPath: string;
+  clearQuery?: boolean;
 };
 
 type TabProps = {
@@ -48,7 +49,7 @@ export function RouterTab({ children }: TabProps) {
   );
 }
 
-function SubRouterTabs({ className, children, rootPath }: Props) {
+function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
   const query = qs.parse(window.location.search);
   const childs = findChildren(children);
 
@@ -67,26 +68,35 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
         indicatorColor="primary"
         value={routesToIndex(routes, window.location.pathname)}
       >
-        {_.map(routes, (route, i) => (
-          <Tab
-            component={ForwardedLink as typeof Link}
-            key={i}
-            to={formatURL(`${route.path}`, query)}
-            className={`${
-              window.location.pathname.includes(route.path) && "active-tab"
-            }`}
-            label={
-              <Text uppercase bold>
-                {route.name}
-              </Text>
-            }
-          />
-        ))}
+        {_.map(routes, (route, i) => {
+          const bold = window.location.pathname.includes(route.path);
+          return (
+            <Tab
+              component={ForwardedLink as typeof Link}
+              key={i}
+              to={formatURL(`${route.path}`, clearQuery ? "" : query)}
+              className={`${
+                window.location.pathname.includes(route.path) && "active-tab"
+              }`}
+              label={
+                <Text
+                  size="small"
+                  uppercase
+                  bold={bold}
+                  semiBold={!bold}
+                  color={bold ? "primary10" : "neutral30"}
+                >
+                  {route.name}
+                </Text>
+              }
+            />
+          );
+        })}
       </Tabs>
       <Spacer padding="xs" />
       <Switch>
         {children}
-        <Redirect from="*" to={formatURL(rootPath, query)} />
+        <Redirect from="*" to={formatURL(rootPath, clearQuery ? "" : query)} />
       </Switch>
     </Flex>
   );
@@ -95,5 +105,25 @@ function SubRouterTabs({ className, children, rootPath }: Props) {
 export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
   .active-tab {
     background: ${(props) => props.theme.colors.primary}19;
+  }
+  .MuiTab-root {
+    line-height: 1;
+    letter-spacing: 1px;
+    height: 32px;
+    min-height: 32px;
+    width: 132px;
+    @media (min-width: 600px) {
+      min-width: 132px;
+    }
+  }
+  //trust me there's both tab and tabS
+  .MuiTabs-root {
+    min-height: 32px;
+  }
+  .MuiTabs-fixed {
+    height: 32px;
+  }
+  .MuiTabs-indicator {
+    height: 3px;
   }
 `;

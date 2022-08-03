@@ -22,34 +22,63 @@ permissions:
   packages: write
 
 jobs:
-  helm-verify:
+  helm-new-version:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    outputs:
+      old-version: ${{ steps.old-version.outputs.version }}
+      new-version: ${{ steps.new-version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Find new version
-        id: new_version
+        id: new-version
         run: |
           NEW_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
           echo "::set-output name=version::$NEW_VERSION"
       - name: Find old version
-        id: old_version
+        id: old-version
         run: |
           git checkout ${{ github.event.pull_request.base.sha }}
           OLD_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
           echo "::set-output name=version::$OLD_VERSION"
-      - name: Alert about the need to change chart version
+
+  helm-will-release:
+    runs-on: ubuntu-latest
+    needs: helm-new-version
+    if: github.event_name == 'pull_request' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Find out if there's more changes to release
+        id: extra
         run: |
-          echo "This PR changed the helm chart. You need to change chart version when you change the chart"
-          exit 1
-        if: ${{ steps.new_version.outputs.version == steps.old_version.outputs.version }}
+          last_revision=$(git blame ${{ github.event.pull_request.base.sha }} -L '/^version: [0-9.]\+$/,+1' charts/gitops-server/Chart.yaml | awk '{print $1}')
+
+          set +e
+          git log --exit-code $last_revision...${{ github.event.pull_request.base.sha }} charts/gitops-server
+          unreleased_commits=$?
+          if [[ $unreleased_commits == 1 ]]; then
+              echo "::set-output name=unreleased-commits::The last chart was last released in $last_revision and there have been other changes in the chart since"
+          fi
+      - name: Let user know merging will cause a release
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Merging this will release a new helm chart. ${{ steps.extra.outputs.unreleased-commits }}"
+            })
 
 
   helm-release:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    needs: helm-new-version
+    if: github.event_name == 'push' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - name: Find new version
@@ -82,4 +111,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish chart as an OCI image
         run: |
-          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}  
+          helm push helm-release/weave-gitops-${{ steps.new_version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ env.CHART_LOCATION }}

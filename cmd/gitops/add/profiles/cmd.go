@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -65,9 +66,9 @@ func addProfileCmdPreRunE(endpoint *string) func(*cobra.Command, []string) error
 
 func addProfileCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		log := internal.NewCLILogger(os.Stdout)
+		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, internal.Logr())
+		factory := services.NewFactory(fluxClient, logger.Logr())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
 		err := client.ConfigureClientWithOptions(opts, os.Stdout)
