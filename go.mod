@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/fluxcd/flux2 v0.31.3
