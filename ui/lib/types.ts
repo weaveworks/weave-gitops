@@ -1,3 +1,4 @@
+import { ListError } from "./api/core/core.pb";
 import { Condition, FluxObjectKind, Interval } from "./api/core/types.pb";
 
 export enum PageRoute {
@@ -56,9 +57,6 @@ export interface Syncable {
   clusterName?: string;
 }
 
-export interface MultiRequestError {
+export type MultiRequestError = ListError & {
   kind?: FluxObjectKind;
-  clusterName?: string;
-  namespace?: string;
-  message?: string;
-}
+};
