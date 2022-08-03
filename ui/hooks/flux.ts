@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
+  ListFluxCrdsResponse,
   ListFluxRuntimeObjectsResponse,
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
@@ -23,6 +24,16 @@ export function useListFluxRuntimeObjects(
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
     () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
+    { retry: false, refetchInterval: 5000 }
+  );
+}
+
+export function useListFluxCrds(clusterName = DefaultCluster) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<ListFluxCrdsResponse, RequestError>(
+    "flux_crds",
+    () => api.ListFluxCrds({ clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
 }

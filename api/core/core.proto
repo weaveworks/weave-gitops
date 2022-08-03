@@ -115,6 +115,12 @@ service Core {
         };
     }
 
+    rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
+        option (google.api.http) = {
+            get : "/v1/flux_crds"
+          };
+    }
+
     /**
     * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
     * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
@@ -281,12 +287,22 @@ message ListFluxRuntimeObjectsResponse {
     repeated ListError errors = 2;
 }
 
+message ListFluxCrdsRequest {
+    string clusterName = 1;
+}
+
+message ListFluxCrdsResponse {
+    repeated Crd crds = 1;
+    repeated ListError errors = 2;
+}
+
 message ListHelmChartsRequest {
     string namespace = 1;
 }
 
 message ListHelmChartsResponse {
     repeated HelmChart helmCharts = 1;
+    repeated ListError errors = 2;
 }
 
 message GetKustomizationRequest {

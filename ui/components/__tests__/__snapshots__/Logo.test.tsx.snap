@@ -19,79 +19,37 @@ exports[`Logo snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c4 {
+.c1 {
+  padding-left: 12px;
+  width: 236px;
+}
+
+.c1 a {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
 }
 
-.c3 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  text-transform: none;
-  font-style: normal;
-  color: #00b3ec;
-}
-
-.c2 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
-}
-
-.c2.title-bar-button {
-  width: 250px;
-}
-
-.c5 {
-  padding: 4px;
-}
-
-.c1 {
-  padding-left: 12px;
-  width: 236px;
+.c1 img {
+  width: auto;
+  height: 32px;
 }
 
 <div
   className="c0 c1"
 >
   <a
-    className="c2"
     href="/applications"
     onClick={[Function]}
   >
-    <span
-      className="c3"
-      color="primary"
-      size="medium"
-    >
-      <div
-        className="c4"
-      >
-        <img
-          src=""
-          style={
-            Object {
-              "height": 40,
-            }
-          }
-        />
-        <div
-          className="c5"
-        />
-        <img
-          src=""
-        />
-      </div>
-    </span>
+    <img
+      src=""
+    />
   </a>
 </div>
 `;
