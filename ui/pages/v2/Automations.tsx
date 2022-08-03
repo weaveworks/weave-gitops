@@ -11,7 +11,11 @@ type Props = {
 function Automations({ className }: Props) {
   const { data: automations, error, isLoading } = useListAutomations();
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error || automations?.errors}
+      loading={isLoading}
+      className={className}
+    >
       <AutomationsTable automations={automations?.result} />
     </Page>
   );
