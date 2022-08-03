@@ -1,3 +1,4 @@
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import {
@@ -29,10 +30,13 @@ type Props = {
 };
 
 function sortSourcesByLastUpdatedTime(sources: Source[]): Source[] {
-  return sources.sort(
-    (pre, curr) =>
-      getTime(curr?.lastUpdatedAt || "") - getTime(pre?.lastUpdatedAt || "")
-  );
+  return _.sortBy(sources, [
+    "name",
+    "namespace",
+    "type",
+    "clusterName",
+    "lastUpdatedAt",
+  ]);
 }
 
 function SourcesTable({ className, sources }: Props) {

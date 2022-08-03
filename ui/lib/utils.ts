@@ -185,7 +185,3 @@ export function mapScaleToZoomPercent(scale: number): number {
 export function mapZoomPercentToScale(zoomPercent: number): number {
   return Math.round(zoomPercent * 2);
 }
-
-export function getTime(date: string): number {
-  return new Date(date).getTime();
-}

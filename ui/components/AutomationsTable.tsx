@@ -5,7 +5,7 @@ import { Automation } from "../hooks/automations";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { statusSortHelper, removeKind, getTime } from "../lib/utils";
+import { statusSortHelper, removeKind } from "../lib/utils";
 import { Field, SortType } from "./DataTable";
 import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
@@ -22,11 +22,7 @@ type Props = {
 };
 
 function sortAutomationsByDate(automations: Automation[]): Automation[] {
-  return automations.sort(
-    (pre, curr) =>
-      getTime(_.get(_.find(curr.conditions, { type: "Ready" }), "timestamp")) -
-      getTime(_.get(_.find(pre.conditions, { type: "Ready" }), "timestamp"))
-  );
+  return _.sortBy(automations, ["name", "namespace", "type", "clusterName"]);
 }
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
