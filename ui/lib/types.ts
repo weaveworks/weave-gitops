@@ -55,3 +55,10 @@ export interface Syncable {
   namespace?: string;
   clusterName?: string;
 }
+
+export interface MultiRequestError {
+  kind?: FluxObjectKind;
+  clusterName?: string;
+  namespace?: string;
+  message?: string;
+}

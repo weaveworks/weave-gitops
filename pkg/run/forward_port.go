@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -118,7 +117,7 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP, podStatusPhase corev1.PodPhase) (*corev1.Pod, error) {
+func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*corev1.Pod, error) {
 	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
 
 	switch specMap.Kind {
@@ -149,16 +148,16 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP, podS
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, ErrNoPodsForService
 		}
 
 		for _, pod := range podList.Items {
-			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
+			if pod.Status.Phase == corev1.PodRunning {
 				return &pod, nil
 			}
 		}
 
-		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
+		return nil, ErrNoRunningPodsForService
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
@@ -177,16 +176,16 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP, podS
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, ErrNoPodsForDeployment
 		}
 
 		for _, pod := range podList.Items {
-			if podStatusPhase == "" || pod.Status.Phase == podStatusPhase {
+			if pod.Status.Phase == corev1.PodRunning {
 				return &pod, nil
 			}
 		}
 
-		return nil, fmt.Errorf("no pods with status phase %s found for service", podStatusPhase)
+		return nil, ErrNoRunningPodsForDeployment
 	}
 
 	return nil, errors.New("unsupported spec kind")

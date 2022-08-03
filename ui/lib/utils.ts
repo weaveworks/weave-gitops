@@ -161,31 +161,3 @@ export const convertImage = (image: string) => {
   //one slash docker images w/o docker.io
   return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
-
-export function calculateZoomRatio(zoomPercent: number): number {
-  return (zoomPercent + 20) / 1500;
-}
-
-export function calculateNodeOffsetX(
-  rootNode: any,
-  zoomPercent: number,
-  zoomRatio: number
-): number {
-  if (!rootNode) {
-    return 0;
-  }
-
-  return zoomPercent * 1.25 + (rootNode.width - rootNode.x) * zoomRatio;
-}
-
-export function mapScaleToZoomPercent(scale: number): number {
-  return scale * 0.5;
-}
-
-export function mapZoomPercentToScale(zoomPercent: number): number {
-  return Math.round(zoomPercent * 2);
-}
-
-export function getTime(date: string): number {
-  return new Date(date).getTime();
-}

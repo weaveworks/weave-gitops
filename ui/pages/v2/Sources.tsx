@@ -12,7 +12,7 @@ function SourcesList({ className }: Props) {
   const { data: sources, error, isLoading } = useListSources();
   return (
     <Page error={error} loading={isLoading} className={className}>
-      <SourcesTable sources={sources} />
+      <SourcesTable sources={sources?.result} />
     </Page>
   );
 }

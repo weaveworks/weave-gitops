@@ -12,7 +12,6 @@ import { fluxObjectKindToKind } from "../lib/objects";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
-import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -22,6 +21,7 @@ import PageStatus from "./PageStatus";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
+import Text from "./Text";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -77,7 +77,12 @@ function SourceDetail({
     return <LoadingPage />;
   }
 
-  const source = _.find(sources, { name, namespace, kind: type, clusterName });
+  const source = _.find(sources?.result, {
+    name,
+    namespace,
+    kind: type,
+    clusterName,
+  });
 
   if (!source) {
     return (
@@ -103,7 +108,7 @@ function SourceDetail({
     return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
-  const relevantAutomations = _.filter(automations, (a) => {
+  const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }
@@ -132,7 +137,9 @@ function SourceDetail({
 
   return (
     <Flex wide tall column className={className}>
-      <DetailTitle name={name} type={type} />
+      <Text size="large" semiBold titleHeight>
+        {source.name}
+      </Text>
       {error ||
         (suspend.error && (
           <Alert

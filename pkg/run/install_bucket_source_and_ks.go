@@ -2,20 +2,25 @@ package run
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/cli-utils/pkg/object"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, namespace string, path string) error {
+func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration) error {
 	const devBucketCredentials = "dev-bucket-credentials"
 
 	secret := corev1.Secret{
@@ -40,6 +45,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, namesp
 			BucketName: devBucket,
 			Endpoint:   "dev-bucket.dev-bucket.svc.cluster.local:9000",
 			Insecure:   true,
+			Timeout:    &metav1.Duration{Duration: timeout},
 			SecretRef:  &meta.LocalObjectReference{Name: devBucketCredentials},
 		},
 	}
@@ -55,8 +61,9 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, namesp
 				Kind: "Bucket",
 				Name: devBucket,
 			},
-			Path: path,
-			Wait: true,
+			Timeout: &metav1.Duration{Duration: timeout},
+			Path:    path,
+			Wait:    true,
 		},
 	}
 
@@ -105,7 +112,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, namesp
 }
 
 // CleanupBucketSourceAndKS removes the bucket source and ks
-func CleanupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, namespace string) error {
+func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string) error {
 	const (
 		devBucketCredentials = "dev-bucket-credentials"
 		devBucket            = "dev-bucket"
@@ -163,4 +170,67 @@ func CleanupBucketSourceAndKS(log logger.Logger, kubeClient *kube.KubeHTTP, name
 	log.Successf("Cleanup Bucket Source and Kustomization successfully")
 
 	return nil
+}
+
+// FindConditionMessages finds the messages in the condition of objects in the inventory.
+func FindConditionMessages(kubeClient client.Client, ks *kustomizev1.Kustomization) ([]string, error) {
+	if ks.Status.Inventory == nil {
+		return nil, fmt.Errorf("inventory is nil")
+	}
+
+	gvks := map[string]schema.GroupVersionKind{}
+	// collect gvk of the objects
+	for _, entry := range ks.Status.Inventory.Entries {
+		objMeta, err := object.ParseObjMetadata(entry.ID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid inventory item '%s', error: %w", entry.ID, err)
+		}
+
+		gvkId := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
+
+		if _, exist := gvks[gvkId]; !exist {
+			gvks[gvkId] = schema.GroupVersionKind{
+				Group:   objMeta.GroupKind.Group,
+				Version: entry.Version,
+				Kind:    objMeta.GroupKind.Kind,
+			}
+		}
+	}
+
+	var messages []string
+
+	for _, gvk := range gvks {
+		unstructuredList := &unstructured.UnstructuredList{}
+		unstructuredList.SetGroupVersionKind(gvk)
+
+		if err := kubeClient.List(context.Background(), unstructuredList,
+			client.MatchingLabelsSelector{
+				Selector: labels.Set(
+					map[string]string{
+						"kustomize.toolkit.fluxcd.io/name":      ks.Name,
+						"kustomize.toolkit.fluxcd.io/namespace": ks.Namespace,
+					},
+				).AsSelector(),
+			},
+		); err != nil {
+			return nil, err
+		}
+
+		for _, u := range unstructuredList.Items {
+			if conditions, found, err := unstructured.NestedSlice(u.UnstructuredContent(), "status", "conditions"); err == nil && found {
+				for _, condition := range conditions {
+					c := condition.(map[string]interface{})
+					if status, found, err := unstructured.NestedString(c, "status"); err == nil && found {
+						if status != "True" {
+							if message, found, err := unstructured.NestedString(c, "message"); err == nil && found {
+								messages = append(messages, fmt.Sprintf("%s %s/%s: %s", u.GetKind(), u.GetNamespace(), u.GetName(), message))
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return messages, nil
 }
