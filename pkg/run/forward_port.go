@@ -130,9 +130,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 		return pod, nil
 	case "service":
 		svc := &corev1.Service{}
-		err := kubeClient.Get(context.Background(), namespacedName, svc)
-
-		if err != nil {
+		if err := kubeClient.Get(context.Background(), namespacedName, svc); err != nil {
 			return nil, fmt.Errorf("error getting service: %s, namespaced Name: %v", err, namespacedName)
 		}
 
@@ -161,7 +159,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*cor
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error getting deployment: %s, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the deployment "deployment" by selector in a specific namespace using the controller-runtime client
