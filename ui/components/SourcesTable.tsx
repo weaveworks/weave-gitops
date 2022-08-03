@@ -14,7 +14,6 @@ import {
   convertGitURLToGitProvider,
   removeKind,
   statusSortHelper,
-  getTime,
 } from "../lib/utils";
 import { SortType } from "./DataTable";
 import { filterByStatusCallback, filterConfig } from "./FilterableTable";
