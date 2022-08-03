@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"reflect"
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -139,8 +139,8 @@ func parseJWTAdminToken(verifier TokenSignerVerifier, rawIDToken string) (*UserP
 
 // MultiAuthPrincipal looks for a principal in an array of principal getters and
 // if it finds an error or a principal it returns, otherwise it returns (nil,nil).
-type MultiAuthPrincipal struct{
-	Log 		logr.Logger
+type MultiAuthPrincipal struct {
+	Log     logr.Logger
 	Getters []PrincipalGetter
 }
 

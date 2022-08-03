@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"net/http"
-	"net/url"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"net/http"
+	"net/url"
 )
 
 const (
@@ -91,7 +91,8 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 //
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
-	multi := MultiAuthPrincipal{ Log: srv.Log, Getters: []PrincipalGetter{} }
+	multi := MultiAuthPrincipal{Log: srv.Log, Getters: []PrincipalGetter{}}
+
 	for method, enabled := range srv.authMethods {
 		if !enabled {
 			srv.Log.V(logger.LogLevelWarn).Info("Disabled AuthMethod encountered", "AuthMethod", method.String())

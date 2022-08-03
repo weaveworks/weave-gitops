@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/onsi/gomega"
-	. "github.com/onsi/gomega"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
@@ -111,13 +111,13 @@ func TestMultiAuth(t *testing.T) {
 			name:  "no auths",
 			auths: []auth.PrincipalGetter{},
 			want:  nil,
-			err: noAuthError,
+			err:   noAuthError,
 		},
 		{
 			name:  "no successful auths",
 			auths: []auth.PrincipalGetter{stubPrincipalGetter{}},
 			want:  nil,
-			err: noAuthError,
+			err:   noAuthError,
 		},
 		{
 			name:  "one successful auth",
@@ -133,7 +133,7 @@ func TestMultiAuth(t *testing.T) {
 			name:  "two auths, none successful",
 			auths: []auth.PrincipalGetter{stubPrincipalGetter{}, stubPrincipalGetter{}},
 			want:  nil,
-			err: noAuthError,
+			err:   noAuthError,
 		},
 		{
 			name:  "error",

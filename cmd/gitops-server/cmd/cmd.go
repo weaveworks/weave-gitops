@@ -54,24 +54,24 @@ type Options struct {
 	NotificationControllerAddress string
 	Path                          string
 	Port                          string
-	AuthMethods []string
+	AuthMethods                   []string
 	// TLS config
-	Insecure                      bool
-	MTLS                          bool
-	TLSCertFile                   string
-	TLSKeyFile                    string
+	Insecure    bool
+	MTLS        bool
+	TLSCertFile string
+	TLSKeyFile  string
 	// Stuff for profiles apparently
-	HelmRepoName                  string
-	HelmRepoNamespace             string
+	HelmRepoName      string
+	HelmRepoNamespace string
 	// OIDC
-	OIDC                          auth.OIDCConfig
-	OIDCSecret                    string
+	OIDC       auth.OIDCConfig
+	OIDCSecret string
 	// Dev mode
-	DevMode                       bool
-	DevUser                       string
+	DevMode bool
+	DevUser string
 	// Metrics
-	EnableMetrics                 bool
-	MetricsAddress                string
+	EnableMetrics  bool
+	MetricsAddress string
 }
 
 var options Options

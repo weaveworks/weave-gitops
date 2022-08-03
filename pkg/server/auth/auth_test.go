@@ -46,7 +46,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 		IssuerURL:    fake.Issuer,
 	}
 
-	authMethods := map[auth.AuthMethod]bool {auth.OIDC: true}
+	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -119,8 +119,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 		IssuerURL:    fake.Issuer,
 	}
 
-	authMethods := map[auth.AuthMethod]bool {} // This is not a valid AuthMethod
-
+	authMethods := map[auth.AuthMethod]bool{} // This is not a valid AuthMethod
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -183,7 +182,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 		IssuerURL:    fake.Issuer,
 	}
 
-	authMethods := map[auth.AuthMethod]bool {auth.OIDC: true}
+	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -245,7 +244,7 @@ func TestRateLimit(t *testing.T) {
 
 	oidcCfg := auth.OIDCConfig{}
 
-	authMethods := map[auth.AuthMethod]bool {auth.UserAccount: true}
+	authMethods := map[auth.AuthMethod]bool{auth.UserAccount: true}
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())

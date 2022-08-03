@@ -670,7 +670,6 @@ func TestLogoutSuccess(t *testing.T) {
 func TestLogoutWithWrongMethod(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
@@ -737,7 +736,8 @@ func TestAuthMethods(t *testing.T) {
 
 	featureflags.Set("OIDC_AUTH", "")
 	featureflags.Set("CLUSTER_USER_AUTH", "")
-	authMethods := map[auth.AuthMethod]bool {}
+
+	authMethods := map[auth.AuthMethod]bool{}
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -760,7 +760,7 @@ func TestAuthMethods(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	authMethods = map[auth.AuthMethod]bool {auth.UserAccount: true}
+	authMethods = map[auth.AuthMethod]bool{auth.UserAccount: true}
 
 	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -783,7 +783,7 @@ func TestAuthMethods(t *testing.T) {
 		ClientSecret: cfg.ClientSecret,
 		IssuerURL:    cfg.Issuer,
 	}
-	authMethods = map[auth.AuthMethod]bool {auth.OIDC: true}
+	authMethods = map[auth.AuthMethod]bool{auth.OIDC: true}
 
 	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
