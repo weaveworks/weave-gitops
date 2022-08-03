@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { removeKind } from "../lib/utils";
-import { FluxObjectKind, HelmRepository } from "../lib/api/core/types.pb";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { HelmRepository } from "../lib/objects";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
@@ -27,8 +28,7 @@ function HelmRepositoryDetail({
       namespace={namespace}
       clusterName={clusterName}
       type={FluxObjectKind.KindHelmRepository}
-      // Guard against an undefined repo with a default empty object
-      info={(hr: HelmRepository = {}) => [
+      info={(hr: HelmRepository = new HelmRepository({})) => [
         ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
         ["Repository Type", hr.repositoryType.toLowerCase()],
         ["URL", <Link>hr.url</Link>],
