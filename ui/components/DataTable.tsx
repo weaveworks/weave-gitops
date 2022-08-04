@@ -32,6 +32,7 @@ export type Field = {
 export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
+  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, and `sortValue`, which customizes your input to the search function */
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows?: any[];
