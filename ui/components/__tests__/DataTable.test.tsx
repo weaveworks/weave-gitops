@@ -3,7 +3,7 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import DataTable, { SortType } from "../DataTable";
+import DataTable from "../DataTable";
 
 describe("DataTable", () => {
   const rows = [
@@ -32,14 +32,12 @@ describe("DataTable", () => {
     {
       label: "Name",
       value: ({ name }) => <a href="/some_url">{name}</a>,
-      sortType: SortType.string,
       sortValue: ({ name }) => name,
       defaultSort: true,
     },
     {
       label: "Status",
       value: "status",
-      sortType: SortType.number,
       sortValue: ({ status, suspended }) => {
         if (suspended) return 2;
         if (status) return 3;
@@ -49,13 +47,11 @@ describe("DataTable", () => {
     {
       label: "Last Updated",
       value: "lastUpdate",
-      sortType: SortType.date,
       sortValue: ({ lastUpdate }) => lastUpdate,
     },
     {
       label: "Last Synced At",
       value: "lastSyncedAt",
-      sortType: SortType.number,
       sortValue: ({ lastSyncedAt }) => lastSyncedAt,
     },
   ];

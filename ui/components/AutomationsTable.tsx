@@ -6,7 +6,7 @@ import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
-import { Field, SortType } from "./DataTable";
+import { Field } from "./DataTable";
 import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -110,7 +110,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             suspended={a.suspended}
           />
         ) : null,
-      sortType: SortType.number,
       sortValue: statusSortHelper,
       defaultSort: true,
     },
