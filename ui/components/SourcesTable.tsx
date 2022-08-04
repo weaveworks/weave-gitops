@@ -28,16 +28,6 @@ type Props = {
   appName?: string;
 };
 
-function sortSourcesByLastUpdatedTime(sources: Source[]): Source[] {
-  return _.sortBy(sources, [
-    "name",
-    "namespace",
-    "type",
-    "clusterName",
-    "lastUpdatedAt",
-  ]);
-}
-
 function SourcesTable({ className, sources }: Props) {
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
   sources = sources?.map((s) => {
@@ -55,7 +45,7 @@ function SourcesTable({ className, sources }: Props) {
     <URLAddressableTable
       className={className}
       filters={initialFilterState}
-      rows={sortSourcesByLastUpdatedTime(sources)}
+      rows={sources}
       dialogOpen={filterDialogOpen}
       onDialogClose={() => setFilterDialog(false)}
       fields={[

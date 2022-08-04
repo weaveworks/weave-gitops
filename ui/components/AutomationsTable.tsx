@@ -21,10 +21,6 @@ type Props = {
   hideSource?: boolean;
 };
 
-function sortAutomationsByDate(automations: Automation[]): Automation[] {
-  return _.sortBy(automations, ["name", "namespace", "type", "clusterName"]);
-}
-
 function AutomationsTable({ className, automations, hideSource }: Props) {
   automations = automations?.map((a) => {
     return { ...a, type: removeKind(a.kind) };
@@ -146,7 +142,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     <URLAddressableTable
       fields={fields}
       filters={initialFilterState}
-      rows={sortAutomationsByDate(automations)}
+      rows={automations}
       className={className}
     />
   );
