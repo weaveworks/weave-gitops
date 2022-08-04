@@ -35,7 +35,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -49,23 +48,30 @@ const (
 
 // Options contains all the options for the gitops-server command.
 type Options struct {
-	Port                          string
+	// System config
 	Host                          string
-	HelmRepoNamespace             string
-	HelmRepoName                  string
-	Path                          string
 	LogLevel                      string
-	OIDCSecret                    string
-	OIDC                          auth.OIDCConfig
 	NotificationControllerAddress string
-	TLSCertFile                   string
-	TLSKeyFile                    string
-	Insecure                      bool
-	MTLS                          bool
-	DevMode                       bool
-	DevUser                       string
-	EnableMetrics                 bool
-	MetricsAddress                string
+	Path                          string
+	Port                          string
+	AuthMethods                   []string
+	// TLS config
+	Insecure    bool
+	MTLS        bool
+	TLSCertFile string
+	TLSKeyFile  string
+	// Stuff for profiles apparently
+	HelmRepoName      string
+	HelmRepoNamespace string
+	// OIDC
+	OIDC       auth.OIDCConfig
+	OIDCSecret string
+	// Dev mode
+	DevMode bool
+	DevUser string
+	// Metrics
+	EnableMetrics  bool
+	MetricsAddress string
 }
 
 var options Options
@@ -78,28 +84,29 @@ func NewCommand() *cobra.Command {
 
 	options = Options{}
 
-	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
+	// System config
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
-	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-
-	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
-	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), "Which auth methods to use, valid values are 'oidc' and 'user-account'")
+	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
-
+	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	// OIDC
 	cmd.Flags().StringVar(&options.OIDCSecret, "oidc-secret-name", auth.DefaultOIDCAuthSecretName, "Name of the secret that contains OIDC configuration")
-
-	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-
+	// Dev mode
 	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
 	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
-
+	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
 
@@ -161,49 +168,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	oidcConfig := options.OIDC
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode, options.AuthMethods)
 
-	if options.OIDCSecret != auth.DefaultOIDCAuthSecretName {
-		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", options.OIDCSecret)
-	}
-
-	// If OIDC auth secret is found prefer that over CLI parameters
-	var secret corev1.Secret
-	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
-		Name:      options.OIDCSecret,
-	}, &secret); err == nil {
-		if options.OIDC.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
-			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
-		}
-
-		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
-	} else if err != nil {
-		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", options.OIDCSecret, "error", err)
-	}
-
-	if oidcConfig.ClientSecret != "" {
-		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
-	}
-
-	tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
 	if err != nil {
-		return fmt.Errorf("could not create HMAC token signer: %w", err)
-	}
-
-	if options.DevMode {
-		log.Info("WARNING: dev mode enabled. This should be used for local work only")
-		tsv.SetDevMode(options.DevUser)
-	}
-
-	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
-	if err != nil {
-		return err
-	}
-
-	authServer, err := auth.NewAuthServer(cmd.Context(), authCfg)
-	if err != nil {
-		return fmt.Errorf("could not create auth server: %w", err)
+		return fmt.Errorf("could not initialise authentication server: %w", err)
 	}
 
 	log.Info("Registering auth routes")
