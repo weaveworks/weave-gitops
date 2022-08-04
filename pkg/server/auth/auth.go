@@ -5,11 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"net/http"
+	"net/url"
+
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/weaveworks/weave-gitops/core/logger"
-	"net/http"
-	"net/url"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 )
 
 const (
@@ -101,14 +103,18 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		switch method {
 		case OIDC:
-			// OIDC tokens may be passed by token or cookie
-			headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
-			cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-			multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
+			if featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet {
+				// OIDC tokens may be passed by token or cookie
+				headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
+				cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
+				multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
+			}
 
 		case UserAccount:
-			adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
-			multi.Getters = append(multi.Getters, adminAuth)
+			if featureflags.Get(FeatureFlagClusterUser) == FeatureFlagSet {
+				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
+				multi.Getters = append(multi.Getters, adminAuth)
+			}
 
 		case TokenPassthrough:
 			tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
