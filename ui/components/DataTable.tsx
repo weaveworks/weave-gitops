@@ -75,31 +75,12 @@ const TableButton = styled(Button)`
 
 type Row = any;
 
-function defaultSortFunc(sort: Field): Sorter {
-  return (a: Row) => {
-    return a[sort.value as string];
-  };
-}
-
-export const sortWithType = (rows: Row[], sort: Field) => {
-  const sortFn = sort.sortValue || defaultSortFunc(sort);
-  return (rows?.slice() || []).sort((a: Row, b: Row) => {
-    switch (sort.sortType) {
-      case SortType.number:
-        return sortFn(a) - sortFn(b);
-
-      case SortType.date:
-        return Date.parse(sortFn(a)) - Date.parse(sortFn(b));
-
-      case SortType.bool:
-        if (sortFn(a) === sortFn(b)) return 0;
-        else if (sortFn(a) === false && sortFn(b) === true) return -1;
-        else return 1;
-
-      default:
-        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
-    }
-  });
+export const sortWithType = (rows: Row[], reverseSort: boolean, ...sortFields: Field[]) => {
+  return _.orderBy(
+    rows,
+    sortFields.map((s) => s.sortValue || s.value),
+    [ reverseSort ? 'desc' : 'asc' ]
+  );
 };
 
 type labelProps = {
@@ -153,14 +134,10 @@ function UnstyledDataTable({
   defaultSort = 0,
   children,
 }: Props) {
-  const [sort, setSort] = React.useState(fields[defaultSort]);
+  const [sortField, setSort] = React.useState(fields[defaultSort]);
   const [reverseSort, setReverseSort] = React.useState(false);
 
-  const sorted = sortWithType(rows, sort);
-
-  if (reverseSort) {
-    sorted.reverse();
-  }
+  const sorted = sortWithType(rows, reverseSort, sortField, ...fields);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
@@ -191,7 +168,7 @@ function UnstyledDataTable({
                     f.labelRenderer(r)
                   ) : (
                     <SortableLabel
-                      sort={sort}
+                      sort={sortField}
                       reverseSort={reverseSort}
                       setReverseSort={(isReverse) => setReverseSort(isReverse)}
                       setSort={setSort}

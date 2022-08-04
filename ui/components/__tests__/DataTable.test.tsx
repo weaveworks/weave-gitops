@@ -62,7 +62,7 @@ describe("DataTable", () => {
   describe("sorting", () => {
     describe("sortWithType", () => {
       it("should handle sorting with case SortType.string", () => {
-        const nameSort = sortWithType(rows, {
+        const nameSort = sortWithType(rows, false, {
           label: "Name",
           value: ({ name }) => <a href="/some_url">{name}</a>,
           sortType: SortType.string,
@@ -71,7 +71,7 @@ describe("DataTable", () => {
         expect(nameSort[0].name).toBe("nginx");
       });
       it("should handle sorting with case SortType.bool", () => {
-        const boolSort = sortWithType(rows, {
+        const boolSort = sortWithType(rows, false, {
           label: "Status",
           value: "status",
           sortType: SortType.number,
@@ -85,7 +85,7 @@ describe("DataTable", () => {
         expect(boolSort[2].status).toBe(true);
       });
       it("should handle sorting with case SortType.date", () => {
-        const dateSort = sortWithType(rows, {
+        const dateSort = sortWithType(rows, false, {
           label: "Last Updated",
           value: "lastUpdate",
           sortType: SortType.date,
@@ -94,7 +94,7 @@ describe("DataTable", () => {
         expect(dateSort[0].lastUpdate).toBe("2004-01-02T15:04:05-0700");
       });
       it("should handle sorting with case SortType.number", () => {
-        const numberSort = sortWithType(rows, {
+        const numberSort = sortWithType(rows, false, {
           label: "Last Synced At",
           value: "lastSyncedAt",
           sortType: SortType.number,
