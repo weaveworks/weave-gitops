@@ -3,7 +3,7 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import DataTable, { SortType, sortWithType } from "../DataTable";
+import DataTable from "../DataTable";
 
 describe("DataTable", () => {
   const rows = [
@@ -32,13 +32,12 @@ describe("DataTable", () => {
     {
       label: "Name",
       value: ({ name }) => <a href="/some_url">{name}</a>,
-      sortType: SortType.string,
       sortValue: ({ name }) => name,
+      defaultSort: true,
     },
     {
       label: "Status",
       value: "status",
-      sortType: SortType.number,
       sortValue: ({ status, suspended }) => {
         if (suspended) return 2;
         if (status) return 3;
@@ -48,61 +47,16 @@ describe("DataTable", () => {
     {
       label: "Last Updated",
       value: "lastUpdate",
-      sortType: SortType.date,
       sortValue: ({ lastUpdate }) => lastUpdate,
     },
     {
       label: "Last Synced At",
       value: "lastSyncedAt",
-      sortType: SortType.number,
       sortValue: ({ lastSyncedAt }) => lastSyncedAt,
     },
   ];
 
   describe("sorting", () => {
-    describe("sortWithType", () => {
-      it("should handle sorting with case SortType.string", () => {
-        const nameSort = sortWithType(rows, {
-          label: "Name",
-          value: ({ name }) => <a href="/some_url">{name}</a>,
-          sortType: SortType.string,
-          sortValue: ({ name }) => name,
-        });
-        expect(nameSort[0].name).toBe("nginx");
-      });
-      it("should handle sorting with case SortType.bool", () => {
-        const boolSort = sortWithType(rows, {
-          label: "Status",
-          value: "status",
-          sortType: SortType.number,
-          sortValue: ({ status, suspended }) => {
-            if (suspended) return 2;
-            if (status) return 3;
-            else return 1;
-          },
-        });
-        expect(boolSort[0].status).toBe(false);
-        expect(boolSort[2].status).toBe(true);
-      });
-      it("should handle sorting with case SortType.date", () => {
-        const dateSort = sortWithType(rows, {
-          label: "Last Updated",
-          value: "lastUpdate",
-          sortType: SortType.date,
-          sortValue: ({ lastUpdate }) => lastUpdate,
-        });
-        expect(dateSort[0].lastUpdate).toBe("2004-01-02T15:04:05-0700");
-      });
-      it("should handle sorting with case SortType.number", () => {
-        const numberSort = sortWithType(rows, {
-          label: "Last Synced At",
-          value: "lastSyncedAt",
-          sortType: SortType.number,
-          sortValue: ({ lastSyncedAt }) => lastSyncedAt,
-        });
-        expect(numberSort[0].lastSyncedAt).toBe(1000);
-      });
-    });
     it("initially sorts based on defaultSort", () => {
       render(withTheme(<DataTable fields={fields} rows={rows} />));
       const firstRow = screen.getAllByRole("row")[1];
@@ -150,9 +104,7 @@ describe("DataTable", () => {
         },
       ];
 
-      render(
-        withTheme(<DataTable defaultSort={0} fields={fields} rows={rows} />)
-      );
+      render(withTheme(<DataTable fields={fields} rows={rows} />));
 
       let firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/a/);

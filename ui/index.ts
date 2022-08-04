@@ -1,7 +1,7 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
-import DataTable, { SortType } from "./components/DataTable";
+import DataTable from "./components/DataTable";
 import EventsTable from "./components/EventsTable";
 import FilterableTable, {
   filterByStatusCallback,
@@ -116,7 +116,6 @@ export {
   RepoInputWithAuth,
   RouterTab,
   SignIn,
-  SortType,
   SourceLink,
   SourcesTable,
   statusSortHelper,
