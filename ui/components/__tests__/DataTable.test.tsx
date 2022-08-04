@@ -3,7 +3,7 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import DataTable, { SortType, sortWithType } from "../DataTable";
+import DataTable, { SortType } from "../DataTable";
 
 describe("DataTable", () => {
   const rows = [
@@ -60,49 +60,6 @@ describe("DataTable", () => {
   ];
 
   describe("sorting", () => {
-    describe("sortWithType", () => {
-      it("should handle sorting with case SortType.string", () => {
-        const nameSort = sortWithType(rows, false, {
-          label: "Name",
-          value: ({ name }) => <a href="/some_url">{name}</a>,
-          sortType: SortType.string,
-          sortValue: ({ name }) => name,
-        });
-        expect(nameSort[0].name).toBe("nginx");
-      });
-      it("should handle sorting with case SortType.bool", () => {
-        const boolSort = sortWithType(rows, false, {
-          label: "Status",
-          value: "status",
-          sortType: SortType.number,
-          sortValue: ({ status, suspended }) => {
-            if (suspended) return 2;
-            if (status) return 3;
-            else return 1;
-          },
-        });
-        expect(boolSort[0].status).toBe(false);
-        expect(boolSort[2].status).toBe(true);
-      });
-      it("should handle sorting with case SortType.date", () => {
-        const dateSort = sortWithType(rows, false, {
-          label: "Last Updated",
-          value: "lastUpdate",
-          sortType: SortType.date,
-          sortValue: ({ lastUpdate }) => lastUpdate,
-        });
-        expect(dateSort[0].lastUpdate).toBe("2004-01-02T15:04:05-0700");
-      });
-      it("should handle sorting with case SortType.number", () => {
-        const numberSort = sortWithType(rows, false, {
-          label: "Last Synced At",
-          value: "lastSyncedAt",
-          sortType: SortType.number,
-          sortValue: ({ lastSyncedAt }) => lastSyncedAt,
-        });
-        expect(numberSort[0].lastSyncedAt).toBe(1000);
-      });
-    });
     it("initially sorts based on defaultSort", () => {
       render(withTheme(<DataTable fields={fields} rows={rows} />));
       const firstRow = screen.getAllByRole("row")[1];
