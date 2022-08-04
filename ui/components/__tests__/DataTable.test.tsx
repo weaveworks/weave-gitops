@@ -34,6 +34,7 @@ describe("DataTable", () => {
       value: ({ name }) => <a href="/some_url">{name}</a>,
       sortType: SortType.string,
       sortValue: ({ name }) => name,
+      defaultSort: true,
     },
     {
       label: "Status",
@@ -107,9 +108,7 @@ describe("DataTable", () => {
         },
       ];
 
-      render(
-        withTheme(<DataTable defaultSort={0} fields={fields} rows={rows} />)
-      );
+      render(withTheme(<DataTable fields={fields} rows={rows} />));
 
       let firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/a/);

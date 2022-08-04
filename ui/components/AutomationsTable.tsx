@@ -112,6 +112,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         ) : null,
       sortType: SortType.number,
       sortValue: statusSortHelper,
+      defaultSort: true,
     },
     {
       label: "Message",
@@ -144,7 +145,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       filters={initialFilterState}
       rows={automations}
       className={className}
-      defaultSort={5}
     />
   );
 }

@@ -42,7 +42,6 @@ function SourcesTable({ className, sources }: Props) {
 
   return (
     <URLAddressableTable
-      defaultSort={4}
       className={className}
       filters={initialFilterState}
       rows={sources}
@@ -84,6 +83,7 @@ function SourcesTable({ className, sources }: Props) {
           ),
           sortType: SortType.number,
           sortValue: statusSortHelper,
+          defaultSort: true,
         },
         {
           label: "Message",

@@ -25,7 +25,6 @@ export type FilterableTableProps = {
   onDialogClose?: () => void;
   initialSelections?: FilterSelections;
   onFilterChange?: (sel: FilterSelections) => void;
-  defaultSort?: number;
 };
 
 export type FilterConfigCallback = (v: any) => any;
@@ -210,7 +209,6 @@ function FilterableTable({
   filters,
   dialogOpen,
   initialSelections,
-  defaultSort,
   onFilterChange,
 }: FilterableTableProps) {
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
@@ -293,12 +291,7 @@ function FilterableTable({
         </IconFlex>
       </Flex>
       <Flex wide tall>
-        <DataTable
-          className={className}
-          fields={fields}
-          rows={filtered}
-          defaultSort={defaultSort}
-        />
+        <DataTable className={className} fields={fields} rows={filtered} />
         <FilterDialog
           onFilterSelect={handleFilterSelect}
           filterList={filters}

@@ -34,6 +34,7 @@ export type Field = {
   sortValue?: Sorter;
   textSearchable?: boolean;
   maxWidth?: number;
+  defaultSort?: boolean;
 };
 
 /** DataTable Properties  */
@@ -44,8 +45,6 @@ export interface Props {
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows?: any[];
-  /** index of field to initially sort against. */
-  defaultSort?: number;
   /** for passing pagination */
   children?: any;
 }
@@ -133,14 +132,11 @@ function SortableLabel({
 }
 
 /** Form DataTable */
-function UnstyledDataTable({
-  className,
-  fields,
-  rows,
-  defaultSort = 0,
-  children,
-}: Props) {
-  const [sortField, setSortField] = React.useState(fields[defaultSort]);
+function UnstyledDataTable({ className, fields, rows, children }: Props) {
+  const [sortField, setSortField] = React.useState(
+    fields.find((f) => f.defaultSort) || fields[0]
+  );
+
   const [reverseSort, setReverseSort] = React.useState(false);
 
   const sorted = sortByField(rows, reverseSort, sortField, ...fields);
