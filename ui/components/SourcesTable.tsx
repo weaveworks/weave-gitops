@@ -154,6 +154,7 @@ function SourcesTable({ className, sources }: Props) {
           label: "Last Updated",
           value: (s: Source) =>
             s.lastUpdatedAt ? <Timestamp time={s.lastUpdatedAt} /> : "-",
+          sortValue: (s: Source) => s.lastUpdatedAt || "",
         },
       ]}
     />

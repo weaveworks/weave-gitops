@@ -134,6 +134,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
         />
       ),
+      sortValue: (a: Automation) => {
+        return _.get(_.find(a.conditions, { type: "Ready" }), "timestamp");
+      },
     },
   ];
 

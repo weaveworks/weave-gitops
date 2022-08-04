@@ -75,11 +75,17 @@ const TableButton = styled(Button)`
 
 type Row = any;
 
-export const sortWithType = (rows: Row[], reverseSort: boolean, ...sortFields: Field[]) => {
+export const sortWithType = (
+  rows: Row[],
+  reverseSort: boolean,
+  ...sortFields: Field[]
+) => {
   return _.orderBy(
     rows,
-    sortFields.map((s) => s.sortValue || s.value),
-    [ reverseSort ? 'desc' : 'asc' ]
+    sortFields.map((s) => {
+      return s.sortValue || s.value;
+    }),
+    [reverseSort ? "desc" : "asc"]
   );
 };
 
