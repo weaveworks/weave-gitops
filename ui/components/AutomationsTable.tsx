@@ -144,6 +144,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       filters={initialFilterState}
       rows={automations}
       className={className}
+      defaultSort={5}
     />
   );
 }
