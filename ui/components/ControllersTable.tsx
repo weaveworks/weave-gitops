@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import { SortType } from "./DataTable";
 import { filterByStatusCallback, filterConfig } from "./FilterableTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -41,7 +40,6 @@ function ControllersTable({ className, controllers = [] }: Props) {
                 suspended={d.suspended}
               />
             ) : null,
-          sortType: SortType.number,
           sortValue: statusSortHelper,
         },
         {
