@@ -75,7 +75,7 @@ const TableButton = styled(Button)`
 
 type Row = any;
 
-export const sortWithType = (
+export const sortByField = (
   rows: Row[],
   reverseSort: boolean,
   ...sortFields: Field[]
@@ -140,10 +140,10 @@ function UnstyledDataTable({
   defaultSort = 0,
   children,
 }: Props) {
-  const [sortField, setSort] = React.useState(fields[defaultSort]);
+  const [sortField, setSortField] = React.useState(fields[defaultSort]);
   const [reverseSort, setReverseSort] = React.useState(false);
 
-  const sorted = sortWithType(rows, reverseSort, sortField, ...fields);
+  const sorted = sortByField(rows, reverseSort, sortField, ...fields);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
@@ -177,7 +177,7 @@ function UnstyledDataTable({
                       sort={sortField}
                       reverseSort={reverseSort}
                       setReverseSort={(isReverse) => setReverseSort(isReverse)}
-                      setSort={setSort}
+                      setSort={setSortField}
                       field={f}
                     />
                   )}
