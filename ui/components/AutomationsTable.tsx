@@ -22,7 +22,7 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  automations = automations?.map((a) => {
+  automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
   const initialFilterState = {

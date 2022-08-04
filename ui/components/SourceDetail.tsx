@@ -88,7 +88,7 @@ function SourceDetail<T extends FluxObject>({
     return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
-  const relevantAutomations = _.filter(automations, (a) => {
+  const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }
