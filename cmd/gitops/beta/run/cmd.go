@@ -39,7 +39,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-type runCommandFlags struct {
+type RunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext string
 	Components      []string
@@ -55,7 +55,7 @@ type runCommandFlags struct {
 	Context string
 }
 
-var flags runCommandFlags
+var flags RunCommandFlags
 
 var kubeConfigArgs *genericclioptions.ConfigFlags
 

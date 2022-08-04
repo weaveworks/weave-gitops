@@ -13,7 +13,7 @@ If you haven't already, be sure to check out our [introduction](./intro.md) to W
 ## Before you begin
 
 We will provide a complete walkthrough of getting Flux installed and Weave GitOps configured. However, if you have:
-- an existing cluster bootstrapped Flux 🎉
+- an existing cluster bootstrapped Flux version >= 0.31.0 🎉
 - followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
 
 Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃
@@ -28,42 +28,48 @@ To follow along, you will need the following:
 
 1. Install the flux CLI
 
-```
-brew install fluxcd/tap/flux
-```
+   ```
+   brew install fluxcd/tap/flux
+   ```
 
-For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
+   For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
 
-2. Export your credentials
+1. Make sure that the CLI version is at least 0.31.0
 
-```
-export GITHUB_TOKEN=<your-token>
-export GITHUB_USER=<your-username>
-```
+   ```
+   flux -v
+   ```
 
-3. Check your Kubernetes cluster
+1. Export your credentials
 
-```
-flux check --pre
-```
+   ```
+   export GITHUB_TOKEN=<your-token>
+   export GITHUB_USER=<your-username>
+   ```
 
-The output is similar to:
-```
-► checking prerequisites
-✔ kubernetes 1.22.2 >=1.20.6
-✔ prerequisites checks passed
-```
+1. Check your Kubernetes cluster
 
-4. Install Flux onto your cluster with the `flux bootstrap` command
+   ```
+   flux check --pre
+   ```
 
-```
-flux bootstrap github \
-  --owner=$GITHUB_USER \
-  --repository=fleet-infra \
-  --branch=main \
-  --path=./clusters/my-cluster \
-  --personal
-```
+   The output is similar to:
+   ```
+   ► checking prerequisites
+   ✔ kubernetes 1.22.2 >=1.20.6
+   ✔ prerequisites checks passed
+   ```
+
+1. Install Flux onto your cluster with the `flux bootstrap` command
+
+   ```
+   flux bootstrap github \
+     --owner=$GITHUB_USER \
+     --repository=fleet-infra \
+     --branch=main \
+     --path=./clusters/my-cluster \
+     --personal
+   ```
 
 Full installation documentation including how to work with other Git providers is available [here](https://fluxcd.io/docs/installation/).
 
@@ -75,36 +81,38 @@ The bootstrap command above does following:
 - Configures Flux components to track the path /clusters/my-cluster/ in the repository
 
 ### Configure access to the dashboard
+
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
 We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
 
 1. Clone your git repository where Flux has been bootstrapped (you could skip this step if you performed previous steps in this doc).
 
-```
-git clone https://github.com/$GITHUB_USER/fleet-infra
-cd fleet-infra
-```
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
 
-2. Generate the password:
+1. Generate the password:
 
-```
-PASSWORD="<your password>"
-echo  $PASSWORD | gitops get bcrypt-hash
-$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-```
+   ```
+   PASSWORD="<your password>"
+   echo  $PASSWORD | gitops get bcrypt-hash
+   $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+   ```
 
-3. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
-```yaml title="./weave-gitops-values.yaml"
-adminUser:
-  create: true
-  username: admin
-  passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-```
+1. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
 
-:::info
-Storing a hash of a password is relatively safe for demo and testing purposes but it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
-:::
+   ```yaml title="./weave-gitops-values.yaml"
+   adminUser:
+     create: true
+     username: admin
+     passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+   ```
+
+   :::info
+   Storing a hash of a password is relatively safe for demo and testing purposes but it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+   :::
 
 ### Install Weave GitOps
 
@@ -112,72 +120,75 @@ Weave GitOps is installable via a Helm Chart and as such can be managed by Flux.
 
 1. Clone your git repository where Flux has been bootstrapped.
 
-```
-git clone https://github.com/$GITHUB_USER/fleet-infra
-cd fleet-infra
-```
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
 
-2. Create a `HelmRepository` Source for Weave GitOps
+1. Create a `HelmRepository` Source for Weave GitOps
 
-```
-flux create source helm ww-gitops \
-  --url=https://helm.gitops.weave.works \
-  --export > ./clusters/my-cluster/weave-gitops-source.yaml
-```
+   ```
+   flux create source helm ww-gitops \
+     --interval=60m \
+     --url=oci://ghcr.io/weaveworks/charts \
+     --export > ./clusters/my-cluster/weave-gitops-source.yaml
+   ```
 
-The generated file should look like this:
+   The generated file should look like this:
 
-```yaml title="./clusters/my-cluster/weave-gitops-source.yaml"
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: ww-gitops
-  namespace: flux-system
-spec:
-  interval: 1m0s
-  url: https://helm.gitops.weave.works
-```
+   ```yaml title="./clusters/my-cluster/weave-gitops-source.yaml"
+   apiVersion: source.toolkit.fluxcd.io/v1beta2
+   kind: HelmRepository
+   metadata:
+     name: ww-gitops
+     namespace: flux-system
+   spec:
+     interval: 1h0m0s
+     type: oci
+     url: oci://ghcr.io/weaveworks/charts
+   ```
 
-3. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
+1. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
 
-```
-git add -A && git commit -m "Add Weave GitOps HelmRepository"
-git push
-```
+   ```
+   git add -A && git commit -m "Add Weave GitOps HelmRepository"
+   git push
+   ```
 
-4. Create a `HelmRelease` to deploy Weave GitOps
+1. Create a `HelmRelease` to deploy Weave GitOps
 
-```
-flux create helmrelease ww-gitops \
-  --source=HelmRepository/ww-gitops \
-  --chart=weave-gitops \
-  --values=<path to weave-gitops-values.yaml> \
-  --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
-```
+   ```
+   flux create helmrelease ww-gitops \
+     --interval=60m \
+     --source=HelmRepository/ww-gitops \
+     --chart=weave-gitops \
+     --values=<path to weave-gitops-values.yaml> \
+     --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
+   ```
 
-5. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
+1. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
 
-```
-git add -A && git commit -m "Add Weave GitOps HelmRelease"
-git push
-```
+   ```
+   git add -A && git commit -m "Add Weave GitOps HelmRelease"
+   git push
+   ```
 
-6. Validate that Weave GitOps and Flux are installed
+1. Validate that Weave GitOps and Flux are installed
 
-```
-kubectl get pods -n flux-system
-```
+   ```
+   kubectl get pods -n flux-system
+   ```
 
-You should see something similar to:
+   You should see something similar to:
 
-```
-NAME                                       READY   STATUS    RESTARTS   AGE
-helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
-kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
-notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
-source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
-ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
-```
+   ```
+   NAME                                       READY   STATUS    RESTARTS   AGE
+   helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
+   kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
+   notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
+   source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
+   ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
+   ```
 
 :::info
 There's many other things you can configure in the weave gitops helm chart. For a reference, see [our value file reference](./references/helm-reference.md).
@@ -190,13 +201,14 @@ Weave GitOps provides insights into your application deployments, and makes cont
 ### Login to the GitOps Dashboard
 
 1. Expose the service running on the cluster
-```
-kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
-```
 
-2. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encypted value you provided as $PASSWORD.
+   ```
+   kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+   ```
 
-![Weave GitOps login screen](/img/dashboard-login.png)
+1. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encypted value you provided as $PASSWORD.
+
+   ![Weave GitOps login screen](/img/dashboard-login.png)
 
 ### Applications view
 
@@ -286,46 +298,46 @@ Now that you have a feel for how to navigate the dashboard. Let's deploy a new a
 
 1. Clone or navigate back to your git repository where you have bootstrapped Flux, for example:
 
-```
-git clone https://github.com/$GITHUB_USER/fleet-infra
-cd fleet-infra
-```
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
 
-2. Create a `GitRepository` Source for podinfo
+1. Create a `GitRepository` Source for podinfo
 
-```
-flux create source git podinfo \
-  --url=https://github.com/stefanprodan/podinfo \
-  --branch=master \
-  --interval=30s \
-  --export > ./clusters/my-cluster/podinfo-source.yaml
-```
+   ```
+   flux create source git podinfo \
+     --url=https://github.com/stefanprodan/podinfo \
+     --branch=master \
+     --interval=30s \
+     --export > ./clusters/my-cluster/podinfo-source.yaml
+   ```
 
-3. Commit and push the `podinfo-source` to the `fleet-infra` repository
+1. Commit and push the `podinfo-source` to the `fleet-infra` repository
 
-```
-git add -A && git commit -m "Add podinfo source"
-git push
-```
+   ```
+   git add -A && git commit -m "Add podinfo source"
+   git push
+   ```
 
-4. Create a `kustomization` to build and apply the podinfo manifest
+1. Create a `kustomization` to build and apply the podinfo manifest
 
-```
-flux create kustomization podinfo \
-  --target-namespace=flux-system \
-  --source=podinfo \
-  --path="./kustomize" \
-  --prune=true \
-  --interval=5m \
-  --export > ./clusters/my-cluster/podinfo-kustomization.yaml
-```
+   ```
+   flux create kustomization podinfo \
+     --target-namespace=flux-system \
+     --source=podinfo \
+     --path="./kustomize" \
+     --prune=true \
+     --interval=5m \
+     --export > ./clusters/my-cluster/podinfo-kustomization.yaml
+   ```
 
-5. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
+1. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
 
-```
-git add -A && git commit -m "Add podinfo kustomization"
-git push
-```
+   ```
+   git add -A && git commit -m "Add podinfo kustomization"
+   git push
+   ```
 
 ### View the application in Weave GitOps
 
@@ -343,46 +355,46 @@ To customize a deployment from a repository you don’t control, you can use Flu
 
 1. Add the `patches` section as shown below to the field spec of your podinfo-kustomization.yaml file so it looks like this:
 
-```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  name: podinfo
-  namespace: flux-system
-spec:
-  interval: 5m0s
-  path: ./kustomize
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: podinfo
-  targetNamespace: flux-system
-// highlight-start
-  patches:
-    - patch: |-
-        apiVersion: autoscaling/v2beta2
-        kind: HorizontalPodAutoscaler
-        metadata:
-          name: podinfo
-        spec:
-          minReplicas: 3
-      target:
-        name: podinfo
-        kind: HorizontalPodAutoscaler
-// highlight-end
-```
+   ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
+   ---
+   apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+   kind: Kustomization
+   metadata:
+     name: podinfo
+     namespace: flux-system
+   spec:
+     interval: 60m0s
+     path: ./kustomize
+     prune: true
+     sourceRef:
+       kind: GitRepository
+       name: podinfo
+     targetNamespace: flux-system
+   // highlight-start
+     patches:
+       - patch: |-
+           apiVersion: autoscaling/v2beta2
+           kind: HorizontalPodAutoscaler
+           metadata:
+             name: podinfo
+           spec:
+             minReplicas: 3
+         target:
+           name: podinfo
+           kind: HorizontalPodAutoscaler
+   // highlight-end
+   ```
 
-2. Commit and push the podinfo-kustomization.yaml changes:
+1. Commit and push the podinfo-kustomization.yaml changes:
 
-```
-git add -A && git commit -m "Increase podinfo minimum replicas"
-git push
-```
+   ```
+   git add -A && git commit -m "Increase podinfo minimum replicas"
+   git push
+   ```
 
 3. Navigate back to the dashboard and you will now see increased replica count and the newly created 3rd pod
 
-![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
+   ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
 
 
 ### Suspend updates

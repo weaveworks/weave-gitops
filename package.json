@@ -20,7 +20,7 @@
   "scripts": {
     "build": "parcel build --target default",
     "build:lib": "parcel build --target lib",
-    "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --resolveJsonModule --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
+    "typedefs": "tsc --declaration --emitDeclarationOnly --outDir dist -p .",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui --max-warnings 0 && npm run typecheck",
     "prettify:check": "prettier --check ui",
