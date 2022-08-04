@@ -5,11 +5,11 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"net/http"
-	"net/url"
-
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"net/http"
+	"net/url"
 )
 
 const (
@@ -91,14 +91,29 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 //
 // Unauthorized requests will be denied with a 401 status code.
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
-	adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
-	tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
-	multi := MultiAuthPrincipal{adminAuth, tokenAuth}
+	multi := MultiAuthPrincipal{Log: srv.Log, Getters: []PrincipalGetter{}}
 
-	if srv.oidcEnabled() {
-		headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
-		cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-		multi = append(multi, headerAuth, cookieAuth)
+	for method, enabled := range srv.authMethods {
+		if !enabled {
+			srv.Log.V(logger.LogLevelWarn).Info("Disabled AuthMethod encountered", "AuthMethod", method.String())
+			continue // in theory nothing should ever be set and not enabled but in case it is
+		}
+
+		switch method {
+		case OIDC:
+			// OIDC tokens may be passed by token or cookie
+			headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
+			cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
+			multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
+
+		case UserAccount:
+			adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
+			multi.Getters = append(multi.Getters, adminAuth)
+
+		case TokenPassthrough:
+			tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
+			multi.Getters = append(multi.Getters, tokenAuth)
+		}
 	}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -113,10 +128,10 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		if principal == nil || err != nil {
+			srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
 			JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
 			return
 		}
-
 		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
 	})
 }
