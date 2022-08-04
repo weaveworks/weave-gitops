@@ -34,6 +34,7 @@ export type Field = {
   sortValue?: Sorter;
   textSearchable?: boolean;
   maxWidth?: number;
+  /** boolean for field to initially sort against. */
   defaultSort?: boolean;
 };
 
