@@ -24,7 +24,6 @@ import (
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
 	httpmiddlewarestd "github.com/slok/go-http-metrics/middleware/std"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
@@ -69,7 +68,6 @@ type Options struct {
 	OIDCSecret string
 	// Dev mode
 	DevMode bool
-	DevUser string
 	// Metrics
 	EnableMetrics  bool
 	MetricsAddress string
@@ -105,8 +103,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	// Dev mode
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
-	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
+	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode - this disables verifying cookie signatures, do not use")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -169,7 +166,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevUser, options.DevMode, options.AuthMethods)
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevMode, options.AuthMethods)
 
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
