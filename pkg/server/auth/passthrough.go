@@ -92,6 +92,7 @@ func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*User
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse for passthrough: %w", err)
 	}
+	pg.log.V(4).Info("passing through token")
 	principal.SetToken(cookie.Value)
 
 	return principal, nil

@@ -162,11 +162,15 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		switch method {
 		case OIDC:
-			if featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet {
+			if srv.oidcEnabled() {
 				// OIDC tokens may be passed by token or cookie
-				headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
-				cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-				multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
+				multi.Getters = append(multi.Getters, NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier()))
+				if srv.oidcPassthroughEnabled() {
+					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
+					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+				} else {
+					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+				}
 			}
 
 		case UserAccount:
