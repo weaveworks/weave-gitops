@@ -32,15 +32,10 @@ type Props = {
   automation?: Automation;
   className?: string;
   info: InfoField[];
-  customTabs: Array<routeTab>;
+  customTabs?: Array<routeTab>;
 };
 
-function AutomationDetail({
-  automation,
-  className,
-  info,
-  customTabs = [],
-}: Props) {
+function AutomationDetail({ automation, className, info, customTabs }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
