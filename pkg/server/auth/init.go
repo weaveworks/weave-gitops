@@ -5,14 +5,13 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, devMode bool, authMethodStrings []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, devMode bool, namespace string, authMethodStrings []string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
@@ -32,7 +31,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		// If OIDC auth secret is found prefer that over CLI parameters
 		var secret corev1.Secret
 		if err := rawKubernetesClient.Get(ctx, client.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
+			Namespace: namespace,
 			Name:      oidcSecret,
 		}, &secret); err == nil {
 			if oidcConfig.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
@@ -63,7 +62,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		tsv.SetDevMode(devMode)
 	}
 
-	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, authMethods)
+	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods)
 	if err != nil {
 		return nil, err
 	}
