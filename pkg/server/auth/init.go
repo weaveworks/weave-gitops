@@ -17,7 +17,7 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, devUser string, devMode bool, authMethodStrings []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, devMode bool, authMethodStrings []string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
@@ -65,7 +65,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 
 	if devMode {
 		log.V(logger.LogLevelWarn).Info("Dev-mode is enabled. This should be used for local work only.")
-		tsv.SetDevMode(devUser)
+		tsv.SetDevMode(devMode)
 	}
 
 	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, authMethods)
