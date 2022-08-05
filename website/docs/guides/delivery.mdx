@@ -23,13 +23,13 @@ strategies](https://docs.flagger.app/usage/deployment-strategies):
 
 ![canary release icon](/img/canary.svg)  **Canary Release** - where traffic is gradually shifted to
 the new version and its performance is assessed. Based on this analysis of KPIs a release is either
-promoted or the update abandonned.  
+promoted or the update abandoned.  
 ![a b testing icon](/img/ab.svg)  **A/B Testing** - uses HTTP headers or cookies to ensure users
   stay on the same version of an application during the canary analysis.  
 ![blue green testing icon](/img/blue-green.svg)  **Blue/Green** - where tests are run against the
   new version, and if successful, traffic is then switched from the current service.  
 ![blue green mirroring icon](/img/mirroring.svg)  **Blue/Green with Traffic Mirroring** - sends
-  copies of incoming requests to the new version. The user recieves the response from the current
+  copies of incoming requests to the new version. The user receives the response from the current
   service and the other is discarded. The new version is promoted only if metrics are healthy.
 
 Using Flux allows us to manage our cluster applications in a declarative way through changes in a
@@ -46,7 +46,7 @@ In this guide, we will walk you through a full end-to-end scenario where you wil
   apply the manifests listed in this guide, you will need to commit them to a repository being
   reconciled with Flux. For help installing Flux, you can follow their [getting
   started](https://fluxcd.io/docs/get-started/) documentation.
-- Flagger requires the `autoscaling/v2` API to be installed on the cluster, you can use `kubectl
+- Flagger requires the `autoscaling/v2` or `autoscaling/v2beta2` API to be installed on the cluster, you can use `kubectl
   api-resources` to check which API versions are supported.
 - The [step](https://smallstep.com/cli/) CLI installed to generate certificates in order to support
   mTLS connections.
@@ -140,7 +140,7 @@ spec:
     installNamespace: false
     identity:
       issuer:
-        crtExpiry: "2023-07-18T20:00:00Z" # Change this to match generated certificate expriry date
+        crtExpiry: "2023-07-18T20:00:00Z" # Change this to match generated certificate expiry date
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -352,7 +352,7 @@ To demonstrate the progressive rollout of an application,
 
 We will configure a [Canary release
 strategy](https://docs.flagger.app/usage/deployment-strategies#canary-release), where Flagger will
-scale up a new version of the application (the canary), alongisde the existing version (the
+scale up a new version of the application (the canary), alongside the existing version (the
 primary), and gradually increase traffic to the new version in increments of 5%, up to a maximum of
 50%. It will continuously monitor the new version for an acceptable request response rate and
 average request duration. Based on this analysis, Flagger will either update the primary to the new
@@ -400,7 +400,7 @@ spec:
     spec:
       containers:
       - name: podinfod
-        image: ghcr.io/stefanprodan/podinfo:6.0.0
+        image: ghcr.io/stefanprodan/podinfo:6.1.8
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -475,7 +475,7 @@ spec:
 
 Then, add a Canary resource that references the Deployment and HorizontalPodAutoscaler resources,
 note that we have not needed to define a service resource above, instead this is specified within
-the Canary defintion and created by Flagger:
+the Canary definition and created by Flagger:
 
 ```yaml title="test/canary.yaml"
 apiVersion: flagger.app/v1beta1
