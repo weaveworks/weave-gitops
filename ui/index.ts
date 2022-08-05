@@ -66,6 +66,9 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
 
+import ReconciledObjectsTable from './components/ReconciledObjectsTable'
+import ReconciliationGraph from './components/ReconciliationGraph'
+
 export {
   AppContextProvider,
   applicationsClient,
@@ -134,4 +137,6 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
+  ReconciledObjectsTable,
+  ReconciliationGraph
 };
