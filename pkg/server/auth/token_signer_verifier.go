@@ -30,7 +30,7 @@ type HMACTokenSignerVerifier struct {
 	expireAfter time.Duration
 	hmacSecret  []byte
 
-	devUser string
+	devMode bool
 }
 
 func NewHMACTokenSignerVerifier(expireAfter time.Duration) (*HMACTokenSignerVerifier, error) {
@@ -63,17 +63,15 @@ func (sv *HMACTokenSignerVerifier) Sign(subject string) (string, error) {
 }
 
 func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, error) {
-	if sv.devUser != "" {
-		claims := AdminClaims{
-			RegisteredClaims: jwt.RegisteredClaims{
-				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(sv.expireAfter).UTC()),
-				NotBefore: jwt.NewNumericDate(time.Now().UTC()),
-				Subject:   sv.devUser,
-			},
+	if sv.devMode {
+		parser := jwt.NewParser()
+
+		token, _, err := parser.ParseUnverified(tokenString, &AdminClaims{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse unverified token: %w", err)
 		}
 
-		return &claims, nil
+		return token.Claims.(*AdminClaims), nil
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &AdminClaims{},
@@ -95,6 +93,6 @@ func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, err
 	}
 }
 
-func (sv *HMACTokenSignerVerifier) SetDevMode(user string) {
-	sv.devUser = user
+func (sv *HMACTokenSignerVerifier) SetDevMode(enabled bool) {
+	sv.devMode = enabled
 }
