@@ -242,6 +242,17 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			} else {
 				log.Successf("Flux has been installed")
 			}
+
+			for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
+				log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
+
+				if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
+					return err
+				}
+
+				log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
+			}
+
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
@@ -269,16 +280,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					log.Successf("GitOps Dashboard has been installed")
 				}
 			}
-		}
-
-		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
-			log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
-
-			if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
-				return err
-			}
-
-			log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 		}
 
 		if dashboardInstalled {
