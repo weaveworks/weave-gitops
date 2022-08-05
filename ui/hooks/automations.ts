@@ -79,7 +79,7 @@ export function useGetKustomization(
   name: string,
 
   namespace = NoNamespace,
-  clusterName = null
+  clusterName: string
 ) {
   const { api } = useContext(CoreClientContext);
 

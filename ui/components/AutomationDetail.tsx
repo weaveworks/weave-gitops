@@ -12,6 +12,7 @@ import Button from "./Button";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
+import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
@@ -21,12 +22,6 @@ import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
 import YamlView from "./YamlView";
-interface routeTab {
-  name: string;
-  path: string;
-  visible?: boolean;
-  component: (param?: any) => any;
-}
 
 type Props = {
   automation?: Automation;
