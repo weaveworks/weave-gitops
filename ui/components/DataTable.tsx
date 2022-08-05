@@ -15,37 +15,27 @@ import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
-export enum SortType {
-  //sort is unused but having number as index zero makes it a falsy value thus not used as a valid sortType for selecting fields for SortableLabel
-  sort,
-  number,
-  string,
-  date,
-  bool,
-}
-
 type Sorter = (k: any) => any;
 
 export type Field = {
   label: string | number;
   labelRenderer?: string | ((k: any) => string | JSX.Element);
   value: string | ((k: any) => string | JSX.Element | null);
-  sortType?: SortType;
   sortValue?: Sorter;
   textSearchable?: boolean;
   maxWidth?: number;
+  /** boolean for field to initially sort against. */
+  defaultSort?: boolean;
 };
 
 /** DataTable Properties  */
 export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
-  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
+  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, and `sortValue`, which customizes your input to the search function */
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows?: any[];
-  /** index of field to initially sort against. */
-  defaultSort?: number;
   /** for passing pagination */
   children?: any;
 }
@@ -75,31 +65,18 @@ const TableButton = styled(Button)`
 
 type Row = any;
 
-function defaultSortFunc(sort: Field): Sorter {
-  return (a: Row) => {
-    return a[sort.value as string];
-  };
-}
-
-export const sortWithType = (rows: Row[], sort: Field) => {
-  const sortFn = sort.sortValue || defaultSortFunc(sort);
-  return (rows?.slice() || []).sort((a: Row, b: Row) => {
-    switch (sort.sortType) {
-      case SortType.number:
-        return sortFn(a) - sortFn(b);
-
-      case SortType.date:
-        return Date.parse(sortFn(a)) - Date.parse(sortFn(b));
-
-      case SortType.bool:
-        if (sortFn(a) === sortFn(b)) return 0;
-        else if (sortFn(a) === false && sortFn(b) === true) return -1;
-        else return 1;
-
-      default:
-        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
-    }
-  });
+export const sortByField = (
+  rows: Row[],
+  reverseSort: boolean,
+  ...sortFields: Field[]
+) => {
+  return _.orderBy(
+    rows,
+    sortFields.map((s) => {
+      return s.sortValue || s.value;
+    }),
+    [reverseSort ? "desc" : "asc"]
+  );
 };
 
 type labelProps = {
@@ -146,21 +123,14 @@ function SortableLabel({
 }
 
 /** Form DataTable */
-function UnstyledDataTable({
-  className,
-  fields,
-  rows,
-  defaultSort = 0,
-  children,
-}: Props) {
-  const [sort, setSort] = React.useState(fields[defaultSort]);
+function UnstyledDataTable({ className, fields, rows, children }: Props) {
+  const [sortField, setSortField] = React.useState(
+    fields.find((f) => f.defaultSort) || fields[0]
+  );
+
   const [reverseSort, setReverseSort] = React.useState(false);
 
-  const sorted = sortWithType(rows, sort);
-
-  if (reverseSort) {
-    sorted.reverse();
-  }
+  const sorted = sortByField(rows, reverseSort, sortField, ...fields);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
@@ -191,10 +161,10 @@ function UnstyledDataTable({
                     f.labelRenderer(r)
                   ) : (
                     <SortableLabel
-                      sort={sort}
+                      sort={sortField}
                       reverseSort={reverseSort}
                       setReverseSort={(isReverse) => setReverseSort(isReverse)}
-                      setSort={setSort}
+                      setSort={setSortField}
                       field={f}
                     />
                   )}
