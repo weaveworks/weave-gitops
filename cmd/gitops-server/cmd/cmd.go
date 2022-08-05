@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -205,9 +206,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
 
-	mux.Handle("/v1/", appAndProfilesHandlers)
+	mux.Handle("/v1/", gziphandler.GzipHandler(appAndProfilesHandlers))
 
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	mux.Handle("/", gziphandler.GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
 		extension := filepath.Ext(req.URL.Path)
 		// We use the golang http.FileServer for static file requests.
@@ -218,9 +219,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
-	}))
-
-	addr := net.JoinHostPort(options.Host, options.Port)
+	})))
 
 	handler := http.Handler(mux)
 
@@ -233,6 +232,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	handler = middleware.WithLogging(log, handler)
 
+	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: handler,
