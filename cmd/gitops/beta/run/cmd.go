@@ -37,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/utils/strings/slices"
 )
 
 type RunCommandFlags struct {
@@ -94,7 +95,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the KubeConfig context to explicitly allow.")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install.")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
@@ -229,11 +230,17 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
+			components := flags.Components
+			components = append(components, flags.ComponentsExtra...)
+
+			if err := ValidateComponents(components); err != nil {
+				return fmt.Errorf("Can't install flux: %w", err)
+			}
+
 			installOpts := install.MakeDefaultOptions()
 			installOpts.Version = flags.FluxVersion
 			installOpts.Namespace = flags.Namespace
-			installOpts.Components = flags.Components
-			installOpts.ComponentsExtra = flags.ComponentsExtra
+			installOpts.Components = components
 			installOpts.ManifestFile = "flux-system.yaml"
 			installOpts.Timeout = flags.Timeout
 
@@ -243,7 +250,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 				log.Successf("Flux has been installed")
 			}
 
-			for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
+			for _, controllerName := range components {
 				log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
 
 				if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
@@ -252,7 +259,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 				log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 			}
-
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
@@ -580,4 +586,17 @@ func reconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	}
 
 	return devKsErr
+}
+
+func ValidateComponents(components []string) error {
+	defaults := install.MakeDefaultOptions()
+	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
+
+	for _, component := range components {
+		if !slices.Contains(bootstrapAllComponents, component) {
+			return fmt.Errorf("component %s is not available", component)
+		}
+	}
+
+	return nil
 }
