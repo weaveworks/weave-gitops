@@ -81,7 +81,6 @@ export {
   Auth,
   AuthCheck,
   AuthContextProvider,
-  Automation,
   AutomationsTable,
   Bucket,
   BucketDetail,
