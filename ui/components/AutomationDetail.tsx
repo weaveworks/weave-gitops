@@ -183,7 +183,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         </Button>
       </Flex>
 
-      <SubRouterTabs rootPath={defaultTabs[0].path}>
+      <SubRouterTabs rootPath={`${path}/details`}>
         {defaultTabs.map(
           (subRoute, index) =>
             subRoute.visible && (
