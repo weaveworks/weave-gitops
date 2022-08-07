@@ -75,7 +75,7 @@ export function useListAutomations(namespace = NoNamespace) {
 }
 
 function updateArrWithKind<T>(arr: Array<T>, kind: FluxObjectKind) {
-  return arr.map((k: T) => ({
+  return arr?.map((k: T) => ({
     ...k,
     kind,
   }));
