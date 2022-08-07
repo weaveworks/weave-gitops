@@ -192,7 +192,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
               </RouterTab>
             )
         )}
-        {customTabs.map(
+        {customTabs?.map(
           (customTab, index) =>
             customTab.visible && (
               <RouterTab
