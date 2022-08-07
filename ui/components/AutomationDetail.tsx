@@ -183,25 +183,27 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         </Button>
       </Flex>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
-        <SubRouterTabs rootPath={defaultTabs[0].path}>
-          {defaultTabs.map(
-            (subRoute) =>
-              subRoute.visible && (
-                <RouterTab name={subRoute.name} path={subRoute.path}>
-                  {subRoute.component()}
-                </RouterTab>
-              )
-          )}
-          {customTabs.map(
-            (customTab) =>
-              customTab.visible && (
-                <RouterTab name={customTab.name} path={customTab.path}>
-                  {customTab.component()}
-                </RouterTab>
-              )
-          )}
-        </SubRouterTabs>
+      <SubRouterTabs rootPath={defaultTabs[0].path}>
+        {defaultTabs.map(
+          (subRoute, index) =>
+            subRoute.visible && (
+              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+                {subRoute.component()}
+              </RouterTab>
+            )
+        )}
+        {customTabs.map(
+          (customTab, index) =>
+            customTab.visible && (
+              <RouterTab
+                name={customTab.name}
+                path={customTab.path}
+                key={index}
+              >
+                {customTab.component()}
+              </RouterTab>
+            )
+        )}
       </SubRouterTabs>
     </Flex>
   );

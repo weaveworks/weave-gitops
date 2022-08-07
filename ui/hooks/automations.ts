@@ -41,40 +41,46 @@ export function useListAutomations(namespace = NoNamespace) {
       // The typescript CLI complains about Promise.all,
       // but VSCode does not. Supress the CLI error here.
       // useQuery will still give us the correct types.
-      return Promise.all<any>(p).then((result) => {
-        const [kustRes, helmRes] = result;
-
-        const kustomizations = (kustRes as ListKustomizationsResponse)
-          .kustomizations;
-        const helmReleases = (helmRes as ListHelmReleasesResponse).helmReleases;
-        return {
-          result: [
-            ..._.map(kustomizations, (k) => ({
-              ...k,
-              kind: FluxObjectKind.KindKustomization,
-            })),
-            ..._.map(helmReleases, (h) => ({
-              ...h,
-              kind: FluxObjectKind.KindHelmRelease,
-            })),
-          ],
-          errors: [
-            ..._.map(kustRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindKustomization,
-            })),
-            ..._.map(helmRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindHelmRelease,
-            })),
-          ],
-        };
-      });
+      return Promise.all<any>(p).then(
+        ([kustRes, helmRes]: [
+          ListKustomizationsResponse,
+          ListHelmReleasesResponse
+        ]) => {
+          return {
+            result: [
+              ...updateArrWithKind(
+                kustRes.kustomizations,
+                FluxObjectKind.KindKustomization
+              ),
+              ...updateArrWithKind(
+                helmRes.helmReleases,
+                FluxObjectKind.KindHelmRelease
+              ),
+            ],
+            errors: [
+              ...updateArrWithKind(
+                kustRes.errors,
+                FluxObjectKind.KindKustomization
+              ),
+              ...updateArrWithKind(
+                helmRes.errors,
+                FluxObjectKind.KindHelmRelease
+              ),
+            ],
+          };
+        }
+      );
     },
     { retry: false, refetchInterval: 5000 }
   );
 }
 
+function updateArrWithKind<T>(arr: Array<T>, kind: FluxObjectKind) {
+  return arr.map((k: T) => ({
+    ...k,
+    kind,
+  }));
+}
 export function useGetKustomization(
   name: string,
 
