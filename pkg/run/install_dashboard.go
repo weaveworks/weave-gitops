@@ -142,6 +142,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
+	// reconcile dashboard
 	namespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      helmChartNamespacedName,
@@ -152,10 +153,15 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		Kind:    "HelmChart",
 	}
 
-	// reconcile dashboard
-	sourceRequestedAt, err := RequestReconciliation(context.Background(), kubeClient,
-		namespacedName, gvk)
-	if err != nil {
+	var sourceRequestedAt string
+
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		var err error
+		sourceRequestedAt, err = RequestReconciliation(context.Background(), kubeClient,
+			namespacedName, gvk)
+
+		return err == nil, nil
+	}); err != nil {
 		return err
 	}
 
