@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	testVersion = "some-version"
+	testVersion = "test-version"
 )
 
 var _ = Describe("InstallFlux", func() {
@@ -63,7 +63,7 @@ var _ = Describe("GetFluxVersion", func() {
 	It("gets flux version", func() {
 		kubeClientOpts := run.GetKubeClientOptions()
 
-		contextName := "some-context"
+		contextName := "test-context"
 
 		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
 		Expect(err).NotTo(HaveOccurred())

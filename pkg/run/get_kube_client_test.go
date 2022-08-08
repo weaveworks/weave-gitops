@@ -26,7 +26,7 @@ var _ = Describe("GetKubeClient", func() {
 
 		kubeClientOpts := run.GetKubeClientOptions()
 
-		contextName := "some-context"
+		contextName := "test-context"
 
 		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
 

@@ -56,15 +56,15 @@ func GenerateSecret(log logger.Logger) (string, error) {
 func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, secret string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
-	helmRepository := makeHelmRepository(namespace)
-	helmRelease, err := makeHelmRelease(log, secret, namespace)
+	helmRepository := MakeHelmRepository(namespace)
+	helmRelease, err := MakeHelmRelease(log, secret, namespace)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
 		return err
 	}
 
-	manifests, err := generateManifests(log, string(secret), helmRepository, helmRelease)
+	manifests, err := GenerateManifestsForDashboard(log, string(secret), helmRepository, helmRelease)
 	if err != nil {
 		log.Failuref("Generating GitOps Dashboard manifests failed")
 		return err
@@ -205,8 +205,8 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 	return nil
 }
 
-// generateManifests generates dashboard manifests from objects.
-func generateManifests(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+// GenerateManifestsForDashboard generates dashboard manifests from objects.
+func GenerateManifestsForDashboard(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
@@ -228,8 +228,8 @@ func generateManifests(log logger.Logger, secret string, helmRepository *sourcev
 	return content, nil
 }
 
-// makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
+// MakeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
+func MakeHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1.HelmRepositoryKind,
@@ -250,8 +250,8 @@ func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
 	return helmRepository
 }
 
-// makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
+// MakeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
+func MakeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -279,7 +279,7 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 		},
 	}
 
-	valuesData, err := makeValues(secret)
+	valuesData, err := MakeValues(secret)
 	if err != nil {
 		log.Failuref("Error generating values from secret")
 		return nil, err
@@ -290,8 +290,8 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 	return helmRelease, nil
 }
 
-// makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(secret string) ([]byte, error) {
+// MakeValues creates a values object for installing the GitOps Dashboard.
+func MakeValues(secret string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,
