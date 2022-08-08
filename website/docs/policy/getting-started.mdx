@@ -45,7 +45,7 @@ You should then configure the `values.yaml`. You can find more about the policy 
 ```
 policySource:
   url: URL of the repo where your policies exist
-  branch: Branch name on the policies repo
+  tag: tag name on the policies repo
   path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
   secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
 ```
