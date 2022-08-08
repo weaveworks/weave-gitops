@@ -218,8 +218,12 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
+  table {
+    margin-top: ${(props) => props.theme.spacing.small};
+  }
   th {
-    padding: 0;
+    padding: ${(props) => props.theme.spacing.xs};
+    background: ${(props) => props.theme.colors.neutralGray};
   }
   td {
     white-space: nowrap;

@@ -192,8 +192,6 @@ export function filterSelectionsToQueryString(sel: FilterSelections) {
 const IconFlex = styled(Flex)`
   position: relative;
   padding: 0 ${(props) => props.theme.spacing.small};
-  border-left: 2px solid ${(props) => props.theme.colors.neutral20};
-  background: rbga(255, 255, 255, 0.75);
 `;
 
 type State = {
