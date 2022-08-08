@@ -19,6 +19,13 @@ export enum Kind {
   OCIRepository = "OCIRepository",
 }
 
+export type Source =
+  | HelmRepository
+  | HelmChart
+  | GitRepository
+  | Bucket
+  | OCIRepository;
+
 export function fluxObjectKindToKind(fok: FluxObjectKind): Kind {
   return Kind[FluxObjectKind[fok].slice(4)];
 }
@@ -34,9 +41,9 @@ export class FluxObject {
     } catch {
       this.obj = {};
     }
-    this.clusterName = response.clusterName;
+    this.clusterName = response?.clusterName;
 
-    this.tenant = response.tenant;
+    this.tenant = response?.tenant;
   }
 
   get yaml(): string {
