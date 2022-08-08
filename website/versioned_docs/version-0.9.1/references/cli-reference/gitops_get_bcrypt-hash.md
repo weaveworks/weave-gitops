@@ -11,7 +11,7 @@ gitops get bcrypt-hash [flags]
 ```
 
 # PASSWORD="<your password>"
-# echo $PASSWORD | gitops get bcrypt-hash
+# echo -n $PASSWORD | gitops get bcrypt-hash
 
 ```
 

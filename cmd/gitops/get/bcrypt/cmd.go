@@ -17,7 +17,7 @@ func HashCommand(opts *config.Options) *cobra.Command {
 		Short: "Generates a hashed secret",
 		Example: `
 # PASSWORD="<your password>"
-# echo $PASSWORD | gitops get bcrypt-hash
+# echo -n $PASSWORD | gitops get bcrypt-hash
 `,
 		SilenceUsage:  true,
 		SilenceErrors: true,
