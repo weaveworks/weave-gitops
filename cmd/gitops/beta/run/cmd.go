@@ -234,7 +234,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			components = append(components, flags.ComponentsExtra...)
 
 			if err := ValidateComponents(components); err != nil {
-				return fmt.Errorf("Can't install flux: %w", err)
+				return fmt.Errorf("can't install flux: %w", err)
 			}
 
 			installOpts := install.MakeDefaultOptions()
