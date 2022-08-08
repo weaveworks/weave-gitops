@@ -79,6 +79,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 		config := &rest.Config{
 			Host:            cluster.Server,
 			TLSClientConfig: cluster.TLSConfig,
+			Timeout:         kubeClientTimeout,
 		}
 
 		if user.Token != "" {
