@@ -63,7 +63,6 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-//nav width needs to match content margin left.
 const navWidth = "200px";
 //top tool bar height needs to match main padding top
 const topBarHeight = "60px";
@@ -141,7 +140,7 @@ const Main = styled(Flex)`
 
 const TopToolBar = styled(Flex)`
   position: fixed;
-  background-color: ${(props) => props.theme.colors.primary};
+  background-color: ${(props) => props.theme.colors.neutral10};
   height: ${topBarHeight};
   min-width: 650px;
   width: 100%;

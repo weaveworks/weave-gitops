@@ -1,4 +1,3 @@
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
@@ -13,6 +12,7 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import PersonIcon from "@material-ui/icons/Person";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
@@ -68,7 +68,7 @@ function getIcon(i: IconType) {
       return CheckCircleIcon;
 
     case IconType.Account:
-      return AccountCircleIcon;
+      return PersonIcon;
 
     case IconType.ExternalTab:
       return LaunchIcon;

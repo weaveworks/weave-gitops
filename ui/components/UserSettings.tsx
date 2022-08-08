@@ -1,13 +1,8 @@
-import {
-  IconButton,
-  ListItemIcon,
-  Menu,
-  MenuItem,
-  Tooltip,
-} from "@material-ui/core";
+import { ListItemIcon, Menu, MenuItem, Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
+import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
 
 const SettingsMenu = styled(Menu)`
@@ -46,8 +41,10 @@ function UserSettings({ className }: { className?: string }) {
           aria-controls={open ? "account-menu" : undefined}
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
+          color="inherit"
+          variant="text"
         >
-          <Icon size="large" type={IconType.Account} color="white" />
+          <Icon size="medium" type={IconType.Account} color="neutral30" />
         </IconButton>
       </Tooltip>
       <SettingsMenu
