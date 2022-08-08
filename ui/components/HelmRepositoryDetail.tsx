@@ -31,7 +31,7 @@ function HelmRepositoryDetail({
       info={(hr: HelmRepository = new HelmRepository({})) => [
         ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
         ["Repository Type", hr.repositoryType.toLowerCase()],
-        ["URL", <Link>hr.url</Link>],
+        ["URL", <Link href={hr.url}>{hr.url}</Link>],
         [
           "Last Updated",
           hr.lastUpdatedAt ? <Timestamp time={hr.lastUpdatedAt} /> : "-",
