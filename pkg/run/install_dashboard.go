@@ -18,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -32,29 +31,33 @@ const (
 	helmRepositoryUrl  = "https://helm.gitops.weave.works"
 )
 
-// InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags, namespace string) error {
-	log.Actionf("Installing the GitOps Dashboard ...")
-
+func GenerateSecret(log logger.Logger) (string, error) {
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
 	if err != nil {
 		log.Failuref("Could not read password")
-		return err
+		return "", err
 	}
 
 	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Failuref("Error generating secret from password")
-		return err
+		return "", err
 	}
 
 	log.Successf("Secret has been generated:")
-	fmt.Println(string(secret))
 
+	secretStr := string(secret)
+	fmt.Println(secretStr)
+
+	return secretStr, nil
+}
+
+// InstallDashboard installs the GitOps Dashboard.
+func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, secret string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
 	helmRepository := makeHelmRepository(namespace)
-	helmRelease, err := makeHelmRelease(log, string(secret), namespace)
+	helmRelease, err := makeHelmRelease(log, secret, namespace)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -69,7 +72,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 
 	log.Successf("Generated GitOps Dashboard manifests")
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, manifests)
+	applyOutput, err := Apply(log, ctx, manager, manifests)
 	if err != nil {
 		log.Failuref("GitOps Dashboard install failed")
 		return err
