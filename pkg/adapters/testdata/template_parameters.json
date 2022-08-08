@@ -1,9 +1,0 @@
-{
-    "parameters": [
-        {
-            "name": "CLUSTER_NAME",
-            "description": "This is used for the cluster naming.",
-            "options": ["option1", "option2"]
-        }
-    ]
-}

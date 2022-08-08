@@ -86,21 +86,22 @@ Examples:
 
 
 Available Commands:
-  add         Add a new Weave GitOps resource
+  beta        This component contains unstable or still-in-development functionality
   check       Validates flux compatibility
   completion  Generate the autocompletion script for the specified shell
-  delete      Delete one or many Weave GitOps resources
+  create      Creates a resource
   get         Display one or many Weave GitOps resources
   help        Help about any command
-  update      Update a Weave GitOps resource
-  upgrade     Upgrade to Weave GitOps Enterprise
   version     Display gitops version
 
 Flags:
-  -e, --endpoint string            The Weave GitOps Enterprise HTTP API endpoint
-  -h, --help                       help for gitops
-      --insecure-skip-tls-verify   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-      --namespace string           The namespace scope for this operation (default "flux-system")
+  -e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL   The Weave GitOps Enterprise HTTP API endpoint can be set with WEAVE_GITOPS_ENTERPRISE_API_URL environment variable
+  -h, --help                                       help for gitops
+      --insecure-skip-tls-verify                   If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
+      --kubeconfig string                          Paths to a kubeconfig. Only required if out-of-cluster.
+      --namespace string                           The namespace scope for this operation (default "flux-system")
+  -p, --password WEAVE_GITOPS_PASSWORD             The Weave GitOps Enterprise password for authentication can be set with WEAVE_GITOPS_PASSWORD environment variable
+  -u, --username WEAVE_GITOPS_USERNAME             The Weave GitOps Enterprise username for authentication can be set with WEAVE_GITOPS_USERNAME environment variable
 
 Use "gitops [command] --help" for more information about a command.
 ```
