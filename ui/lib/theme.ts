@@ -29,7 +29,7 @@ export const theme: DefaultTheme = {
     success: "#27AE60",
     alert: "#BC381D",
     suspended: "#f2994a",
-    neutralGray:"#F6F7F9",
+    neutralGray: "#F6F7F9",
     neutral00: "#ffffff",
     neutral10: "#f5f5f5",
     neutral20: "#d8d8d8",
