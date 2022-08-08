@@ -27,7 +27,7 @@ const ArrowDropDown = styled(IconButton)`
   }
 `;
 
-export const DropDown = styled(Flex)`
+const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
   background: white;

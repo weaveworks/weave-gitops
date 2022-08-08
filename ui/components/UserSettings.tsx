@@ -1,8 +1,13 @@
-import { ListItemIcon, Menu, MenuItem, Tooltip } from "@material-ui/core";
+import {
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Tooltip,
+} from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
-import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
 
 const SettingsMenu = styled(Menu)`
@@ -17,6 +22,23 @@ const SettingsMenu = styled(Menu)`
     }
     .MuiSvgIcon-root {
       padding-right: ${(props) => props.theme.spacing.xs};
+    }
+  }
+`;
+
+const PersonButton = styled(({ open, ...props }) => (
+  <IconButton open={open} {...props}>
+    {props.children}
+  </IconButton>
+))`
+  &.MuiIconButton-root {
+    background-color: ${(props) => props.theme.colors.white};
+    ${(props) =>
+      props.open &&
+      `color: ${props.theme.colors.primary10}; background-color: rgba(0, 179, 236, .1);`}
+    :hover {
+      background-color: ${(props) => props.theme.colors.white};
+      color: ${(props) => props.theme.colors.primary10};
     }
   }
 `;
@@ -36,16 +58,15 @@ function UserSettings({ className }: { className?: string }) {
   return (
     <div className={className}>
       <Tooltip title="Account settings">
-        <IconButton
+        <PersonButton
           onClick={handleClick}
           aria-controls={open ? "account-menu" : undefined}
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
-          color="inherit"
-          variant="text"
+          open={open}
         >
-          <Icon size="medium" type={IconType.Account} color="neutral30" />
-        </IconButton>
+          <Icon size="medium" type={IconType.Account} />
+        </PersonButton>
       </Tooltip>
       <SettingsMenu
         anchorEl={anchorEl}
@@ -53,7 +74,7 @@ function UserSettings({ className }: { className?: string }) {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        transformOrigin={{ horizontal: 150, vertical: "top" }}
       >
         <MenuItem>Hello, {userInfo?.email}</MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>

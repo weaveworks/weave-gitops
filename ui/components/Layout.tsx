@@ -140,7 +140,7 @@ const Main = styled(Flex)`
 
 const TopToolBar = styled(Flex)`
   position: fixed;
-  background-color: ${(props) => props.theme.colors.neutral10};
+  background-color: #e5e9ed;
   height: ${topBarHeight};
   min-width: 650px;
   width: 100%;
