@@ -15,7 +15,7 @@ export interface Props {
 
 function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
   return (
-    <Flex className={className} wide align start>
+    <Flex className={`${className} fancy-scroll`} wide align start>
       {_.map(chips, (chip, index) => {
         return (
           <Flex key={index}>
