@@ -6,12 +6,12 @@ import { Object as ResponseObject } from "../lib/api/core/types.pb";
 import {
   Bucket,
   FluxObject,
-  HelmChart,
   GitRepository,
+  HelmChart,
   HelmRepository,
   Kind,
 } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { ReactQueryOptions, RequestError } from "../lib/types";
 
 function convertResponse(kind: Kind, response: ResponseObject) {
   if (kind == Kind.HelmRepository) {
@@ -34,7 +34,11 @@ export function useGetObject<T extends FluxObject>(
   name: string,
   namespace: string,
   kind: Kind,
-  clusterName: string
+  clusterName: string,
+  opts: ReactQueryOptions<T, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -47,6 +51,6 @@ export function useGetObject<T extends FluxObject>(
           (result: GetObjectResponse) =>
             convertResponse(kind, result.object) as T
         ),
-    { retry: false, refetchInterval: 5000 }
+    opts
   );
 }

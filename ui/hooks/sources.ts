@@ -10,22 +10,26 @@ import {
 } from "../lib/api/core/core.pb";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import {
+  MultiRequestError,
   NoNamespace,
+  ReactQueryOptions,
   RequestError,
   Source,
-  MultiRequestError,
 } from "../lib/types";
+
+type Res = { result: Source[]; errors: MultiRequestError[] };
 
 export function useListSources(
   appName?: string,
-  namespace: string = NoNamespace
+  namespace: string = NoNamespace,
+  opts: ReactQueryOptions<Res, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<
-    { result: Source[]; errors: MultiRequestError[] },
-    RequestError
-  >(
+  return useQuery<Res, RequestError>(
     "sources",
     () => {
       const p = [
@@ -81,6 +85,6 @@ export function useListSources(
         };
       });
     },
-    { retry: false, refetchInterval: 5000 }
+    opts
   );
 }
