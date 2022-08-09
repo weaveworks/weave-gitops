@@ -46,10 +46,7 @@ func GenerateSecret(log logger.Logger) (string, error) {
 
 	log.Successf("Secret has been generated:")
 
-	secretStr := string(secret)
-	fmt.Println(secretStr)
-
-	return secretStr, nil
+	return string(secret), nil
 }
 
 // InstallDashboard installs the GitOps Dashboard.
