@@ -98,6 +98,9 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 			}
 		}
 
+		// flowcontrol.IsEnabled makes a request to the K8s API of the cluster stored in the config.
+		// It does a HEAD request to /livez/ping which uses the config.Dial timeout. We can use this
+		// function to error early rather than wait to call client.New.
 		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
 		if err != nil {
 			return nil, err
