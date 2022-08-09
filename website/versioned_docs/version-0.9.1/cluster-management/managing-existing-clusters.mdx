@@ -168,7 +168,7 @@ Finally create a secret for the generated kubeconfig:
 
 ```sh
 kubectl create secret generic demo-01-kubeconfig \
---from-file=value.yaml=./demo-01-kubeconfig
+--from-file=value=./demo-01-kubeconfig
 ```
 
 </TabItem>
@@ -248,7 +248,7 @@ spec:
               "-n",
               "kube-system",
               "--kubeconfig",
-              "/etc/kubeconfig/value.yaml",
+              "/etc/kubeconfig/value",
             ]
           volumeMounts:
             - name: kubeconfig
