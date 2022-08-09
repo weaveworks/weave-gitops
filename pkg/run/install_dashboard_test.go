@@ -3,6 +3,7 @@ package run_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -13,12 +14,25 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
+
+// mock controller-runtime client
+type mockClientForGetDashboardHelmChart struct {
+	client.Client
+	state stateGetDashboardHelmChart
+}
+
+type stateGetDashboardHelmChart string
 
 const (
 	secret    = "test-secret"
 	namespace = "test-namespace"
+
+	stateGetDashboardHelmChartGetReturnErr stateGetDashboardHelmChart = "get-return-err"
+
+	getDashboardErrorMsg = "get dashboard error"
 )
 
 var _ = Describe("InstallDashboard", func() {
@@ -43,6 +57,49 @@ var _ = Describe("InstallDashboard", func() {
 		err := run.InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
+	})
+})
+
+func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client.ObjectKey, obj client.Object) error {
+	switch man.state {
+	case stateGetDashboardHelmChartGetReturnErr:
+		return errors.New(getDashboardErrorMsg)
+
+	default:
+		switch obj := obj.(type) {
+		case *sourcev1.HelmChart:
+			helmChart := sourcev1.HelmChart{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "test-namespace",
+					Name:      "test-namespace-ww-gitops",
+				},
+			}
+			helmChart.DeepCopyInto(obj)
+		}
+	}
+
+	return nil
+}
+
+var _ = Describe("GetDashboardHelmChart", func() {
+	var fakeLogger *loggerfakes.FakeLogger
+	var fakeContext context.Context
+
+	BeforeEach(func() {
+		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeContext = context.Background()
+	})
+
+	It("returns the dashboard helmchart if there is no error when getting the helmchart", func() {
+		helmChart := run.GetDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, namespace)
+		Expect(helmChart).ToNot(BeNil())
+		Expect(helmChart.Namespace).To(Equal("test-namespace"))
+		Expect(helmChart.Name).To(Equal("test-namespace-ww-gitops"))
+	})
+
+	It("returns nil if there is an error when getting the helmchart", func() {
+		helmChart := run.GetDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, namespace)
+		Expect(helmChart).To(BeNil())
 	})
 })
 

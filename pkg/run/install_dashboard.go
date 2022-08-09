@@ -87,17 +87,23 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
 func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) bool {
+	return GetDashboardHelmChart(log, ctx, kubeClient, namespace) != nil
+}
+
+// GetDashboardHelmChart checks if the GitOps Dashboard is installed.
+func GetDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) *sourcev1.HelmChart {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      namespace + "-" + helmReleaseName,
 		},
 	}
+
 	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
-		return false
+		return nil
 	}
 
-	return true
+	return &helmChart
 }
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
