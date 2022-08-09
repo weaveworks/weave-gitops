@@ -35,7 +35,6 @@ export enum V2Routes {
   NotImplemented = "/not_implemented",
 }
 
-export const WeGONamespace = "flux-system";
 export const DefaultCluster = "Default";
 export const NoNamespace = "";
 

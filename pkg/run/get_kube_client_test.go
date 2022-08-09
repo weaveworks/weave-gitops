@@ -3,7 +3,6 @@ package run_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 )
@@ -18,7 +17,7 @@ var _ = Describe("GetKubeClient", func() {
 	It("returns kube client", func() {
 		kubeConfigArgs := run.GetKubeConfigArgs()
 
-		namespace := wego.DefaultNamespace
+		namespace := "test-namespace"
 
 		kubeConfigArgs.Namespace = &namespace
 
