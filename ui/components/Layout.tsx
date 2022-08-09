@@ -83,7 +83,7 @@ const NavContent = styled.div`
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
   box-sizing: border-box;
-  overflow-y: scroll;
+  overflow-y: auto;
   .MuiTab-textColorInherit {
     opacity: 1;
     .MuiTab-wrapper {
@@ -129,7 +129,7 @@ const ContentContainer = styled.div`
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
   overflow: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   box-sizing: border-box;
 `;
 
@@ -140,7 +140,7 @@ const Main = styled(Flex)`
 
 const TopToolBar = styled(Flex)`
   position: fixed;
-  background-color: #e5e9ed;
+  background-color: ${(props) => props.theme.colors.backGrey};
   height: ${topBarHeight};
   min-width: 650px;
   width: 100%;

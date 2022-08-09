@@ -35,6 +35,7 @@ export const theme: DefaultTheme = {
     neutral20: "#d8d8d8",
     neutral30: "#737373",
     neutral40: "#1a1a1a",
+    backGrey: "#eef0f4",
     feedbackLight: "#FCE6D2",
   },
   spacing: {
@@ -91,7 +92,7 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     min-width: fit-content;
     background: right bottom url(${images.bg}) no-repeat fixed ${(props) =>
-  props.theme.colors.neutral10}; 
+  props.theme.colors.backGrey}; 
     background-size: 100%;
   }
   .auth-modal-size {
