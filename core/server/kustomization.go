@@ -79,34 +79,3 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 		Errors:         respErrors,
 	}, nil
 }
-
-func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomizationRequest) (*pb.GetKustomizationResponse, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	apiVersion := kustomizev1.GroupVersion.String()
-	k := &kustomizev1.Kustomization{}
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	if err := clustersClient.Get(ctx, msg.ClusterName, key, k); err != nil {
-		return nil, err
-	}
-
-	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
-
-	tenant := GetTenant(k.Namespace, msg.ClusterName, clusterUserNamespaces)
-
-	res, err := types.KustomizationToProto(k, msg.ClusterName, tenant)
-	if err != nil {
-		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
-	}
-
-	res.ApiVersion = apiVersion
-
-	return &pb.GetKustomizationResponse{Kustomization: res}, nil
-}

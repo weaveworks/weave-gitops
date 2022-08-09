@@ -3,9 +3,8 @@ import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { Condition, ObjectRef } from "../lib/api/core/types.pb";
-import { UnstructuredObjectWithChildren } from "../lib/graph";
-import { removeKind } from "../lib/utils";
+import { FluxObjectRef } from "../lib/api/core/types.pb";
+import { Automation } from "../lib/objects";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
@@ -13,14 +12,8 @@ import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
 export type Props = ReconciledVisualizationProps & {
-  parentObject: {
-    name?: string;
-    namespace?: string;
-    conditions?: Condition[];
-    suspended?: boolean;
-    children?: UnstructuredObjectWithChildren[];
-  };
-  source: ObjectRef;
+  parentObject: Automation;
+  source: FluxObjectRef;
 };
 
 const SliderFlex = styled(Flex)`
@@ -66,14 +59,17 @@ function ReconciliationGraph({
     : { data: [], error: null, isLoading: false };
   //add extra nodes
   const secondNode = {
-    ...parentObject,
-    kind: removeKind(automationKind),
+    name: parentObject.name,
+    namespace: parentObject.namespace,
+    suspended: parentObject.suspended,
+    conditions: parentObject.conditions,
+    kind: parentObject.type,
     children: objects,
     isCurrentNode: true,
   };
   const rootNode = {
     ...source,
-    kind: removeKind(source.kind),
+    kind: source.kind,
     children: [secondNode],
   };
   //graph numbers

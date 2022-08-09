@@ -74,41 +74,6 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 	}, nil
 }
 
-func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	apiVersion := helmv2.GroupVersion.String()
-	helmRelease := helmv2.HelmRelease{}
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	if err := clustersClient.Get(ctx, msg.ClusterName, key, &helmRelease); err != nil {
-		return nil, err
-	}
-
-	inventory, err := getHelmReleaseInventory(ctx, helmRelease, clustersClient, msg.ClusterName)
-	if err != nil {
-		return nil, err
-	}
-
-	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
-
-	tenant := GetTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
-
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
-
-	res.ApiVersion = apiVersion
-
-	return &pb.GetHelmReleaseResponse{
-		HelmRelease: res,
-	}, err
-}
-
 func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
 	storageNamespace := helmRelease.GetStorageNamespace()
 

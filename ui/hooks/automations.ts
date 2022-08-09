@@ -3,8 +3,6 @@ import { useContext } from "react";
 import { useMutation, useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
-  GetHelmReleaseResponse,
-  GetKustomizationResponse,
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
   SyncFluxObjectRequest,
@@ -81,34 +79,6 @@ export function useListAutomations(
       });
     },
     opts
-  );
-}
-
-export function useGetKustomization(
-  name: string,
-  namespace = NoNamespace,
-  clusterName: string
-) {
-  const { api } = useContext(CoreClientContext);
-
-  return useQuery<GetKustomizationResponse, RequestError>(
-    ["kustomizations", name],
-    () => api.GetKustomization({ name, namespace, clusterName }),
-    { retry: false, refetchInterval: 5000 }
-  );
-}
-
-export function useGetHelmRelease(
-  name: string,
-  namespace = NoNamespace,
-  clusterName = null
-) {
-  const { api } = useContext(CoreClientContext);
-
-  return useQuery<GetHelmReleaseResponse, RequestError>(
-    ["helmrelease", name],
-    () => api.GetHelmRelease({ name, namespace, clusterName }),
-    { retry: false, refetchInterval: 5000 }
   );
 }
 

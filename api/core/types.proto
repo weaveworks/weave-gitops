@@ -128,10 +128,11 @@ message HelmRelease {
 }
 
 message Object {
-    string payload     = 1;
-    string clusterName = 2;
-    string tenant      = 3;
-    string uid         = 4;
+    string   payload                    = 1;
+    string   clusterName                = 2;
+    string   tenant                     = 3;
+    string   uid                        = 4;
+    repeated GroupVersionKind inventory = 5;
 }
 
 message Deployment {
