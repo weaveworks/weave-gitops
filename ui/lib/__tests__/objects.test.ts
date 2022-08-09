@@ -1,3 +1,4 @@
+import { FluxObjectKind } from "../api/core/types.pb";
 import {
   Bucket,
   FluxObject,
@@ -8,7 +9,6 @@ import {
   Kustomization,
   OCIRepository,
 } from "../objects";
-import { FluxObjectKind } from "../api/core/types.pb";
 
 describe("objects lib", () => {
   it("extracts annotations", () => {

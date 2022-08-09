@@ -143,7 +143,6 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	g.Expect(res.Object.ClusterName).To(Equal("Default"))
 	g.Expect(res.Object.Payload).NotTo(BeEmpty())
 }
-
 func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -495,7 +494,6 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 	g.Expect(res.Objects[0].Payload).To(ContainSubstring("helm-name"))
 	g.Expect(res.Objects[1].Payload).To(ContainSubstring("helm-name"))
 }
-
 func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -549,49 +547,4 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
 	g.Expect(res.Objects[0].Inventory).To(HaveLen(2))
-}
-
-func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	scheme, err := kube.CreateScheme()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	ctx := context.Background()
-
-	ns := &corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-namespace",
-		},
-	}
-	helm1 := &helmv2.HelmRelease{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "first-helm-name",
-			Namespace: ns.Name,
-		},
-		Spec: helmv2.HelmReleaseSpec{},
-		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
-		},
-	}
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "sh.helm.release.v1.first-helm-name.v1",
-			Namespace: ns.Name,
-		},
-		// No data, so that we throw an error trying to decode it
-		// This should behave the same as if we're rejected for RBAC reasons
-	}
-
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
-	c := makeServer(cfg, t)
-
-	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
-		Namespace: ns.Name,
-		Kind:      helmv2.HelmReleaseKind,
-	})
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.Errors).To(HaveLen(1))
-	g.Expect(res.Objects).To(HaveLen(1))
 }
