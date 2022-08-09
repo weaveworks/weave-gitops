@@ -12,6 +12,7 @@ import Button from "./Button";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
+import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
@@ -26,9 +27,10 @@ type Props = {
   automation?: Automation;
   className?: string;
   info: InfoField[];
+  customTabs?: Array<routeTab>;
 };
 
-function AutomationDetail({ automation, className, info }: Props) {
+function AutomationDetail({ automation, className, info, customTabs }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
@@ -63,6 +65,85 @@ function AutomationDetail({ automation, className, info }: Props) {
       notifySuccess("Resource synced successfully");
     });
   };
+
+  // default routes
+  const defaultTabs: Array<routeTab> = [
+    {
+      name: "Details",
+      path: `${path}/details`,
+      component: () => {
+        return (
+          <>
+            <InfoList items={info} />
+            <Metadata metadata={object?.metadata} />
+            <ReconciledObjectsTable
+              automationKind={automation?.kind}
+              automationName={automation?.name}
+              namespace={automation?.namespace}
+              kinds={automation?.inventory}
+              clusterName={automation?.clusterName}
+            />
+          </>
+        );
+      },
+      visible: true,
+    },
+    {
+      name: "Events",
+      path: `${path}/events`,
+      component: () => {
+        return (
+          <EventsTable
+            namespace={automation?.namespace}
+            involvedObject={{
+              kind: automation?.kind,
+              name: automation?.name,
+              namespace: automation?.namespace,
+            }}
+          />
+        );
+      },
+      visible: true,
+    },
+    {
+      name: "Graph",
+      path: `${path}/graph`,
+      component: () => {
+        return (
+          <ReconciliationGraph
+            automationKind={automation?.kind}
+            automationName={automation?.name}
+            kinds={automation?.inventory}
+            parentObject={automation}
+            clusterName={automation?.clusterName}
+            source={
+              automation?.kind === FluxObjectKind.KindKustomization
+                ? automation?.sourceRef
+                : automation?.helmChart?.sourceRef
+            }
+          />
+        );
+      },
+      visible: true,
+    },
+    {
+      name: "Yaml",
+      path: `${path}/yaml`,
+      component: () => {
+        return (
+          <YamlView
+            yaml={object.yaml}
+            object={{
+              kind: automation?.kind,
+              name: automation?.name,
+              namespace: automation?.namespace,
+            }}
+          />
+        );
+      },
+      visible: !!object,
+    },
+  ];
 
   return (
     <Flex wide tall column className={className}>
@@ -103,56 +184,25 @@ function AutomationDetail({ automation, className, info }: Props) {
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
-        <RouterTab name="Details" path={`${path}/details`}>
-          <>
-            <InfoList items={info} />
-            <Metadata metadata={object?.metadata()} />
-            <ReconciledObjectsTable
-              automationKind={automation?.kind}
-              automationName={automation?.name}
-              namespace={automation?.namespace}
-              kinds={automation?.inventory}
-              clusterName={automation?.clusterName}
-            />
-          </>
-        </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
-          <EventsTable
-            namespace={automation?.namespace}
-            involvedObject={{
-              kind: automation?.kind,
-              name: automation?.name,
-              namespace: automation?.namespace,
-            }}
-          />
-        </RouterTab>
-        <RouterTab name="Graph" path={`${path}/graph`}>
-          <ReconciliationGraph
-            automationKind={automation?.kind}
-            automationName={automation?.name}
-            kinds={automation?.inventory}
-            parentObject={automation}
-            clusterName={automation?.clusterName}
-            source={
-              automation?.kind === FluxObjectKind.KindKustomization
-                ? automation?.sourceRef
-                : automation?.helmChart?.sourceRef
-            }
-          />
-        </RouterTab>
-        {object ? (
-          <RouterTab name="yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={object.yaml()}
-              object={{
-                kind: automation?.kind,
-                name: automation?.name,
-                namespace: automation?.namespace,
-              }}
-            />
-          </RouterTab>
-        ) : (
-          <></>
+        {defaultTabs.map(
+          (subRoute, index) =>
+            subRoute.visible && (
+              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+                {subRoute.component()}
+              </RouterTab>
+            )
+        )}
+        {customTabs?.map(
+          (customTab, index) =>
+            customTab.visible && (
+              <RouterTab
+                name={customTab.name}
+                path={customTab.path}
+                key={index}
+              >
+                {customTab.component()}
+              </RouterTab>
+            )
         )}
       </SubRouterTabs>
     </Flex>

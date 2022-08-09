@@ -32,6 +32,9 @@ This version of Weave GitOps is tested against the following Flux releases:
 * 0.31
 
 ### Install the Helm Chart
+
+⚠️ Note that the following instructions require Flux version 0.31.0 or later to make use of the OCI registry for Helm chart storage. If your Flux version is older, please upgrade prior to following the instructions below. ⚠️.
+
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
 
 ```
@@ -44,10 +47,11 @@ spec:
   chart:
     spec:
       chart: weave-gitops
+      spec: 65m
       sourceRef:
         kind: HelmRepository
         name: ww-gitops
-  interval: 1m0s
+  interval: 50m
   values:
     adminUser:
       create: true
@@ -60,8 +64,9 @@ metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
-  interval: 1m0s
-  url: https://helm.gitops.weave.works
+  interval: 60m0s
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
 ```
 
 There are many other values you can configure - for more information, see [our value file reference](./references/helm-reference.md).
@@ -358,7 +363,7 @@ There are several different ways to generate a bcrypt hash, this guide uses `git
 
 ```bash
 PASSWORD="<your password>"
-echo  $PASSWORD | gitops get bcrypt-hash
+echo -n $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 

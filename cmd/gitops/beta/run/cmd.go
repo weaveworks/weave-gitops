@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,7 +22,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
@@ -37,9 +35,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/utils/strings/slices"
 )
 
-type runCommandFlags struct {
+type RunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext string
 	Components      []string
@@ -55,7 +54,7 @@ type runCommandFlags struct {
 	Context string
 }
 
-var flags runCommandFlags
+var flags RunCommandFlags
 
 var kubeConfigArgs *genericclioptions.ConfigFlags
 
@@ -94,7 +93,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the KubeConfig context to explicitly allow.")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install.")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
@@ -219,7 +218,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if flags.AllowK8sContext == contextName {
 			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 		} else if !run.IsLocalCluster(kubeClient) {
-			return errors.New("allowed to run against a local cluster only")
+			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
 		}
 
 		ctx := context.Background()
@@ -229,11 +228,17 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
+			components := flags.Components
+			components = append(components, flags.ComponentsExtra...)
+
+			if err := ValidateComponents(components); err != nil {
+				return fmt.Errorf("can't install flux: %w", err)
+			}
+
 			installOpts := install.MakeDefaultOptions()
 			installOpts.Version = flags.FluxVersion
 			installOpts.Namespace = flags.Namespace
-			installOpts.Components = flags.Components
-			installOpts.ComponentsExtra = flags.ComponentsExtra
+			installOpts.Components = components
 			installOpts.ManifestFile = "flux-system.yaml"
 			installOpts.Timeout = flags.Timeout
 
@@ -242,13 +247,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			} else {
 				log.Successf("Flux has been installed")
 			}
+
+			for _, controllerName := range components {
+				log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
+
+				if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
+					return err
+				}
+
+				log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
+			}
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, wego.DefaultNamespace)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -260,7 +275,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, wego.DefaultNamespace)
+				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, flags.Namespace)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -269,16 +284,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					log.Successf("GitOps Dashboard has been installed")
 				}
 			}
-		}
-
-		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
-			log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
-
-			if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
-				return err
-			}
-
-			log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 		}
 
 		if dashboardInstalled {
@@ -327,13 +332,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		defer func(watcher *fsnotify.Watcher) {
-			err := watcher.Close()
-			if err != nil {
-				log.Warningf("Error closing watcher: %v", err.Error())
-			}
-		}(watcher)
-
 		err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
 		if err != nil {
 			return err
@@ -343,13 +341,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var (
 			cancelPortFwd func()
 			counter       uint64 = 1
+			needToRescan  bool   = false
 		)
 		// atomic counter for the number of file change events that have changed
 
 		go func() {
 			for {
 				select {
-				case <-watcher.Events:
+				case event := <-watcher.Events:
+					if event.Op&fsnotify.Create == fsnotify.Create ||
+						event.Op&fsnotify.Remove == fsnotify.Remove ||
+						event.Op&fsnotify.Rename == fsnotify.Rename {
+						// if it's a dir, we need to watch it
+						if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+							needToRescan = true
+						}
+					}
+
 					if cancelPortFwd != nil {
 						cancelPortFwd()
 					}
@@ -378,6 +386,25 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient); err != nil {
 							log.Failuref("Error syncing dir: %v", err)
+						}
+
+						if needToRescan {
+							// close the old watcher
+							if err := watcher.Close(); err != nil {
+								log.Warningf("Error closing the old watcher: %v", err)
+							}
+							// create a new watcher
+							watcher, err = fsnotify.NewWatcher()
+							if err != nil {
+								log.Failuref("Error creating new watcher: %v", err)
+							}
+
+							err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+							if err != nil {
+								log.Failuref("Error re-walking dir: %v", err)
+							}
+
+							needToRescan = false
 						}
 
 						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
@@ -431,6 +458,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
 
+		if err := watcher.Close(); err != nil {
+			log.Warningf("Error closing watcher: %v", err.Error())
+		}
+
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
 		cancelDevBucketPortForwarding()
@@ -441,7 +472,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		ticker.Stop()
 
-		if err := run.CleanupBucketSourceAndKS(log, kubeClient, "flux-system"); err != nil {
+		if err := run.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
 			return err
 		}
 
@@ -579,4 +610,17 @@ func reconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	}
 
 	return devKsErr
+}
+
+func ValidateComponents(components []string) error {
+	defaults := install.MakeDefaultOptions()
+	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
+
+	for _, component := range components {
+		if !slices.Contains(bootstrapAllComponents, component) {
+			return fmt.Errorf("component %s is not available", component)
+		}
+	}
+
+	return nil
 }

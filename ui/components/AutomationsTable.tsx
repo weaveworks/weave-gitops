@@ -6,7 +6,7 @@ import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
-import { Field, SortType } from "./DataTable";
+import { Field } from "./DataTable";
 import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -22,7 +22,7 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  automations = automations?.map((a) => {
+  automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
   const initialFilterState = {
@@ -110,8 +110,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             suspended={a.suspended}
           />
         ) : null,
-      sortType: SortType.number,
       sortValue: statusSortHelper,
+      defaultSort: true,
     },
     {
       label: "Message",
@@ -130,6 +130,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
         />
       ),
+      sortValue: (a: Automation) => {
+        return _.get(_.find(a.conditions, { type: "Ready" }), "timestamp");
+      },
     },
   ];
 

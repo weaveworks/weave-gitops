@@ -8,15 +8,24 @@ import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
 
+export interface routeTab {
+  name: string;
+  path: string;
+  visible?: boolean;
+  component: (param?: any) => any;
+}
+
 type Props = {
   kustomization?: Kustomization;
   className?: string;
+  customTabs?: Array<routeTab>;
 };
 
-function KustomizationDetail({ kustomization, className }: Props) {
+function KustomizationDetail({ kustomization, className, customTabs }: Props) {
   return (
     <AutomationDetail
       className={className}
+      customTabs={customTabs}
       automation={{
         ...kustomization,
         kind: FluxObjectKind.KindKustomization,

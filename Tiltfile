@@ -40,9 +40,7 @@ if advanced_go_dev_mode:
             './bin',
         ],
         dockerfile="dev.dockerfile",
-        entrypoint="/app/build/gitops-server --log-level=debug --insecure --dev-mode --dev-user {dev_user}".format(
-            dev_user=os.getenv("DEV_USER", "wego-admin")
-        ),
+        entrypoint="/app/build/gitops-server --log-level=debug --insecure --dev-mode",
         live_update=[
             sync('./bin', '/app/build'),
         ],

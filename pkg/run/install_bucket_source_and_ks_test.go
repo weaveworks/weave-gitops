@@ -13,12 +13,12 @@ import (
 )
 
 // mock controller-runtime client
-type clientMock struct {
+type mockClientForFindConditionMessages struct {
 	client.Client
 }
 
 // mock client.List
-func (c *clientMock) List(_ context.Context, list client.ObjectList, _ ...client.ListOption) error { // m
+func (c *mockClientForFindConditionMessages) List(_ context.Context, list client.ObjectList, _ ...client.ListOption) error { // m
 	list.(*unstructured.UnstructuredList).Items = []unstructured.Unstructured{
 		{
 			Object: map[string]interface{}{
@@ -99,7 +99,7 @@ func (c *clientMock) List(_ context.Context, list client.ObjectList, _ ...client
 
 var _ = Describe("FindConditionMessages", func() {
 	It("returns the condition messages", func() {
-		client := &clientMock{}
+		client := &mockClientForFindConditionMessages{}
 		ks := &kustomizev1.Kustomization{
 			Spec: kustomizev1.KustomizationSpec{},
 			Status: kustomizev1.KustomizationStatus{

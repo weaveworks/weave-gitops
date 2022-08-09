@@ -6,9 +6,8 @@ import { AppContext } from "../contexts/AppContext";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { useGetObject } from "../hooks/objects";
-import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "../lib/objects";
+import { FluxObject, fluxObjectKindToKind } from "../lib/objects";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
@@ -24,35 +23,33 @@ import SyncButton from "./SyncButton";
 import Text from "./Text";
 import YamlView from "./YamlView";
 
-type Props = {
+type Props<T> = {
   className?: string;
   type: FluxObjectKind;
   name: string;
   namespace: string;
   clusterName: string;
   children?: JSX.Element;
-  info: <T>(s: T) => InfoField[];
+  info: (s: T) => InfoField[];
 };
 
-function SourceDetail({
+function SourceDetail<T extends FluxObject>({
   className,
   name,
   namespace,
   clusterName,
   info,
   type,
-}: Props) {
+}: Props<T>) {
   const { notifySuccess } = React.useContext(AppContext);
-  const { data: sources, isLoading, error } = useListSources();
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
-  const { data: object } = useGetObject(
-    name,
-    namespace,
-    fluxObjectKindToKind(type),
-    clusterName
-  );
+  const {
+    data: source,
+    isLoading,
+    error,
+  } = useGetObject<T>(name, namespace, fluxObjectKindToKind(type), clusterName);
   const [isSuspended, setIsSuspended] = React.useState(false);
 
   const suspend = useToggleSuspend(
@@ -77,18 +74,6 @@ function SourceDetail({
     return <LoadingPage />;
   }
 
-  const source = _.find(sources, { name, namespace, kind: type, clusterName });
-
-  if (!source) {
-    return (
-      <Alert
-        severity="error"
-        title="Not found"
-        message={`Could not find source '${name}'`}
-      />
-    );
-  }
-
   if (isSuspended != source.suspended) {
     setIsSuspended(source.suspended);
   }
@@ -103,7 +88,7 @@ function SourceDetail({
     return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
-  const relevantAutomations = _.filter(automations, (a) => {
+  const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }
@@ -164,7 +149,7 @@ function SourceDetail({
         <RouterTab name="Details" path={`${path}/details`}>
           <>
             <InfoList items={items} />
-            <Metadata metadata={object?.metadata()} />
+            <Metadata metadata={source?.metadata} />
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>
@@ -178,20 +163,16 @@ function SourceDetail({
             }}
           />
         </RouterTab>
-        {object ? (
-          <RouterTab name="yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={object.yaml()}
-              object={{
-                kind: source?.kind,
-                name: source?.name,
-                namespace: source?.namespace,
-              }}
-            />
-          </RouterTab>
-        ) : (
-          <></>
-        )}
+        <RouterTab name="yaml" path={`${path}/yaml`}>
+          <YamlView
+            yaml={source.yaml}
+            object={{
+              kind: source?.kind,
+              name: source?.name,
+              namespace: source?.namespace,
+            }}
+          />
+        </RouterTab>
       </SubRouterTabs>
     </Flex>
   );

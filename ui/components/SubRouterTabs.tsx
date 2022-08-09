@@ -31,7 +31,17 @@ const ForwardedLink = React.forwardRef((props, ref) => (
 
 function findChildren(childrenProp) {
   if (_.isArray(childrenProp)) {
-    return childrenProp;
+    const childs = [];
+    childrenProp.forEach((child) => {
+      if (_.isArray(child)) {
+        child.forEach((ch) => {
+          childs.push(ch);
+        });
+      } else {
+        childs.push(child);
+      }
+    });
+    return childs;
   }
   return [childrenProp];
 }

@@ -11,12 +11,10 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -41,6 +39,10 @@ type OIDCConfig struct {
 	TokenDuration time.Duration
 }
 
+// This is only used if the OIDCConfig doesn't have a TokenDuration set. If
+// that is set then it is used for both OIDC cookies and other cookies.
+const defaultCookieDuration time.Duration = time.Hour
+
 // AuthConfig is used to configure an AuthServer.
 type AuthConfig struct {
 	Log                 logr.Logger
@@ -48,6 +50,8 @@ type AuthConfig struct {
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
 	config              OIDCConfig
+	authMethods         map[AuthMethod]bool
+	namespace           string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -86,13 +90,15 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	return cfg
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier) (AuthConfig, error) {
-	if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
-		return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
-	}
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
+	if authMethods[OIDC] {
+		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
+			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
+		}
 
-	if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
-		return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+		if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
+			return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+		}
 	}
 
 	return AuthConfig{
@@ -101,32 +107,34 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
 		config:              oidcCfg,
+		namespace:           namespace,
+		authMethods:         authMethods,
 	}, nil
 }
 
 // NewAuthServer creates a new AuthServer object.
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
-	var secret corev1.Secret
-	err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
-		Name:      ClusterUserAuthSecretName,
-	}, &secret)
+	if cfg.authMethods[UserAccount] {
+		var secret corev1.Secret
+		err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+			Namespace: cfg.namespace,
+			Name:      ClusterUserAuthSecretName,
+		}, &secret)
 
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			featureflags.Set(FeatureFlagClusterUser, "false")
+		if err != nil {
+			return nil, fmt.Errorf("Could not get secret for cluster user, %w", err)
 		} else {
-			cfg.Log.Error(err, "could not get secret for cluster user")
+			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
 		}
 	} else {
-		featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+		featureflags.Set(FeatureFlagClusterUser, "false")
 	}
 
 	var provider *oidc.Provider
 
 	if cfg.config.IssuerURL == "" {
 		featureflags.Set(FeatureFlagOIDCAuth, "false")
-	} else {
+	} else if cfg.authMethods[OIDC] {
 		var err error
 
 		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
@@ -308,8 +316,8 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
 			Name:      ClusterUserAuthSecretName,
+			Namespace: s.namespace,
 		}, &hashedSecret); err != nil {
 			s.Log.Error(err, "Failed to query for the secret")
 			JSONError(s.Log, rw, "Please ensure that a password has been set.", http.StatusBadRequest)

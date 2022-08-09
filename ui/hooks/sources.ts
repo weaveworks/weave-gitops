@@ -9,7 +9,12 @@ import {
   ListHelmRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { NoNamespace, RequestError, Source } from "../lib/types";
+import {
+  NoNamespace,
+  RequestError,
+  Source,
+  MultiRequestError,
+} from "../lib/types";
 
 export function useListSources(
   appName?: string,
@@ -17,7 +22,10 @@ export function useListSources(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Source[], RequestError>(
+  return useQuery<
+    { result: Source[]; errors: MultiRequestError[] },
+    RequestError
+  >(
     "sources",
     () => {
       const p = [
@@ -33,25 +41,44 @@ export function useListSources(
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
         const charts = (chartRes as ListHelmChartsResponse).helmCharts;
-
-        return [
-          ..._.map(repos, (r) => ({
-            ...r,
-            kind: FluxObjectKind.KindGitRepository,
-          })),
-          ..._.map(hrs, (c) => ({
-            ...c,
-            kind: FluxObjectKind.KindHelmRepository,
-          })),
-          ..._.map(buckets, (b) => ({
-            ...b,
-            kind: FluxObjectKind.KindBucket,
-          })),
-          ..._.map(charts, (ch) => ({
-            ...ch,
-            kind: FluxObjectKind.KindHelmChart,
-          })),
-        ];
+        return {
+          result: [
+            ..._.map(repos, (r) => ({
+              ...r,
+              kind: FluxObjectKind.KindGitRepository,
+            })),
+            ..._.map(hrs, (c) => ({
+              ...c,
+              kind: FluxObjectKind.KindHelmRepository,
+            })),
+            ..._.map(buckets, (b) => ({
+              ...b,
+              kind: FluxObjectKind.KindBucket,
+            })),
+            ..._.map(charts, (ch) => ({
+              ...ch,
+              kind: FluxObjectKind.KindHelmChart,
+            })),
+          ],
+          errors: [
+            ..._.map(repoRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindGitRepository,
+            })),
+            ..._.map(helmReleases.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmRepository,
+            })),
+            ..._.map(bucketsRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindBucket,
+            })),
+            ..._.map(chartRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmChart,
+            })),
+          ],
+        };
       });
     },
     { retry: false, refetchInterval: 5000 }

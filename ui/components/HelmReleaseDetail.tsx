@@ -5,6 +5,7 @@ import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import Interval from "./Interval";
+import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
 
@@ -13,6 +14,7 @@ type Props = {
   clusterName: string;
   helmRelease?: HelmRelease;
   className?: string;
+  customTabs?: Array<routeTab>;
 };
 
 function helmChartLink(helmRelease: HelmRelease) {
@@ -44,11 +46,12 @@ function helmChartLink(helmRelease: HelmRelease) {
   );
 }
 
-function HelmReleaseDetail({ helmRelease, className }: Props) {
+function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
   return (
     <AutomationDetail
       className={className}
       automation={{ ...helmRelease, kind: FluxObjectKind.KindHelmRelease }}
+      customTabs={customTabs}
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],

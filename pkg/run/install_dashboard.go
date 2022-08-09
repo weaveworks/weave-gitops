@@ -8,7 +8,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -26,12 +25,11 @@ import (
 )
 
 const (
-	helmRepositoryName      = "ww-gitops"
-	helmReleaseName         = "ww-gitops"
-	helmChartName           = "weave-gitops"
-	helmChartNamespacedName = wego.DefaultNamespace + "-ww-gitops"
-	podName                 = "ww-gitops-weave-gitops"
-	helmRepositoryUrl       = "https://helm.gitops.weave.works"
+	helmRepositoryName = "ww-gitops"
+	helmReleaseName    = "ww-gitops"
+	helmChartName      = "weave-gitops"
+	podName            = "ww-gitops-weave-gitops"
+	helmRepositoryUrl  = "https://helm.gitops.weave.works"
 )
 
 // InstallDashboard installs the GitOps Dashboard.
@@ -89,7 +87,7 @@ func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient cli
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      helmChartNamespacedName,
+			Name:      namespace + "-" + helmReleaseName,
 		},
 	}
 	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
@@ -142,9 +140,10 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
+	// reconcile dashboard
 	namespacedName := types.NamespacedName{
 		Namespace: namespace,
-		Name:      helmChartNamespacedName,
+		Name:      namespace + "-" + helmReleaseName,
 	}
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
@@ -152,10 +151,15 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		Kind:    "HelmChart",
 	}
 
-	// reconcile dashboard
-	sourceRequestedAt, err := RequestReconciliation(context.Background(), kubeClient,
-		namespacedName, gvk)
-	if err != nil {
+	var sourceRequestedAt string
+
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		var err error
+		sourceRequestedAt, err = RequestReconciliation(context.Background(), kubeClient,
+			namespacedName, gvk)
+
+		return err == nil, nil
+	}); err != nil {
 		return err
 	}
 
@@ -164,7 +168,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		dashboard := &sourcev1.HelmChart{}
 		if err := kubeClient.Get(context.Background(), types.NamespacedName{
 			Namespace: namespace,
-			Name:      helmChartNamespacedName,
+			Name:      namespace + "-" + helmReleaseName,
 		}, dashboard); err != nil {
 			return false, err
 		}

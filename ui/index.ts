@@ -1,7 +1,7 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
-import DataTable, { SortType } from "./components/DataTable";
+import DataTable from "./components/DataTable";
 import EventsTable from "./components/EventsTable";
 import FilterableTable, {
   filterByStatusCallback,
@@ -66,6 +66,9 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
 
+import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
+import ReconciliationGraph from "./components/ReconciliationGraph";
+
 export {
   AppContextProvider,
   applicationsClient,
@@ -116,7 +119,6 @@ export {
   RepoInputWithAuth,
   RouterTab,
   SignIn,
-  SortType,
   SourceLink,
   SourcesTable,
   statusSortHelper,
@@ -135,4 +137,6 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
+  ReconciledObjectsTable,
+  ReconciliationGraph,
 };
