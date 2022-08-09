@@ -3,7 +3,9 @@ package clustersmngr
 import (
 	"context"
 	"fmt"
+	"net"
 	"sync"
+	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -72,14 +74,18 @@ type clientsPool struct {
 	mutex   sync.Mutex
 }
 
-type ClusterClientConfig func(Cluster) *rest.Config
+type ClusterClientConfig func(Cluster) (*rest.Config, error)
 
 func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
-	return func(cluster Cluster) *rest.Config {
+	return func(cluster Cluster) (*rest.Config, error) {
 		config := &rest.Config{
 			Host:            cluster.Server,
 			TLSClientConfig: cluster.TLSConfig,
 			Timeout:         kubeClientTimeout,
+			Dial: (&net.Dialer{
+				Timeout:   kubeClientDialTimeout,
+				KeepAlive: 15 * time.Second,
+			}).DialContext,
 		}
 
 		if user.Token != "" {
@@ -93,19 +99,23 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 		}
 
 		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
-		if err == nil && enabled {
+		if err != nil {
+			return nil, err
+		}
+
+		if enabled {
 			// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
 			// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
 			config.QPS = -1
 			config.Burst = -1
 
-			return config
+			return config, nil
 		}
 
 		config.QPS = ClientQPS
 		config.Burst = ClientBurst
 
-		return config
+		return config, nil
 	}
 }
 
@@ -120,7 +130,10 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 
 // Add adds a cluster client to the clients pool with the given user impersonation
 func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
-	config := cfg(cluster)
+	config, err := cfg(cluster)
+	if err != nil {
+		return err
+	}
 
 	leafClient, err := client.New(config, client.Options{
 		Scheme: cp.scheme,

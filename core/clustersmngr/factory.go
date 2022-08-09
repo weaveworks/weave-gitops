@@ -29,6 +29,7 @@ const (
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 	kubeClientTimeout       = 8 * time.Second
+	kubeClientDialTimeout   = 3 * time.Second
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -274,7 +275,13 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 
 	for _, cluster := range cf.clusters.Get() {
 		if cluster.Name == clusterName {
-			config = ClientConfigWithUser(user)(cluster)
+			var err error
+
+			config, err = ClientConfigWithUser(user)(cluster)
+			if err != nil {
+				return nil, fmt.Errorf("error creating client for cluster: %w", err)
+			}
+
 			break
 		}
 	}
@@ -295,7 +302,7 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
-		if err := pool.Add(restConfigFromCluster, cluster); err != nil {
+		if err := pool.Add(restConfigFromClusterWrapper(), cluster); err != nil {
 			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 		}
 	}
@@ -398,5 +405,11 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 		QPS:             ClientQPS,
 		Burst:           ClientBurst,
 		Timeout:         kubeClientTimeout,
+	}
+}
+
+func restConfigFromClusterWrapper() ClusterClientConfig {
+	return func(cluster Cluster) (*rest.Config, error) {
+		return restConfigFromCluster(cluster), nil
 	}
 }
