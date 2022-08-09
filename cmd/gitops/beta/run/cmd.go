@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -219,7 +218,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if flags.AllowK8sContext == contextName {
 			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 		} else if !run.IsLocalCluster(kubeClient) {
-			return errors.New("allowed to run against a local cluster only")
+			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
 		}
 
 		ctx := context.Background()
@@ -333,13 +332,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		defer func(watcher *fsnotify.Watcher) {
-			err := watcher.Close()
-			if err != nil {
-				log.Warningf("Error closing watcher: %v", err.Error())
-			}
-		}(watcher)
-
 		err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
 		if err != nil {
 			return err
@@ -349,13 +341,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var (
 			cancelPortFwd func()
 			counter       uint64 = 1
+			needToRescan  bool   = false
 		)
 		// atomic counter for the number of file change events that have changed
 
 		go func() {
 			for {
 				select {
-				case <-watcher.Events:
+				case event := <-watcher.Events:
+					if event.Op&fsnotify.Create == fsnotify.Create ||
+						event.Op&fsnotify.Remove == fsnotify.Remove ||
+						event.Op&fsnotify.Rename == fsnotify.Rename {
+						// if it's a dir, we need to watch it
+						if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+							needToRescan = true
+						}
+					}
+
 					if cancelPortFwd != nil {
 						cancelPortFwd()
 					}
@@ -384,6 +386,25 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient); err != nil {
 							log.Failuref("Error syncing dir: %v", err)
+						}
+
+						if needToRescan {
+							// close the old watcher
+							if err := watcher.Close(); err != nil {
+								log.Warningf("Error closing the old watcher: %v", err)
+							}
+							// create a new watcher
+							watcher, err = fsnotify.NewWatcher()
+							if err != nil {
+								log.Failuref("Error creating new watcher: %v", err)
+							}
+
+							err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+							if err != nil {
+								log.Failuref("Error re-walking dir: %v", err)
+							}
+
+							needToRescan = false
 						}
 
 						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
@@ -436,6 +457,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
+
+		if err := watcher.Close(); err != nil {
+			log.Warningf("Error closing watcher: %v", err.Error())
+		}
 
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
