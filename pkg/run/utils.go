@@ -219,8 +219,8 @@ func IsLocalCluster(kubeClient *kube.KubeHTTP) bool {
 	}
 }
 
-// IsPodStatusConditionPresentAndEqual returns true when conditionType is present and equal to status.
-func IsPodStatusConditionPresentAndEqual(conditions []corev1.PodCondition, conditionType corev1.PodConditionType, status corev1.ConditionStatus) bool {
+// isPodStatusConditionPresentAndEqual returns true when conditionType is present and equal to status.
+func isPodStatusConditionPresentAndEqual(conditions []corev1.PodCondition, conditionType corev1.PodConditionType, status corev1.ConditionStatus) bool {
 	for _, condition := range conditions {
 		if condition.Type == conditionType {
 			return condition.Status == status

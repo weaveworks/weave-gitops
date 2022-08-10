@@ -242,7 +242,13 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			installOpts.ManifestFile = "flux-system.yaml"
 			installOpts.Timeout = flags.Timeout
 
-			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigArgs); err != nil {
+			man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
+				log.Failuref("Error creating resource manager")
+				return err
+			}
+
+			if err := run.InstallFlux(log, ctx, installOpts, man); err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			} else {
 				log.Successf("Flux has been installed")
@@ -275,7 +281,18 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, flags.Namespace)
+				secret, err := run.GenerateSecret(log)
+				if err != nil {
+					return err
+				}
+
+				man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+				if err != nil {
+					log.Failuref("Error creating resource manager")
+					return err
+				}
+
+				err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {

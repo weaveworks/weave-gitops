@@ -18,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -32,36 +31,37 @@ const (
 	helmRepositoryUrl  = "https://helm.gitops.weave.works"
 )
 
-// InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags, namespace string) error {
-	log.Actionf("Installing the GitOps Dashboard ...")
-
+func GenerateSecret(log logger.Logger) (string, error) {
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
 	if err != nil {
 		log.Failuref("Could not read password")
-		return err
+		return "", err
 	}
 
 	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Failuref("Error generating secret from password")
-		return err
+		return "", err
 	}
 
 	log.Successf("Secret has been generated:")
-	fmt.Println(string(secret))
 
+	return string(secret), nil
+}
+
+// InstallDashboard installs the GitOps Dashboard.
+func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, secret string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
 	helmRepository := makeHelmRepository(namespace)
-	helmRelease, err := makeHelmRelease(log, string(secret), namespace)
+	helmRelease, err := makeHelmRelease(log, secret, namespace)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
 		return err
 	}
 
-	manifests, err := generateManifests(log, string(secret), helmRepository, helmRelease)
+	manifests, err := generateManifestsForDashboard(log, string(secret), helmRepository, helmRelease)
 	if err != nil {
 		log.Failuref("Generating GitOps Dashboard manifests failed")
 		return err
@@ -69,7 +69,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 
 	log.Successf("Generated GitOps Dashboard manifests")
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, manifests)
+	applyOutput, err := apply(log, ctx, manager, manifests)
 	if err != nil {
 		log.Failuref("GitOps Dashboard install failed")
 		return err
@@ -84,17 +84,23 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
 func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) bool {
+	return getDashboardHelmChart(log, ctx, kubeClient, namespace) != nil
+}
+
+// GetDashboardHelmChart checks if the GitOps Dashboard is installed.
+func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) *sourcev1.HelmChart {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
 			Name:      namespace + "-" + helmReleaseName,
 		},
 	}
+
 	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
-		return false
+		return nil
 	}
 
-	return true
+	return &helmChart
 }
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
@@ -194,7 +200,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 			return false, nil
 		}
 
-		return IsPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
+		return isPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
 	}); err != nil {
 		return err
 	}
@@ -202,8 +208,8 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 	return nil
 }
 
-// generateManifests generates dashboard manifests from objects.
-func generateManifests(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+// generateManifestsForDashboard generates dashboard manifests from objects.
+func generateManifestsForDashboard(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
