@@ -20,6 +20,8 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		kind = pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
 		kind = pb.FluxObjectKind_KindBucket
+	case sourcev1.OCIRepositoryKind:
+		kind = pb.FluxObjectKind_KindOCIRepository
 	}
 
 	inv, err := getKustomizeInventory(kustomization)

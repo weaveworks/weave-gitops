@@ -16,21 +16,27 @@ import {
   Kustomization,
 } from "../lib/api/core/types.pb";
 import {
+  MultiRequestError,
   NoNamespace,
+  ReactQueryOptions,
   RequestError,
   Syncable,
-  MultiRequestError,
 } from "../lib/types";
 
 export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
-export function useListAutomations(namespace = NoNamespace) {
+type Res = { result: Automation[]; errors: MultiRequestError[] };
+
+export function useListAutomations(
+  namespace = NoNamespace,
+  opts: ReactQueryOptions<Res, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<
-    { result: Automation[]; errors: MultiRequestError[] },
-    RequestError
-  >(
+  return useQuery<Res, RequestError>(
     "automations",
     () => {
       const p = [
@@ -71,7 +77,7 @@ export function useListAutomations(namespace = NoNamespace) {
         };
       });
     },
-    { retry: false, refetchInterval: 5000 }
+    opts
   );
 }
 

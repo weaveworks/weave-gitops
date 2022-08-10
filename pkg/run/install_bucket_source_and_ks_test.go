@@ -1,4 +1,4 @@
-package run_test
+package run
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -121,7 +120,7 @@ var _ = Describe("FindConditionMessages", func() {
 				},
 			},
 		}
-		messages, err := run.FindConditionMessages(client, ks)
+		messages, err := FindConditionMessages(client, ks)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(messages).To(Equal([]string{
 			"Deployment default/deployment: This is message",

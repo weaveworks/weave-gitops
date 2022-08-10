@@ -1,9 +1,9 @@
-package run_test
+package run
 
 import (
 	"context"
 	"errors"
-	"github.com/weaveworks/weave-gitops/pkg/run"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -125,7 +125,7 @@ func (c *mockClientForGetPodFromSpecMap) Get(_ context.Context, key client.Objec
 
 var _ = Describe("GetPodFromSpecMap", func() {
 	It("should return an error if the pod spec is not correct", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Kind: "something",
 		}, &mockClientForGetPodFromSpecMap{})
 
@@ -134,7 +134,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("should return an error if the client returns an error", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "pod",
@@ -145,7 +145,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the pod spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "pod",
@@ -159,7 +159,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	// Service tests
 
 	It("should return an error if the client returns an error", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "service",
@@ -170,7 +170,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("should return an error if the client returns an error", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "service",
@@ -181,7 +181,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the service spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "service",
@@ -193,7 +193,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the service spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "service",
@@ -205,7 +205,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the service spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "service",
@@ -219,7 +219,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	// Deployment tests
 
 	It("should return an error if the client returns an error", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "deployment",
@@ -230,7 +230,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("should return an error if the client returns an error", func() {
-		_, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		_, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "deployment",
@@ -241,7 +241,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the deployment spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "deployment",
@@ -253,7 +253,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the deployment spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "deployment",
@@ -265,7 +265,7 @@ var _ = Describe("GetPodFromSpecMap", func() {
 	})
 
 	It("returns a pod according to the deployment spec", func() {
-		pod, err := run.GetPodFromSpecMap(&run.PortForwardSpec{
+		pod, err := GetPodFromSpecMap(&PortForwardSpec{
 			Namespace: "ns",
 			Name:      "name",
 			Kind:      "deployment",
