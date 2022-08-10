@@ -112,6 +112,11 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 	derivedAccess := map[string]map[string]map[string]bool{}
 
 	for _, statusRule := range status.ResourceRules {
+		// cluster-admin etc
+		if containsWildcard(statusRule.APIGroups) && containsWildcard(statusRule.Resources) && containsWildcard(statusRule.Verbs) {
+			return true
+		}
+
 		for _, apiGroup := range statusRule.APIGroups {
 			if _, ok := derivedAccess[apiGroup]; !ok {
 				derivedAccess[apiGroup] = map[string]map[string]bool{}
@@ -122,12 +127,12 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 					derivedAccess[apiGroup][resource] = map[string]bool{}
 				}
 
-				for _, verb := range statusRule.Verbs {
-					if verb == "*" {
-						for _, v := range allK8sVerbs {
-							derivedAccess[apiGroup][resource][v] = true
-						}
-					} else {
+				if containsWildcard(statusRule.Verbs) {
+					for _, v := range allK8sVerbs {
+						derivedAccess[apiGroup][resource][v] = true
+					}
+				} else {
+					for _, verb := range statusRule.Verbs {
 						derivedAccess[apiGroup][resource][verb] = true
 					}
 				}
@@ -170,6 +175,15 @@ Rules:
 	}
 
 	return hasAccess
+}
+
+func containsWildcard(permissions []string) bool {
+	for _, p := range permissions {
+		if p == "*" {
+			return true
+		}
+	}
+	return false
 }
 
 func newAuthClient(cfg *rest.Config) (typedauth.AuthorizationV1Interface, error) {

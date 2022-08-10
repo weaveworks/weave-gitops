@@ -208,7 +208,7 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 
 		g.Expect(filtered).To(HaveLen(1))
 	})
-	t.Run("works when a user has * permissions on a resource", func(t *testing.T) {
+	t.Run("works when a user has * permissions on verbs", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
 		defer removeNs(t, adminClient, ns)
@@ -221,6 +221,80 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 			{
 				APIGroups: []string{""},
 				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"*"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(1))
+	})
+	t.Run("works when a user has * permissions on a resource", func(t *testing.T) {
+		t.Skip("Doesn't work right now")
+
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		userName = userName + "-" + rand.String(5)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"*"},
+				Verbs:     []string{"*"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(1))
+	})
+	t.Run("works with cluster-admin who have * for everything", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		userName = userName + "-" + rand.String(5)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
 				Verbs:     []string{"*"},
 			},
 		}
