@@ -77,6 +77,7 @@ export type Kustomization = {
   suspended?: boolean
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmChart = {
@@ -107,6 +108,7 @@ export type HelmRelease = {
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type GitRepository = {

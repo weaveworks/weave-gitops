@@ -51,6 +51,8 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 
 	var results []*pb.Kustomization
 
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*kustomizev1.KustomizationList)
@@ -59,7 +61,10 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 			}
 
 			for _, kustomization := range list.Items {
-				k, err := types.KustomizationToProto(&kustomization, n)
+
+				tenant := getTenant(kustomization.Namespace, n, clusterUserNamespaces)
+
+				k, err := types.KustomizationToProto(&kustomization, n, tenant)
 				if err != nil {
 					return nil, fmt.Errorf("converting items: %w", err)
 				}
@@ -93,7 +98,8 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 		return nil, err
 	}
 
-	res, err := types.KustomizationToProto(k, msg.ClusterName)
+    // adjust this to send tenant instead of ""
+	res, err := types.KustomizationToProto(k, msg.ClusterName, "")
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
 	}

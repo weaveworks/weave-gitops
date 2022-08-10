@@ -1209,6 +1209,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1318,6 +1321,9 @@
           "type": "string"
         },
         "apiVersion": {
+          "type": "string"
+        },
+        "tenant": {
           "type": "string"
         }
       }

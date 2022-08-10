@@ -46,6 +46,8 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 
 	var results []*pb.HelmRelease
 
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
 	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*helmv2.HelmReleaseList)
@@ -58,8 +60,10 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 				if err != nil {
 					return nil, err
 				}
+                 
+				tenant := getTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
 
-				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv))
+				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
 			}
 		}
 	}
@@ -92,7 +96,8 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory)
+	// adjust this to send tenant instead of ""
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, "")
 
 	res.ApiVersion = apiVersion
 
@@ -179,4 +184,13 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 	}
 
 	return gvk, nil
+}
+
+func getTenant(namespace, clusterName string, clusterUserNamespaces  map[string][]v1.Namespace) string {
+	for _, ns := range clusterUserNamespaces[clusterName] {
+		if ns.GetName() == namespace {
+			return ns.Labels["toolkit.fluxcd.io/tenant"]
+		}
+	}
+    return ""
 }

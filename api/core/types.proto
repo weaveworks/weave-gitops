@@ -72,6 +72,7 @@ message Kustomization {
     bool          suspended                  = 10;
     string        clusterName                = 11;
     string        apiVersion                 = 12;
+    string tenant = 17;
 }
 
 message HelmChart {
@@ -102,6 +103,7 @@ message HelmRelease {
     string    lastAppliedRevision        = 14;
     string    lastAttemptedRevision      = 15;
     string    apiVersion                 = 16;
+    string tenant = 17;
 }
 
 message GitRepository {

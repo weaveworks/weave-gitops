@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
-func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string) (*pb.Kustomization, error) {
+func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string, tenant string) (*pb.Kustomization, error) {
 	var kind pb.FluxObjectKind
 
 	switch kustomization.Spec.SourceRef.Kind {
@@ -53,6 +53,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		Suspended:             kustomization.Spec.Suspend,
 		ClusterName:           clusterName,
 		ApiVersion:            version,
+		Tenant: tenant,
 	}, nil
 }
 
