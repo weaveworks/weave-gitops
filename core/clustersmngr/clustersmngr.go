@@ -83,8 +83,9 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 			TLSClientConfig: cluster.TLSConfig,
 			Timeout:         kubeClientTimeout,
 			Dial: (&net.Dialer{
-				Timeout:   kubeClientDialTimeout,
-				KeepAlive: 15 * time.Second,
+				Timeout: kubeClientDialTimeout,
+				// KeepAlive is default to 30s within client-go.
+				KeepAlive: 30 * time.Second,
 			}).DialContext,
 		}
 
@@ -103,7 +104,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 		// function to error early rather than wait to call client.New.
 		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error querying cluster for flowcontrol config: %w", err)
 		}
 
 		if enabled {
@@ -135,7 +136,7 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 	config, err := cfg(cluster)
 	if err != nil {
-		return err
+		return fmt.Errorf("error building cluster client config: %w", err)
 	}
 
 	leafClient, err := client.New(config, client.Options{

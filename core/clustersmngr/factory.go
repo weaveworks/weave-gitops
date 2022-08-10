@@ -29,7 +29,7 @@ const (
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
 	kubeClientTimeout       = 8 * time.Second
-	kubeClientDialTimeout   = 3 * time.Second
+	kubeClientDialTimeout   = 5 * time.Second
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
