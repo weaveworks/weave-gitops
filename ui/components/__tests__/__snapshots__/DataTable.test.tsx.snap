@@ -110,7 +110,9 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c0 {
-  width: 100%;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   overflow-x: auto;
 }
 
@@ -153,7 +155,7 @@ exports[`DataTable snapshots renders 1`] = `
   className="c0"
 >
   <div
-    className="MuiTableContainer-root"
+    className="MuiTableContainer-root fancy-scroll"
   >
     <table
       aria-label="simple table"
