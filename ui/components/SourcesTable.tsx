@@ -19,6 +19,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
 import URLAddressableTable from "./URLAddressableTable";
+import { useFeatureFlags } from "../hooks/featureflags";
 
 type Props = {
   className?: string;
@@ -27,17 +28,26 @@ type Props = {
 };
 
 function SourcesTable({ className, sources }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
   const [filterDialogOpen, setFilterDialog] = React.useState(false);
   sources = sources?.map((s) => {
     return { ...s, type: removeKind(s.kind) };
   });
 
-  const initialFilterState = {
+  const initialFilterState = flags.WEAVE_GITOPS_FEATURE_TENANCY ? {
+    ...filterConfig(sources, "type"),
+    ...filterConfig(sources, "namespace"),
+    ...filterConfig(sources, "tenant"),
+    ...filterConfig(sources, "status", filterByStatusCallback),
+    ...filterConfig(sources, "clusterName"),
+  } : {
     ...filterConfig(sources, "type"),
     ...filterConfig(sources, "namespace"),
     ...filterConfig(sources, "status", filterByStatusCallback),
     ...filterConfig(sources, "clusterName"),
-  };
+  }
 
   return (
     <URLAddressableTable
@@ -66,6 +76,10 @@ function SourcesTable({ className, sources }: Props) {
         },
         { label: "Type", value: "type" },
         { label: "Namespace", value: "namespace" },
+        {
+          label: "Tenant",
+          value: "tenant",
+        },
         {
           label: "Cluster",
           value: (s: Source) => s.clusterName,
