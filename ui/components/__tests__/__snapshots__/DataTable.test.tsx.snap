@@ -160,7 +160,7 @@ exports[`DataTable snapshots renders 1`] = `
   }
 >
   <div
-    className="MuiTableContainer-root fancy-scroll"
+    className="MuiTableContainer-root"
   >
     <table
       aria-label="simple table"
