@@ -150,7 +150,7 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
   ));
 
   return (
-    <div className={className} style={{ width: "100%" }}>
+    <div className={className}>
       <TableContainer>
         <Table aria-label="simple table">
           <TableHead>
@@ -201,6 +201,7 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
 }
 
 export const DataTable = styled(UnstyledDataTable)`
+  width: 100%;
   flex-wrap: nowrap;
   overflow-x: auto;
   h2 {
