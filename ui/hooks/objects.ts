@@ -9,6 +9,7 @@ import {
   GitRepository,
   HelmChart,
   HelmRepository,
+  OCIRepository,
   Kind,
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
@@ -25,6 +26,9 @@ function convertResponse(kind: Kind, response: ResponseObject) {
   }
   if (kind == Kind.GitRepository) {
     return new GitRepository(response);
+  }
+  if (kind == Kind.OCIRepository) {
+    return new OCIRepository(response);
   }
 
   return new FluxObject(response);

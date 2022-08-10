@@ -43,6 +43,9 @@ type CoreClient interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error)
 	//
+	// ListOCIRepositories lists OCI repository objects from a cluster.
+	ListOCIRepositories(ctx context.Context, in *ListOCIRepositoriesRequest, opts ...grpc.CallOption) (*ListOCIRepositoriesResponse, error)
+	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
 	//
@@ -154,6 +157,15 @@ func (c *coreClient) ListHelmRepositories(ctx context.Context, in *ListHelmRepos
 func (c *coreClient) ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error) {
 	out := new(ListBucketsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListBuckets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ListOCIRepositories(ctx context.Context, in *ListOCIRepositoriesRequest, opts ...grpc.CallOption) (*ListOCIRepositoriesResponse, error) {
+	out := new(ListOCIRepositoriesResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListOCIRepositories", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -297,6 +309,9 @@ type CoreServer interface {
 	// ListBuckets lists bucket objects from a cluster.
 	ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error)
 	//
+	// ListOCIRepositories lists OCI repository objects from a cluster.
+	ListOCIRepositories(context.Context, *ListOCIRepositoriesRequest) (*ListOCIRepositoriesResponse, error)
+	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
 	//
@@ -362,6 +377,9 @@ func (UnimplementedCoreServer) ListHelmRepositories(context.Context, *ListHelmRe
 }
 func (UnimplementedCoreServer) ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
+}
+func (UnimplementedCoreServer) ListOCIRepositories(context.Context, *ListOCIRepositoriesRequest) (*ListOCIRepositoriesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOCIRepositories not implemented")
 }
 func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
@@ -552,6 +570,24 @@ func _Core_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListBuckets(ctx, req.(*ListBucketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ListOCIRepositories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOCIRepositoriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListOCIRepositories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListOCIRepositories",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListOCIRepositories(ctx, req.(*ListOCIRepositoriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -810,6 +846,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBuckets",
 			Handler:    _Core_ListBuckets_Handler,
+		},
+		{
+			MethodName: "ListOCIRepositories",
+			Handler:    _Core_ListOCIRepositories_Handler,
 		},
 		{
 			MethodName: "GetObject",

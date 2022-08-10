@@ -183,3 +183,46 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 		Errors:  respErrors,
 	}, nil
 }
+
+func (cs *coreServer) ListOCIRepositories(ctx context.Context, msg *pb.ListOCIRepositoriesRequest) (*pb.ListOCIRepositoriesResponse, error) {
+	respErrors := []*pb.ListError{}
+
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
+	}
+
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &sourcev1.OCIRepositoryList{}
+	})
+
+	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
+		return nil, err
+	}
+
+	var results []*pb.OCIRepository
+
+	for n, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*sourcev1.OCIRepositoryList)
+			if !ok {
+				continue
+			}
+
+			for _, repository := range list.Items {
+				results = append(results, types.OCIRepositoryToProto(&repository, n))
+			}
+		}
+	}
+
+	return &pb.ListOCIRepositoriesResponse{
+		OciRepositories: results,
+		Errors:          respErrors,
+	}, nil
+}
