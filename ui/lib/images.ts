@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import bg from "data-url:../images/background-light.png";
+import bg from "data-url:../images/bg-circles.png";
 import failedSrc from "data-url:../images/failed.svg";
 import fancyCardBackgroundBlue from "data-url:../images/fancy-card-background-blue.svg";
 import fancyCardBackgroundOrange from "data-url:../images/fancy-card-background-orange.svg";
