@@ -60,24 +60,24 @@ func request_Profiles_GetProfileValues_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["profile_name"]
+	val, ok = pathParams["profileName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileName")
 	}
 
 	protoReq.ProfileName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileName", err)
 	}
 
-	val, ok = pathParams["profile_version"]
+	val, ok = pathParams["profileVersion"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_version")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileVersion")
 	}
 
 	protoReq.ProfileVersion, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_version", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileVersion", err)
 	}
 
 	msg, err := client.GetProfileValues(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -96,24 +96,24 @@ func local_request_Profiles_GetProfileValues_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["profile_name"]
+	val, ok = pathParams["profileName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileName")
 	}
 
 	protoReq.ProfileName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileName", err)
 	}
 
-	val, ok = pathParams["profile_version"]
+	val, ok = pathParams["profileVersion"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_version")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileVersion")
 	}
 
 	protoReq.ProfileVersion, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_version", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileVersion", err)
 	}
 
 	msg, err := server.GetProfileValues(ctx, &protoReq)
@@ -156,7 +156,7 @@ func RegisterProfilesHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profileName}/{profileVersion}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -238,7 +238,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profileName}/{profileVersion}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -260,7 +260,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 var (
 	pattern_Profiles_GetProfiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "profiles"}, ""))
 
-	pattern_Profiles_GetProfileValues_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "profiles", "profile_name", "profile_version", "values"}, ""))
+	pattern_Profiles_GetProfileValues_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "profiles", "profileName", "profileVersion", "values"}, ""))
 )
 
 var (

@@ -7,6 +7,7 @@ import {
   ListGitRepositoriesResponse,
   ListHelmChartsResponse,
   ListHelmRepositoriesResponse,
+  ListOCIRepositoriesResponse,
 } from "../lib/api/core/core.pb";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import {
@@ -37,14 +38,23 @@ export function useListSources(
         api.ListHelmRepositories({ namespace }),
         api.ListBuckets({ namespace }),
         api.ListHelmCharts({ namespace }),
+        api.ListOCIRepositories({ namespace }),
       ];
       return Promise.all<any>(p).then((result) => {
-        const [repoRes, helmReleases, bucketsRes, chartRes] = result;
+        const [
+          repoRes,
+          helmRepositories,
+          bucketsRes,
+          chartRes,
+          ociRepositories,
+        ] = result;
         const repos = (repoRes as ListGitRepositoriesResponse).gitRepositories;
-        const hrs = (helmReleases as ListHelmRepositoriesResponse)
+        const hrs = (helmRepositories as ListHelmRepositoriesResponse)
           .helmRepositories;
         const buckets = (bucketsRes as ListBucketsResponse).buckets;
         const charts = (chartRes as ListHelmChartsResponse).helmCharts;
+        const ocis = (ociRepositories as ListOCIRepositoriesResponse)
+          .ociRepositories;
         return {
           result: [
             ..._.map(repos, (r) => ({
@@ -63,13 +73,17 @@ export function useListSources(
               ...ch,
               kind: FluxObjectKind.KindHelmChart,
             })),
+            ..._.map(ocis, (c) => ({
+              ...c,
+              kind: FluxObjectKind.KindOCIRepository,
+            })),
           ],
           errors: [
             ..._.map(repoRes.errors, (e) => ({
               ...e,
               kind: FluxObjectKind.KindGitRepository,
             })),
-            ..._.map(helmReleases.errors, (e) => ({
+            ..._.map(helmRepositories.errors, (e) => ({
               ...e,
               kind: FluxObjectKind.KindHelmRepository,
             })),
@@ -80,6 +94,10 @@ export function useListSources(
             ..._.map(chartRes.errors, (e) => ({
               ...e,
               kind: FluxObjectKind.KindHelmChart,
+            })),
+            ..._.map(ociRepositories.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindOCIRepository,
             })),
           ],
         };

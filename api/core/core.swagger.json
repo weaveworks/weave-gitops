@@ -573,6 +573,37 @@
         ]
       }
     },
+    "/v1/oci": {
+      "get": {
+        "summary": "ListOCIRepositories lists OCI repository objects from a cluster.",
+        "operationId": "Core_ListOCIRepositories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListOCIRepositoriesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -899,7 +930,8 @@
         "KindHelmChart",
         "KindKustomization",
         "KindHelmRelease",
-        "KindCluster"
+        "KindCluster",
+        "KindOCIRepository"
       ],
       "default": "KindGitRepository"
     },
@@ -1497,6 +1529,23 @@
         }
       }
     },
+    "v1ListOCIRepositoriesResponse": {
+      "type": "object",
+      "properties": {
+        "ociRepositories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1OCIRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1Namespace": {
       "type": "object",
       "properties": {
@@ -1519,6 +1568,41 @@
           }
         },
         "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1OCIRepository": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }

@@ -31,7 +31,7 @@ service Profiles {
     rpc GetProfileValues(GetProfileValuesRequest)
     returns (google.api.HttpBody){
         option (google.api.http) = {
-            get: "/v1/profiles/{profile_name}/{profile_version}/values"
+            get: "/v1/profiles/{profileName}/{profileVersion}/values"
         };
     }
 }
@@ -70,11 +70,11 @@ message Profile {
   // A map of annotations
   map<string, string> annotations = 8;
   // The Kubernetes version
-  string kube_version = 9;
+  string kubeVersion = 9;
   // The Flux HelmRepository
-  HelmRepository helm_repository = 10;
+  HelmRepository helmRepository = 10;
   // A list of available versions
-  repeated string available_versions = 11;
+  repeated string availableVersions = 11;
   // The layer of the profile
   string layer = 12;
 }
@@ -89,9 +89,9 @@ message GetProfilesResponse {
 
 message GetProfileValuesRequest {
   // The name of the Profile
-  string profile_name = 1;
+  string profileName = 1;
   // The version of the Profile
-  string profile_version = 2;
+  string profileVersion = 2;
 }
 
 message GetProfileValuesResponse{

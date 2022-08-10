@@ -95,6 +95,14 @@ service Core {
             get : "/v1/buckets"
         };
     }
+    /*
+     * ListOCIRepositories lists OCI repository objects from a cluster.
+     */
+    rpc ListOCIRepositories(ListOCIRepositoriesRequest) returns (ListOCIRepositoriesResponse) {
+        option (google.api.http) = {
+            get : "/v1/oci"
+        };
+    }
 
     /*
     * GetObject gets data about a single primary object from a cluster.
@@ -277,6 +285,14 @@ message ListBucketsResponse {
     repeated ListError errors = 2;
 }
 
+message ListOCIRepositoriesRequest {
+    string namespace = 1;
+}
+
+message ListOCIRepositoriesResponse {
+    repeated OCIRepository ociRepositories = 1;
+    repeated ListError errors = 2;
+}
 message ListFluxRuntimeObjectsRequest {
     string namespace   = 1;
     string clusterName = 2;

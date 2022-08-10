@@ -51,6 +51,8 @@ func NewReconcileable(obj client.Object) Reconcilable {
 		return BucketAdapter{Bucket: o}
 	case *sourcev1.HelmChart:
 		return HelmChartAdapter{HelmChart: o}
+	case *sourcev1.OCIRepository:
+		return OCIRepositoryAdapter{OCIRepository: o}
 	}
 
 	return nil
@@ -149,6 +151,30 @@ func (o HelmRepositoryAdapter) SetSuspended(suspend bool) {
 }
 
 func (o HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return o.DeepCopy()
+}
+
+type OCIRepositoryAdapter struct {
+	*sourcev1.OCIRepository
+}
+
+func (obj OCIRepositoryAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj OCIRepositoryAdapter) AsClientObject() client.Object {
+	return obj.OCIRepository
+}
+
+func (o OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
+}
+
+func (o OCIRepositoryAdapter) SetSuspended(suspend bool) {
+	o.Spec.Suspend = suspend
+}
+
+func (o OCIRepositoryAdapter) DeepCopyClientObject() client.Object {
 	return o.DeepCopy()
 }
 
@@ -262,6 +288,9 @@ func ToReconcileable(kind pb.FluxObjectKind) (client.ObjectList, Reconcilable, e
 
 	case pb.FluxObjectKind_KindHelmChart:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmChart{}), nil
+
+	case pb.FluxObjectKind_KindOCIRepository:
+		return &sourcev1.OCIRepositoryList{}, NewReconcileable(&sourcev1.OCIRepository{}), nil
 	}
 
 	return nil, nil, errors.New("could not find source type")
