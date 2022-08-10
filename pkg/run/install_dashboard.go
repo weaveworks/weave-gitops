@@ -53,15 +53,15 @@ func GenerateSecret(log logger.Logger) (string, error) {
 func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, secret string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
-	helmRepository := MakeHelmRepository(namespace)
-	helmRelease, err := MakeHelmRelease(log, secret, namespace)
+	helmRepository := makeHelmRepository(namespace)
+	helmRelease, err := makeHelmRelease(log, secret, namespace)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
 		return err
 	}
 
-	manifests, err := GenerateManifestsForDashboard(log, string(secret), helmRepository, helmRelease)
+	manifests, err := generateManifestsForDashboard(log, string(secret), helmRepository, helmRelease)
 	if err != nil {
 		log.Failuref("Generating GitOps Dashboard manifests failed")
 		return err
@@ -69,7 +69,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 
 	log.Successf("Generated GitOps Dashboard manifests")
 
-	applyOutput, err := Apply(log, ctx, manager, manifests)
+	applyOutput, err := apply(log, ctx, manager, manifests)
 	if err != nil {
 		log.Failuref("GitOps Dashboard install failed")
 		return err
@@ -84,11 +84,11 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
 func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) bool {
-	return GetDashboardHelmChart(log, ctx, kubeClient, namespace) != nil
+	return getDashboardHelmChart(log, ctx, kubeClient, namespace) != nil
 }
 
 // GetDashboardHelmChart checks if the GitOps Dashboard is installed.
-func GetDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) *sourcev1.HelmChart {
+func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) *sourcev1.HelmChart {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
@@ -200,7 +200,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 			return false, nil
 		}
 
-		return IsPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
+		return isPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
 	}); err != nil {
 		return err
 	}
@@ -208,8 +208,8 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 	return nil
 }
 
-// GenerateManifestsForDashboard generates dashboard manifests from objects.
-func GenerateManifestsForDashboard(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+// generateManifestsForDashboard generates dashboard manifests from objects.
+func generateManifestsForDashboard(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
@@ -231,8 +231,8 @@ func GenerateManifestsForDashboard(log logger.Logger, secret string, helmReposit
 	return content, nil
 }
 
-// MakeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func MakeHelmRepository(namespace string) *sourcev1.HelmRepository {
+// makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
+func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1.HelmRepositoryKind,
@@ -253,8 +253,8 @@ func MakeHelmRepository(namespace string) *sourcev1.HelmRepository {
 	return helmRepository
 }
 
-// MakeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func MakeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
+// makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
+func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -282,7 +282,7 @@ func MakeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 		},
 	}
 
-	valuesData, err := MakeValues(secret)
+	valuesData, err := makeValues(secret)
 	if err != nil {
 		log.Failuref("Error generating values from secret")
 		return nil, err
@@ -293,8 +293,8 @@ func MakeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 	return helmRelease, nil
 }
 
-// MakeValues creates a values object for installing the GitOps Dashboard.
-func MakeValues(secret string) ([]byte, error) {
+// makeValues creates a values object for installing the GitOps Dashboard.
+func makeValues(secret string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,

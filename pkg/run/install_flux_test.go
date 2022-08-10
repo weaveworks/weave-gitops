@@ -1,4 +1,4 @@
-package run_test
+package run
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -32,14 +31,14 @@ var _ = Describe("InstallFlux", func() {
 	It("should install flux successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		err := run.InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
+		err := InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		err := run.InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
+		err := InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -47,7 +46,7 @@ var _ = Describe("InstallFlux", func() {
 	It("should return a wait for set error if the resource manager returns a wait for set error", func() {
 		man := &mockResourceManagerForApply{state: stateWaitForSetReturnErr}
 
-		err := run.InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
+		err := InstallFlux(fakeLogger, fakeContext, fakeInstallOptions, man)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(waitForSetErrorMsg))
 	})
@@ -61,11 +60,11 @@ var _ = Describe("GetFluxVersion", func() {
 	})
 
 	It("gets flux version", func() {
-		kubeClientOpts := run.GetKubeClientOptions()
+		kubeClientOpts := GetKubeClientOptions()
 
 		contextName := "test-context"
 
-		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
+		kubeClient, err := GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
 		Expect(err).NotTo(HaveOccurred())
 
 		ctx := context.Background()
@@ -79,7 +78,7 @@ var _ = Describe("GetFluxVersion", func() {
 
 		Expect(kubeClient.Create(ctx, fluxNs)).To(Succeed())
 
-		fluxVersion, err := run.GetFluxVersion(fakeLogger, ctx, kubeClient)
+		fluxVersion, err := GetFluxVersion(fakeLogger, ctx, kubeClient)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fluxVersion).To(Equal(testVersion))

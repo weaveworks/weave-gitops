@@ -28,7 +28,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, installOptions install.
 
 	content := []byte(manifests.Content)
 
-	applyOutput, err := Apply(log, ctx, manager, content)
+	applyOutput, err := apply(log, ctx, manager, content)
 	if err != nil {
 		log.Failuref("Flux install failed")
 		return err

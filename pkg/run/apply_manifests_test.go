@@ -1,4 +1,4 @@
-package run_test
+package run
 
 import (
 	"context"
@@ -9,14 +9,13 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
 // mock ssa.ResourceManager
 type mockResourceManagerForApply struct {
-	run.ResourceManagerForApply
+	ResourceManagerForApply
 	state stateApply
 }
 
@@ -51,7 +50,7 @@ func (man *mockResourceManagerForApply) WaitForSet(set object.ObjMetadataSet, op
 	}
 }
 
-var _ = Describe("Apply", func() {
+var _ = Describe("apply", func() {
 	var fakeLogger *loggerfakes.FakeLogger
 	var fakeContext context.Context
 	var fakeInstallOptions install.Options
@@ -70,14 +69,14 @@ var _ = Describe("Apply", func() {
 	It("should apply manifests successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		_, err := run.Apply(fakeLogger, fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeLogger, fakeContext, man, fakeManifestsContent)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		_, err := run.Apply(fakeLogger, fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeLogger, fakeContext, man, fakeManifestsContent)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -85,7 +84,7 @@ var _ = Describe("Apply", func() {
 	It("should return a wait for set error if the resource manager returns a wait for set error", func() {
 		man := &mockResourceManagerForApply{state: stateWaitForSetReturnErr}
 
-		_, err := run.Apply(fakeLogger, fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeLogger, fakeContext, man, fakeManifestsContent)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(waitForSetErrorMsg))
 	})

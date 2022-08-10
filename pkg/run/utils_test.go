@@ -1,11 +1,10 @@
-package run_test
+package run
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -15,7 +14,7 @@ type isLocalClusterTest struct {
 }
 
 func runIsLocalClusterTest(client *kube.KubeHTTP, test isLocalClusterTest) {
-	actual := run.IsLocalCluster(client)
+	actual := IsLocalCluster(client)
 
 	Expect(actual).To(Equal(test.expected))
 }
@@ -113,12 +112,12 @@ type isPodStatusConditionPresentAndEqualTest struct {
 }
 
 func runIsPodStatusConditionPresentAndEqualTest(test isPodStatusConditionPresentAndEqualTest) {
-	actual := run.IsPodStatusConditionPresentAndEqual(test.conditions, test.conditionType, test.conditionStatus)
+	actual := isPodStatusConditionPresentAndEqual(test.conditions, test.conditionType, test.conditionStatus)
 
 	Expect(actual).To(Equal(test.expected))
 }
 
-var _ = Describe("IsPodStatusConditionPresentAndEqual", func() {
+var _ = Describe("isPodStatusConditionPresentAndEqual", func() {
 	It("returns true if condition statuses are the same and condition is true", func() {
 		test := isPodStatusConditionPresentAndEqualTest{
 			conditions: []corev1.PodCondition{

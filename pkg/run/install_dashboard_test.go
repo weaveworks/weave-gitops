@@ -1,4 +1,4 @@
-package run_test
+package run
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,14 +46,14 @@ var _ = Describe("InstallDashboard", func() {
 	It("should install dashboard successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		err := run.InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		err := run.InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -81,7 +80,7 @@ func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client
 	return nil
 }
 
-var _ = Describe("GetDashboardHelmChart", func() {
+var _ = Describe("getDashboardHelmChart", func() {
 	var fakeLogger *loggerfakes.FakeLogger
 	var fakeContext context.Context
 
@@ -91,19 +90,19 @@ var _ = Describe("GetDashboardHelmChart", func() {
 	})
 
 	It("returns the dashboard helmchart if there is no error when getting the helmchart", func() {
-		helmChart := run.GetDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, namespace)
+		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, namespace)
 		Expect(helmChart).ToNot(BeNil())
 		Expect(helmChart.Namespace).To(Equal("test-namespace"))
 		Expect(helmChart.Name).To(Equal("test-namespace-ww-gitops"))
 	})
 
 	It("returns nil if there is an error when getting the helmchart", func() {
-		helmChart := run.GetDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, namespace)
+		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, namespace)
 		Expect(helmChart).To(BeNil())
 	})
 })
 
-var _ = Describe("GenerateManifestsForDashboard", func() {
+var _ = Describe("generateManifestsForDashboard", func() {
 	var fakeLogger *loggerfakes.FakeLogger
 
 	BeforeEach(func() {
@@ -179,13 +178,13 @@ var _ = Describe("GenerateManifestsForDashboard", func() {
 		expected = append(expected, divider...)
 		expected = append(expected, expectedHelmRelease...)
 
-		actual, err := run.GenerateManifestsForDashboard(fakeLogger, secret, helmRepository, helmRelease)
+		actual, err := generateManifestsForDashboard(fakeLogger, secret, helmRepository, helmRelease)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual).To(Equal(expected))
 	})
 })
 
-var _ = Describe("MakeHelmRelease", func() {
+var _ = Describe("makeHelmRelease", func() {
 	var fakeLogger *loggerfakes.FakeLogger
 
 	BeforeEach(func() {
@@ -235,7 +234,7 @@ var _ = Describe("MakeHelmRelease", func() {
 		expected, err := json.Marshal(helmRelease)
 		Expect(err).NotTo(HaveOccurred())
 
-		actualHelmRelease, err := run.MakeHelmRelease(fakeLogger, secret, namespace)
+		actualHelmRelease, err := makeHelmRelease(fakeLogger, secret, namespace)
 		Expect(err).NotTo(HaveOccurred())
 
 		actual, err := json.Marshal(actualHelmRelease)
@@ -244,7 +243,7 @@ var _ = Describe("MakeHelmRelease", func() {
 	})
 })
 
-var _ = Describe("MakeHelmRepository", func() {
+var _ = Describe("makeHelmRepository", func() {
 	It("creates helmrepository successfully", func() {
 		helmRepository := &sourcev1.HelmRepository{
 			TypeMeta: metav1.TypeMeta{
@@ -266,13 +265,13 @@ var _ = Describe("MakeHelmRepository", func() {
 		expected, err := json.Marshal(helmRepository)
 		Expect(err).NotTo(HaveOccurred())
 
-		actual, err := json.Marshal(run.MakeHelmRepository(namespace))
+		actual, err := json.Marshal(makeHelmRepository(namespace))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual).To(Equal(expected))
 	})
 })
 
-var _ = Describe("MakeValues", func() {
+var _ = Describe("makeValues", func() {
 	It("creates values successfully", func() {
 		valuesMap := map[string]interface{}{
 			"adminUser": map[string]interface{}{
@@ -285,7 +284,7 @@ var _ = Describe("MakeValues", func() {
 		expected, err := json.Marshal(valuesMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		actual, err := run.MakeValues(secret)
+		actual, err := makeValues(secret)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual).To(Equal(expected))
 	})

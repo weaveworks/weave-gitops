@@ -20,8 +20,23 @@ type ResourceManagerForApply interface {
 	WaitForSet(set object.ObjMetadataSet, opts ssa.WaitOptions) error
 }
 
+func NewManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
+	restMapper, err := kubeConfigArgs.ToRESTMapper()
+	if err != nil {
+		log.Failuref("Error getting a restmapper")
+		return nil, err
+	}
+
+	kubePoller := polling.NewStatusPoller(kubeClient, restMapper, polling.Options{})
+
+	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
+		Field: "flux",
+		Group: "fluxcd.io",
+	}), nil
+}
+
 // apply is the equivalent of 'kubectl apply --server-side -f'.
-func Apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifestsContent []byte) (string, error) {
+func apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifestsContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
 		log.Failuref("Error reading Kubernetes objects from the manifests")
@@ -87,19 +102,4 @@ func applySet(log logger.Logger, ctx context.Context, manager ResourceManagerFor
 
 func waitForSet(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, changeSet *ssa.ChangeSet) error {
 	return manager.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
-}
-
-func NewManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
-	restMapper, err := kubeConfigArgs.ToRESTMapper()
-	if err != nil {
-		log.Failuref("Error getting a restmapper")
-		return nil, err
-	}
-
-	kubePoller := polling.NewStatusPoller(kubeClient, restMapper, polling.Options{})
-
-	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
-		Field: "flux",
-		Group: "fluxcd.io",
-	}), nil
 }
