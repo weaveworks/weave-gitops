@@ -476,7 +476,8 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	clientsPool := clustersmngr.NewClustersClientsPool(scheme)
 
 	err = clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		// Put the user in the `system:masters` group to avoid auth errors
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}),
 		clustersmngr.Cluster{
 			Name:      clusterName,
 			Server:    k8sEnv.Rest.Host,
