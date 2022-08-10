@@ -271,7 +271,7 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   helmChartName,
-					Version: "2.0.6",
+					Version: "3.0.0",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: "HelmRepository",
 						Name: helmRepositoryName,
