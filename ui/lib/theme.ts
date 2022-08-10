@@ -98,7 +98,7 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 475px
   }
   body::-webkit-scrollbar-track, .fancy-scroll::-webkit-scrollbar-track {
-    margin-top: 50px;
+    margin-top: 5px;
     -webkit-box-shadow: transparent;
     -moz-box-shadow: transparent;
     background-color: transparent;
@@ -111,11 +111,11 @@ export const GlobalStyle = createGlobalStyle`
     background-color: transparent;
   }
   body::-webkit-scrollbar-thumb , .fancy-scroll::-webkit-scrollbar-thumb {
-    background-color: ${(props) => props.theme.colors.neutral20};
+    background-color: ${props => props.theme.colors.neutral20};
     border-radius: 5px;
   }
- body::-webkit-scrollbar-thumb:hover, .fancy-scroll::-webkit-scrollbar-thumb:hover {
-    background-color: ${(props) => props.theme.colors.neutral30};
+  body::-webkit-scrollbar-thumb:hover, .fancy-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: ${props => props.theme.colors.neutral30};
   }
 `;
 

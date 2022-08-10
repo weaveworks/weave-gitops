@@ -150,8 +150,8 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
   ));
 
   return (
-    <div className={`${className} fancy-scroll`}>
-      <TableContainer>
+    <div className={className}>
+      <TableContainer className="fancy-scroll">
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -201,7 +201,7 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
 }
 
 export const DataTable = styled(UnstyledDataTable)`
-  width: 100%;
+  flex-wrap: nowrap;
   overflow-x: auto;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
