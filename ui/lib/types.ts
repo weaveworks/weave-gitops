@@ -1,3 +1,4 @@
+import { UseQueryOptions } from "react-query";
 import { ListError } from "./api/core/core.pb";
 import { Condition, FluxObjectKind, Interval } from "./api/core/types.pb";
 
@@ -35,7 +36,6 @@ export enum V2Routes {
   NotImplemented = "/not_implemented",
 }
 
-export const WeGONamespace = "flux-system";
 export const DefaultCluster = "Default";
 export const NoNamespace = "";
 
@@ -60,3 +60,9 @@ export interface Syncable {
 export type MultiRequestError = ListError & {
   kind?: FluxObjectKind;
 };
+
+// Helper type to work around the weird react-query typedef/api shape
+export type ReactQueryOptions<T, E> = Omit<
+  UseQueryOptions<T, E>,
+  "queryKey" | "queryFn"
+>;

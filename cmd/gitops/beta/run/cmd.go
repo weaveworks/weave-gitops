@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,7 +22,6 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
@@ -220,7 +218,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if flags.AllowK8sContext == contextName {
 			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 		} else if !run.IsLocalCluster(kubeClient) {
-			return errors.New("allowed to run against a local cluster only")
+			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
 		}
 
 		ctx := context.Background()
@@ -244,7 +242,13 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			installOpts.ManifestFile = "flux-system.yaml"
 			installOpts.Timeout = flags.Timeout
 
-			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigArgs); err != nil {
+			man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
+				log.Failuref("Error creating resource manager")
+				return err
+			}
+
+			if err := run.InstallFlux(log, ctx, installOpts, man); err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			} else {
 				log.Successf("Flux has been installed")
@@ -265,7 +269,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, wego.DefaultNamespace)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -277,7 +281,18 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				err = run.InstallDashboard(log, ctx, kubeClient, kubeConfigArgs, wego.DefaultNamespace)
+				secret, err := run.GenerateSecret(log)
+				if err != nil {
+					return err
+				}
+
+				man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+				if err != nil {
+					log.Failuref("Error creating resource manager")
+					return err
+				}
+
+				err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -334,13 +349,6 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		defer func(watcher *fsnotify.Watcher) {
-			err := watcher.Close()
-			if err != nil {
-				log.Warningf("Error closing watcher: %v", err.Error())
-			}
-		}(watcher)
-
 		err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
 		if err != nil {
 			return err
@@ -350,13 +358,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var (
 			cancelPortFwd func()
 			counter       uint64 = 1
+			needToRescan  bool   = false
 		)
 		// atomic counter for the number of file change events that have changed
 
 		go func() {
 			for {
 				select {
-				case <-watcher.Events:
+				case event := <-watcher.Events:
+					if event.Op&fsnotify.Create == fsnotify.Create ||
+						event.Op&fsnotify.Remove == fsnotify.Remove ||
+						event.Op&fsnotify.Rename == fsnotify.Rename {
+						// if it's a dir, we need to watch it
+						if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+							needToRescan = true
+						}
+					}
+
 					if cancelPortFwd != nil {
 						cancelPortFwd()
 					}
@@ -385,6 +403,25 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient); err != nil {
 							log.Failuref("Error syncing dir: %v", err)
+						}
+
+						if needToRescan {
+							// close the old watcher
+							if err := watcher.Close(); err != nil {
+								log.Warningf("Error closing the old watcher: %v", err)
+							}
+							// create a new watcher
+							watcher, err = fsnotify.NewWatcher()
+							if err != nil {
+								log.Failuref("Error creating new watcher: %v", err)
+							}
+
+							err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+							if err != nil {
+								log.Failuref("Error re-walking dir: %v", err)
+							}
+
+							needToRescan = false
 						}
 
 						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
@@ -438,6 +475,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
 
+		if err := watcher.Close(); err != nil {
+			log.Warningf("Error closing watcher: %v", err.Error())
+		}
+
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
 		cancelDevBucketPortForwarding()
@@ -448,7 +489,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		ticker.Stop()
 
-		if err := run.CleanupBucketSourceAndKS(log, kubeClient, "flux-system"); err != nil {
+		if err := run.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
 			return err
 		}
 
