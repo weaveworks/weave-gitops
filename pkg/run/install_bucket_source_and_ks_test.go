@@ -96,7 +96,7 @@ func (c *mockClientForFindConditionMessages) List(_ context.Context, list client
 	return nil
 }
 
-var _ = Describe("FindConditionMessages", func() {
+var _ = Describe("findConditionMessages", func() {
 	It("returns the condition messages", func() {
 		client := &mockClientForFindConditionMessages{}
 		ks := &kustomizev1.Kustomization{
@@ -120,7 +120,7 @@ var _ = Describe("FindConditionMessages", func() {
 				},
 			},
 		}
-		messages, err := FindConditionMessages(client, ks)
+		messages, err := findConditionMessages(client, ks)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(messages).To(Equal([]string{
 			"Deployment default/deployment: This is message",

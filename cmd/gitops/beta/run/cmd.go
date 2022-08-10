@@ -6,17 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
@@ -26,16 +20,9 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/utils/strings/slices"
 )
 
 type RunCommandFlags struct {
@@ -231,7 +218,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			components := flags.Components
 			components = append(components, flags.ComponentsExtra...)
 
-			if err := ValidateComponents(components); err != nil {
+			if err := run.ValidateComponents(components); err != nil {
 				return fmt.Errorf("can't install flux: %w", err)
 			}
 
@@ -349,7 +336,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+		err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
 		if err != nil {
 			return err
 		}
@@ -416,7 +403,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 								log.Failuref("Error creating new watcher: %v", err)
 							}
 
-							err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+							err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
 							if err != nil {
 								log.Failuref("Error re-walking dir: %v", err)
 							}
@@ -426,7 +413,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
 
-						if err := reconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+						if err := run.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
 							log.Failuref("Error requesting reconciliation: %v", err)
 						}
 
@@ -500,144 +487,4 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		return nil
 	}
-}
-
-func watchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os.FileInfo, err error) error {
-	return func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("error walking path: %v", err)
-		}
-
-		if info.IsDir() {
-			// if it's a hidden directory, ignore it
-			if strings.HasPrefix(info.Name(), ".") {
-				return filepath.SkipDir
-			}
-
-			if err := watcher.Add(path); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-}
-
-// reconcileDevBucketSourceAndKS reconciles the dev-bucket and dev-ks asynchronously.
-func reconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
-	const interval = 3 * time.Second / 2
-
-	// reconcile dev-bucket
-	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, schema.GroupVersionKind{
-			Group:   "source.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "Bucket",
-		})
-	if err != nil {
-		return err
-	}
-
-	// wait for the reconciliation of dev-bucket to be done
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, devBucket); err != nil {
-			return false, err
-		}
-
-		return devBucket.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
-	}); err != nil {
-		return err
-	}
-
-	// wait for devBucket to be ready
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, devBucket); err != nil {
-			return false, err
-		}
-		return apimeta.IsStatusConditionPresentAndEqual(devBucket.Status.Conditions, meta.ReadyCondition, metav1.ConditionTrue), nil
-	}); err != nil {
-		return err
-	}
-
-	// reconcile dev-ks
-	ksRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, schema.GroupVersionKind{
-			Group:   "kustomize.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "Kustomization",
-		})
-	if err != nil {
-		return err
-	}
-
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devKs := &kustomizev1.Kustomization{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, devKs); err != nil {
-			return false, err
-		}
-
-		return devKs.Status.GetLastHandledReconcileRequest() == ksRequestedAt, nil
-	}); err != nil {
-		return err
-	}
-
-	devKs := &kustomizev1.Kustomization{}
-	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, devKs); err != nil {
-			return false, err
-		}
-
-		healthy := apimeta.IsStatusConditionPresentAndEqual(
-			devKs.Status.Conditions,
-			kustomizev1.HealthyCondition,
-			metav1.ConditionTrue,
-		)
-		return healthy, nil
-	})
-
-	if devKsErr != nil {
-		messages, err := run.FindConditionMessages(kubeClient, devKs)
-		if err != nil {
-			return err
-		}
-
-		for _, msg := range messages {
-			log.Failuref(msg)
-		}
-	}
-
-	return devKsErr
-}
-
-func ValidateComponents(components []string) error {
-	defaults := install.MakeDefaultOptions()
-	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
-
-	for _, component := range components {
-		if !slices.Contains(bootstrapAllComponents, component) {
-			return fmt.Errorf("component %s is not available", component)
-		}
-	}
-
-	return nil
 }
