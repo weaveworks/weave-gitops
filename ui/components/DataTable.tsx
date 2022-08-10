@@ -150,7 +150,7 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
   ));
 
   return (
-    <div className={className}>
+    <div className={className} style={{ width: "100%" }}>
       <TableContainer className="fancy-scroll">
         <Table aria-label="simple table">
           <TableHead>
