@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -63,7 +62,7 @@ type ClusterFetcher interface {
 // ClientsPool stores all clients to the leaf clusters
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
-	Add(cfg ClusterClientConfig, cluster Cluster) error
+	Add(cfg ClusterClientConfigFunc, cluster Cluster) error
 	Clients() map[string]client.Client
 	Client(cluster string) (client.Client, error)
 }
@@ -74,9 +73,11 @@ type clientsPool struct {
 	mutex   sync.Mutex
 }
 
-type ClusterClientConfig func(Cluster) (*rest.Config, error)
+type ClusterClientConfigFunc func(Cluster) (*rest.Config, error)
 
-func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
+// ClientConfigWithUser returns a function that returns a *rest.Config with the relevant
+// user authentication details pre-defined for a given cluster.
+func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
 	return func(cluster Cluster) (*rest.Config, error) {
 		config := &rest.Config{
 			Host:            cluster.Server,
@@ -85,7 +86,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
 			Dial: (&net.Dialer{
 				Timeout: kubeClientDialTimeout,
 				// KeepAlive is default to 30s within client-go.
-				KeepAlive: 30 * time.Second,
+				KeepAlive: kubeClientDialKeepAlive,
 			}).DialContext,
 		}
 
@@ -133,8 +134,8 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 }
 
 // Add adds a cluster client to the clients pool with the given user impersonation
-func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
-	config, err := cfg(cluster)
+func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) error {
+	config, err := cfgFunc(cluster)
 	if err != nil {
 		return fmt.Errorf("error building cluster client config: %w", err)
 	}

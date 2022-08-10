@@ -30,6 +30,7 @@ const (
 	watchNamespaceFrequency = 30 * time.Second
 	kubeClientTimeout       = 8 * time.Second
 	kubeClientDialTimeout   = 5 * time.Second
+	kubeClientDialKeepAlive = 30 * time.Second
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -408,7 +409,9 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 	}
 }
 
-func restConfigFromClusterWrapper() ClusterClientConfig {
+// restConfigFromClusterWrapper wraps a call to restConfigFromCluster within a func
+// to satisfy the ClusterClientConfigFunc type.
+func restConfigFromClusterWrapper() ClusterClientConfigFunc {
 	return func(cluster Cluster) (*rest.Config, error) {
 		return restConfigFromCluster(cluster), nil
 	}
