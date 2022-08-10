@@ -111,11 +111,11 @@ export const GlobalStyle = createGlobalStyle`
     background-color: transparent;
   }
   body::-webkit-scrollbar-thumb , .fancy-scroll::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.colors.neutral20};
+    background-color: ${(props) => props.theme.colors.neutral20};
     border-radius: 5px;
   }
   body::-webkit-scrollbar-thumb:hover, .fancy-scroll::-webkit-scrollbar-thumb:hover {
-    background-color: ${props => props.theme.colors.neutral30};
+    background-color: ${(props) => props.theme.colors.neutral30};
   }
 `;
 
