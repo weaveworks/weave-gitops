@@ -21,6 +21,7 @@ export const getParentNavValue = (
     case V2Routes.HelmChart:
     case V2Routes.HelmRepo:
     case V2Routes.Bucket:
+    case V2Routes.OCIRepository:
       return V2Routes.Sources;
 
     case V2Routes.FluxRuntime:
@@ -74,6 +75,9 @@ export function objectTypeToRoute(t: FluxObjectKind): V2Routes {
 
     case FluxObjectKind.KindHelmRelease:
       return V2Routes.HelmRelease;
+
+    case FluxObjectKind.KindOCIRepository:
+      return V2Routes.OCIRepository;
 
     default:
       break;

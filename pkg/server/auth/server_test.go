@@ -722,7 +722,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 		authMethodsMap[mthd] = true
 	}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, authMethodsMap)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	s, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -739,7 +739,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
@@ -762,7 +762,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authMethods = map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -785,7 +785,7 @@ func TestAuthMethods(t *testing.T) {
 	}
 	authMethods = map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())

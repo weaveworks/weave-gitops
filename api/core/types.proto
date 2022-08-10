@@ -18,6 +18,7 @@ enum FluxObjectKind {
     KindKustomization  = 4;
     KindHelmRelease    = 5;
     KindCluster        = 6;
+    KindOCIRepository  = 7;
 };
 
 enum HelmRepositoryType {
@@ -155,6 +156,19 @@ message Bucket {
     string   clusterName          = 14;
     string   apiVersion           = 15;
 }
+
+message OCIRepository {
+    string             namespace            = 1;
+    string             name                 = 2;
+    string             url                  = 3;
+    Interval           interval             = 4;
+    repeated           Condition conditions = 5;
+    bool               suspended            = 6;
+    string             lastUpdatedAt        = 7;
+    string             clusterName          = 8;
+    string             apiVersion           = 9;
+}
+
 
 message Object {
     string payload     = 1;

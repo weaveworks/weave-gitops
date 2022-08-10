@@ -16,6 +16,8 @@ func getSourceKind(kind string) pb.FluxObjectKind {
 		return pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
 		return pb.FluxObjectKind_KindBucket
+	case sourcev1.OCIRepositoryKind:
+		return pb.FluxObjectKind_KindOCIRepository
 	default:
 		return -1
 	}
@@ -52,6 +54,10 @@ func lastUpdatedAt(obj interface{}) string {
 			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}
 	case *sourcev1.HelmRepository:
+		if s.Status.Artifact != nil {
+			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
+		}
+	case *sourcev1.OCIRepository:
 		if s.Status.Artifact != nil {
 			return s.Status.Artifact.LastUpdateTime.Format(time.RFC3339)
 		}

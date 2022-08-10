@@ -1,16 +1,11 @@
 package run
 
 import (
-	"context"
-
 	runclient "github.com/fluxcd/pkg/runtime/client"
-	"github.com/fluxcd/pkg/ssa"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
-	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func GetKubeConfigArgs() *genericclioptions.ConfigFlags {
@@ -55,19 +50,4 @@ func GetKubeClient(log logger.Logger, contextName string, cfg *rest.Config, kube
 	}
 
 	return kubeClient, nil
-}
-
-func newManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
-	restMapper, err := kubeConfigArgs.ToRESTMapper()
-	if err != nil {
-		log.Failuref("Error getting a restmapper")
-		return nil, err
-	}
-
-	kubePoller := polling.NewStatusPoller(kubeClient, restMapper, polling.Options{})
-
-	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
-		Field: "flux",
-		Group: "fluxcd.io",
-	}), nil
 }

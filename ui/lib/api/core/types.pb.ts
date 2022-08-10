@@ -12,6 +12,7 @@ export enum FluxObjectKind {
   KindKustomization = "KindKustomization",
   KindHelmRelease = "KindHelmRelease",
   KindCluster = "KindCluster",
+  KindOCIRepository = "KindOCIRepository",
 }
 
 export enum HelmRepositoryType {
@@ -150,6 +151,18 @@ export type Bucket = {
   timeout?: number
   conditions?: Condition[]
   bucketName?: string
+  suspended?: boolean
+  lastUpdatedAt?: string
+  clusterName?: string
+  apiVersion?: string
+}
+
+export type OCIRepository = {
+  namespace?: string
+  name?: string
+  url?: string
+  interval?: Interval
+  conditions?: Condition[]
   suspended?: boolean
   lastUpdatedAt?: string
   clusterName?: string

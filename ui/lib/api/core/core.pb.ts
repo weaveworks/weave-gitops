@@ -74,6 +74,15 @@ export type ListBucketsResponse = {
   errors?: ListError[]
 }
 
+export type ListOCIRepositoriesRequest = {
+  namespace?: string
+}
+
+export type ListOCIRepositoriesResponse = {
+  ociRepositories?: Gitops_coreV1Types.OCIRepository[]
+  errors?: ListError[]
+}
+
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
@@ -233,6 +242,9 @@ export class Core {
   }
   static ListBuckets(req: ListBucketRequest, initReq?: fm.InitReq): Promise<ListBucketsResponse> {
     return fm.fetchReq<ListBucketRequest, ListBucketsResponse>(`/v1/buckets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListOCIRepositories(req: ListOCIRepositoriesRequest, initReq?: fm.InitReq): Promise<ListOCIRepositoriesResponse> {
+    return fm.fetchReq<ListOCIRepositoriesRequest, ListOCIRepositoriesResponse>(`/v1/oci?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})

@@ -7,7 +7,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
@@ -31,7 +30,7 @@ var _ = Describe("CreateSecretGit", func() {
 
 		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, wego.DefaultNamespace)
+		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, "flux-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
 
@@ -40,7 +39,7 @@ var _ = Describe("CreateSecretGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace %s --export", wego.DefaultNamespace)))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace %s --export", "flux-system")))
 	})
 })
 

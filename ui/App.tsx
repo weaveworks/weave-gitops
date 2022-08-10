@@ -28,6 +28,7 @@ import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
+import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Sources from "./pages/v2/Sources";
@@ -72,6 +73,10 @@ const App = () => (
         <Route
           path={V2Routes.HelmChart}
           component={withSearchParams(HelmChartDetail)}
+        />
+        <Route
+          path={V2Routes.OCIRepository}
+          component={withSearchParams(OCIRepositoryPage)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />

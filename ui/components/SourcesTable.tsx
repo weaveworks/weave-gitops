@@ -5,6 +5,7 @@ import {
   FluxObjectKind,
   GitRepository,
   HelmRepository,
+  OCIRepository,
 } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { showInterval } from "../lib/time";
@@ -116,6 +117,9 @@ function SourcesTable({ className, sources }: Props) {
               case FluxObjectKind.KindBucket:
                 text = (s as Bucket).endpoint;
                 break;
+              case FluxObjectKind.KindOCIRepository:
+                text = (s as OCIRepository).url;
+                break;
               case FluxObjectKind.KindHelmChart:
                 return "-";
               case FluxObjectKind.KindHelmRepository:
@@ -137,14 +141,16 @@ function SourcesTable({ className, sources }: Props) {
         {
           label: "Reference",
           value: (s: Source) => {
-            const isGit = s.kind === FluxObjectKind.KindGitRepository;
-            const repo = s as GitRepository;
-            const ref =
-              repo?.reference?.branch ||
-              repo?.reference?.commit ||
-              repo?.reference?.tag ||
-              repo?.reference?.semver;
-            return isGit ? ref : "-";
+            if (s.kind === FluxObjectKind.KindGitRepository) {
+              const repo = s as GitRepository;
+              const ref =
+                repo?.reference?.branch ||
+                repo?.reference?.commit ||
+                repo?.reference?.tag ||
+                repo?.reference?.semver;
+              return ref;
+            }
+            return "-";
           },
         },
         {
