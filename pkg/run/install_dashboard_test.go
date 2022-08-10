@@ -154,7 +154,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 				Chart: helmv2.HelmChartTemplate{
 					Spec: helmv2.HelmChartTemplateSpec{
 						Chart:   "weave-gitops",
-						Version: "2.0.6",
+						Version: "3.0.0",
 						SourceRef: helmv2.CrossNamespaceObjectReference{
 							Kind: "HelmRepository",
 							Name: "ww-gitops",
@@ -219,7 +219,7 @@ var _ = Describe("makeHelmRelease", func() {
 				Chart: helmv2.HelmChartTemplate{
 					Spec: helmv2.HelmChartTemplateSpec{
 						Chart:   "weave-gitops",
-						Version: "2.0.6",
+						Version: "3.0.0",
 						SourceRef: helmv2.CrossNamespaceObjectReference{
 							Kind: "HelmRepository",
 							Name: "ww-gitops",
