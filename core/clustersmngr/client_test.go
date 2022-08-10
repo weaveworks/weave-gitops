@@ -33,18 +33,7 @@ func TestClientGet(t *testing.T) {
 
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -80,17 +69,7 @@ func TestClientClusteredList(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -185,17 +164,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 		createKust(appName, ns2.Name)
 	}
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns1, *ns2},
@@ -238,17 +207,7 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {},
@@ -290,17 +249,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 
 	clusterName := "mycluster"
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -331,17 +280,7 @@ func TestClientList(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -378,17 +317,7 @@ func TestClientCreate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -423,17 +352,7 @@ func TestClientDelete(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -466,17 +385,7 @@ func TestClientUpdate(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -514,17 +423,7 @@ func TestClientPatch(t *testing.T) {
 	clusterName := "mycluster"
 	appName := "myapp" + rand.String(5)
 
-	clientsPool := createClusterClientsPool(g)
-
-	err := clientsPool.Add(
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
-		clustersmngr.Cluster{
-			Name:      clusterName,
-			Server:    k8sEnv.Rest.Host,
-			TLSConfig: k8sEnv.Rest.TLSClientConfig,
-		},
-	)
-	g.Expect(err).To(BeNil())
+	clientsPool := createClusterClientsPool(g, clusterName)
 
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns},
@@ -570,11 +469,22 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	return ns
 }
 
-func createClusterClientsPool(g *GomegaWithT) clustersmngr.ClientsPool {
+func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.ClientsPool {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
 	clientsPool := clustersmngr.NewClustersClientsPool(scheme)
+
+	err = clientsPool.Add(
+		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{}),
+		clustersmngr.Cluster{
+			Name:      clusterName,
+			Server:    k8sEnv.Rest.Host,
+			TLSConfig: k8sEnv.Rest.TLSClientConfig,
+		},
+	)
+
+	g.Expect(err).To(BeNil())
 
 	return clientsPool
 }
