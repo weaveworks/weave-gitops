@@ -61,7 +61,6 @@ func (cs *coreServer) ListKustomizations(ctx context.Context, msg *pb.ListKustom
 			}
 
 			for _, kustomization := range list.Items {
-
 				tenant := getTenant(kustomization.Namespace, n, clusterUserNamespaces)
 
 				k, err := types.KustomizationToProto(&kustomization, n, tenant)

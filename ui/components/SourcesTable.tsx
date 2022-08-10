@@ -14,12 +14,12 @@ import {
   removeKind,
   statusSortHelper,
 } from "../lib/utils";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { filterByStatusCallback, filterConfig } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
 import URLAddressableTable from "./URLAddressableTable";
-import { useFeatureFlags } from "../hooks/featureflags";
 
 type Props = {
   className?: string;
@@ -36,7 +36,7 @@ function SourcesTable({ className, sources }: Props) {
     return { ...s, type: removeKind(s.kind) };
   });
 
-  const initialFilterState = flags.WEAVE_GITOPS_FEATURE_TENANCY ? {
+  const initialFilterState = flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" ? {
     ...filterConfig(sources, "type"),
     ...filterConfig(sources, "namespace"),
     ...filterConfig(sources, "tenant"),
@@ -76,6 +76,7 @@ function SourcesTable({ className, sources }: Props) {
         },
         { label: "Type", value: "type" },
         { label: "Namespace", value: "namespace" },
+        flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&
         {
           label: "Tenant",
           value: "tenant",
