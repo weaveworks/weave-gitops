@@ -29,6 +29,7 @@ export const theme: DefaultTheme = {
     success: "#27AE60",
     alert: "#BC381D",
     suspended: "#f2994a",
+    neutralGray: "#F6F7F9",
     neutral00: "#ffffff",
     neutral10: "#f5f5f5",
     neutral20: "#d8d8d8",
@@ -95,6 +96,26 @@ export const GlobalStyle = createGlobalStyle`
   }
   .auth-modal-size {
     min-height: 475px
+  }
+  ::-webkit-scrollbar-track {
+    margin-top: 5px;
+    -webkit-box-shadow: transparent;
+    -moz-box-shadow: transparent;
+    background-color: transparent;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar{
+    width: 5px;
+    height: 5px;
+    background-color: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: ${(props) => props.theme.colors.neutral20};
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: ${(props) => props.theme.colors.neutral30};
   }
 `;
 

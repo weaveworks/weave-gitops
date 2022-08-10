@@ -32,6 +32,7 @@ export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
   .MuiChip-root {
     margin-right: ${(props) => props.theme.spacing.xxs};
   }
-  margin: 4px 0px;
-  overflow: scroll;
+  padding: 4px 0px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 `;
