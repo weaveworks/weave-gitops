@@ -4,7 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: wego-admin-role
-  namespace: flux-system
+  namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups: [""]
     resources: ["configmaps", "secrets", "pods", "services", "namespaces", "persistentvolumes", "persistentvolumeclaims"]
@@ -41,6 +41,51 @@ rules:
     verbs: [ "get", "list", "patch" ]
 {{- if gt (len $.Values.rbac.additionalRules) 0 -}}
 {{- toYaml $.Values.rbac.additionalRules | nindent 2 -}}
+{{- end }}
+{{- if ne .Release.Namespace "flux-system" }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-admin-role
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "pods", "services", "namespaces", "persistentvolumes", "persistentvolumeclaims"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets", "statefulsets"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["batch"]
+    resources: [ "jobs", "cronjobs"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "clusterroles", "rolebindings", "clusterrolebindings"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["infra.contrib.fluxcd.io"]
+    resources: ["terraforms"]
+    verbs: [ "get", "list", "patch" ]
+{{- if gt (len $.Values.rbac.additionalRules) 0 -}}
+{{- toYaml $.Values.rbac.additionalRules | nindent 2 -}}
+{{- end -}}
 {{- end -}}
 {{- if .Values.adminUser.createClusterRole }}
 ---
@@ -71,7 +116,7 @@ rules:
     resources: ["events"]
     verbs: ["get", "watch", "list"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
     verbs: [ "get", "list", "patch" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]

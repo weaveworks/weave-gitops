@@ -15,8 +15,6 @@ This section details the steps required to install Weave GitOps on a Kubernetes 
 
 #### Kubernetes Cluster
 This version of Weave GitOps is tested against the following Kubernetes releases:
-* 1.20
-* 1.21
 * 1.22
 * 1.23
 * 1.24
@@ -24,16 +22,12 @@ This version of Weave GitOps is tested against the following Kubernetes releases
 Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
 
 #### Install Flux
-Weave GitOps is an extension to Flux and therefore requires that Flux 0.29 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.31 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
 This version of Weave GitOps is tested against the following Flux releases:
-* 0.29
-* 0.30
 * 0.31
 
 ### Install the Helm Chart
-
-⚠️ Note that the following instructions require Flux version 0.31.0 or later to make use of the OCI registry for Helm chart storage. If your Flux version is older, please upgrade prior to following the instructions below. ⚠️.
 
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
 
@@ -363,7 +357,7 @@ There are several different ways to generate a bcrypt hash, this guide uses `git
 
 ```bash
 PASSWORD="<your password>"
-echo  $PASSWORD | gitops get bcrypt-hash
+echo -n $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 

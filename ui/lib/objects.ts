@@ -16,6 +16,7 @@ export enum Kind {
   HelmChart = "HelmChart",
   Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
+  OCIRepository = "OCIRepository",
 }
 
 export function fluxObjectKindToKind(fok: FluxObjectKind): Kind {
@@ -146,5 +147,27 @@ export class GitRepository extends FluxObject {
 
   get reference(): GitRepositoryRef {
     return this.obj.spec?.ref || {};
+  }
+}
+
+export class OCIRepository extends FluxObject {
+  get url(): string {
+    return this.obj.spec?.url || "";
+  }
+
+  get source(): string {
+    const metadata = this.obj.status?.artifact?.metadata;
+    if (!metadata) {
+      return "";
+    }
+    return metadata["org.opencontainers.image.source"] || "";
+  }
+
+  get revision(): string {
+    const metadata = this.obj.status?.artifact?.metadata;
+    if (!metadata) {
+      return "";
+    }
+    return metadata["org.opencontainers.image.revision"] || "";
   }
 }

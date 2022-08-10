@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=0.31.0
+FLUX_VERSION=0.31.5
 DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290
 
 # Go build args
@@ -51,12 +51,13 @@ endif
 all: gitops gitops-server ## Build Gitops binary. targets: gitops gitops-server
 
 TEST_TO_RUN?=./...
+TEST_V?=-v
 ##@ Test
 unit-tests: ## Run unit tests
 	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
 	# This tool doesn't have releases - it also is only a shim
 	@go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.19.2) CGO_ENABLED=0 ginkgo -v -tags unittest $(TEST_TO_RUN)
+	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.19.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh

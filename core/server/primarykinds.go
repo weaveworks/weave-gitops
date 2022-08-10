@@ -28,6 +28,7 @@ func DefaultPrimaryKinds() *PrimaryKinds {
 	kinds.kinds[sourcev1.HelmChartKind] = sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
 	kinds.kinds[sourcev1.HelmRepositoryKind] = sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 	kinds.kinds[sourcev1.BucketKind] = sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
+	kinds.kinds[sourcev1.OCIRepositoryKind] = sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
 
 	return kinds
 }

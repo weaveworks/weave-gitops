@@ -109,6 +109,8 @@ func getFluxObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {
 		return &internal.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
 	case pb.FluxObjectKind_KindHelmRepository:
 		return &internal.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
+	case pb.FluxObjectKind_KindOCIRepository:
+		return &internal.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind.String())
@@ -120,10 +122,10 @@ func kindToSourceType(kind string) pb.FluxObjectKind {
 		return pb.FluxObjectKind_KindGitRepository
 	case "Bucket":
 		return pb.FluxObjectKind_KindBucket
-
 	case "HelmRepository":
 		return pb.FluxObjectKind_KindHelmRepository
-
+	case "OCIRepository":
+		return pb.FluxObjectKind_KindOCIRepository
 	case "HelmChart":
 		return pb.FluxObjectKind_KindHelmChart
 	}
