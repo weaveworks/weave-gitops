@@ -98,7 +98,7 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 		return nil, err
 	}
 
-    // adjust this to send tenant instead of ""
+	// adjust this to send tenant instead of ""
 	res, err := types.KustomizationToProto(k, msg.ClusterName, "")
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)

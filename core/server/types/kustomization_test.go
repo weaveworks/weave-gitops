@@ -188,8 +188,8 @@ func TestKustomization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			 // adjust this to send tenant instead of ""
-			res, err := KustomizationToProto(&tt.state, tt.clusterName)
+			// adjust this to send tenant instead of ""
+			res, err := KustomizationToProto(&tt.state, tt.clusterName, "")
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(res).To(Equal(tt.result))
