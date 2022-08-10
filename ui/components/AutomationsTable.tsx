@@ -23,25 +23,27 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
   automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
-  const initialFilterState = flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" ? {
-    ...filterConfig(automations, "type"),
-    ...filterConfig(automations, "namespace"),
-    ...filterConfig(automations, "clusterName"),
-    ...filterConfig(automations, "tenant"),
-    ...filterConfig(automations, "status", filterByStatusCallback),
-  } : { 
-    ...filterConfig(automations, "type"),
-    ...filterConfig(automations, "namespace"),
-    ...filterConfig(automations, "clusterName"),
-    ...filterConfig(automations, "status", filterByStatusCallback),
-  }
+  const initialFilterState =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? {
+          ...filterConfig(automations, "type"),
+          ...filterConfig(automations, "namespace"),
+          ...filterConfig(automations, "clusterName"),
+          ...filterConfig(automations, "tenant"),
+          ...filterConfig(automations, "status", filterByStatusCallback),
+        }
+      : {
+          ...filterConfig(automations, "type"),
+          ...filterConfig(automations, "namespace"),
+          ...filterConfig(automations, "clusterName"),
+          ...filterConfig(automations, "status", filterByStatusCallback),
+        };
 
   let fields: Field[] = [
     {
@@ -74,11 +76,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Namespace",
       value: "namespace",
-    },
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && 
-    {
-      label: "Tenant",
-      value: "tenant",
     },
     {
       label: "Cluster",
@@ -156,7 +153,17 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
 
   return (
     <URLAddressableTable
-      fields={fields}
+      fields={
+        flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+          ? [
+              ...fields,
+              {
+                label: "Tenant",
+                value: "tenant",
+              },
+            ]
+          : fields
+      }
       filters={initialFilterState}
       rows={automations}
       className={className}
