@@ -22,7 +22,7 @@ const (
 	ClustersClientCtxKey key = iota
 	// DefaultCluster name
 	DefaultCluster = "Default"
-	// ClientQPS is the QPS to use while creating the k8s clients
+	// ClientQPS is the QPS to use while creating the k8s clients (actually a float32)
 	ClientQPS = 1000
 	// ClientBurst is the burst to use while creating the k8s clients
 	ClientBurst = 2000
