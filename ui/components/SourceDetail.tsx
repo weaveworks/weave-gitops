@@ -74,8 +74,8 @@ function SourceDetail<T extends FluxObject>({
     return <LoadingPage />;
   }
 
-  if (isSuspended != source.suspended) {
-    setIsSuspended(source.suspended);
+  if (isSuspended != source?.suspended) {
+    setIsSuspended(source?.suspended);
   }
 
   const items = info(source);
@@ -85,7 +85,7 @@ function SourceDetail<T extends FluxObject>({
   };
 
   const isRelevant = (expectedType, expectedName) => {
-    return expectedType == source.kind && isNameRelevant(expectedName);
+    return expectedType == source?.kind && isNameRelevant(expectedName);
   };
 
   const relevantAutomations = _.filter(automations?.result, (a) => {
@@ -118,7 +118,7 @@ function SourceDetail<T extends FluxObject>({
   return (
     <Flex wide tall column className={className}>
       <Text size="large" semiBold titleHeight>
-        {source.name}
+        {source?.name}
       </Text>
       {(error || suspend.error) && (
         <Alert
@@ -127,7 +127,10 @@ function SourceDetail<T extends FluxObject>({
           message={error.message || suspend.error.message}
         />
       )}
-      <PageStatus conditions={source.conditions} suspended={source.suspended} />
+      <PageStatus
+        conditions={source?.conditions}
+        suspended={source?.suspended}
+      />
       <Flex wide start>
         <SyncButton
           onClick={handleSyncClicked}
@@ -154,17 +157,17 @@ function SourceDetail<T extends FluxObject>({
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
-            namespace={source.namespace}
+            namespace={source?.namespace}
             involvedObject={{
               kind: type,
               name,
-              namespace: source.namespace,
+              namespace: source?.namespace,
             }}
           />
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <YamlView
-            yaml={source.yaml}
+            yaml={source?.yaml}
             object={{
               kind: source?.kind,
               name: source?.name,
