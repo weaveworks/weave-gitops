@@ -161,7 +161,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		var err error
-		sourceRequestedAt, err = RequestReconciliation(context.Background(), kubeClient,
+		sourceRequestedAt, err = requestReconciliation(context.Background(), kubeClient,
 			namespacedName, gvk)
 
 		return err == nil, nil

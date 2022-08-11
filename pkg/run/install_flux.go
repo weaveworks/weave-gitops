@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -79,6 +80,19 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient client.Cl
 	}
 
 	return fluxVersion, nil
+}
+
+func ValidateComponents(components []string) error {
+	defaults := install.MakeDefaultOptions()
+	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
+
+	for _, component := range components {
+		if !slices.Contains(bootstrapAllComponents, component) {
+			return fmt.Errorf("component %s is not available", component)
+		}
+	}
+
+	return nil
 }
 
 func WaitForDeploymentToBeReady(log logger.Logger, kubeClient client.Client, deploymentName string, namespace string) error {
