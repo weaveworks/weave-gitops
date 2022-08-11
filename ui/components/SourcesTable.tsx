@@ -21,6 +21,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
 import URLAddressableTable from "./URLAddressableTable";
+import { Field } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -53,7 +54,7 @@ function SourcesTable({ className, sources }: Props) {
           ...filterConfig(sources, "clusterName"),
         };
 
-  let fields: Field[] = [
+  const fields: Field[] = [
     {
       label: "Name",
       value: (s: Source) => (

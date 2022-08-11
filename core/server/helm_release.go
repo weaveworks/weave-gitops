@@ -195,6 +195,6 @@ func getTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 			return ns.Labels["toolkit.fluxcd.io/tenant"]
 		}
 	}
-	
+
 	return ""
 }
