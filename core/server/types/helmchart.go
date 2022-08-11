@@ -21,6 +21,6 @@ func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string, tenant 
 		LastUpdatedAt: lastUpdatedAt(helmchart),
 		ClusterName:   clusterName,
 		ApiVersion:    helmchart.APIVersion,
-		Tenant: 	   tenant,
+		Tenant:        tenant,
 	}
 }

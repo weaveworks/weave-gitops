@@ -82,9 +82,8 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 	}
 
 	var results []*pb.HelmRepository
-	
-	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {

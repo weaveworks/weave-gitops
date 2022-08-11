@@ -27,7 +27,6 @@ const (
 	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
 )
 
-
 var flags map[string]string = make(map[string]string)
 
 // Set sets one specific featureflag
@@ -50,7 +49,6 @@ func Get(key string) string {
 func GetFlags() map[string]string {
 	return flags
 }
-
 
 func SetFromEnv(envVars []string) {
 	for _, envVar := range envVars {

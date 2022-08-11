@@ -144,7 +144,7 @@ func TestHelmRepository(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := HelmRepositoryToProto(&tt.state, tt.clusterName)
+			res := HelmRepositoryToProto(&tt.state, tt.clusterName, "")
 
 			g.Expect(res).To(Equal(tt.result))
 		})

@@ -116,7 +116,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
-	
+
 	featureflags.SetFromEnv(os.Environ())
 
 	mux := http.NewServeMux()

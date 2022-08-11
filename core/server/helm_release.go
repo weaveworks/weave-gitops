@@ -188,4 +188,3 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 
 	return gvk, nil
 }
-

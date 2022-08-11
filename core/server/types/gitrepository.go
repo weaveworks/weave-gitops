@@ -20,7 +20,7 @@ func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string
 		LastUpdatedAt: lastUpdatedAt(repository),
 		ClusterName:   clusterName,
 		ApiVersion:    repository.APIVersion,
-		Tenant: 	   tenant,
+		Tenant:        tenant,
 	}
 
 	if repository.Spec.Reference != nil {
