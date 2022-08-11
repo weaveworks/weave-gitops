@@ -7,6 +7,7 @@ import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 import Logo from "./Logo";
 import UserSettings from "./UserSettings";
@@ -20,6 +21,7 @@ const navItems = [
   {
     value: V2Routes.Automations,
     label: "Applications",
+    icon: IconType.ApplicationsIcon,
   },
   {
     value: V2Routes.Sources,
@@ -30,25 +32,30 @@ const navItems = [
   {
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
+    icon: IconType.FluxIcon,
   },
   {
     value: "docs",
     label: "Docs",
     href: "https://docs.gitops.weave.works/",
     newTab: true,
+    icon: IconType.DocsIcon,
   },
 ];
 
-const LinkTab = (props: any) => (
-  <Tab
-    component={forwardRef((p: any, ref) => (
-      <Link innerRef={ref} {...p} />
-    ))}
-    {...props}
-  />
-);
-
-const StyleLinkTab = styled(LinkTab)`
+const LinkTab = styled((props: any) => {
+  console.log(props.icon);
+  return (
+    <Tab
+      icon={props.icon}
+      iconPosition="start"
+      component={forwardRef((p: any, ref) => (
+        <Link innerRef={ref} {...p} />
+      ))}
+      {...props}
+    />
+  );
+})`
   span {
     align-items: flex-start;
   }
@@ -171,7 +178,7 @@ function Layout({ className, children }: Props) {
               value={getParentNavValue(currentPage)}
             >
               {_.map(navItems, (n) => (
-                <StyleLinkTab
+                <LinkTab
                   key={n.label}
                   label={n.label}
                   to={formatURL(n.value)}
@@ -179,6 +186,7 @@ function Layout({ className, children }: Props) {
                   className={n.sub && "sub-item"}
                   href={n.href}
                   newTab={n.newTab}
+                  icon={n.icon && <Icon size="small" type={n.icon} />}
                 />
               ))}
             </Tabs>
