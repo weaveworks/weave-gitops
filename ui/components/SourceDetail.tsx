@@ -120,14 +120,13 @@ function SourceDetail<T extends FluxObject>({
       <Text size="large" semiBold titleHeight>
         {source.name}
       </Text>
-      {error ||
-        (suspend.error && (
-          <Alert
-            severity="error"
-            title="Error"
-            message={error.message || suspend.error.message}
-          />
-        ))}
+      {(error || suspend.error) && (
+        <Alert
+          severity="error"
+          title="Error"
+          message={error.message || suspend.error.message}
+        />
+      )}
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
       <Flex wide start>
         <SyncButton
