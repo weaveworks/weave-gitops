@@ -101,13 +101,14 @@ We will generate a bcrypt hash for your chosen password and store it as a secret
    $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
    ```
 
-1. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
+1. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file, together with any other settings:
 
    ```yaml title="./weave-gitops-values.yaml"
    adminUser:
      create: true
      username: admin
      passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+   listOCIRepositories: true # Display OCI Repositories, requires flux 0.32
    ```
 
    :::info
