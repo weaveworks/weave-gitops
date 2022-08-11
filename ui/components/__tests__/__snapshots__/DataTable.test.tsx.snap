@@ -111,6 +111,9 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   overflow-x: auto;
 }
 
@@ -134,8 +137,13 @@ exports[`DataTable snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c0 table {
+  margin-top: 12px;
+}
+
 .c0 th {
-  padding: 0;
+  padding: 8px;
+  background: #F6F7F9;
 }
 
 .c0 td {
