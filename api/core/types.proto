@@ -88,6 +88,7 @@ message HelmChart {
     string        lastUpdatedAt        = 9;
     string        clusterName          = 10;
     string        apiVersion           = 11;
+    string        tenant               = 12;
 }
 
 message HelmRelease {
@@ -119,6 +120,7 @@ message GitRepository {
     string           lastUpdatedAt        = 9;
     string           clusterName          = 10;
     string           apiVersion           = 11;
+    string           tenant               = 12;
 }
 
 message HelmRepository {
@@ -132,6 +134,7 @@ message HelmRepository {
     string             clusterName          = 8;
     string             apiVersion           = 9;
     HelmRepositoryType repositoryType       = 10;
+    string             tenant               = 11;
 }
 
 message Bucket {
@@ -155,6 +158,7 @@ message Bucket {
     string   lastUpdatedAt        = 13;
     string   clusterName          = 14;
     string   apiVersion           = 15;
+    string   tenant               = 16;
 }
 
 message OCIRepository {
@@ -167,6 +171,7 @@ message OCIRepository {
     string             lastUpdatedAt        = 7;
     string             clusterName          = 8;
     string             apiVersion           = 9;
+    string             tenant               = 10;
 }
 
 

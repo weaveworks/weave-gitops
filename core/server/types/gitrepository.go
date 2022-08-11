@@ -5,7 +5,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string) *pb.GitRepository {
+func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string, tenant string) *pb.GitRepository {
 	if repository == nil {
 		return nil
 	}
@@ -20,6 +20,7 @@ func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string
 		LastUpdatedAt: lastUpdatedAt(repository),
 		ClusterName:   clusterName,
 		ApiVersion:    repository.APIVersion,
+		Tenant: 	   tenant,
 	}
 
 	if repository.Spec.Reference != nil {

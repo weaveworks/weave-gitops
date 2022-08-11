@@ -826,6 +826,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1118,6 +1121,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1190,6 +1196,9 @@
           "type": "string"
         },
         "apiVersion": {
+          "type": "string"
+        },
+        "tenant": {
           "type": "string"
         }
       }
@@ -1282,6 +1291,9 @@
         },
         "repositoryType": {
           "$ref": "#/definitions/v1HelmRepositoryType"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1609,6 +1621,9 @@
           "type": "string"
         },
         "apiVersion": {
+          "type": "string"
+        },
+        "tenant": {
           "type": "string"
         }
       }

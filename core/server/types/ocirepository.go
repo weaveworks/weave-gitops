@@ -5,7 +5,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func OCIRepositoryToProto(ociRepository *sourcev1.OCIRepository, clusterName string) *pb.OCIRepository {
+func OCIRepositoryToProto(ociRepository *sourcev1.OCIRepository, clusterName string, tenant string) *pb.OCIRepository {
 	return &pb.OCIRepository{
 		Name:          ociRepository.Name,
 		Namespace:     ociRepository.Namespace,
@@ -16,5 +16,6 @@ func OCIRepositoryToProto(ociRepository *sourcev1.OCIRepository, clusterName str
 		LastUpdatedAt: lastUpdatedAt(ociRepository),
 		ClusterName:   clusterName,
 		ApiVersion:    ociRepository.APIVersion,
+		Tenant:        tenant,
 	}
 }

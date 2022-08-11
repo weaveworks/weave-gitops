@@ -189,12 +189,3 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmReleas
 	return gvk, nil
 }
 
-func getTenant(namespace, clusterName string, clusterUserNamespaces map[string][]v1.Namespace) string {
-	for _, ns := range clusterUserNamespaces[clusterName] {
-		if ns.GetName() == namespace {
-			return ns.Labels["toolkit.fluxcd.io/tenant"]
-		}
-	}
-
-	return ""
-}

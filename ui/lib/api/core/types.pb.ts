@@ -93,6 +93,7 @@ export type HelmChart = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmRelease = {
@@ -124,6 +125,7 @@ export type GitRepository = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmRepository = {
@@ -137,6 +139,7 @@ export type HelmRepository = {
   clusterName?: string
   apiVersion?: string
   repositoryType?: HelmRepositoryType
+  tenant?: string
 }
 
 export type Bucket = {
@@ -155,6 +158,7 @@ export type Bucket = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type OCIRepository = {
@@ -167,6 +171,7 @@ export type OCIRepository = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type Object = {

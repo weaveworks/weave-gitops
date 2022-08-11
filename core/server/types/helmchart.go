@@ -5,7 +5,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string) *pb.HelmChart {
+func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string, tenant string) *pb.HelmChart {
 	return &pb.HelmChart{
 		Name:      helmchart.Name,
 		Namespace: helmchart.Namespace,
@@ -21,5 +21,6 @@ func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string) *pb.Hel
 		LastUpdatedAt: lastUpdatedAt(helmchart),
 		ClusterName:   clusterName,
 		ApiVersion:    helmchart.APIVersion,
+		Tenant: 	   tenant,
 	}
 }
