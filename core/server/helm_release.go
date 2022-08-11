@@ -98,7 +98,7 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 
 	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
-	tenant := getTenant(helmrelease.Namespace, msg.ClusterName, clusterUserNamespaces)
+	tenant := getTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
 
 	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
 
