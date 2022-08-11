@@ -10,6 +10,7 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 import Logo from "./Logo";
+import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -44,20 +45,47 @@ const navItems = [
 ];
 
 const LinkTab = styled((props: any) => {
-  console.log(props.icon);
   return (
     <Tab
-      icon={props.icon}
-      iconPosition="start"
       component={forwardRef((p: any, ref) => (
-        <Link innerRef={ref} {...p} />
+        <Flex
+          wide
+          tall
+          align
+          start
+          key={props.label}
+          value={props.value}
+          className="link-flex"
+        >
+          {props.icon ? (
+            <Icon type={props.icon} size="medium" />
+          ) : (
+            <Spacer padding="small" />
+          )}
+          <Spacer padding="xxs" />
+          <Link
+            innerRef={ref}
+            to={formatURL(props.value)}
+            href={props.href}
+            newTab={props.newTab}
+            textProps={{
+              uppercase: true,
+              size: "small",
+              bold: !props.sub,
+              semiBold: props.sub,
+            }}
+          >
+            {props.label}
+          </Link>
+        </Flex>
       ))}
       {...props}
     />
   );
 })`
-  span {
-    align-items: flex-start;
+  &.link-flex {
+    padding: 9px 20px;
+    letter-spacing: 1;
   }
 `;
 
@@ -91,37 +119,6 @@ const NavContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.xs};
   box-sizing: border-box;
   overflow-y: auto;
-  .MuiTab-textColorInherit {
-    opacity: 1;
-    .MuiTab-wrapper {
-      font-weight: 600;
-      font-size: 20px;
-      color: ${(props) => props.theme.colors.neutral40};
-    }
-    &.sub-item {
-      opacity: 0.7;
-      .MuiTab-wrapper {
-        font-weight: 400;
-      }
-    }
-  }
-  .MuiTabs-indicator {
-    width: 4px;
-    background-color: ${(props) => props.theme.colors.primary};
-  }
-  .MuiTab-root {
-    padding: 0px 12px;
-    min-height: 24px;
-    &.sub-item {
-      margin-bottom: 32px;
-    }
-  }
-  ${Link} {
-    justify-content: flex-start;
-    &.sub-item {
-      font-weight: 400;
-    }
-  }
 `;
 
 const ContentContainer = styled.div`
@@ -183,10 +180,10 @@ function Layout({ className, children }: Props) {
                   label={n.label}
                   to={formatURL(n.value)}
                   value={n.value}
-                  className={n.sub && "sub-item"}
+                  sub={n.sub}
                   href={n.href}
                   newTab={n.newTab}
-                  icon={n.icon && <Icon size="small" type={n.icon} />}
+                  icon={n.icon}
                 />
               ))}
             </Tabs>

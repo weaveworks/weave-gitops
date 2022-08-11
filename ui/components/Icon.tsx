@@ -159,7 +159,6 @@ function getIcon(i: IconType) {
 }
 
 function Icon({ className, type, text, color }: Props) {
-  console.log(type);
   return (
     <Flex align className={className}>
       {React.createElement(getIcon(type))}
