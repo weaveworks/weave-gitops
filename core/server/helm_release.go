@@ -96,8 +96,11 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
-	// adjust this to send tenant instead of ""
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, "")
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := getTenant(helmrelease.Namespace, msg.ClusterName, clusterUserNamespaces)
+
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
 
 	res.ApiVersion = apiVersion
 

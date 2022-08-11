@@ -97,8 +97,11 @@ func (cs *coreServer) GetKustomization(ctx context.Context, msg *pb.GetKustomiza
 		return nil, err
 	}
 
-	// adjust this to send tenant instead of ""
-	res, err := types.KustomizationToProto(k, msg.ClusterName, "")
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := getTenant(k.Namespace, msg.ClusterName, clusterUserNamespaces)
+
+	res, err := types.KustomizationToProto(k, msg.ClusterName, tenant)
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)
 	}
