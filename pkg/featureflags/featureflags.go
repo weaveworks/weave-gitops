@@ -65,5 +65,4 @@ func SetFromEnv(envVars []string) {
 
 		Set(key, val)
 	}
-
 }
