@@ -28,7 +28,7 @@ rules:
     resources: ["events"]
     verbs: ["get", "watch", "list"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
     verbs: [ "get", "list", "patch" ]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
