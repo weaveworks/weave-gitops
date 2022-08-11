@@ -26,6 +26,19 @@ const SettingsMenu = styled(Menu)`
   }
 `;
 
+const PersonButton = styled(IconButton)<{ open: boolean }>`
+  &.MuiIconButton-root {
+    background-color: ${(props) => props.theme.colors.white};
+    ${(props) =>
+      props.open &&
+      `color: ${props.theme.colors.primary10}; background-color: rgba(0, 179, 236, .1);`}
+    :hover {
+      background-color: ${(props) => props.theme.colors.white};
+      color: ${(props) => props.theme.colors.primary10};
+    }
+  }
+`;
+
 function UserSettings({ className }: { className?: string }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
@@ -41,22 +54,15 @@ function UserSettings({ className }: { className?: string }) {
   return (
     <div className={className}>
       <Tooltip title="Account settings">
-        <IconButton
+        <PersonButton
           onClick={handleClick}
           aria-controls={open ? "account-menu" : undefined}
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
-          style={
-            open
-              ? {
-                  color: "rgb(0, 179, 236)",
-                  backgroundColor: "rgba(0, 179, 236, .1)",
-                }
-              : {}
-          }
+          open={open}
         >
           <Icon size="medium" type={IconType.Account} />
-        </IconButton>
+        </PersonButton>
       </Tooltip>
       <SettingsMenu
         anchorEl={anchorEl}
@@ -80,11 +86,4 @@ function UserSettings({ className }: { className?: string }) {
 
 export default styled(UserSettings)`
   padding-right: ${(props) => props.theme.spacing.small};
-  .MuiIconButton-root {
-    background-color: ${(props) => props.theme.colors.white};
-    :hover {
-      background-color: ${(props) => props.theme.colors.white};
-      color: ${(props) => props.theme.colors.primary10};
-    }
-  }
 `;
