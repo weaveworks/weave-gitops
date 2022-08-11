@@ -9,10 +9,10 @@ import (
 )
 
 type FakeClientsPool struct {
-	AddStub        func(clustersmngr.ClusterClientConfig, clustersmngr.Cluster) error
+	AddStub        func(clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) error
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
-		arg1 clustersmngr.ClusterClientConfig
+		arg1 clustersmngr.ClusterClientConfigFunc
 		arg2 clustersmngr.Cluster
 	}
 	addReturns struct {
@@ -48,11 +48,11 @@ type FakeClientsPool struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClientsPool) Add(arg1 clustersmngr.ClusterClientConfig, arg2 clustersmngr.Cluster) error {
+func (fake *FakeClientsPool) Add(arg1 clustersmngr.ClusterClientConfigFunc, arg2 clustersmngr.Cluster) error {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		arg1 clustersmngr.ClusterClientConfig
+		arg1 clustersmngr.ClusterClientConfigFunc
 		arg2 clustersmngr.Cluster
 	}{arg1, arg2})
 	stub := fake.AddStub
@@ -74,13 +74,13 @@ func (fake *FakeClientsPool) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeClientsPool) AddCalls(stub func(clustersmngr.ClusterClientConfig, clustersmngr.Cluster) error) {
+func (fake *FakeClientsPool) AddCalls(stub func(clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) error) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = stub
 }
 
-func (fake *FakeClientsPool) AddArgsForCall(i int) (clustersmngr.ClusterClientConfig, clustersmngr.Cluster) {
+func (fake *FakeClientsPool) AddArgsForCall(i int) (clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]

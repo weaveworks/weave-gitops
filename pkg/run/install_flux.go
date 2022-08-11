@@ -14,11 +14,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient client.Client, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
+func InstallFlux(log logger.Logger, ctx context.Context, installOptions install.Options, manager ResourceManagerForApply) error {
 	log.Actionf("Installing Flux ...")
 
 	manifests, err := install.Generate(installOptions, "")
@@ -29,7 +29,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient client.Clien
 
 	content := []byte(manifests.Content)
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, content)
+	applyOutput, err := apply(log, ctx, manager, content)
 	if err != nil {
 		log.Failuref("Flux install failed")
 		return err
@@ -80,6 +80,19 @@ func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient client.Cl
 	}
 
 	return fluxVersion, nil
+}
+
+func ValidateComponents(components []string) error {
+	defaults := install.MakeDefaultOptions()
+	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
+
+	for _, component := range components {
+		if !slices.Contains(bootstrapAllComponents, component) {
+			return fmt.Errorf("component %s is not available", component)
+		}
+	}
+
+	return nil
 }
 
 func WaitForDeploymentToBeReady(log logger.Logger, kubeClient client.Client, deploymentName string, namespace string) error {

@@ -28,6 +28,9 @@ const (
 	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
+	kubeClientTimeout       = 8 * time.Second
+	kubeClientDialTimeout   = 5 * time.Second
+	kubeClientDialKeepAlive = 30 * time.Second
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -142,7 +145,11 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
-			cf.log.Error(err, "Failed to update namespaces")
+			if merr, ok := err.(*multierror.Error); ok {
+				for _, cerr := range merr.Errors {
+					cf.log.Error(cerr, "failed to update namespaces")
+				}
+			}
 		}
 
 		return false, nil
@@ -152,10 +159,11 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 }
 
 func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
+	var result *multierror.Error
+
 	clients, err := clientsForClusters(cf.clusters.Get())
 	if err != nil {
-		cf.log.Error(err, "failed to create client")
-		return err
+		result, _ = err.(*multierror.Error)
 	}
 
 	cf.syncCaches()
@@ -180,7 +188,7 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 
 	wg.Wait()
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
@@ -268,7 +276,13 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 
 	for _, cluster := range cf.clusters.Get() {
 		if cluster.Name == clusterName {
-			config = ClientConfigWithUser(user)(cluster)
+			var err error
+
+			config, err = ClientConfigWithUser(user)(cluster)
+			if err != nil {
+				return nil, fmt.Errorf("error creating client for cluster: %w", err)
+			}
+
 			break
 		}
 	}
@@ -289,7 +303,7 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	pool := cf.newClustersPool(cf.scheme)
 
 	for _, cluster := range cf.clusters.Get() {
-		if err := pool.Add(restConfigFromCluster, cluster); err != nil {
+		if err := pool.Add(restConfigFromClusterWrapper(), cluster); err != nil {
 			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 		}
 	}
@@ -348,17 +362,40 @@ func impersonatedConfig(cluster Cluster, user *auth.UserPrincipal) *rest.Config 
 
 func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
 	clients := map[string]client.Client{}
+	errChan := make(chan error, len(clusters))
+
+	var wg sync.WaitGroup
+
+	var mutex sync.Mutex
 
 	for _, cluster := range clusters {
-		c, err := client.New(restConfigFromCluster(cluster), client.Options{})
-		if err != nil {
-			return nil, fmt.Errorf("failed creating client for cluster %s: %w", cluster.Name, err)
-		}
+		wg.Add(1)
 
-		clients[cluster.Name] = c
+		go func(clients map[string]client.Client, cluster Cluster, errChan chan error, mutex *sync.Mutex) {
+			defer wg.Done()
+
+			c, err := client.New(restConfigFromCluster(cluster), client.Options{})
+			if err != nil {
+				errChan <- fmt.Errorf("failed creating client for cluster %s: %w", cluster.Name, err)
+				return
+			}
+
+			mutex.Lock()
+			clients[cluster.Name] = c
+			mutex.Unlock()
+		}(clients, cluster, errChan, &mutex)
 	}
 
-	return clients, nil
+	wg.Wait()
+	close(errChan)
+
+	var result *multierror.Error
+
+	for err := range errChan {
+		result = multierror.Append(result, err)
+	}
+
+	return clients, result.ErrorOrNil()
 }
 
 func restConfigFromCluster(cluster Cluster) *rest.Config {
@@ -368,5 +405,14 @@ func restConfigFromCluster(cluster Cluster) *rest.Config {
 		TLSClientConfig: cluster.TLSConfig,
 		QPS:             ClientQPS,
 		Burst:           ClientBurst,
+		Timeout:         kubeClientTimeout,
+	}
+}
+
+// restConfigFromClusterWrapper wraps a call to restConfigFromCluster within a func
+// to satisfy the ClusterClientConfigFunc type.
+func restConfigFromClusterWrapper() ClusterClientConfigFunc {
+	return func(cluster Cluster) (*rest.Config, error) {
+		return restConfigFromCluster(cluster), nil
 	}
 }

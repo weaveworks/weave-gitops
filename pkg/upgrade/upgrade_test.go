@@ -9,7 +9,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/stretchr/testify/assert"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -20,6 +19,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
+
+const testNamespace = "some-namespace"
 
 func TestUpgradeDryRun(t *testing.T) {
 	gitClient := &gitfakes.FakeGit{}
@@ -38,7 +39,7 @@ func TestUpgradeDryRun(t *testing.T) {
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
-		Namespace:     wego.DefaultNamespace,
+		Namespace:     testNamespace,
 		DryRun:        true,
 	}, kubeClient, gitClient, gitProvider, logger, &output)
 
@@ -78,7 +79,7 @@ func TestUpgrade(t *testing.T) {
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
-		Namespace:     wego.DefaultNamespace,
+		Namespace:     testNamespace,
 	}, kubeClient, gitClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
@@ -111,7 +112,7 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			kubeClient := makeClient(t, tt.clusterState...)
-			err := getBasicAuth(context.Background(), kubeClient, wego.DefaultNamespace)
+			err := getBasicAuth(context.Background(), kubeClient, testNamespace)
 			assert.Equal(t, tt.expectedErr, err)
 		})
 	}
@@ -183,7 +184,7 @@ func createSecret(opts ...func(*corev1.Secret)) *corev1.Secret {
 	s := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-credentials",
-			Namespace: wego.DefaultNamespace,
+			Namespace: testNamespace,
 		},
 		Type: "Opaque",
 		Data: map[string][]byte{
@@ -204,7 +205,7 @@ func createGitRepository(name string) *sourcev1.GitRepository {
 	return &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: wego.DefaultNamespace,
+			Namespace: testNamespace,
 		},
 	}
 }

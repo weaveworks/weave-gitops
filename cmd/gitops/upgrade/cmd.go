@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -18,13 +17,12 @@ import (
 
 var upgradeCmdFlags upgrade.UpgradeValues
 
-var example = fmt.Sprintf(`  # Upgrade Weave GitOps in the %s namespace
+var example = `  # Upgrade Weave GitOps
   gitops upgrade --version 0.0.17 --config-repo https://github.com/my-org/my-management-cluster.git
 
   # Upgrade Weave GitOps and set the natsURL
   gitops upgrade --version 0.0.17 --set "agentTemplate.natsURL=my-cluster.acme.org:4222" \
-    --config-repo https://github.com/my-org/my-management-cluster.git`,
-	wego.DefaultNamespace)
+    --config-repo https://github.com/my-org/my-management-cluster.git`
 
 var Cmd = &cobra.Command{
 	Use:           "upgrade",
