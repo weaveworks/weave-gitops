@@ -27,6 +27,7 @@ This reference was generated for the chart version 3.0.0 which installs weave gi
 | ingress.enabled | bool | `false` |  |
 | ingress.hosts | string | `nil` |  |
 | ingress.tls | list | `[]` |  |
+| listOCIRepositories | bool | `false` | If set to true, OCI repositories will be included in the source view. This requires flux 0.32 or later. |
 | logLevel | string | `"info"` | What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error' |
 | metrics.enabled | bool | `false` | Start the metrics exporter |
 | metrics.service.annotations | object | `{"prometheus.io/path":"/metrics","prometheus.io/port":"{{ .Values.metrics.service.port }}","prometheus.io/scrape":"true"}` | Annotations to set on the service |
