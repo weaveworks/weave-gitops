@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -186,6 +187,13 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 
 func (cs *coreServer) ListOCIRepositories(ctx context.Context, msg *pb.ListOCIRepositoriesRequest) (*pb.ListOCIRepositoriesResponse, error) {
 	respErrors := []*pb.ListError{}
+
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_OCI_REPOSITORIES") == "" {
+		return &pb.ListOCIRepositoriesResponse{
+			OciRepositories: []*pb.OCIRepository{},
+			Errors:          respErrors,
+		}, nil
+	}
 
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
