@@ -5,7 +5,7 @@ import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
 import { IconType } from "./Icon";
 import Logo from "./Logo";
-import Nav from "./Nav";
+import Nav, { NavItem } from "./Nav";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -13,28 +13,30 @@ type Props = {
   children?: any;
 };
 
-const navItems = [
+const navItems: NavItem[] = [
   {
-    value: V2Routes.Automations,
     label: "Applications",
-    icon: IconType.ApplicationsIcon,
+    link: { value: V2Routes.Automations },
+    styles: { icon: IconType.ApplicationsIcon },
   },
   {
-    value: V2Routes.Sources,
     label: "Sources",
-    sub: true,
+    link: { value: V2Routes.Sources },
+    styles: { sub: true, groupEnd: true },
   },
   {
-    value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
-    icon: IconType.FluxIcon,
+    link: { value: V2Routes.FluxRuntime },
+    styles: { icon: IconType.FluxIcon, groupEnd: true },
   },
   {
-    value: "docs",
     label: "Docs",
-    href: "https://docs.gitops.weave.works/",
-    newTab: true,
-    icon: IconType.DocsIcon,
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    styles: { icon: IconType.DocsIcon, groupEnd: true },
   },
 ];
 
@@ -72,7 +74,7 @@ const ContentContainer = styled.div`
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
   overflow: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   box-sizing: border-box;
 `;
 
