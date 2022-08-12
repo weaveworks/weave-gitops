@@ -1,0 +1,588 @@
+---
+title: Installation
+sidebar_position: 1
+hide_title: true
+---
+
+import TierLabel from "./_components/TierLabel";
+import CurlCodeBlock from "./_components/CurlCodeBlock";
+
+## Installing Weave GitOps
+
+This section details the steps required to install Weave GitOps on a Kubernetes cluster.
+
+### Pre-requisites
+
+#### Kubernetes Cluster
+This version of Weave GitOps is tested against the following Kubernetes releases:
+* 1.22
+* 1.23
+* 1.24
+
+Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
+
+#### Install Flux
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.31 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+
+This version of Weave GitOps is tested against the following Flux releases:
+* 0.31
+
+### Install the Helm Chart
+
+Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
+
+```
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: weave-gitops
+      spec: 65m
+      sourceRef:
+        kind: HelmRepository
+        name: ww-gitops
+  interval: 50m
+  values:
+    adminUser:
+      create: true
+      username: <UPDATE>
+      passwordHash: <UPDATE>
+    listOCIRepositories: true # Display OCI Repositories, requires flux 0.32
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: ww-gitops
+  namespace: flux-system
+spec:
+  interval: 60m0s
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
+```
+
+There are many other values you can configure - for more information, see [our value file reference](./references/helm-reference.md).
+
+## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
+
+Weave GitOps Enterprise (WGE) provides ops teams with an easy way to assess the
+health of multiple clusters in a single place. It shows cluster information such as
+Kubernetes version and number of nodes and provides details about the GitOps operations
+on those clusters, such as Git repositories and recent commits. Additionally, it
+aggregates Prometheus alerts to assist with troubleshooting.
+
+To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.works](mailto:sales@weave.works)
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+To install Weave GitOps Enterprise
+
+import TOCInline from "@theme/TOCInline";
+
+<TOCInline toc={(() => {
+           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'installing-weave-gitops-enterprise')+1);
+           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '2'));
+           })()} />
+
+### 1. Set up a Management Cluster with `flux`
+
+To get you started in this document we'll cover:
+
+- `kind` as our management cluster with the _CAPD_ provider
+- **EKS** as our management cluster with the _CAPA_ provider
+
+However Weave GitOps Enterprise supports any combination of management cluster and CAPI provider.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="kind" label="kind">
+
+##### 1.1 We start with creating a kind-config.
+
+```yaml title="kind-config.yaml"
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraMounts:
+      - hostPath: /var/run/docker.sock
+        containerPath: /var/run/docker.sock
+```
+
+The `extraMounts` are for the Docker CAPI provider (CAPD) to be able to talk to the host docker
+
+##### 1.2 Start your kind cluster using the configuration above and Kubernetes v1.23.6
+
+```bash
+kind create cluster --config kind-config.yaml --image=kindest/node:v1.23.6
+```
+
+</TabItem>
+<TabItem value="eks" label="EKS">
+
+##### 1.1 Prepare IAM for installation
+
+The Cluster API needs special permissions in AWS. Use the `clusterawsadm` command below to roll out a CloudStack to installs the permissions into your AWS account. While the CloudStack is bound to a region, the resulting permissions are globally scoped. You can use any AWS Region that you have access to. The `clusterawsadm` command takes an AWSIAMConfiguration file. We have provided a working example for you :
+
+```yaml title="eks-config.yaml"
+apiVersion: bootstrap.aws.infrastructure.cluster.x-k8s.io/v1beta1
+kind: AWSIAMConfiguration
+spec:
+  bootstrapUser:
+    enable: true
+  eks:
+    iamRoleCreation: false # Set to true if you plan to use the EKSEnableIAM feature flag to enable automatic creation of IAM roles
+    defaultControlPlaneRole:
+      disable: false # Set to false to enable creation of the default control plane role
+    managedMachinePool:
+      disable: false # Set to false to enable creation of the default node pool role
+```
+
+Run `clusterawsadm` command to create the IAM group.
+
+```bash
+$ clusterawsadm bootstrap iam create-cloudformation-stack --config eks-config.yaml --region $REGION
+```
+
+Create an IAM User. This user will be used as a kind of service account. Assign the newly created group to this user. The group name will be something like: `cluster-api-provider-aws-s-AWSIAMGroupBootstrapper-XXXX`. Create a secret for the newly created IAM user.
+
+##### 1.2 Create the cluster
+
+In testing we used the following values
+`$INSTANCESIZE` : t3.large
+`$NUMOFNODES` : 2
+`$MINNODES` : 2
+`$MAXNODES` : 6
+
+```bash
+eksctl create cluster -n "$CLUSTERNAME" -r "$REGION" --nodegroup-name workers -t $INSTANCESIZE --nodes $NUMOFNODES --nodes-min $MINNODES --nodes-max $MAXNODES --ssh-access --alb-ingress-access
+```
+
+##### 1.3 Add cluster to kubeconfig
+
+Once the cluster is created, add the cluster to your `kubeconfig`
+
+```bash
+aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
+```
+
+</TabItem>
+</Tabs>
+
+##### Install Flux onto your cluster with the `flux bootstrap` command.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="github" label="GITHUB">
+
+```
+flux bootstrap github \
+  --owner=<github username> \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/management \
+  --personal
+```
+
+</TabItem>
+
+<TabItem value="gitlab" label="GITLAB">
+
+```
+flux bootstrap gitlab \
+  --owner=<gitlab username> \
+  --repository=fleet-infra \
+  --branch=main \
+  --path=./clusters/management \
+  --personal
+```
+
+</TabItem>
+
+
+</Tabs>
+
+* **owner**      - The username (or organization) of the git repository
+* **repository** - Git repository name
+* **branch**     - Git branch (default "main")
+* **path**       - path relative to the repository root, when specified the cluster sync will be scoped to this path
+* **personal**   -  if set, the owner is assumed to be a repo user
+
+More information about `flux` and the `flux bootstrap` command can be found [here](https://fluxcd.io/docs/cmd/)
+
+:::note At this point a few things have occurred:
+* Your Flux management cluster is now running
+* A new git repo was created based on the parameters you set in the `flux bootstrap` command. Take a look at your repositories. 
+:::
+
+### 2. Install a CAPI provider
+
+:::note `clusterctl` versions
+
+The example templates provided in this guide have been tested with `clusterctl` version `1.1.3`. However you might need to use an older or newer version depending on the capi-providers you plan on using.
+
+Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
+:::
+
+In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed. See [Cluster API Providers](./cluster-management/cluster-api-providers.mdx) page for more details on providers.
+Here we'll continue with our example instructions for CAPD and CAPA.
+
+<Tabs groupId="infrastructure" default>
+<TabItem value="kind" label="CAPD (kind)">
+
+```
+# Enable support for `ClusterResourceSet`s for automatically installing CNIs
+export EXP_CLUSTER_RESOURCE_SET=true
+
+clusterctl init --infrastructure docker
+```
+
+</TabItem>
+<TabItem value="eks" label="CAPA (EKS)">
+
+```
+export EXP_EKS=true
+export EXP_MACHINE_POOL=true
+export CAPA_EKS_IAM=true
+export EXP_CLUSTER_RESOURCE_SET=true
+
+clusterctl init --infrastructure aws
+```
+
+</TabItem>
+</Tabs>
+
+### 3. Apply the entitlements secret
+
+Contact sales@weave.works for a valid entitlements secret. Then apply it to the cluster:
+
+```bash
+kubectl apply -f entitlements.yaml
+```
+
+### 4. Configure access for writing to git from the UI
+
+<Tabs groupId="git-provider" default>
+<TabItem value="github" label="GitHub">
+GitHub requires no additional configuration for OAuth git access
+</TabItem>
+<TabItem value="gitlab" label="GitLab">
+
+Create a GitLab OAuth Application that will request `api` permissions to create pull requests on the user's behalf.
+Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
+
+The application should have at least these scopes:
+
+- `api`
+- `openid`
+- `email`
+- `profile`
+
+Add callback URLs to the application for each address the UI will be exposed on, e.g.:
+
+- `https://localhost:8000/oauth/gitlab` For port-forwarding and testing
+- `https://git.example.com/oauth/gitlab` For production use
+
+Save your application and take note of the **Client ID** and **Client Secret** and save
+them into the `git-provider-credentials` secret along with:
+
+- `GIT_HOST_TYPES` to tell WGE that the host is gitlab
+- `GITLAB_HOSTNAME` where the OAuth app is hosted
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="GITLAB_CLIENT_ID=13457" \
+  --from-literal="GITLAB_CLIENT_SECRET=24680" \
+  --from-literal="GITLAB_HOSTNAME=git.example.com" \
+  --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
+```
+
+</TabItem>
+</Tabs>
+
+
+### 5. Configure and commit
+
+We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
+
+Clone the newly created repo locally as we're gonna add some things!
+
+```
+git clone git@<provider>:<username>/fleet-infra
+cd fleet-infra
+```
+
+Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
+
+import ExampleWGE from "./assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!./assets/example-enterprise-helm.yaml";
+
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
+
+#### `values.config.capi.repositoryURL`
+Ensure this has been set to your repository URL.
+
+#### `values.config.capi.repositoryPath`
+By default, WGE will create new clusters in the `clusters/management/clusters` path.
+This can be configured with `values.config.capi.repositoryPath`.
+For example you might what to change it to `clusters/my-cluster/cluster` if you configured flux to reconcile `./clusters/my-cluster` instead.
+
+#### `values.config.capi.repositoryClustersPath`
+The other important path to configure is where applications and workloads that will be run on the new cluster will be stored.
+By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namespace}/{.clusterName}` path.
+
+Commit and push all the files
+
+```
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running. 
+
+### 6. Configure password
+
+In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
+
+There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
+
+```bash
+PASSWORD="<your password>"
+echo -n $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```
+
+Use the hashed output to create a Kubernetes username/password secret.
+
+```bash
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=wego-admin \
+  --from-literal=password='$2a$.......'
+```
+
+### 7. Check that WGE is installed
+
+You should now be able to load the WGE UI by port forwarding. 
+
+```bash
+kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
+```
+
+The WGE UI should now be accessible at [https://localhost:8000](https://localhost:8000).
+
+Use the username above and regular password (not the hashed version) to login.
+
+Head over to either:
+
+- [Getting started](./cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
+- [Deploying CAPA with EKS](./guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
+
+### (Optional) Install the TF-Controller
+
+The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way. 
+
+With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest. 
+
+Check out our guide on how to [use Terraform templates](./../guides/using-terraform-templates), and why not try your hands at using it with the RDS example!
+
+Install the TF-Controller to a cluster using Helm:
+```bash
+# Add tf-controller helm repository
+helm repo add tf-controller https://weaveworks.github.io/tf-controller/
+
+# Install tf-controller
+helm upgrade -i tf-controller tf-controller/tf-controller \
+    --namespace flux-system
+```
+
+Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-controller/getting_started/) documentation for more details on which parameters are configurable and how to install a specific version. 
+
+## AWS Marketplace
+Weave GitOps is also available via the AWS Marketplace.
+
+The following steps will allow you to deploy the Weave GitOps product to an EKS cluster via a Helm Chart.
+
+These instructions presume you already have installed [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/),
+[`eksctl`](https://github.com/weaveworks/eksctl), [`helm`](https://github.com/helm/helm) and
+the [Helm S3 Plugin](https://github.com/hypnoglow/helm-s3).
+
+### Step 1: Subscribe to Weave GitOps on the AWS Marketplace
+
+To deploy the managed Weave GitOps solution, first subscribe to the product on [AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-vkn2wejad2ix4).
+**This subscription is only available for deployment on EKS versions 1.17-1.21.**
+
+_Note: it may take ~20 minutes for your Subscription to become live and deployable._
+
+### [Optional] Step 2: Create an EKS cluster
+
+**If you already have an EKS cluster, you can skip ahead to Step 3.**
+
+If you do not have a cluster on EKS, you can use [`eksctl`](https://github.com/weaveworks/eksctl) to create one.
+
+Copy the contents of the sample file below into `cluster-config.yaml` and replace the placeholder values with your settings.
+See the [`eksctl` documentation](https://eksctl.io/) for more configuration options.
+
+```yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: CLUSTER_NAME # Change this
+  region: REGION # Change this
+
+# This section is required
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: wego-service-account # Altering this will require a corresponding change in a later command
+      namespace: flux-system
+    roleOnly: true
+    attachPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "aws-marketplace:RegisterUsage"
+        Resource: '*'
+
+# This section will create a single Managed nodegroup with one node.
+# Edit or remove as desired.
+managedNodeGroups:
+- name: ng1
+  instanceType: m5.large
+  desiredCapacity: 1
+```
+
+Create the cluster:
+
+```bash
+eksctl create cluster -f cluster-config.yaml
+```
+
+### [Optional] Step 3: Update your EKS cluster
+
+**If you created your cluster using the configuration file in Step 2, your cluster is
+already configured correctly and you can skip ahead to Step 4.**
+
+In order to use the Weave GitOps container product,
+your cluster must be configured to run containers with the correct IAM Policies.
+
+The recommended way to do this is via [IRSA](https://aws.amazon.com/blogs/opensource/introducing-fine-grained-iam-roles-service-accounts/).
+
+Use this `eksctl` configuration below (replacing the placeholder values) to:
+- Associate an OIDC provider
+- Create the required service account ARN
+
+Save the example below as `oidc-config.yaml`
+```yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: CLUSTER_NAME # Change this
+  region: REGION # Change this
+
+# This section is required
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: wego-service-account # Altering this will require a corresponding change in a later command
+      namespace: flux-system
+    roleOnly: true
+    attachPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "aws-marketplace:RegisterUsage"
+        Resource: '*'
+
+```
+
+```bash
+eksctl utils associate-iam-oidc-provider -f oidc-config.yaml --approve
+eksctl create iamserviceaccount -f oidc-config.yaml --approve
+```
+
+### Step 4: Fetch the Service Account Role ARN
+First retrieve the ARN of the IAM role which you created for the `wego-service-account`:
+
+```bash
+# replace the placeholder values with your configuration
+# if you changed the service account name from wego-service-account, update that in the command
+export SA_ARN=$(eksctl get iamserviceaccount --cluster <cluster-name> --region <region> | awk '/wego-service-account/ {print $3}')
+
+echo $SA_ARN
+# should return
+# arn:aws:iam::<account-id>:role/eksctl-<cluster-name>-addon-iamserviceaccount-xxx-Role1-1N41MLVQEWUOF
+```
+
+_This value will also be discoverable in your IAM console, and in the Outputs of the Cloud Formation
+template which created it._
+
+### Step 5: Install Weave GitOps
+
+Copy the Chart URL from the Usage Instructions in AWS Marketplace, or download the file from the Deployment template to your workstation.
+
+To be able to log in to your new installation, you need to set up authentication. Create a new file `values.yaml` where you set your username, and a bcrypt hash of your desired password, like so:
+
+```yaml title="./values.yaml"
+gitops:
+  adminUser:
+    create: true
+    username: <UPDATE>
+    passwordHash: <UPDATE>
+```
+
+Then install it:
+```bash
+helm install wego <URL/PATH> \
+  --namespace=flux-system \
+  --create-namespace \
+  --set serviceAccountRole="$SA_ARN" \
+  --values ./values.yaml
+
+# if you changed the name of the service account
+helm install wego <URL/PATH> \
+  --namespace=flux-system \
+  --create-namespace \
+  --set serviceAccountName='<name>' \
+  --set serviceAccountRole="$SA_ARN" \
+  --values ./values.yaml
+```
+
+### Step 6: Check your installation
+
+Run the following from your workstation:
+
+```bash
+kubectl get pods -n flux-system
+# you should see something like the following returned
+flux-system          helm-controller-5b96d94c7f-tds9n                    1/1     Running   0          53s
+flux-system          kustomize-controller-8467b8b884-x2cpd               1/1     Running   0          53s
+flux-system          notification-controller-55f94bc746-ggmwc            1/1     Running   0          53s
+flux-system          source-controller-78bfb8576-stnr5                   1/1     Running   0          53s
+flux-system          wego-metering-f7jqp                                 1/1     Running   0          53s
+flux-system          ww-gitops-weave-gitops-5bdc9f7744-vkh65             1/1     Running   0          53s
+```
+
+Your Weave GitOps installation is now ready!
+
+The quickest way to access your dashboard is by setting up a port forward:
+```
+kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+```
+Then, [open the dashboard](http://localhost:9001/).
