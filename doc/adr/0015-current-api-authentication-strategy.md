@@ -21,6 +21,40 @@ This supersedes the sections of [ADR-0005 Wego Core Auth Strategy](./0005-wego-c
 
 Since ADR-0005 was accepted there have been several changes to Weave GitOps. The largest of these has been the removal of support for making changes to git repositories and a greater use of `impersonation` for authentication to the Kubernetes API.
 
+```mermaid
+flowchart TD
+  start([Request]) --> iterate["Next authentication method (oidc, user etc.)"]
+
+  auth -.-> extAuth["[Optional] external authentication (e.g. OIDC)"]
+  extAuth -.-> auth
+
+  subgraph WithAPIAuthentication
+    iterate --> auth[Authenticate request]
+
+    auth --> isAuth{Is authenticated?}
+
+    isAuth --> |No| isLast{More auth methods?}
+    isAuth --> |Yes| set[Set Principal in context]
+
+  end
+  isAuth --> |Error| unauthorised(["401: unauthorised"])
+  isLast --> |No| unauthorised
+  isLast --> |Yes| auth
+
+  set --> handlers[Handle the request]
+  handlers -.->  k8sCall[Call kubernetes API]
+  k8sCall --> principalType{Principal has token?}
+
+  subgraph ClientConfigWithUser
+    principalType --> |No| impersonate[Call Kubernetes API with impersonation]
+    principalType --> |Yes| passthrough[Call Kubernetes API with principal's token]
+
+  end
+
+  impersonate --> response([Response])
+  passthrough --> response([Response])
+```
+
 ### Authentication to the server
 
 Currently there are 3 supported methods:
