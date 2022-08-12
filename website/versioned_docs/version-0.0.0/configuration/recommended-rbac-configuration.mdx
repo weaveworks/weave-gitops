@@ -1,0 +1,180 @@
+---
+title: Recommended RBAC Configuration
+sidebar_position: 0
+---
+
+This page summarises the contents of the [securing access to the dashboard](securing-access-to-the-dashboard.mdx),
+[service account permissions](service-account-permissions.mdx) and [user permissions](user-permissions.mdx). They should be
+read in addition to this page in order to understand the suggestions made here and
+their ramifications.
+
+This page is purposefully vague as the intention is to give a broad idea of how
+such a system could be implemented, not the specifics as that will be dependent
+on your specific circumstances and goals.
+
+:::note Gitops-Core
+These recommendations are for Weave GitOps Core. A similar system can be used
+within Enterprise but it would need to be adapted to account for multi-cluster
+configurations and is beyond the scope of this document.
+:::
+
+## Summary
+
+The general recommendation is to use OIDC and a small number of groups that
+are Weave GitOps can impersonate.
+
+OIDC is the recommended method for managing authentication as it decouples the
+need to manage user lists from the application, allowing it to be managed via
+a central system designed for that purpose (i.e. the OIDC provider). OIDC also
+enables the creation of groups (either via your provider's own systems or by
+using a connector like [Dex](../guides/setting-up-dex.md)).
+
+Configuring Weave GitOps to impersonate kubernetes groups rather than
+users has the following benefits:
+* A user's permissions for impersonation by Weave GitOps can be separate from
+  any other permissions that they may or may not have within the cluster.
+* Users do not have to be individually managed within the cluster and can have
+  their permissions managed together.
+
+## Example set up
+
+Assume that your company has the following people in OIDC
+* Aisha, a cluster admin, who should have full admin access to Weave GitOps
+* Brian, lead of team-A, who should have admin permissions to their team's
+  namespace in Weave GitOps and readonly-otherwise
+* June and Jo, developers in team-A who should have read-only access to Weave GitOps.
+
+You could then create 3 groups:
+
+* `wego-admin`
+  - Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
+  - Aisha is the only member
+* `wego-team-a-admin`
+  - Bound to a `Role`, using the same permissions as `wego-admin-role`, created
+    in Team's namespace
+  - Brian and Aisha are members
+* `wego-readonly`
+  - Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
+    no `patch` permissions.
+  - Aisha, Brian, June & Jo are all members
+
+The Weave GitOps service account can then be configured with:
+```yaml
+rbac:
+  impersonationResourceNames: ["wego-admin", "wego-team-a-admin", "wego-readonly"]
+  impersonationResources: ["groups"]
+```
+so that only these three groups can be `impersonated` by the service account.
+
+:::caution Using OIDC for cluster and Weave GitOps Authentication
+If the same OIDC provider is used to authenticate a user with the cluster
+itself (e.g. for use with `kubectl`) and to Weave GitOps then, depending
+on OIDC configuration, they may end up with the super-set of their permissions
+from Weave GitOps and any other permissions granted to them.
+
+This can lead to un-intended consequences (e.g. viewing `secrets`). To avoid
+this OIDC providers will often let you configure which groups are returned
+to which clients: the Weave GitOps groups should not be returned to the
+cluster client (and visa versa).
+:::
+
+### Code
+
+The yaml to configure these permissions would look roughly like:
+```yaml
+# Admin cluster role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wego-admin-cluster-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+# Read only cluster role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: wego-readonly-role
+rules:
+  # All the 'patch' permissions have been removed
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+# Bind the cluster admin role to the wego-admin group
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-cluster-admin
+subjects:
+- kind: Group
+  name: wego-admin # only Aisha is a member
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: wego-admin-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Bind the admin role in the team-a namespace for the wego-team-a-admin group
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-team-a-admin-role
+  namespace: team-a
+subjects:
+- kind: Group
+  name: wego-team-a-admin # Aisha & Brian are members
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # Use the cluster role to set rules, just bind them in the team-a namespace
+  kind: ClusterRole
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Bind the readonly role to the readonly group
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-readonly-role
+subjects:
+- kind: Group
+  name: wego-readonly # Everyone is a member
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: wego-readonly-role
+  apiGroup: rbac.authorization.k8s.io
+---
+```
