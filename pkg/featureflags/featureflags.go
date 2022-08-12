@@ -50,6 +50,7 @@ func GetFlags() map[string]string {
 	return flags
 }
 
+// SetFromEnv sets the feature flags from the environment variables
 func SetFromEnv(envVars []string) {
 	for _, envVar := range envVars {
 		keyVal := strings.SplitN(envVar, "=", 2)

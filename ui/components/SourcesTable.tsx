@@ -38,21 +38,15 @@ function SourcesTable({ className, sources }: Props) {
     return { ...s, type: removeKind(s.kind) };
   });
 
-  const initialFilterState =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
-      ? {
-          ...filterConfig(sources, "type"),
-          ...filterConfig(sources, "namespace"),
-          ...filterConfig(sources, "tenant"),
-          ...filterConfig(sources, "status", filterByStatusCallback),
-          ...filterConfig(sources, "clusterName"),
-        }
-      : {
-          ...filterConfig(sources, "type"),
-          ...filterConfig(sources, "namespace"),
-          ...filterConfig(sources, "status", filterByStatusCallback),
-          ...filterConfig(sources, "clusterName"),
-        };
+  const initialFilterState = {
+    ...filterConfig(sources, "type"),
+    ...filterConfig(sources, "namespace"),
+    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? filterConfig(sources, "tenant")
+      : []),
+    ...filterConfig(sources, "status", filterByStatusCallback),
+    ...filterConfig(sources, "clusterName"),
+  };
 
   const fields: Field[] = [
     {
@@ -74,12 +68,9 @@ function SourcesTable({ className, sources }: Props) {
     },
     { label: "Type", value: "type" },
     { label: "Namespace", value: "namespace" },
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
-      ? {
-          label: "Tenant",
-          value: "tenant",
-        }
-      : null,
+    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? [{ label: "Tenant", value: "tenant" }]
+      : []),
     {
       label: "Cluster",
       value: (s: Source) => s.clusterName,
@@ -171,17 +162,7 @@ function SourcesTable({ className, sources }: Props) {
       rows={sources}
       dialogOpen={filterDialogOpen}
       onDialogClose={() => setFilterDialog(false)}
-      fields={
-        flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
-          ? [
-              ...fields,
-              {
-                label: "Tenant",
-                value: "tenant",
-              },
-            ]
-          : fields
-      }
+      fields={fields}
     />
   );
 }
