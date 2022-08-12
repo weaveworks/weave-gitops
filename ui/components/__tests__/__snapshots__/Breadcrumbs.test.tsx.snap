@@ -15,13 +15,13 @@ exports[`Breadcrumbs snapshots renders 1`] = `
   align-items: center;
 }
 
-.c4 {
+.c2 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #00b3ec;
+  color: #1a1a1a;
 }
 
 .c1 {
@@ -29,23 +29,18 @@ exports[`Breadcrumbs snapshots renders 1`] = `
   text-decoration: none;
 }
 
-.c2 .c3 {
-  font-size: 20px;
-  color: #ffffff;
-}
-
 <div
   className="c0"
 >
   <a
-    className="c1 c2"
+    className="c1"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="c3 c4"
-      color="primary"
-      size="medium"
+      className="c2"
+      color="neutral40"
+      size="large"
     >
       Applications
     </span>
@@ -68,45 +63,45 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   align-items: center;
 }
 
-.c4 {
+.c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #00b3ec;
+  color: #1a1a1a;
 }
 
-.c6 {
+.c5 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  color: #00b3ec;
+  color: #1a1a1a;
 }
 
-.c5 svg {
-  fill: #ffffff !important;
+.c4 svg {
+  fill: #1a1a1a !important;
   height: 32px;
   width: 32px;
 }
 
-.c5.downward {
+.c4.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c5.upward {
+.c4.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c5 .c3 {
+.c4 .c2 {
   margin-left: 4px;
-  color: #ffffff;
+  color: #1a1a1a;
 }
 
 .c1 {
@@ -114,29 +109,24 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   text-decoration: none;
 }
 
-.c2 .c3 {
-  font-size: 20px;
-  color: #ffffff;
-}
-
 <div
   className="c0"
 >
   <a
-    className="c1 c2"
+    className="c1"
     href="/applications"
     onClick={[Function]}
   >
     <span
-      className="c3 c4"
-      color="primary"
-      size="medium"
+      className="c2 c3"
+      color="neutral40"
+      size="large"
     >
       Applications
     </span>
   </a>
   <div
-    className="c0 c5"
+    className="c0 c4"
   >
     <svg
       aria-hidden={true}
@@ -150,14 +140,14 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
     </svg>
   </div>
   <a
-    className="c1 c2"
+    className="c1"
     href="/kustomization?name=flux"
     onClick={[Function]}
   >
     <span
-      className="c3 c6"
-      color="primary"
-      size="medium"
+      className="c2 c5"
+      color="neutral40"
+      size="large"
     >
       flux
     </span>
@@ -180,13 +170,13 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   align-items: center;
 }
 
-.c4 {
+.c2 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #00b3ec;
+  color: #1a1a1a;
 }
 
 .c1 {
@@ -194,23 +184,18 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   text-decoration: none;
 }
 
-.c2 .c3 {
-  font-size: 20px;
-  color: #ffffff;
-}
-
 <div
   className="c0"
 >
   <a
-    className="c1 c2"
+    className="c1"
     href="/"
     onClick={[Function]}
   >
     <span
-      className="c3 c4"
-      color="primary"
-      size="medium"
+      className="c2"
+      color="neutral40"
+      size="large"
     />
   </a>
 </div>
