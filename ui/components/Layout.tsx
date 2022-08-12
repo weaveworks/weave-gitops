@@ -1,16 +1,11 @@
-import { Tab, Tabs } from "@material-ui/core";
-import _ from "lodash";
-import React, { forwardRef } from "react";
+import React from "react";
 import styled from "styled-components";
-import useNavigation from "../hooks/navigation";
-import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
-import Icon, { IconType } from "./Icon";
-import Link from "./Link";
+import { IconType } from "./Icon";
 import Logo from "./Logo";
-import Spacer from "./Spacer";
+import Nav from "./Nav";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -29,7 +24,6 @@ const navItems = [
     label: "Sources",
     sub: true,
   },
-
   {
     value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
@@ -43,51 +37,6 @@ const navItems = [
     icon: IconType.DocsIcon,
   },
 ];
-
-const LinkTab = styled((props: any) => {
-  return (
-    <Tab
-      component={forwardRef((p: any, ref) => (
-        <Flex
-          wide
-          tall
-          align
-          start
-          key={props.label}
-          value={props.value}
-          className="link-flex"
-        >
-          {props.icon ? (
-            <Icon type={props.icon} size="medium" />
-          ) : (
-            <Spacer padding="small" />
-          )}
-          <Spacer padding="xxs" />
-          <Link
-            innerRef={ref}
-            to={formatURL(props.value)}
-            href={props.href}
-            newTab={props.newTab}
-            textProps={{
-              uppercase: true,
-              size: "small",
-              bold: !props.sub,
-              semiBold: props.sub,
-            }}
-          >
-            {props.label}
-          </Link>
-        </Flex>
-      ))}
-      {...props}
-    />
-  );
-})`
-  &.link-flex {
-    padding: 9px 20px;
-    letter-spacing: 1;
-  }
-`;
 
 const AppContainer = styled.div`
   width: 100%;
@@ -109,16 +58,6 @@ const NavContainer = styled.div`
   margin-top: ${(props) => props.theme.spacing.small};
   //topBarHeight + small margin
   transform: translateY(72);
-`;
-
-const NavContent = styled.div`
-  height: 100%;
-  border-radius: 10px;
-  background-color: ${(props) => props.theme.colors.neutral00};
-  padding-top: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.xs};
-  box-sizing: border-box;
-  overflow-y: auto;
 `;
 
 const ContentContainer = styled.div`
@@ -157,8 +96,6 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
-  const { currentPage } = useNavigation();
-
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
@@ -168,26 +105,7 @@ function Layout({ className, children }: Props) {
       </TopToolBar>
       <Main wide tall>
         <NavContainer>
-          <NavContent>
-            <Tabs
-              centered={false}
-              orientation="vertical"
-              value={getParentNavValue(currentPage)}
-            >
-              {_.map(navItems, (n) => (
-                <LinkTab
-                  key={n.label}
-                  label={n.label}
-                  to={formatURL(n.value)}
-                  value={n.value}
-                  sub={n.sub}
-                  href={n.href}
-                  newTab={n.newTab}
-                  icon={n.icon}
-                />
-              ))}
-            </Tabs>
-          </NavContent>
+          <Nav navItems={navItems} />
         </NavContainer>
         <ContentContainer>{children}</ContentContainer>
       </Main>
