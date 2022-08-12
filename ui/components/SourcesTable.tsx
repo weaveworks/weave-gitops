@@ -43,7 +43,7 @@ function SourcesTable({ className, sources }: Props) {
     ...filterConfig(sources, "namespace"),
     ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
       ? filterConfig(sources, "tenant")
-      : []),
+      : {}),
     ...filterConfig(sources, "status", filterByStatusCallback),
     ...filterConfig(sources, "clusterName"),
   };
