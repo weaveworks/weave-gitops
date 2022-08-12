@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -155,7 +154,6 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found")
 			return err
-
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
@@ -166,35 +164,37 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
-		} else {
-			prompt := promptui.Prompt{
-				Label:     "Would you like to install the GitOps Dashboard",
-				IsConfirm: true,
-				Default:   "Y",
-			}
-			_, err = prompt.Run()
-			if err == nil {
-				secret, err := run.GenerateSecret(log)
-				if err != nil {
-					return err
-				}
-
-				man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
-				if err != nil {
-					log.Failuref("Error creating resource manager")
-					return err
-				}
-
-				err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
-				if err != nil {
-					return fmt.Errorf("gitops dashboard installation failed: %w", err)
-				} else {
-					dashboardInstalled = true
-
-					log.Successf("GitOps Dashboard has been installed")
-				}
-			}
 		}
+
+		// else {
+		// 	prompt := promptui.Prompt{
+		// 		Label:     "Would you like to install the GitOps Dashboard",
+		// 		IsConfirm: true,
+		// 		Default:   "Y",
+		// 	}
+		// 	_, err = prompt.Run()
+		// 	if err == nil {
+		// 		secret, err := run.GenerateSecret(log)
+		// 		if err != nil {
+		// 			return err
+		// 		}
+
+		// 		man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+		// 		if err != nil {
+		// 			log.Failuref("Error creating resource manager")
+		// 			return err
+		// 		}
+
+		// 		err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
+		// 		if err != nil {
+		// 			return fmt.Errorf("gitops dashboard installation failed: %w", err)
+		// 		} else {
+		// 			dashboardInstalled = true
+
+		// 			log.Successf("GitOps Dashboard has been installed")
+		// 		}
+		// 	}
+		// }
 
 		if dashboardInstalled {
 			timeout := time.Minute * 3

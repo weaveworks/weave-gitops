@@ -50,11 +50,11 @@ func GenerateSecret(log logger.Logger) (string, error) {
 }
 
 // InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, secret string) error {
+func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, namespace string, username string, secret string, chartVersion string) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
 	helmRepository := makeHelmRepository(namespace)
-	helmRelease, err := makeHelmRelease(log, secret, namespace)
+	helmRelease, err := makeHelmRelease(log, namespace, username, secret, chartVersion)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -254,7 +254,7 @@ func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, namespace string, username string, secret string, chartVersion string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -271,7 +271,7 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   helmChartName,
-					Version: "3.0.0",
+					Version: chartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: "HelmRepository",
 						Name: helmRepositoryName,
@@ -282,7 +282,7 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 		},
 	}
 
-	valuesData, err := makeValues(secret)
+	valuesData, err := makeValues(username, secret)
 	if err != nil {
 		log.Failuref("Error generating values from secret")
 		return nil, err
@@ -294,12 +294,12 @@ func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(secret string) ([]byte, error) {
+func makeValues(username string, secret string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,
 			"passwordHash": secret,
-			"username":     "admin",
+			"username":     username,
 		},
 	}
 

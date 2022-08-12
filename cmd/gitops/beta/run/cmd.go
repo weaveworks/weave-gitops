@@ -25,6 +25,11 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+const (
+	adminUsername    = "admin"
+	helmChartVersion = "3.0.0"
+)
+
 type RunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext string
@@ -279,7 +284,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					return err
 				}
 
-				err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
+				err = run.InstallDashboard(log, ctx, man, flags.Namespace, adminUsername, secret, helmChartVersion)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {

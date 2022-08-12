@@ -46,14 +46,14 @@ var _ = Describe("InstallDashboard", func() {
 	It("should install dashboard successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, "admin", secret, "3.0.0")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, "admin", secret, "3.0.0")
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -234,7 +234,7 @@ var _ = Describe("makeHelmRelease", func() {
 		expected, err := json.Marshal(helmRelease)
 		Expect(err).NotTo(HaveOccurred())
 
-		actualHelmRelease, err := makeHelmRelease(fakeLogger, secret, namespace)
+		actualHelmRelease, err := makeHelmRelease(fakeLogger, namespace, "admin", secret, "3.0.0")
 		Expect(err).NotTo(HaveOccurred())
 
 		actual, err := json.Marshal(actualHelmRelease)
@@ -277,14 +277,14 @@ var _ = Describe("makeValues", func() {
 			"adminUser": map[string]interface{}{
 				"create":       true,
 				"passwordHash": "test-secret",
-				"username":     "admin",
+				"username":     "testUser",
 			},
 		}
 
 		expected, err := json.Marshal(valuesMap)
 		Expect(err).NotTo(HaveOccurred())
 
-		actual, err := makeValues(secret)
+		actual, err := makeValues("testUser", secret)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual).To(Equal(expected))
 	})
