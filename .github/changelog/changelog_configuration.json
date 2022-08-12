@@ -30,5 +30,11 @@
     ],
     "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
     "pr_template": "- PR: #${{NUMBER}} - ${{TITLE}}",
-    "empty_template": "- no changes"
+    "empty_template": "- no changes",
+    "tag_resolver": {
+      "method": "semver",
+      "filter": {
+        "pattern": "^v[0-9.]+$"
+      }
+    }
 }
