@@ -19,11 +19,15 @@ import (
 type DashboardCommandFlags struct {
 	Version string
 	Export  string
+	Timeout time.Duration
 	// Overriden global flags.
 	Username string
 	Password string
 	// Global flags.
-	Namespace string
+	Namespace  string
+	KubeConfig string
+	// Flags, created by genericclioptions.
+	Context string
 }
 
 var flags DashboardCommandFlags
@@ -54,6 +58,7 @@ gitops create dashboard ww-gitops \
 	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the admin user.")
 	cmdFlags.StringVar(&flags.Version, "version", "", "The version of the dashboard that should be installed.")
 	cmdFlags.StringVar(&flags.Export, "export", "", "The path to export manifests to.")
+	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -67,11 +72,11 @@ func createDashboardCommandPreRunE(endpoint *string) func(*cobra.Command, []stri
 		numArgs := len(args)
 
 		if numArgs == 0 {
-			return cmderrors.ErrNoDashboardName
+			return cmderrors.ErrNoName
 		}
 
 		if numArgs > 1 {
-			return cmderrors.ErrMultipleDashboardNames
+			return cmderrors.ErrMultipleNames
 		}
 
 		return nil
@@ -87,6 +92,14 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		}
 
 		kubeConfigArgs.Namespace = &flags.Namespace
+
+		if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
+			return err
+		}
+
+		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
+			return err
+		}
 
 		gitRepoRoot, err := run.FindGitRepoDir()
 		if err != nil {

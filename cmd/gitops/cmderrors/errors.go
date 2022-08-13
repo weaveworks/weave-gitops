@@ -11,6 +11,6 @@ var (
 	ErrNoContextForKubeConfig = errors.New("no context provided for the kubeconfig")
 	ErrNoCluster              = errors.New("no cluster in the kube config")
 	ErrGetKubeClient          = errors.New("error getting Kube HTTP client")
-	ErrNoDashboardName        = errors.New("the dashboard name has not been set")
-	ErrMultipleDashboardNames = errors.New("only one dashboard name is allowed")
+	ErrNoName                 = errors.New("name is required")
+	ErrMultipleNames          = errors.New("only one name is allowed")
 )
