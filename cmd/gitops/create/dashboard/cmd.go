@@ -51,7 +51,6 @@ gitops create dashboard ww-gitops \
 		`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
-		PreRunE:           createDashboardCommandPreRunE(&opts.Endpoint),
 		RunE:              createDashboardCommandRunE(opts),
 		DisableAutoGenTag: true,
 	}
@@ -69,22 +68,6 @@ gitops create dashboard ww-gitops \
 	kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
-}
-
-func createDashboardCommandPreRunE(endpoint *string) func(*cobra.Command, []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		numArgs := len(args)
-
-		if numArgs == 0 {
-			return cmderrors.ErrNoName
-		}
-
-		if numArgs > 1 {
-			return cmderrors.ErrMultipleNames
-		}
-
-		return nil
-	}
 }
 
 func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
