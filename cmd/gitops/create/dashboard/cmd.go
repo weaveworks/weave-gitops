@@ -16,6 +16,10 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
+const (
+	helmChartName = "weave-gitops"
+)
+
 type DashboardCommandFlags struct {
 	Version string
 	Export  string
@@ -173,7 +177,9 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, flags.Namespace)
+		dashboardName := args[0]
+
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -215,8 +221,9 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", timeout)
 
 			dashboardPort := "9001"
+			dashboardPodName := dashboardName + "-" + helmChartName
 
-			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, timeout, dashboardPort); err != nil {
+			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, timeout, dashboardPort); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			} else {
 				log.Successf("Dashboard reconciliation is done.")

@@ -26,6 +26,8 @@ import (
 )
 
 const (
+	dashboardName    = "ww-gitops"
+	dashboardPodName = "ww-gitops-weave-gitops"
 	adminUsername    = "admin"
 	helmChartVersion = "3.0.0"
 )
@@ -261,7 +263,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, flags.Namespace)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -284,7 +286,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					return err
 				}
 
-				err = run.InstallDashboard(log, ctx, man, flags.Namespace, adminUsername, secret, helmChartVersion)
+				err = run.InstallDashboard(log, ctx, man, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -298,7 +300,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout, flags.DashboardPort); err != nil {
+			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout, flags.DashboardPort); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			} else {
 				log.Successf("Dashboard reconciliation is done.")
@@ -313,7 +315,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var cancelDashboardPortForwarding func() = nil
 
 		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, flags.DashboardPort)
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 			if err != nil {
 				return err
 			}
