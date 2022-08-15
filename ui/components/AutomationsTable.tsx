@@ -34,7 +34,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
     ...filterConfig(automations, "clusterName"),
-    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+if (flags.WEAVE_GITOPS_FEATURE_TENANCY) {
+  initialFilterState = {...initialFilterState, ...filterConfig(automations, "tenant") }
+}
       ? filterConfig(automations, "tenant")
       : {}),
     ...filterConfig(automations, "status", filterByStatusCallback),
