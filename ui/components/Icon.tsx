@@ -55,6 +55,7 @@ export enum IconType {
   FileCopyIcon,
   ReconcileIcon,
   FluxIcon,
+  FluxIconHover,
   DocsIcon,
   ApplicationsIcon,
 }
@@ -152,6 +153,9 @@ function getIcon(i: IconType) {
 
     case IconType.FluxIcon:
       return () => <img src={images.fluxIconSrc} />;
+
+    case IconType.FluxIconHover:
+      return () => <img src={images.fluxIconHoverSrc} />;
 
     default:
       break;

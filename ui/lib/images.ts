@@ -6,6 +6,7 @@ import failedSrc from "data-url:../images/failed.svg";
 import fancyCardBackgroundBlue from "data-url:../images/fancy-card-background-blue.svg";
 import fancyCardBackgroundOrange from "data-url:../images/fancy-card-background-orange.svg";
 import fancyCardBackground from "data-url:../images/fancy-card-background.svg";
+import fluxIconHoverSrc from "data-url:../images/flux-icon-hover.svg";
 import fluxIconSrc from "data-url:../images/flux-icon.svg";
 import logoSrc from "data-url:../images/logo.svg";
 import reconcileSrc from "data-url:../images/reconcile.svg";
@@ -27,4 +28,5 @@ export default {
   weaveLogo,
   reconcileSrc,
   fluxIconSrc,
+  fluxIconHoverSrc,
 };

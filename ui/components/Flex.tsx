@@ -10,6 +10,8 @@ type Props = {
   center?: boolean;
   wide?: boolean;
   wrap?: boolean;
+  onMouseEnter?: React.ReactEventHandler;
+  onMouseLeave?: React.ReactEventHandler;
 };
 
 const Styled = (component) => styled(component)`
@@ -28,7 +30,15 @@ const Styled = (component) => styled(component)`
 class Flex extends React.PureComponent<Props> {
   render() {
     const { className, children } = this.props;
-    return <div className={className}>{children}</div>;
+    return (
+      <div
+        className={className}
+        onMouseEnter={this.props.onMouseEnter}
+        onMouseLeave={this.props.onMouseLeave}
+      >
+        {children}
+      </div>
+    );
   }
 }
 

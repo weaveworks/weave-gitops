@@ -47,6 +47,9 @@ const NavContent = styled.div`
     &.selected {
       background-color: rgba(0, 179, 236, 0.1);
     }
+    :hover:not(.selected) {
+      background-color: ${(props) => props.theme.colors.neutral10};
+    }
     ${Text} {
       letter-spacing: 1px;
     }
@@ -54,6 +57,7 @@ const NavContent = styled.div`
 `;
 
 const LinkTab = React.forwardRef((p: any, ref) => {
+  const [hovered, setHovered] = React.useState(false);
   const item = p.navItem;
 
   let className = "link-flex";
@@ -62,16 +66,25 @@ const LinkTab = React.forwardRef((p: any, ref) => {
 
   let color: keyof typeof colors = "neutral40";
   if (item.styles.sub) color = "neutral30";
-  if (p["aria-selected"]) color = "primary10";
+  if (p["aria-selected"] || hovered) color = "primary10";
+
+  let iconType = item.styles.icon;
+  if (iconType === IconType.FluxIcon && (p["aria-selected"] || hovered))
+    iconType = IconType.FluxIconHover;
 
   return (
-    <Flex wide tall align start className={className} innerRef={ref}>
+    <Flex
+      wide
+      tall
+      align
+      start
+      className={className}
+      innerRef={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       {item.styles.icon ? (
-        <Icon
-          type={item.styles.icon}
-          size="medium"
-          color={p["aria-selected"] ? "primary10" : "neutral40"}
-        />
+        <Icon type={iconType} size="medium" color={color} />
       ) : (
         <Spacer padding="small" />
       )}
