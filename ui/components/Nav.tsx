@@ -91,7 +91,6 @@ const LinkTab = React.forwardRef((p: any, ref) => {
       )}
       <Spacer padding="xxs" />
       <Link
-        innerRef={ref}
         to={formatURL(item.link.value)}
         href={item.link.href}
         newTab={item.link.newTab}
