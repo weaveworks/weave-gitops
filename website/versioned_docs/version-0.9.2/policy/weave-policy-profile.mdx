@@ -1,0 +1,196 @@
+---
+title: Weave policy profile
+hide_title: true
+sidebar_position: 2
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+import TierLabel from "../_components/TierLabel";
+
+# Weave policy profile <TierLabel tiers="enterprise" />
+
+# Weave Policy Profile
+
+## Overview
+
+Weave policy profile provides policies to automate the enforcement of best practice and conventions. It ensures the compliance of workloads through the use of a policy agent that provides an admission controller webhook that stops violating resources from deploying to a cluster and runs a daily audit that reports violating resources already deployed.
+
+---
+## Policy Sources
+
+Policies are provided in the profile as Custom Resources. The agent reads from the policies deployed on the cluster and runs them during each admission request or when auditing a resource.
+
+Policies are hosted in a policy library which is ususally a git repository. They are fetched in the profile through the use of `kustomize.toolkit.fluxcd.io.Kustomization`, that deploys the policies to the cluster.
+
+By default all policies in the specified path would be deployed in order to specify which policies should be deployed in a library, a `kustomize.config.k8s.io.Kustomization` file should be defined in the repository.
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: # specifies the path to each required policy 
+  - policies/ControllerContainerAllowingPrivilegeEscalation/policy.yaml
+  - policies/ControllerContainerRunningAsRoot/policy.yaml
+  - policies/ControllerReadOnlyFileSystem/policy.yaml
+```
+
+The profile then needs to be configured with the necessary config to be able to reach the repository that is acting as a policy library.
+
+```yaml
+policyLibraryConfig:
+  url: ssh://git@github.com/myorg/policy-library # repo url
+  branch: agent-profile # which branch to use
+  kustomizationPath: ./ # directory containing the kustomization file
+  private: true # set to true if a private repo
+  secretRef: policy-library-auth # secret containing cred to authenticate with a private repo
+```
+---
+## Policy Sets
+
+Policy set is a custom resource that gives more control over which policies to be used in each scenario. There are cases in which certain policies are required to be observed but denying the requests of violating objects would be disruptive. Policy set allows definining additional filters for each scenario: `Audit` and `Admission` so it is possible to report violations on certain policies without the need of blocking the deployments if certain policies are not as critical as others.
+
+Policy set should also be hosted on the policy library. The following definition defines which specific policies should be used using policy names:
+
+```yaml
+apiVersion: pac.weave.works/v2beta1
+kind: PolicySet
+metadata:
+    name: admission-policy-set
+spec:
+    id: admission-policy-set
+    name: admission-policy-set
+    filters:
+      ids:
+        - weave.policies.containers-running-with-privilege-escalation
+        - weave.policies.containers-read-only-root-filesystem
+```
+
+To make use of this policy set in the profile:
+
+```yaml
+config:
+  AGENT_ADMISSION_POLICY_SET: admission-policy-set # name of policy set to be used for admission
+  AGENT_AUDIT_POLICY_SET: audit-policy-set # name of policy set to be used for audit
+```
+
+---
+## Policy Validation Sinks
+
+When validating a resource a validation object is generated that contains information about the status of that validation and metadata about the resource and policy involved. These objects should be exported to be visible for users as a critical part of the audit flow, but can also be useful as logs for the admission scenario.
+
+By default the agent only writes policy validation that are violating a certain policy when performing an audit, to write compliance results as well, the following needs to be specified in the profile:
+
+```yaml
+config:
+  AGENT_WRITE_COMPLIANCE: "true"
+```
+
+The agent profile supports multiple methods to expose this data and multiple can be used at the same time:
+
+
+<Tabs groupId="violations-sinks" default>
+<TabItem value="text-file" label="Text File">
+
+The results would be dumped into a text file in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
+
+To enable writing to a text file:
+
+```yaml
+config:
+  AGENT_FILESYSTEM_SINK_FILE_PATH: "/path/to/file"
+```
+
+It is possible to make the file persistent, this assumes that there is a [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) already configured on the cluster.
+
+```yaml
+persistence:
+  enabled: false # specifies whether to use persistence or not
+  claimStorage: 1Gi # claim size
+  sinkDir: /path/to # directory to be mounted 
+  storageClassName: standard # k8s StorageClass name
+```
+</TabItem>
+<TabItem value="kubernetes-events" label="Kubernetes Events">
+The results would be written as Kubernetes events. This means that they are accessible through the kubernetes API and can be consumed by custom exporters.
+
+To enable writing Kubernetes events:
+
+```yaml
+config:
+  AGENT_ENABLE_K8S_EVENTS_SINK: "true"
+```
+</TabItem>
+<TabItem value="notification-controller" label="Notification Controller">
+This requires the cluster to be managed using flux. It makes use of flux notification controller to send events to multiple sources, depending on the controller configuration. The agent writes the events to the controller and it proceeds to publish it to the configured listeners.
+
+To enable writing to flux notification controller:
+
+```yaml
+config:
+  AGENT_FLUX_NOTIFICATION_SINK_ADDR: "true"
+```
+</TabItem>
+</Tabs>
+
+
+---
+## Admission Controller Setup
+
+To enable admission control:
+
+```yaml
+config:
+  AGENT_ENABLE_ADMISSION: "1"
+```
+
+Enabling admission controller requires certificates for secure communication with the webhook client and the admission server. The best way to achieve this is by installing [cert manager](https://cert-manager.io/docs/installation/) and then configuring the profile as follows:
+
+```yaml
+useCertManager: true
+```
+
+There is the option of providing previously generated certificates although it is not recommended and it is up to the user to manage it:
+
+```yaml
+certificate: "---" # admission server certificate
+key: "---" # admission server private key
+caCertificate: "---" # CA bundle to validate the webhook server, used by the client
+```
+
+If the agent webhook could not be reached or the request failed to complete, the corresponding request would be refused. To change that behavior and accepts the reuqest in cases of failure, this needs to be set:
+
+```yaml
+failurePolicy: Ignore
+```
+
+---
+## Audit
+Audit functionality provide a full scan on the cluster(s) and report back policy violations. This usually is used for policy violations reporting, and Compliance posture analysis against known benchmarks like PCI DSS, CIS, .etc.
+
+To enable audit functionality:
+
+```yaml
+config:
+  AGENT_ENABLE_AUDIT: "1"
+```
+
+Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
+
+---
+## Policy Validation
+
+Policy validation object contains all the necessary information to give the user a clear idea on what caused it. It is the result of validating an entity against a policy.
+
+```yaml
+id: string # identifier for the violation
+account_id: string # organization identifier
+cluster_id: string # cluster identifier
+policy: object # contains related policy data
+entity: object # contains related resource data
+status: string # Violation or Compliance
+message: string # message that summarizes the policy validation
+type: string # Admission or Audit
+trigger: string # what triggered the validation, create request or initial audit,..
+created_at: string # time that the validation occured in 
+```
