@@ -3,6 +3,7 @@ package dashboard
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -17,14 +18,15 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// const (
-// 	helmChartName = "weave-gitops"
-// )
+const (
+	// helmChartName = "weave-gitops"
+	defaultAdminUsername = "admin"
+)
 
 type DashboardCommandFlags struct {
 	Version string
 	// Create command flags.
-	Export  string
+	Export  bool
 	Timeout time.Duration
 	// Overriden global flags.
 	Username string
@@ -110,11 +112,59 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return err
 		}
 
-		log := clilogger.NewCLILogger(os.Stdout)
+		if flags.Export, err = cmd.Flags().GetBool("export"); err != nil {
+			return err
+		}
+
+		if flags.Export, err = cmd.Flags().GetBool("export"); err != nil {
+			return err
+		}
+
+		var output io.Writer
+
+		if flags.Export {
+			output = &bytes.Buffer{}
+		} else {
+			output = os.Stdout
+		}
+
+		log := clilogger.NewCLILogger(output)
+
+		log.Generatef("Generating GitOps Dashboard manifests ...")
+
+		var secret string
+
+		if flags.Password != "" {
+			secret, err = run.GenerateSecret(log, flags.Password)
+			if err != nil {
+				return err
+			}
+		}
+
+		dashboardName := args[0]
+
+		adminUsername := flags.Username
+
+		if adminUsername == "" && flags.Password != "" {
+			adminUsername = defaultAdminUsername
+		}
+
+		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, flags.Version)
+		if err != nil {
+			return fmt.Errorf("error creating dashboard objects: %w", err)
+		} else {
+			log.Successf("Generated GitOps Dashboard manifests")
+			fmt.Println("---")
+			fmt.Println(resourceToString(manifests))
+		}
+
+		if flags.Export {
+			return nil
+		}
 
 		// var contextName string
 
-		if flags.Export == "" {
+		if !flags.Export {
 			log.Actionf("Checking for a cluster in the kube config ...")
 
 			_, _, err = kube.RestConfig()
@@ -123,37 +173,6 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 				log.Failuref("Error getting a restconfig: %v", err.Error())
 				return cmderrors.ErrNoCluster
 			}
-		}
-
-		log.Generatef("Generating GitOps Dashboard manifests ...")
-
-		var password string
-
-		if flags.Password == "" && flags.Username != "" {
-			password, err = run.ReadPassword(log)
-			if err != nil {
-				return err
-			}
-		}
-
-		var secret string
-
-		if password != "" {
-			secret, err = run.GenerateSecret(log, password)
-			if err != nil {
-				return err
-			}
-		}
-
-		dashboardName := args[0]
-
-		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, flags.Username, secret, flags.Version)
-		if err != nil {
-			return fmt.Errorf("error creating dashboard objects: %w", err)
-		} else {
-			log.Successf("Generated GitOps Dashboard manifests")
-			fmt.Println("---")
-			fmt.Println(resourceToString(manifests))
 		}
 
 		// cfg, err := kubeConfigArgs.ToRESTConfig()
