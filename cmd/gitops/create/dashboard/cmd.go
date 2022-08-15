@@ -22,8 +22,6 @@ const (
 
 type DashboardCommandFlags struct {
 	Version string
-	Export  string
-	Timeout time.Duration
 	// Overriden global flags.
 	Username string
 	Password string
@@ -60,8 +58,6 @@ gitops create dashboard ww-gitops \
 	cmdFlags.StringVar(&flags.Username, "username", "admin", "The username of the admin user.")
 	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the admin user.")
 	cmdFlags.StringVar(&flags.Version, "version", "", "The version of the dashboard that should be installed.")
-	cmdFlags.StringVar(&flags.Export, "export", "", "The path to export manifests to.")
-	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
