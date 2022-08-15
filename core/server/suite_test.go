@@ -144,7 +144,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	}
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
+	fetcher.FetchReturns([]clustersmngr.Cluster{{Name: "Default"}}, nil)
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
@@ -154,6 +154,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
 		f := &clustersmngrfakes.FakeClientsPool{}
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
+		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
 		return f
 	})
 
