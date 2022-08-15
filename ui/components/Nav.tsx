@@ -7,7 +7,6 @@ import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 // eslint-disable-next-line
 import { colors } from "../typedefs/styled";
-import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -38,6 +37,9 @@ const NavContent = styled.div`
   }
   .link-flex {
     height: 32px;
+    width: 100%;
+    display: flex;
+    align-items: center;
     padding: 0px 20px;
     margin-bottom: 9px;
     //matches .MuiSvgIcon-root
@@ -57,6 +59,11 @@ const NavContent = styled.div`
   }
 `;
 
+const LinkTabIcon = ({ iconType, color }: any) => {
+  if (iconType) return <Icon type={iconType} size="medium" color={color} />;
+  else return <Spacer padding="small" />;
+};
+
 const LinkTab = React.forwardRef((p: any, ref) => {
   const [hovered, setHovered] = React.useState(false);
   const item = p.navItem;
@@ -74,37 +81,25 @@ const LinkTab = React.forwardRef((p: any, ref) => {
     iconType = IconType.FluxIconHover;
 
   return (
-    <Flex
-      wide
-      tall
-      align
-      start
+    <Link
       className={className}
       innerRef={ref}
+      to={formatURL(item.link.value)}
+      href={item.link.href}
+      newTab={item.link.newTab}
+      textProps={{
+        uppercase: true,
+        size: "small",
+        bold: !item.styles.sub,
+        semiBold: item.styles.sub,
+        color: color,
+      }}
+      icon={<LinkTabIcon iconType={iconType} color={color} />}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {item.styles.icon ? (
-        <Icon type={iconType} size="medium" color={color} />
-      ) : (
-        <Spacer padding="small" />
-      )}
-      <Spacer padding="xxs" />
-      <Link
-        to={formatURL(item.link.value)}
-        href={item.link.href}
-        newTab={item.link.newTab}
-        textProps={{
-          uppercase: true,
-          size: "small",
-          bold: !item.styles.sub,
-          semiBold: item.styles.sub,
-          color: color,
-        }}
-      >
-        {...p.children}
-      </Link>
-    </Flex>
+      {...p.children}
+    </Link>
   );
 });
 
