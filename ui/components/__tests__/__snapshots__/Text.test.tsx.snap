@@ -7,6 +7,8 @@ exports[`Text snapshots bold 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 <span
@@ -24,6 +26,8 @@ exports[`Text snapshots normal 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
+  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 <span
@@ -42,6 +46,8 @@ exports[`Text snapshots with color 1`] = `
   text-transform: none;
   font-style: normal;
   color: #27AE60;
+  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 <span

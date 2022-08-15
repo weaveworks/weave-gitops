@@ -39,6 +39,8 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 svg {
@@ -126,6 +128,8 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 svg {
