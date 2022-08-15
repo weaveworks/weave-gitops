@@ -8,6 +8,7 @@ import AutomationDetail from "./AutomationDetail";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import { InfoField } from "./InfoList";
 
 export interface routeTab {
   name: string;
@@ -23,7 +24,7 @@ type Props = {
 };
 
 function KustomizationDetail({ kustomization, className, customTabs }: Props) {
-   const { data } = useFeatureFlags();
+  const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
   return (
@@ -44,7 +45,12 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
         ],
         ["Applied Revision", kustomization?.lastAppliedRevision],
         ["Cluster", kustomization?.clusterName],
-        flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&  kustomization?.tenant !== "" && ["Tenant", kustomization?.tenant],
+        [
+          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&
+          kustomization?.tenant !== ""
+            ? ["Tenant", kustomization?.tenant]
+            : []),
+        ] as InfoField,
         ["Path", kustomization?.path],
         ["Interval", <Interval interval={kustomization?.interval} />],
         [

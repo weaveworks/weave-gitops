@@ -9,6 +9,7 @@ import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import { InfoField } from "./InfoList";
 
 type Props = {
   name: string;
@@ -50,7 +51,7 @@ function helmChartLink(helmRelease: HelmRelease) {
 function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-  
+
   return (
     <AutomationDetail
       className={className}
@@ -60,7 +61,12 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
         ["Cluster", helmRelease?.clusterName],
-        flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&  helmRelease?.tenant !== "" && ["Tenant", helmRelease?.tenant],
+        [
+          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&
+          helmRelease?.tenant !== ""
+            ? ["Tenant", helmRelease?.tenant]
+            : []),
+        ] as InfoField,
         ["Interval", <Interval interval={helmRelease?.interval} />],
         [
           "Last Updated",
