@@ -19,6 +19,15 @@ type Props = {
   onMouseLeave?: React.EventHandler<React.SyntheticEvent>;
 };
 
+const SpacedIcon = ({ icon }: { icon: JSX.Element }) => {
+  return (
+    <>
+      {icon}
+      <Spacer padding="xxs" />
+    </>
+  );
+};
+
 function Link({
   children,
   href,
@@ -52,8 +61,7 @@ function Link({
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
-        {icon}
-        {icon && <Spacer padding="xxs" />}
+        {icon && <SpacedIcon icon={icon} />}
         {txt}
       </a>
     );
@@ -68,13 +76,14 @@ function Link({
       onMouseLeave={onMouseLeave}
       {...props}
     >
-      {icon}
-      {icon && <Spacer padding="xxs" />}
+      {icon && <SpacedIcon icon={icon} />}
       {txt}
     </RouterLink>
   );
 }
 
 export default styled(Link)`
+  display: flex;
+  align-items: center;
   text-decoration: none;
 `;

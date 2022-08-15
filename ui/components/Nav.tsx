@@ -37,9 +37,6 @@ const NavContent = styled.div`
   }
   .link-flex {
     height: 32px;
-    width: 100%;
-    display: flex;
-    align-items: center;
     padding: 0px 20px;
     margin-bottom: 9px;
     //matches .MuiSvgIcon-root
