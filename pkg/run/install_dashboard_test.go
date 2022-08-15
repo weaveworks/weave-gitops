@@ -48,14 +48,20 @@ var _ = Describe("InstallDashboard", func() {
 	It("should install dashboard successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		Expect(err).NotTo(HaveOccurred())
+
+		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		Expect(err).NotTo(HaveOccurred())
+
+		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})

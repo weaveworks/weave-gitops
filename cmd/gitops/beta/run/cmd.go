@@ -275,7 +275,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				secret, err := run.GenerateSecret(log)
+				password, err := run.ReadPassword(log)
+				if err != nil {
+					return err
+				}
+
+				secret, err := run.GenerateSecret(log, password)
 				if err != nil {
 					return err
 				}
@@ -286,7 +291,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					return err
 				}
 
-				err = run.InstallDashboard(log, ctx, man, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
+				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
+				if err != nil {
+					return fmt.Errorf("error creating dashboard objects: %w", err)
+				}
+
+				err = run.InstallDashboard(log, ctx, man, manifests)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {

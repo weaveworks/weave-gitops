@@ -28,13 +28,17 @@ const (
 	helmRepositoryUrl = "https://helm.gitops.weave.works"
 )
 
-func GenerateSecret(log logger.Logger) (string, error) {
+func ReadPassword(log logger.Logger) (string, error) {
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
 	if err != nil {
 		log.Failuref("Could not read password")
 		return "", err
 	}
 
+	return password, nil
+}
+
+func GenerateSecret(log logger.Logger, password string) (string, error) {
 	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Failuref("Error generating secret from password")
@@ -46,25 +50,32 @@ func GenerateSecret(log logger.Logger) (string, error) {
 	return string(secret), nil
 }
 
-// InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, name string, namespace string, username string, secret string, chartVersion string) error {
-	log.Actionf("Installing the GitOps Dashboard ...")
+// CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
+func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) ([]byte, error) {
+	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
 	helmRelease, err := makeHelmRelease(log, name, namespace, username, secret, chartVersion)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
-		return err
+		return nil, err
 	}
+
+	log.Generatef("Generating GitOps Dashboard manifests ...")
 
 	manifests, err := generateManifestsForDashboard(log, helmRepository, helmRelease)
 	if err != nil {
 		log.Failuref("Generating GitOps Dashboard manifests failed")
-		return err
+		return nil, err
 	}
 
-	log.Successf("Generated GitOps Dashboard manifests")
+	return manifests, nil
+}
+
+// InstallDashboard installs the GitOps Dashboard.
+func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifests []byte) error {
+	log.Actionf("Installing the GitOps Dashboard ...")
 
 	applyOutput, err := apply(log, ctx, manager, manifests)
 	if err != nil {

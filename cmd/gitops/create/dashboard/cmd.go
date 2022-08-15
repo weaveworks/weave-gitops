@@ -1,10 +1,11 @@
 package dashboard
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -16,12 +17,15 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-const (
-	helmChartName = "weave-gitops"
-)
+// const (
+// 	helmChartName = "weave-gitops"
+// )
 
 type DashboardCommandFlags struct {
 	Version string
+	// Create command flags.
+	Export  string
+	Timeout time.Duration
 	// Overriden global flags.
 	Username string
 	Password string
@@ -49,6 +53,7 @@ gitops create dashboard ww-gitops \
 		`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
+		PreRunE:           createDashboardCommandPreRunE(&opts.Endpoint),
 		RunE:              createDashboardCommandRunE(opts),
 		DisableAutoGenTag: true,
 	}
@@ -64,6 +69,27 @@ gitops create dashboard ww-gitops \
 	kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
+}
+
+func createDashboardCommandPreRunE(endpoint *string) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		numArgs := len(args)
+
+		if numArgs == 0 {
+			return cmderrors.ErrNoName
+		}
+
+		if numArgs > 1 {
+			return cmderrors.ErrMultipleNames
+		}
+
+		name := args[0]
+		if !validateObjectName(name) {
+			return fmt.Errorf("name '%s' is invalid, it should adhere to standard defined in RFC 1123, the name can only contain alphanumeric characters or '-'", name)
+		}
+
+		return nil
+	}
 }
 
 func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
@@ -83,6 +109,101 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
 			return err
 		}
+
+		log := clilogger.NewCLILogger(os.Stdout)
+
+		// var contextName string
+
+		if flags.Export == "" {
+			log.Actionf("Checking for a cluster in the kube config ...")
+
+			_, _, err = kube.RestConfig()
+			// _, contextName, err = kube.RestConfig()
+			if err != nil {
+				log.Failuref("Error getting a restconfig: %v", err.Error())
+				return cmderrors.ErrNoCluster
+			}
+		}
+
+		log.Generatef("Generating GitOps Dashboard manifests ...")
+
+		var password string
+
+		if flags.Password == "" && flags.Username != "" {
+			password, err = run.ReadPassword(log)
+			if err != nil {
+				return err
+			}
+		}
+
+		var secret string
+
+		if password != "" {
+			secret, err = run.GenerateSecret(log, password)
+			if err != nil {
+				return err
+			}
+		}
+
+		dashboardName := args[0]
+
+		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, flags.Username, secret, flags.Version)
+		if err != nil {
+			return fmt.Errorf("error creating dashboard objects: %w", err)
+		} else {
+			log.Successf("Generated GitOps Dashboard manifests")
+			fmt.Println("---")
+			fmt.Println(resourceToString(manifests))
+		}
+
+		// cfg, err := kubeConfigArgs.ToRESTConfig()
+		// if err != nil {
+		// 	return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
+		// }
+
+		// kubeClientOpts := run.GetKubeClientOptions()
+		// kubeClientOpts.BindFlags(cmd.Flags())
+
+		// kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
+		// if err != nil {
+		// 	return cmderrors.ErrGetKubeClient
+		// }
+
+		// ctx := context.Background()
+
+		// if createArgs.export {
+		// 	return printExport(exportKs(&kustomization))
+		// }
+
+		// ctx, cancel := context.WithTimeout(context.Background(), rootArgs.timeout)
+		// defer cancel()
+
+		// kubeClient, err := utils.KubeClient(kubeconfigArgs, kubeclientOptions)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// logger.Actionf("applying Kustomization")
+		// namespacedName, err := upsertKustomization(ctx, kubeClient, &kustomization)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// logger.Waitingf("waiting for Kustomization reconciliation")
+		// if err := wait.PollImmediate(rootArgs.pollInterval, rootArgs.timeout,
+		// 	isKustomizationReady(ctx, kubeClient, namespacedName, &kustomization)); err != nil {
+		// 	return err
+		// }
+		// logger.Successf("Kustomization %s is ready", name)
+
+		// logger.Successf("applied revision %s", kustomization.Status.LastAppliedRevision)
+		// return nil
+
+		//
+		//
+		//
+		//
+		//
 
 		gitRepoRoot, err := run.FindGitRepoDir()
 		if err != nil {
@@ -118,51 +239,28 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return err
 		}
 
-		log := clilogger.NewCLILogger(os.Stdout)
+		//
+		//
+		//
 
-		log.Actionf("Checking for a cluster in the kube config ...")
+		// log.Actionf("Checking if Flux is already installed ...")
 
-		var contextName string
+		// if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		// 	log.Warningf("Flux is not found")
+		// 	return err
+		// } else {
+		// 	log.Successf("Flux version %s is found", fluxVersion)
+		// }
 
-		_, contextName, err = kube.RestConfig()
-		if err != nil {
-			log.Failuref("Error getting a restconfig: %v", err.Error())
-			return cmderrors.ErrNoCluster
-		}
+		// log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		cfg, err := kubeConfigArgs.ToRESTConfig()
-		if err != nil {
-			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
-		}
+		// dashboardName := args[0]
 
-		kubeClientOpts := run.GetKubeClientOptions()
-		kubeClientOpts.BindFlags(cmd.Flags())
+		// dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
 
-		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
-		if err != nil {
-			return cmderrors.ErrGetKubeClient
-		}
-
-		ctx := context.Background()
-
-		log.Actionf("Checking if Flux is already installed ...")
-
-		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
-			log.Warningf("Flux is not found")
-			return err
-		} else {
-			log.Successf("Flux version %s is found", fluxVersion)
-		}
-
-		log.Actionf("Checking if GitOps Dashboard is already installed ...")
-
-		dashboardName := args[0]
-
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
-
-		if dashboardInstalled {
-			log.Successf("GitOps Dashboard is found")
-		}
+		// if dashboardInstalled {
+		// 	log.Successf("GitOps Dashboard is found")
+		// }
 
 		// else {
 		// 	prompt := promptui.Prompt{
@@ -194,21 +292,33 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		// 	}
 		// }
 
-		if dashboardInstalled {
-			timeout := time.Minute * 3
+		// if dashboardInstalled {
+		// 	timeout := time.Minute * 3
 
-			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", timeout)
+		// 	log.Actionf("Request reconciliation of dashboard (timeout %v) ...", timeout)
 
-			dashboardPort := "9001"
-			dashboardPodName := dashboardName + "-" + helmChartName
+		// 	dashboardPort := "9001"
+		// 	dashboardPodName := dashboardName + "-" + helmChartName
 
-			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, timeout, dashboardPort); err != nil {
-				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
-			} else {
-				log.Successf("Dashboard reconciliation is done.")
-			}
-		}
+		// 	if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, timeout, dashboardPort); err != nil {
+		// 		log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+		// 	} else {
+		// 		log.Successf("Dashboard reconciliation is done.")
+		// 	}
+		// }
 
 		return nil
 	}
+}
+
+func validateObjectName(name string) bool {
+	r := regexp.MustCompile(`^[a-z0-9]([a-z0-9\\-]){0,61}[a-z0-9]$`)
+	return r.MatchString(name)
+}
+
+func resourceToString(data []byte) string {
+	data = bytes.ReplaceAll(data, []byte("  creationTimestamp: null\n"), []byte(""))
+	data = bytes.ReplaceAll(data, []byte("status: {}\n"), []byte(""))
+
+	return string(data)
 }
