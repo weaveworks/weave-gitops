@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cheshir/ttlcache"
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -79,4 +80,39 @@ func TestClustersNamespaces(t *testing.T) {
 	cs.Clear()
 
 	g.Expect(cs.Get(clusterName)).To(HaveLen(0))
+}
+
+func TestClusterSet_Set(t *testing.T) {
+	cs := clustersmngr.Clusters{}
+	cluster1 := newTestCluster("cluster1", "server1")
+	cluster2 := newTestCluster("cluster2", "server2")
+
+	clusters := []clustersmngr.Cluster{cluster1, cluster2}
+
+	added, removed := cs.Set(clusters)
+	if diff := cmp.Diff([]clustersmngr.Cluster{cluster1, cluster2}, added); diff != "" {
+		t.Fatalf("failed to calculate added:\n%s", diff)
+	}
+
+	if diff := cmp.Diff([]clustersmngr.Cluster{}, removed); diff != "" {
+		t.Fatalf("failed to calculate removed:\n%s", diff)
+	}
+
+	clusters = []clustersmngr.Cluster{cluster1}
+
+	added, removed = cs.Set(clusters)
+	if diff := cmp.Diff([]clustersmngr.Cluster{}, added); diff != "" {
+		t.Fatalf("failed to calculate added:\n%s", diff)
+	}
+
+	if diff := cmp.Diff([]clustersmngr.Cluster{cluster2}, removed); diff != "" {
+		t.Fatalf("failed to calculate removed:\n%s", diff)
+	}
+}
+
+func newTestCluster(name, server string) clustersmngr.Cluster {
+	return clustersmngr.Cluster{
+		Name:   name,
+		Server: server,
+	}
 }
