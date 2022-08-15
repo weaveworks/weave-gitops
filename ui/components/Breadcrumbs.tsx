@@ -8,14 +8,6 @@ import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
-import Text from "./Text";
-
-const CrumbLink = styled(Link)`
-  ${Text} {
-    font-size: ${(props) => props.theme.fontSizes.large};
-    color: ${(props) => props.theme.colors.neutral00};
-  }
-`;
 
 export const Breadcrumbs = () => {
   const { currentPage } = useNavigation();
@@ -27,19 +19,25 @@ export const Breadcrumbs = () => {
 
   return (
     <Flex align>
-      <CrumbLink to={parentValue || ""} textProps={{ bold: true }}>
+      <Link
+        to={parentValue || ""}
+        textProps={{ bold: true, size: "large", color: "neutral40" }}
+      >
         {label}
-      </CrumbLink>
+      </Link>
       {parentValue !== currentPage && parsed.name && (
         <>
           <Icon
             type={IconType.NavigateNextIcon}
             size="large"
-            color="neutral00"
+            color="neutral40"
           />
-          <CrumbLink to={formatURL(currentPage, parsed)}>
+          <Link
+            to={formatURL(currentPage, parsed)}
+            textProps={{ size: "large", color: "neutral40" }}
+          >
             {parsed.name}
-          </CrumbLink>
+          </Link>
         </>
       )}
     </Flex>

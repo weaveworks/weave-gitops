@@ -16,6 +16,7 @@ export namespace colors {
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
+  const backGrey: string;
   const feedbackLight: string;
 }
 export namespace spacing {
