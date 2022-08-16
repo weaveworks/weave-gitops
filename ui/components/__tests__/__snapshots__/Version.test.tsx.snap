@@ -22,8 +22,6 @@ exports[`Version snapshots renders a dash as plain text without version text and
   text-transform: none;
   font-style: normal;
   white-space: nowrap;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c3 {
@@ -32,8 +30,6 @@ exports[`Version snapshots renders a dash as plain text without version text and
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c2 {
@@ -84,8 +80,6 @@ exports[`Version snapshots renders a dash without version text and without versi
   text-transform: none;
   font-style: normal;
   white-space: nowrap;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c3 {
@@ -94,8 +88,6 @@ exports[`Version snapshots renders a dash without version text and without versi
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c2 {
@@ -146,8 +138,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   text-transform: none;
   font-style: normal;
   white-space: nowrap;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 {
@@ -157,8 +147,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5 {
@@ -167,8 +155,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c2 {
@@ -176,14 +162,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -245,8 +223,6 @@ exports[`Version snapshots renders plain text with version text and without vers
   text-transform: none;
   font-style: normal;
   white-space: nowrap;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c3 {
@@ -255,8 +231,6 @@ exports[`Version snapshots renders plain text with version text and without vers
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c2 {

@@ -81,11 +81,5 @@ function Link({
 }
 
 export default styled(Link)`
-  display: flex;
-  align-items: center;
   text-decoration: none;
-  ${Text} {
-    //matches MuiIcon
-    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-  }
 `;

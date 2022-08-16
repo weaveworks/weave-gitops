@@ -73,8 +73,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c10 svg {

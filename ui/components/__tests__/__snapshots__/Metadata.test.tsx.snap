@@ -25,8 +25,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   text-transform: none;
   font-style: normal;
   color: #737373;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 {
@@ -36,8 +34,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   text-transform: capitalize;
   font-style: normal;
   color: #737373;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c6 {
@@ -47,8 +43,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c3 {
@@ -71,14 +65,6 @@ exports[`Metadata snapshots renders with data 1`] = `
 }
 
 .c5 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
   -webkit-text-decoration: none;
   text-decoration: none;
 }

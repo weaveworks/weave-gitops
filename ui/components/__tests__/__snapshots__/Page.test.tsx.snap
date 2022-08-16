@@ -80,8 +80,6 @@ exports[`Page snapshots default 1`] = `
   text-transform: none;
   font-style: normal;
   white-space: nowrap;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c10 {
@@ -91,8 +89,6 @@ exports[`Page snapshots default 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-  -webkit-transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: color 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c8 {
@@ -100,14 +96,6 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c9 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
   -webkit-text-decoration: none;
   text-decoration: none;
 }
