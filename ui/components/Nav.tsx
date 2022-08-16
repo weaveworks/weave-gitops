@@ -32,6 +32,10 @@ const NavContent = styled.div`
   padding-top: ${(props) => props.theme.spacing.medium};
   box-sizing: border-box;
   //tabs
+  .MuiTabs-flexContainerVertical {
+    //allows both borders of first nav item to be visible on focus
+    padding: ${(props) => props.theme.spacing.xxs} 0;
+  }
   .MuiTabs-indicator {
     background-color: ${(props) => props.theme.colors.primary10};
   }
