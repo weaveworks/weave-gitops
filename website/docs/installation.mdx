@@ -340,6 +340,14 @@ The other important path to configure is where applications and workloads that w
 By default this is `./clusters`. When a new cluster is specified any profiles that have been selected will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
 When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namespace}/{.clusterName}` path.
 
+#### (Optional) Install policy agent
+
+[Policy agent](./policy/intro.mdx) comes packaged with the WGE chart. To install it you need to set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.accountId`: organization name, used as identifier
+- `values.policy-agent.clusterId`: unique identifier for the cluster
+
 Commit and push all the files
 
 ```
