@@ -178,6 +178,7 @@ message OCIRepository {
 message Object {
     string payload     = 1;
     string clusterName = 2;
+    string tenant      = 3;
 }
 
 message Deployment {

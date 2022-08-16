@@ -177,6 +177,7 @@ export type OCIRepository = {
 export type Object = {
   payload?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type Deployment = {
