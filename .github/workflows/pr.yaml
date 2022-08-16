@@ -304,6 +304,6 @@ jobs:
       with:
         slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
         message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
-        channel: proj-core-reloaded
+        channel: team-denim
         color: red
         verbose: false

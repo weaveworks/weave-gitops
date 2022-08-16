@@ -88,3 +88,15 @@ When creating a cluster from the UI using a CAPI template, these profiles should
 ![Profiles Selection](./img/profile-selection.png)
 
 As shown above, some profiles will be optional whereas some profiles will be required. This is determined when the template is authored and allows for operation teams to control which Helm packages should be installed on new clusters by default.
+
+To allow editing of the yaml values for required profiles, the `editable` flag can be added in the annotation describing the required profile in the template. For example: 
+
+```
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: connect-a-cluster-with-policies
+  namespace: default
+  annotations:
+    capi.weave.works/profile-0: '{"name": "weave-policy-agent", "editable": true, "version": "0.2.8", "values": "accountId: weaveworks\nclusterId: ${CLUSTER_NAME}" }'
+```
