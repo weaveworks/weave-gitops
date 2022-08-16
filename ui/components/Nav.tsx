@@ -109,15 +109,18 @@ function Nav({ className, navItems }: Props) {
         orientation="vertical"
         value={getParentNavValue(currentPage)}
       >
-        {_.map(navItems, (n) => (
-          <Tab
-            navItem={n}
-            key={n.label}
-            label={n.label}
-            value={n.link.value}
-            component={LinkTab}
-          />
-        ))}
+        {_.map(navItems, (n) => {
+          const { label, link } = n;
+          return (
+            <Tab
+              navItem={n}
+              key={label}
+              label={label}
+              value={link.value}
+              component={LinkTab}
+            />
+          );
+        })}
       </Tabs>
     </NavContent>
   );

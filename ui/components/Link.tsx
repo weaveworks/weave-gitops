@@ -19,14 +19,12 @@ type Props = {
   onMouseLeave?: React.EventHandler<React.SyntheticEvent>;
 };
 
-const SpacedIcon = ({ icon }: { icon: JSX.Element }) => {
-  return (
-    <>
-      {icon}
-      <Spacer padding="xxs" />
-    </>
-  );
-};
+const SpacedIcon = ({ icon }: { icon: JSX.Element }) => (
+  <>
+    {icon}
+    <Spacer padding="xxs" />
+  </>
+);
 
 function Link({
   children,
@@ -86,4 +84,8 @@ export default styled(Link)`
   display: flex;
   align-items: center;
   text-decoration: none;
+  ${Text} {
+    //matches MuiIcon
+    transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  }
 `;
