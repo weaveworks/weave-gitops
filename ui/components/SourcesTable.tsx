@@ -38,15 +38,19 @@ function SourcesTable({ className, sources }: Props) {
     return { ...s, type: removeKind(s.kind) };
   });
 
-  const initialFilterState = {
+  let initialFilterState = {
     ...filterConfig(sources, "type"),
     ...filterConfig(sources, "namespace"),
-    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
-      ? filterConfig(sources, "tenant")
-      : {}),
     ...filterConfig(sources, "status", filterByStatusCallback),
     ...filterConfig(sources, "clusterName"),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(sources, "tenant"),
+    };
+  }
 
   const fields: Field[] = [
     {

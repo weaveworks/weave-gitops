@@ -30,17 +30,19 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     return { ...a, type: removeKind(a.kind) };
   });
 
-  const initialFilterState = {
+  let initialFilterState = {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
     ...filterConfig(automations, "clusterName"),
-if (flags.WEAVE_GITOPS_FEATURE_TENANCY) {
-  initialFilterState = {...initialFilterState, ...filterConfig(automations, "tenant") }
-}
-      ? filterConfig(automations, "tenant")
-      : {}),
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "tenant"),
+    };
+  }
 
   let fields: Field[] = [
     {

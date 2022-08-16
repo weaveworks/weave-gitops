@@ -1,4 +1,5 @@
 import * as React from "react";
+import _ from "lodash";
 import styled from "styled-components";
 import { FluxObjectKind, Kustomization } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
@@ -27,6 +28,27 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
+  const info = [
+    [
+      "Source",
+      <SourceLink
+        sourceRef={kustomization?.sourceRef}
+        clusterName={kustomization?.clusterName}
+      />,
+    ],
+    ["Applied Revision", kustomization?.lastAppliedRevision],
+    ["Cluster", kustomization?.clusterName],
+    [
+      ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&
+      kustomization?.tenant !== ""
+        ? ["Tenant", kustomization?.tenant]
+        : []),
+    ],
+    ["Path", kustomization?.path],
+    ["Interval", <Interval interval={kustomization?.interval} />],
+    ["Last Updated", <Timestamp time={automationLastUpdated(kustomization)} />],
+  ];
+
   return (
     <AutomationDetail
       className={className}
@@ -35,29 +57,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
         ...kustomization,
         kind: FluxObjectKind.KindKustomization,
       }}
-      info={[
-        [
-          "Source",
-          <SourceLink
-            sourceRef={kustomization?.sourceRef}
-            clusterName={kustomization?.clusterName}
-          />,
-        ],
-        ["Applied Revision", kustomization?.lastAppliedRevision],
-        ["Cluster", kustomization?.clusterName],
-        [
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" &&
-          kustomization?.tenant !== ""
-            ? ["Tenant", kustomization?.tenant]
-            : []),
-        ] as InfoField,
-        ["Path", kustomization?.path],
-        ["Interval", <Interval interval={kustomization?.interval} />],
-        [
-          "Last Updated",
-          <Timestamp time={automationLastUpdated(kustomization)} />,
-        ],
-      ]}
+      info={_.filter(info as InfoField, _.size)}
     />
   );
 }
