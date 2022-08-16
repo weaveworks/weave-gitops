@@ -1,0 +1,103 @@
+---
+title: User permissions
+sidebar_position: 3
+---
+
+This is an explanation of the [kubernetes permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+needed by users of the Weave GitOps application. As covered in
+[service account permissions](service-account-permissions.mdx)
+the primary way that the application interacts with the Kube API is via [impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
+This means that the permissions granted to the users and groups that Weave GitOps
+can impersonate determine the scope of actions that it can take within your cluster.
+
+A minimal set of permissions are generated for the static cluster-user as part
+of the [helm chart](https://github.com/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates/admin-user-roles.yaml).
+
+By default both a ClusterRole and Role are generated for the static cluster-user.
+Both have the same permissions with former being optional and the latter being
+bound to the `flux-system` namespace (where Flux stores its resources by default).
+The default set of rules fall into three groups, discussed below, they are:
+```yaml
+rules:
+# Flux Resources
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: [ "kustomizations" ]
+  verbs: [ "get", "list", "patch" ]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: [ "helmreleases" ]
+  verbs: [ "get", "list", "patch" ]
+- apiGroups: ["source.toolkit.fluxcd.io"]
+  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+  verbs: [ "get", "list", "patch" ]
+- apiGroups: ["infra.contrib.fluxcd.io"]
+  resources: ["terraforms"]
+  verbs: [ "get", "list", "patch" ]
+# Resources managed via Flux
+- apiGroups: [""]
+  resources: ["configmaps", "secrets", "pods", "services", "namespaces", "persistentvolumes", "persistentvolumeclaims"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["apps"]
+  resources: [ "deployments", "replicasets", "statefulsets"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["batch"]
+  resources: [ "jobs", "cronjobs"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "clusterroles", "rolebindings", "clusterrolebindings"]
+  verbs: [ "get", "list" ]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: [ "get", "list" ]
+# Feedback
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "watch", "list"]
+```
+
+
+### Flux Resources
+
+The resources that Flux works with directly, including the one from TF-controller.
+
+| Api Group                   | Resources                                              | Permissions      |
+|-----------------------------|--------------------------------------------------------|------------------|
+| kustomize.toolkit.fluxcd.io | kustomizations                                         | get, list, patch |
+| helm.toolkit.fluxcd.io      | helmreleases                                           | get, list, patch |
+| source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories | get, list, patch |
+| infra.contrib.fluxcd.io     | terraforms                                             | get, list, patch |
+
+In order for Weave GitOps to be able to accurately display the state of Flux it
+needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses. This is done using the
+`get` and `list` permissions
+
+The `patch` permissions are used to enable the 'sync' functionality which forces
+reconciliation of a resource. This is done Weave GitOps modifying the annotations
+of the resource in the same way `flux reconcile` does on the CLI.
+
+### Resources managed via Flux
+
+| Api Group                 | Resources                                                                      | Permissions |
+|---------------------------|--------------------------------------------------------------------------------|-------------|
+| ""                        | configmaps, secrets, pods, services, persistentvolumes, persistentvolumeclaims | get, list   |
+| apps                      | deployments, replicasets, statefulsets                                         | get, list   |
+| batch                     | jobs, cronjobs                                                                 | get, list   |
+| autoscaling               | horizontalpodautoscalers                                                       | get, list   |
+| rbac.authorization.k8s.io | roles, clusterroles, rolebindings, clusterrolebindings                         | get, list   |
+| networking.k8s.io         | ingresses                                                                      | get, list   |
+
+Weave GitOps reads basic resources so that it can monitor the effect that Flux has
+on what's running.
+
+Reading `secrets` enables Weave GitOps to monitor the state of Helm releases
+as that's where it stores the [state by default](https://helm.sh/docs/faq/changes_since_helm2/#secrets-as-the-default-storage-driver).
+For clarity this these are the Helm release objects _not_ the Flux HelmRelease
+resource (which are dealt with by the earlier section).
+
+### Feedback from Flux
+
+The primary method by which Flux communicates the status of itself is by events,
+these will show when reconciliations start and stop, whether they're successful
+and information as to why they're not.
