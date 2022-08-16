@@ -28,7 +28,7 @@ gitops create dashboard ww-gitops \
 	}
 
 	cmd.PersistentFlags().BoolVar(&flags.Export, "export", false, "Export in YAML format to stdout.")
-	cmd.PersistentFlags().DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during resource creation.")
+	cmd.PersistentFlags().DurationVar(&flags.Timeout, "timeout", 3*time.Minute, "The timeout for operations during resource creation.")
 
 	cmd.AddCommand(dashboard.DashboardCommand(opts))
 

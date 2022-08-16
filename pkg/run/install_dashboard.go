@@ -253,7 +253,6 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 				"app.kubernetes.io/name":       "weave-gitops-dashboard",
 				"app.kubernetes.io/component":  "ui",
 				"app.kubernetes.io/part-of":    "weave-gitops",
-				"app.kubernetes.io/managed-by": "flux",
 				"app.kubernetes.io/created-by": "weave-gitops-cli",
 			},
 			Annotations: map[string]string{

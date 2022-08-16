@@ -2,10 +2,10 @@ package dashboard
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"regexp"
 	"time"
 
@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	// helmChartName = "weave-gitops"
+	helmChartName        = "weave-gitops"
 	defaultAdminUsername = "admin"
 )
 
@@ -116,7 +116,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return err
 		}
 
-		if flags.Export, err = cmd.Flags().GetBool("export"); err != nil {
+		if flags.Timeout, err = cmd.Flags().GetDuration("timeout"); err != nil {
 			return err
 		}
 
@@ -162,169 +162,69 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return nil
 		}
 
-		// var contextName string
+		log.Actionf("Checking for a cluster in the kube config ...")
 
-		if !flags.Export {
-			log.Actionf("Checking for a cluster in the kube config ...")
-
-			_, _, err = kube.RestConfig()
-			// _, contextName, err = kube.RestConfig()
-			if err != nil {
-				log.Failuref("Error getting a restconfig: %v", err.Error())
-				return cmderrors.ErrNoCluster
-			}
-		}
-
-		// cfg, err := kubeConfigArgs.ToRESTConfig()
-		// if err != nil {
-		// 	return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
-		// }
-
-		// kubeClientOpts := run.GetKubeClientOptions()
-		// kubeClientOpts.BindFlags(cmd.Flags())
-
-		// kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
-		// if err != nil {
-		// 	return cmderrors.ErrGetKubeClient
-		// }
-
-		// ctx := context.Background()
-
-		// if createArgs.export {
-		// 	return printExport(exportKs(&kustomization))
-		// }
-
-		// ctx, cancel := context.WithTimeout(context.Background(), rootArgs.timeout)
-		// defer cancel()
-
-		// kubeClient, err := utils.KubeClient(kubeconfigArgs, kubeclientOptions)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// logger.Actionf("applying Kustomization")
-		// namespacedName, err := upsertKustomization(ctx, kubeClient, &kustomization)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// logger.Waitingf("waiting for Kustomization reconciliation")
-		// if err := wait.PollImmediate(rootArgs.pollInterval, rootArgs.timeout,
-		// 	isKustomizationReady(ctx, kubeClient, namespacedName, &kustomization)); err != nil {
-		// 	return err
-		// }
-		// logger.Successf("Kustomization %s is ready", name)
-
-		// logger.Successf("applied revision %s", kustomization.Status.LastAppliedRevision)
-		// return nil
-
-		//
-		//
-		//
-		//
-		//
-
-		gitRepoRoot, err := run.FindGitRepoDir()
+		_, contextName, err := kube.RestConfig()
 		if err != nil {
-			return err
+			log.Failuref("Error getting a restconfig: %v", err.Error())
+			return cmderrors.ErrNoCluster
 		}
 
-		rootDir := gitRepoRoot
-
-		// check if rootDir is valid
-		if _, err := os.Stat(rootDir); err != nil {
-			return fmt.Errorf("root directory %s does not exist", rootDir)
-		}
-
-		// find absolute path of the root Dir
-		rootDir, err = filepath.Abs(rootDir)
+		cfg, err := kubeConfigArgs.ToRESTConfig()
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
 		}
 
-		currentDir, err := os.Getwd()
+		kubeClientOpts := run.GetKubeClientOptions()
+		kubeClientOpts.BindFlags(cmd.Flags())
+
+		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
 		if err != nil {
-			return err
+			return cmderrors.ErrGetKubeClient
 		}
 
-		targetPath, err := filepath.Abs(filepath.Join(currentDir, args[0]))
+		log.Actionf("Checking if Flux is already installed ...")
+
+		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
+		defer cancel()
+
+		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+			log.Failuref("Flux is not found")
+			return err
+		} else {
+			log.Successf("Flux version %s is found", fluxVersion)
+		}
+
+		log.Actionf("Applying GitOps Dashboard manifests")
+
+		man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
 		if err != nil {
+			log.Failuref("Error creating resource manager")
 			return err
 		}
 
-		_, err = run.GetRelativePathToRootDir(rootDir, targetPath)
-		// relativePathForKs, err := run.GetRelativePathToRootDir(rootDir, targetPath)
-		if err != nil { // if there is no git repo, we return an error
-			return err
+		err = run.InstallDashboard(log, ctx, man, manifests)
+		if err != nil {
+			return fmt.Errorf("gitops dashboard installation failed: %w", err)
+		} else {
+			log.Successf("GitOps Dashboard has been installed")
 		}
 
-		//
-		//
-		//
+		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-		// log.Actionf("Checking if Flux is already installed ...")
+		log.Waitingf("Waiting for GitOps Dashboard reconciliation")
 
-		// if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
-		// 	log.Warningf("Flux is not found")
-		// 	return err
+		// dashboardPort := "9001"
+		// dashboardPodName := dashboardName + "-" + helmChartName
+
+		// if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout, dashboardPort); err != nil {
+		// 	log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		// } else {
-		// 	log.Successf("Flux version %s is found", fluxVersion)
+		// 	log.Successf("GitOps Dashboard %s is ready", dashboardName)
 		// }
 
-		// log.Actionf("Checking if GitOps Dashboard is already installed ...")
-
-		// dashboardName := args[0]
-
-		// dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
-
-		// if dashboardInstalled {
-		// 	log.Successf("GitOps Dashboard is found")
-		// }
-
-		// else {
-		// 	prompt := promptui.Prompt{
-		// 		Label:     "Would you like to install the GitOps Dashboard",
-		// 		IsConfirm: true,
-		// 		Default:   "Y",
-		// 	}
-		// 	_, err = prompt.Run()
-		// 	if err == nil {
-		// 		secret, err := run.GenerateSecret(log)
-		// 		if err != nil {
-		// 			return err
-		// 		}
-
-		// 		man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
-		// 		if err != nil {
-		// 			log.Failuref("Error creating resource manager")
-		// 			return err
-		// 		}
-
-		// 		err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
-		// 		if err != nil {
-		// 			return fmt.Errorf("gitops dashboard installation failed: %w", err)
-		// 		} else {
-		// 			dashboardInstalled = true
-
-		// 			log.Successf("GitOps Dashboard has been installed")
-		// 		}
-		// 	}
-		// }
-
-		// if dashboardInstalled {
-		// 	timeout := time.Minute * 3
-
-		// 	log.Actionf("Request reconciliation of dashboard (timeout %v) ...", timeout)
-
-		// 	dashboardPort := "9001"
-		// 	dashboardPodName := dashboardName + "-" + helmChartName
-
-		// 	if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, timeout, dashboardPort); err != nil {
-		// 		log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
-		// 	} else {
-		// 		log.Successf("Dashboard reconciliation is done.")
-		// 	}
-		// }
+		log.Successf("Installed GitOps Dashboard")
+		// log.Successf("Installed GitOps Dashboard version %s", kustomization.Status.LastAppliedRevision)
 
 		return nil
 	}

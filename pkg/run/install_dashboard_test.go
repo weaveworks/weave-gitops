@@ -213,7 +213,6 @@ var _ = Describe("makeHelmRepository", func() {
 		Expect(labels["app.kubernetes.io/name"]).NotTo(BeEmpty())
 		Expect(labels["app.kubernetes.io/component"]).NotTo(BeEmpty())
 		Expect(labels["app.kubernetes.io/part-of"]).NotTo(BeEmpty())
-		Expect(labels["app.kubernetes.io/managed-by"]).NotTo(BeEmpty())
 		Expect(labels["app.kubernetes.io/created-by"]).NotTo(BeEmpty())
 
 		annotations := actual.Annotations
