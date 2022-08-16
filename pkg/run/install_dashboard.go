@@ -154,10 +154,12 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration, dashboardPort string) error {
 	const interval = 3 * time.Second / 2
 
+	helmChartName := namespace + "-" + name
+
 	// reconcile dashboard
 	namespacedName := types.NamespacedName{
 		Namespace: namespace,
-		Name:      namespace + "-" + name,
+		Name:      helmChartName,
 	}
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
@@ -182,7 +184,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 		dashboard := &sourcev1.HelmChart{}
 		if err := kubeClient.Get(context.Background(), types.NamespacedName{
 			Namespace: namespace,
-			Name:      namespace + "-" + name,
+			Name:      helmChartName,
 		}, dashboard); err != nil {
 			return false, err
 		}

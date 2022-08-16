@@ -24,7 +24,6 @@ const (
 )
 
 type DashboardCommandFlags struct {
-	Version string
 	// Create command flags.
 	Export  bool
 	Timeout time.Duration
@@ -62,9 +61,8 @@ gitops create dashboard ww-gitops \
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.Username, "username", "admin", "The username of the admin user.")
-	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the admin user.")
-	cmdFlags.StringVar(&flags.Version, "version", "", "The version of the dashboard that should be installed.")
+	cmdFlags.StringVar(&flags.Username, "username", "admin", "The username of the dashboard admin user.")
+	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the dashboard admin user.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -149,7 +147,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, flags.Version)
+		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		} else {
@@ -162,12 +160,27 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return nil
 		}
 
+		if flags.KubeConfig != "" {
+			kubeConfigArgs.KubeConfig = &flags.KubeConfig
+
+			if flags.Context == "" {
+				log.Failuref("A context should be provided if a kubeconfig is provided")
+				return cmderrors.ErrNoContextForKubeConfig
+			}
+		}
+
 		log.Actionf("Checking for a cluster in the kube config ...")
 
-		_, contextName, err := kube.RestConfig()
-		if err != nil {
-			log.Failuref("Error getting a restconfig: %v", err.Error())
-			return cmderrors.ErrNoCluster
+		var contextName string
+
+		if flags.Context != "" {
+			contextName = flags.Context
+		} else {
+			_, contextName, err = kube.RestConfig()
+			if err != nil {
+				log.Failuref("Error getting a restconfig: %v", err.Error())
+				return cmderrors.ErrNoCluster
+			}
 		}
 
 		cfg, err := kubeConfigArgs.ToRESTConfig()
@@ -214,17 +227,16 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Waitingf("Waiting for GitOps Dashboard reconciliation")
 
-		// dashboardPort := "9001"
-		// dashboardPodName := dashboardName + "-" + helmChartName
+		dashboardPort := "9001"
+		dashboardPodName := dashboardName + "-" + helmChartName
 
-		// if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout, dashboardPort); err != nil {
-		// 	log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
-		// } else {
-		// 	log.Successf("GitOps Dashboard %s is ready", dashboardName)
-		// }
+		if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout, dashboardPort); err != nil {
+			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+		} else {
+			log.Successf("GitOps Dashboard %s is ready", dashboardName)
+		}
 
 		log.Successf("Installed GitOps Dashboard")
-		// log.Successf("Installed GitOps Dashboard version %s", kustomization.Status.LastAppliedRevision)
 
 		return nil
 	}
