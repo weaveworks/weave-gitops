@@ -48,7 +48,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
             clusterName={kustomization?.clusterName}
           />,
         ],
-        ["Bla2", kustomization?.lastAppliedRevision],
+        ["Applied Revision", kustomization?.lastAppliedRevision],
         ["Cluster", kustomization?.clusterName],
         ...tenancyInfo,
         ["Path", kustomization?.path],
