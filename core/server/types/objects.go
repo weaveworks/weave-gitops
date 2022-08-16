@@ -19,7 +19,7 @@ func K8sObjectToProto(object client.Object, clusterName string, tenant string) (
 	obj := &pb.Object{
 		Payload:     buf.String(),
 		ClusterName: clusterName,
-		Tenant:		 tenant,
+		Tenant:      tenant,
 	}
 
 	return obj, nil

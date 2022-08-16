@@ -1,5 +1,4 @@
 import * as React from "react";
-import _ from "lodash";
 import styled from "styled-components";
 import { FluxObjectKind, Kustomization } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
