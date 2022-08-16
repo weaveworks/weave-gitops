@@ -19,7 +19,9 @@ logLevel: info
 # Additional arguments to pass in
 # additionalArgs:
 # Any other environment variables:
-# envVars:
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_TENANCY
+    value: "true"
 
 # Should the 'oidc-auth' secret be created. For a detailed
 # explanation of these attributes please see our documentation:
