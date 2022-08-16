@@ -69,9 +69,11 @@ To make use of this policy set in the profile:
 
 ```yaml
 policy-agent:
-  config:
-    AGENT_ADMISSION_POLICY_SET: admission-policy-set # name of policy set to be used for admission
-    AGENT_AUDIT_POLICY_SET: audit-policy-set # name of policy set to be used for audit
+  config: 
+    admission:
+      policySet: admission-policy-set # name of policy set to be used for admission
+    audit: 
+      policySet: audit-policy-set # name of policy set to be used for audit
 ```
 
 ---
@@ -84,10 +86,11 @@ By default the agent only writes policy validation that are violating a certain 
 ```yaml
 policy-agent:
   config:
-    AGENT_WRITE_COMPLIANCE: "true"
+    audit:
+      writeCompliance: true
 ```
 
-The agent profile supports multiple methods to expose this data and multiple can be used at the same time:
+The agent profile supports multiple methods for different scenarios either Admission or Audit to expose this data and multiple can be used at the same time:
 
 
 <Tabs groupId="violations-sinks" default>
@@ -95,12 +98,26 @@ The agent profile supports multiple methods to expose this data and multiple can
 
 The results would be dumped into a text file in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
 
-To enable writing to a text file:
+To enable writing to a text file in audit scenario:
 
 ```yaml
 policy-agent:
   config:
-    AGENT_FILESYSTEM_SINK_FILE_PATH: "/path/to/file"
+    audit:
+      sinks:
+        fileSystemSink:
+          filePath: "/path/to/file"
+```
+
+To enable writing to a text file in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        fileSystemSink:
+          filePath: "/path/to/file"
 ```
 
 It is possible to make the file persistent, this assumes that there is a [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) already configured on the cluster.
@@ -117,23 +134,51 @@ policy-agent:
 <TabItem value="kubernetes-events" label="Kubernetes Events">
 The results would be written as Kubernetes events. This means that they are accessible through the kubernetes API and can be consumed by custom exporters.
 
-To enable writing Kubernetes events:
+To enable writing Kubernetes events in audit scenario:
 
 ```yaml
 policy-agent:
   config:
-    AGENT_ENABLE_K8S_EVENTS_SINK: "true"
+    audit:
+      sinks:
+        k8sEventsSink:
+          enabled: true
+```
+
+To enable writing Kubernetes events in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        k8sEventsSink:
+          enabled: true
 ```
 </TabItem>
 <TabItem value="notification-controller" label="Notification Controller">
 This requires the cluster to be managed using flux. It makes use of flux notification controller to send events to multiple sources, depending on the controller configuration. The agent writes the events to the controller and it proceeds to publish it to the configured listeners.
 
-To enable writing to flux notification controller:
+To enable writing to flux notification controller in audit scenario:
 
 ```yaml
 policy-agent:
   config:
-    AGENT_FLUX_NOTIFICATION_SINK_ADDR: "true"
+    audit:
+      sinks:
+        fluxNotificationSink:
+          address: ""
+```
+
+To enable writing to flux notification controller in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        fluxNotificationSink:
+          address: ""
 ```
 </TabItem>
 </Tabs>
@@ -147,7 +192,8 @@ To enable admission control:
 ```yaml
 policy-agent:
   config:
-    AGENT_ENABLE_ADMISSION: "1"
+    admission:
+      enabled: true
 ```
 
 Enabling admission controller requires certificates for secure communication with the webhook client and the admission server. The best way to achieve this is by installing [cert manager](https://cert-manager.io/docs/installation/) and then configuring the profile as follows:
@@ -182,7 +228,8 @@ To enable audit functionality:
 ```yaml
 policy-agent:
   config:
-    AGENT_ENABLE_AUDIT: "1"
+    audit:
+      enabled: true
 ```
 
 Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
