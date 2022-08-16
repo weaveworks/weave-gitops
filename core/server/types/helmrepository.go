@@ -5,7 +5,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName string) *pb.HelmRepository {
+func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName string, tenant string) *pb.HelmRepository {
 	return &pb.HelmRepository{
 		Name:           helmRepository.Name,
 		Namespace:      helmRepository.Namespace,
@@ -17,6 +17,7 @@ func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName 
 		ClusterName:    clusterName,
 		ApiVersion:     helmRepository.APIVersion,
 		RepositoryType: typeToRepositoryType(helmRepository.Spec.Type),
+		Tenant:         tenant,
 	}
 }
 

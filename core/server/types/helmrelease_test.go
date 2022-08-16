@@ -144,7 +144,7 @@ func TestHelmRelease(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := HelmReleaseToProto(&tt.state, tt.clusterName, []*pb.GroupVersionKind{})
+			res := HelmReleaseToProto(&tt.state, tt.clusterName, []*pb.GroupVersionKind{}, "")
 
 			g.Expect(res).To(Equal(tt.result))
 		})

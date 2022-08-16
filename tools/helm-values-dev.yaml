@@ -20,3 +20,7 @@ additionalArgs:
 
 metrics:
   enabled: true
+
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_TENANCY
+    value: "true"

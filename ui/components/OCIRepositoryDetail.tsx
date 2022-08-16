@@ -3,10 +3,12 @@ import styled from "styled-components";
 import { removeKind } from "../lib/utils";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { OCIRepository } from "../lib/objects";
+import { useFeatureFlags } from "../hooks/featureflags";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
+import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
@@ -21,6 +23,9 @@ function OCIRepositoryDetail({
   className,
   clusterName,
 }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
   return (
     <SourceDetail
       className={className}
@@ -41,7 +46,10 @@ function OCIRepositoryDetail({
           ["Namespace", oci.namespace],
           ["Source", <Link href={oci.source}>{oci.source}</Link>],
           ["Revision", oci.revision],
-        ];
+          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && oci.tenant
+            ? [["Tenant", oci.tenant]]
+            : []),
+        ] as InfoField[];
       }}
     />
   );

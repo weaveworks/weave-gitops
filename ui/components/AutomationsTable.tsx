@@ -6,6 +6,7 @@ import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { Field } from "./DataTable";
 import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
@@ -22,15 +23,26 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
   automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
-  const initialFilterState = {
+
+  let initialFilterState = {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
     ...filterConfig(automations, "clusterName"),
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "tenant"),
+    };
+  }
 
   let fields: Field[] = [
     {
@@ -64,6 +76,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Namespace",
       value: "namespace",
     },
+    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? [{ label: "Tenant", value: "tenant" }]
+      : []),
     {
       label: "Cluster",
       value: "clusterName",

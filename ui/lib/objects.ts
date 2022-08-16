@@ -26,6 +26,7 @@ export function fluxObjectKindToKind(fok: FluxObjectKind): Kind {
 export class FluxObject {
   obj: any;
   clusterName: string;
+  tenant: string;
 
   constructor(response: ResponseObject) {
     try {
@@ -34,6 +35,8 @@ export class FluxObject {
       this.obj = {};
     }
     this.clusterName = response.clusterName;
+
+    this.tenant = response.tenant;
   }
 
   get yaml(): string {
