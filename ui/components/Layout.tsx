@@ -1,14 +1,11 @@
-import { Tab, Tabs } from "@material-ui/core";
-import _ from "lodash";
-import React, { forwardRef } from "react";
+import React from "react";
 import styled from "styled-components";
-import useNavigation from "../hooks/navigation";
-import { formatURL, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
 import Flex from "./Flex";
-import Link from "./Link";
+import { IconType } from "./Icon";
 import Logo from "./Logo";
+import Nav, { NavItem } from "./Nav";
 import UserSettings from "./UserSettings";
 
 type Props = {
@@ -16,43 +13,32 @@ type Props = {
   children?: any;
 };
 
-const navItems = [
+const navItems: NavItem[] = [
   {
-    value: V2Routes.Automations,
     label: "Applications",
+    link: { value: V2Routes.Automations },
+    styles: { icon: IconType.ApplicationsIcon },
   },
   {
-    value: V2Routes.Sources,
     label: "Sources",
-    sub: true,
+    link: { value: V2Routes.Sources },
+    styles: { sub: true, groupEnd: true },
   },
-
   {
-    value: V2Routes.FluxRuntime,
     label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
+    styles: { icon: IconType.FluxIcon, groupEnd: true },
   },
   {
-    value: "docs",
     label: "Docs",
-    href: "https://docs.gitops.weave.works/",
-    newTab: true,
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    styles: { icon: IconType.DocsIcon, groupEnd: true },
   },
 ];
-
-const LinkTab = (props: any) => (
-  <Tab
-    component={forwardRef((p: any, ref) => (
-      <Link innerRef={ref} {...p} />
-    ))}
-    {...props}
-  />
-);
-
-const StyleLinkTab = styled(LinkTab)`
-  span {
-    align-items: flex-start;
-  }
-`;
 
 const AppContainer = styled.div`
   width: 100%;
@@ -76,47 +62,6 @@ const NavContainer = styled.div`
   transform: translateY(72);
 `;
 
-const NavContent = styled.div`
-  height: 100%;
-  border-radius: 10px;
-  background-color: ${(props) => props.theme.colors.neutral00};
-  padding-top: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.xs};
-  box-sizing: border-box;
-  overflow-y: auto;
-  .MuiTab-textColorInherit {
-    opacity: 1;
-    .MuiTab-wrapper {
-      font-weight: 600;
-      font-size: 20px;
-      color: ${(props) => props.theme.colors.neutral40};
-    }
-    &.sub-item {
-      opacity: 0.7;
-      .MuiTab-wrapper {
-        font-weight: 400;
-      }
-    }
-  }
-  .MuiTabs-indicator {
-    width: 4px;
-    background-color: ${(props) => props.theme.colors.primary};
-  }
-  .MuiTab-root {
-    padding: 0px 12px;
-    min-height: 24px;
-    &.sub-item {
-      margin-bottom: 32px;
-    }
-  }
-  ${Link} {
-    justify-content: flex-start;
-    &.sub-item {
-      font-weight: 400;
-    }
-  }
-`;
-
 const ContentContainer = styled.div`
   width: 100%;
   min-width: 900px;
@@ -129,7 +74,7 @@ const ContentContainer = styled.div`
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
   overflow: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   box-sizing: border-box;
 `;
 
@@ -153,8 +98,6 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
-  const { currentPage } = useNavigation();
-
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
@@ -164,25 +107,7 @@ function Layout({ className, children }: Props) {
       </TopToolBar>
       <Main wide tall>
         <NavContainer>
-          <NavContent>
-            <Tabs
-              centered={false}
-              orientation="vertical"
-              value={getParentNavValue(currentPage)}
-            >
-              {_.map(navItems, (n) => (
-                <StyleLinkTab
-                  key={n.label}
-                  label={n.label}
-                  to={formatURL(n.value)}
-                  value={n.value}
-                  className={n.sub && "sub-item"}
-                  href={n.href}
-                  newTab={n.newTab}
-                />
-              ))}
-            </Tabs>
-          </NavContent>
+          <Nav navItems={navItems} />
         </NavContainer>
         <ContentContainer>{children}</ContentContainer>
       </Main>

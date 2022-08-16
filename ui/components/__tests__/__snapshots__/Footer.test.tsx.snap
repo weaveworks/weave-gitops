@@ -77,13 +77,13 @@ exports[`Footer snapshots default 1`] = `
   font-style: normal;
 }
 
+.c4 {
+  padding: 4px;
+}
+
 .c5 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c4 {
-  padding: 4px;
 }
 
 .c7 {
@@ -290,13 +290,13 @@ exports[`Footer snapshots no api version 1`] = `
   font-style: normal;
 }
 
+.c4 {
+  padding: 4px;
+}
+
 .c5 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c4 {
-  padding: 4px;
 }
 
 .c7 {
