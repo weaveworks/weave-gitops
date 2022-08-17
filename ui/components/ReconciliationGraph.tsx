@@ -89,7 +89,8 @@ function ReconciliationGraph({
     .nodeSize([
       nodeSize.width + nodeSize.horizontalSeparation,
       nodeSize.height + nodeSize.verticalSeparation,
-    ]);
+    ])
+    .separation(() => 1);
   const tree = makeTree(root);
   const descendants = tree.descendants();
   const links = tree.links();
