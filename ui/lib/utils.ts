@@ -59,7 +59,7 @@ export function convertGitURLToGitProvider(uri: string): string {
 
   const matches = uri.match(/git@(.*)[/|:](.*)\/(.*)/);
   if (!matches) {
-    throw new Error(`could not parse url "${uri}"`);
+    return "";
   }
   const [, provider, org, repo] = matches;
 

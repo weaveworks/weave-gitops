@@ -119,12 +119,10 @@ describe("utils lib", () => {
         )
       ).toEqual("https://github.com/weaveworks/weave-gitops-clusters");
     });
-    it("throws error on invalid Git URL", () => {
+    it("returns nothing on invalid Git URL", () => {
       const uri = "github.com/weaveworks/weave-gitops-clusters";
 
-      expect(() => {
-        convertGitURLToGitProvider(uri);
-      }).toThrow(new Error(`could not parse url "${uri}"`));
+      expect(convertGitURLToGitProvider(uri)).toEqual("");
     });
     it("returns the original HTTP URL", () => {
       expect(
