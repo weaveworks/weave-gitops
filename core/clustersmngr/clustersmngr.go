@@ -90,7 +90,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
 			}).DialContext,
 		}
 
-		if user.Token == "" && user.ID == "" {
+		if !user.Valid() {
 			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
 		} else if user.Token != "" {
 			config.BearerToken = user.Token
