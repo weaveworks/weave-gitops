@@ -47,7 +47,7 @@ func (cs *coreServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 			}
 
 			for _, repository := range list.Items {
-				tenant := getTenant(repository.Namespace, n, clusterUserNamespaces)
+				tenant := GetTenant(repository.Namespace, n, clusterUserNamespaces)
 
 				results = append(results, types.GitRepositoryToProto(&repository, n, tenant))
 			}
@@ -94,7 +94,7 @@ func (cs *coreServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelm
 			}
 
 			for _, repository := range list.Items {
-				tenant := getTenant(repository.Namespace, n, clusterUserNamespaces)
+				tenant := GetTenant(repository.Namespace, n, clusterUserNamespaces)
 
 				results = append(results, types.HelmRepositoryToProto(&repository, n, tenant))
 			}
@@ -141,7 +141,7 @@ func (cs *coreServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmCharts
 			}
 
 			for _, repository := range list.Items {
-				tenant := getTenant(repository.Namespace, n, clusterUserNamespaces)
+				tenant := GetTenant(repository.Namespace, n, clusterUserNamespaces)
 
 				results = append(results, types.HelmChartToProto(&repository, n, tenant))
 			}
@@ -188,7 +188,7 @@ func (cs *coreServer) ListBuckets(ctx context.Context, msg *pb.ListBucketRequest
 			}
 
 			for _, repository := range list.Items {
-				tenant := getTenant(repository.Namespace, n, clusterUserNamespaces)
+				tenant := GetTenant(repository.Namespace, n, clusterUserNamespaces)
 
 				results = append(results, types.BucketToProto(&repository, n, tenant))
 			}
@@ -242,7 +242,7 @@ func (cs *coreServer) ListOCIRepositories(ctx context.Context, msg *pb.ListOCIRe
 			}
 
 			for _, repository := range list.Items {
-				tenant := getTenant(repository.Namespace, n, clusterUserNamespaces)
+				tenant := GetTenant(repository.Namespace, n, clusterUserNamespaces)
 
 				results = append(results, types.OCIRepositoryToProto(&repository, n, tenant))
 			}

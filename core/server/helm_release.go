@@ -61,7 +61,7 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 					return nil, err
 				}
 
-				tenant := getTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
+				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
 
 				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
 			}
@@ -98,7 +98,7 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 
 	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
-	tenant := getTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
+	tenant := GetTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
 
 	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
 

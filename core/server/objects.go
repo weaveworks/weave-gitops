@@ -36,7 +36,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 
 	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
-	tenant := getTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant)
 
