@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: wego-test-user-read-resources-cr
+  name: wego-admin-cluster-role-binding
 subjects:
   - kind: User
     name: wego-admin

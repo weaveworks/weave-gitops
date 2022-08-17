@@ -95,7 +95,15 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
 	multi := MultiAuthPrincipal{Log: srv.Log, Getters: []PrincipalGetter{}}
 
-	for method, enabled := range srv.authMethods {
+	// FIXME: currently the order must be OIDC last, or it'll "shadow" the other
+	// methods so they don't work.
+	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC}
+	for _, method := range methods {
+		enabled, ok := srv.authMethods[method]
+		if !ok {
+			continue
+		}
+
 		if !enabled {
 			srv.Log.V(logger.LogLevelWarn).Info("Disabled AuthMethod encountered", "AuthMethod", method.String())
 			continue // in theory nothing should ever be set and not enabled but in case it is

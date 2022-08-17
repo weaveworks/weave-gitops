@@ -1,6 +1,7 @@
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import DocsIcon from "@material-ui/icons/AssignmentOutlined";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -16,6 +17,7 @@ import PersonIcon from "@material-ui/icons/Person";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
+import ApplicationsIcon from "@material-ui/icons/SettingsApplicationsOutlined";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
@@ -52,6 +54,10 @@ export enum IconType {
   SuspendedIcon,
   FileCopyIcon,
   ReconcileIcon,
+  FluxIcon,
+  FluxIconHover,
+  DocsIcon,
+  ApplicationsIcon,
 }
 
 type Props = {
@@ -138,6 +144,18 @@ function getIcon(i: IconType) {
 
     case IconType.FileCopyIcon:
       return FileCopyIcon;
+
+    case IconType.ApplicationsIcon:
+      return ApplicationsIcon;
+
+    case IconType.DocsIcon:
+      return DocsIcon;
+
+    case IconType.FluxIcon:
+      return () => <img src={images.fluxIconSrc} />;
+
+    case IconType.FluxIconHover:
+      return () => <img src={images.fluxIconHoverSrc} />;
 
     default:
       break;

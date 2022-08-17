@@ -91,13 +91,13 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
+.c8 {
+  padding: 4px;
+}
+
 .c9 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c8 {
-  padding: 4px;
 }
 
 .c11 {

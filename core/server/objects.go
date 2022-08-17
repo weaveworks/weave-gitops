@@ -34,7 +34,11 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, err
 	}
 
-	res, err := types.K8sObjectToProto(&obj, msg.ClusterName)
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant)
 
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)

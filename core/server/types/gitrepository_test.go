@@ -109,7 +109,7 @@ func TestGitRepositoryToProto(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := types.GitRepositoryToProto(tt.in, tt.clusterName)
+			out := types.GitRepositoryToProto(tt.in, tt.clusterName, "")
 
 			g.Expect(out).To(Equal(tt.expected))
 		})
