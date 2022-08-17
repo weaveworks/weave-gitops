@@ -14,8 +14,8 @@ import (
 
 type Clusters struct {
 	sync.RWMutex
-	clusters []Cluster
-	names    map[string]Cluster
+	clusters    []Cluster
+	clustersMap map[string]Cluster
 }
 
 // Set updates Clusters.clusters, and returns the newly added clusters and removed clusters.
@@ -24,35 +24,39 @@ func (c *Clusters) Set(clusters []Cluster) (added, removed []Cluster) {
 	defer c.Unlock()
 
 	currentClustersSet := sets.NewString()
+
 	for _, cluster := range c.clusters {
-		currentClustersSet.Insert(cluster.Name)
+		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+		currentClustersSet.Insert(clusterKey)
 	}
 
 	newClustersSet := sets.NewString()
-	clusterNames := map[string]Cluster{}
+	clustersMap := map[string]Cluster{}
 
 	for _, cluster := range clusters {
-		newClustersSet.Insert(cluster.Name)
-		clusterNames[cluster.Name] = cluster
+		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+		newClustersSet.Insert(clusterKey)
+
+		clustersMap[clusterKey] = cluster
 	}
 
-	addedNames := newClustersSet.Difference(currentClustersSet)
-	added = appendClusters(clusterNames, addedNames.List())
+	addedClusters := newClustersSet.Difference(currentClustersSet)
+	added = appendClusters(clustersMap, addedClusters.List())
 
-	removedNames := currentClustersSet.Difference(newClustersSet)
-	removed = appendClusters(c.names, removedNames.List())
+	removedClusters := currentClustersSet.Difference(newClustersSet)
+	removed = appendClusters(c.clustersMap, removedClusters.List())
 
 	c.clusters = clusters
-	c.names = clusterNames
+	c.clustersMap = clustersMap
 
 	return added, removed
 }
 
-func appendClusters(clustersMap map[string]Cluster, names []string) []Cluster {
+func appendClusters(clustersMap map[string]Cluster, keys []string) []Cluster {
 	clusters := []Cluster{}
 
-	for _, name := range names {
-		clusters = append(clusters, clustersMap[name])
+	for _, key := range keys {
+		clusters = append(clusters, clustersMap[key])
 	}
 
 	return clusters
