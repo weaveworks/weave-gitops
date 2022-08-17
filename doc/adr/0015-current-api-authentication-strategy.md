@@ -76,7 +76,7 @@ type UserPrincipal struct {
 }
 ```
 
-The `PrincipalGetter` is used by the `WithAPIAuthentication` middleware that authenticates requests to the API. Auth methods are enabled via the `--auth-methods` flag this flag also defines the order in which methods are used to authenticate a request, by default then enabled methods are cluster user then OIDC. The middleware is used on all calls to the Gitops API that don't match one of the configured `PublicRoutes`. When a request is received it is passed to each enabled method's `Principal` function, the first call to return a non-nil response without erroring succeeds and no further methods are tested. If no methods succeed, or if a method returns an error, the request is rejected with a `401 (unauthorised)` status.
+The `PrincipalGetter` is used by the `WithAPIAuthentication` middleware that authenticates requests to the API. Auth methods are enabled via the `--auth-methods` flag. The methods are tested in the following order: cluster-user, token-passthrough then OIDC. The ordering is important as cluster-user and OIDC use the same name for their cookie and OIDC will fail if given the cluster-user cookie. The middleware is used on all calls to the Gitops API that don't match one of the configured `PublicRoutes`. When a request is received it is passed to each enabled method's `Principal` function, the first call to return a non-nil response without erroring succeeds and no further methods are tested. If no methods succeed, or if a method returns an error, the request is rejected with a `401 (unauthorised)` status.
 
 Configuration is primarily via the CLI but the OIDC method can also read configuration from a secret (by default `oidc-auth`) which over-rides CLI configuration. The `OIDC.TokenDuration` attribute is used to set all cookie expiry times (not just those related to OIDC).
 
@@ -106,6 +106,8 @@ Communication to the Kubernetes API should be done via the client returned by `G
 This is not an exhaustive list of consequences of the above but aims to capture important points.
 
 The `PrincipalGetter` interface is very simple but is assumed to carry out authentication in addition to returning a `UserPrincipal`. The various implementations of `Principal` must be treated very carefully as they are the outermost layer of security against unauthenticated access to both Gitops and the Kubernetes API.
+
+The order that authentication methods should be treated carefully, as should the name of cookies & headers being used to avoid problems with shadowing another methods' expected values.
 
 If an empty `UserPrincipal` struct is passed to the `GetImpersonatedClient` then the client will fallback to using the Gitops service account permissions. When returning a `UserPrincipal` authentication methods should make sure at least one of `ID` or `Token` is set.
 
