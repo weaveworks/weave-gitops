@@ -150,13 +150,14 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
-		} else {
-			log.Successf("Generated GitOps Dashboard manifests")
-			fmt.Println("---")
-			fmt.Println(resourceToString(manifests))
 		}
 
+		log.Successf("Generated GitOps Dashboard manifests")
+
 		if flags.Export {
+			fmt.Println("---")
+			fmt.Println(resourceToString(manifests))
+
 			return nil
 		}
 
