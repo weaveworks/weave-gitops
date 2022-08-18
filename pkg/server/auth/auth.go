@@ -84,6 +84,7 @@ func (p UserPrincipal) Token() string {
 	if p.token == nil {
 		return ""
 	}
+
 	return *p.token
 }
 
@@ -98,7 +99,7 @@ func (p *UserPrincipal) String() string {
 }
 
 func (p *UserPrincipal) Valid() bool {
-	if p.ID == "" && p.Token == "" {
+	if p.ID == "" && p.Token() == "" {
 		return false
 	}
 
@@ -111,6 +112,7 @@ func NewUserPrincipal(opts ...func(*UserPrincipal)) *UserPrincipal {
 	for _, o := range opts {
 		o(p)
 	}
+
 	return p
 }
 
@@ -165,6 +167,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 			if srv.oidcEnabled() {
 				// OIDC tokens may be passed by token or cookie
 				multi.Getters = append(multi.Getters, NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier()))
+
 				if srv.oidcPassthroughEnabled() {
 					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
 					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))

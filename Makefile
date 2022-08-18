@@ -109,7 +109,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.48.0
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
