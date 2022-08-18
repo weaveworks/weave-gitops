@@ -22,7 +22,7 @@ const (
 	ClustersClientCtxKey key = iota
 	// DefaultCluster name
 	DefaultCluster = "Default"
-	// ClientQPS is the QPS to use while creating the k8s clients
+	// ClientQPS is the QPS to use while creating the k8s clients (actually a float32)
 	ClientQPS = 1000
 	// ClientBurst is the burst to use while creating the k8s clients
 	ClientBurst = 2000
@@ -90,7 +90,9 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
 			}).DialContext,
 		}
 
-		if user.Token != "" {
+		if !user.Valid() {
+			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
+		} else if user.Token != "" {
 			config.BearerToken = user.Token
 		} else {
 			config.BearerToken = cluster.BearerToken

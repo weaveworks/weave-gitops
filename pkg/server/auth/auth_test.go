@@ -282,3 +282,47 @@ func TestRateLimit(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res4).To(HaveHTTPStatus(http.StatusUnauthorized))
 }
+
+func TestUserPrincipalValid(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tests := []struct {
+		name    string
+		user    auth.UserPrincipal
+		isValid bool
+	}{
+		{
+			name:    "Full valid OIDC user",
+			user:    auth.UserPrincipal{ID: "Jane", Groups: []string{"team-a", "qa"}},
+			isValid: true,
+		},
+		{
+			name:    "any token",
+			user:    auth.UserPrincipal{Token: "abcdefghi09123"},
+			isValid: true,
+		},
+		{
+			name:    "Just a user id",
+			user:    auth.UserPrincipal{ID: "Samir"},
+			isValid: true,
+		},
+		{
+			name:    "Empty",
+			user:    auth.UserPrincipal{},
+			isValid: false,
+		},
+		{
+			name:    "Group only",
+			user:    auth.UserPrincipal{Groups: []string{"team-b"}},
+			isValid: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := tt.user.Valid()
+
+			g.Expect(res).To(Equal(tt.isValid))
+		})
+	}
+}
