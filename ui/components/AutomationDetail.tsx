@@ -49,10 +49,14 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
 
   const suspend = useToggleSuspend(
     {
-      name: automation?.name,
-      namespace: automation?.namespace,
-      clusterName: automation?.clusterName,
-      kind: automation?.kind,
+      objects: [
+        {
+          name: automation?.name,
+          namespace: automation?.namespace,
+          clusterName: automation?.clusterName,
+          kind: automation?.kind,
+        },
+      ],
       suspend: !automation?.suspended,
     },
     automation?.kind === FluxObjectKind.KindHelmRelease
