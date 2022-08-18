@@ -22,6 +22,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -310,7 +311,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout, flags.DashboardPort); err != nil {
+			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			} else {
 				log.Successf("Dashboard reconciliation is done.")
@@ -443,7 +444,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
+							namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+							pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}

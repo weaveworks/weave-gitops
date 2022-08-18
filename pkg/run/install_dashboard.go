@@ -121,7 +121,9 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 		ContainerPort: server.DefaultPort,
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient)
+	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+	pod, err := GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -151,7 +153,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration, dashboardPort string) error {
+func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
 	helmChartName := namespace + "-" + name
@@ -194,18 +196,11 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 		return err
 	}
 
-	// wait for dashboard pod to be running
-	specMap := &PortForwardSpec{
-		Namespace:     namespace,
-		Name:          podName,
-		Kind:          "deployment",
-		HostPort:      dashboardPort,
-		ContainerPort: server.DefaultPort,
-	}
-
 	// wait for dashboard to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard, _ := GetPodFromSpecMap(specMap, kubeClient)
+		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
+
+		dashboard, _ := GetPodFromResourceDescription(namespacedName, "deployment", kubeClient)
 		if dashboard == nil {
 			return false, nil
 		}
