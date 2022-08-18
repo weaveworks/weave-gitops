@@ -11,45 +11,37 @@ import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  gitRepository: GitRepository;
 };
 
-function GitRepositoryDetail({
-  name,
-  namespace,
-  className,
-  clusterName,
-}: Props) {
+function GitRepositoryDetail({ className, gitRepository }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
+
+  const tenancyInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && gitRepository.tenant
+      ? [["Tenant", gitRepository.tenant]]
+      : [];
 
   return (
     <SourceDetail
       className={className}
-      name={name}
-      namespace={namespace}
-      clusterName={clusterName}
       type={FluxObjectKind.KindGitRepository}
-      info={(s: GitRepository) =>
+      source={gitRepository}
+      info={[
+        ["Type", removeKind(FluxObjectKind.KindGitRepository)],
         [
-          ["Type", removeKind(FluxObjectKind.KindGitRepository)],
-          [
-            "URL",
-            <Link newTab href={convertGitURLToGitProvider(s.url)}>
-              {s.url}
-            </Link>,
-          ],
-          ["Ref", s.reference.branch],
-          ["Last Updated", <Timestamp time={s.lastUpdatedAt} />],
-          ["Cluster", s.clusterName],
-          ["Namespace", s.namespace],
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && s.tenant
-            ? [["Tenant", s.tenant]]
-            : []),
-        ] as InfoField[]
-      }
+          "URL",
+          <Link newTab href={convertGitURLToGitProvider(gitRepository.url)}>
+            {gitRepository.url}
+          </Link>,
+        ],
+        ["Ref", gitRepository.reference?.branch],
+        ["Last Updated", <Timestamp time={gitRepository.lastUpdatedAt} />],
+        ["Cluster", gitRepository.clusterName],
+        ["Namespace", gitRepository.namespace],
+        ...tenancyInfo,
+      ]}
     />
   );
 }

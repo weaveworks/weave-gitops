@@ -2,6 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import OCIRepositoryDetail from "../../components/OCIRepositoryDetail";
 import Page from "../../components/Page";
+import { useGetObject } from "../../hooks/objects";
+import { OCIRepository, Kind } from "../../lib/objects";
 
 type Props = {
   className?: string;
@@ -11,13 +13,20 @@ type Props = {
 };
 
 function OCIRepositoryPage({ className, name, namespace, clusterName }: Props) {
+  const {
+    data: ociRepository,
+    isLoading,
+    error,
+  } = useGetObject<OCIRepository>(
+    name,
+    namespace,
+    Kind.OCIRepository,
+    clusterName
+  );
+
   return (
-    <Page error={null} className={className}>
-      <OCIRepositoryDetail
-        name={name}
-        namespace={namespace}
-        clusterName={clusterName}
-      />
+    <Page error={error} loading={isLoading} className={className} title={name}>
+      <OCIRepositoryDetail ociRepository={ociRepository} />
     </Page>
   );
 }

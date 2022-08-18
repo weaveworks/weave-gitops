@@ -9,18 +9,57 @@ import (
 	"github.com/cheshir/ttlcache"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type Clusters struct {
 	sync.RWMutex
-	clusters []Cluster
+	clusters    []Cluster
+	clustersMap map[string]Cluster
 }
 
-func (c *Clusters) Set(clusters []Cluster) {
+// Set updates Clusters.clusters, and returns the newly added clusters and removed clusters.
+func (c *Clusters) Set(clusters []Cluster) (added, removed []Cluster) {
 	c.Lock()
 	defer c.Unlock()
 
+	currentClustersSet := sets.NewString()
+
+	for _, cluster := range c.clusters {
+		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+		currentClustersSet.Insert(clusterKey)
+	}
+
+	newClustersSet := sets.NewString()
+	clustersMap := map[string]Cluster{}
+
+	for _, cluster := range clusters {
+		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+		newClustersSet.Insert(clusterKey)
+
+		clustersMap[clusterKey] = cluster
+	}
+
+	addedClusters := newClustersSet.Difference(currentClustersSet)
+	added = appendClusters(clustersMap, addedClusters.List())
+
+	removedClusters := currentClustersSet.Difference(newClustersSet)
+	removed = appendClusters(c.clustersMap, removedClusters.List())
+
 	c.clusters = clusters
+	c.clustersMap = clustersMap
+
+	return added, removed
+}
+
+func appendClusters(clustersMap map[string]Cluster, keys []string) []Cluster {
+	clusters := []Cluster{}
+
+	for _, key := range keys {
+		clusters = append(clusters, clustersMap[key])
+	}
+
+	return clusters
 }
 
 func (c *Clusters) Get() []Cluster {
