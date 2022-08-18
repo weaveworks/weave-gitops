@@ -57,34 +57,45 @@ func TestSuspend_Suspend(t *testing.T) {
 		},
 	}
 
+	requestObjects := []*api.SuspendReqObj{}
+
 	for _, tt := range tests {
 		t.Run(tt.kind.String(), func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			g.Expect(k.Create(ctx, tt.obj)).Should(Succeed())
-
-			req := &api.ToggleSuspendResourceRequest{
+			requestObjects = append(requestObjects, &api.SuspendReqObj{
 				Kind:        tt.kind,
 				Name:        tt.obj.GetName(),
 				Namespace:   tt.obj.GetNamespace(),
 				ClusterName: "Default",
-				Suspend:     true,
-			}
-
-			_, err := c.ToggleSuspendResource(ctx, req)
-			g.Expect(err).NotTo(HaveOccurred())
-
-			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
-
-			req.Suspend = false
-			_, err = c.ToggleSuspendResource(ctx, req)
-			g.Expect(err).NotTo(HaveOccurred())
-
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
-
+			})
 		})
 	}
+
+	req := &api.ToggleSuspendResourceRequest{
+		Objects: requestObjects,
+		Suspend: true,
+	}
+
+	_, err := c.ToggleSuspendResource(ctx, req)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	for _, tt := range tests {
+		name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
+
+		g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
+	}
+
+	req.Suspend = false
+	_, err = c.ToggleSuspendResource(ctx, req)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	for _, tt := range tests {
+		name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
+
+		g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
+	}
+
 }
 
 func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object) bool {
