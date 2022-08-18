@@ -86,11 +86,12 @@ func TestClusterSet_Set(t *testing.T) {
 	cs := clustersmngr.Clusters{}
 	cluster1 := newTestCluster("cluster1", "server1")
 	cluster2 := newTestCluster("cluster2", "server2")
+	cluster3 := newTestCluster("cluster2", "server3")
 
-	clusters := []clustersmngr.Cluster{cluster1, cluster2}
+	clusters := []clustersmngr.Cluster{cluster1, cluster2, cluster3}
 
 	added, removed := cs.Set(clusters)
-	if diff := cmp.Diff([]clustersmngr.Cluster{cluster1, cluster2}, added); diff != "" {
+	if diff := cmp.Diff([]clustersmngr.Cluster{cluster1, cluster2, cluster3}, added); diff != "" {
 		t.Fatalf("failed to calculate added:\n%s", diff)
 	}
 
@@ -105,7 +106,7 @@ func TestClusterSet_Set(t *testing.T) {
 		t.Fatalf("failed to calculate added:\n%s", diff)
 	}
 
-	if diff := cmp.Diff([]clustersmngr.Cluster{cluster2}, removed); diff != "" {
+	if diff := cmp.Diff([]clustersmngr.Cluster{cluster2, cluster3}, removed); diff != "" {
 		t.Fatalf("failed to calculate removed:\n%s", diff)
 	}
 }
