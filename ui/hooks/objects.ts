@@ -14,7 +14,7 @@ import {
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
 
-function convertResponse(kind: Kind, response: ResponseObject) {
+function convertResponse(kind: Kind, response?: ResponseObject) {
   if (kind == Kind.HelmRepository) {
     return new HelmRepository(response);
   }
@@ -46,7 +46,7 @@ export function useGetObject<T extends FluxObject>(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<T, RequestError>(
+  const response = useQuery<T, RequestError>(
     ["object", clusterName, kind, namespace, name],
     () =>
       api
@@ -57,4 +57,8 @@ export function useGetObject<T extends FluxObject>(
         ),
     opts
   );
+  if (response.error) {
+    return { ...response, data: convertResponse(kind) as T };
+  }
+  return response;
 }

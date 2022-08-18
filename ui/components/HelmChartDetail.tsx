@@ -11,36 +11,33 @@ import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  helmChart: HelmChart;
 };
 
-function HelmChartDetail({ name, namespace, className, clusterName }: Props) {
+function HelmChartDetail({ className, helmChart }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
+  const tenancyInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmChart.tenant
+      ? [["Tenant", helmChart.tenant]]
+      : [];
+
   return (
     <SourceDetail
-      name={name}
-      namespace={namespace}
       type={FluxObjectKind.KindHelmChart}
       className={className}
-      clusterName={clusterName}
-      info={(ch: HelmChart = new HelmChart({})) =>
-        [
-          ["Type", removeKind(FluxObjectKind.KindHelmChart)],
-          ["Chart", ch?.chart],
-          ["Ref", ch?.sourceRef?.name],
-          ["Last Updated", <Timestamp time={ch?.lastUpdatedAt} />],
-          ["Interval", <Interval interval={ch?.interval} />],
-          ["Cluster", ch?.clusterName],
-          ["Namespace", ch?.namespace],
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && ch.tenant
-            ? [["Tenant", ch.tenant]]
-            : []),
-        ] as InfoField[]
-      }
+      source={helmChart}
+      info={[
+        ["Type", removeKind(FluxObjectKind.KindHelmChart)],
+        ["Chart", helmChart.chart],
+        ["Ref", helmChart.sourceRef?.name],
+        ["Last Updated", <Timestamp time={helmChart.lastUpdatedAt} />],
+        ["Interval", <Interval interval={helmChart.interval} />],
+        ["Cluster", helmChart.clusterName],
+        ["Namespace", helmChart.namespace],
+        ...tenancyInfo,
+      ]}
     />
   );
 }

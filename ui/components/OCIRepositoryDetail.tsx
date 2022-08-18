@@ -12,45 +12,44 @@ import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  ociRepository: OCIRepository;
 };
 
-function OCIRepositoryDetail({
-  name,
-  namespace,
-  className,
-  clusterName,
-}: Props) {
+function OCIRepositoryDetail({ className, ociRepository }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
+
+  const tenancyInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && ociRepository.tenant
+      ? [["Tenant", ociRepository.tenant]]
+      : [];
 
   return (
     <SourceDetail
       className={className}
-      name={name}
-      namespace={namespace}
-      clusterName={clusterName}
       type={FluxObjectKind.KindOCIRepository}
-      info={(oci: OCIRepository = new OCIRepository({})) => {
-        return [
-          ["Type", removeKind(FluxObjectKind.KindOCIRepository)],
-          ["URL", <Link href={oci.url}>{oci.url}</Link>],
-          [
-            "Last Updated",
-            oci.lastUpdatedAt ? <Timestamp time={oci.lastUpdatedAt} /> : "-",
-          ],
-          ["Interval", <Interval interval={oci.interval} />],
-          ["Cluster", oci.clusterName],
-          ["Namespace", oci.namespace],
-          ["Source", <Link href={oci.source}>{oci.source}</Link>],
-          ["Revision", oci.revision],
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && oci.tenant
-            ? [["Tenant", oci.tenant]]
-            : []),
-        ] as InfoField[];
-      }}
+      source={ociRepository}
+      info={[
+        ["Type", removeKind(FluxObjectKind.KindOCIRepository)],
+        ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],
+        [
+          "Last Updated",
+          ociRepository.lastUpdatedAt ? (
+            <Timestamp time={ociRepository.lastUpdatedAt} />
+          ) : (
+            "-"
+          ),
+        ],
+        ["Interval", <Interval interval={ociRepository.interval} />],
+        ["Cluster", ociRepository.clusterName],
+        ["Namespace", ociRepository.namespace],
+        [
+          "Source",
+          <Link href={ociRepository.source}>{ociRepository.source}</Link>,
+        ],
+        ["Revision", ociRepository.revision],
+        ...tenancyInfo,
+      ]}
     />
   );
 }
