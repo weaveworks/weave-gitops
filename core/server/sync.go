@@ -24,7 +24,9 @@ var k8sPollInterval = 2 * time.Second
 var k8sTimeout = 1 * time.Minute
 
 func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
+	principal := auth.Principal(ctx)
+
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, principal, msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -75,6 +77,14 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 
 		sourceGvk := sourceObj.GroupVersionKind()
 
+		log := cs.logger.WithValues(
+			"user", principal.ID,
+			"kind", sourceRef.Kind(),
+			"name", sourceRef.Name(),
+			"namespace", sourceNs,
+		)
+		log.Info("Syncing resource")
+
 		if err := requestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
 			return nil, fmt.Errorf("request source reconciliation: %w", err)
 		}
@@ -83,6 +93,14 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			return nil, fmt.Errorf("syncing source; %w", err)
 		}
 	}
+
+	log := cs.logger.WithValues(
+		"user", principal.ID,
+		"kind", obj.GroupVersionKind().Kind,
+		"name", msg.Name,
+		"namespace", msg.Namespace,
+	)
+	log.Info("Syncing resource")
 
 	gvk := obj.GroupVersionKind()
 	if err := requestReconciliation(ctx, c, key, gvk); err != nil {
