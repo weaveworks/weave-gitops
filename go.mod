@@ -58,6 +58,7 @@ require (
 	k8s.io/client-go v0.24.2
 	sigs.k8s.io/cli-utils v0.31.2
 	sigs.k8s.io/controller-runtime v0.11.2
+	sigs.k8s.io/kustomize/api v0.11.5
 	sigs.k8s.io/kustomize/kstatus v0.0.2
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -97,7 +98,6 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools/v3 v3.1.0 // indirect
-	sigs.k8s.io/kustomize/api v0.11.5 // indirect
 )
 
 require (
@@ -253,7 +253,7 @@ require (
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 	oras.land/oras-go v1.2.0 // indirect
 	sigs.k8s.io/json v0.0.0-20220525155127-227cbc7cc124 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.13.7 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.13.7
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 )
 
