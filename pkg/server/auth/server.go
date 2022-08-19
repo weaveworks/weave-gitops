@@ -407,8 +407,17 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
+		var userPrincipal UserPrincipal
+
+		// Extract custom claims
+		if err := info.Claims(&userPrincipal); err != nil {
+			JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
+			return
+		}
+
 		ui := UserInfo{
-			Email: info.Email,
+			Email:  info.Email,
+			Groups: userPrincipal.Groups,
 		}
 
 		toJson(rw, ui, s.Log)
