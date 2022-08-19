@@ -71,6 +71,10 @@ type ClientsFactory interface {
 	GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
+	// Subscribe returns a new ClustersWatcher
+	Subscribe() *ClustersWatcher
+	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
+	RemoveWatcher(cw *ClustersWatcher)
 }
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
@@ -92,6 +96,30 @@ type clientsFactory struct {
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
+
+	watchers []*ClustersWatcher
+}
+
+// ClusterListUpdate records the changes to the cluster state managed by the factory.
+type ClusterListUpdate struct {
+	Added   []Cluster
+	Removed []Cluster
+}
+
+// ClustersWatcher watches for cluster list updates and notifies the registered clients.
+type ClustersWatcher struct {
+	Updates chan ClusterListUpdate
+	cf      *clientsFactory
+}
+
+// Notify publishes cluster updates to this subscriber.
+func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []Cluster) {
+	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: addedClusters}
+}
+
+func (cw *ClustersWatcher) Unsubscribe() {
+	cw.cf.RemoveWatcher(cw)
+	close(cw.Updates)
 }
 
 func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn) ClientsFactory {
@@ -105,7 +133,26 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
 		newClustersPool:     clusterPoolFactory,
+		watchers:            []*ClustersWatcher{},
 	}
+}
+
+func (cf *clientsFactory) Subscribe() *ClustersWatcher {
+	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 5)}
+	cf.watchers = append(cf.watchers, cw)
+
+	return cw
+}
+
+func (cf *clientsFactory) RemoveWatcher(cw *ClustersWatcher) {
+	watchers := []*ClustersWatcher{}
+	for _, w := range cf.watchers {
+		if cw != w {
+			watchers = append(watchers, w)
+		}
+	}
+
+	cf.watchers = watchers
 }
 
 func (cf *clientsFactory) Start(ctx context.Context) {
@@ -137,7 +184,11 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 		return fmt.Errorf("failed to fetch clusters: %w", err)
 	}
 
-	cf.clusters.Set(clusters)
+	addedClusters, removedClusters := cf.clusters.Set(clusters)
+
+	for _, w := range cf.watchers {
+		w.Notify(addedClusters, removedClusters)
+	}
 
 	return nil
 }

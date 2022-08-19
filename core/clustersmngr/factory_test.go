@@ -193,3 +193,41 @@ func TestUpdateUsers(t *testing.T) {
 		g.Expect(contents).NotTo(HaveKey(clusterName2))
 	})
 }
+
+func TestUpdateClusters(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+	err = clientsFactory.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	clusterName1 := "foo"
+	clusterName2 := "bar"
+
+	c1 := makeLeafCluster(t, clusterName1)
+	c2 := makeLeafCluster(t, clusterName2)
+
+	watcher := clientsFactory.Subscribe()
+	g.Expect(watcher).ToNot(BeNil())
+
+	t.Run("watcher should be notified with two clusters", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		notifications := watcher.Updates
+
+		g.Expect(notifications).To(HaveLen(2))
+		// g.Expect(contents).To(HaveKey(clusterName1))
+		// g.Expect(contents).To(HaveKey(clusterName2))
+	})
+}

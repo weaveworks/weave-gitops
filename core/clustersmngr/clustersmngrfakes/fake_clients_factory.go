@@ -90,10 +90,25 @@ type FakeClientsFactory struct {
 	getUserNamespacesReturnsOnCall map[int]struct {
 		result1 map[string][]v1.Namespace
 	}
+	RemoveWatcherStub        func(*clustersmngr.ClustersWatcher)
+	removeWatcherMutex       sync.RWMutex
+	removeWatcherArgsForCall []struct {
+		arg1 *clustersmngr.ClustersWatcher
+	}
 	StartStub        func(context.Context)
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
 		arg1 context.Context
+	}
+	SubscribeStub        func() *clustersmngr.ClustersWatcher
+	subscribeMutex       sync.RWMutex
+	subscribeArgsForCall []struct {
+	}
+	subscribeReturns struct {
+		result1 *clustersmngr.ClustersWatcher
+	}
+	subscribeReturnsOnCall map[int]struct {
+		result1 *clustersmngr.ClustersWatcher
 	}
 	UpdateClustersStub        func(context.Context) error
 	updateClustersMutex       sync.RWMutex
@@ -502,6 +517,38 @@ func (fake *FakeClientsFactory) GetUserNamespacesReturnsOnCall(i int, result1 ma
 	}{result1}
 }
 
+func (fake *FakeClientsFactory) RemoveWatcher(arg1 *clustersmngr.ClustersWatcher) {
+	fake.removeWatcherMutex.Lock()
+	fake.removeWatcherArgsForCall = append(fake.removeWatcherArgsForCall, struct {
+		arg1 *clustersmngr.ClustersWatcher
+	}{arg1})
+	stub := fake.RemoveWatcherStub
+	fake.recordInvocation("RemoveWatcher", []interface{}{arg1})
+	fake.removeWatcherMutex.Unlock()
+	if stub != nil {
+		fake.RemoveWatcherStub(arg1)
+	}
+}
+
+func (fake *FakeClientsFactory) RemoveWatcherCallCount() int {
+	fake.removeWatcherMutex.RLock()
+	defer fake.removeWatcherMutex.RUnlock()
+	return len(fake.removeWatcherArgsForCall)
+}
+
+func (fake *FakeClientsFactory) RemoveWatcherCalls(stub func(*clustersmngr.ClustersWatcher)) {
+	fake.removeWatcherMutex.Lock()
+	defer fake.removeWatcherMutex.Unlock()
+	fake.RemoveWatcherStub = stub
+}
+
+func (fake *FakeClientsFactory) RemoveWatcherArgsForCall(i int) *clustersmngr.ClustersWatcher {
+	fake.removeWatcherMutex.RLock()
+	defer fake.removeWatcherMutex.RUnlock()
+	argsForCall := fake.removeWatcherArgsForCall[i]
+	return argsForCall.arg1
+}
+
 func (fake *FakeClientsFactory) Start(arg1 context.Context) {
 	fake.startMutex.Lock()
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
@@ -532,6 +579,59 @@ func (fake *FakeClientsFactory) StartArgsForCall(i int) context.Context {
 	defer fake.startMutex.RUnlock()
 	argsForCall := fake.startArgsForCall[i]
 	return argsForCall.arg1
+}
+
+func (fake *FakeClientsFactory) Subscribe() *clustersmngr.ClustersWatcher {
+	fake.subscribeMutex.Lock()
+	ret, specificReturn := fake.subscribeReturnsOnCall[len(fake.subscribeArgsForCall)]
+	fake.subscribeArgsForCall = append(fake.subscribeArgsForCall, struct {
+	}{})
+	stub := fake.SubscribeStub
+	fakeReturns := fake.subscribeReturns
+	fake.recordInvocation("Subscribe", []interface{}{})
+	fake.subscribeMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientsFactory) SubscribeCallCount() int {
+	fake.subscribeMutex.RLock()
+	defer fake.subscribeMutex.RUnlock()
+	return len(fake.subscribeArgsForCall)
+}
+
+func (fake *FakeClientsFactory) SubscribeCalls(stub func() *clustersmngr.ClustersWatcher) {
+	fake.subscribeMutex.Lock()
+	defer fake.subscribeMutex.Unlock()
+	fake.SubscribeStub = stub
+}
+
+func (fake *FakeClientsFactory) SubscribeReturns(result1 *clustersmngr.ClustersWatcher) {
+	fake.subscribeMutex.Lock()
+	defer fake.subscribeMutex.Unlock()
+	fake.SubscribeStub = nil
+	fake.subscribeReturns = struct {
+		result1 *clustersmngr.ClustersWatcher
+	}{result1}
+}
+
+func (fake *FakeClientsFactory) SubscribeReturnsOnCall(i int, result1 *clustersmngr.ClustersWatcher) {
+	fake.subscribeMutex.Lock()
+	defer fake.subscribeMutex.Unlock()
+	fake.SubscribeStub = nil
+	if fake.subscribeReturnsOnCall == nil {
+		fake.subscribeReturnsOnCall = make(map[int]struct {
+			result1 *clustersmngr.ClustersWatcher
+		})
+	}
+	fake.subscribeReturnsOnCall[i] = struct {
+		result1 *clustersmngr.ClustersWatcher
+	}{result1}
 }
 
 func (fake *FakeClientsFactory) UpdateClusters(arg1 context.Context) error {
@@ -704,8 +804,12 @@ func (fake *FakeClientsFactory) Invocations() map[string][][]interface{} {
 	defer fake.getServerClientMutex.RUnlock()
 	fake.getUserNamespacesMutex.RLock()
 	defer fake.getUserNamespacesMutex.RUnlock()
+	fake.removeWatcherMutex.RLock()
+	defer fake.removeWatcherMutex.RUnlock()
 	fake.startMutex.RLock()
 	defer fake.startMutex.RUnlock()
+	fake.subscribeMutex.RLock()
+	defer fake.subscribeMutex.RUnlock()
 	fake.updateClustersMutex.RLock()
 	defer fake.updateClustersMutex.RUnlock()
 	fake.updateNamespacesMutex.RLock()
