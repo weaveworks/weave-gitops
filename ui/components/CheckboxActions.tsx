@@ -1,12 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { notifySuccess } from "../lib/utils";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import SyncButton from "./SyncButton";
 
 type Props = {
   className?: string;
@@ -14,12 +11,7 @@ type Props = {
 };
 
 function CheckboxActions({ className, checked }: Props) {
-  const sync = useSyncFluxObject({});
-  const handleSyncClicked = (opts) => {
-    sync.mutateAsync(opts).then(() => {
-      notifySuccess("Resource synced successfully");
-    });
-  };
+  //TODO add multi sync
 
   const makeSuspendReqs = () => {
     return checked.reduce((array, item) => {
@@ -43,7 +35,6 @@ function CheckboxActions({ className, checked }: Props) {
     );
   return (
     <Flex start align className={className}>
-      <SyncButton onClick={() => {}} />
       <Button onClick={() => suspend(false).mutateAsync()}>
         <Icon type={IconType.PlayIcon} size="medium" />
       </Button>
