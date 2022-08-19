@@ -306,7 +306,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 			ClientAuth: tls.RequireAndVerifyClientCert,
 		}
 	} else {
-		log.Info("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
+		log.Info("Using TLS", "cert_file", options.TLSCertFile, "key_file", options.TLSKeyFile)
 	}
 
 	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore
