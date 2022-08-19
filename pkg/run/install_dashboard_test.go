@@ -238,3 +238,49 @@ var _ = Describe("makeValues", func() {
 		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
 	})
 })
+
+var _ = Describe("sanitizeResourceData", func() {
+	var fakeLogger *loggerfakes.FakeLogger
+
+	BeforeEach(func() {
+		fakeLogger = &loggerfakes.FakeLogger{}
+	})
+
+	It("sanitizes helmrepository data", func() {
+		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
+
+		resData, err := yaml.Marshal(helmRepository)
+		Expect(err).NotTo(HaveOccurred())
+
+		resStr := string(resData)
+		Expect(strings.Contains(resStr, "status")).To(BeTrue())
+		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
+
+		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		Expect(err).NotTo(HaveOccurred())
+
+		sanitizedResStr := string(sanitizedResData)
+		Expect(strings.Contains(sanitizedResStr, "status")).To(BeFalse())
+		Expect(strings.Contains(sanitizedResStr, "creationTimestamp")).To(BeFalse())
+	})
+
+	It("sanitizes helmrelease data", func() {
+		helmChartVersion := "3.0.0"
+		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
+		Expect(err).NotTo(HaveOccurred())
+
+		resData, err := yaml.Marshal(helmRelease)
+		Expect(err).NotTo(HaveOccurred())
+
+		resStr := string(resData)
+		Expect(strings.Contains(resStr, "status")).To(BeTrue())
+		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
+
+		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		Expect(err).NotTo(HaveOccurred())
+
+		sanitizedResStr := string(sanitizedResData)
+		Expect(strings.Contains(sanitizedResStr, "status")).To(BeFalse())
+		Expect(strings.Contains(sanitizedResStr, "creationTimestamp")).To(BeFalse())
+	})
+})

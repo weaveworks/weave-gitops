@@ -20,6 +20,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/kustomize/api/resource"
+	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 	"sigs.k8s.io/yaml"
 )
 
@@ -227,11 +229,23 @@ func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.H
 		return nil, err
 	}
 
+	sanitizedHelmRepositoryData, err := sanitizeResourceData(log, helmRepositoryData)
+	if err != nil {
+		log.Failuref("Error sanitizing HelmRepository data")
+		return nil, err
+	}
+
+	sanitizedHelmReleaseData, err := sanitizeResourceData(log, helmReleaseData)
+	if err != nil {
+		log.Failuref("Error sanitizing HelmRelease data")
+		return nil, err
+	}
+
 	divider := []byte("---\n")
 
-	content := helmRepositoryData
+	content := sanitizedHelmRepositoryData
 	content = append(content, divider...)
-	content = append(content, helmReleaseData...)
+	content = append(content, sanitizedHelmReleaseData...)
 
 	return content, nil
 }
@@ -327,4 +341,44 @@ func makeValues(username string, secret string) ([]byte, error) {
 	}
 
 	return jsonRaw, nil
+}
+
+func sanitizeResourceData(log logger.Logger, resourceData []byte) ([]byte, error) {
+	// remove status
+	resNode, err := kyaml.Parse(string(resourceData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse resource data: %v", err.Error())
+	}
+
+	res := &resource.Resource{RNode: *resNode}
+
+	err = res.PipeE(kyaml.FieldClearer{Name: "status"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove status: %v", err.Error())
+	}
+
+	// remove creationTimestamp
+	metadataNode, err := res.Pipe(kyaml.Get("metadata"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get metadata: %v", err.Error())
+	}
+
+	metadataRes := &resource.Resource{RNode: *metadataNode}
+
+	err = metadataRes.PipeE(kyaml.FieldClearer{Name: "creationTimestamp"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove creationTimestamp: %v", err.Error())
+	}
+
+	err = res.PipeE(kyaml.FieldSetter{Name: "metadata", Value: &metadataRes.RNode})
+	if err != nil {
+		return nil, fmt.Errorf("failed to set metadata: %v", err.Error())
+	}
+
+	resourceData, err = res.AsYAML()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal resource to YAML: %v", err.Error())
+	}
+
+	return resourceData, nil
 }

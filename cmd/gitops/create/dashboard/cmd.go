@@ -156,7 +156,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		if flags.Export {
 			fmt.Println("---")
-			fmt.Println(resourceToString(manifests))
+			fmt.Println(string(manifests))
 
 			return nil
 		}
@@ -245,11 +245,4 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 func validateObjectName(name string) bool {
 	r := regexp.MustCompile(`^[a-z0-9]([a-z0-9\\-]){0,61}[a-z0-9]$`)
 	return r.MatchString(name)
-}
-
-func resourceToString(data []byte) string {
-	data = bytes.ReplaceAll(data, []byte("  creationTimestamp: null\n"), []byte(""))
-	data = bytes.ReplaceAll(data, []byte("status: {}\n"), []byte(""))
-
-	return string(data)
 }
