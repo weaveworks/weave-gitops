@@ -1,9 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Crd } from "../lib/api/core/types.pb";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { filterConfig } from "./FilterableTable";
-import URLAddressableTable from "./URLAddressableTable";
+import { Crd } from "../lib/api/core/types.pb";
+import FilterableTable, { filterConfig } from "./FilterableTable";
 
 type Props = {
   className?: string;
@@ -27,7 +26,7 @@ function CrdsTable({ className, crds = [] }: Props) {
   }
 
   return (
-    <URLAddressableTable
+    <FilterableTable
       className={className}
       filters={initialFilterState}
       rows={crds}

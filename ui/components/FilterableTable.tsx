@@ -1,6 +1,7 @@
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconButton } from "./Button";
 import ChipGroup from "./ChipGroup";
@@ -23,8 +24,6 @@ export type FilterableTableProps = {
   filters: FilterConfig;
   dialogOpen?: boolean;
   onDialogClose?: () => void;
-  initialSelections?: FilterSelections;
-  onFilterChange?: (sel: FilterSelections) => void;
 };
 
 export type FilterConfigCallback = (v: any) => any;
@@ -206,9 +205,12 @@ function FilterableTable({
   rows,
   filters,
   dialogOpen,
-  initialSelections,
-  onFilterChange,
 }: FilterableTableProps) {
+  //URL info
+  const history = useHistory();
+  const location = useLocation();
+  const search = location.search;
+  const initialSelections = parseFilterStateFromURL(search);
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<State>({
     filters: selectionsToFilters(initialSelections),
@@ -216,13 +218,18 @@ function FilterableTable({
     textFilters: [],
   });
 
+  const handleFilterChange = (sel: FilterSelections) => {
+    const filterQuery = filterSelectionsToQueryString(sel);
+    history.replace({ ...location, search: filterQuery });
+  };
+
   let filtered = filterRows(rows, filterState.filters);
   filtered = filterText(filtered, fields, filterState.textFilters);
   const chips = toPairs(filterState);
 
   const doChange = (formState) => {
-    if (onFilterChange) {
-      onFilterChange(formState);
+    if (handleFilterChange) {
+      handleFilterChange(formState);
     }
   };
 

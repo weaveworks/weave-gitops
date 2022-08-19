@@ -1,13 +1,15 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import FilterableTable, {
+  filterByStatusCallback,
+  filterConfig,
+} from "./FilterableTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -30,7 +32,7 @@ function ControllersTable({ className, controllers = [] }: Props) {
   }
 
   return (
-    <URLAddressableTable
+    <FilterableTable
       className={className}
       filters={initialFilterState}
       rows={controllers}

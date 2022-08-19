@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import {
   Bucket,
   FluxObjectKind,
@@ -15,13 +16,14 @@ import {
   removeKind,
   statusSortHelper,
 } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import { Field } from "./DataTable";
+import FilterableTable, {
+  filterByStatusCallback,
+  filterConfig,
+} from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
-import { Field } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -166,7 +168,7 @@ function SourcesTable({ className, sources }: Props) {
   ];
 
   return (
-    <URLAddressableTable
+    <FilterableTable
       className={className}
       filters={initialFilterState}
       rows={sources}
