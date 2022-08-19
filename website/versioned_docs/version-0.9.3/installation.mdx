@@ -41,11 +41,10 @@ spec:
   chart:
     spec:
       chart: weave-gitops
-      spec: 65m
       sourceRef:
         kind: HelmRepository
         name: ww-gitops
-  interval: 50m
+  interval: 1h0m0s
   values:
     adminUser:
       create: true
@@ -59,7 +58,7 @@ metadata:
   name: ww-gitops
   namespace: flux-system
 spec:
-  interval: 60m0s
+  interval: 1h0m0s
   type: oci
   url: oci://ghcr.io/weaveworks/charts
 ```
