@@ -73,10 +73,18 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 	}
 
 	helmRepo := &sourcev1.HelmRepository{}
-	err = kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.HelmRepoName,
-		Namespace: s.HelmRepoNamespace,
-	}, helmRepo)
+
+	if msg.HelmRepoName != "" && msg.HelmRepoNamespace != "" {
+		err = kubeClient.Get(ctx, client.ObjectKey{
+			Name:      msg.HelmRepoName,
+			Namespace: msg.HelmRepoNamespace,
+		}, helmRepo)
+	} else {
+		err = kubeClient.Get(ctx, client.ObjectKey{
+			Name:      s.HelmRepoName,
+			Namespace: s.HelmRepoNamespace,
+		}, helmRepo)
+	}
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -116,10 +124,18 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	}
 
 	helmRepo := &sourcev1.HelmRepository{}
-	err = kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.HelmRepoName,
-		Namespace: s.HelmRepoNamespace,
-	}, helmRepo)
+
+	if msg.HelmRepoName != "" && msg.HelmRepoNamespace != "" {
+		err = kubeClient.Get(ctx, client.ObjectKey{
+			Name:      msg.HelmRepoName,
+			Namespace: msg.HelmRepoNamespace,
+		}, helmRepo)
+	} else {
+		err = kubeClient.Get(ctx, client.ObjectKey{
+			Name:      s.HelmRepoName,
+			Namespace: s.HelmRepoNamespace,
+		}, helmRepo)
+	}
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {

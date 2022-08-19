@@ -80,6 +80,10 @@ message Profile {
 }
 
 message GetProfilesRequest {
+  // The name of the HelmRepository
+  string HelmRepoName = 1; 
+  // The namespace of the HelmRepository
+  string HelmRepoNamespace = 2;
 }
 
 message GetProfilesResponse {
@@ -92,6 +96,10 @@ message GetProfileValuesRequest {
   string profileName = 1;
   // The version of the Profile
   string profileVersion = 2;
+  // The name of the HelmRepository
+  string HelmRepoName = 3; 
+  // The namespace of the HelmRepository
+  string HelmRepoNamespace = 4;
 }
 
 message GetProfileValuesResponse{
