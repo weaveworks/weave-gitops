@@ -11,4 +11,6 @@ var (
 	ErrNoContextForKubeConfig = errors.New("no context provided for the kubeconfig")
 	ErrNoCluster              = errors.New("no cluster in the kube config")
 	ErrGetKubeClient          = errors.New("error getting Kube HTTP client")
+	ErrNoName                 = errors.New("name is required")
+	ErrMultipleNames          = errors.New("only one name is allowed")
 )

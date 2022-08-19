@@ -114,12 +114,13 @@ function SourcesTable({ className, sources }: Props) {
           case FluxObjectKind.KindOCIRepository:
             text = (s as OCIRepository).url;
             break;
-          case FluxObjectKind.KindHelmChart:
-            return "-";
           case FluxObjectKind.KindHelmRepository:
             text = (s as HelmRepository).url;
             url = text;
             link = true;
+            break;
+          default:
+            text = "-";
             break;
         }
         return link ? (

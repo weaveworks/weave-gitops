@@ -22,7 +22,15 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+)
+
+const (
+	dashboardName    = "ww-gitops"
+	dashboardPodName = "ww-gitops-weave-gitops"
+	adminUsername    = "admin"
+	helmChartVersion = "3.0.0"
 )
 
 type RunCommandFlags struct {
@@ -256,7 +264,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, flags.Namespace)
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -268,7 +276,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 			_, err = prompt.Run()
 			if err == nil {
-				secret, err := run.GenerateSecret(log)
+				password, err := run.ReadPassword(log)
+				if err != nil {
+					return err
+				}
+
+				secret, err := run.GenerateSecret(log, password)
 				if err != nil {
 					return err
 				}
@@ -279,7 +292,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					return err
 				}
 
-				err = run.InstallDashboard(log, ctx, man, flags.Namespace, secret)
+				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
+				if err != nil {
+					return fmt.Errorf("error creating dashboard objects: %w", err)
+				}
+
+				err = run.InstallDashboard(log, ctx, man, manifests)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -293,7 +311,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-			if err := run.ReconcileDashboard(kubeClient, flags.Namespace, flags.Timeout, flags.DashboardPort); err != nil {
+			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			} else {
 				log.Successf("Dashboard reconciliation is done.")
@@ -308,7 +326,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var cancelDashboardPortForwarding func() = nil
 
 		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, flags.DashboardPort)
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 			if err != nil {
 				return err
 			}
@@ -426,7 +444,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
+							namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+							pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}

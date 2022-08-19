@@ -117,10 +117,8 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient client.Client) (*corev1.Pod, error) {
-	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
-
-	switch specMap.Kind {
+func GetPodFromResourceDescription(namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
+	switch kind {
 	case "pod":
 		pod := &corev1.Pod{}
 		if err := kubeClient.Get(context.Background(), namespacedName, pod); err != nil {
