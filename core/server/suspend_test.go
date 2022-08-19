@@ -77,7 +77,7 @@ func TestSuspend_Suspend(t *testing.T) {
 		Suspend: true,
 	}
 
-	_, err := c.ToggleSuspendResource(ctx, req)
+	_, err = c.ToggleSuspendResource(ctx, req)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	for _, tt := range tests {
@@ -96,6 +96,21 @@ func TestSuspend_Suspend(t *testing.T) {
 		g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
 	}
 
+	_, err = c.ToggleSuspendResource(ctx, &api.ToggleSuspendResourceRequest{
+
+		Objects: []*api.SuspendReqObj{{
+			Kind:        api.FluxObjectKind_KindGitRepository,
+			Name:        "fakeName",
+			Namespace:   "fakeNamespace",
+			ClusterName: "Default",
+		}, {Kind: api.FluxObjectKind_KindGitRepository,
+			Name:        "fakeName2",
+			Namespace:   "fakeNamespace2",
+			ClusterName: "Default2"}},
+		Suspend: true,
+	})
+
+	g.Expect(err.Error()).To(ContainSubstring("2 errors occurred"))
 }
 
 func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object) bool {
