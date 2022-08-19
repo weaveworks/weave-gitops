@@ -73,7 +73,8 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	principal := &auth.UserPrincipal{}
+	// Put the user in the `system:masters` group to avoid auth errors
+	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(clientsFactory, principal),
 	)
@@ -170,7 +171,8 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	principal := &auth.UserPrincipal{}
+	// Put the user in the `system:masters` group to avoid auth errors
+	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(cfg.ClientsFactory, principal),
 	)
