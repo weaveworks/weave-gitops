@@ -3,6 +3,12 @@
   "version": "0.10.2-rc.1",
   "description": "Weave GitOps core",
   "module": "index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./index.js"
+    }
+  },
   "targets": {
     "default": {
       "distDir": "bin/dist",
