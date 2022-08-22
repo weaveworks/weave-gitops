@@ -4,7 +4,7 @@
 
 Accepted
 
-This supersedes [ADR-0005 Wego Core Auth Strategy](./0005-wego-core-auth-strategy.md). The portions to do with GitHub and GitLab authentication are deprecated.
+This supersedes [ADR-0005 Wego Core Auth Strategy](./0005-wego-core-auth-strategy.md).
 
 ## Problem
 
@@ -19,7 +19,7 @@ The 'decision' section has been skipped as the decisions have been made and reve
 * **Authentication (AKA auth, authN)** the process of verifying who a principal is
 * **Authorization (AKA authZ)** the process of determining what actions a principal is permitted to carry out (this is out of scope of this document)
 * **OIDC** [OpenID Connect](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/), a protocol that allows third-parties to authenticate end-users to an application
-* **BarerToken** A token that allows direct authentication with the kubernetes API, used in the token-passthrough authentication method
+* **BearerToken** A token that allows direct authentication with the kubernetes API, used in the token-passthrough authentication method
 
 ## Context
 
@@ -29,7 +29,14 @@ This ADR deals with [autheNtication, not authoriZation](https://www.cloudflare.c
 
 Since ADR-0005 was accepted there have been several changes to Weave GitOps. The largest of these has been the removal of support for making changes to git repositories and a greater use of `impersonation` for authentication to the Kubernetes API.
 
-The general flow of authentication is split over two parts:
+ADR-0005 lists 3 authN/Z 'back ends':
+* The Git repo (e.g. weave-gitops)
+* The Git host (e.g. Github)
+* Kubernetes
+
+Since that ADR was written Weave Gitops no longer deals with authentication to either the Git repo or the Git host (although Weave Gitops Enterprise still does), so we'll ignore those concerns here. We do need to add a fourth concern though: authentication to the Weave Gitops server itself, authZ can be ignored for this as well as it depends upon Kubernetes to implement those controls.
+
+These changes to concerns leaves us with authentication split over two parts:
 * Authentication to the server -- this controls who can access the weave-gitops UI
 * Authentication from the server to Kubernetes -- this deals with how authentication details are passed to the Kubernetes API to retrieve data.
 
@@ -98,7 +105,7 @@ It is important to note that the authentication method is also 'used' by the `/o
 
 ### Authentication from the server to Kubernetes
 
-The Gitops server's service account only needs a very limited set of permissions (`impersonate`, `get,list` on the secrets used to configure authentication and `get,list` on namespaces), the purpose of these permissions is covered in the [security docs](https://docs.gitops.weave.works/docs/configuration/service-account-permissions/). All interactions with the Kubernetes API should go via a `clustermngr` which will correctly set the Kubernetes client's impersonation configuration or barer token (depending on the authentication method used).
+The Gitops server's service account only needs a very limited set of permissions (`impersonate`, `get,list` on the secrets used to configure authentication and `get,list` on namespaces), the purpose of these permissions is covered in the [security docs](https://docs.gitops.weave.works/docs/configuration/service-account-permissions/). All interactions with the Kubernetes API should go via a `clustermngr` which will correctly set the Kubernetes client's impersonation configuration or bearer token (depending on the authentication method used).
 
 The principal returned by `WithAPIAuthentication` is added to the request context to authenticate with the Kubernetes API. For OIDC and user-account methods the principal is extracted from the header or cookie token which is expected to have the following attributes:
 
