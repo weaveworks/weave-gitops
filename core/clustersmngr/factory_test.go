@@ -219,15 +219,30 @@ func TestUpdateClusters(t *testing.T) {
 	watcher := clientsFactory.Subscribe()
 	g.Expect(watcher).ToNot(BeNil())
 
-	t.Run("watcher should be notified with two clusters", func(t *testing.T) {
+	t.Run("watcher should be notified with two clusters added", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
 		notifications := watcher.Updates
 
+		g.Expect(notifications).To(HaveLen(1))
+	})
+	t.Run("watcher should be notified with one cluster removed", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		notifications := watcher.Updates
+
 		g.Expect(notifications).To(HaveLen(2))
-		// g.Expect(contents).To(HaveKey(clusterName1))
-		// g.Expect(contents).To(HaveKey(clusterName2))
+	})
+
+	t.Run("watcher shouldn't be notified when there are no updates", func(t *testing.T) {
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		notifications := watcher.Updates
+
+		g.Expect(notifications).To(HaveLen(3))
 	})
 }

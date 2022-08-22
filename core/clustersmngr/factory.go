@@ -97,6 +97,7 @@ type clientsFactory struct {
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
 
+	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
 }
 
@@ -112,11 +113,12 @@ type ClustersWatcher struct {
 	cf      *clientsFactory
 }
 
-// Notify publishes cluster updates to this subscriber.
+// Notify publishes cluster updates to the current watcher.
 func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []Cluster) {
 	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: addedClusters}
 }
 
+// Unsubscribe removes the given ClustersWatcher from the list of watchers.
 func (cw *ClustersWatcher) Unsubscribe() {
 	cw.cf.RemoveWatcher(cw)
 	close(cw.Updates)
@@ -137,6 +139,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 	}
 }
 
+// Subscribe returns a new ClustersWatcher.
 func (cf *clientsFactory) Subscribe() *ClustersWatcher {
 	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 5)}
 	cf.watchers = append(cf.watchers, cw)
@@ -144,6 +147,7 @@ func (cf *clientsFactory) Subscribe() *ClustersWatcher {
 	return cw
 }
 
+// RemoveWatcher removes the given ClustersWatcher from the list of watchers.
 func (cf *clientsFactory) RemoveWatcher(cw *ClustersWatcher) {
 	watchers := []*ClustersWatcher{}
 	for _, w := range cf.watchers {
@@ -178,6 +182,7 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 	}
 }
 
+// UpdateClusters updates the clusters list and notifies the registered watchers.
 func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 	clusters, err := cf.clustersFetcher.Fetch(ctx)
 	if err != nil {
@@ -186,6 +191,7 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 
 	addedClusters, removedClusters := cf.clusters.Set(clusters)
 
+	// notify watchers of the changes
 	for _, w := range cf.watchers {
 		w.Notify(addedClusters, removedClusters)
 	}
