@@ -1,0 +1,97 @@
+---
+title: Multi Tenancy
+sidebar_position: 1
+hide_title: true
+---
+import TierLabel from "../_components/TierLabel";
+
+
+# Multi tenancy <TierLabel tiers="enterprise" />
+
+Multi tenancy provides users with the ability to define boundaries to multiple engineering teams working on a single cluster. Through a simple interface it adds permissions to the necessary Kubernetes resources to make it easy for customers to manage their multiple tenants.
+
+WGE multi tenancy expands on the multi tenancy feature provided by `flux`. In addition to creating the necessary Kubernetes tenancy resources that `flux` adds, multi tenancy in WGE also adds the following:
+- Defining tenancy using a single yaml file that serves as a source of truth for the organization
+- Makes use of WGE policy features to enforce non Kubernetes native permissions
+
+
+## How it works
+
+`gitops` command line tool is responsible for creating the multi tenancy resources. The tool is distributed as part of WGE offering. It reads the definitions of a yaml file and can either apply the necessary changes directly to the cluster or output it to stdout so it can be saved into a file and pushed to a repo to be reconcilled by `flux`.
+
+To make use of the policy features, [policy agent](../policy/intro.mdx) needs to be installed in the necessary cluster(s). 
+
+### Tenancy file
+
+Below is an example of a tenancy file:
+
+```yaml
+tenants:
+  - name: first-tenant
+    namespaces:
+    - first-ns
+  - name: second-tenant
+    namespaces:
+    - second-test-ns
+    - second-dev-ns
+    allowedRepositories:
+    - kind: GitRepository
+      url: https://github.com/testorg/testrepo
+    - kind: GitRepository
+      url: https://github.com/testorg/testinfo
+    - kind: Bucket
+      url: minio.example.com
+    - kind: HelmRepository
+      url: https://testorg.github.io/testrepo
+    allowedClusters:
+    - kubeConfig: cluster-1-kubeconfig
+    - kubeConfig: cluster-2-kubeconfig
+```
+
+The file above defines two tenants: `first-tenant` and `second-tenant` as follows:
+
+- `namespaces`: describes which namespaces should be part of the tenant. Meaning that users who are part of the tenant would have access on those namespaces.
+- `allowedRepositories`: limits the `flux` repositories sources that can be used in the tenant's namespaces. This is done through policies and thus requires `policy-agent` to be deployed on the cluster which will stop these sources from being deployed if they aren't allowed as part of the tenant. IT consists of:
+  - `kind`: the `flux` source kind. Can be: `GitRepository`, `Bucket` and `HelmRepository`.
+  - `url`: the URL for that source.
+- `allowedClusters`: limits which secrets containing cluster configuraton can be used. It stops WGE `GitopsCluster` and flux `Kustomization` from being deployed if they point to a secret not in the list, essentially giving control on which cluster can be added to a multi-cluster setup. Requires `policy-agent`.
+  - `kubeConfig`: name of the secret that can be used for this tenant.
+
+### Gitops create tenants command
+
+The command creates the necessary resources to apply multi tenancy on the user's cluster. To use the command to apply the resources directly the user needs to have the necessary configuration to connecto the desired cluster.
+
+For more control on a specific tenant a tenancy file should be used, the command allows the creation of the base resources that defines a tenancy through the arguments:
+
+```bash
+gitops create tenants --name test-tenant --namespace test-ns1 --namespace test-ns2
+```
+
+The above will create the namespaces and permissions through a `ServiceAccount` with the same name as the tenant in that case `test-tenant` in each required namespace.
+The same can be done through a file as follows:
+
+```bash
+gitops create tenants --from-file tenants.yaml
+```
+
+To apply the same resources, the file should look like this:
+
+```yaml
+tenants:
+  - name: test-tenant
+    namespaces:
+    - test-ns1
+    - test-ns2
+```
+
+To check the resources that would be deployed first use the `export` flag:
+
+```bash
+gitops create tenants --from-file tenants.yaml --export
+```
+
+Applying the resources through the command line is not usually recommended. For WGE the recommended way is to commit the result of the `create tenants` command to source control and let `flux` handle deployment. To achieve that you can save the result of the `export` to a file:
+
+```bash
+gitops create tenants --from-file tenants.yaml --export > clusters/management/tenants.yaml 
+```
