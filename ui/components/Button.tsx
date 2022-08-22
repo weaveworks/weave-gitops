@@ -1,6 +1,10 @@
 // eslint-disable-next-line
-import { CircularProgress, PropTypes } from "@material-ui/core";
-import MaterialButton, { ButtonProps } from "@material-ui/core/Button/Button";
+import {
+  CircularProgress,
+  PropTypes,
+  Button as MaterialButton,
+  ButtonProps,
+} from "@material-ui/core";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 
