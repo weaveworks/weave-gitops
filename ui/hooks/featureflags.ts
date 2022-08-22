@@ -14,6 +14,7 @@ type FeatureFlags = {
   CLUSTER_USER_AUTH: () => void;
   OIDC_AUTH: () => void;
   WEAVE_GITOPS_FEATURE_TENANCY: () => void;
+  WEAVE_GITOPS_FEATURE_CLUSTER: () => void;
 };
 
 export type Flags = OptionsFlags<FeatureFlags>;

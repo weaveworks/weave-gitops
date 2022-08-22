@@ -22,6 +22,10 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && gitRepository.tenant
       ? [["Tenant", gitRepository.tenant]]
       : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", gitRepository.clusterName]]
+      : [];
 
   return (
     <SourceDetail
@@ -38,7 +42,7 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
         ],
         ["Ref", gitRepository.reference?.branch],
         ["Last Updated", <Timestamp time={gitRepository.lastUpdatedAt} />],
-        ["Cluster", gitRepository.clusterName],
+        ...clusterInfo,
         ["Namespace", gitRepository.namespace],
         ...tenancyInfo,
       ]}

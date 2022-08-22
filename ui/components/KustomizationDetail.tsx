@@ -32,6 +32,11 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
       ? [["Tenant", kustomization?.tenant]]
       : [];
 
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", kustomization?.clusterName]]
+      : [];
+
   return (
     <AutomationDetail
       className={className}
@@ -49,7 +54,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
           />,
         ],
         ["Applied Revision", kustomization?.lastAppliedRevision],
-        ["Cluster", kustomization?.clusterName],
+        ...clusterInfo,
         ...tenancyInfo,
         ["Path", kustomization?.path],
         ["Interval", <Interval interval={kustomization?.interval} />],

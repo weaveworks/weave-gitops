@@ -23,6 +23,11 @@ function BucketDetail({ className, bucket }: Props) {
       ? [["Tenant", bucket.tenant]]
       : [];
 
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", bucket.clusterName]]
+      : [];
+
   return (
     <SourceDetail
       className={className}
@@ -34,7 +39,7 @@ function BucketDetail({ className, bucket }: Props) {
         ["Bucket Name", bucket.name],
         ["Last Updated", <Timestamp time={bucket.lastUpdatedAt} />],
         ["Interval", <Interval interval={bucket.interval} />],
-        ["Cluster", bucket.clusterName],
+        ...clusterInfo,
         ["Namespace", bucket.namespace],
         ...tenancyInfo,
       ]}
