@@ -7,11 +7,11 @@ import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { removeKind, statusSortHelper } from "../lib/utils";
-import { Field } from "./DataTable";
-import FilterableTable, {
+import DataTable, {
+  Field,
   filterByStatusCallback,
   filterConfig,
-} from "./FilterableTable";
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
@@ -161,11 +161,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <FilterableTable
+    <DataTable
       fields={fields}
-      filters={initialFilterState}
       rows={automations}
       className={className}
+      filters={initialFilterState}
+      checkboxes
     />
   );
 }

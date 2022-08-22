@@ -16,11 +16,11 @@ import {
   removeKind,
   statusSortHelper,
 } from "../lib/utils";
-import { Field } from "./DataTable";
-import FilterableTable, {
+import DataTable, {
+  Field,
   filterByStatusCallback,
   filterConfig,
-} from "./FilterableTable";
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -35,7 +35,6 @@ function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
-  const [filterDialogOpen, setFilterDialog] = React.useState(false);
   sources = sources?.map((s) => {
     return { ...s, type: removeKind(s.kind) };
   });
@@ -168,12 +167,11 @@ function SourcesTable({ className, sources }: Props) {
   ];
 
   return (
-    <FilterableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
+      checkboxes
       rows={sources}
-      dialogOpen={filterDialogOpen}
-      onDialogClose={() => setFilterDialog(false)}
       fields={fields}
     />
   );

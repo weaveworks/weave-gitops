@@ -10,11 +10,11 @@ import {
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { NoNamespace } from "../lib/types";
 import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
-import FilterableTable, {
+import DataTable, {
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
-} from "./FilterableTable";
+} from "./DataTable";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -72,7 +72,7 @@ function ReconciledObjectsTable({
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <FilterableTable
+      <DataTable
         filters={initialFilterState}
         className={className}
         fields={[

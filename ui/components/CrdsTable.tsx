@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Crd } from "../lib/api/core/types.pb";
-import FilterableTable, { filterConfig } from "./FilterableTable";
+import DataTable, { filterConfig } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -26,7 +26,7 @@ function CrdsTable({ className, crds = [] }: Props) {
   }
 
   return (
-    <FilterableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
       rows={crds}

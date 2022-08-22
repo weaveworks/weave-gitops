@@ -71,6 +71,7 @@ export function useToggleSuspend(
   req: ToggleSuspendResourceRequest,
   type: string
 ) {
+  console.log(req);
   const { api } = useContext(CoreClientContext);
   const queryClient = useQueryClient();
   const mutation = useMutation<ToggleSuspendResourceResponse, RequestError>(
