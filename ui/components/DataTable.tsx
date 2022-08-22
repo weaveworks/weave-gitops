@@ -404,7 +404,8 @@ function UnstyledDataTable({
     setFilterState({ ...filterState, filters, formState });
   };
 
-  const [checked, setChecked] = React.useState<number[]>([]);
+  const [checked, setChecked] = React.useState<any[]>([]);
+  console.log(checked);
 
   const [sortFieldIndex, setSortFieldIndex] = React.useState(() => {
     let sortFieldIndex = fields.findIndex((f) => f.defaultSort);
@@ -440,38 +441,43 @@ function UnstyledDataTable({
 
   const sorted = sortByField(rows, reverseSort, sortFields, useSecondarySort);
 
-  const r = _.map(sorted, (r, i) => (
-    <TableRow key={i}>
-      {checkboxes && (
-        <TableCell>
-          <Checkbox
-            checked={checked.includes(r)}
-            onChange={(e) => {
-              if (e.target.checked) setChecked([...checked, r]);
-              else {
-                let copy = checked;
-                copy.splice(copy.indexOf(r), 1);
-                setChecked(copy);
-              }
-            }}
-          />
-        </TableCell>
-      )}
-      {_.map(fields, (f) => (
-        <TableCell
-          style={
-            f.maxWidth && {
-              maxWidth: f.maxWidth,
-            }
-          }
-          key={f.label}
-        >
-          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
-        </TableCell>
-      ))}
-    </TableRow>
-  ));
+  const r = _.map(sorted, (r, i) => {
+    console.log(checked, r, checked[0] === r);
 
+    return (
+      <TableRow key={i}>
+        {checkboxes && (
+          <TableCell>
+            <Checkbox
+              checked={checked.includes(r)}
+              onChange={(e) => {
+                if (e.target.checked) setChecked([...checked, r]);
+                else {
+                  let copy = checked;
+                  copy.splice(copy.indexOf(r), 1);
+                  setChecked(copy);
+                }
+              }}
+            />
+          </TableCell>
+        )}
+        {_.map(fields, (f) => (
+          <TableCell
+            style={
+              f.maxWidth && {
+                maxWidth: f.maxWidth,
+              }
+            }
+            key={f.label}
+          >
+            <Text>
+              {typeof f.value === "function" ? f.value(r) : r[f.value]}
+            </Text>
+          </TableCell>
+        ))}
+      </TableRow>
+    );
+  });
   return (
     <Flex wide tall column className={className}>
       <Flex wide align between>
@@ -559,7 +565,7 @@ function UnstyledDataTable({
         </div>
         <FilterDialog
           onFilterSelect={handleFilterSelect}
-          filterList={filterState.filters}
+          filterList={filters}
           formState={filterState.formState}
           open={filterDialogOpen}
         />
@@ -570,7 +576,7 @@ function UnstyledDataTable({
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: hidden;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
     font-size: 14px;

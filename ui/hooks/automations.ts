@@ -32,6 +32,7 @@ export function useListAutomations(
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
+    notifyOnChangeProps: ["data", "error"],
   }
 ) {
   const { api } = useContext(CoreClientContext);

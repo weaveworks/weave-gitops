@@ -26,7 +26,6 @@ function CheckboxActions({ className, checked = [] }: Props) {
   };
 
   const objects = makeSuspendReqs(checked);
-  console.log(objects);
   const resume = useToggleSuspend(
     {
       objects: objects,
@@ -44,10 +43,18 @@ function CheckboxActions({ className, checked = [] }: Props) {
 
   return (
     <Flex start align className={className}>
-      <Button disabled={!checked[0]} onClick={() => resume.mutateAsync()}>
+      <Button
+        loading={resume.isLoading}
+        disabled={!checked[0]}
+        onClick={() => resume.mutateAsync()}
+      >
         <Icon type={IconType.PlayIcon} size="medium" />
       </Button>
-      <Button disabled={!checked[0]} onClick={() => suspend.mutateAsync()}>
+      <Button
+        loading={suspend.isLoading}
+        disabled={!checked[0]}
+        onClick={() => suspend.mutateAsync()}
+      >
         <Icon type={IconType.PauseIcon} size="medium" />
       </Button>
     </Flex>
