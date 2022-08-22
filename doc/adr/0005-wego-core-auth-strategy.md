@@ -4,7 +4,11 @@ Date: 2021-07-22
 
 ## Status
 
-Accepted
+~Accepted~
+
+Superseded by [ADR-0015 Current API Authentication Strategy](./0015-current-api-authentication-strategy.md)
+
+Otherwise deprecated due to the decision to remove support for read/write interaction with git repositories.
 
 ## Problem
 
