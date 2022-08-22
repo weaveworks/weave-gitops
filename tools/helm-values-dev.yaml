@@ -23,5 +23,7 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
+  - name: WEAVE_GITOPS_FEATURE_TELEMETRY
+    value: "true"
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"

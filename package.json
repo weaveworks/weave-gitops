@@ -57,6 +57,7 @@
     "jest-worker": "^27.5.1",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
+    "mnemonic-browser": "^0.0.1",
     "postcss": "^8.3.11",
     "query-string": "^7.0.0",
     "react": "^17.0.2",
@@ -65,6 +66,7 @@
     "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
+    "sha3": "^2.1.4",
     "styled-components": "^5.3.0",
     "yaml": "^1.10.2"
   },
