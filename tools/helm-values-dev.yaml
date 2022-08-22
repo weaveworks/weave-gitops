@@ -15,9 +15,6 @@ adminUser:
   # 'dev'
   passwordHash: $2y$10$pcy9FV0WMQZUHFDcud8JuecIxlUS/Eh9X.iitZtJEYYHUhKyzlJYm
 
-additionalArgs:
-  - "--dev-mode"
-
 metrics:
   enabled: true
 
@@ -25,4 +22,6 @@ envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
-    value: "false"  
+    value: "false"
+  - name: WEAVE_GITOPS_FEATURE_DEV_MODE
+    value: "true"
