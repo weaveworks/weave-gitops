@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
-import { withTheme } from "../../lib/test-utils";
+import { withContext, withTheme } from "../../lib/test-utils";
 import DataTable from "../DataTable";
 
 describe("DataTable", () => {
@@ -58,12 +58,28 @@ describe("DataTable", () => {
 
   describe("sorting", () => {
     it("initially sorts based on defaultSort", () => {
-      render(withTheme(<DataTable fields={fields} rows={rows} />));
+      render(
+        withTheme(
+          withContext(
+            <DataTable fields={fields} rows={rows} />,
+            "/applications",
+            {}
+          )
+        )
+      );
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/nginx/);
     });
     it("reverses sort on thead click", () => {
-      render(withTheme(<DataTable fields={fields} rows={rows} />));
+      render(
+        withTheme(
+          withContext(
+            <DataTable fields={fields} rows={rows} />,
+            "/applications",
+            {}
+          )
+        )
+      );
 
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
@@ -71,7 +87,15 @@ describe("DataTable", () => {
       expect(firstRow.innerHTML).toMatch(/the-cool-app/);
     });
     it("resets reverseSort and switches sort column on different thead click", () => {
-      render(withTheme(<DataTable fields={fields} rows={rows} />));
+      render(
+        withTheme(
+          withContext(
+            <DataTable fields={fields} rows={rows} />,
+            "/applications",
+            {}
+          )
+        )
+      );
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
       const statusButton = screen.getByText("Status");
@@ -80,7 +104,15 @@ describe("DataTable", () => {
       expect(firstRow.innerHTML).toMatch(/podinfo/);
     });
     it("should render text when rows is empty", () => {
-      render(withTheme(<DataTable fields={fields} rows={[]} />));
+      render(
+        withTheme(
+          withContext(
+            <DataTable fields={fields} rows={[]} />,
+            "/applications",
+            {}
+          )
+        )
+      );
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/No/);
     });
@@ -104,7 +136,15 @@ describe("DataTable", () => {
         },
       ];
 
-      render(withTheme(<DataTable fields={fields} rows={rows} />));
+      render(
+        withTheme(
+          withContext(
+            <DataTable fields={fields} rows={rows} />,
+            "/applications",
+            {}
+          )
+        )
+      );
 
       let firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/a/);
@@ -120,7 +160,15 @@ describe("DataTable", () => {
   describe("snapshots", () => {
     it("renders", () => {
       const tree = renderer
-        .create(withTheme(<DataTable fields={fields} rows={rows} />))
+        .create(
+          withTheme(
+            withContext(
+              <DataTable fields={fields} rows={rows} />,
+              "/applications",
+              {}
+            )
+          )
+        )
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

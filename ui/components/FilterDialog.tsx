@@ -138,8 +138,8 @@ type sectionSelectObject = { [header: string]: boolean };
 function UnstyledFilterDialog({
   className,
   onFilterSelect,
-  filterList,
-  formState,
+  filterList = {},
+  formState = {},
   open,
 }: Props) {
   const onSectionSelect = (object: sectionSelectObject) => {

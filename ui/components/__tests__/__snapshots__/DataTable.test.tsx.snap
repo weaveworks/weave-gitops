@@ -1,7 +1,110 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
-.c1 {
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: end;
+  -webkit-justify-content: flex-end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+}
+
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c6 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c11 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+}
+
+.c12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -19,21 +122,25 @@ exports[`DataTable snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c5 {
+.c21 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
 }
 
-.c8 {
+.c18 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -41,29 +148,61 @@ exports[`DataTable snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c6 svg {
-  fill: !important;
-  height: 16px;
-  width: 16px;
+.c23 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
 }
 
-.c6.downward {
+.c9 svg {
+  fill: #737373 !important;
+  height: 24px;
+  width: 24px;
+}
+
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c6.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c6 .c7 {
+.c9 .c17 {
+  margin-left: 4px;
+  color: #737373;
+}
+
+.c16 svg {
+  fill: !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c16.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c16.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c16 .c17 {
   margin-left: 4px;
 }
 
-.c2.MuiButton-root {
+.c13.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -75,20 +214,89 @@ exports[`DataTable snapshots renders 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-outlined {
+.c13.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c4 {
+.c8.MuiButton-root {
+  border-radius: 50%;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+}
+
+.c8.MuiButton-text {
+  padding: 0;
+}
+
+.c5 {
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c5 .MuiChip-root {
+  margin-right: 4px;
+}
+
+.c19 {
+  position: relative;
+  height: 100%;
+  width: 0px;
+  left: 24px;
+  -webkit-transition-property: width,left;
+  transition-property: width,left;
+  -webkit-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+  -webkit-transition-timing-function: ease-in-out;
+  transition-timing-function: ease-in-out;
+}
+
+.c19.open {
+  left: 0px;
+  width: 350px;
+}
+
+.c20 {
+  background: rbga(255,255,255,0.75);
+  height: 100%;
+  width: 100%;
+  border-left: 2px solid #d8d8d8;
+  padding: 24px;
+  padding-left: 32px;
+}
+
+.c22 .MuiListItem-gutters {
+  padding-left: 0px;
+}
+
+.c22 .MuiCheckbox-root {
+  padding: 0px;
+}
+
+.c22 .MuiCheckbox-colorSecondary.Mui-checked {
+  color: #00b3ec;
+}
+
+.c10 {
+  width: 0px;
+  -webkit-transition: width 0.3s ease-in-out;
+  transition: width 0.3s ease-in-out;
+  margin-left: 4px;
+}
+
+.c10.expanded {
+  width: 200px;
+}
+
+.c15 {
   padding: 4px;
 }
 
-.c9 {
-  padding: 8px;
-}
-
-.c3.MuiButton-root {
+.c14.MuiButton-root {
   margin: 0;
   text-transform: none;
   -webkit-letter-spacing: 0;
@@ -97,27 +305,32 @@ exports[`DataTable snapshots renders 1`] = `
   letter-spacing: 0;
 }
 
-.c3.MuiButton-text {
+.c14.MuiButton-text {
   min-width: 0px;
 }
 
-.c3.MuiButton-text .selected {
+.c14.MuiButton-text .selected {
   color: #1a1a1a;
 }
 
-.c3.arrow {
+.c14.arrow {
   min-width: 0px;
 }
 
-.c0 {
+.c7 {
+  position: relative;
+  padding: 0 12px;
+}
+
+.c1 {
   width: 100%;
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
-.c0 h2 {
+.c1 h2 {
   padding: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -126,92 +339,73 @@ exports[`DataTable snapshots renders 1`] = `
   white-space: nowrap;
 }
 
-.c0 .MuiTableRow-root {
+.c1 .MuiTableRow-root {
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
-.c0 .MuiTableRow-root:not(.MuiTableRow-head):hover {
+.c1 .MuiTableRow-root:not(.MuiTableRow-head):hover {
   background: #f5f5f5;
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
-.c0 table {
+.c1 table {
   margin-top: 12px;
 }
 
-.c0 th {
+.c1 th {
   padding: 8px;
   background: #F6F7F9;
 }
 
-.c0 td {
+.c1 td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 <div
-  className="c0"
+  className="c0 c1"
 >
   <div
-    className="MuiTableContainer-root"
+    className="c2"
   >
-    <table
-      aria-label="simple table"
-      className="MuiTable-root"
-      role={null}
+    <div
+      className="c3"
     >
-      <thead
-        className="MuiTableHead-root"
-        role={null}
+      <div
+        className="c4 c5 ChipGroup"
+      />
+      <div
+        className="c6 c7"
       >
-        <tr
-          className="MuiTableRow-root MuiTableRow-head"
-          role={null}
+        <div
+          className="c6 SearchField"
         >
-          <th
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-head"
-            scope="col"
+          <button
+            className="MuiButtonBase-root MuiButton-root MuiButton-text c8 SearchField MuiButton-colorInherit MuiButton-disableElevation"
+            disabled={false}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragLeave={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
           >
-            <div
-              className="c1"
+            <span
+              className="MuiButton-label"
             >
-              <button
-                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
-                disabled={false}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onDragLeave={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                onKeyUp={[Function]}
-                onMouseDown={[Function]}
-                onMouseLeave={[Function]}
-                onMouseUp={[Function]}
-                onTouchEnd={[Function]}
-                onTouchMove={[Function]}
-                onTouchStart={[Function]}
-                tabIndex={0}
-                type="button"
-              >
-                <span
-                  className="MuiButton-label"
-                >
-                  <h2
-                    className="selected"
-                  >
-                    Name
-                  </h2>
-                </span>
-              </button>
               <div
-                className="c4"
-              />
-              <div
-                className="c5 c6 downward"
+                className="c6 c9"
               >
                 <svg
                   aria-hidden={true}
@@ -220,322 +414,499 @@ exports[`DataTable snapshots renders 1`] = `
                   viewBox="0 0 24 24"
                 >
                   <path
-                    d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                    d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
                   />
                 </svg>
               </div>
-            </div>
-          </th>
-          <th
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-head"
-            scope="col"
+            </span>
+          </button>
+          <div
+            className="c10 "
+          >
+            <form
+              onSubmit={[Function]}
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root Input"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    id="table-search"
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    placeholder="Search"
+                    required={false}
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <button
+          className="MuiButtonBase-root MuiButton-root MuiButton-text c8 c1 MuiButton-colorInherit MuiButton-disableElevation"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          <span
+            className="MuiButton-label"
           >
             <div
-              className="c1"
+              className="c6 c9"
             >
-              <button
-                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
-                disabled={false}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onDragLeave={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                onKeyUp={[Function]}
-                onMouseDown={[Function]}
-                onMouseLeave={[Function]}
-                onMouseUp={[Function]}
-                onTouchEnd={[Function]}
-                onTouchMove={[Function]}
-                onTouchStart={[Function]}
-                tabIndex={0}
-                type="button"
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
               >
-                <span
-                  className="MuiButton-label"
-                >
-                  <h2
-                    className=""
-                  >
-                    Status
-                  </h2>
-                </span>
-              </button>
-              <div
-                className="c4"
-              />
-              <div
-                style={
-                  Object {
-                    "width": "16px",
-                  }
-                }
-              />
+                <path
+                  d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+                />
+              </svg>
             </div>
-          </th>
-          <th
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-head"
-            scope="col"
-          >
-            <div
-              className="c1"
-            >
-              <button
-                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
-                disabled={false}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onDragLeave={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                onKeyUp={[Function]}
-                onMouseDown={[Function]}
-                onMouseLeave={[Function]}
-                onMouseUp={[Function]}
-                onTouchEnd={[Function]}
-                onTouchMove={[Function]}
-                onTouchStart={[Function]}
-                tabIndex={0}
-                type="button"
-              >
-                <span
-                  className="MuiButton-label"
-                >
-                  <h2
-                    className=""
-                  >
-                    Last Updated
-                  </h2>
-                </span>
-              </button>
-              <div
-                className="c4"
-              />
-              <div
-                style={
-                  Object {
-                    "width": "16px",
-                  }
-                }
-              />
-            </div>
-          </th>
-          <th
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-head"
-            scope="col"
-          >
-            <div
-              className="c1"
-            >
-              <button
-                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
-                disabled={false}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onDragLeave={[Function]}
-                onFocus={[Function]}
-                onKeyDown={[Function]}
-                onKeyUp={[Function]}
-                onMouseDown={[Function]}
-                onMouseLeave={[Function]}
-                onMouseUp={[Function]}
-                onTouchEnd={[Function]}
-                onTouchMove={[Function]}
-                onTouchStart={[Function]}
-                tabIndex={0}
-                type="button"
-              >
-                <span
-                  className="MuiButton-label"
-                >
-                  <h2
-                    className=""
-                  >
-                    Last Synced At
-                  </h2>
-                </span>
-              </button>
-              <div
-                className="c4"
-              />
-              <div
-                style={
-                  Object {
-                    "width": "16px",
-                  }
-                }
-              />
-            </div>
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        className="MuiTableBody-root"
-        role={null}
-      >
-        <tr
-          className="MuiTableRow-root"
-          role={null}
-        >
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              <a
-                href="/some_url"
-              >
-                nginx
-              </a>
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              Ready
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              2004-01-02T15:04:05-0700
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              3000
-            </span>
-          </td>
-        </tr>
-        <tr
-          className="MuiTableRow-root"
-          role={null}
-        >
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              <a
-                href="/some_url"
-              >
-                podinfo
-              </a>
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            />
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              2000
-            </span>
-          </td>
-        </tr>
-        <tr
-          className="MuiTableRow-root"
-          role={null}
-        >
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              <a
-                href="/some_url"
-              >
-                the-cool-app
-              </a>
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            />
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              2005-01-02T15:04:05-0700
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="medium"
-            >
-              1000
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </span>
+        </button>
+      </div>
+    </div>
   </div>
   <div
-    className="c9"
-  />
+    className="c11"
+  >
+    <div
+      className="MuiTableContainer-root"
+    >
+      <table
+        aria-label="simple table"
+        className="MuiTable-root"
+        role={null}
+      >
+        <thead
+          className="MuiTableHead-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              <div
+                className="c12"
+              >
+                <button
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c13 c14 MuiButton-colorInherit MuiButton-disableElevation"
+                  disabled={false}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onDragLeave={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  tabIndex={0}
+                  type="button"
+                >
+                  <span
+                    className="MuiButton-label"
+                  >
+                    <h2
+                      className="selected"
+                    >
+                      Name
+                    </h2>
+                  </span>
+                </button>
+                <div
+                  className="c15"
+                />
+                <div
+                  className="c6 c16 downward"
+                >
+                  <svg
+                    aria-hidden={true}
+                    className="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              <div
+                className="c12"
+              >
+                <button
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c13 c14 MuiButton-colorInherit MuiButton-disableElevation"
+                  disabled={false}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onDragLeave={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  tabIndex={0}
+                  type="button"
+                >
+                  <span
+                    className="MuiButton-label"
+                  >
+                    <h2
+                      className=""
+                    >
+                      Status
+                    </h2>
+                  </span>
+                </button>
+                <div
+                  className="c15"
+                />
+                <div
+                  style={
+                    Object {
+                      "width": "16px",
+                    }
+                  }
+                />
+              </div>
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              <div
+                className="c12"
+              >
+                <button
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c13 c14 MuiButton-colorInherit MuiButton-disableElevation"
+                  disabled={false}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onDragLeave={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  tabIndex={0}
+                  type="button"
+                >
+                  <span
+                    className="MuiButton-label"
+                  >
+                    <h2
+                      className=""
+                    >
+                      Last Updated
+                    </h2>
+                  </span>
+                </button>
+                <div
+                  className="c15"
+                />
+                <div
+                  style={
+                    Object {
+                      "width": "16px",
+                    }
+                  }
+                />
+              </div>
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              <div
+                className="c12"
+              >
+                <button
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c13 c14 MuiButton-colorInherit MuiButton-disableElevation"
+                  disabled={false}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onDragLeave={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  tabIndex={0}
+                  type="button"
+                >
+                  <span
+                    className="MuiButton-label"
+                  >
+                    <h2
+                      className=""
+                    >
+                      Last Synced At
+                    </h2>
+                  </span>
+                </button>
+                <div
+                  className="c15"
+                />
+                <div
+                  style={
+                    Object {
+                      "width": "16px",
+                    }
+                  }
+                />
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                <a
+                  href="/some_url"
+                >
+                  nginx
+                </a>
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                Ready
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                2004-01-02T15:04:05-0700
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                3000
+              </span>
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                <a
+                  href="/some_url"
+                >
+                  podinfo
+                </a>
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              />
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                2006-01-02T15:04:05-0700
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                2000
+              </span>
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                <a
+                  href="/some_url"
+                >
+                  the-cool-app
+                </a>
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              />
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                2005-01-02T15:04:05-0700
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="c17 c18"
+                size="medium"
+              >
+                1000
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div
+      className="c19"
+      data-testid="container"
+    >
+      <div
+        className="c20"
+      >
+        <div
+          className="c21 c22"
+        >
+          <div
+            className="c4"
+          >
+            <span
+              className="c17 c23"
+              color="neutral30"
+              size="large"
+            >
+              Filters
+            </span>
+          </div>
+          <form
+            className="ControlledForm"
+            onSubmit={[Function]}
+          >
+            <ul
+              className="MuiList-root MuiList-padding"
+            />
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;
