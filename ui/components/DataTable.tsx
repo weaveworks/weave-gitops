@@ -13,7 +13,10 @@ import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Button, { IconButton } from "./Button";
-import CheckboxActions from "./CheckboxActions";
+import CheckboxActions, {
+  compareUniques,
+  makeUniques,
+} from "./CheckboxActions";
 import ChipGroup from "./ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -427,37 +430,43 @@ function UnstyledDataTable({
 
   const sorted = sortByField(filtered, reverseSort, sortFields);
 
-  const r = _.map(sorted, (r, i) => (
-    <TableRow key={i}>
-      {checkboxes && (
-        <TableCell>
-          <Checkbox
-            checked={checked.includes(r)}
-            onChange={(e) => {
-              if (e.target.checked) setChecked([...checked, r]);
-              else {
-                const copy = checked;
-                copy.splice(copy.indexOf(r), 1);
-                setChecked(copy);
+  const r = _.map(sorted, (r, i) => {
+    const unique = makeUniques([r])[0];
+    return (
+      <TableRow key={i}>
+        {checkboxes && (
+          <TableCell style={{ padding: "8px" }}>
+            <Checkbox
+              checked={compareUniques(checked, unique)}
+              onChange={(e) => {
+                if (e.target.checked) setChecked([...checked, unique]);
+                else {
+                  let copy = checked;
+                  _.remove(copy, (item) => _.isEqual(item, unique));
+                  setChecked(copy);
+                }
+              }}
+              color="primary"
+            />
+          </TableCell>
+        )}
+        {_.map(fields, (f) => (
+          <TableCell
+            style={
+              f.maxWidth && {
+                maxWidth: f.maxWidth,
               }
-            }}
-          />
-        </TableCell>
-      )}
-      {_.map(fields, (f) => (
-        <TableCell
-          style={
-            f.maxWidth && {
-              maxWidth: f.maxWidth,
             }
-          }
-          key={f.label}
-        >
-          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
-        </TableCell>
-      ))}
-    </TableRow>
-  ));
+            key={f.label}
+          >
+            <Text>
+              {typeof f.value === "function" ? f.value(r) : r[f.value]}
+            </Text>
+          </TableCell>
+        ))}
+      </TableRow>
+    );
+  });
   return (
     <Flex wide tall column className={className}>
       <Flex wide align between>
@@ -495,8 +504,11 @@ function UnstyledDataTable({
                     <Checkbox
                       checked={checked.length === rows.length}
                       onChange={(e) =>
-                        e.target.checked ? setChecked(rows) : setChecked([])
+                        e.target.checked
+                          ? setChecked(makeUniques(rows))
+                          : setChecked([])
                       }
+                      color="primary"
                     />
                   </TableCell>
                 )}
@@ -578,6 +590,8 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutralGray};
   }
   td {
+    //24px matches th + button + h2 padding
+    padding-left: ${(props) => props.theme.spacing.medium};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
