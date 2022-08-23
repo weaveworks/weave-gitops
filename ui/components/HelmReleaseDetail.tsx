@@ -56,6 +56,10 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRelease?.tenant
       ? [["Tenant", helmRelease?.tenant]]
       : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", helmRelease?.clusterName]]
+      : [];
 
   return (
     <AutomationDetail
@@ -65,7 +69,7 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
-        ["Cluster", helmRelease?.clusterName],
+        ...clusterInfo,
         ...tenancyInfo,
         ["Interval", <Interval interval={helmRelease?.interval} />],
         [

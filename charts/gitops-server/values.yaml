@@ -22,6 +22,8 @@ logLevel: info
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
+  - name: WEAVE_GITOPS_FEATURE_CLUSTER
+    value: "false"
 
 # Should the 'oidc-auth' secret be created. For a detailed
 # explanation of these attributes please see our documentation:

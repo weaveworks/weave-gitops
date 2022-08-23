@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -11,7 +12,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -26,8 +26,10 @@ type mockClientForGetDashboardHelmChart struct {
 type stateGetDashboardHelmChart string
 
 const (
-	secret    = "test-secret"
-	namespace = "test-namespace"
+	testDashboardName = "ww-gitops"
+	testNamespace     = "test-namespace"
+	testAdminUser     = "testUser"
+	testSecret        = "test-secret"
 
 	stateGetDashboardHelmChartGetReturnErr stateGetDashboardHelmChart = "get-return-err"
 
@@ -46,14 +48,20 @@ var _ = Describe("InstallDashboard", func() {
 	It("should install dashboard successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		Expect(err).NotTo(HaveOccurred())
+
+		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		err := InstallDashboard(fakeLogger, fakeContext, man, namespace, secret)
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		Expect(err).NotTo(HaveOccurred())
+
+		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -90,14 +98,14 @@ var _ = Describe("getDashboardHelmChart", func() {
 	})
 
 	It("returns the dashboard helmchart if there is no error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, namespace)
+		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, testDashboardName, testNamespace)
 		Expect(helmChart).ToNot(BeNil())
 		Expect(helmChart.Namespace).To(Equal("test-namespace"))
 		Expect(helmChart.Name).To(Equal("test-namespace-ww-gitops"))
 	})
 
 	It("returns nil if there is an error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, namespace)
+		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, testDashboardName, testNamespace)
 		Expect(helmChart).To(BeNil())
 	})
 })
@@ -110,77 +118,37 @@ var _ = Describe("generateManifestsForDashboard", func() {
 	})
 
 	It("generates manifests successfully", func() {
-		valuesMap := map[string]interface{}{
-			"adminUser": map[string]interface{}{
-				"create":       true,
-				"passwordHash": "test-secret",
-				"username":     "admin",
-			},
-		}
+		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
 
-		helmRepository := &sourcev1.HelmRepository{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1.HelmRepositoryKind,
-				APIVersion: sourcev1.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ww-gitops",
-				Namespace: "test-namespace",
-			},
-			Spec: sourcev1.HelmRepositorySpec{
-				URL: "https://helm.gitops.weave.works",
-				Interval: metav1.Duration{
-					Duration: time.Minute,
-				},
-			},
-		}
-
-		values, err := json.Marshal(valuesMap)
+		helmChartVersion := "3.0.0"
+		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 
-		helmRelease := &helmv2.HelmRelease{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       helmv2.HelmReleaseKind,
-				APIVersion: helmv2.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ww-gitops",
-				Namespace: "test-namespace",
-			},
-			Spec: helmv2.HelmReleaseSpec{
-				Interval: metav1.Duration{
-					Duration: time.Minute,
-				},
-				Chart: helmv2.HelmChartTemplate{
-					Spec: helmv2.HelmChartTemplateSpec{
-						Chart:   "weave-gitops",
-						Version: "3.0.0",
-						SourceRef: helmv2.CrossNamespaceObjectReference{
-							Kind: "HelmRepository",
-							Name: "ww-gitops",
-						},
-						ReconcileStrategy: "ChartVersion",
-					},
-				},
-				Values: &v1.JSON{Raw: values},
-			},
-		}
-
-		expectedHelmRepository, err := yaml.Marshal(helmRepository)
+		manifestsData, err := generateManifestsForDashboard(fakeLogger, helmRepository, helmRelease)
 		Expect(err).NotTo(HaveOccurred())
+		Expect(manifestsData).NotTo(BeNil())
 
-		expectedHelmRelease, err := yaml.Marshal(helmRelease)
+		manifests := strings.Split(string(manifestsData), "---\n")
+		Expect(len(manifests)).To(Equal(2))
+
+		var actualHelmRepository sourcev1.HelmRepository
+		err = yaml.Unmarshal([]byte(manifests[0]), &actualHelmRepository)
 		Expect(err).NotTo(HaveOccurred())
+		Expect(actualHelmRepository.Name).To(Equal(testDashboardName))
+		Expect(actualHelmRepository.Namespace).To(Equal(testNamespace))
 
-		divider := []byte("---\n")
-
-		expected := append(divider, expectedHelmRepository...)
-		expected = append(expected, divider...)
-		expected = append(expected, expectedHelmRelease...)
-
-		actual, err := generateManifestsForDashboard(fakeLogger, secret, helmRepository, helmRelease)
+		var actualHelmRelease helmv2.HelmRelease
+		err = yaml.Unmarshal([]byte(manifests[1]), &actualHelmRelease)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(actual).To(Equal(expected))
+		Expect(actualHelmRelease.Name).To(Equal(testDashboardName))
+		Expect(actualHelmRelease.Namespace).To(Equal(testNamespace))
+
+		Expect(actualHelmRelease.Spec.Interval.Duration).To(Equal(60 * time.Minute))
+
+		chart := actualHelmRelease.Spec.Chart
+		Expect(chart.Spec.Chart).To(Equal(helmChartName))
+		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
+		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
 	})
 })
 
@@ -191,101 +159,128 @@ var _ = Describe("makeHelmRelease", func() {
 		fakeLogger = &loggerfakes.FakeLogger{}
 	})
 
-	It("creates helmrelease successfully", func() {
-		valuesMap := map[string]interface{}{
-			"adminUser": map[string]interface{}{
-				"create":       true,
-				"passwordHash": "test-secret",
-				"username":     "admin",
-			},
-		}
+	It("creates helmrelease with chart version and values successfully", func() {
+		helmChartVersion := "3.0.0"
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(actual.Kind).To(Equal(helmv2.HelmReleaseKind))
+		Expect(actual.APIVersion).To(Equal(helmv2.GroupVersion.Identifier()))
+		Expect(actual.Name).To(Equal(testDashboardName))
+		Expect(actual.Namespace).To(Equal(testNamespace))
 
-		values, err := json.Marshal(valuesMap)
+		Expect(actual.Spec.Interval.Duration).To(Equal(60 * time.Minute))
+
+		chart := actual.Spec.Chart
+		Expect(chart.Spec.Chart).To(Equal(helmChartName))
+		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
+		Expect(chart.Spec.SourceRef.Kind).To(Equal("HelmRepository"))
+		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(actual.Spec.Values.Raw, &values)
 		Expect(err).NotTo(HaveOccurred())
 
-		helmRelease := &helmv2.HelmRelease{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       helmv2.HelmReleaseKind,
-				APIVersion: helmv2.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ww-gitops",
-				Namespace: "test-namespace",
-			},
-			Spec: helmv2.HelmReleaseSpec{
-				Interval: metav1.Duration{
-					Duration: time.Minute,
-				},
-				Chart: helmv2.HelmChartTemplate{
-					Spec: helmv2.HelmChartTemplateSpec{
-						Chart:   "weave-gitops",
-						Version: "3.0.0",
-						SourceRef: helmv2.CrossNamespaceObjectReference{
-							Kind: "HelmRepository",
-							Name: "ww-gitops",
-						},
-						ReconcileStrategy: "ChartVersion",
-					},
-				},
-				Values: &v1.JSON{Raw: values},
-			},
-		}
+		adminUser := values["adminUser"].(map[string]interface{})
+		Expect(adminUser["create"]).To(BeTrue())
+		Expect(adminUser["username"]).To(Equal(testAdminUser))
+		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
+	})
 
-		expected, err := json.Marshal(helmRelease)
+	It("creates helmrelease without chart version successfully", func() {
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "")
 		Expect(err).NotTo(HaveOccurred())
 
-		actualHelmRelease, err := makeHelmRelease(fakeLogger, secret, namespace)
-		Expect(err).NotTo(HaveOccurred())
+		chart := actual.Spec.Chart
+		Expect(chart.Spec.Version).To(BeEmpty())
+	})
 
-		actual, err := json.Marshal(actualHelmRelease)
+	It("does not add values to helmrelease if both username and secret are empty successfully", func() {
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", "3.0.0")
 		Expect(err).NotTo(HaveOccurred())
-		Expect(actual).To(Equal(expected))
+		Expect(actual.Spec.Values).To(BeNil())
 	})
 })
 
 var _ = Describe("makeHelmRepository", func() {
 	It("creates helmrepository successfully", func() {
-		helmRepository := &sourcev1.HelmRepository{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1.HelmRepositoryKind,
-				APIVersion: sourcev1.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "ww-gitops",
-				Namespace: "test-namespace",
-			},
-			Spec: sourcev1.HelmRepositorySpec{
-				URL: "https://helm.gitops.weave.works",
-				Interval: metav1.Duration{
-					Duration: time.Minute,
-				},
-			},
-		}
+		actual := makeHelmRepository(testDashboardName, testNamespace)
+		Expect(actual.Kind).To(Equal(sourcev1.HelmRepositoryKind))
+		Expect(actual.APIVersion).To(Equal(sourcev1.GroupVersion.Identifier()))
+		Expect(actual.Name).To(Equal(testDashboardName))
+		Expect(actual.Namespace).To(Equal(testNamespace))
 
-		expected, err := json.Marshal(helmRepository)
-		Expect(err).NotTo(HaveOccurred())
+		labels := actual.Labels
+		Expect(labels["app.kubernetes.io/name"]).NotTo(BeEmpty())
+		Expect(labels["app.kubernetes.io/component"]).NotTo(BeEmpty())
+		Expect(labels["app.kubernetes.io/part-of"]).NotTo(BeEmpty())
+		Expect(labels["app.kubernetes.io/created-by"]).NotTo(BeEmpty())
 
-		actual, err := json.Marshal(makeHelmRepository(namespace))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(actual).To(Equal(expected))
+		annotations := actual.Annotations
+		Expect(annotations["metadata.weave.works/description"]).NotTo(BeEmpty())
+
+		Expect(actual.Spec.URL).To(Equal(helmRepositoryUrl))
+		Expect(actual.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 	})
 })
 
 var _ = Describe("makeValues", func() {
 	It("creates values successfully", func() {
-		valuesMap := map[string]interface{}{
-			"adminUser": map[string]interface{}{
-				"create":       true,
-				"passwordHash": "test-secret",
-				"username":     "admin",
-			},
-		}
-
-		expected, err := json.Marshal(valuesMap)
+		values, err := makeValues(testAdminUser, testSecret)
 		Expect(err).NotTo(HaveOccurred())
 
-		actual, err := makeValues(secret)
+		actual := map[string]interface{}{}
+		err = json.Unmarshal(values, &actual)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(actual).To(Equal(expected))
+
+		adminUser := actual["adminUser"].(map[string]interface{})
+		Expect(adminUser["create"]).To(BeTrue())
+		Expect(adminUser["username"]).To(Equal(testAdminUser))
+		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
+	})
+})
+
+var _ = Describe("sanitizeResourceData", func() {
+	var fakeLogger *loggerfakes.FakeLogger
+
+	BeforeEach(func() {
+		fakeLogger = &loggerfakes.FakeLogger{}
+	})
+
+	It("sanitizes helmrepository data", func() {
+		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
+
+		resData, err := yaml.Marshal(helmRepository)
+		Expect(err).NotTo(HaveOccurred())
+
+		resStr := string(resData)
+		Expect(strings.Contains(resStr, "status")).To(BeTrue())
+		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
+
+		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		Expect(err).NotTo(HaveOccurred())
+
+		sanitizedResStr := string(sanitizedResData)
+		Expect(strings.Contains(sanitizedResStr, "status")).To(BeFalse())
+		Expect(strings.Contains(sanitizedResStr, "creationTimestamp")).To(BeFalse())
+	})
+
+	It("sanitizes helmrelease data", func() {
+		helmChartVersion := "3.0.0"
+		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
+		Expect(err).NotTo(HaveOccurred())
+
+		resData, err := yaml.Marshal(helmRelease)
+		Expect(err).NotTo(HaveOccurred())
+
+		resStr := string(resData)
+		Expect(strings.Contains(resStr, "status")).To(BeTrue())
+		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
+
+		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		Expect(err).NotTo(HaveOccurred())
+
+		sanitizedResStr := string(sanitizedResData)
+		Expect(strings.Contains(sanitizedResStr, "status")).To(BeFalse())
+		Expect(strings.Contains(sanitizedResStr, "creationTimestamp")).To(BeFalse())
 	})
 })

@@ -9,3 +9,6 @@
 
 # Ignore JSON files
 *.json
+
+# Ignore MDX files
+*.mdx

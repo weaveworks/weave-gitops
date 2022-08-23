@@ -42,13 +42,19 @@ function SourcesTable({ className, sources }: Props) {
     ...filterConfig(sources, "type"),
     ...filterConfig(sources, "namespace"),
     ...filterConfig(sources, "status", filterByStatusCallback),
-    ...filterConfig(sources, "clusterName"),
   };
 
   if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(sources, "tenant"),
+    };
+  }
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(sources, "clusterName"),
     };
   }
 
@@ -75,10 +81,9 @@ function SourcesTable({ className, sources }: Props) {
     ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
       ? [{ label: "Tenant", value: "tenant" }]
       : []),
-    {
-      label: "Cluster",
-      value: (s: Source) => s.clusterName,
-    },
+    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [{ label: "Cluster", value: (s: Source) => s.clusterName }]
+      : []),
     {
       label: "Status",
       value: (s: Source) => (
@@ -114,12 +119,13 @@ function SourcesTable({ className, sources }: Props) {
           case FluxObjectKind.KindOCIRepository:
             text = (s as OCIRepository).url;
             break;
-          case FluxObjectKind.KindHelmChart:
-            return "-";
           case FluxObjectKind.KindHelmRepository:
             text = (s as HelmRepository).url;
             url = text;
             link = true;
+            break;
+          default:
+            text = "-";
             break;
         }
         return link ? (

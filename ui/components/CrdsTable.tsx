@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Crd } from "../lib/api/core/types.pb";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { filterConfig } from "./FilterableTable";
 import URLAddressableTable from "./URLAddressableTable";
 
@@ -10,11 +11,21 @@ type Props = {
 };
 
 function CrdsTable({ className, crds = [] }: Props) {
-  const initialFilterState = {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
+  let initialFilterState = {
     ...filterConfig(crds, "version"),
     ...filterConfig(crds, "kind"),
-    ...filterConfig(crds, "clusterName"),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(crds, "clusterName"),
+    };
+  }
+
   return (
     <URLAddressableTable
       className={className}
@@ -35,10 +46,9 @@ function CrdsTable({ className, crds = [] }: Props) {
           label: "Version",
           value: "version",
         },
-        {
-          label: "Cluster",
-          value: "clusterName",
-        },
+        ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+          ? [{ label: "Cluster", value: "clusterName" }]
+          : []),
       ]}
     />
   );

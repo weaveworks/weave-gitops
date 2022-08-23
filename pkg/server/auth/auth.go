@@ -84,6 +84,14 @@ func (p *UserPrincipal) String() string {
 	return fmt.Sprintf("id=%q groups=%v", p.ID, p.Groups)
 }
 
+func (p *UserPrincipal) Valid() bool {
+	if p.ID == "" && p.Token == "" {
+		return false
+	}
+
+	return true
+}
+
 // WithPrincipal sets the principal into the context.
 func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 	return context.WithValue(ctx, principalCtxKey{}, p)
