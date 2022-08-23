@@ -30,7 +30,7 @@ rules:
     resources: ["helmreleases"]
     verbs: ["get", "list", "patch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
     verbs: ["get", "list", "patch"]
   - apiGroups: [""]
     resources: ["events"]
