@@ -421,67 +421,43 @@ function UnstyledDataTable({
   const [reverseSort, setReverseSort] = React.useState(false);
   let sortFields = [fields[sortFieldIndex]];
 
-  const useSecondarySort =
-    secondarySortFieldIndex > -1 && sortFieldIndex != secondarySortFieldIndex;
-
-  if (useSecondarySort) {
-    sortFields = sortFields.concat(fields[secondarySortFieldIndex]);
-    sortFields = sortFields.concat(
-      fields.filter(
-        (_, index) =>
-          index != sortFieldIndex && index != secondarySortFieldIndex
-      )
-    );
-  } else {
-    sortFields = sortFields.concat(
-      fields.filter((_, index) => index != sortFieldIndex)
-    );
-  }
-
-  const sorted = sortByField(
-    filtered,
-    reverseSort,
-    sortFields,
-    useSecondarySort
+  sortFields = sortFields.concat(
+    fields.filter((_, index) => index != sortFieldIndex)
   );
 
-  const r = _.map(sorted, (r, i) => {
-    console.log(checked, r, checked[0] === r);
+  const sorted = sortByField(filtered, reverseSort, sortFields);
 
-    return (
-      <TableRow key={i}>
-        {checkboxes && (
-          <TableCell>
-            <Checkbox
-              checked={checked.includes(r)}
-              onChange={(e) => {
-                if (e.target.checked) setChecked([...checked, r]);
-                else {
-                  let copy = checked;
-                  copy.splice(copy.indexOf(r), 1);
-                  setChecked(copy);
-                }
-              }}
-            />
-          </TableCell>
-        )}
-        {_.map(fields, (f) => (
-          <TableCell
-            style={
-              f.maxWidth && {
-                maxWidth: f.maxWidth,
+  const r = _.map(sorted, (r, i) => (
+    <TableRow key={i}>
+      {checkboxes && (
+        <TableCell>
+          <Checkbox
+            checked={checked.includes(r)}
+            onChange={(e) => {
+              if (e.target.checked) setChecked([...checked, r]);
+              else {
+                const copy = checked;
+                copy.splice(copy.indexOf(r), 1);
+                setChecked(copy);
               }
+            }}
+          />
+        </TableCell>
+      )}
+      {_.map(fields, (f) => (
+        <TableCell
+          style={
+            f.maxWidth && {
+              maxWidth: f.maxWidth,
             }
-            key={f.label}
-          >
-            <Text>
-              {typeof f.value === "function" ? f.value(r) : r[f.value]}
-            </Text>
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  });
+          }
+          key={f.label}
+        >
+          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
   return (
     <Flex wide tall column className={className}>
       <Flex wide align between>
