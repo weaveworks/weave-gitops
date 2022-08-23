@@ -510,63 +510,61 @@ function UnstyledDataTable({
         </Flex>
       </Flex>
       <Flex wide tall>
-        <div className={className}>
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  {checkboxes && (
-                    <TableCell key={"checkboxes"}>
-                      <Checkbox
-                        checked={checked.length === rows.length}
-                        onChange={(e) =>
-                          e.target.checked ? setChecked(rows) : setChecked([])
+        <TableContainer>
+          <Table aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                {checkboxes && (
+                  <TableCell key={"checkboxes"}>
+                    <Checkbox
+                      checked={checked.length === rows.length}
+                      onChange={(e) =>
+                        e.target.checked ? setChecked(rows) : setChecked([])
+                      }
+                    />
+                  </TableCell>
+                )}
+                {_.map(fields, (f, index) => (
+                  <TableCell key={f.label}>
+                    {typeof f.labelRenderer === "function" ? (
+                      f.labelRenderer(r)
+                    ) : (
+                      <SortableLabel
+                        fields={fields}
+                        fieldIndex={index}
+                        sortFieldIndex={sortFieldIndex}
+                        reverseSort={reverseSort}
+                        setSortFieldIndex={setSortFieldIndex}
+                        setReverseSort={(isReverse) =>
+                          setReverseSort(isReverse)
                         }
                       />
-                    </TableCell>
-                  )}
-                  {_.map(fields, (f, index) => (
-                    <TableCell key={f.label}>
-                      {typeof f.labelRenderer === "function" ? (
-                        f.labelRenderer(r)
-                      ) : (
-                        <SortableLabel
-                          fields={fields}
-                          fieldIndex={index}
-                          sortFieldIndex={sortFieldIndex}
-                          reverseSort={reverseSort}
-                          setSortFieldIndex={setSortFieldIndex}
-                          setReverseSort={(isReverse) =>
-                            setReverseSort(isReverse)
-                          }
-                        />
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {r.length > 0 ? (
-                  r
-                ) : (
-                  <EmptyRow colSpan={fields.length}>
-                    <TableCell colSpan={fields.length}>
-                      <Flex center align>
-                        <Icon
-                          color="neutral20"
-                          type={IconType.RemoveCircleIcon}
-                          size="base"
-                        />
-                        <Spacer padding="xxs" />
-                        <Text color="neutral30">No data</Text>
-                      </Flex>
-                    </TableCell>
-                  </EmptyRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </div>
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {r.length > 0 ? (
+                r
+              ) : (
+                <EmptyRow colSpan={fields.length}>
+                  <TableCell colSpan={fields.length}>
+                    <Flex center align>
+                      <Icon
+                        color="neutral20"
+                        type={IconType.RemoveCircleIcon}
+                        size="base"
+                      />
+                      <Spacer padding="xxs" />
+                      <Text color="neutral30">No data</Text>
+                    </Flex>
+                  </TableCell>
+                </EmptyRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <FilterDialog
           onFilterSelect={handleFilterSelect}
           filterList={filters}
