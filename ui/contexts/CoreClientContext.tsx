@@ -1,6 +1,8 @@
 import qs from "query-string";
 import * as React from "react";
-import { Core } from "../lib/api/core/core.pb";
+import { useQuery } from "react-query";
+import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
+import { RequestError } from "../lib/types";
 import { AuthRoutes } from "./AuthContext";
 
 type Props = {
@@ -8,8 +10,11 @@ type Props = {
   children: any;
 };
 
+export type FeatureFlags = { [key: string]: string };
+
 export type CoreClientContextType = {
   api: typeof Core;
+  featureFlags: FeatureFlags;
 };
 
 export const CoreClientContext =
@@ -40,11 +45,25 @@ export function UnAuthorizedInterceptor(api: any) {
   return wrapped;
 }
 
+function FeatureFlags(api) {
+  const { data } = useQuery<GetFeatureFlagsResponse, RequestError>(
+    "feature_flags",
+    () => api.GetFeatureFlags({}),
+    {
+      staleTime: Infinity,
+      cacheTime: Infinity,
+    }
+  );
+  return data?.flags || {};
+}
+
 export default function CoreClientContextProvider({ api, children }: Props) {
   const wrapped = UnAuthorizedInterceptor(api) as typeof Core;
 
   return (
-    <CoreClientContext.Provider value={{ api: wrapped }}>
+    <CoreClientContext.Provider
+      value={{ api: wrapped, featureFlags: FeatureFlags(wrapped) }}
+    >
       {children}
     </CoreClientContext.Provider>
   );

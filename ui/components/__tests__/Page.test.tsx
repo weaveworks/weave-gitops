@@ -18,7 +18,7 @@ describe("Page", () => {
           withTheme(
             withContext(
               <CoreClientContext.Provider
-                value={{ api: createCoreMockClient({}) }}
+                value={{ api: createCoreMockClient({}), featureFlags: {} }}
               >
                 <Page />
               </CoreClientContext.Provider>,

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "react-query";
 import * as React from "react";
 import renderer from "react-test-renderer";
 import { Core } from "../../lib/api/core/core.pb";
@@ -13,10 +14,14 @@ describe("CoreContextProvider", () => {
       return <div />;
     }
 
+    const queryClient = new QueryClient();
+
     renderer.create(
-      <CoreClientContextProvider api={Core}>
-        <TestComponent />
-      </CoreClientContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <CoreClientContextProvider api={Core}>
+          <TestComponent />
+        </CoreClientContextProvider>
+      </QueryClientProvider>
     );
   });
 });
