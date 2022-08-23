@@ -98,6 +98,24 @@ var _ = Describe("ProfilesServer", func() {
 				Expect(name).To(Equal(helmRepo.Name))
 			})
 
+			It("Passes the correct values to the Helm Cache Querier", func() {
+				profiles := []*pb.Profile{
+					{
+						Name: profileName,
+					},
+				}
+				fakeCache.ListProfilesReturns(profiles, nil)
+
+				profilesResp, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{HelmRepoName: "test-name", HelmRepoNamespace: "test-namespace"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(profilesResp).NotTo(BeNil())
+				Expect(profilesResp.Profiles).To(Equal(profiles))
+				Expect(fakeCache.ListProfilesCallCount()).To(Equal(1))
+				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
+				Expect(namespace).To(Equal("test-name"))
+				Expect(name).To(Equal("test-namespace"))
+			})
+
 			When("scanning for helmcharts errors", func() {
 				It("errors", func() {
 					fakeCache.ListProfilesReturns(nil, fmt.Errorf("foo"))
@@ -125,6 +143,27 @@ var _ = Describe("ProfilesServer", func() {
 			})
 
 			When("it retrieves the values file from Helm chart", func() {
+
+				It("Passes the correct values to the Helm Cache Querier", func() {
+					fakeCache.GetProfileValuesReturns([]byte("values"), nil)
+
+					resp, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{ProfileName: profileName,
+						ProfileVersion: profileVersion, HelmRepoName: "test-name", HelmRepoNamespace: "test-namespace"})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.ContentType).To(Equal(server.JsonType))
+					valuesResp := &pb.GetProfileValuesResponse{}
+					err = json.Unmarshal(resp.Data, valuesResp)
+					Expect(err).NotTo(HaveOccurred())
+					profileValues, err := base64.StdEncoding.DecodeString(valuesResp.Values)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(profileValues)).To(Equal("values"))
+					_, namespace, name, pname, pversion := fakeCache.GetProfileValuesArgsForCall(0)
+					Expect(namespace).To(Equal("test-name"))
+					Expect(name).To(Equal("test-namespace"))
+					Expect(pname).To(Equal(profileName))
+					Expect(pversion).To(Equal(profileVersion))
+				})
+
 				When("header does not contain 'application/octet-stream'", func() {
 					It("returns a values file in base64-encoded json", func() {
 						fakeCache.GetProfileValuesReturns([]byte("values"), nil)
