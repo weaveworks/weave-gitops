@@ -405,7 +405,6 @@ function UnstyledDataTable({
   };
 
   const [checked, setChecked] = React.useState<any[]>([]);
-  console.log(checked);
 
   const [sortFieldIndex, setSortFieldIndex] = React.useState(() => {
     let sortFieldIndex = fields.findIndex((f) => f.defaultSort);
@@ -439,7 +438,12 @@ function UnstyledDataTable({
     );
   }
 
-  const sorted = sortByField(rows, reverseSort, sortFields, useSecondarySort);
+  const sorted = sortByField(
+    filtered,
+    reverseSort,
+    sortFields,
+    useSecondarySort
+  );
 
   const r = _.map(sorted, (r, i) => {
     console.log(checked, r, checked[0] === r);
