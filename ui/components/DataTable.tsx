@@ -441,7 +441,7 @@ function UnstyledDataTable({
               onChange={(e) => {
                 if (e.target.checked) setChecked([...checked, unique]);
                 else {
-                  let copy = checked;
+                  const copy = checked;
                   _.remove(copy, (item) => _.isEqual(item, unique));
                   setChecked(copy);
                 }

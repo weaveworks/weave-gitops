@@ -19,6 +19,7 @@ import {
   ReactQueryOptions,
   RequestError,
 } from "../lib/types";
+import { notifyError } from "../lib/utils";
 
 export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
@@ -78,6 +79,9 @@ export function useToggleSuspend(
     {
       onSuccess: () => {
         return queryClient.invalidateQueries(type);
+      },
+      onError: (error) => {
+        notifyError(error.message);
       },
     }
   );

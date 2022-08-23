@@ -28,19 +28,14 @@ export const makeUniques = (arr: any[]) => {
 };
 
 export const compareUniques = (uniques: Unique[], check: Unique) => {
-  let equal: boolean = false;
-  uniques.map((unique, index) => {
+  let equal = false;
+  uniques.map((unique) => {
     //_.isEqual deeply compares stuff instead of using stinky memory addresses
     if (_.isEqual(unique, check)) {
       return (equal = true);
     }
   });
   return equal;
-};
-
-export const removeUnique = (uniques: Unique[], item: Unique) => {
-  _.remove(uniques, (unique) => _.isEqual(unique, item));
-  return uniques;
 };
 
 type Props = {
@@ -69,19 +64,11 @@ function CheckboxActions({ className, checked = [] }: Props) {
 
   return (
     <Flex start align className={className}>
-      <Button
-        loading={suspend.isLoading}
-        disabled={!checked[0]}
-        onClick={() => suspend.mutateAsync()}
-      >
+      <Button disabled={!checked[0]} onClick={() => suspend.mutateAsync()}>
         <Icon type={IconType.PauseIcon} size="medium" />
       </Button>
       <Spacer padding="xxs" />
-      <Button
-        loading={resume.isLoading}
-        disabled={!checked[0]}
-        onClick={() => resume.mutateAsync()}
-      >
+      <Button disabled={!checked[0]} onClick={() => resume.mutateAsync()}>
         <Icon type={IconType.PlayIcon} size="medium" />
       </Button>
     </Flex>
