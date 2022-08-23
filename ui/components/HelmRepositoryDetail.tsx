@@ -23,6 +23,10 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRepository.tenant
       ? [["Tenant", helmRepository.tenant]]
       : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", helmRepository.clusterName]]
+      : [];
 
   return (
     <SourceDetail
@@ -42,7 +46,7 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
           ),
         ],
         ["Interval", <Interval interval={helmRepository.interval} />],
-        ["Cluster", helmRepository.clusterName],
+        ...clusterInfo,
         ["Namespace", helmRepository.namespace],
         ...tenancyInfo,
       ]}

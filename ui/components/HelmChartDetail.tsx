@@ -22,6 +22,10 @@ function HelmChartDetail({ className, helmChart }: Props) {
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmChart.tenant
       ? [["Tenant", helmChart.tenant]]
       : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", helmChart.clusterName]]
+      : [];
 
   return (
     <SourceDetail
@@ -34,7 +38,7 @@ function HelmChartDetail({ className, helmChart }: Props) {
         ["Ref", helmChart.sourceRef?.name],
         ["Last Updated", <Timestamp time={helmChart.lastUpdatedAt} />],
         ["Interval", <Interval interval={helmChart.interval} />],
-        ["Cluster", helmChart.clusterName],
+        ...clusterInfo,
         ["Namespace", helmChart.namespace],
         ...tenancyInfo,
       ]}

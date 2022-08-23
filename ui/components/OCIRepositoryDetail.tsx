@@ -23,6 +23,10 @@ function OCIRepositoryDetail({ className, ociRepository }: Props) {
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && ociRepository.tenant
       ? [["Tenant", ociRepository.tenant]]
       : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", ociRepository.clusterName]]
+      : [];
 
   return (
     <SourceDetail
@@ -41,7 +45,7 @@ function OCIRepositoryDetail({ className, ociRepository }: Props) {
           ),
         ],
         ["Interval", <Interval interval={ociRepository.interval} />],
-        ["Cluster", ociRepository.clusterName],
+        ...clusterInfo,
         ["Namespace", ociRepository.namespace],
         [
           "Source",

@@ -33,7 +33,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   let initialFilterState = {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
-    ...filterConfig(automations, "clusterName"),
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
 
@@ -41,6 +40,13 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(automations, "tenant"),
+    };
+  }
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "clusterName"),
     };
   }
 
@@ -79,10 +85,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
       ? [{ label: "Tenant", value: "tenant" }]
       : []),
-    {
-      label: "Cluster",
-      value: "clusterName",
-    },
+    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [{ label: "Cluster", value: "clusterName" }]
+      : []),
     {
       label: "Source",
       value: (a: Automation) => {
