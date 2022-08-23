@@ -80,28 +80,33 @@ export const sortByField = (
 };
 
 type labelProps = {
-  field: Field;
-  sort: Field;
+  fields: Field[];
+  fieldIndex: number;
+  sortFieldIndex: number;
   reverseSort: boolean;
-  setSort: (field: Field) => void;
+  setSortFieldIndex: (index: number) => void;
   setReverseSort: (b: boolean) => void;
 };
 
 function SortableLabel({
-  field,
-  sort,
-  setReverseSort,
-  setSort,
+  fields,
+  fieldIndex,
+  sortFieldIndex,
   reverseSort,
+  setSortFieldIndex,
+  setReverseSort,
 }: labelProps) {
+  const field = fields[fieldIndex];
+  const sort = fields[sortFieldIndex];
+
   return (
     <Flex align start>
       <TableButton
         color="inherit"
         variant="text"
         onClick={() => {
-          setReverseSort(sort === field ? !reverseSort : false);
-          setSort(field);
+          setReverseSort(sortFieldIndex === fieldIndex ? !reverseSort : false);
+          setSortFieldIndex(fieldIndex);
         }}
       >
         <h2 className={sort.label === field.label ? "selected" : ""}>
@@ -124,13 +129,25 @@ function SortableLabel({
 
 /** Form DataTable */
 function UnstyledDataTable({ className, fields, rows, children }: Props) {
-  const [sortField, setSortField] = React.useState(
-    fields.find((f) => f.defaultSort) || fields[0]
-  );
+  const [sortFieldIndex, setSortFieldIndex] = React.useState(() => {
+    let sortFieldIndex = fields.findIndex((f) => f.defaultSort);
+
+    if (sortFieldIndex === -1) {
+      sortFieldIndex = 0;
+    }
+
+    return sortFieldIndex;
+  });
 
   const [reverseSort, setReverseSort] = React.useState(false);
 
-  const sorted = sortByField(rows, reverseSort, sortField, ...fields);
+  let sortFields = [fields[sortFieldIndex]];
+
+  sortFields = sortFields.concat(
+    fields.filter((_, index) => index != sortFieldIndex)
+  );
+
+  const sorted = sortByField(rows, reverseSort, ...sortFields);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
@@ -155,17 +172,18 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f) => (
+              {_.map(fields, (f, index) => (
                 <TableCell key={f.label}>
                   {typeof f.labelRenderer === "function" ? (
                     f.labelRenderer(r)
                   ) : (
                     <SortableLabel
-                      sort={sortField}
+                      fields={fields}
+                      fieldIndex={index}
+                      sortFieldIndex={sortFieldIndex}
                       reverseSort={reverseSort}
+                      setSortFieldIndex={setSortFieldIndex}
                       setReverseSort={(isReverse) => setReverseSort(isReverse)}
-                      setSort={setSortField}
-                      field={f}
                     />
                   )}
                 </TableCell>
