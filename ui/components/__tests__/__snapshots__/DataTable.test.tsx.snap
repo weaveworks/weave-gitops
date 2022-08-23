@@ -230,6 +230,10 @@ exports[`DataTable snapshots renders 1`] = `
   padding: 0;
 }
 
+.c15 {
+  padding: 4px;
+}
+
 .c5 {
   padding: 4px 0px;
   -webkit-flex-wrap: nowrap;
@@ -290,10 +294,6 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c10.expanded {
   width: 200px;
-}
-
-.c15 {
-  padding: 4px;
 }
 
 .c14.MuiButton-root {
@@ -360,6 +360,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c1 td {
+  padding-left: 24px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
