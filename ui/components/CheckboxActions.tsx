@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
@@ -56,13 +57,21 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
 
   return (
     <Flex start align className={className}>
-      <Button disabled={!checked[0]} onClick={() => suspend.mutateAsync()}>
-        <Icon type={IconType.PauseIcon} size="medium" />
-      </Button>
+      <Tooltip title="Suspend Selected" placement="top">
+        <div>
+          <Button disabled={!checked[0]} onClick={() => suspend.mutateAsync()}>
+            <Icon type={IconType.PauseIcon} size="medium" />
+          </Button>
+        </div>
+      </Tooltip>
       <Spacer padding="xxs" />
-      <Button disabled={!checked[0]} onClick={() => resume.mutateAsync()}>
-        <Icon type={IconType.PlayIcon} size="medium" />
-      </Button>
+      <Tooltip title="Resume Selected" placement="top">
+        <div>
+          <Button disabled={!checked[0]} onClick={() => resume.mutateAsync()}>
+            <Icon type={IconType.PlayIcon} size="medium" />
+          </Button>
+        </div>
+      </Tooltip>
     </Flex>
   );
 }
