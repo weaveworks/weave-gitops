@@ -7,7 +7,7 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 
-const makeObjects = (checked: string[], rows: any[]) => {
+export const makeObjects = (checked: string[], rows: any[]) => {
   const objects = [];
   checked.forEach((uid) => {
     const row = _.find(rows, (row) => {
