@@ -1,5 +1,6 @@
 import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
+import Visibility from "@material-ui/icons/Visibility";
+import VisibilityOff from "@material-ui/icons/VisibilityOff";
 import * as React from "react";
 import styled from "styled-components";
 import Alert from "../components/Alert";
