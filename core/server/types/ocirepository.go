@@ -17,5 +17,6 @@ func OCIRepositoryToProto(ociRepository *sourcev1.OCIRepository, clusterName str
 		ClusterName:   clusterName,
 		ApiVersion:    ociRepository.APIVersion,
 		Tenant:        tenant,
+		Uid:           string(ociRepository.GetUID()),
 	}
 }

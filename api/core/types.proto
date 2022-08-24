@@ -74,6 +74,7 @@ message Kustomization {
     string        clusterName                = 11;
     string        apiVersion                 = 12;
     string        tenant                     = 17;
+    string        uid                        = 18;
 }
 
 message HelmChart {
@@ -89,6 +90,7 @@ message HelmChart {
     string        clusterName          = 10;
     string        apiVersion           = 11;
     string        tenant               = 12;
+    string        uid                  = 13;
 }
 
 message HelmRelease {
@@ -106,6 +108,7 @@ message HelmRelease {
     string    lastAttemptedRevision      = 15;
     string    apiVersion                 = 16;
     string    tenant                     = 17;
+    string    uid                        = 18;
 }
 
 message GitRepository {
@@ -121,6 +124,7 @@ message GitRepository {
     string           clusterName          = 10;
     string           apiVersion           = 11;
     string           tenant               = 12;
+    string           uid                  = 13;
 }
 
 message HelmRepository {
@@ -135,6 +139,7 @@ message HelmRepository {
     string             apiVersion           = 9;
     HelmRepositoryType repositoryType       = 10;
     string             tenant               = 11;
+    string             uid                  = 12;
 }
 
 message Bucket {
@@ -159,6 +164,7 @@ message Bucket {
     string   clusterName          = 14;
     string   apiVersion           = 15;
     string   tenant               = 16;
+    string   uid                  = 17;
 }
 
 message OCIRepository {
@@ -172,6 +178,7 @@ message OCIRepository {
     string             clusterName          = 8;
     string             apiVersion           = 9;
     string             tenant               = 10;
+    string             uid                  = 11;
 }
 
 
@@ -188,6 +195,7 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
+    string   uid                  = 7;
 }
 
 message Crd {
@@ -199,6 +207,7 @@ message Crd {
     string   version              = 2;
     string   kind                 = 3;
     string   clusterName          = 4;
+    string   uid                  = 5;
 }
 
 // UnstructuredObject is a Kubernetes object of an unknown type
@@ -230,4 +239,5 @@ message Event {
     string component = 5;
     string host      = 6;
     string name      = 7;
+    string uid       = 8;
 }
