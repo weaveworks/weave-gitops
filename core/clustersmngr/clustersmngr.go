@@ -3,13 +3,10 @@ package clustersmngr
 import (
 	"context"
 	"fmt"
-	"net"
 	"sync"
 
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -74,57 +71,6 @@ type clientsPool struct {
 }
 
 type ClusterClientConfigFunc func(Cluster) (*rest.Config, error)
-
-// ClientConfigWithUser returns a function that returns a *rest.Config with the relevant
-// user authentication details pre-defined for a given cluster.
-func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
-	return func(cluster Cluster) (*rest.Config, error) {
-		config := &rest.Config{
-			Host:            cluster.Server,
-			TLSClientConfig: cluster.TLSConfig,
-			Timeout:         kubeClientTimeout,
-			Dial: (&net.Dialer{
-				Timeout: kubeClientDialTimeout,
-				// KeepAlive is default to 30s within client-go.
-				KeepAlive: kubeClientDialKeepAlive,
-			}).DialContext,
-		}
-
-		if !user.Valid() {
-			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
-		} else if user.Token != "" {
-			config.BearerToken = user.Token
-		} else {
-			config.BearerToken = cluster.BearerToken
-			config.Impersonate = rest.ImpersonationConfig{
-				UserName: user.ID,
-				Groups:   user.Groups,
-			}
-		}
-
-		// flowcontrol.IsEnabled makes a request to the K8s API of the cluster stored in the config.
-		// It does a HEAD request to /livez/ping which uses the config.Dial timeout. We can use this
-		// function to error early rather than wait to call client.New.
-		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
-		if err != nil {
-			return nil, fmt.Errorf("error querying cluster for flowcontrol config: %w", err)
-		}
-
-		if enabled {
-			// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
-			// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
-			config.QPS = -1
-			config.Burst = -1
-
-			return config, nil
-		}
-
-		config.QPS = ClientQPS
-		config.Burst = ClientBurst
-
-		return config, nil
-	}
-}
 
 // NewClustersClientsPool initializes a new ClientsPool
 func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
