@@ -24,3 +24,6 @@ gha-creds-*.json
 
 # Ignore VIM's swap files
 *.swp
+
+# .vscode
+.vscode
