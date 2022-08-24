@@ -19,7 +19,7 @@ import {
   ReactQueryOptions,
   RequestError,
 } from "../lib/types";
-import { notifyError } from "../lib/utils";
+import { notifyError, notifySuccess } from "../lib/utils";
 
 export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
@@ -78,6 +78,8 @@ export function useToggleSuspend(
     () => api.ToggleSuspendResource(req),
     {
       onSuccess: () => {
+        const suspend = req.suspend ? "Suspend" : "Resume";
+        notifySuccess(`${suspend} request successful!`);
         return queryClient.invalidateQueries(type);
       },
       onError: (error) => {

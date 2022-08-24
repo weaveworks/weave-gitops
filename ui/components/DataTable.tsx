@@ -13,10 +13,7 @@ import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Button, { IconButton } from "./Button";
-import CheckboxActions, {
-  compareUniques,
-  makeUniques,
-} from "./CheckboxActions";
+import CheckboxActions from "./CheckboxActions";
 import ChipGroup from "./ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -407,8 +404,6 @@ function UnstyledDataTable({
     setFilterState({ ...filterState, filters, formState });
   };
 
-  const [checked, setChecked] = React.useState<any[]>([]);
-
   const [sortFieldIndex, setSortFieldIndex] = React.useState(() => {
     let sortFieldIndex = fields.findIndex((f) => f.defaultSort);
 
@@ -430,21 +425,18 @@ function UnstyledDataTable({
 
   const sorted = sortByField(filtered, reverseSort, sortFields);
 
+  const [checked, setChecked] = React.useState([]);
+
   const r = _.map(sorted, (r, i) => {
-    const unique = makeUniques([r])[0];
     return (
       <TableRow key={i}>
         {checkboxes && (
           <TableCell style={{ padding: "8px" }}>
             <Checkbox
-              checked={compareUniques(checked, unique)}
+              checked={_.includes(checked, r.uid)}
               onChange={(e) => {
-                if (e.target.checked) setChecked([...checked, unique]);
-                else {
-                  const copy = checked;
-                  _.remove(copy, (item) => _.isEqual(item, unique));
-                  setChecked(copy);
-                }
+                if (e.target.checked) setChecked([...checked, r.uid]);
+                else setChecked(_.without(checked, r.uid));
               }}
               color="primary"
             />
@@ -470,7 +462,7 @@ function UnstyledDataTable({
   return (
     <Flex wide tall column className={className}>
       <Flex wide align between>
-        {checkboxes && <CheckboxActions checked={checked} />}
+        {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         <Flex wide align end>
           <ChipGroup
             chips={chips}
@@ -502,10 +494,10 @@ function UnstyledDataTable({
                 {checkboxes && (
                   <TableCell key={"checkboxes"}>
                     <Checkbox
-                      checked={checked.length === rows.length}
+                      checked={filtered.length === checked.length}
                       onChange={(e) =>
                         e.target.checked
-                          ? setChecked(makeUniques(rows))
+                          ? setChecked(filtered.map((r) => r.uid))
                           : setChecked([])
                       }
                       color="primary"

@@ -2,64 +2,56 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useToggleSuspend } from "../hooks/flux";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 
-export type Unique = {
-  kind: FluxObjectKind;
-  name: string;
-  namespace: string;
-  clusterName: string;
-};
-
-export const makeUniques = (arr: any[]) => {
-  return arr.reduce((array, item) => {
-    array.push({
-      kind: item.kind,
-      name: item.name,
-      namespace: item.namespace,
-      clusterName: item.clusterName,
+const makeObjects = (checked: string[], rows: any[]) => {
+  const objects = [];
+  checked.forEach((uid) => {
+    const row = _.find(rows, (row) => {
+      return uid === row.uid;
     });
-    return array;
-  }, []);
-};
-
-export const compareUniques = (uniques: Unique[], check: Unique) => {
-  let equal = false;
-  uniques.map((unique) => {
-    //_.isEqual deeply compares stuff instead of using stinky memory addresses
-    if (_.isEqual(unique, check)) {
-      return (equal = true);
-    }
+    if (row)
+      return objects.push({
+        kind: row.kind,
+        name: row.name,
+        namespace: row.namespace,
+        clusterName: row.clusterName,
+      });
   });
-  return equal;
+  return objects;
 };
 
 type Props = {
   className?: string;
-  checked?: Unique[];
+  checked?: string[];
+  rows?: any[];
 };
 
-function CheckboxActions({ className, checked = [] }: Props) {
+function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   //TODO add multi sync
+  const [suspendReqs, setSuspendReqs] = React.useState([]);
 
-  const objects = checked;
+  React.useEffect(() => {
+    if (checked.length && rows.length)
+      setSuspendReqs(makeObjects(checked, rows));
+  }, [checked, rows]);
+
   const resume = useToggleSuspend(
     {
-      objects: objects,
+      objects: suspendReqs,
       suspend: false,
     },
-    objects[0] ? objects[0].kind : ""
+    suspendReqs[0] ? suspendReqs[0].kind : ""
   );
   const suspend = useToggleSuspend(
     {
-      objects: objects,
+      objects: suspendReqs,
       suspend: true,
     },
-    objects[0] ? objects[0].kind : ""
+    suspendReqs[0] ? suspendReqs[0].kind : ""
   );
 
   return (
