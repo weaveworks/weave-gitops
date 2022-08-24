@@ -17,6 +17,10 @@ This reference was generated for the chart version 3.0.2 which installs weave gi
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
 | adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
 | affinity | object | `{}` |  |
+| envVars[0].name | string | `"WEAVE_GITOPS_FEATURE_TENANCY"` |  |
+| envVars[0].value | string | `"true"` |  |
+| envVars[1].name | string | `"WEAVE_GITOPS_FEATURE_CLUSTER"` |  |
+| envVars[1].value | string | `"false"` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
