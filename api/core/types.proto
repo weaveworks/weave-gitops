@@ -241,3 +241,10 @@ message Event {
     string name      = 7;
     string uid       = 8;
 }
+
+message SuspendReqObj {
+    FluxObjectKind kind        = 1;
+    string         name        = 2;
+    string         namespace   = 3;
+    string         clusterName = 4;
+}

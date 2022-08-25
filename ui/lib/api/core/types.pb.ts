@@ -240,3 +240,10 @@ export type Event = {
   name?: string
   uid?: string
 }
+
+export type SuspendReqObj = {
+  kind?: FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
+}
