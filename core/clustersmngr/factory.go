@@ -191,9 +191,11 @@ func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
 
 	addedClusters, removedClusters := cf.clusters.Set(clusters)
 
-	// notify watchers of the changes
-	for _, w := range cf.watchers {
-		w.Notify(addedClusters, removedClusters)
+	if len(addedClusters) > 0 || len(removedClusters) > 0 {
+		// notify watchers of the changes
+		for _, w := range cf.watchers {
+			w.Notify(addedClusters, removedClusters)
+		}
 	}
 
 	return nil
