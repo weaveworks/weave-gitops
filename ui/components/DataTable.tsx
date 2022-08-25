@@ -26,6 +26,8 @@ export type Field = {
   maxWidth?: number;
   /** boolean for field to initially sort against. */
   defaultSort?: boolean;
+  /** boolean for field to implement secondary sort against. */
+  secondarySort?: boolean;
 };
 
 /** DataTable Properties  */
@@ -68,14 +70,26 @@ type Row = any;
 export const sortByField = (
   rows: Row[],
   reverseSort: boolean,
-  ...sortFields: Field[]
+  sortFields: Field[],
+  useSecondarySort?: boolean
 ) => {
+  const orderFields = [
+    sortFields[0],
+    ...(useSecondarySort && sortFields.length > 1 && [sortFields[1]]),
+  ];
+
   return _.orderBy(
     rows,
     sortFields.map((s) => {
       return s.sortValue || s.value;
     }),
-    [reverseSort ? "desc" : "asc"]
+    orderFields.map((_, index) => {
+      // Always sort secondary sort values in the ascending order.
+      const sortOrders =
+        reverseSort && (!useSecondarySort || index != 1) ? "desc" : "asc";
+
+      return sortOrders;
+    })
   );
 };
 
@@ -139,15 +153,30 @@ function UnstyledDataTable({ className, fields, rows, children }: Props) {
     return sortFieldIndex;
   });
 
+  const secondarySortFieldIndex = fields.findIndex((f) => f.secondarySort);
+
   const [reverseSort, setReverseSort] = React.useState(false);
 
   let sortFields = [fields[sortFieldIndex]];
 
-  sortFields = sortFields.concat(
-    fields.filter((_, index) => index != sortFieldIndex)
-  );
+  const useSecondarySort =
+    secondarySortFieldIndex > -1 && sortFieldIndex != secondarySortFieldIndex;
 
-  const sorted = sortByField(rows, reverseSort, ...sortFields);
+  if (useSecondarySort) {
+    sortFields = sortFields.concat(fields[secondarySortFieldIndex]);
+    sortFields = sortFields.concat(
+      fields.filter(
+        (_, index) =>
+          index != sortFieldIndex && index != secondarySortFieldIndex
+      )
+    );
+  } else {
+    sortFields = sortFields.concat(
+      fields.filter((_, index) => index != sortFieldIndex)
+    );
+  }
+
+  const sorted = sortByField(rows, reverseSort, sortFields, useSecondarySort);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
