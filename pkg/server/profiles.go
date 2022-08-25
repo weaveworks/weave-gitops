@@ -72,15 +72,26 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
 	}
 
+	helmRepoName := s.HelmRepoName
+	helmRepoNamespace := s.HelmRepoNamespace
+
+	if msg.HelmRepoName != "" {
+		helmRepoName = msg.HelmRepoName
+	}
+
+	if msg.HelmRepoNamespace != "" {
+		helmRepoNamespace = msg.HelmRepoNamespace
+	}
+
 	helmRepo := &sourcev1.HelmRepository{}
 	err = kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.HelmRepoName,
-		Namespace: s.HelmRepoNamespace,
+		Name:      helmRepoName,
+		Namespace: helmRepoNamespace,
 	}, helmRepo)
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", s.HelmRepoNamespace, s.HelmRepoName)
+			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", helmRepoNamespace, helmRepoName)
 			s.Log.Error(err, errMsg)
 
 			return &pb.GetProfilesResponse{
@@ -91,7 +102,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 				}
 		}
 
-		return nil, fmt.Errorf("failed to get HelmRepository %q/%q: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
+		return nil, fmt.Errorf("failed to get HelmRepository %q/%q: %w", helmRepoNamespace, helmRepoName, err)
 	}
 
 	log := s.Log.WithValues("repository", types.NamespacedName{
@@ -115,15 +126,26 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
 	}
 
+	helmRepoName := s.HelmRepoName
+	helmRepoNamespace := s.HelmRepoNamespace
+
+	if msg.HelmRepoName != "" {
+		helmRepoName = msg.HelmRepoName
+	}
+
+	if msg.HelmRepoNamespace != "" {
+		helmRepoNamespace = msg.HelmRepoNamespace
+	}
+
 	helmRepo := &sourcev1.HelmRepository{}
 	err = kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.HelmRepoName,
-		Namespace: s.HelmRepoNamespace,
+		Name:      helmRepoName,
+		Namespace: helmRepoNamespace,
 	}, helmRepo)
 
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", s.HelmRepoNamespace, s.HelmRepoName)
+			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", helmRepoNamespace, helmRepoName)
 			s.Log.Error(err, errMsg)
 
 			return &httpbody.HttpBody{
@@ -135,7 +157,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 				}
 		}
 
-		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
+		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", helmRepoNamespace, helmRepoName)
 	}
 
 	log := s.Log.WithValues("repository", types.NamespacedName{
