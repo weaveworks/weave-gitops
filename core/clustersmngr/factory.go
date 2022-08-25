@@ -115,7 +115,7 @@ type ClustersWatcher struct {
 
 // Notify publishes cluster updates to the current watcher.
 func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []Cluster) {
-	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: addedClusters}
+	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: removedClusters}
 }
 
 // Unsubscribe removes the given ClustersWatcher from the list of watchers.

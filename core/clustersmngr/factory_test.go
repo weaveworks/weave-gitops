@@ -210,8 +210,8 @@ func TestUpdateClusters(t *testing.T) {
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
-	clusterName1 := "foo"
-	clusterName2 := "bar"
+	clusterName1 := "bar"
+	clusterName2 := "foo"
 
 	c1 := makeLeafCluster(t, clusterName1)
 	c2 := makeLeafCluster(t, clusterName2)
@@ -219,30 +219,41 @@ func TestUpdateClusters(t *testing.T) {
 	watcher := clientsFactory.Subscribe()
 	g.Expect(watcher).ToNot(BeNil())
 
+	clusterNames := func(c []clustersmngr.Cluster) []string {
+		names := []string{}
+		for _, v := range c {
+			names = append(names, v.Name)
+		}
+		return names
+	}
+
 	t.Run("watcher should be notified with two clusters added", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		notifications := watcher.Updates
+		update := <-watcher.Updates
 
-		g.Expect(notifications).To(HaveLen(1))
+		g.Expect(clusterNames(update.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
+		g.Expect(clusterNames(update.Removed)).To(BeEmpty())
 	})
 	t.Run("watcher should be notified with one cluster removed", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		notifications := watcher.Updates
+		update := <-watcher.Updates
 
-		g.Expect(notifications).To(HaveLen(2))
+		g.Expect(clusterNames(update.Added)).To(BeEmpty())
+		g.Expect(clusterNames(update.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
 	})
 
 	t.Run("watcher shouldn't be notified when there are no updates", func(t *testing.T) {
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		notifications := watcher.Updates
+		update := <-watcher.Updates
 
-		g.Expect(notifications).To(HaveLen(3))
+		g.Expect(update).To(BeNil())
 	})
 }
