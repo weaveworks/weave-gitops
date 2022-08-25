@@ -27,6 +27,8 @@ const SettingsMenu = styled(Menu)`
 `;
 
 const PersonButton = styled(IconButton)<{ open: boolean }>`
+  height: 40px;
+  width: 40px;
   &.MuiIconButton-root {
     background-color: ${(props) => props.theme.colors.white};
     ${(props) =>
