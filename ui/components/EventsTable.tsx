@@ -49,7 +49,9 @@ function EventsTable({ className, involvedObject }: Props) {
         {
           label: "Timestamp",
           value: (e: Event) => <Timestamp time={e.timestamp} />,
-          sortValue: (e: Event) => e.timestamp,
+          sortValue: (e: Event) => -Date.parse(e.timestamp),
+          defaultSort: true,
+          secondarySort: true,
         },
       ]}
       rows={data.events}
