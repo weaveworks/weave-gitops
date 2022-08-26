@@ -1,8 +1,8 @@
 ---
-title: "Security Documentation"
-linkTitle: "Security"
-description: "WeaveGitops Security documentation."
-weight: 140
+title: Security
+description: weave gitops security page. find information about vulnerabilities and others.
+sidebar_position: 8
+hide_title: true
 ---
 
 # Weave Gitops Security
@@ -41,7 +41,16 @@ Disclosures will always be published in a timely manner after a release is publi
 
 Here is an overview of all our published security advisories.
 
-Date | CVE | Product                 | Tittle                                                                                                                                                   | Severity | Affected version(s) | Reported by
----- | --- |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | -----------
-2022-08-27 | CVE-2021-41254 | Weave Gitops Enterprise | [Malicious links can be crafted by users and shown in the UI](https://github.com/weaveworks/weave-gitops-private/security/advisories/GHSA-378h-hpjp-gxfc) | Critical  | < v0.9.0-rc.5
+### Weave Gitops OSS
+
+Date | CVE | Tittle                                                                                                                                                   | Severity | Affected version(s) | 
+---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
+2022-06-23 | CVE-2022-31098| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | <= 0.8.1-rc.5| 
+
+
+### Weave Gitops Enterprise
+
+Date | CVE | Tittle                                                                                                                                                   | Severity | Affected version(s) | 
+---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
+2022-08-27 | TBA | [Malicious links can be crafted by users and shown in the UI](https://github.com/weaveworks/weave-gitops-private/security/advisories/GHSA-378h-hpjp-gxfc) | Critical  | < v0.9.0-rc.5|
 
