@@ -417,13 +417,32 @@ function UnstyledDataTable({
   const secondarySortFieldIndex = fields.findIndex((f) => f.secondarySort);
 
   const [reverseSort, setReverseSort] = React.useState(false);
+
   let sortFields = [fields[sortFieldIndex]];
 
-  sortFields = sortFields.concat(
-    fields.filter((_, index) => index != sortFieldIndex)
-  );
+  const useSecondarySort =
+    secondarySortFieldIndex > -1 && sortFieldIndex != secondarySortFieldIndex;
 
-  const sorted = sortByField(filtered, reverseSort, sortFields);
+  if (useSecondarySort) {
+    sortFields = sortFields.concat(fields[secondarySortFieldIndex]);
+    sortFields = sortFields.concat(
+      fields.filter(
+        (_, index) =>
+          index != sortFieldIndex && index != secondarySortFieldIndex
+      )
+    );
+  } else {
+    sortFields = sortFields.concat(
+      fields.filter((_, index) => index != sortFieldIndex)
+    );
+  }
+
+  const sorted = sortByField(
+    filtered,
+    reverseSort,
+    sortFields,
+    useSecondarySort
+  );
 
   const [checked, setChecked] = React.useState([]);
 
