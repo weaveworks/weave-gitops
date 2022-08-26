@@ -26,17 +26,22 @@ func newClusterHelmIndexerTracker(cf clustersmngr.ClientsFactory) *ClusterHelmIn
 
 func (i *ClusterHelmIndexerTracker) Start(ctx context.Context) {
 	go func() {
-		updates := <-i.clustersWatcher.Updates
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case updates := <-i.clustersWatcher.Updates:
+				for _, added := range updates.Added {
+					if i.contains(added) == false {
+						i.clusterNames = append(i.clusterNames, added.Name)
+					}
+				}
 
-		for _, added := range updates.Added {
-			if i.contains(added) == false {
-				i.clusterNames = append(i.clusterNames, added.Name)
-			}
-		}
-
-		for index, removed := range updates.Removed {
-			if i.contains(removed) {
-				i.clusterNames = append(i.clusterNames[:index], i.clusterNames[index+1:]...)
+				for index, removed := range updates.Removed {
+					if i.contains(removed) {
+						i.clusterNames = append(i.clusterNames[:index], i.clusterNames[index+1:]...)
+					}
+				}
 			}
 		}
 	}()
@@ -81,8 +86,6 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	indexer := newClusterHelmIndexerTracker(clientsFactory)
 	g.Expect(indexer.clustersWatcher).ToNot(BeNil())
 
-	<-watcher.Updates
-
 	indexer.Start(ctx)
 
 	t.Run("indexer should be notified with two clusters added", func(t *testing.T) {
@@ -92,6 +95,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 		log.Printf("indexer.Added: %+v", indexer.clusterNames)
 
+		<-watcher.Updates
 		g.Expect(indexer.clusterNames).To(Equal([]string{"bar", "foo"}))
 	})
 }
