@@ -593,3 +593,26 @@ The quickest way to access your dashboard is by setting up a port forward:
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 Then, [open the dashboard](http://localhost:9001/).
+
+## gitops CLI
+
+Weave GitOps includes a CLI to help users create and manage resources.
+
+The gitops command-line interface is currently supported on Mac (x86 and Arm), and Linux including WSL.
+
+Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+
+To install:
+
+```console
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.9.3/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+Alternatively, users can use Homebrew:
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/gitops
+```
