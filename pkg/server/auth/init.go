@@ -6,12 +6,13 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, devMode bool, namespace string, authMethodStrings []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, namespace string, authMethodStrings []string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
@@ -57,9 +58,9 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		return nil, fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
-	if devMode {
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_DEV_MODE") == "true" {
 		log.V(logger.LogLevelWarn).Info("Dev-mode is enabled. This should be used for local work only.")
-		tsv.SetDevMode(devMode)
+		tsv.SetDevMode(true)
 	}
 
 	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods)
