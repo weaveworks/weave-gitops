@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
+import Pendo from "./components/Pendo";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -101,6 +102,7 @@ export default function AppContainer() {
             <AppContextProvider renderFooter>
               <AuthContextProvider>
                 <CoreClientContextProvider api={Core}>
+                  <Pendo />
                   <Switch>
                     {/* <Signin> does not use the base page <Layout> so pull it up here */}
                     <Route component={SignIn} exact path="/sign_in" />

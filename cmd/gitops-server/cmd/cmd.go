@@ -101,8 +101,6 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-	// Dev mode
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode - this disables verifying cookie signatures, do not use")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -161,7 +159,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Couldn't get current namespace")
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevMode, namespace, options.AuthMethods)
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
 
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)

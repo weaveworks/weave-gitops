@@ -126,7 +126,7 @@ func TestInitAuthServer(t *testing.T) {
 
 			fakeKubernetesClient := partialKubernetesClient.Build()
 
-			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, false, "test-namespace", tt.authMethods)
+			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, "test-namespace", tt.authMethods)
 
 			if tt.expectErr {
 				g.Expect(err).To(gomega.HaveOccurred())
