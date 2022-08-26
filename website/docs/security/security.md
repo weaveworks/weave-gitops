@@ -1,7 +1,6 @@
 ---
 title: Security
 description: weave gitops security page. find information about vulnerabilities and others.
-sidebar_position: 8
 hide_title: true
 ---
 
@@ -52,5 +51,5 @@ Date | CVE | Tittle                                                             
 
 Date | CVE | Tittle                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-08-27 | TBA | [Malicious links can be crafted by users and shown in the UI](https://github.com/weaveworks/weave-gitops-private/security/advisories/GHSA-378h-hpjp-gxfc) | Critical  | < v0.9.0-rc.5|
+2022-08-27 | TBA | [Malicious links can be crafted by users and shown in the UI](cve/enterprise/GHSA-378h-hpjp-gxfc) | Critical  | < v0.9.0-rc.5|
 
