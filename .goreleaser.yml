@@ -22,6 +22,7 @@ builds:
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime={{.Date}}
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch={{ .Env.BRANCH}}
         - -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit={{.Commit}}
+        - -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion={{ .Env.FLUX_VERSION }}
       env:
         - CGO_ENABLED=0
     id: linux-amd64
