@@ -56,10 +56,9 @@ const topBarHeight = "60px";
 const NavContainer = styled.div`
   width: ${navWidth};
   min-width: ${navWidth};
-  height: calc(100% - 24px);
-  margin-top: ${(props) => props.theme.spacing.small};
-  //topBarHeight + small margin
-  transform: translateY(72);
+  height: calc(100% - 12px);
+  //topBarHeight
+  transform: translateY(60);
 `;
 
 const ContentContainer = styled.div`
@@ -69,7 +68,6 @@ const ContentContainer = styled.div`
   //without a hard value in the height property, min-height in the Page component doesn't work
   height: 1px;
   min-height: 100%;
-  padding-top: ${(props) => props.theme.spacing.small};
   padding-bottom: ${(props) => props.theme.spacing.small};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
