@@ -55,29 +55,14 @@ var _ = Describe("ProfilesServer", func() {
 			ClientGetter:      fakeClientGetter,
 		}
 
-		helmRepo = &sourcev1.HelmRepository{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1.HelmRepositoryKind,
-				APIVersion: sourcev1.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "helmrepo",
-				Namespace: "default",
-			},
-			Spec: sourcev1.HelmRepositorySpec{
-				URL:      "example.com/charts",
-				Interval: metav1.Duration{Duration: time.Minute * 10},
-			},
-			Status: sourcev1.HelmRepositoryStatus{
-				URL: "example.com/index.yaml",
-			},
-		}
+		helmRepo = makeHelmRepo("default", "helmrepo")
 	})
 
 	Describe("GetProfiles", func() {
 		When("the HelmRepository exists", func() {
 			BeforeEach(func() {
 				Expect(kubeClient.Create(context.TODO(), helmRepo)).To(Succeed())
+				Expect(kubeClient.Create(context.TODO(), makeHelmRepo("test-namespace", "test-name"))).To(Succeed())
 			})
 
 			It("Returns a list of profiles in the HelmRepository", func() {
@@ -96,6 +81,24 @@ var _ = Describe("ProfilesServer", func() {
 				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
 				Expect(namespace).To(Equal(helmRepo.Namespace))
 				Expect(name).To(Equal(helmRepo.Name))
+			})
+
+			It("Passes the correct values to the Helm Cache Querier", func() {
+				profiles := []*pb.Profile{
+					{
+						Name: profileName,
+					},
+				}
+				fakeCache.ListProfilesReturns(profiles, nil)
+
+				profilesResp, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{HelmRepoName: "test-name", HelmRepoNamespace: "test-namespace"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(profilesResp).NotTo(BeNil())
+				Expect(profilesResp.Profiles).To(Equal(profiles))
+				Expect(fakeCache.ListProfilesCallCount()).To(Equal(1))
+				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
+				Expect(namespace).To(Equal("test-namespace"))
+				Expect(name).To(Equal("test-name"))
 			})
 
 			When("scanning for helmcharts errors", func() {
@@ -122,9 +125,31 @@ var _ = Describe("ProfilesServer", func() {
 		When("the HelmRepository exists", func() {
 			BeforeEach(func() {
 				Expect(kubeClient.Create(context.TODO(), helmRepo)).To(Succeed())
+				Expect(kubeClient.Create(context.TODO(), makeHelmRepo("test-namespace", "test-name"))).To(Succeed())
 			})
 
 			When("it retrieves the values file from Helm chart", func() {
+
+				It("Passes the correct values to the Helm Cache Querier", func() {
+					fakeCache.GetProfileValuesReturns([]byte("values"), nil)
+
+					resp, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{ProfileName: profileName,
+						ProfileVersion: profileVersion, HelmRepoName: "test-name", HelmRepoNamespace: "test-namespace"})
+					Expect(err).NotTo(HaveOccurred())
+					Expect(resp.ContentType).To(Equal(server.JsonType))
+					valuesResp := &pb.GetProfileValuesResponse{}
+					err = json.Unmarshal(resp.Data, valuesResp)
+					Expect(err).NotTo(HaveOccurred())
+					profileValues, err := base64.StdEncoding.DecodeString(valuesResp.Values)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(string(profileValues)).To(Equal("values"))
+					_, namespace, name, pname, pversion := fakeCache.GetProfileValuesArgsForCall(0)
+					Expect(namespace).To(Equal("test-namespace"))
+					Expect(name).To(Equal("test-name"))
+					Expect(pname).To(Equal(profileName))
+					Expect(pversion).To(Equal(profileVersion))
+				})
+
 				When("header does not contain 'application/octet-stream'", func() {
 					It("returns a values file in base64-encoded json", func() {
 						fakeCache.GetProfileValuesReturns([]byte("values"), nil)
@@ -182,3 +207,23 @@ var _ = Describe("ProfilesServer", func() {
 		})
 	})
 })
+
+func makeHelmRepo(namespace, name string) *sourcev1.HelmRepository {
+	return &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			URL:      "example.com/charts",
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+		},
+		Status: sourcev1.HelmRepositoryStatus{
+			URL: "example.com/index.yaml",
+		},
+	}
+}

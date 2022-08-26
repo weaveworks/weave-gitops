@@ -33,6 +33,8 @@ export type Profile = {
 }
 
 export type GetProfilesRequest = {
+  helmRepoName?: string
+  helmRepoNamespace?: string
 }
 
 export type GetProfilesResponse = {
@@ -42,6 +44,8 @@ export type GetProfilesResponse = {
 export type GetProfileValuesRequest = {
   profileName?: string
   profileVersion?: string
+  helmRepoName?: string
+  helmRepoNamespace?: string
 }
 
 export type GetProfileValuesResponse = {
