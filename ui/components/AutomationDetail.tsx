@@ -34,10 +34,10 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
-    automation.name,
-    automation.namespace,
-    fluxObjectKindToKind(automation.kind),
-    automation.clusterName
+    automation?.name,
+    automation?.namespace,
+    fluxObjectKindToKind(automation?.kind),
+    automation?.clusterName
   );
 
   const sync = useSyncFluxObject({

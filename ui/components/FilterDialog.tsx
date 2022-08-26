@@ -51,8 +51,7 @@ const FilterSection = ({
   const compoundKeys = options.map((option) => `${header}:${option}`);
   // every on an empty list is true so check that too
   const all =
-    compoundKeys.length > 0 &&
-    compoundKeys.every((key) => formState[key] === true);
+    compoundKeys.length > 0 && compoundKeys.every((key) => formState[key]);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
