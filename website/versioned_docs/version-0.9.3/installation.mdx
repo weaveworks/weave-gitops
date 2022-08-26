@@ -366,7 +366,8 @@ Flux will reconcile the helm-release and WGE will be deployed into the cluster. 
 
 In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
 
-There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
+There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI, which can be installed by following 
+the instructions [here](#gitops-cli).
 
 ```bash
 PASSWORD="<your password>"
