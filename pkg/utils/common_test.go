@@ -87,7 +87,7 @@ error occurred some error, retrying in 1s
 
 		BeforeEach(func() {
 			var err error
-			dir, err = ioutil.TempDir("", "find-core-config")
+			dir, err = os.MkdirTemp("", "find-core-config")
 			Expect(err).NotTo(HaveOccurred())
 		})
 

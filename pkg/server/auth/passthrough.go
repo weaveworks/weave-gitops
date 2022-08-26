@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
@@ -49,7 +48,7 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 		},
 	}
 
-	err := pg.kubernetesClient.Create(context.Background(), &tr)
+	err := pg.kubernetesClient.Create(r.Context(), &tr)
 	if err != nil {
 		return nil, err
 	}
@@ -58,5 +57,44 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 		return nil, fmt.Errorf("error: user token authentication failed")
 	}
 
-	return &UserPrincipal{Token: token}, nil
+	return NewUserPrincipal(Token(token)), nil
+}
+
+// NewJWTPassthroughCookiePrincipalGetter creates and returns a new
+// JWTPassthroughCookiePrincipalGetter.
+func NewJWTPassthroughCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string) PrincipalGetter {
+	return &JWTPassthroughCookiePrincipalGetter{
+		log:        log,
+		verifier:   verifier,
+		cookieName: cookieName,
+	}
+}
+
+// JWTPassthroughCookiePrincipalGetter inspects a cookie for a JWT token and returns a
+// principal value.
+//
+// The JWT Token is parsed, and the token and user/groups are available.
+type JWTPassthroughCookiePrincipalGetter struct {
+	log        logr.Logger
+	verifier   *oidc.IDTokenVerifier
+	cookieName string
+}
+
+// Principal implements the PrincipalGetter by pasing the cookie, and if it's
+// valid, it stores the token and user details on the principal.
+func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
+	cookie, err := r.Cookie(pg.cookieName)
+	if err == http.ErrNoCookie {
+		return nil, nil
+	}
+
+	principal, err := parseJWTToken(r.Context(), pg.verifier, cookie.Value)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse for passthrough: %w", err)
+	}
+
+	pg.log.V(4).Info("passing through token")
+	principal.SetToken(cookie.Value)
+
+	return principal, nil
 }

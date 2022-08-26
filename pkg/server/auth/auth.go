@@ -76,7 +76,21 @@ func Principal(ctx context.Context) *UserPrincipal {
 type UserPrincipal struct {
 	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
-	Token  string   `json:"-"`
+	token  *string  `json:"-"`
+}
+
+// Token returns the private access token for this principal.
+func (p UserPrincipal) Token() string {
+	if p.token == nil {
+		return ""
+	}
+
+	return *p.token
+}
+
+// SetToken allows setting of the private access token.
+func (p *UserPrincipal) SetToken(t string) {
+	p.token = &t
 }
 
 // String returns the Principal ID and Groups as a string.
@@ -85,11 +99,42 @@ func (p *UserPrincipal) String() string {
 }
 
 func (p *UserPrincipal) Valid() bool {
-	if p.ID == "" && p.Token == "" {
+	if p.ID == "" && p.Token() == "" {
 		return false
 	}
 
 	return true
+}
+
+// NewUserPrincipal creates a new Principal and applies the configuration options.
+func NewUserPrincipal(opts ...func(*UserPrincipal)) *UserPrincipal {
+	p := &UserPrincipal{}
+	for _, o := range opts {
+		o(p)
+	}
+
+	return p
+}
+
+// Token is an option func for NewUserPrincipal that sets the token.
+func Token(tok string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.SetToken(tok)
+	}
+}
+
+// Groups is an option func for NewUserPrincipal that configures the groups.
+func Groups(groups []string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.Groups = groups
+	}
+}
+
+// ID is an option func for NewUserPrincipal that configures the groups.
+func ID(id string) func(*UserPrincipal) {
+	return func(p *UserPrincipal) {
+		p.ID = id
+	}
 }
 
 // WithPrincipal sets the principal into the context.
@@ -119,11 +164,16 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		switch method {
 		case OIDC:
-			if featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet {
+			if srv.oidcEnabled() {
 				// OIDC tokens may be passed by token or cookie
-				headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier())
-				cookieAuth := NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName)
-				multi.Getters = append(multi.Getters, headerAuth, cookieAuth)
+				multi.Getters = append(multi.Getters, NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier()))
+
+				if srv.oidcPassthroughEnabled() {
+					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
+					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+				} else {
+					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+				}
 			}
 
 		case UserAccount:

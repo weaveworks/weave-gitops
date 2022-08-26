@@ -2,7 +2,6 @@ package helm_test
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -160,7 +159,7 @@ var _ = Describe("RepoManager", func() {
 
 		BeforeEach(func() {
 			var err error
-			tempDir, err = ioutil.TempDir("", "values-test")
+			tempDir, err = os.MkdirTemp("", "values-test")
 			Expect(err).NotTo(HaveOccurred())
 		})
 

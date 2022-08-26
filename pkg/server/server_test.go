@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -411,7 +411,7 @@ var _ = Describe("ApplicationsServer", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
 
-					bts, err := ioutil.ReadAll(res.Body)
+					bts, err := io.ReadAll(res.Body)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))

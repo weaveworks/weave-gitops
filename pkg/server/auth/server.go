@@ -20,13 +20,14 @@ import (
 )
 
 const (
-	LoginOIDC                 string = "oidc"
-	LoginUsername             string = "username"
-	ClusterUserAuthSecretName string = "cluster-user-auth"
-	DefaultOIDCAuthSecretName string = "oidc-auth"
-	FeatureFlagClusterUser    string = "CLUSTER_USER_AUTH"
-	FeatureFlagOIDCAuth       string = "OIDC_AUTH"
-	FeatureFlagSet            string = "true"
+	LoginOIDC                  string = "oidc"
+	LoginUsername              string = "username"
+	ClusterUserAuthSecretName  string = "cluster-user-auth"
+	DefaultOIDCAuthSecretName  string = "oidc-auth"
+	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
+	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
+	FeatureFlagSet             string = "true"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -159,6 +160,10 @@ func (s *AuthServer) SetRedirectURL(url string) {
 
 func (s *AuthServer) oidcEnabled() bool {
 	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
+}
+
+func (s *AuthServer) oidcPassthroughEnabled() bool {
+	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {

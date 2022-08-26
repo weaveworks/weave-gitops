@@ -32,7 +32,7 @@ func TestClientConfigWithUser(t *testing.T) {
 		},
 		{
 			name:                  "good token and cluster in: good config out",
-			principal:             &auth.UserPrincipal{Token: "some-token-i-guess"},
+			principal:             auth.NewUserPrincipal(auth.Token("some-token-i-guess")),
 			expectedErr:           nil,
 			expectedToken:         "some-token-i-guess",
 			expectedImpersonation: nil,

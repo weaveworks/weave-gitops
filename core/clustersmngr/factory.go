@@ -439,8 +439,8 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
 
 		if !user.Valid() {
 			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
-		} else if user.Token != "" {
-			config.BearerToken = user.Token
+		} else if tok := user.Token(); tok != "" {
+			config.BearerToken = tok
 		} else {
 			config.BearerToken = cluster.BearerToken
 			config.Impersonate = rest.ImpersonationConfig{
