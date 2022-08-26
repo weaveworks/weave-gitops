@@ -14,9 +14,9 @@ This document defines security reporting, handling, disclosure, and audit inform
 
 - To make a report please email the private security list at <security@weave.works> with the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
-- You may, but are not required to, encrypt your email to this list using the PGP keys of Security Team members, listed below.
-- The Security Team will fix the issue as soon as possible and coordinate a release date with you.
-- You will be able to choose if you want public acknowledgement of your effort and how you would like to be credited.
+- Reported vulnerabilities are triaged by Weaveworks Security team.   
+- Weaveworks Security team would acknowledge to the reporter for any valid request.  
+  You will be able to choose if you want public acknowledgement of your effort and how you would like to be credited.
 
 ### Handling
 
