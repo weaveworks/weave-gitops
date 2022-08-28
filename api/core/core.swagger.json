@@ -147,6 +147,36 @@
         ]
       }
     },
+    "/v1/flux_crds": {
+      "get": {
+        "operationId": "Core_ListFluxCrds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFluxCrdsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/flux_runtime_objects": {
       "get": {
         "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
@@ -543,6 +573,37 @@
         ]
       }
     },
+    "/v1/oci": {
+      "get": {
+        "summary": "ListOCIRepositories lists OCI repository objects from a cluster.",
+        "operationId": "Core_ListOCIRepositories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListOCIRepositoriesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -676,6 +737,17 @@
       ],
       "default": "Generic"
     },
+    "CrdName": {
+      "type": "object",
+      "properties": {
+        "plural": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -754,6 +826,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -773,6 +848,23 @@
           "type": "string"
         },
         "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Crd": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/CrdName"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -841,7 +933,8 @@
         "KindHelmChart",
         "KindKustomization",
         "KindHelmRelease",
-        "KindCluster"
+        "KindCluster",
+        "KindOCIRepository"
       ],
       "default": "KindGitRepository"
     },
@@ -1028,6 +1121,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1101,6 +1197,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1151,6 +1250,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1189,6 +1291,9 @@
         },
         "repositoryType": {
           "$ref": "#/definitions/v1HelmRepositoryType"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1261,6 +1366,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },
@@ -1306,6 +1414,23 @@
         }
       }
     },
+    "v1ListFluxCrdsResponse": {
+      "type": "object",
+      "properties": {
+        "crds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Crd"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1ListFluxRuntimeObjectsResponse": {
       "type": "object",
       "properties": {
@@ -1347,6 +1472,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmChart"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1416,6 +1547,23 @@
         }
       }
     },
+    "v1ListOCIRepositoriesResponse": {
+      "type": "object",
+      "properties": {
+        "ociRepositories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1OCIRepository"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1Namespace": {
       "type": "object",
       "properties": {
@@ -1442,6 +1590,44 @@
         }
       }
     },
+    "v1OCIRepository": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
+        },
+        "lastUpdatedAt": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        }
+      }
+    },
     "v1Object": {
       "type": "object",
       "properties": {
@@ -1449,6 +1635,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "tenant": {
           "type": "string"
         }
       }

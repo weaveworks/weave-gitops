@@ -5,7 +5,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
-func BucketToProto(bucket *sourcev1.Bucket, clusterName string) *pb.Bucket {
+func BucketToProto(bucket *sourcev1.Bucket, clusterName string, tenant string) *pb.Bucket {
 	var provider pb.Bucket_Provider
 
 	switch bucket.Spec.Provider {
@@ -32,6 +32,7 @@ func BucketToProto(bucket *sourcev1.Bucket, clusterName string) *pb.Bucket {
 		LastUpdatedAt: lastUpdatedAt(bucket),
 		ClusterName:   clusterName,
 		ApiVersion:    bucket.APIVersion,
+		Tenant:        tenant,
 	}
 
 	if bucket.Spec.SecretRef != nil {

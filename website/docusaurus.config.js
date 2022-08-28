@@ -3,7 +3,7 @@ const versions = require("./versions.json");
 module.exports = {
   title: "Weave GitOps",
   tagline: "Weave GitOps Documentation",
-  url: "https://docs.gitops.weave.works/",
+  url: "https://docs.gitops.weave.works",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -86,8 +86,8 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} Weaveworks`,
     },
     algolia: {
-      appId: "BH4D9OD16A",
-      apiKey: "ae068e3fa083e30f6fe7311168e93568",
+      appId: "Z1KEXCDHZE",
+      apiKey: "c90c5ade2802df8213d6ac50cf3632f4",
       indexName: "weave",
       // Needed to handle the different versions of docs
       contextualSearch: true,

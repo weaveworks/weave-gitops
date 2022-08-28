@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
+  ListFluxCrdsResponse,
   ListFluxRuntimeObjectsResponse,
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
@@ -12,17 +13,36 @@ import {
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
-import { DefaultCluster, NoNamespace, RequestError } from "../lib/types";
+import {
+  DefaultCluster,
+  NoNamespace,
+  ReactQueryOptions,
+  RequestError,
+} from "../lib/types";
 
 export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
-  namespace = NoNamespace
+  namespace = NoNamespace,
+  opts: ReactQueryOptions<ListFluxRuntimeObjectsResponse, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
     () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
+    opts
+  );
+}
+
+export function useListFluxCrds(clusterName = DefaultCluster) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<ListFluxCrdsResponse, RequestError>(
+    "flux_crds",
+    () => api.ListFluxCrds({ clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
 }
@@ -32,14 +52,18 @@ export function useGetReconciledObjects(
   namespace: string,
   type: FluxObjectKind,
   kinds: GroupVersionKind[],
-  clusterName = DefaultCluster
+  clusterName = DefaultCluster,
+  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
     () => getChildren(api, name, namespace, type, kinds, clusterName),
-    { retry: false, refetchOnWindowFocus: false, refetchInterval: 5000 }
+    opts
   );
 }
 

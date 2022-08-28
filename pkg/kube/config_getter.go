@@ -36,8 +36,9 @@ func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
 	shallowCopy := *r.cfg
 
 	if p := auth.Principal(ctx); p != nil {
-		if p.Token != "" {
-			shallowCopy.BearerToken = p.Token
+		if tok := p.Token(); tok != "" {
+			shallowCopy.BearerToken = tok
+			shallowCopy.BearerTokenFile = ""
 		} else {
 			shallowCopy.Impersonate = rest.ImpersonationConfig{
 				UserName: p.ID,

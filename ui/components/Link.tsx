@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Link as RouterLink } from "react-router-dom";
 import styled from "styled-components";
+import { isAllowedLink } from "../lib/utils";
+import Spacer from "./Spacer";
 import Text, { TextProps } from "./Text";
 
 type Props = {
@@ -11,8 +13,18 @@ type Props = {
   href?: any;
   newTab?: boolean;
   textProps?: TextProps;
+  icon?: JSX.Element;
   onClick?: (ev: any) => void;
+  onMouseEnter?: React.EventHandler<React.SyntheticEvent>;
+  onMouseLeave?: React.EventHandler<React.SyntheticEvent>;
 };
+
+const SpacedIcon = ({ icon }: { icon: JSX.Element }) => (
+  <>
+    {icon}
+    <Spacer padding="xxs" />
+  </>
+);
 
 function Link({
   children,
@@ -22,8 +34,15 @@ function Link({
   newTab,
   onClick,
   textProps,
+  icon,
+  onMouseEnter,
+  onMouseLeave,
   ...props
 }: Props) {
+  if (href && !isAllowedLink(href)) {
+    return <Text {...textProps}>{children}</Text>;
+  }
+
   const txt = (
     <Text color="primary" {...textProps}>
       {children}
@@ -37,14 +56,25 @@ function Link({
         href={href}
         target={newTab ? "_blank" : ""}
         rel="noreferrer"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
+        {icon && <SpacedIcon icon={icon} />}
         {txt}
       </a>
     );
   }
 
   return (
-    <RouterLink onClick={onClick} className={className} to={to} {...props}>
+    <RouterLink
+      onClick={onClick}
+      className={className}
+      to={to}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      {...props}
+    >
+      {icon && <SpacedIcon icon={icon} />}
       {txt}
     </RouterLink>
   );
@@ -52,7 +82,4 @@ function Link({
 
 export default styled(Link)`
   text-decoration: none;
-  &.title-bar-button {
-    width: 250px;
-  }
 `;

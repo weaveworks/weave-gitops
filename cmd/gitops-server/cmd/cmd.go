@@ -17,13 +17,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
 	httpmiddlewarestd "github.com/slok/go-http-metrics/middleware/std"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
@@ -35,7 +35,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -43,29 +43,33 @@ import (
 const (
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
-	// Env var prefix that will be set as a feature flag automatically
-	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
 )
 
 // Options contains all the options for the gitops-server command.
 type Options struct {
-	Port                          string
+	// System config
 	Host                          string
-	HelmRepoNamespace             string
-	HelmRepoName                  string
-	Path                          string
 	LogLevel                      string
-	OIDCSecret                    string
-	OIDC                          auth.OIDCConfig
 	NotificationControllerAddress string
-	TLSCertFile                   string
-	TLSKeyFile                    string
-	Insecure                      bool
-	MTLS                          bool
-	DevMode                       bool
-	DevUser                       string
-	EnableMetrics                 bool
-	MetricsAddress                string
+	Path                          string
+	Port                          string
+	AuthMethods                   []string
+	// TLS config
+	Insecure    bool
+	MTLS        bool
+	TLSCertFile string
+	TLSKeyFile  string
+	// Stuff for profiles apparently
+	HelmRepoName      string
+	HelmRepoNamespace string
+	// OIDC
+	OIDC       auth.OIDCConfig
+	OIDCSecret string
+	// Dev mode
+	DevMode bool
+	// Metrics
+	EnableMetrics  bool
+	MetricsAddress string
 }
 
 var options Options
@@ -78,28 +82,26 @@ func NewCommand() *cobra.Command {
 
 	options = Options{}
 
-	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
+	// System config
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
-	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-
-	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
-	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
+	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
-
+	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
+	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	// OIDC
 	cmd.Flags().StringVar(&options.OIDCSecret, "oidc-secret-name", auth.DefaultOIDCAuthSecretName, "Name of the secret that contains OIDC configuration")
-
-	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode")
-	cmd.Flags().StringVar(&options.DevUser, "dev-user", v1alpha1.DefaultClaimsSubject, "Sets development User")
-
+	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
 
@@ -114,20 +116,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
 
-	for _, envVar := range os.Environ() {
-		keyVal := strings.SplitN(envVar, "=", 2)
-		if len(keyVal) != 2 {
-			continue
-		}
-
-		key, val := keyVal[0], keyVal[1]
-
-		if !strings.HasPrefix(key, featureFlagPrefix) {
-			continue
-		}
-
-		featureflags.Set(key, val)
-	}
+	featureflags.SetFromEnv(os.Environ())
 
 	mux := http.NewServeMux()
 
@@ -149,56 +138,31 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create client config: %w", err)
 	}
 
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		return fmt.Errorf("could not create scheme: %w", err)
+	}
+
 	rawClient, err := client.New(rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	if err != nil {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	oidcConfig := options.OIDC
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
 
-	if options.OIDCSecret != auth.DefaultOIDCAuthSecretName {
-		log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", options.OIDCSecret)
-	}
-
-	// If OIDC auth secret is found prefer that over CLI parameters
-	var secret corev1.Secret
-	if err := rawClient.Get(cmd.Context(), client.ObjectKey{
-		Namespace: v1alpha1.DefaultNamespace,
-		Name:      options.OIDCSecret,
-	}, &secret); err == nil {
-		if options.OIDC.ClientSecret != "" && secret.Data["clientSecret"] != nil { // 'Data' is a byte array
-			log.V(logger.LogLevelWarn).Info("OIDC client configured by both CLI and secret. CLI values will be overridden.")
-		}
-
-		oidcConfig = auth.NewOIDCConfigFromSecret(secret)
-	} else if err != nil {
-		log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", options.OIDCSecret, "error", err)
-	}
-
-	if oidcConfig.ClientSecret != "" {
-		log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
-	}
-
-	tsv, err := auth.NewHMACTokenSignerVerifier(oidcConfig.TokenDuration)
+	namespace, _, err := kubeConfig.Namespace()
 	if err != nil {
-		return fmt.Errorf("could not create HMAC token signer: %w", err)
+		return fmt.Errorf("Couldn't get current namespace")
 	}
 
-	if options.DevMode {
-		log.Info("WARNING: dev mode enabled. This should be used for local work only")
-		tsv.SetDevMode(options.DevUser)
-	}
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
 
-	authCfg, err := auth.NewAuthServerConfig(log, oidcConfig, rawClient, tsv)
 	if err != nil {
-		return err
-	}
-
-	authServer, err := auth.NewAuthServer(cmd.Context(), authCfg)
-	if err != nil {
-		return fmt.Errorf("could not create auth server: %w", err)
+		return fmt.Errorf("could not initialise authentication server: %w", err)
 	}
 
 	log.Info("Registering auth routes")
@@ -211,7 +175,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
+	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.NewClustersClientsPool)
 	clusterClientsFactory.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
@@ -232,9 +196,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
 
-	mux.Handle("/v1/", appAndProfilesHandlers)
+	mux.Handle("/v1/", gziphandler.GzipHandler(appAndProfilesHandlers))
 
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	mux.Handle("/", gziphandler.GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
 		extension := filepath.Ext(req.URL.Path)
 		// We use the golang http.FileServer for static file requests.
@@ -245,9 +209,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
-	}))
-
-	addr := net.JoinHostPort(options.Host, options.Port)
+	})))
 
 	handler := http.Handler(mux)
 
@@ -260,6 +222,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	handler = middleware.WithLogging(log, handler)
 
+	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: handler,
@@ -342,7 +305,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 			ClientAuth: tls.RequireAndVerifyClientCert,
 		}
 	} else {
-		log.Info("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
+		log.Info("Using TLS", "cert_file", options.TLSCertFile, "key_file", options.TLSKeyFile)
 	}
 
 	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore

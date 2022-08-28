@@ -7,8 +7,10 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"k8s.io/client-go/rest"
 )
 
@@ -57,6 +59,13 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 }
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
+	err := telemetry.InitTelemetry(cfg.ClientsFactory)
+	if err != nil {
+		// If there's an error turning on telemetry, that's not a
+		// thing that should interrupt anything else
+		cfg.log.V(logger.LogLevelDebug).Info("Couldn't enable telemetry", "error", err)
+	}
+
 	return &coreServer{
 		logger:         cfg.log,
 		nsChecker:      cfg.NSAccess,

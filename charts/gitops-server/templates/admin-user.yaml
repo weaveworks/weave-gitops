@@ -1,16 +1,10 @@
 {{- if .Values.adminUser.create }}
-# This should not be used in production. It is for testing & demo purposes only
-# FIXME issues #1789, #1787, #1671
-# the contents of this file are dependent upon the outcome of several
-# discussions around usage of the admin user. Once those are resolved the
-# configuration here should be brought into line with those outcomes (e.g.
-# names(paces) made configurable, permissions set).
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: wego-test-user-read-resources
-  namespace: flux-system
+  name: {{ .Values.adminUser.username }}-user-read-resources
+  namespace: {{ .Release.Namespace }}
 subjects:
   - kind: User
     name: wego-admin
@@ -19,15 +13,31 @@ roleRef:
   kind: Role
   name: wego-admin-role
   apiGroup: rbac.authorization.k8s.io
+{{- if ne .Release.Namespace "flux-system" }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-test-user-read-resources
+  namespace: flux-system
+subjects:
+  - kind: User
+    name: {{ .Values.adminUser.username }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+{{- end -}}
 {{- if .Values.adminUser.createClusterRole }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: wego-test-user-read-resources-cr
+  name: {{ .Values.adminUser.username }}-user-read-resources-cr
 subjects:
 - kind: User
-  name: wego-admin
+  name: {{ .Values.adminUser.username }}
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole

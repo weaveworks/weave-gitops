@@ -21,8 +21,12 @@ const (
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c, _ := makeGRPCServer(k8sEnv.Rest, t)
-	_, err := client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	_, err = client.New(k8sEnv.Rest, client.Options{
+		Scheme: scheme,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -30,7 +34,7 @@ func TestGetVersion(t *testing.T) {
 	ctx := context.Background()
 
 	_, err = client.New(k8sEnv.Rest, client.Options{
-		Scheme: kube.CreateScheme(),
+		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 

@@ -10,11 +10,13 @@ export namespace colors {
   const success: string;
   const alert: string;
   const suspended: string;
+  const neutralGray: string;
   const neutral00: string;
   const neutral10: string;
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
+  const backGrey: string;
   const feedbackLight: string;
 }
 export namespace spacing {

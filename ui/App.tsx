@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
+import Pendo from "./components/Pendo";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -28,6 +29,7 @@ import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
+import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Sources from "./pages/v2/Sources";
@@ -73,6 +75,10 @@ const App = () => (
           path={V2Routes.HelmChart}
           component={withSearchParams(HelmChartDetail)}
         />
+        <Route
+          path={V2Routes.OCIRepository}
+          component={withSearchParams(OCIRepositoryPage)}
+        />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />
       </Switch>
@@ -96,6 +102,7 @@ export default function AppContainer() {
             <AppContextProvider renderFooter>
               <AuthContextProvider>
                 <CoreClientContextProvider api={Core}>
+                  <Pendo />
                   <Switch>
                     {/* <Signin> does not use the base page <Layout> so pull it up here */}
                     <Route component={SignIn} exact path="/sign_in" />

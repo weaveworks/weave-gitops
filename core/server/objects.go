@@ -12,7 +12,7 @@ import (
 )
 
 func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -34,7 +34,11 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, err
 	}
 
-	res, err := types.K8sObjectToProto(&obj, msg.ClusterName)
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant)
 
 	if err != nil {
 		return nil, fmt.Errorf("converting kustomization to proto: %w", err)

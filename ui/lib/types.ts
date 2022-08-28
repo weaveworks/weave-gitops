@@ -1,3 +1,5 @@
+import { UseQueryOptions } from "react-query";
+import { ListError } from "./api/core/core.pb";
 import { Condition, FluxObjectKind, Interval } from "./api/core/types.pb";
 
 export enum PageRoute {
@@ -28,13 +30,13 @@ export enum V2Routes {
   GitRepo = "/git_repo",
   HelmChart = "/helm_chart",
   Bucket = "/bucket",
+  OCIRepository = "/oci",
 
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.
   NotImplemented = "/not_implemented",
 }
 
-export const WeGONamespace = "flux-system";
 export const DefaultCluster = "Default";
 export const NoNamespace = "";
 
@@ -55,3 +57,13 @@ export interface Syncable {
   namespace?: string;
   clusterName?: string;
 }
+
+export type MultiRequestError = ListError & {
+  kind?: FluxObjectKind;
+};
+
+// Helper type to work around the weird react-query typedef/api shape
+export type ReactQueryOptions<T, E> = Omit<
+  UseQueryOptions<T, E>,
+  "queryKey" | "queryFn"
+>;

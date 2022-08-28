@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -71,7 +71,7 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	rb, err := ioutil.ReadAll(res.Body)
+	rb, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

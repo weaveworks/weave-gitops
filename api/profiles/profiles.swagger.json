@@ -35,6 +35,22 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "helmRepoName",
+            "description": "The name of the HelmRepository.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "helmRepoNamespace",
+            "description": "The namespace of the HelmRepository.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Profiles"
         ]
@@ -71,6 +87,20 @@
             "description": "The version of the Profile",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "helmRepoName",
+            "description": "The name of the HelmRepository.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "helmRepoNamespace",
+            "description": "The namespace of the HelmRepository.",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],

@@ -10,6 +10,8 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
@@ -37,7 +39,7 @@ func TestJWTCookiePrincipalGetter(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
+			if diff := cmp.Diff(tt.want, principal, allowUnexportedPrincipal()); diff != "" {
 				t.Fatalf("failed to get principal:\n%s", diff)
 			}
 		})
@@ -65,7 +67,7 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
+			if diff := cmp.Diff(tt.want, principal, allowUnexportedPrincipal()); diff != "" {
 				t.Fatalf("failed to get principal:\n%s", diff)
 			}
 		})
@@ -94,7 +96,11 @@ func makeAuthenticatedRequest(token string) *http.Request {
 }
 
 func TestMultiAuth(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
 	err := errors.New("oops")
+	noAuthError := errors.New("Could not find valid principal")
+
 	multiAuthTests := []struct {
 		name  string
 		auths []auth.PrincipalGetter
@@ -105,11 +111,13 @@ func TestMultiAuth(t *testing.T) {
 			name:  "no auths",
 			auths: []auth.PrincipalGetter{},
 			want:  nil,
+			err:   noAuthError,
 		},
 		{
 			name:  "no successful auths",
 			auths: []auth.PrincipalGetter{stubPrincipalGetter{}},
 			want:  nil,
+			err:   noAuthError,
 		},
 		{
 			name:  "one successful auth",
@@ -125,6 +133,7 @@ func TestMultiAuth(t *testing.T) {
 			name:  "two auths, none successful",
 			auths: []auth.PrincipalGetter{stubPrincipalGetter{}, stubPrincipalGetter{}},
 			want:  nil,
+			err:   noAuthError,
 		},
 		{
 			name:  "error",
@@ -136,16 +145,15 @@ func TestMultiAuth(t *testing.T) {
 
 	for _, tt := range multiAuthTests {
 		t.Run(tt.name, func(t *testing.T) {
-			mg := auth.MultiAuthPrincipal(tt.auths)
+			mg := auth.MultiAuthPrincipal{Log: logr.Discard(), Getters: tt.auths}
 			req := httptest.NewRequest("GET", "http://example.com/", nil)
 
 			principal, err := mg.Principal(req)
-			if err != tt.err {
-				t.Fatalf("got err %s, want %s", err, tt.err)
+
+			if tt.err != nil {
+				g.Expect(err).To(MatchError(tt.err))
 			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
-				t.Fatalf("failed to get principal:\n%s", diff)
-			}
+			g.Expect(principal).To(Equal(tt.want))
 		})
 	}
 }
@@ -168,4 +176,8 @@ type errorPrincipalGetter struct {
 
 func (s errorPrincipalGetter) Principal(r *http.Request) (*auth.UserPrincipal, error) {
 	return nil, s.err
+}
+
+func allowUnexportedPrincipal() cmp.Option {
+	return cmp.AllowUnexported(auth.UserPrincipal{})
 }

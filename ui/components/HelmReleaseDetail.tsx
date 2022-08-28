@@ -2,17 +2,21 @@ import * as React from "react";
 import styled from "styled-components";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
+import { useFeatureFlags } from "../hooks/featureflags";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import Interval from "./Interval";
+import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import { InfoField } from "./InfoList";
 
 type Props = {
   name: string;
   clusterName: string;
   helmRelease?: HelmRelease;
   className?: string;
+  customTabs?: Array<routeTab>;
 };
 
 function helmChartLink(helmRelease: HelmRelease) {
@@ -44,15 +48,29 @@ function helmChartLink(helmRelease: HelmRelease) {
   );
 }
 
-function HelmReleaseDetail({ helmRelease, className }: Props) {
+function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
+  const tenancyInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRelease?.tenant
+      ? [["Tenant", helmRelease?.tenant]]
+      : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", helmRelease?.clusterName]]
+      : [];
+
   return (
     <AutomationDetail
       className={className}
       automation={{ ...helmRelease, kind: FluxObjectKind.KindHelmRelease }}
+      customTabs={customTabs}
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
-        ["Cluster", helmRelease?.clusterName],
+        ...clusterInfo,
+        ...tenancyInfo,
         ["Interval", <Interval interval={helmRelease?.interval} />],
         [
           "Last Updated",

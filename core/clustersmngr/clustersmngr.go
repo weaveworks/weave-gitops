@@ -3,11 +3,10 @@ package clustersmngr
 import (
 	"context"
 	"fmt"
+	"sync"
 
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,7 +19,7 @@ const (
 	ClustersClientCtxKey key = iota
 	// DefaultCluster name
 	DefaultCluster = "Default"
-	// ClientQPS is the QPS to use while creating the k8s clients
+	// ClientQPS is the QPS to use while creating the k8s clients (actually a float32)
 	ClientQPS = 1000
 	// ClientBurst is the burst to use while creating the k8s clients
 	ClientBurst = 2000
@@ -60,7 +59,7 @@ type ClusterFetcher interface {
 // ClientsPool stores all clients to the leaf clusters
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
-	Add(cfg ClusterClientConfig, cluster Cluster) error
+	Add(cfg ClusterClientConfigFunc, cluster Cluster) error
 	Clients() map[string]client.Client
 	Client(cluster string) (client.Client, error)
 }
@@ -68,50 +67,26 @@ type ClientsPool interface {
 type clientsPool struct {
 	clients map[string]client.Client
 	scheme  *apiruntime.Scheme
+	mutex   sync.Mutex
 }
 
-type ClusterClientConfig func(Cluster) *rest.Config
-
-func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfig {
-	return func(cluster Cluster) *rest.Config {
-		config := &rest.Config{
-			Host:            cluster.Server,
-			BearerToken:     cluster.BearerToken,
-			TLSClientConfig: cluster.TLSConfig,
-			Impersonate: rest.ImpersonationConfig{
-				UserName: user.ID,
-				Groups:   user.Groups,
-			},
-		}
-
-		enabled, err := flowcontrol.IsEnabled(context.Background(), config)
-		if err == nil && enabled {
-			// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
-			// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
-			config.QPS = -1
-			config.Burst = -1
-
-			return config
-		}
-
-		config.QPS = ClientQPS
-		config.Burst = ClientBurst
-
-		return config
-	}
-}
+type ClusterClientConfigFunc func(Cluster) (*rest.Config, error)
 
 // NewClustersClientsPool initializes a new ClientsPool
 func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 	return &clientsPool{
 		clients: map[string]client.Client{},
 		scheme:  scheme,
+		mutex:   sync.Mutex{},
 	}
 }
 
 // Add adds a cluster client to the clients pool with the given user impersonation
-func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
-	config := cfg(cluster)
+func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) error {
+	config, err := cfgFunc(cluster)
+	if err != nil {
+		return fmt.Errorf("error building cluster client config: %w", err)
+	}
 
 	leafClient, err := client.New(config, client.Options{
 		Scheme: cp.scheme,
@@ -120,7 +95,9 @@ func (cp *clientsPool) Add(cfg ClusterClientConfig, cluster Cluster) error {
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}
 
+	cp.mutex.Lock()
 	cp.clients[cluster.Name] = leafClient
+	cp.mutex.Unlock()
 
 	return nil
 }

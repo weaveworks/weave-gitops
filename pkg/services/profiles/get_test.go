@@ -36,12 +36,12 @@ const getProfilesResp = `{
       ],
       "icon": "",
       "annotations": {},
-      "kube_version": ">=1.19.0-0",
-      "helm_repository": {
+      "kubeVersion": ">=1.19.0-0",
+      "helmRepository": {
 		  "name": "podinfo",
 		  "namespace": "weave-system"
 	  },
-      "available_versions": [
+      "availableVersions": [
         "6.0.0",
         "6.0.1"
       ]
@@ -153,7 +153,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				"profiles": [
 				  {
 					"name": "podinfo",
-					"available_versions": [
+					"availableVersions": [
 					]
 				  }
 				]
@@ -170,11 +170,11 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				"profiles": [
 				  {
 					"name": "podinfo",
-					"helm_repository": {
+					"helmRepository": {
 						"name": "",
 						"namespace": ""
 					},
-					"available_versions": [
+					"availableVersions": [
 					  "6.0.0",
 					  "6.0.1"
 					]

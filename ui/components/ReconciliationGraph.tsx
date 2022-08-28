@@ -1,20 +1,16 @@
-import _ from "lodash";
+import { Slider } from "@material-ui/core";
+import * as d3 from "d3";
 import * as React from "react";
-import { renderToString } from "react-dom/server";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import {
-  Condition,
-  ObjectRef,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
-import images from "../lib/images";
+import { Condition, ObjectRef } from "../lib/api/core/types.pb";
+import { UnstructuredObjectWithChildren } from "../lib/graph";
 import { removeKind } from "../lib/utils";
-import DirectedGraph, { defaultScale } from "./DirectedGraph";
+import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
-import { computeReady } from "./KubeStatusIndicator";
 import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
+import Spacer from "./Spacer";
 
 export type Props = ReconciledVisualizationProps & {
   parentObject: {
@@ -22,72 +18,29 @@ export type Props = ReconciledVisualizationProps & {
     namespace?: string;
     conditions?: Condition[];
     suspended?: boolean;
+    children?: UnstructuredObjectWithChildren[];
   };
   source: ObjectRef;
 };
 
-const GraphIcon = styled.img`
-  height: 32px;
-  width: 32px;
+const SliderFlex = styled(Flex)`
+  padding-top: ${(props) => props.theme.spacing.base};
+  min-height: 400px;
+  min-width: 60px;
+  width: 5%;
 `;
 
-function getStatusIcon(status: string, suspended: boolean) {
-  if (suspended) return <GraphIcon src={images.suspendedSrc} />;
-  switch (status) {
-    case "Current":
-      return <GraphIcon src={images.successSrc} />;
+const PercentFlex = styled(Flex)`
+  color: ${(props) => props.theme.colors.primary10};
+  padding: 10px;
+  background: rgba(0, 179, 236, 0.1);
+  border-radius: 2px;
+`;
 
-    case "InProgress":
-      return <GraphIcon src={images.suspendedSrc} />;
-
-    case "Failed":
-      return <GraphIcon src={images.failedSrc} />;
-
-    default:
-      return "";
-  }
-}
-
-type NodeHtmlProps = {
-  object: UnstructuredObject;
-};
-
-const NodeHtml = ({ object }: NodeHtmlProps) => {
-  return (
-    <div className="node">
-      <Flex
-        className={`status-line ${
-          object.suspended ? "InProgress" : object.status
-        }`}
-      />
-      <Flex column className="nodeText">
-        <Flex start wide align className="name">
-          <div
-            className={`status ${
-              object.suspended ? "InProgress" : object.status
-            }`}
-          >
-            {getStatusIcon(object.status, object.suspended)}
-          </div>
-          <div style={{ padding: 4 }} />
-          {object.name}
-        </Flex>
-        <Flex start wide align className="kind">
-          <div className="kind-text">{object.groupVersionKind.kind}</div>
-        </Flex>
-        <Flex start wide align className="kind">
-          <div className="kind-text">{object.namespace}</div>
-        </Flex>
-      </Flex>
-    </div>
-  );
-};
-
-const findParentStatus = (parent) => {
-  if (parent.suspended) return "InProgress";
-  if (computeReady(parent.conditions)) return "Current";
-  return "Failed";
-};
+const GraphDiv = styled.div`
+  width: 100%;
+  height: 100%;
+`;
 
 function ReconciliationGraph({
   className,
@@ -97,6 +50,7 @@ function ReconciliationGraph({
   clusterName,
   source,
 }: Props) {
+  //grab data
   const {
     data: objects,
     error,
@@ -110,151 +64,104 @@ function ReconciliationGraph({
         clusterName
       )
     : { data: [], error: null, isLoading: false };
+  //add extra nodes
+  const secondNode = {
+    ...parentObject,
+    kind: removeKind(automationKind),
+    children: objects,
+  };
+  const rootNode = {
+    ...source,
+    kind: removeKind(source.kind),
+    children: [secondNode],
+  };
+  //graph numbers
+  const nodeSize = {
+    width: 800,
+    height: 300,
+    verticalSeparation: 150,
+    horizontalSeparation: 100,
+  };
+  //use d3 to create tree structure
+  const root = d3.hierarchy(rootNode, (d) => d.children);
+  const makeTree = d3
+    .tree()
+    .nodeSize([
+      nodeSize.width + nodeSize.horizontalSeparation,
+      nodeSize.height + nodeSize.verticalSeparation,
+    ])
+    .separation(() => 1);
+  const tree = makeTree(root);
+  const descendants = tree.descendants();
+  const links = tree.links();
 
-  const edges = _.reduce(
-    objects,
-    (r, v: any) => {
-      if (v.parentUid) {
-        r.push({ source: v.parentUid, target: v.uid });
-      } else {
-        r.push({ source: parentObject.name, target: v.uid });
-      }
-      return r;
-    },
-    []
-  );
+  //zoom
+  const defaultZoomPercent = 85;
+  const [zoomPercent, setZoomPercent] = React.useState(defaultZoomPercent);
 
-  const sourceId = `source/${source?.namespace}/${source?.name}`;
-
-  const nodes = [
-    ..._.map(objects, (r) => ({
-      id: r.uid,
-      data: r,
-      label: (u: UnstructuredObject) => renderToString(<NodeHtml object={u} />),
-    })),
-    {
-      id: parentObject.name,
-      data: { ...parentObject, status: findParentStatus(parentObject) },
-      label: (u: Props["parentObject"]) =>
-        renderToString(
-          <NodeHtml
-            object={{
-              ...u,
-              groupVersionKind: { kind: removeKind(automationKind) },
-            }}
-          />
-        ),
-    },
-    // Add a node to show the source on the graph
-    {
-      id: sourceId,
-      data: {
-        ...source,
-        kind: removeKind(source.kind),
-      },
-      label: (s: ObjectRef) =>
-        renderToString(
-          <NodeHtml
-            object={{ ...s, groupVersionKind: { kind: removeKind(s.kind) } }}
-          />
-        ),
-    },
-  ];
-  // Edge connecting the source to the automation
-  edges.push({
-    source: sourceId,
-    target: parentObject.name,
-  });
+  //pan
+  const [pan, setPan] = React.useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = React.useState(false);
+  const handleMouseDown = () => {
+    setIsPanning(true);
+  };
+  const handleMouseMove = (e) => {
+    //viewBox change. e.movement is change since previous mouse event
+    if (isPanning) setPan({ x: pan.x + e.movementX, y: pan.y + e.movementY });
+  };
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      <div className={className} style={{ height: "100%", width: "100%" }}>
-        <DirectedGraph
-          scale={defaultScale}
-          nodes={nodes}
-          edges={edges}
-          labelShape="rect"
-          labelType="html"
-        />
-      </div>
+      <Flex className={className} wide tall>
+        <GraphDiv
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          //ends drag event if mouse leaves svg
+          onMouseLeave={handleMouseUp}
+        >
+          <DirectedGraph
+            descendants={descendants}
+            links={links}
+            nodeSize={nodeSize}
+            zoomPercent={zoomPercent}
+            pan={pan}
+          />
+        </GraphDiv>
+        <SliderFlex tall column align>
+          <Slider
+            onChange={(_, value: number) => setZoomPercent(value)}
+            defaultValue={defaultZoomPercent}
+            orientation="vertical"
+            aria-label="zoom"
+            min={5}
+          />
+          <Spacer padding="xs" />
+          <PercentFlex>{zoomPercent}%</PercentFlex>
+        </SliderFlex>
+      </Flex>
     </RequestStateHandler>
   );
 }
 
 export default styled(ReconciliationGraph)`
-  .node {
-    font-size: 16px;
-    width: 650px;
-    height: 200px;
-    display: flex;
-    justify-content: space-between;
+  .MuiSlider-vertical {
+    min-height: 400px;
   }
-
-  rect {
-    fill: white;
-    stroke: ${(props) => props.theme.colors.neutral20};
-    stroke-width: 3;
+  .MuiSlider-vertical .MuiSlider-track {
+    width: 6px;
   }
-
-  .status {
-    display: flex;
-    align-items: center;
+  .MuiSlider-vertical .MuiSlider-rail {
+    width: 6px;
   }
-
-  .kind-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 28px;
+  .MuiSlider-vertical .MuiSlider-thumb {
+    margin-left: -9px;
   }
-
-  .status-line {
-    width: 2.5%;
-    border-radius: 10px 0px 0px 10px;
-  }
-
-  .nodeText {
-    width: 95%;
-    align-items: flex-start;
-    justify-content: space-evenly;
-  }
-
-  .Current {
-    color: ${(props) => props.theme.colors.success};
-
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.success};
-    }
-  }
-
-  .InProgress {
-    color: ${(props) => props.theme.colors.suspended};
-
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.suspended};
-    }
-  }
-
-  .Failed {
-    color: ${(props) => props.theme.colors.alert};
-
-    &.status-line {
-      background-color: ${(props) => props.theme.colors.alert};
-    }
-  }
-
-  .name {
-    color: ${(props) => props.theme.colors.black};
-    font-weight: 800;
-    font-size: 28px;
-    white-space: pre-wrap;
-  }
-
-  .kind {
-    color: ${(props) => props.theme.colors.neutral30};
-  }
-
-  .edgePath path {
-    stroke: ${(props) => props.theme.colors.neutral30};
-    stroke-width: 1px;
+  .MuiSlider-thumb {
+    width: 24px;
+    height: 24px;
   }
 `;

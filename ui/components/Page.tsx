@@ -2,7 +2,7 @@ import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
-import { PageRoute, RequestError } from "../lib/types";
+import { MultiRequestError, PageRoute, RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Flex from "./Flex";
 import Footer from "./Footer";
@@ -16,7 +16,7 @@ export type PageProps = {
   breadcrumbs?: { page: PageRoute; query?: any }[];
   actions?: JSX.Element;
   loading?: boolean;
-  error?: RequestError | RequestError[];
+  error?: RequestError | RequestError[] | MultiRequestError[];
   isFetching?: boolean;
 };
 
@@ -38,17 +38,19 @@ const Children = styled(Flex)``;
 
 function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
-  return (
-    <Flex wide column>
-      <Spacer padding="xs" />
-      {_.map(arr, (e, i) => (
-        <Flex key={i} wide start>
-          <Alert title="Error" message={e?.message} severity="error" />
-        </Flex>
-      ))}
-      <Spacer padding="xs" />
-    </Flex>
-  );
+  if (arr[0])
+    return (
+      <Flex wide column>
+        <Spacer padding="xs" />
+        {_.map(arr, (e, i) => (
+          <Flex key={i} wide start>
+            <Alert title="Error" message={e?.message} severity="error" />
+          </Flex>
+        ))}
+        <Spacer padding="xs" />
+      </Flex>
+    );
+  return null;
 }
 
 function Page({ children, loading, error, className }: PageProps) {
@@ -64,8 +66,8 @@ function Page({ children, loading, error, className }: PageProps) {
 
   return (
     <Content wide between column className={className}>
-      {error && <Errors error={error} />}
       <Children column wide tall start>
+        <Errors error={error} />
         {children}
       </Children>
       {settings.renderFooter && <Footer />}

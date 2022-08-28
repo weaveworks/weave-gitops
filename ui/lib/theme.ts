@@ -29,11 +29,13 @@ export const theme: DefaultTheme = {
     success: "#27AE60",
     alert: "#BC381D",
     suspended: "#f2994a",
+    neutralGray: "#F6F7F9",
     neutral00: "#ffffff",
     neutral10: "#f5f5f5",
     neutral20: "#d8d8d8",
     neutral30: "#737373",
     neutral40: "#1a1a1a",
+    backGrey: "#eef0f4",
     feedbackLight: "#FCE6D2",
   },
   spacing: {
@@ -89,12 +91,34 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
     min-width: fit-content;
-    background: right bottom url(${images.bg}) no-repeat fixed ${(props) =>
-  props.theme.colors.neutral10}; 
+    background: right bottom no-repeat fixed; 
+    background-image: url(${
+      images.bg
+    }), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
     background-size: 100%;
   }
   .auth-modal-size {
     min-height: 475px
+  }
+  ::-webkit-scrollbar-track {
+    margin-top: 5px;
+    -webkit-box-shadow: transparent;
+    -moz-box-shadow: transparent;
+    background-color: transparent;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar{
+    width: 5px;
+    height: 5px;
+    background-color: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: ${(props) => props.theme.colors.neutral20};
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: ${(props) => props.theme.colors.neutral30};
   }
 `;
 

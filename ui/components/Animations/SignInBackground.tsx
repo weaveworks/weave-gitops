@@ -20,6 +20,7 @@ const LottieWrapper = () => {
         height: "100%",
         position: "absolute",
         zIndex: -999,
+        overflow: "hidden",
       }}
     />
   );

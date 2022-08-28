@@ -74,6 +74,15 @@ export type ListBucketsResponse = {
   errors?: ListError[]
 }
 
+export type ListOCIRepositoriesRequest = {
+  namespace?: string
+}
+
+export type ListOCIRepositoriesResponse = {
+  ociRepositories?: Gitops_coreV1Types.OCIRepository[]
+  errors?: ListError[]
+}
+
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
@@ -84,12 +93,22 @@ export type ListFluxRuntimeObjectsResponse = {
   errors?: ListError[]
 }
 
+export type ListFluxCrdsRequest = {
+  clusterName?: string
+}
+
+export type ListFluxCrdsResponse = {
+  crds?: Gitops_coreV1Types.Crd[]
+  errors?: ListError[]
+}
+
 export type ListHelmChartsRequest = {
   namespace?: string
 }
 
 export type ListHelmChartsResponse = {
   helmCharts?: Gitops_coreV1Types.HelmChart[]
+  errors?: ListError[]
 }
 
 export type GetKustomizationRequest = {
@@ -224,11 +243,17 @@ export class Core {
   static ListBuckets(req: ListBucketRequest, initReq?: fm.InitReq): Promise<ListBucketsResponse> {
     return fm.fetchReq<ListBucketRequest, ListBucketsResponse>(`/v1/buckets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
+  static ListOCIRepositories(req: ListOCIRepositoriesRequest, initReq?: fm.InitReq): Promise<ListOCIRepositoriesResponse> {
+    return fm.fetchReq<ListOCIRepositoriesRequest, ListOCIRepositoriesResponse>(`/v1/oci?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
+    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux_crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})

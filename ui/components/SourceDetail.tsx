@@ -5,14 +5,11 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { useGetObject } from "../hooks/objects";
-import { useListSources } from "../hooks/sources";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "../lib/objects";
+import { Source } from "../lib/objects";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
-import DetailTitle from "./DetailTitle";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -22,44 +19,29 @@ import PageStatus from "./PageStatus";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
+import Text from "./Text";
 import YamlView from "./YamlView";
 
 type Props = {
   className?: string;
   type: FluxObjectKind;
-  name: string;
-  namespace: string;
-  clusterName: string;
   children?: JSX.Element;
-  info: <T>(s: T) => InfoField[];
+  source: Source;
+  info: InfoField[];
 };
 
-function SourceDetail({
-  className,
-  name,
-  namespace,
-  clusterName,
-  info,
-  type,
-}: Props) {
+function SourceDetail({ className, source, info, type }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
-  const { data: sources, isLoading, error } = useListSources();
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
-  const { data: object } = useGetObject(
-    name,
-    namespace,
-    fluxObjectKindToKind(type),
-    clusterName
-  );
   const [isSuspended, setIsSuspended] = React.useState(false);
 
   const suspend = useToggleSuspend(
     {
-      name,
-      namespace,
-      clusterName,
+      name: source.name,
+      namespace: source.namespace,
+      clusterName: source.clusterName,
       kind: type,
       suspend: !isSuspended,
     },
@@ -67,47 +49,33 @@ function SourceDetail({
   );
 
   const sync = useSyncFluxObject({
-    name,
-    namespace,
-    clusterName,
+    name: source.name,
+    namespace: source.namespace,
+    clusterName: source.clusterName,
     kind: type,
   });
 
-  if (isLoading || automationsLoading) {
+  if (automationsLoading) {
     return <LoadingPage />;
-  }
-
-  const source = _.find(sources, { name, namespace, kind: type, clusterName });
-
-  if (!source) {
-    return (
-      <Alert
-        severity="error"
-        title="Not found"
-        message={`Could not find source '${name}'`}
-      />
-    );
   }
 
   if (isSuspended != source.suspended) {
     setIsSuspended(source.suspended);
   }
 
-  const items = info(source);
-
   const isNameRelevant = (expectedName) => {
-    return expectedName == name;
+    return expectedName == source.name;
   };
 
   const isRelevant = (expectedType, expectedName) => {
     return expectedType == source.kind && isNameRelevant(expectedName);
   };
 
-  const relevantAutomations = _.filter(automations, (a) => {
+  const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }
-    if (a.clusterName != clusterName) {
+    if (a.clusterName != source.clusterName) {
       return false;
     }
 
@@ -132,21 +100,18 @@ function SourceDetail({
 
   return (
     <Flex wide tall column className={className}>
-      <DetailTitle name={name} type={type} />
-      {error ||
-        (suspend.error && (
-          <Alert
-            severity="error"
-            title="Error"
-            message={error.message || suspend.error.message}
-          />
-        ))}
+      <Text size="large" semiBold titleHeight>
+        {source.name}
+      </Text>
+      {suspend.error && (
+        <Alert severity="error" title="Error" message={suspend.error.message} />
+      )}
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
       <Flex wide start>
         <SyncButton
           onClick={handleSyncClicked}
           loading={sync.isLoading}
-          disabled={source?.suspended}
+          disabled={source.suspended}
           hideDropdown={true}
         />
         <Spacer padding="xs" />
@@ -161,8 +126,8 @@ function SourceDetail({
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <>
-            <InfoList items={items} />
-            <Metadata metadata={object?.metadata()} />
+            <InfoList items={info} />
+            <Metadata metadata={source.metadata} />
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>
@@ -170,26 +135,22 @@ function SourceDetail({
           <EventsTable
             namespace={source.namespace}
             involvedObject={{
-              kind: type,
-              name,
+              kind: source.kind,
+              name: source.name,
               namespace: source.namespace,
             }}
           />
         </RouterTab>
-        {object ? (
-          <RouterTab name="yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={object.yaml()}
-              object={{
-                kind: source?.kind,
-                name: source?.name,
-                namespace: source?.namespace,
-              }}
-            />
-          </RouterTab>
-        ) : (
-          <></>
-        )}
+        <RouterTab name="yaml" path={`${path}/yaml`}>
+          <YamlView
+            yaml={source.yaml}
+            object={{
+              kind: source.kind,
+              name: source.name,
+              namespace: source.namespace,
+            }}
+          />
+        </RouterTab>
       </SubRouterTabs>
     </Flex>
   );

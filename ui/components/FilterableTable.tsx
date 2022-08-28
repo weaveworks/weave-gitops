@@ -33,7 +33,8 @@ export const filterByStatusCallback: FilterConfigCallback = (v) => {
   if (v.suspended) return "Suspended";
   else if (computeReady(v["conditions"]) === ReadyType.Reconciling)
     return ReadyType.Reconciling;
-  else if (computeReady(v["conditions"])) return ReadyType.Ready;
+  else if (computeReady(v["conditions"]) === ReadyType.Ready)
+    return ReadyType.Ready;
   else return ReadyType.NotReady;
 };
 
@@ -188,6 +189,11 @@ export function filterSelectionsToQueryString(sel: FilterSelections) {
   return qs.stringify(query);
 }
 
+const IconFlex = styled(Flex)`
+  position: relative;
+  padding: 0 ${(props) => props.theme.spacing.small};
+`;
+
 type State = {
   filters: FilterConfig;
   formState: FilterSelections;
@@ -264,13 +270,13 @@ function FilterableTable({
 
   return (
     <Flex className={className} wide tall column>
-      <Flex wide align>
+      <Flex wide align end>
         <ChipGroup
           chips={chips}
           onChipRemove={handleChipRemove}
           onClearAll={handleClearAll}
         />
-        <Flex align wide end>
+        <IconFlex align>
           <SearchField onSubmit={handleTextSearchSubmit} />
           <IconButton
             onClick={() => setFilterDialogOpen(!filterDialogOpen)}
@@ -280,7 +286,7 @@ function FilterableTable({
           >
             <Icon type={IconType.FilterIcon} size="medium" color="neutral30" />
           </IconButton>
-        </Flex>
+        </IconFlex>
       </Flex>
       <Flex wide tall>
         <DataTable className={className} fields={fields} rows={filtered} />

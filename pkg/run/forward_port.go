@@ -4,7 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -12,11 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
-	"net/http"
-	"net/url"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 type PortForwardSpec struct {
@@ -117,10 +117,8 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	return fw.ForwardPorts()
 }
 
-func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*corev1.Pod, error) {
-	namespacedName := types.NamespacedName{Name: specMap.Name, Namespace: specMap.Namespace}
-
-	switch specMap.Kind {
+func GetPodFromResourceDescription(namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
+	switch kind {
 	case "pod":
 		pod := &corev1.Pod{}
 		if err := kubeClient.Get(context.Background(), namespacedName, pod); err != nil {
@@ -130,9 +128,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 		return pod, nil
 	case "service":
 		svc := &corev1.Service{}
-		err := kubeClient.Get(context.Background(), namespacedName, svc)
-
-		if err != nil {
+		if err := kubeClient.Get(context.Background(), namespacedName, svc); err != nil {
 			return nil, fmt.Errorf("error getting service: %s, namespaced Name: %v", err, namespacedName)
 		}
 
@@ -148,7 +144,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, ErrNoPodsForService
 		}
 
 		for _, pod := range podList.Items {
@@ -157,11 +153,11 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 			}
 		}
 
-		return nil, errors.New("no running pods found for service")
+		return nil, ErrNoRunningPodsForService
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error getting deployment: %s, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the deployment "deployment" by selector in a specific namespace using the controller-runtime client
@@ -176,7 +172,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 		}
 
 		if len(podList.Items) == 0 {
-			return nil, errors.New("no pods found for service")
+			return nil, ErrNoPodsForDeployment
 		}
 
 		for _, pod := range podList.Items {
@@ -185,7 +181,7 @@ func GetPodFromSpecMap(specMap *PortForwardSpec, kubeClient *kube.KubeHTTP) (*co
 			}
 		}
 
-		return nil, errors.New("no running pods found for service")
+		return nil, ErrNoRunningPodsForDeployment
 	}
 
 	return nil, errors.New("unsupported spec kind")

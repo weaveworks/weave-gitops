@@ -2,19 +2,23 @@ package run
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, installOptions install.Options, kubeConfigArgs genericclioptions.RESTClientGetter) error {
+func InstallFlux(log logger.Logger, ctx context.Context, installOptions install.Options, manager ResourceManagerForApply) error {
 	log.Actionf("Installing Flux ...")
 
 	manifests, err := install.Generate(installOptions, "")
@@ -25,7 +29,7 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 
 	content := []byte(manifests.Content)
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, content)
+	applyOutput, err := apply(log, ctx, manager, content)
 	if err != nil {
 		log.Failuref("Flux install failed")
 		return err
@@ -36,7 +40,62 @@ func InstallFlux(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHT
 	return nil
 }
 
-func WaitForDeploymentToBeReady(log logger.Logger, kubeClient *kube.KubeHTTP, deploymentName string, namespace string) error {
+func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient client.Client) (string, error) {
+	log.Actionf("Getting Flux version ...")
+
+	listResult := unstructured.UnstructuredList{}
+
+	listResult.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Version: "v1",
+		Kind:    "Namespace",
+	})
+
+	listOptions := client.MatchingLabels{
+		coretypes.PartOfLabel: "flux",
+	}
+
+	u := unstructured.Unstructured{}
+
+	if err := kubeClient.List(ctx, &listResult, listOptions); err != nil {
+		log.Failuref("error getting the list of Flux objects")
+		return "", err
+	} else {
+		for _, item := range listResult.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				u = item
+				break
+			}
+		}
+	}
+
+	labels := u.GetLabels()
+	if labels == nil {
+		return "", fmt.Errorf("error getting Flux labels")
+	}
+
+	fluxVersion := labels[flux.VersionLabelKey]
+	if fluxVersion == "" {
+		return "", fmt.Errorf("no flux version found")
+	}
+
+	return fluxVersion, nil
+}
+
+func ValidateComponents(components []string) error {
+	defaults := install.MakeDefaultOptions()
+	bootstrapAllComponents := append(defaults.Components, defaults.ComponentsExtra...)
+
+	for _, component := range components {
+		if !slices.Contains(bootstrapAllComponents, component) {
+			return fmt.Errorf("component %s is not available", component)
+		}
+	}
+
+	return nil
+}
+
+func WaitForDeploymentToBeReady(log logger.Logger, kubeClient client.Client, deploymentName string, namespace string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 

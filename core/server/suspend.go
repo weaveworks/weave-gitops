@@ -11,7 +11,9 @@ import (
 )
 
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	principal := auth.Principal(ctx)
+
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, principal, msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -31,6 +33,13 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 		return nil, fmt.Errorf("converting to reconcilable source: %w", err)
 	}
 
+	log := cs.logger.WithValues(
+		"user", principal.ID,
+		"kind", obj.GroupVersionKind().Kind,
+		"name", msg.Name,
+		"namespace", msg.Namespace,
+	)
+
 	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
 		return nil, fmt.Errorf("getting reconcilable object: %w", err)
 	}
@@ -38,6 +47,12 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	patch := client.MergeFrom(obj.DeepCopyClientObject())
 
 	obj.SetSuspended(msg.Suspend)
+
+	if msg.Suspend {
+		log.Info("Suspending resource")
+	} else {
+		log.Info("Resuming resource")
+	}
 
 	if err := c.Patch(ctx, obj.AsClientObject(), patch); err != nil {
 		return nil, fmt.Errorf("patching object: %w", err)

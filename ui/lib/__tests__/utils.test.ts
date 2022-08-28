@@ -1,22 +1,17 @@
 import { jest } from "@jest/globals";
 import {
   addKind,
-  calculateZoomRatio,
-  calculateNodeOffsetX,
   convertGitURLToGitProvider,
   convertImage,
   formatMetadataKey,
   gitlabOAuthRedirectURI,
+  isAllowedLink,
   isHTTP,
   makeImageString,
-  mapScaleToZoomPercent,
-  mapZoomPercentToScale,
   pageTitleWithAppName,
   removeKind,
   statusSortHelper,
 } from "../utils";
-
-const floatPrecision = 19;
 
 describe("utils lib", () => {
   describe("gitlabOAuthRedirectURI", () => {
@@ -82,6 +77,40 @@ describe("utils lib", () => {
       expect(isHTTP("//.com")).toEqual(false);
     });
   });
+  describe("isAllowedLink", () => {
+    it("allows http", () => {
+      expect(isAllowedLink("http://www.google.com")).toEqual(true);
+      expect(isAllowedLink("http:// this is a random http sentence")).toEqual(
+        true
+      );
+    });
+    it("allows https", () => {
+      expect(isAllowedLink("https://www.google.com")).toEqual(true);
+      expect(isAllowedLink("https:// this is a random https sentence")).toEqual(
+        true
+      );
+    });
+    it("allows relative links", () => {
+      // Some of these are nonsensical, but if you _want_ them to be a
+      // relative link, it's not forbidden.
+      expect(isAllowedLink("/hello")).toEqual(true);
+      expect(isAllowedLink("test string")).toEqual(true);
+      expect(
+        isAllowedLink("github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(true);
+      expect(isAllowedLink("foo/file.html")).toEqual(true);
+      expect(isAllowedLink("//.com")).toEqual(true);
+    });
+    it("doesn't allow other links", () => {
+      expect(isAllowedLink("oci://server/")).toEqual(false);
+      expect(isAllowedLink("smtp://server/")).toEqual(false);
+      expect(isAllowedLink("smtp://http/")).toEqual(false);
+      expect(isAllowedLink("smtp://https/")).toEqual(false);
+      expect(
+        isAllowedLink("ssh://git@github.com/weaveworks/weave-gitops-clusters")
+      ).toEqual(false);
+    });
+  });
   describe("convertGitURLToGitProvider", () => {
     it("converts valid Git URL", () => {
       expect(
@@ -90,12 +119,10 @@ describe("utils lib", () => {
         )
       ).toEqual("https://github.com/weaveworks/weave-gitops-clusters");
     });
-    it("throws error on invalid Git URL", () => {
+    it("returns nothing on invalid Git URL", () => {
       const uri = "github.com/weaveworks/weave-gitops-clusters";
 
-      expect(() => {
-        convertGitURLToGitProvider(uri);
-      }).toThrow(new Error(`could not parse url "${uri}"`));
+      expect(convertGitURLToGitProvider(uri)).toEqual("");
     });
     it("returns the original HTTP URL", () => {
       expect(
@@ -280,58 +307,6 @@ describe("utils lib", () => {
           "fakeimage.itisfake.donotdoit.io/fake/fake/fake.com.net.org"
         )
       ).toEqual(false);
-    });
-  });
-  describe("calculateZoomRatio", () => {
-    it("calculates zoom ratio", () => {
-      expect(calculateZoomRatio(0)).toBeCloseTo(
-        0.013333333333333334,
-        floatPrecision
-      );
-      expect(calculateZoomRatio(20)).toBeCloseTo(
-        0.02666666666666667,
-        floatPrecision
-      );
-      expect(calculateZoomRatio(100)).toBeCloseTo(0.08, floatPrecision);
-    });
-  });
-  describe("calculateNodeOffsetX", () => {
-    it("returns 0 if the node is undefined", () => {
-      expect(calculateNodeOffsetX(undefined, 20, 0.04)).toEqual(0);
-    });
-
-    const rootNode = {
-      width: 670,
-      x: 3700,
-    };
-    it("calculates x-offset for the node", () => {
-      expect(
-        calculateNodeOffsetX(rootNode, 0, 0.013333333333333334)
-      ).toBeCloseTo(-40.400000000000006, floatPrecision);
-      expect(
-        calculateNodeOffsetX(rootNode, 20, 0.02666666666666667)
-      ).toBeCloseTo(-55.80000000000001, floatPrecision);
-      expect(
-        calculateNodeOffsetX(rootNode, 50, 0.04666666666666667)
-      ).toBeCloseTo(-78.9, floatPrecision);
-      expect(calculateNodeOffsetX(rootNode, 100, 0.08)).toBeCloseTo(
-        -117.4,
-        floatPrecision
-      );
-    });
-  });
-  describe("mapScaleToZoomPercent", () => {
-    it("maps zoom percent to scale", () => {
-      expect(mapScaleToZoomPercent(0)).toEqual(0);
-      expect(mapScaleToZoomPercent(20)).toBeCloseTo(10, floatPrecision);
-      expect(mapScaleToZoomPercent(100)).toBeCloseTo(50, floatPrecision);
-    });
-  });
-  describe("mapZoomPercentToScale", () => {
-    it("maps scale to zoom percent", () => {
-      expect(mapZoomPercentToScale(0)).toEqual(0);
-      expect(mapZoomPercentToScale(20)).toBeCloseTo(40, floatPrecision);
-      expect(mapZoomPercentToScale(100)).toBeCloseTo(200, floatPrecision);
     });
   });
 });

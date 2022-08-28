@@ -28,8 +28,11 @@ func TestGetImpersonatedClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
-	err := clientsFactory.UpdateClusters(ctx)
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
 	err = clientsFactory.UpdateNamespaces(ctx)
@@ -65,8 +68,11 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
-	err := clientsFactory.UpdateClusters(ctx)
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
 	err = clientsFactory.UpdateNamespaces(ctx)
@@ -85,7 +91,11 @@ func TestUpdateNamespaces(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -126,7 +136,11 @@ func TestUpdateUsers(t *testing.T) {
 	ctx := context.Background()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, kube.CreateScheme(), clustersmngr.NewClustersClientsPool)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"

@@ -27,6 +27,9 @@ export function poller(cb, interval): any {
   return setInterval(cb, interval);
 }
 
+// isHTTP checks if something looks link-like enough that we think it
+// would be a good idea to auto-link. This is quite strict, and does
+// not allow e.g relative links. See also isAllowedLink
 export function isHTTP(uri: string): boolean {
   // Regex from Diego Perini's gist: https://gist.github.com/dperini/729294
   // It works better than other regular expressions for validating HTTP and HTTPS URLs.
@@ -37,6 +40,18 @@ export function isHTTP(uri: string): boolean {
   return regex.test(uri);
 }
 
+// isAllowedLink checks if making a "link" clickable will do anybody
+// any good. This is quite permissive - it's to stop e.g. oci:// links
+// being clickable, because clicking them will make nobody happy. See
+// also isAllowedLink
+export function isAllowedLink(uri: string): boolean {
+  // Regex from https://github.com/cure53/DOMPurify/blob/cce00ac40d33c2aae6422eaa59e6a8aad5c73901/src/regexp.js
+  const regex = new RegExp(
+    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+  );
+  return regex.test(uri);
+}
+
 export function convertGitURLToGitProvider(uri: string): string {
   if (isHTTP(uri)) {
     return uri;
@@ -44,7 +59,7 @@ export function convertGitURLToGitProvider(uri: string): string {
 
   const matches = uri.match(/git@(.*)[/|:](.*)\/(.*)/);
   if (!matches) {
-    throw new Error(`could not parse url "${uri}"`);
+    return "";
   }
   const [, provider, org, repo] = matches;
 
@@ -66,7 +81,7 @@ export function statusSortHelper({
 }: Statusable): number {
   if (suspended) return 2;
   if (computeReady(conditions) === ReadyType.Reconciling) return 3;
-  else if (computeReady(conditions)) return 4;
+  else if (computeReady(conditions) === ReadyType.Ready) return 4;
   else return 1;
 }
 
@@ -146,27 +161,3 @@ export const convertImage = (image: string) => {
   //one slash docker images w/o docker.io
   return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
-
-export function calculateZoomRatio(zoomPercent: number): number {
-  return (zoomPercent + 20) / 1500;
-}
-
-export function calculateNodeOffsetX(
-  rootNode: any,
-  zoomPercent: number,
-  zoomRatio: number
-): number {
-  if (!rootNode) {
-    return 0;
-  }
-
-  return zoomPercent * 1.25 + (rootNode.width - rootNode.x) * zoomRatio;
-}
-
-export function mapScaleToZoomPercent(scale: number): number {
-  return scale * 0.5;
-}
-
-export function mapZoomPercentToScale(zoomPercent: number): number {
-  return Math.round(zoomPercent * 2);
-}

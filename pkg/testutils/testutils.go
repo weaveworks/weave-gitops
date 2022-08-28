@@ -74,7 +74,10 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 		return nil, fmt.Errorf("could not start testEnv: %w", err)
 	}
 
-	scheme := kube.CreateScheme()
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		return nil, fmt.Errorf("could not create scheme: %w", err)
+	}
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		ClientDisableCacheFor: []client.Object{

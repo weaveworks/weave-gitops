@@ -2,45 +2,45 @@ package run
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
 
 	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/fsnotify/fsnotify"
+	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
+	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-type runCommandFlags struct {
+const (
+	dashboardName    = "ww-gitops"
+	dashboardPodName = "ww-gitops-weave-gitops"
+	adminUsername    = "admin"
+	helmChartVersion = "3.0.0"
+)
+
+type RunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext string
 	Components      []string
 	ComponentsExtra []string
 	Timeout         time.Duration
 	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
+	DashboardPort   string
 	RootDir         string
 	// Global flags.
 	Namespace  string
@@ -49,7 +49,7 @@ type runCommandFlags struct {
 	Context string
 }
 
-var flags runCommandFlags
+var flags RunCommandFlags
 
 var kubeConfigArgs *genericclioptions.ConfigFlags
 
@@ -65,7 +65,7 @@ gitops beta run . [flags]
 # Run the sync against the dev overlay path
 gitops beta run ./deploy/overlays/dev
 
-# Run the sync on the dev directory and forward the port. 
+# Run the sync on the dev directory and forward the port.
 # Listen on port 8080 on localhost, forwarding to 5000 in a pod of the service app.
 gitops beta run ./dev --port-forward port=8080:5000,resource=svc/app
 
@@ -88,9 +88,10 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the KubeConfig context to explicitly allow.")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install.")
+	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
+	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
@@ -170,7 +171,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		log := internal.NewCLILogger(os.Stdout)
+		log := clilogger.NewCLILogger(os.Stdout)
 
 		if flags.KubeConfig != "" {
 			kubeConfigArgs.KubeConfig = &flags.KubeConfig
@@ -212,7 +213,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if flags.AllowK8sContext == contextName {
 			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 		} else if !run.IsLocalCluster(kubeClient) {
-			return errors.New("allowed to run against a local cluster only")
+			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
 		}
 
 		ctx := context.Background()
@@ -222,31 +223,99 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
+			components := flags.Components
+			components = append(components, flags.ComponentsExtra...)
+
+			if err := run.ValidateComponents(components); err != nil {
+				return fmt.Errorf("can't install flux: %w", err)
+			}
+
 			installOpts := install.MakeDefaultOptions()
 			installOpts.Version = flags.FluxVersion
 			installOpts.Namespace = flags.Namespace
-			installOpts.Components = flags.Components
-			installOpts.ComponentsExtra = flags.ComponentsExtra
+			installOpts.Components = components
 			installOpts.ManifestFile = "flux-system.yaml"
 			installOpts.Timeout = flags.Timeout
 
-			if err := run.InstallFlux(log, ctx, kubeClient, installOpts, kubeConfigArgs); err != nil {
+			man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
+				log.Failuref("Error creating resource manager")
+				return err
+			}
+
+			if err := run.InstallFlux(log, ctx, installOpts, man); err != nil {
 				return fmt.Errorf("flux installation failed: %w", err)
 			} else {
 				log.Successf("Flux has been installed")
+			}
+
+			for _, controllerName := range components {
+				log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
+
+				if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
+					return err
+				}
+
+				log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
 			}
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
 		}
 
-		for _, controllerName := range []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"} {
-			log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
+		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-			if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
-				return err
+		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+
+		if dashboardInstalled {
+			log.Successf("GitOps Dashboard is found")
+		} else {
+			prompt := promptui.Prompt{
+				Label:     "Would you like to install the GitOps Dashboard",
+				IsConfirm: true,
+				Default:   "Y",
 			}
+			_, err = prompt.Run()
+			if err == nil {
+				password, err := run.ReadPassword(log)
+				if err != nil {
+					return err
+				}
 
-			log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
+				secret, err := run.GenerateSecret(log, password)
+				if err != nil {
+					return err
+				}
+
+				man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+				if err != nil {
+					log.Failuref("Error creating resource manager")
+					return err
+				}
+
+				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
+				if err != nil {
+					return fmt.Errorf("error creating dashboard objects: %w", err)
+				}
+
+				err = run.InstallDashboard(log, ctx, man, manifests)
+				if err != nil {
+					return fmt.Errorf("gitops dashboard installation failed: %w", err)
+				} else {
+					dashboardInstalled = true
+
+					log.Successf("GitOps Dashboard has been installed")
+				}
+			}
+		}
+
+		if dashboardInstalled {
+			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
+
+			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+			} else {
+				log.Successf("Dashboard reconciliation is done.")
+			}
 		}
 
 		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
@@ -254,7 +323,16 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs); err != nil {
+		var cancelDashboardPortForwarding func() = nil
+
+		if dashboardInstalled {
+			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+			if err != nil {
+				return err
+			}
+		}
+
+		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs, flags.Timeout); err != nil {
 			return err
 		}
 
@@ -276,14 +354,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		defer func(watcher *fsnotify.Watcher) {
-			err := watcher.Close()
-			if err != nil {
-				log.Warningf("Error closing watcher: %v", err.Error())
-			}
-		}(watcher)
-
-		err = filepath.Walk(rootDir, watchDirsForFileWalker(watcher))
+		err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
 		if err != nil {
 			return err
 		}
@@ -292,13 +363,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var (
 			cancelPortFwd func()
 			counter       uint64 = 1
+			needToRescan  bool   = false
 		)
 		// atomic counter for the number of file change events that have changed
 
 		go func() {
 			for {
 				select {
-				case <-watcher.Events:
+				case event := <-watcher.Events:
+					if event.Op&fsnotify.Create == fsnotify.Create ||
+						event.Op&fsnotify.Remove == fsnotify.Remove ||
+						event.Op&fsnotify.Rename == fsnotify.Rename {
+						// if it's a dir, we need to watch it
+						if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+							needToRescan = true
+						}
+					}
+
 					if cancelPortFwd != nil {
 						cancelPortFwd()
 					}
@@ -329,9 +410,28 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							log.Failuref("Error syncing dir: %v", err)
 						}
 
-						log.Actionf("Request reconciliation of dev-bucket, and dev-ks ...")
+						if needToRescan {
+							// close the old watcher
+							if err := watcher.Close(); err != nil {
+								log.Warningf("Error closing the old watcher: %v", err)
+							}
+							// create a new watcher
+							watcher, err = fsnotify.NewWatcher()
+							if err != nil {
+								log.Failuref("Error creating new watcher: %v", err)
+							}
 
-						if err := reconcileDevBucketSourceAndKS(kubeClient, flags.Namespace, flags.Timeout); err != nil {
+							err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
+							if err != nil {
+								log.Failuref("Error re-walking dir: %v", err)
+							}
+
+							needToRescan = false
+						}
+
+						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
+
+						if err := run.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
 							log.Failuref("Error requesting reconciliation: %v", err)
 						}
 
@@ -344,7 +444,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 							}
 
 							// get pod from specMap
-							pod, err := run.GetPodFromSpecMap(specMap, kubeClient)
+							namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+							pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 							if err != nil {
 								log.Failuref("Error getting pod from specMap: %v", err)
 							}
@@ -380,12 +482,21 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
 
+		if err := watcher.Close(); err != nil {
+			log.Warningf("Error closing watcher: %v", err.Error())
+		}
+
 		// print a blank line to make it easier to read the logs
 		fmt.Println()
 		cancelDevBucketPortForwarding()
+
+		if cancelDashboardPortForwarding != nil {
+			cancelDashboardPortForwarding()
+		}
+
 		ticker.Stop()
 
-		if err := run.CleanupBucketSourceAndKS(log, kubeClient, "flux-system"); err != nil {
+		if err := run.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
 			return err
 		}
 
@@ -396,117 +507,4 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		return nil
 	}
-}
-
-func watchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os.FileInfo, err error) error {
-	return func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("Error walking path: %v", err)
-		}
-
-		if info.IsDir() {
-			// if it's a hidden directory, ignore it
-			if strings.HasPrefix(info.Name(), ".") {
-				return filepath.SkipDir
-			}
-
-			if err := watcher.Add(path); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-}
-
-// reconcileDevBucketSourceAndKS reconciles the dev-bucket and dev-ks asynchronously.
-func reconcileDevBucketSourceAndKS(kubeClient *kube.KubeHTTP, namespace string, timeout time.Duration) error {
-	const interval = 3 * time.Second / 2
-
-	// reconcile dev-bucket
-	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, schema.GroupVersionKind{
-			Group:   "source.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "Bucket",
-		})
-	if err != nil {
-		return err
-	}
-
-	// wait for the reconciliation of dev-bucket to be done
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, devBucket); err != nil {
-			return false, err
-		}
-
-		return devBucket.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
-	}); err != nil {
-		return err
-	}
-
-	// wait for devBucket to be ready
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-bucket",
-		}, devBucket); err != nil {
-			return false, err
-		}
-		return apimeta.IsStatusConditionPresentAndEqual(devBucket.Status.Conditions, meta.ReadyCondition, metav1.ConditionTrue), nil
-	}); err != nil {
-		return err
-	}
-
-	// reconcile dev-ks
-	ksRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
-		types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, schema.GroupVersionKind{
-			Group:   "kustomize.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    "Kustomization",
-		})
-	if err != nil {
-		return err
-	}
-
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devKs := &kustomizev1.Kustomization{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, devKs); err != nil {
-			return false, err
-		}
-
-		return devKs.Status.GetLastHandledReconcileRequest() == ksRequestedAt, nil
-	}); err != nil {
-		return err
-	}
-
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devKs := &kustomizev1.Kustomization{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
-			Namespace: namespace,
-			Name:      "dev-ks",
-		}, devKs); err != nil {
-			return false, err
-		}
-
-		return apimeta.IsStatusConditionPresentAndEqual(devKs.Status.Conditions, kustomizev1.HealthyCondition, metav1.ConditionTrue), nil
-	}); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -15,14 +15,28 @@ import {
   HelmRelease,
   Kustomization,
 } from "../lib/api/core/types.pb";
-import { NoNamespace, RequestError, Syncable } from "../lib/types";
+import {
+  MultiRequestError,
+  NoNamespace,
+  ReactQueryOptions,
+  RequestError,
+  Syncable,
+} from "../lib/types";
 
 export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
-export function useListAutomations(namespace = NoNamespace) {
+type Res = { result: Automation[]; errors: MultiRequestError[] };
+
+export function useListAutomations(
+  namespace = NoNamespace,
+  opts: ReactQueryOptions<Res, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Automation[], RequestError>(
+  return useQuery<Res, RequestError>(
     "automations",
     () => {
       const p = [
@@ -39,20 +53,31 @@ export function useListAutomations(namespace = NoNamespace) {
         const kustomizations = (kustRes as ListKustomizationsResponse)
           .kustomizations;
         const helmReleases = (helmRes as ListHelmReleasesResponse).helmReleases;
-
-        return [
-          ..._.map(kustomizations, (k) => ({
-            ...k,
-            kind: FluxObjectKind.KindKustomization,
-          })),
-          ..._.map(helmReleases, (h) => ({
-            ...h,
-            kind: FluxObjectKind.KindHelmRelease,
-          })),
-        ];
+        return {
+          result: [
+            ..._.map(kustomizations, (k) => ({
+              ...k,
+              kind: FluxObjectKind.KindKustomization,
+            })),
+            ..._.map(helmReleases, (h) => ({
+              ...h,
+              kind: FluxObjectKind.KindHelmRelease,
+            })),
+          ],
+          errors: [
+            ..._.map(kustRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindKustomization,
+            })),
+            ..._.map(helmRes.errors, (e) => ({
+              ...e,
+              kind: FluxObjectKind.KindHelmRelease,
+            })),
+          ],
+        };
       });
     },
-    { retry: false, refetchInterval: 5000 }
+    opts
   );
 }
 
@@ -60,7 +85,7 @@ export function useGetKustomization(
   name: string,
 
   namespace = NoNamespace,
-  clusterName = null
+  clusterName: string
 ) {
   const { api } = useContext(CoreClientContext);
 

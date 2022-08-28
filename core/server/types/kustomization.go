@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
-func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string) (*pb.Kustomization, error) {
+func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName string, tenant string) (*pb.Kustomization, error) {
 	var kind pb.FluxObjectKind
 
 	switch kustomization.Spec.SourceRef.Kind {
@@ -20,6 +20,8 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		kind = pb.FluxObjectKind_KindHelmRepository
 	case sourcev1.BucketKind:
 		kind = pb.FluxObjectKind_KindBucket
+	case sourcev1.OCIRepositoryKind:
+		kind = pb.FluxObjectKind_KindOCIRepository
 	}
 
 	inv, err := getKustomizeInventory(kustomization)
@@ -53,6 +55,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		Suspended:             kustomization.Spec.Suspend,
 		ClusterName:           clusterName,
 		ApiVersion:            version,
+		Tenant:                tenant,
 	}, nil
 }
 

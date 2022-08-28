@@ -12,6 +12,7 @@ export enum FluxObjectKind {
   KindKustomization = "KindKustomization",
   KindHelmRelease = "KindHelmRelease",
   KindCluster = "KindCluster",
+  KindOCIRepository = "KindOCIRepository",
 }
 
 export enum HelmRepositoryType {
@@ -77,6 +78,7 @@ export type Kustomization = {
   suspended?: boolean
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmChart = {
@@ -91,6 +93,7 @@ export type HelmChart = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmRelease = {
@@ -107,6 +110,7 @@ export type HelmRelease = {
   lastAppliedRevision?: string
   lastAttemptedRevision?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type GitRepository = {
@@ -121,6 +125,7 @@ export type GitRepository = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
 }
 
 export type HelmRepository = {
@@ -134,6 +139,7 @@ export type HelmRepository = {
   clusterName?: string
   apiVersion?: string
   repositoryType?: HelmRepositoryType
+  tenant?: string
 }
 
 export type Bucket = {
@@ -152,11 +158,26 @@ export type Bucket = {
   lastUpdatedAt?: string
   clusterName?: string
   apiVersion?: string
+  tenant?: string
+}
+
+export type OCIRepository = {
+  namespace?: string
+  name?: string
+  url?: string
+  interval?: Interval
+  conditions?: Condition[]
+  suspended?: boolean
+  lastUpdatedAt?: string
+  clusterName?: string
+  apiVersion?: string
+  tenant?: string
 }
 
 export type Object = {
   payload?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type Deployment = {
@@ -165,6 +186,18 @@ export type Deployment = {
   conditions?: Condition[]
   images?: string[]
   suspended?: boolean
+  clusterName?: string
+}
+
+export type CrdName = {
+  plural?: string
+  group?: string
+}
+
+export type Crd = {
+  name?: CrdName
+  version?: string
+  kind?: string
   clusterName?: string
 }
 

@@ -18,6 +18,15 @@
 // featureflags endpoint on the frontend.
 package featureflags
 
+import (
+	"strings"
+)
+
+const (
+	// Env var prefix that will be set as a feature flag automatically
+	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
+)
+
 var flags map[string]string = make(map[string]string)
 
 // Set sets one specific featureflag
@@ -39,4 +48,22 @@ func Get(key string) string {
 // the frontend - for all other uses, use `Get`
 func GetFlags() map[string]string {
 	return flags
+}
+
+// SetFromEnv sets the feature flags from the environment variables
+func SetFromEnv(envVars []string) {
+	for _, envVar := range envVars {
+		keyVal := strings.SplitN(envVar, "=", 2)
+		if len(keyVal) != 2 {
+			continue
+		}
+
+		key, val := keyVal[0], keyVal[1]
+
+		if !strings.HasPrefix(key, featureFlagPrefix) {
+			continue
+		}
+
+		Set(key, val)
+	}
 }

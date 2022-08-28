@@ -157,17 +157,13 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   font-style: normal;
 }
 
+.c2 {
+  padding: 4px;
+}
+
 .c3 {
   -webkit-text-decoration: none;
   text-decoration: none;
-}
-
-.c3.title-bar-button {
-  width: 250px;
-}
-
-.c2 {
-  padding: 4px;
 }
 
 <div

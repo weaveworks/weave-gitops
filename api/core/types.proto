@@ -18,6 +18,7 @@ enum FluxObjectKind {
     KindKustomization  = 4;
     KindHelmRelease    = 5;
     KindCluster        = 6;
+    KindOCIRepository  = 7;
 };
 
 enum HelmRepositoryType {
@@ -72,6 +73,7 @@ message Kustomization {
     bool          suspended                  = 10;
     string        clusterName                = 11;
     string        apiVersion                 = 12;
+    string        tenant                     = 17;
 }
 
 message HelmChart {
@@ -86,6 +88,7 @@ message HelmChart {
     string        lastUpdatedAt        = 9;
     string        clusterName          = 10;
     string        apiVersion           = 11;
+    string        tenant               = 12;
 }
 
 message HelmRelease {
@@ -102,6 +105,7 @@ message HelmRelease {
     string    lastAppliedRevision        = 14;
     string    lastAttemptedRevision      = 15;
     string    apiVersion                 = 16;
+    string    tenant                     = 17;
 }
 
 message GitRepository {
@@ -116,6 +120,7 @@ message GitRepository {
     string           lastUpdatedAt        = 9;
     string           clusterName          = 10;
     string           apiVersion           = 11;
+    string           tenant               = 12;
 }
 
 message HelmRepository {
@@ -129,6 +134,7 @@ message HelmRepository {
     string             clusterName          = 8;
     string             apiVersion           = 9;
     HelmRepositoryType repositoryType       = 10;
+    string             tenant               = 11;
 }
 
 message Bucket {
@@ -152,11 +158,27 @@ message Bucket {
     string   lastUpdatedAt        = 13;
     string   clusterName          = 14;
     string   apiVersion           = 15;
+    string   tenant               = 16;
 }
+
+message OCIRepository {
+    string             namespace            = 1;
+    string             name                 = 2;
+    string             url                  = 3;
+    Interval           interval             = 4;
+    repeated           Condition conditions = 5;
+    bool               suspended            = 6;
+    string             lastUpdatedAt        = 7;
+    string             clusterName          = 8;
+    string             apiVersion           = 9;
+    string             tenant               = 10;
+}
+
 
 message Object {
     string payload     = 1;
     string clusterName = 2;
+    string tenant      = 3;
 }
 
 message Deployment {
@@ -166,6 +188,17 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
+}
+
+message Crd {
+    message Name {
+        string plural = 1;
+        string group  = 2;
+    }
+    Name     name                 = 1;
+    string   version              = 2;
+    string   kind                 = 3;
+    string   clusterName          = 4;
 }
 
 // UnstructuredObject is a Kubernetes object of an unknown type

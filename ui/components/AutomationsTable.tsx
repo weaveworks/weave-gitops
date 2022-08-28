@@ -6,7 +6,8 @@ import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper, removeKind } from "../lib/utils";
-import { Field, SortType } from "./DataTable";
+import { useFeatureFlags } from "../hooks/featureflags";
+import { Field } from "./DataTable";
 import { filterConfig, filterByStatusCallback } from "./FilterableTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -22,15 +23,32 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  automations = automations?.map((a) => {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
+  automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
-  const initialFilterState = {
+
+  let initialFilterState = {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
-    ...filterConfig(automations, "clusterName"),
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "tenant"),
+    };
+  }
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "clusterName"),
+    };
+  }
 
   let fields: Field[] = [
     {
@@ -64,10 +82,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Namespace",
       value: "namespace",
     },
-    {
-      label: "Cluster",
-      value: "clusterName",
-    },
+    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? [{ label: "Tenant", value: "tenant" }]
+      : []),
+    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [{ label: "Cluster", value: "clusterName" }]
+      : []),
     {
       label: "Source",
       value: (a: Automation) => {
@@ -110,8 +130,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
             suspended={a.suspended}
           />
         ) : null,
-      sortType: SortType.number,
       sortValue: statusSortHelper,
+      defaultSort: true,
     },
     {
       label: "Message",
@@ -130,6 +150,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
         />
       ),
+      sortValue: (a: Automation) => {
+        return _.get(_.find(a.conditions, { type: "Ready" }), "timestamp");
+      },
     },
   ];
 

@@ -15,37 +15,29 @@ import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
-export enum SortType {
-  //sort is unused but having number as index zero makes it a falsy value thus not used as a valid sortType for selecting fields for SortableLabel
-  sort,
-  number,
-  string,
-  date,
-  bool,
-}
-
 type Sorter = (k: any) => any;
 
 export type Field = {
   label: string | number;
   labelRenderer?: string | ((k: any) => string | JSX.Element);
   value: string | ((k: any) => string | JSX.Element | null);
-  sortType?: SortType;
   sortValue?: Sorter;
   textSearchable?: boolean;
   maxWidth?: number;
+  /** boolean for field to initially sort against. */
+  defaultSort?: boolean;
+  /** boolean for field to implement secondary sort against. */
+  secondarySort?: boolean;
 };
 
 /** DataTable Properties  */
 export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
-  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, `sortType`, which determines the sorting function to be used, and `sortValue`, which customizes your input to the search function */
+  /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, and `sortValue`, which customizes your input to the search function */
   fields: Field[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows?: any[];
-  /** index of field to initially sort against. */
-  defaultSort?: number;
   /** for passing pagination */
   children?: any;
 }
@@ -75,56 +67,60 @@ const TableButton = styled(Button)`
 
 type Row = any;
 
-function defaultSortFunc(sort: Field): Sorter {
-  return (a: Row) => {
-    return a[sort.value as string];
-  };
-}
+export const sortByField = (
+  rows: Row[],
+  reverseSort: boolean,
+  sortFields: Field[],
+  useSecondarySort?: boolean
+) => {
+  const orderFields = [
+    sortFields[0],
+    ...(useSecondarySort && sortFields.length > 1 && [sortFields[1]]),
+  ];
 
-export const sortWithType = (rows: Row[], sort: Field) => {
-  const sortFn = sort.sortValue || defaultSortFunc(sort);
-  return (rows?.slice() || []).sort((a: Row, b: Row) => {
-    switch (sort.sortType) {
-      case SortType.number:
-        return sortFn(a) - sortFn(b);
+  return _.orderBy(
+    rows,
+    sortFields.map((s) => {
+      return s.sortValue || s.value;
+    }),
+    orderFields.map((_, index) => {
+      // Always sort secondary sort values in the ascending order.
+      const sortOrders =
+        reverseSort && (!useSecondarySort || index != 1) ? "desc" : "asc";
 
-      case SortType.date:
-        return Date.parse(sortFn(a)) - Date.parse(sortFn(b));
-
-      case SortType.bool:
-        if (sortFn(a) === sortFn(b)) return 0;
-        else if (sortFn(a) === false && sortFn(b) === true) return -1;
-        else return 1;
-
-      default:
-        return (sortFn(a) || "").localeCompare(sortFn(b) || "");
-    }
-  });
+      return sortOrders;
+    })
+  );
 };
 
 type labelProps = {
-  field: Field;
-  sort: Field;
+  fields: Field[];
+  fieldIndex: number;
+  sortFieldIndex: number;
   reverseSort: boolean;
-  setSort: (field: Field) => void;
+  setSortFieldIndex: (index: number) => void;
   setReverseSort: (b: boolean) => void;
 };
 
 function SortableLabel({
-  field,
-  sort,
-  setReverseSort,
-  setSort,
+  fields,
+  fieldIndex,
+  sortFieldIndex,
   reverseSort,
+  setSortFieldIndex,
+  setReverseSort,
 }: labelProps) {
+  const field = fields[fieldIndex];
+  const sort = fields[sortFieldIndex];
+
   return (
     <Flex align start>
       <TableButton
         color="inherit"
         variant="text"
         onClick={() => {
-          setReverseSort(sort === field ? !reverseSort : false);
-          setSort(field);
+          setReverseSort(sortFieldIndex === fieldIndex ? !reverseSort : false);
+          setSortFieldIndex(fieldIndex);
         }}
       >
         <h2 className={sort.label === field.label ? "selected" : ""}>
@@ -146,21 +142,41 @@ function SortableLabel({
 }
 
 /** Form DataTable */
-function UnstyledDataTable({
-  className,
-  fields,
-  rows,
-  defaultSort = 0,
-  children,
-}: Props) {
-  const [sort, setSort] = React.useState(fields[defaultSort]);
+function UnstyledDataTable({ className, fields, rows, children }: Props) {
+  const [sortFieldIndex, setSortFieldIndex] = React.useState(() => {
+    let sortFieldIndex = fields.findIndex((f) => f.defaultSort);
+
+    if (sortFieldIndex === -1) {
+      sortFieldIndex = 0;
+    }
+
+    return sortFieldIndex;
+  });
+
+  const secondarySortFieldIndex = fields.findIndex((f) => f.secondarySort);
+
   const [reverseSort, setReverseSort] = React.useState(false);
 
-  const sorted = sortWithType(rows, sort);
+  let sortFields = [fields[sortFieldIndex]];
 
-  if (reverseSort) {
-    sorted.reverse();
+  const useSecondarySort =
+    secondarySortFieldIndex > -1 && sortFieldIndex != secondarySortFieldIndex;
+
+  if (useSecondarySort) {
+    sortFields = sortFields.concat(fields[secondarySortFieldIndex]);
+    sortFields = sortFields.concat(
+      fields.filter(
+        (_, index) =>
+          index != sortFieldIndex && index != secondarySortFieldIndex
+      )
+    );
+  } else {
+    sortFields = sortFields.concat(
+      fields.filter((_, index) => index != sortFieldIndex)
+    );
   }
+
+  const sorted = sortByField(rows, reverseSort, sortFields, useSecondarySort);
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
@@ -185,17 +201,18 @@ function UnstyledDataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f) => (
+              {_.map(fields, (f, index) => (
                 <TableCell key={f.label}>
                   {typeof f.labelRenderer === "function" ? (
                     f.labelRenderer(r)
                   ) : (
                     <SortableLabel
-                      sort={sort}
+                      fields={fields}
+                      fieldIndex={index}
+                      sortFieldIndex={sortFieldIndex}
                       reverseSort={reverseSort}
+                      setSortFieldIndex={setSortFieldIndex}
                       setReverseSort={(isReverse) => setReverseSort(isReverse)}
-                      setSort={setSort}
-                      field={f}
                     />
                   )}
                 </TableCell>
@@ -232,6 +249,7 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
+  flex-wrap: nowrap;
   overflow-x: auto;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
@@ -248,8 +266,12 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
+  table {
+    margin-top: ${(props) => props.theme.spacing.small};
+  }
   th {
-    padding: 0;
+    padding: ${(props) => props.theme.spacing.xs};
+    background: ${(props) => props.theme.colors.neutralGray};
   }
   td {
     white-space: nowrap;

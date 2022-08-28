@@ -13,6 +13,7 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -22,9 +23,17 @@ import (
 )
 
 func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
+	respErrors := []*pb.ListError{}
+
 	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -36,6 +45,8 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 	}
 
 	var results []*pb.HelmRelease
+
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
 
 	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
@@ -50,18 +61,21 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 					return nil, err
 				}
 
-				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv))
+				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
+
+				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
 			}
 		}
 	}
 
 	return &pb.ListHelmReleasesResponse{
 		HelmReleases: results,
+		Errors:       respErrors,
 	}, nil
 }
 
 func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -82,7 +96,11 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory)
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := GetTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
+
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
 
 	res.ApiVersion = apiVersion
 
