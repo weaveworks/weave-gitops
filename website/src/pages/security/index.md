@@ -43,14 +43,14 @@ Here is an overview of all our published security advisories.
 
 ### Weave Gitops OSS
 
-Date | CVE | Tittle                                                                                                                                                   | Severity | Affected version(s) | 
+Date | CVE | Security Advisory                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-06-23 | CVE-2022-31098| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | <= 0.8.1-rc.5| 
+2022-06-23 | [CVE-2022-31098](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31098)| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | <= 0.8.1-rc.5| 
 
 
 ### Weave Gitops Enterprise
 
-Date | CVE | Tittle                                                                                                                                                   | Severity | Affected version(s) | 
+Date | CVE | Security Advisory                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-08-27 | TBA | [Malicious links can be crafted by users and shown in the UI](cve/enterprise/GHSA-378h-hpjp-gxfc) | Critical  | < v0.9.0-rc.5|
+2022-08-27 | [CVE-2022-38790](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-38790) | [Malicious links can be crafted by users and shown in the UI](cve/enterprise/CVE-2022-38790) | Critical  | < v0.9.0-rc.5|
 
