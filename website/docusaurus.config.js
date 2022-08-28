@@ -54,6 +54,11 @@ module.exports = {
           label: "Getting Started",
         },
         {
+          to: 'security',
+          label: 'Security',
+          position: 'left',
+        },
+        {
           type: "docsVersionDropdown",
           position: "right",
           dropdownActiveClassDisabled: true,

@@ -2,6 +2,7 @@
 title: Security
 description: weave gitops security page. find information about vulnerabilities and others.
 hide_title: true
+hide_table_of_contents: true
 ---
 
 # Weave Gitops Security
