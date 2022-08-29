@@ -90,7 +90,10 @@ function GraphNode({ className, object }: Props) {
         <Title start wide align>
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
-          <Tooltip placement="top" title={object.name}>
+          <Tooltip
+            placement="top"
+            title={object.name.length > 20 ? object.name : ""}
+          >
             <span>{object.name}</span>
           </Tooltip>
         </Title>
