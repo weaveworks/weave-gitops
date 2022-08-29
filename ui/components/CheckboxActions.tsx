@@ -32,12 +32,11 @@ type Props = {
 };
 
 function CheckboxActions({ className, checked = [], rows = [] }: Props) {
-  //TODO add multi sync
   const [suspendReqs, setSuspendReqs] = React.useState([]);
+  const hasChecked = checked.length > 0;
 
   React.useEffect(() => {
-    if (checked.length && rows.length)
-      setSuspendReqs(makeObjects(checked, rows));
+    if (hasChecked && rows.length) setSuspendReqs(makeObjects(checked, rows));
   }, [checked, rows]);
 
   function createSuspendHandler(suspend: boolean) {
@@ -56,7 +55,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
     <Flex start align className={className}>
       <Tooltip title="Suspend Selected" placement="top">
         <div>
-          <Button disabled={!checked[0]} onClick={createSuspendHandler(true)}>
+          <Button disabled={!hasChecked} onClick={createSuspendHandler(true)}>
             <Icon type={IconType.PauseIcon} size="medium" />
           </Button>
         </div>
@@ -64,7 +63,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
       <Spacer padding="xxs" />
       <Tooltip title="Resume Selected" placement="top">
         <div>
-          <Button disabled={!checked[0]} onClick={createSuspendHandler(false)}>
+          <Button disabled={!hasChecked} onClick={createSuspendHandler(false)}>
             <Icon type={IconType.PlayIcon} size="medium" />
           </Button>
         </div>
