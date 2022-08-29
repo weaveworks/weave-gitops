@@ -6,6 +6,7 @@ import {
   Tooltip,
 } from "@material-ui/core";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import Icon, { IconType } from "./Icon";
@@ -42,6 +43,7 @@ const PersonButton = styled(IconButton)<{ open: boolean }>`
 `;
 
 function UserSettings({ className }: { className?: string }) {
+  const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
 
@@ -74,7 +76,8 @@ function UserSettings({ className }: { className?: string }) {
         onClick={handleClose}
         transformOrigin={{ horizontal: 150, vertical: "top" }}
       >
-        <MenuItem>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem onClick={() => history.push("/settings")}>Settings</MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>
             <Icon type={IconType.LogoutIcon} size="base" />

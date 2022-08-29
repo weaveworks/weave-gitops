@@ -20,7 +20,7 @@ function BucketDetail({ className, name, namespace, clusterName }: Props) {
   } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <BucketDetailComponent bucket={bucket} />
     </Page>
   );

@@ -29,9 +29,10 @@ import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
-import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
+import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
+import Settings from "./pages/v2/Settings";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,10 @@ const App = () => (
         <Route
           path={V2Routes.OCIRepository}
           component={withSearchParams(OCIRepositoryPage)}
+        />
+        <Route
+          path={V2Routes.Settings}
+          component={withSearchParams(Settings)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />

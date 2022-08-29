@@ -30,7 +30,7 @@ function HelmRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <HelmRepositoryDetailComponent helmRepository={helmRepository} />
     </Page>
   );
