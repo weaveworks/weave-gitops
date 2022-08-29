@@ -52,7 +52,7 @@ import { useGetObject } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
-import { FluxObjectKind, HelmChart, GitRepository, HelmRepository } from "./lib/api/core/types.pb";
+import { FluxObjectKind } from "./lib/api/core/types.pb";
 import { fluxObjectKindToKind, Kind } from "./lib/objects";
 import {
   clearCallbackState,
@@ -98,11 +98,8 @@ export {
   formatURL,
   getCallbackState,
   getProviderToken,
-  GitRepository,
   GithubDeviceAuthModal,
   GitRepositoryDetail,
-  HelmChart,
-  HelmRepository,
   HelmChartDetail,
   HelmReleaseDetail,
   HelmRepositoryDetail,
