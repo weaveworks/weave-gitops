@@ -170,7 +170,7 @@ function SourcesTable({ className, sources }: Props) {
     <DataTable
       className={className}
       filters={initialFilterState}
-      checkboxes
+      hasCheckboxes
       rows={sources}
       fields={fields}
     />

@@ -166,7 +166,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       rows={automations}
       className={className}
       filters={initialFilterState}
-      checkboxes
+      hasCheckboxes
     />
   );
 }

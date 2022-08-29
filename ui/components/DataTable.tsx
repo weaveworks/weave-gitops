@@ -57,7 +57,7 @@ export interface Props {
   rows?: any[];
   filters?: FilterConfig;
   dialogOpen?: boolean;
-  checkboxes?: boolean;
+  hasCheckboxes?: boolean;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -331,7 +331,7 @@ function UnstyledDataTable({
   fields,
   rows,
   filters,
-  checkboxes,
+  hasCheckboxes: checkboxes,
   dialogOpen,
 }: Props) {
   //URL info
