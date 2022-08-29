@@ -92,7 +92,7 @@ function GraphNode({ className, object }: Props) {
           <div style={{ padding: 4 }} />
           <Tooltip
             placement="top"
-            title={object.name.length > 25 ? object.name : ""}
+            title={object.name.length > 23 ? object.name : ""}
           >
             <span>{object.name}</span>
           </Tooltip>
