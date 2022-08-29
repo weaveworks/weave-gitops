@@ -40,26 +40,23 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
       setSuspendReqs(makeObjects(checked, rows));
   }, [checked, rows]);
 
-  const resume = useToggleSuspend(
-    {
-      objects: suspendReqs,
-      suspend: false,
-    },
-    suspendReqs[0] ? suspendReqs[0].kind : ""
-  );
-  const suspend = useToggleSuspend(
-    {
-      objects: suspendReqs,
-      suspend: true,
-    },
-    suspendReqs[0] ? suspendReqs[0].kind : ""
-  );
+  function createSuspendHandler(suspend: boolean) {
+    const result = useToggleSuspend(
+      {
+        objects: suspendReqs,
+        suspend: suspend,
+      },
+      suspendReqs[0] ? suspendReqs[0].kind : ""
+    );
+
+    return () => result.mutateAsync();
+  }
 
   return (
     <Flex start align className={className}>
       <Tooltip title="Suspend Selected" placement="top">
         <div>
-          <Button disabled={!checked[0]} onClick={() => suspend.mutateAsync()}>
+          <Button disabled={!checked[0]} onClick={createSuspendHandler(true)}>
             <Icon type={IconType.PauseIcon} size="medium" />
           </Button>
         </div>
@@ -67,7 +64,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
       <Spacer padding="xxs" />
       <Tooltip title="Resume Selected" placement="top">
         <div>
-          <Button disabled={!checked[0]} onClick={() => resume.mutateAsync()}>
+          <Button disabled={!checked[0]} onClick={createSuspendHandler(false)}>
             <Icon type={IconType.PlayIcon} size="medium" />
           </Button>
         </div>
