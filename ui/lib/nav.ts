@@ -27,6 +27,9 @@ export const getParentNavValue = (
     case V2Routes.FluxRuntime:
       return V2Routes.FluxRuntime;
 
+    case V2Routes.Settings:
+      return V2Routes.Settings;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -37,6 +40,7 @@ const pageTitles = {
   [V2Routes.Automations]: "Applications",
   [V2Routes.Sources]: "Sources",
   [V2Routes.FluxRuntime]: "Flux Runtime",
+  [V2Routes.Settings]: "Settings",
 };
 
 export const getPageLabel = (route: V2Routes): string => {
