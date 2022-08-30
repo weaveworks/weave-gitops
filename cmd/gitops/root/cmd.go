@@ -8,18 +8,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -40,7 +35,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
-func RootCmd(client *adapters.HTTPClient) *cobra.Command {
+func RootCmd() *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -48,9 +43,9 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 		Short:         "Weave GitOps",
 		Long:          "Command line utility for managing Kubernetes applications via GitOps.",
 		Example: `
-  # Get help for gitops add cluster command
-  gitops add cluster -h
-  gitops help add cluster
+  # Get help for gitops create dashboard command
+  gitops create dashboard -h
+  gitops help create dashboard
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
@@ -104,11 +99,7 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(get.GetCommand(options, client))
-	rootCmd.AddCommand(add.GetCommand(options, client))
-	rootCmd.AddCommand(update.UpdateCommand(options, client))
-	rootCmd.AddCommand(delete.DeleteCommand(options, client))
-	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(get.GetCommand(options))
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
