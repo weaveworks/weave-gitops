@@ -33,6 +33,7 @@ func BucketToProto(bucket *sourcev1.Bucket, clusterName string, tenant string) *
 		ClusterName:   clusterName,
 		ApiVersion:    bucket.APIVersion,
 		Tenant:        tenant,
+		Uid:           string(bucket.GetUID()),
 	}
 
 	if bucket.Spec.SecretRef != nil {

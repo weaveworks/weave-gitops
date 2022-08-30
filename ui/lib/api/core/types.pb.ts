@@ -79,6 +79,7 @@ export type Kustomization = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type HelmChart = {
@@ -94,6 +95,7 @@ export type HelmChart = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type HelmRelease = {
@@ -111,6 +113,7 @@ export type HelmRelease = {
   lastAttemptedRevision?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type GitRepository = {
@@ -126,6 +129,7 @@ export type GitRepository = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type HelmRepository = {
@@ -140,6 +144,7 @@ export type HelmRepository = {
   apiVersion?: string
   repositoryType?: HelmRepositoryType
   tenant?: string
+  uid?: string
 }
 
 export type Bucket = {
@@ -159,6 +164,7 @@ export type Bucket = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type OCIRepository = {
@@ -172,6 +178,7 @@ export type OCIRepository = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type Object = {
@@ -187,6 +194,7 @@ export type Deployment = {
   images?: string[]
   suspended?: boolean
   clusterName?: string
+  uid?: string
 }
 
 export type CrdName = {
@@ -199,6 +207,7 @@ export type Crd = {
   version?: string
   kind?: string
   clusterName?: string
+  uid?: string
 }
 
 export type UnstructuredObject = {
@@ -229,4 +238,12 @@ export type Event = {
   component?: string
   host?: string
   name?: string
+  uid?: string
+}
+
+export type SuspendReqObj = {
+  kind?: FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
 }

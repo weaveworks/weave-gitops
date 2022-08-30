@@ -58,7 +58,8 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 			for _, helmrelease := range list.Items {
 				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
 				if err != nil {
-					return nil, err
+					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: err.Error()})
+					continue
 				}
 
 				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)

@@ -21,6 +21,7 @@ func GitRepositoryToProto(repository *sourcev1.GitRepository, clusterName string
 		ClusterName:   clusterName,
 		ApiVersion:    repository.APIVersion,
 		Tenant:        tenant,
+		Uid:           string(repository.GetUID()),
 	}
 
 	if repository.Spec.Reference != nil {

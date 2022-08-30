@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import {
   Bucket,
   FluxObjectKind,
@@ -15,13 +16,14 @@ import {
   removeKind,
   statusSortHelper,
 } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
-import { Field } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -33,7 +35,6 @@ function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
-  const [filterDialogOpen, setFilterDialog] = React.useState(false);
   sources = sources?.map((s) => {
     return { ...s, type: removeKind(s.kind) };
   });
@@ -166,12 +167,11 @@ function SourcesTable({ className, sources }: Props) {
   ];
 
   return (
-    <URLAddressableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
+      hasCheckboxes
       rows={sources}
-      dialogOpen={filterDialogOpen}
-      onDialogClose={() => setFilterDialog(false)}
       fields={fields}
     />
   );

@@ -56,6 +56,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		ClusterName:           clusterName,
 		ApiVersion:            version,
 		Tenant:                tenant,
+		Uid:                   string(kustomization.GetUID()),
 	}, nil
 }
 

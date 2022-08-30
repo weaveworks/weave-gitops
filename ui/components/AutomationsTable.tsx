@@ -2,18 +2,20 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { statusSortHelper, removeKind } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { Field } from "./DataTable";
-import { filterConfig, filterByStatusCallback } from "./FilterableTable";
+import { removeKind, statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -159,11 +161,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <URLAddressableTable
+    <DataTable
       fields={fields}
-      filters={initialFilterState}
       rows={automations}
       className={className}
+      filters={initialFilterState}
+      hasCheckboxes
     />
   );
 }

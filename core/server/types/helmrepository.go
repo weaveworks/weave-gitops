@@ -18,6 +18,7 @@ func HelmRepositoryToProto(helmRepository *sourcev1.HelmRepository, clusterName 
 		ApiVersion:     helmRepository.APIVersion,
 		RepositoryType: typeToRepositoryType(helmRepository.Spec.Type),
 		Tenant:         tenant,
+		Uid:            string(helmRepository.GetUID()),
 	}
 }
 
