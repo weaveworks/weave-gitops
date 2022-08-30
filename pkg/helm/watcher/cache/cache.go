@@ -34,6 +34,7 @@ type profileVersion = string
 type ValueMap map[profileName]map[profileVersion][]byte
 
 // Cache defines an interface to work with the profile data cacher.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Cache
 type Cache interface {
@@ -190,14 +191,14 @@ func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, helm
 }
 
 // GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
-func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
+func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoName types.NamespacedName, profileName, profileVersion string) ([]byte, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("retrieving cached profile values data")
 
 	var result []byte
 
 	getValuesOperation := func() error {
-		values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
+		values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoName.Namespace, helmRepoName.Name, profileName, profileVersion, valuesFilename))
 		if err != nil {
 			return fmt.Errorf("failed to read values file: %w", err)
 		}

@@ -193,7 +193,7 @@ func TestListProfilesFailedLock(t *testing.T) {
 
 func TestGetProfileValuesFailedLock(t *testing.T) {
 	profileCache := &ProfileCache{cacheLocation: "nope"}
-	_, err := profileCache.GetProfileValues(context.Background(), "", "", "", "")
+	_, err := profileCache.GetProfileValues(context.Background(), types.NamespacedName{}, "", "")
 	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
 }
 
