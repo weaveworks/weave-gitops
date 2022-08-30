@@ -57,34 +57,63 @@ func TestSuspend_Suspend(t *testing.T) {
 		},
 	}
 
+	requestObjects := []*api.SuspendReqObj{}
+
 	for _, tt := range tests {
 		t.Run(tt.kind.String(), func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			g.Expect(k.Create(ctx, tt.obj)).Should(Succeed())
-
-			req := &api.ToggleSuspendResourceRequest{
+			object := &api.SuspendReqObj{
 				Kind:        tt.kind,
 				Name:        tt.obj.GetName(),
 				Namespace:   tt.obj.GetNamespace(),
 				ClusterName: "Default",
-				Suspend:     true,
 			}
-
-			_, err := c.ToggleSuspendResource(ctx, req)
-			g.Expect(err).NotTo(HaveOccurred())
-
-			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
-
-			req.Suspend = false
+			req := &api.ToggleSuspendResourceRequest{
+				Objects: []*api.SuspendReqObj{object},
+				Suspend: true,
+			}
 			_, err = c.ToggleSuspendResource(ctx, req)
 			g.Expect(err).NotTo(HaveOccurred())
-
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
-
+			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
+			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
+			requestObjects = append(requestObjects, object)
 		})
 	}
+
+	t.Run("resume multiple", func(t *testing.T) {
+		req := &api.ToggleSuspendResourceRequest{
+			Objects: requestObjects,
+			Suspend: false,
+		}
+
+		_, err = c.ToggleSuspendResource(ctx, req)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		for _, tt := range tests {
+			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
+			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
+		}
+	})
+
+	t.Run("will error", func(t *testing.T) {
+
+		_, err = c.ToggleSuspendResource(ctx, &api.ToggleSuspendResourceRequest{
+
+			Objects: []*api.SuspendReqObj{{
+				Kind:        api.FluxObjectKind_KindGitRepository,
+				Name:        "fakeName",
+				Namespace:   "fakeNamespace",
+				ClusterName: "Default",
+			}, {Kind: api.FluxObjectKind_KindGitRepository,
+				Name:        "fakeName2",
+				Namespace:   "fakeNamespace2",
+				ClusterName: "Default2"}},
+			Suspend: true,
+		})
+
+		g.Expect(err.Error()).To(ContainSubstring("2 errors occurred"))
+	})
 }
 
 func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object) bool {

@@ -414,13 +414,9 @@ message GetFeatureFlagsResponse {
 }
 
 message ToggleSuspendResourceRequest {
-    FluxObjectKind kind        = 1;
-    string         name        = 2;
-    string         namespace   = 3;
-    string         clusterName = 4;
-    bool           suspend     = 5;
+    repeated SuspendReqObj objects = 1;
+    bool                   suspend = 2;
 }
 
 message ToggleSuspendResourceResponse {
-
 }

@@ -829,6 +829,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -866,6 +869,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -895,6 +901,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -920,6 +929,9 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "uid": {
           "type": "string"
         }
       }
@@ -1124,6 +1136,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1200,6 +1215,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1253,6 +1271,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1293,6 +1314,9 @@
           "$ref": "#/definitions/v1HelmRepositoryType"
         },
         "tenant": {
+          "type": "string"
+        },
+        "uid": {
           "type": "string"
         }
       }
@@ -1368,6 +1392,9 @@
           "type": "string"
         },
         "tenant": {
+          "type": "string"
+        },
+        "uid": {
           "type": "string"
         }
       }
@@ -1625,6 +1652,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1668,6 +1698,23 @@
         }
       }
     },
+    "v1SuspendReqObj": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
     "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
@@ -1694,17 +1741,11 @@
     "v1ToggleSuspendResourceRequest": {
       "type": "object",
       "properties": {
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SuspendReqObj"
+          }
         },
         "suspend": {
           "type": "boolean"

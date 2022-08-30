@@ -1,13 +1,13 @@
 import { stringify } from "yaml";
-import { addKind } from "./utils";
 import {
-  GitRepositoryRef,
   Condition,
   FluxObjectKind,
   FluxObjectRef,
-  Object as ResponseObject,
+  GitRepositoryRef,
   Interval,
+  Object as ResponseObject,
 } from "./api/core/types.pb";
+import { addKind } from "./utils";
 
 export enum Kind {
   GitRepository = "GitRepository",

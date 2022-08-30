@@ -13,7 +13,9 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
+import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
@@ -58,6 +60,8 @@ export enum IconType {
   FluxIconHover,
   DocsIcon,
   ApplicationsIcon,
+  PlayIcon,
+  PauseIcon,
 }
 
 type Props = {
@@ -156,6 +160,12 @@ function getIcon(i: IconType) {
 
     case IconType.FluxIconHover:
       return () => <img src={images.fluxIconHoverSrc} />;
+
+    case IconType.PlayIcon:
+      return PlayIcon;
+
+    case IconType.PauseIcon:
+      return PauseIcon;
 
     default:
       break;

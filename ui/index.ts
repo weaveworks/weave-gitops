@@ -1,14 +1,12 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
-import DataTable from "./components/DataTable";
-import EventsTable from "./components/EventsTable";
-import FilterableTable, {
+import DataTable, {
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
-  FilterConfigCallback,
-} from "./components/FilterableTable";
+} from "./components/DataTable";
+import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
@@ -25,7 +23,10 @@ import KustomizationDetail from "./components/KustomizationDetail";
 import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
 import Metadata from "./components/Metadata";
+import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
+import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
+import ReconciliationGraph from "./components/ReconciliationGraph";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
@@ -53,6 +54,7 @@ import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { FluxObjectKind } from "./lib/api/core/types.pb";
+import { formatURL } from "./lib/nav";
 import {
   Bucket,
   fluxObjectKindToKind,
@@ -69,13 +71,9 @@ import {
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { statusSortHelper, isAllowedLink } from "./lib/utils";
+import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-import { formatURL } from "./lib/nav";
-import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
-import ReconciliationGraph from "./components/ReconciliationGraph";
-import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 
 export {
   AppContextProvider,
@@ -95,11 +93,9 @@ export {
   DataTable,
   EventsTable,
   Flex,
-  FilterableTable,
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
-  FilterConfigCallback,
   FluxObjectKind,
   fluxObjectKindToKind,
   FluxRuntime,

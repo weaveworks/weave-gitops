@@ -35,15 +35,18 @@ function SourceDetail({ className, source, info, type }: Props) {
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
-  const [isSuspended, setIsSuspended] = React.useState(false);
 
   const suspend = useToggleSuspend(
     {
-      name: source.name,
-      namespace: source.namespace,
-      clusterName: source.clusterName,
-      kind: type,
-      suspend: !isSuspended,
+      objects: [
+        {
+          name: source.name,
+          namespace: source.namespace,
+          clusterName: source.clusterName,
+          kind: type,
+        },
+      ],
+      suspend: !source.suspended,
     },
     "sources"
   );
@@ -57,10 +60,6 @@ function SourceDetail({ className, source, info, type }: Props) {
 
   if (automationsLoading) {
     return <LoadingPage />;
-  }
-
-  if (isSuspended != source.suspended) {
-    setIsSuspended(source.suspended);
   }
 
   const isNameRelevant = (expectedName) => {
@@ -119,7 +118,7 @@ function SourceDetail({ className, source, info, type }: Props) {
           onClick={() => suspend.mutateAsync()}
           loading={suspend.isLoading}
         >
-          {isSuspended ? "Resume" : "Suspend"}
+          {source?.suspended ? "Resume" : "Suspend"}
         </Button>
       </Flex>
 

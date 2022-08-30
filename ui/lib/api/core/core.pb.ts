@@ -208,10 +208,7 @@ export type GetFeatureFlagsResponse = {
 }
 
 export type ToggleSuspendResourceRequest = {
-  kind?: Gitops_coreV1Types.FluxObjectKind
-  name?: string
-  namespace?: string
-  clusterName?: string
+  objects?: Gitops_coreV1Types.SuspendReqObj[]
   suspend?: boolean
 }
 
