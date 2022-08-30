@@ -147,5 +147,10 @@ export const muiTheme = createTheme({
         color: theme.colors.primary,
       },
     },
+    MuiTooltip: {
+      tooltip: {
+        fontSize: "1rem",
+      },
+    },
   },
 });
