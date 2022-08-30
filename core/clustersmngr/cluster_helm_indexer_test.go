@@ -15,7 +15,7 @@ import (
 
 type ClusterHelmIndexerTracker struct {
 	clustersWatcher *clustersmngr.ClustersWatcher
-	clusterNames    []string
+	clusters        []clustersmngr.Cluster
 }
 
 func newClusterHelmIndexerTracker(cf clustersmngr.ClientsFactory) *ClusterHelmIndexerTracker {
@@ -24,6 +24,7 @@ func newClusterHelmIndexerTracker(cf clustersmngr.ClientsFactory) *ClusterHelmIn
 	}
 }
 
+// Start the indexer and wait for cluster updates notifications.
 func (i *ClusterHelmIndexerTracker) Start(ctx context.Context) {
 	go func() {
 		for {
@@ -33,13 +34,13 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context) {
 			case updates := <-i.clustersWatcher.Updates:
 				for _, added := range updates.Added {
 					if i.contains(added) == false {
-						i.clusterNames = append(i.clusterNames, added.Name)
+						i.clusters = append(i.clusters, added)
 					}
 				}
 
 				for index, removed := range updates.Removed {
 					if i.contains(removed) {
-						i.clusterNames = append(i.clusterNames[:index], i.clusterNames[index+1:]...)
+						i.clusters = append(i.clusters[:index], i.clusters[index+1:]...)
 					}
 				}
 			}
@@ -49,8 +50,8 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context) {
 
 // contains returns true if the given cluster is in the list of cluster names.
 func (i *ClusterHelmIndexerTracker) contains(cluster clustersmngr.Cluster) bool {
-	for _, n := range i.clusterNames {
-		if cluster.Name == n {
+	for _, n := range i.clusters {
+		if cluster.Name == n.Name && cluster.Server == n.Server {
 			return true
 		}
 	}
@@ -70,7 +71,8 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+	clientsFactory := clustersmngr.NewClientFactory(
+		clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -88,14 +90,23 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 	indexer.Start(ctx)
 
+	clusterNames := func(c []clustersmngr.Cluster) []string {
+		names := []string{}
+		for _, v := range c {
+			names = append(names, v.Name)
+		}
+
+		return names
+	}
+
 	t.Run("indexer should be notified with two clusters added", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		log.Printf("indexer.Added: %+v", indexer.clusterNames)
+		log.Printf("indexer.Added: %+v", indexer)
 
 		<-watcher.Updates
-		g.Expect(indexer.clusterNames).To(Equal([]string{"bar", "foo"}))
+		g.Expect(clusterNames(indexer.clusters)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
 	})
 }
