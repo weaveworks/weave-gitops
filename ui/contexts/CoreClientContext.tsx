@@ -20,8 +20,8 @@ export type CoreClientContextType = {
 export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
-export function UnAuthorizedInterceptor(api: any) {
-  const wrapped = {} as any;
+export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
+  const wrapped = {};
   //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
     if (typeof api[method] != "function") {
@@ -42,7 +42,7 @@ export function UnAuthorizedInterceptor(api: any) {
       });
     };
   }
-  return wrapped;
+  return wrapped as typeof Core;
 }
 
 function FeatureFlags(api) {
@@ -58,7 +58,7 @@ function FeatureFlags(api) {
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {
-  const wrapped = UnAuthorizedInterceptor(api) as typeof Core;
+  const wrapped = UnAuthorizedInterceptor(api);
 
   return (
     <CoreClientContext.Provider
