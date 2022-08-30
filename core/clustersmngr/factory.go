@@ -48,6 +48,7 @@ func (ce *ClientError) Error() string {
 }
 
 // ClientsFactory is a factory for creating clients for clusters
+//
 //counterfeiter:generate . ClientsFactory
 type ClientsFactory interface {
 	// GetImpersonatedClient returns the clusters client for the given user
@@ -165,7 +166,13 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 
 	serverClient, err := cf.GetServerClient(ctx)
 	if err != nil {
-		return err
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*ClientError); ok {
+					result = multierror.Append(result, fmt.Errorf("%w, cluster: %v", cerr, cerr.ClusterName))
+				}
+			}
+		}
 	}
 
 	cf.syncCaches()
@@ -202,6 +209,7 @@ func (cf *clientsFactory) syncCaches() {
 	newHash := cf.clusters.Hash()
 
 	if newHash != cf.clustersHash {
+		cf.log.Info("Clearing namespace caches")
 		cf.clustersNamespaces.Clear()
 		cf.usersNamespaces.Clear()
 		cf.clustersHash = newHash
