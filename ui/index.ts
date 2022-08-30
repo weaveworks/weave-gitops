@@ -53,7 +53,15 @@ import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { FluxObjectKind } from "./lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "./lib/objects";
+import {
+  Bucket,
+  fluxObjectKindToKind,
+  GitRepository,
+  HelmChart,
+  HelmRepository,
+  Kind,
+  OCIRepository,
+} from "./lib/objects";
 import {
   clearCallbackState,
   getCallbackState,
@@ -65,9 +73,9 @@ import { statusSortHelper, isAllowedLink } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
-
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
+import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 
 export {
   AppContextProvider,
@@ -77,6 +85,7 @@ export {
   AuthContextProvider,
   Automation,
   AutomationsTable,
+  Bucket,
   BucketDetail,
   Button,
   CallbackStateContextProvider,
@@ -99,7 +108,10 @@ export {
   getCallbackState,
   getProviderToken,
   GithubDeviceAuthModal,
+  GitRepository,
   GitRepositoryDetail,
+  HelmChart,
+  HelmRepository,
   HelmChartDetail,
   HelmReleaseDetail,
   HelmRepositoryDetail,
@@ -108,6 +120,7 @@ export {
   InfoList,
   Interval,
   isAllowedLink,
+  Kind,
   KubeStatusIndicator,
   KustomizationDetail,
   Link,
@@ -115,6 +128,8 @@ export {
   Metadata,
   muiTheme,
   OAuthCallback,
+  OCIRepository,
+  OCIRepositoryDetail,
   Page,
   RepoInputWithAuth,
   RouterTab,
