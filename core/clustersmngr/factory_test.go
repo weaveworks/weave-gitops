@@ -128,6 +128,24 @@ func TestUpdateNamespaces(t *testing.T) {
 		g.Expect(contents).To(HaveKey(clusterName1))
 		g.Expect(contents).ToNot(HaveKey(clusterName2))
 	})
+
+	t.Run("UpdateNamespaces will return partial results if a single cluster fails to connect", func(t *testing.T) {
+		clusterName3 := "foobar"
+		c3 := makeLeafCluster(t, clusterName3)
+		// hopefully no k8s server is listening here
+		// FIXME: better addresses?
+		c3.Server = "0.0.0.0:65535"
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2, c3}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed adding cluster client to pool.*cluster: %s.*", clusterName3)))
+
+		contents := clientsFactory.GetClustersNamespaces()
+
+		g.Expect(contents).To(HaveLen(2))
+		g.Expect(contents).To(HaveKey(clusterName1))
+		g.Expect(contents).To(HaveKey(clusterName2))
+	})
 }
 
 func TestUpdateUsers(t *testing.T) {
