@@ -128,8 +128,6 @@ describe("objects lib", () => {
     });
 
     it("extracts source ref", () => {
-      // Note: listHelmChart returns incorrect sourceRef name and
-      // doesn't ensure namespace key, so this is incompatible with it.
       expect(obj.sourceRef).toEqual({
         kind: "KindHelmRepository",
         name: "helmrepository",

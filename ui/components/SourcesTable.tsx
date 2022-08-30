@@ -1,21 +1,17 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import {
   Bucket,
-  FluxObjectKind,
   GitRepository,
   HelmRepository,
   OCIRepository,
-} from "../lib/api/core/types.pb";
-import { formatURL, objectTypeToRoute } from "../lib/nav";
+  Source,
+} from "../lib/objects";
 import { showInterval } from "../lib/time";
-import { Source } from "../lib/types";
-import {
-  convertGitURLToGitProvider,
-  removeKind,
-  statusSortHelper,
-} from "../lib/utils";
+import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
@@ -34,10 +30,6 @@ type Props = {
 function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-
-  sources = sources?.map((s) => {
-    return { ...s, type: removeKind(s.kind) };
-  });
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),
