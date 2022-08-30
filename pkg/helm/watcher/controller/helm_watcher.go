@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -24,6 +25,7 @@ const (
 )
 
 // EventRecorder defines an external event recorder's function for creating events for the notification controller.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . eventRecorder
 type eventRecorder interface {
@@ -118,7 +120,11 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Values:   values,
 	}
 
-	if err := r.Cache.Put(logr.NewContext(ctx, log), repository.Namespace, repository.Name, data); err != nil {
+	repoNamespacedName := types.NamespacedName{
+		Name:      repository.Name,
+		Namespace: repository.Namespace,
+	}
+	if err := r.Cache.Put(logr.NewContext(ctx, log), repoNamespacedName, data); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -139,7 +145,11 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 
 	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
 
-	if err := r.Cache.Delete(ctx, repository.Namespace, repository.Name); err != nil {
+	repoNamespacedName := types.NamespacedName{
+		Name:      repository.Name,
+		Namespace: repository.Namespace,
+	}
+	if err := r.Cache.Delete(ctx, repoNamespacedName); err != nil {
 		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
 		return ctrl.Result{}, err
 	}
@@ -176,7 +186,11 @@ func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepo
 // compared to what's already stored in the cache. It returns the LATEST version which is greater than
 // the last version that was stored.
 func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *pb.Profile) (string, error) {
-	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, chart.GetHelmRepository().GetNamespace(), chart.GetHelmRepository().GetName(), chart.Name)
+	repoNamespacedName := types.NamespacedName{
+		Name:      chart.GetHelmRepository().GetName(),
+		Namespace: chart.GetHelmRepository().GetNamespace(),
+	}
+	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, repoNamespacedName, chart.Name)
 	if err != nil {
 		return "", err
 	}

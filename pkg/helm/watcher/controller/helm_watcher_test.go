@@ -87,9 +87,9 @@ func TestReconcile(t *testing.T) {
 			},
 		},
 	}
-	_, namespace, name, cacheData := fakeCache.PutArgsForCall(0)
-	assert.Equal(t, "test-namespace", namespace)
-	assert.Equal(t, "test-name", name)
+	_, namespacedName, cacheData := fakeCache.PutArgsForCall(0)
+	assert.Equal(t, "test-namespace", namespacedName.Namespace)
+	assert.Equal(t, "test-name", namespacedName.Name)
 	assert.Equal(t, expectedData, cacheData)
 
 	_, helmRepo, ref, filename := fakeRepoManager.GetValuesFileArgsForCall(0)
@@ -144,9 +144,9 @@ func TestReconcileDelete(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, namespace, name := fakeCache.DeleteArgsForCall(0)
-	assert.Equal(t, "test-namespace", namespace)
-	assert.Equal(t, "test-name", name)
+	_, namespacedName := fakeCache.DeleteArgsForCall(0)
+	assert.Equal(t, "test-namespace", namespacedName.Namespace)
+	assert.Equal(t, "test-name", namespacedName.Name)
 }
 
 func TestReconcileDeletingTheCacheFails(t *testing.T) {
@@ -207,9 +207,9 @@ func TestReconcileGetValuesFileFailsItWillContinue(t *testing.T) {
 		Profiles: []*pb.Profile{profile1, profile2},
 		Values:   map[string]map[string][]byte{},
 	}
-	_, namespace, name, cacheData := fakeCache.PutArgsForCall(0)
-	assert.Equal(t, "test-namespace", namespace)
-	assert.Equal(t, "test-name", name)
+	_, namespacedName, cacheData := fakeCache.PutArgsForCall(0)
+	assert.Equal(t, "test-namespace", namespacedName.Namespace)
+	assert.Equal(t, "test-name", namespacedName.Name)
 	assert.Equal(t, expectedData, cacheData)
 }
 

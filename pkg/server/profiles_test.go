@@ -78,9 +78,9 @@ var _ = Describe("ProfilesServer", func() {
 				Expect(profilesResp).NotTo(BeNil())
 				Expect(profilesResp.Profiles).To(Equal(profiles))
 				Expect(fakeCache.ListProfilesCallCount()).To(Equal(1))
-				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
-				Expect(namespace).To(Equal(helmRepo.Namespace))
-				Expect(name).To(Equal(helmRepo.Name))
+				_, namespacedName := fakeCache.ListProfilesArgsForCall(0)
+				Expect(namespacedName.Namespace).To(Equal(helmRepo.Namespace))
+				Expect(namespacedName.Name).To(Equal(helmRepo.Name))
 			})
 
 			It("Passes the correct values to the Helm Cache Querier", func() {
@@ -96,9 +96,9 @@ var _ = Describe("ProfilesServer", func() {
 				Expect(profilesResp).NotTo(BeNil())
 				Expect(profilesResp.Profiles).To(Equal(profiles))
 				Expect(fakeCache.ListProfilesCallCount()).To(Equal(1))
-				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
-				Expect(namespace).To(Equal("test-namespace"))
-				Expect(name).To(Equal("test-name"))
+				_, namespacedName := fakeCache.ListProfilesArgsForCall(0)
+				Expect(namespacedName.Namespace).To(Equal("test-namespace"))
+				Expect(namespacedName.Name).To(Equal("test-name"))
 			})
 
 			When("scanning for helmcharts errors", func() {
@@ -143,9 +143,9 @@ var _ = Describe("ProfilesServer", func() {
 					profileValues, err := base64.StdEncoding.DecodeString(valuesResp.Values)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(string(profileValues)).To(Equal("values"))
-					_, namespace, name, pname, pversion := fakeCache.GetProfileValuesArgsForCall(0)
-					Expect(namespace).To(Equal("test-namespace"))
-					Expect(name).To(Equal("test-name"))
+					_, namespacedName, pname, pversion := fakeCache.GetProfileValuesArgsForCall(0)
+					Expect(namespacedName.Namespace).To(Equal("test-namespace"))
+					Expect(namespacedName.Name).To(Equal("test-name"))
 					Expect(pname).To(Equal(profileName))
 					Expect(pversion).To(Equal(profileVersion))
 				})
