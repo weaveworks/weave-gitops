@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { Source } from "../lib/objects";
 import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
@@ -78,17 +78,11 @@ function SourceDetail({ className, source, info, type }: Props) {
       return false;
     }
 
-    if (
-      type == FluxObjectKind.KindHelmChart &&
-      isNameRelevant(a?.helmChart?.name)
-    ) {
-      return true;
+    if (type == FluxObjectKind.KindHelmChart) {
+      return isNameRelevant((a as HelmRelease)?.helmChart?.name);
     }
 
-    return (
-      isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name) ||
-      isRelevant(a?.helmChart?.sourceRef?.kind, a?.helmChart?.sourceRef?.name)
-    );
+    return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name);
   });
 
   const handleSyncClicked = () => {

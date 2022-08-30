@@ -111,81 +111,11 @@ message HelmRelease {
     string    uid                        = 18;
 }
 
-message GitRepository {
-    string           namespace            = 1;
-    string           name                 = 2;
-    string           url                  = 3;
-    GitRepositoryRef reference            = 4;
-    string           secretRef            = 5;
-    Interval         interval             = 6;
-    repeated         Condition conditions = 7;
-    bool             suspended            = 8;
-    string           lastUpdatedAt        = 9;
-    string           clusterName          = 10;
-    string           apiVersion           = 11;
-    string           tenant               = 12;
-    string           uid                  = 13;
-}
-
-message HelmRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    HelmRepositoryType repositoryType       = 10;
-    string             tenant               = 11;
-    string             uid                  = 12;
-}
-
-message Bucket {
-    string   namespace = 1;
-    string   name      = 2;
-    string   endpoint  = 3;
-    bool     insecure  = 4;
-    Interval interval  = 5;
-    enum Provider {
-      Generic = 0;
-      AWS     = 1;
-      GCP     = 2;
-    };
-    Provider provider             = 6;
-    string   region               = 7;
-    string   secretRefName        = 8;
-    int32    timeout              = 9;
-    repeated Condition conditions = 10;
-    string   bucketName           = 11;
-    bool     suspended            = 12;
-    string   lastUpdatedAt        = 13;
-    string   clusterName          = 14;
-    string   apiVersion           = 15;
-    string   tenant               = 16;
-    string   uid                  = 17;
-}
-
-message OCIRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    string             tenant               = 10;
-    string             uid                  = 11;
-}
-
-
 message Object {
     string payload     = 1;
     string clusterName = 2;
     string tenant      = 3;
+    string uid         = 4;
 }
 
 message Deployment {

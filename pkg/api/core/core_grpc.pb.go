@@ -31,23 +31,11 @@ type CoreClient interface {
 	// GetHelmRelease gets data about a single HelmRelease from the cluster.
 	GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error)
 	//
-	// ListGitRepository lists git repositories objects from a cluster.
-	ListGitRepositories(ctx context.Context, in *ListGitRepositoriesRequest, opts ...grpc.CallOption) (*ListGitRepositoriesResponse, error)
-	//
-	// ListHelmCharts lists helm chart objects from a cluster.
-	ListHelmCharts(ctx context.Context, in *ListHelmChartsRequest, opts ...grpc.CallOption) (*ListHelmChartsResponse, error)
-	//
-	// ListHelmRepository lists helm repository objects from a cluster.
-	ListHelmRepositories(ctx context.Context, in *ListHelmRepositoriesRequest, opts ...grpc.CallOption) (*ListHelmRepositoriesResponse, error)
-	//
-	// ListBuckets lists bucket objects from a cluster.
-	ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error)
-	//
-	// ListOCIRepositories lists OCI repository objects from a cluster.
-	ListOCIRepositories(ctx context.Context, in *ListOCIRepositoriesRequest, opts ...grpc.CallOption) (*ListOCIRepositoriesResponse, error)
-	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
+	//
+	// ListObjects gets data about a primary objects.
+	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
@@ -127,54 +115,18 @@ func (c *coreClient) GetHelmRelease(ctx context.Context, in *GetHelmReleaseReque
 	return out, nil
 }
 
-func (c *coreClient) ListGitRepositories(ctx context.Context, in *ListGitRepositoriesRequest, opts ...grpc.CallOption) (*ListGitRepositoriesResponse, error) {
-	out := new(ListGitRepositoriesResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListGitRepositories", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListHelmCharts(ctx context.Context, in *ListHelmChartsRequest, opts ...grpc.CallOption) (*ListHelmChartsResponse, error) {
-	out := new(ListHelmChartsResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListHelmCharts", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListHelmRepositories(ctx context.Context, in *ListHelmRepositoriesRequest, opts ...grpc.CallOption) (*ListHelmRepositoriesResponse, error) {
-	out := new(ListHelmRepositoriesResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListHelmRepositories", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListBuckets(ctx context.Context, in *ListBucketRequest, opts ...grpc.CallOption) (*ListBucketsResponse, error) {
-	out := new(ListBucketsResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListBuckets", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListOCIRepositories(ctx context.Context, in *ListOCIRepositoriesRequest, opts ...grpc.CallOption) (*ListOCIRepositoriesResponse, error) {
-	out := new(ListOCIRepositoriesResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListOCIRepositories", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *coreClient) GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error) {
 	out := new(GetObjectResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error) {
+	out := new(ListObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListObjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -297,23 +249,11 @@ type CoreServer interface {
 	// GetHelmRelease gets data about a single HelmRelease from the cluster.
 	GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error)
 	//
-	// ListGitRepository lists git repositories objects from a cluster.
-	ListGitRepositories(context.Context, *ListGitRepositoriesRequest) (*ListGitRepositoriesResponse, error)
-	//
-	// ListHelmCharts lists helm chart objects from a cluster.
-	ListHelmCharts(context.Context, *ListHelmChartsRequest) (*ListHelmChartsResponse, error)
-	//
-	// ListHelmRepository lists helm repository objects from a cluster.
-	ListHelmRepositories(context.Context, *ListHelmRepositoriesRequest) (*ListHelmRepositoriesResponse, error)
-	//
-	// ListBuckets lists bucket objects from a cluster.
-	ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error)
-	//
-	// ListOCIRepositories lists OCI repository objects from a cluster.
-	ListOCIRepositories(context.Context, *ListOCIRepositoriesRequest) (*ListOCIRepositoriesResponse, error)
-	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
+	//
+	// ListObjects gets data about a primary objects.
+	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
 	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
@@ -366,23 +306,11 @@ func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleas
 func (UnimplementedCoreServer) GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHelmRelease not implemented")
 }
-func (UnimplementedCoreServer) ListGitRepositories(context.Context, *ListGitRepositoriesRequest) (*ListGitRepositoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListGitRepositories not implemented")
-}
-func (UnimplementedCoreServer) ListHelmCharts(context.Context, *ListHelmChartsRequest) (*ListHelmChartsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListHelmCharts not implemented")
-}
-func (UnimplementedCoreServer) ListHelmRepositories(context.Context, *ListHelmRepositoriesRequest) (*ListHelmRepositoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListHelmRepositories not implemented")
-}
-func (UnimplementedCoreServer) ListBuckets(context.Context, *ListBucketRequest) (*ListBucketsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
-}
-func (UnimplementedCoreServer) ListOCIRepositories(context.Context, *ListOCIRepositoriesRequest) (*ListOCIRepositoriesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListOCIRepositories not implemented")
-}
 func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
+}
+func (UnimplementedCoreServer) ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListObjects not implemented")
 }
 func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxRuntimeObjects not implemented")
@@ -502,96 +430,6 @@ func _Core_GetHelmRelease_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Core_ListGitRepositories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGitRepositoriesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListGitRepositories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListGitRepositories",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListGitRepositories(ctx, req.(*ListGitRepositoriesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListHelmCharts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListHelmChartsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListHelmCharts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListHelmCharts",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListHelmCharts(ctx, req.(*ListHelmChartsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListHelmRepositories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListHelmRepositoriesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListHelmRepositories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListHelmRepositories",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListHelmRepositories(ctx, req.(*ListHelmRepositoriesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListBucketRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListBuckets(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListBuckets",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListBuckets(ctx, req.(*ListBucketRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListOCIRepositories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListOCIRepositoriesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListOCIRepositories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListOCIRepositories",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListOCIRepositories(ctx, req.(*ListOCIRepositoriesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Core_GetObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetObjectRequest)
 	if err := dec(in); err != nil {
@@ -606,6 +444,24 @@ func _Core_GetObject_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).GetObject(ctx, req.(*GetObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ListObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListObjects(ctx, req.(*ListObjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -832,28 +688,12 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_GetHelmRelease_Handler,
 		},
 		{
-			MethodName: "ListGitRepositories",
-			Handler:    _Core_ListGitRepositories_Handler,
-		},
-		{
-			MethodName: "ListHelmCharts",
-			Handler:    _Core_ListHelmCharts_Handler,
-		},
-		{
-			MethodName: "ListHelmRepositories",
-			Handler:    _Core_ListHelmRepositories_Handler,
-		},
-		{
-			MethodName: "ListBuckets",
-			Handler:    _Core_ListBuckets_Handler,
-		},
-		{
-			MethodName: "ListOCIRepositories",
-			Handler:    _Core_ListOCIRepositories_Handler,
-		},
-		{
 			MethodName: "GetObject",
 			Handler:    _Core_GetObject_Handler,
+		},
+		{
+			MethodName: "ListObjects",
+			Handler:    _Core_ListObjects_Handler,
 		},
 		{
 			MethodName: "ListFluxRuntimeObjects",
