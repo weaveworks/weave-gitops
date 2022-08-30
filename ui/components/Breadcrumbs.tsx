@@ -16,12 +16,6 @@ export const Breadcrumbs = () => {
   const parentValue = getParentNavValue(currentPage) as V2Routes;
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);
-  const crumblings = currentPage.split("/");
-  const crumbs = [];
-  if (crumblings.length > 2) {
-    for (let i = 2; i < crumblings.length; i++) crumbs.push(crumblings[i]);
-  }
-  if (parsed.name) crumbs.push(parsed.name);
 
   return (
     <Flex align>
@@ -31,8 +25,8 @@ export const Breadcrumbs = () => {
       >
         {label}
       </Link>
-      {crumbs.map((crumb) => (
-        <React.Fragment key={crumb}>
+      {parentValue !== currentPage && parsed.name && (
+        <>
           <Icon
             type={IconType.NavigateNextIcon}
             size="large"
@@ -42,10 +36,10 @@ export const Breadcrumbs = () => {
             to={formatURL(currentPage, parsed)}
             textProps={{ size: "large", color: "neutral40" }}
           >
-            {crumb}
+            {parsed.name}
           </Link>
-        </React.Fragment>
-      ))}
+        </>
+      )}
     </Flex>
   );
 };
