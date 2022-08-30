@@ -85,7 +85,7 @@ func TestCacheListProfilesInvalidDataInFile(t *testing.T) {
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, testName.Namespace, testName.Name, profileFilename), []byte("empty"), 0700))
 	_, err := profileCache.ListProfiles(context.Background(), testName)
 	assert.EqualError(t, err,
-		fmt.Sprintf("failed to read profiles data for helm repo (%s/%s): "+
+		fmt.Sprintf("failed to read profiles data for helm repo (%s): "+
 			"error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile", testName))
 }
 

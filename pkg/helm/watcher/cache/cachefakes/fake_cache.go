@@ -7,15 +7,15 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type FakeCache struct {
-	DeleteStub        func(context.Context, string, string) error
+	DeleteStub        func(context.Context, types.NamespacedName) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
+		arg2 types.NamespacedName
 	}
 	deleteReturns struct {
 		result1 error
@@ -23,14 +23,13 @@ type FakeCache struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetProfileValuesStub        func(context.Context, string, string, string, string) ([]byte, error)
+	GetProfileValuesStub        func(context.Context, types.NamespacedName, string, string) ([]byte, error)
 	getProfileValuesMutex       sync.RWMutex
 	getProfileValuesArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 		arg3 string
 		arg4 string
-		arg5 string
 	}
 	getProfileValuesReturns struct {
 		result1 []byte
@@ -40,13 +39,12 @@ type FakeCache struct {
 		result1 []byte
 		result2 error
 	}
-	ListAvailableVersionsForProfileStub        func(context.Context, string, string, string) ([]string, error)
+	ListAvailableVersionsForProfileStub        func(context.Context, types.NamespacedName, string) ([]string, error)
 	listAvailableVersionsForProfileMutex       sync.RWMutex
 	listAvailableVersionsForProfileArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 		arg3 string
-		arg4 string
 	}
 	listAvailableVersionsForProfileReturns struct {
 		result1 []string
@@ -56,12 +54,11 @@ type FakeCache struct {
 		result1 []string
 		result2 error
 	}
-	ListProfilesStub        func(context.Context, string, string) ([]*profiles.Profile, error)
+	ListProfilesStub        func(context.Context, types.NamespacedName) ([]*profiles.Profile, error)
 	listProfilesMutex       sync.RWMutex
 	listProfilesArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
+		arg2 types.NamespacedName
 	}
 	listProfilesReturns struct {
 		result1 []*profiles.Profile
@@ -71,13 +68,12 @@ type FakeCache struct {
 		result1 []*profiles.Profile
 		result2 error
 	}
-	PutStub        func(context.Context, string, string, cache.Data) error
+	PutStub        func(context.Context, types.NamespacedName, cache.Data) error
 	putMutex       sync.RWMutex
 	putArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
-		arg4 cache.Data
+		arg2 types.NamespacedName
+		arg3 cache.Data
 	}
 	putReturns struct {
 		result1 error
@@ -89,20 +85,19 @@ type FakeCache struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeCache) Delete(arg1 context.Context, arg2 string, arg3 string) error {
+func (fake *FakeCache) Delete(arg1 context.Context, arg2 types.NamespacedName) error {
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
+		arg2 types.NamespacedName
+	}{arg1, arg2})
 	stub := fake.DeleteStub
 	fakeReturns := fake.deleteReturns
-	fake.recordInvocation("Delete", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("Delete", []interface{}{arg1, arg2})
 	fake.deleteMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -116,17 +111,17 @@ func (fake *FakeCache) DeleteCallCount() int {
 	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeCache) DeleteCalls(stub func(context.Context, string, string) error) {
+func (fake *FakeCache) DeleteCalls(stub func(context.Context, types.NamespacedName) error) {
 	fake.deleteMutex.Lock()
 	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = stub
 }
 
-func (fake *FakeCache) DeleteArgsForCall(i int) (context.Context, string, string) {
+func (fake *FakeCache) DeleteArgsForCall(i int) (context.Context, types.NamespacedName) {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	argsForCall := fake.deleteArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeCache) DeleteReturns(result1 error) {
@@ -152,22 +147,21 @@ func (fake *FakeCache) DeleteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCache) GetProfileValues(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string) ([]byte, error) {
+func (fake *FakeCache) GetProfileValues(arg1 context.Context, arg2 types.NamespacedName, arg3 string, arg4 string) ([]byte, error) {
 	fake.getProfileValuesMutex.Lock()
 	ret, specificReturn := fake.getProfileValuesReturnsOnCall[len(fake.getProfileValuesArgsForCall)]
 	fake.getProfileValuesArgsForCall = append(fake.getProfileValuesArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 		arg3 string
 		arg4 string
-		arg5 string
-	}{arg1, arg2, arg3, arg4, arg5})
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.GetProfileValuesStub
 	fakeReturns := fake.getProfileValuesReturns
-	fake.recordInvocation("GetProfileValues", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("GetProfileValues", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getProfileValuesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -181,17 +175,17 @@ func (fake *FakeCache) GetProfileValuesCallCount() int {
 	return len(fake.getProfileValuesArgsForCall)
 }
 
-func (fake *FakeCache) GetProfileValuesCalls(stub func(context.Context, string, string, string, string) ([]byte, error)) {
+func (fake *FakeCache) GetProfileValuesCalls(stub func(context.Context, types.NamespacedName, string, string) ([]byte, error)) {
 	fake.getProfileValuesMutex.Lock()
 	defer fake.getProfileValuesMutex.Unlock()
 	fake.GetProfileValuesStub = stub
 }
 
-func (fake *FakeCache) GetProfileValuesArgsForCall(i int) (context.Context, string, string, string, string) {
+func (fake *FakeCache) GetProfileValuesArgsForCall(i int) (context.Context, types.NamespacedName, string, string) {
 	fake.getProfileValuesMutex.RLock()
 	defer fake.getProfileValuesMutex.RUnlock()
 	argsForCall := fake.getProfileValuesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeCache) GetProfileValuesReturns(result1 []byte, result2 error) {
@@ -220,21 +214,20 @@ func (fake *FakeCache) GetProfileValuesReturnsOnCall(i int, result1 []byte, resu
 	}{result1, result2}
 }
 
-func (fake *FakeCache) ListAvailableVersionsForProfile(arg1 context.Context, arg2 string, arg3 string, arg4 string) ([]string, error) {
+func (fake *FakeCache) ListAvailableVersionsForProfile(arg1 context.Context, arg2 types.NamespacedName, arg3 string) ([]string, error) {
 	fake.listAvailableVersionsForProfileMutex.Lock()
 	ret, specificReturn := fake.listAvailableVersionsForProfileReturnsOnCall[len(fake.listAvailableVersionsForProfileArgsForCall)]
 	fake.listAvailableVersionsForProfileArgsForCall = append(fake.listAvailableVersionsForProfileArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 		arg3 string
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
+	}{arg1, arg2, arg3})
 	stub := fake.ListAvailableVersionsForProfileStub
 	fakeReturns := fake.listAvailableVersionsForProfileReturns
-	fake.recordInvocation("ListAvailableVersionsForProfile", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("ListAvailableVersionsForProfile", []interface{}{arg1, arg2, arg3})
 	fake.listAvailableVersionsForProfileMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -248,17 +241,17 @@ func (fake *FakeCache) ListAvailableVersionsForProfileCallCount() int {
 	return len(fake.listAvailableVersionsForProfileArgsForCall)
 }
 
-func (fake *FakeCache) ListAvailableVersionsForProfileCalls(stub func(context.Context, string, string, string) ([]string, error)) {
+func (fake *FakeCache) ListAvailableVersionsForProfileCalls(stub func(context.Context, types.NamespacedName, string) ([]string, error)) {
 	fake.listAvailableVersionsForProfileMutex.Lock()
 	defer fake.listAvailableVersionsForProfileMutex.Unlock()
 	fake.ListAvailableVersionsForProfileStub = stub
 }
 
-func (fake *FakeCache) ListAvailableVersionsForProfileArgsForCall(i int) (context.Context, string, string, string) {
+func (fake *FakeCache) ListAvailableVersionsForProfileArgsForCall(i int) (context.Context, types.NamespacedName, string) {
 	fake.listAvailableVersionsForProfileMutex.RLock()
 	defer fake.listAvailableVersionsForProfileMutex.RUnlock()
 	argsForCall := fake.listAvailableVersionsForProfileArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeCache) ListAvailableVersionsForProfileReturns(result1 []string, result2 error) {
@@ -287,20 +280,19 @@ func (fake *FakeCache) ListAvailableVersionsForProfileReturnsOnCall(i int, resul
 	}{result1, result2}
 }
 
-func (fake *FakeCache) ListProfiles(arg1 context.Context, arg2 string, arg3 string) ([]*profiles.Profile, error) {
+func (fake *FakeCache) ListProfiles(arg1 context.Context, arg2 types.NamespacedName) ([]*profiles.Profile, error) {
 	fake.listProfilesMutex.Lock()
 	ret, specificReturn := fake.listProfilesReturnsOnCall[len(fake.listProfilesArgsForCall)]
 	fake.listProfilesArgsForCall = append(fake.listProfilesArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
+		arg2 types.NamespacedName
+	}{arg1, arg2})
 	stub := fake.ListProfilesStub
 	fakeReturns := fake.listProfilesReturns
-	fake.recordInvocation("ListProfiles", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("ListProfiles", []interface{}{arg1, arg2})
 	fake.listProfilesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -314,17 +306,17 @@ func (fake *FakeCache) ListProfilesCallCount() int {
 	return len(fake.listProfilesArgsForCall)
 }
 
-func (fake *FakeCache) ListProfilesCalls(stub func(context.Context, string, string) ([]*profiles.Profile, error)) {
+func (fake *FakeCache) ListProfilesCalls(stub func(context.Context, types.NamespacedName) ([]*profiles.Profile, error)) {
 	fake.listProfilesMutex.Lock()
 	defer fake.listProfilesMutex.Unlock()
 	fake.ListProfilesStub = stub
 }
 
-func (fake *FakeCache) ListProfilesArgsForCall(i int) (context.Context, string, string) {
+func (fake *FakeCache) ListProfilesArgsForCall(i int) (context.Context, types.NamespacedName) {
 	fake.listProfilesMutex.RLock()
 	defer fake.listProfilesMutex.RUnlock()
 	argsForCall := fake.listProfilesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeCache) ListProfilesReturns(result1 []*profiles.Profile, result2 error) {
@@ -353,21 +345,20 @@ func (fake *FakeCache) ListProfilesReturnsOnCall(i int, result1 []*profiles.Prof
 	}{result1, result2}
 }
 
-func (fake *FakeCache) Put(arg1 context.Context, arg2 string, arg3 string, arg4 cache.Data) error {
+func (fake *FakeCache) Put(arg1 context.Context, arg2 types.NamespacedName, arg3 cache.Data) error {
 	fake.putMutex.Lock()
 	ret, specificReturn := fake.putReturnsOnCall[len(fake.putArgsForCall)]
 	fake.putArgsForCall = append(fake.putArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-		arg3 string
-		arg4 cache.Data
-	}{arg1, arg2, arg3, arg4})
+		arg2 types.NamespacedName
+		arg3 cache.Data
+	}{arg1, arg2, arg3})
 	stub := fake.PutStub
 	fakeReturns := fake.putReturns
-	fake.recordInvocation("Put", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("Put", []interface{}{arg1, arg2, arg3})
 	fake.putMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -381,17 +372,17 @@ func (fake *FakeCache) PutCallCount() int {
 	return len(fake.putArgsForCall)
 }
 
-func (fake *FakeCache) PutCalls(stub func(context.Context, string, string, cache.Data) error) {
+func (fake *FakeCache) PutCalls(stub func(context.Context, types.NamespacedName, cache.Data) error) {
 	fake.putMutex.Lock()
 	defer fake.putMutex.Unlock()
 	fake.PutStub = stub
 }
 
-func (fake *FakeCache) PutArgsForCall(i int) (context.Context, string, string, cache.Data) {
+func (fake *FakeCache) PutArgsForCall(i int) (context.Context, types.NamespacedName, cache.Data) {
 	fake.putMutex.RLock()
 	defer fake.putMutex.RUnlock()
 	argsForCall := fake.putArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeCache) PutReturns(result1 error) {
