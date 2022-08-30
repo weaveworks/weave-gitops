@@ -60,6 +60,7 @@ import {
   HelmChart,
   HelmRepository,
   Kind,
+  OCIRepository,
 } from "./lib/objects";
 import {
   clearCallbackState,
@@ -74,6 +75,7 @@ import SignIn from "./pages/SignIn";
 import { formatURL } from "./lib/nav";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
+import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 
 export {
   AppContextProvider,
@@ -126,6 +128,8 @@ export {
   Metadata,
   muiTheme,
   OAuthCallback,
+  OCIRepository,
+  OCIRepositoryDetail,
   Page,
   RepoInputWithAuth,
   RouterTab,
