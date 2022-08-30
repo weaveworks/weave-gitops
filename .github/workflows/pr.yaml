@@ -244,7 +244,8 @@ jobs:
     if: github.event_name == 'push'
     permissions:
       packages: write
-
+    outputs:
+      js-version: ${{ steps.package-version.outputs.js-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -258,8 +259,10 @@ jobs:
       - run: npm install
       - run: make ui-lib
       - name: Update package version
+        id: package-version
         run: |
           GITOPS_VERSION=$(git describe)
+          echo "::set-output name=js-version::$GITOPS_VERSION"
           jq '.version = "'$GITOPS_VERSION'" | .name = "@weaveworks/weave-gitops-main"' < dist/package.json > dist/package-new.json
           mv dist/package-new.json dist/package.json
           cp .npmrc dist
@@ -290,6 +293,91 @@ jobs:
       - ci-publish-js-lib
     steps:
       - run: echo "All done"
+
+  enterprise-pr:
+    name: Make enterprise PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs:
+      - ci-publish-js-lib
+      - finish-ci-merge
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19.X
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.WGE_BUILD_BOT_PR_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Check out enterprise
+        uses: actions/checkout@v3
+        with:
+          repository: 'weaveworks/weave-gitops-enterprise'
+          token: ${{ secrets.WKS_CI_TEST_BOT_PR_TOKEN }}
+          ref: main
+          fetch-depth: 0
+      - name: Find current revision
+        id: current-rev
+        run: |
+          current_revision=$(grep 'weave-gitops ' go.mod | cut -d' ' -f2 | cut -d'-' -f3)
+          echo "::set-output name=revision::$current_revision"
+      - name: Fetch unmerged changes
+        run: |
+          git config user.name wks-ci-test-bot
+          git config user.email wks-ci-test-bot@weave.works
+          git fetch origin
+          if git rev-parse -q --verify origin/track-latest-oss; then
+              git checkout origin/track-latest-oss
+              git merge origin/main
+          fi
+      - name: Upgrade main version
+        run: |
+          go get -u github.com/weaveworks/weave-gitops@${{ github.event.after }}
+          go mod tidy
+          cd ui-cra
+          yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@${{ needs.ci-publish-js-lib.outputs.js-version }}
+          yarn test -u
+        env:
+          GITHUB_TOKEN: ${{ secrets.WGE_BUILD_BOT_PR_TOKEN}}
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v3
+        with:
+          fromTag: ${{ steps.current-rev.outputs.revision }}
+          toTag: ${{ github.event.after }}
+          repo: weave-gitops
+          configurationJson: |
+            {
+              "template": "#{{CHANGELOG}}\n#{{UNCATEGORIZED}}",
+              "pr_template": "- PR: weaveworks/weave-gitops##{{NUMBER}} - #{{TITLE}}"
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Pull Request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          author: wks-ci-test-bot <wks-ci-test-bot@weave.works>
+          signoff: true
+          committer: wks-ci-test-bot <wks-ci-test-bot@weave.works>
+          branch: track-latest-oss
+          base: main
+          title: "Bump weave-gitops to latest"
+          body: |
+            Update weave-gitops to unstable commit ${{ needs.ci-publish-js-lib.outputs.js-version }}
+
+            This upgrades core [from ${{ steps.current-rev.outputs.revision }} to ${{ github.event.after }}](https://github.com/weaveworks/weave-gitops/compare/${{ steps.current-rev.outputs.revision }}...${{ github.event.after }}):
+
+            ${{ steps.build_changelog.outputs.changelog }}
+# Uncomment this when you want to involve the author:
+#
+#            cc @${{ github.event.sender.login }}
+          commit-message: "Bump version of weave-gitops to latest"
+          token: ${{ secrets.WKS_CI_TEST_BOT_PR_TOKEN }}
+          delete-branch: true
+          labels: "exclude from release notes"
 
   notify-failure:
     name: Notify Slack on Failure
