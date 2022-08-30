@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -186,6 +187,11 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		scopes = append(scopes, scopeGroups)
 	}
 
+	// Ensure "offline_access" scope is always present for refresh tokens.
+	if !contains(scopes, oidc.ScopeOfflineAccess) {
+		scopes = append(scopes, oidc.ScopeOfflineAccess)
+	}
+
 	return &oauth2.Config{
 		ClientID:     s.config.ClientID,
 		ClientSecret: s.config.ClientSecret,
@@ -291,6 +297,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 		// Issue ID token cookie
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
 		http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -427,6 +434,35 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 
 		toJson(rw, ui, s.Log)
 	}
+}
+
+func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) error {
+	ctx := oidc.ClientContext(r.Context(), s.client)
+
+	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
+	if err != nil {
+		return errors.New("couldn't fetch refresh token from cookie")
+	}
+
+	token, err := s.oauth2Config(nil).TokenSource(
+		ctx,
+		&oauth2.Token{
+			RefreshToken: refreshTokenCookie.Value,
+		}).Token()
+	if err != nil {
+		return fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return errors.New("no id_token in token response")
+	}
+
+	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
+	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
+
+	return nil
 }
 
 func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {

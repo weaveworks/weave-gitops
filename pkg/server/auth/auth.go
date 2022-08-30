@@ -24,6 +24,10 @@ const (
 	// the user has authenticated successfully with the OIDC Provider. It's used for further
 	// resource requests from the provider.
 	AccessTokenCookieName = "access_token"
+	// RefreshTokenCookieName is the name of the cookie that holds the refresh token once
+	// the user has authenticated successfully with the OIDC Provider. It's used to refresh
+	// the id and access tokens once expired.
+	RefreshTokenCookieName = "refresh_token"
 	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
 	// used for token passthrough authentication.
 	AuthorizationTokenHeaderName = "Authorization"
@@ -200,9 +204,13 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		if principal == nil || err != nil {
-			srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
-			JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
-			return
+			refreshErr := srv.Refresh(rw, r)
+			if refreshErr != nil {
+				srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
+				srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
+				JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
+				return
+			}
 		}
 		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
 	})

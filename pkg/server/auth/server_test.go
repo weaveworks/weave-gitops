@@ -537,7 +537,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	g.Expect(info.Email).To(Equal(""))
 }
 
-func TestUserInfoOIDCFlow(t *testing.T) {
+func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map[string]interface{} {
 	const (
 		state = "abcdef"
 		nonce = "ghijkl"
@@ -545,11 +545,6 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	)
 
 	g := gomega.NewGomegaWithT(t)
-
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
 
 	authorizeQuery := url.Values{}
 	authorizeQuery.Set("client_id", m.Config().ClientID)
@@ -600,6 +595,19 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	tokens := make(map[string]interface{})
 	g.Expect(json.Unmarshal(body, &tokens)).To(Succeed())
 
+	return tokens
+}
+
+func TestUserInfoOIDCFlow(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	tokens := getVerifyTokens(t, s, m)
+
 	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string))
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = m.Keypair.VerifyJWT(tokens["refresh_token"].(string))
@@ -623,6 +631,69 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
 	g.Expect(info.Email).To(Equal("jane.doe@example.com"))
+}
+
+func TestRefresh(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	tokens := getVerifyTokens(t, s, m)
+
+	tf := tokens["refresh_token"].(string)
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.RefreshTokenCookieName,
+		Value: tf,
+	})
+
+	w := httptest.NewRecorder()
+	cookies := make(map[string]*http.Cookie)
+
+	g.Expect(s.Refresh(w, req)).To(Succeed())
+
+	for _, c := range w.Result().Cookies() {
+		if c.Name == auth.IDTokenCookieName || c.Name == auth.AccessTokenCookieName || c.Name == auth.RefreshTokenCookieName {
+			cookies[c.Name] = c
+		}
+	}
+
+	g.Expect(cookies).To(HaveKey(auth.IDTokenCookieName))
+	g.Expect(cookies).To(HaveKey(auth.AccessTokenCookieName))
+	g.Expect(cookies).To(HaveKey(auth.RefreshTokenCookieName))
+
+	_, err = m.Keypair.VerifyJWT(cookies[auth.IDTokenCookieName].Value)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = m.Keypair.VerifyJWT(cookies[auth.AccessTokenCookieName].Value)
+	g.Expect(err).NotTo(HaveOccurred())
+	_, err = m.Keypair.VerifyJWT(cookies[auth.RefreshTokenCookieName].Value)
+	g.Expect(err).NotTo(HaveOccurred())
+}
+
+func TestRefreshNoToken(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+	g.Expect(s.Refresh(w, req)).To(HaveOccurred())
+}
+
+func TestRefreshInvalidToken(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.RefreshTokenCookieName,
+		Value: "invalid",
+	})
+	g.Expect(s.Refresh(w, req)).To(HaveOccurred())
 }
 
 func TestLogoutSuccess(t *testing.T) {
