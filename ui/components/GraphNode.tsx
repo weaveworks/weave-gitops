@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { UnstructuredObjectWithChildren } from "../lib/graph";
@@ -36,13 +37,11 @@ const NodeText = styled(Flex)`
 
 const Title = styled(Flex)`
   font-size: ${titleFontSize};
-  text-overflow: ellipsis;
 `;
 
 const Kinds = styled(Flex)`
   font-size: ${kindFontSize};
   color: ${(props) => props.theme.colors.neutral30};
-  text-overflow: ellipsis;
 `;
 
 type StatusLineProps = {
@@ -91,17 +90,29 @@ function GraphNode({ className, object }: Props) {
         <Title start wide align>
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
-          {object.name}
+          <Tooltip
+            placement="top"
+            title={object.name.length > 23 ? object.name : ""}
+          >
+            <span>{object.name}</span>
+          </Tooltip>
         </Title>
         <Kinds start wide align>
           {object.kind || object.groupVersionKind.kind || ""}
         </Kinds>
         <Kinds start wide align>
-          {object.namespace}
+          <span>{object.namespace}</span>
         </Kinds>
       </NodeText>
     </Node>
   );
 }
 
-export default styled(GraphNode).attrs({ className: GraphNode.name })``;
+export default styled(GraphNode).attrs({ className: GraphNode.name })`
+  span {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
