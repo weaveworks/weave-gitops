@@ -181,6 +181,39 @@ policy-agent:
           address: ""
 ```
 </TabItem>
+<TabItem value="elasticsearch" label="Elasticsearch">
+The results of validating entities against policies would be written in Elasticsearch index.
+
+To enable writing to elasticsearh in audit scenario:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      sinks:
+        elasticSink:
+          address: ""
+          username: ""
+          password: ""
+          indexName: ""
+          insertionMode: "upsert"
+```
+
+To enable writing to flux notification controller in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        elasticSink:
+          address: ""
+          username: ""
+          password: ""
+          indexName: ""
+          insertionMode: "insert"
+```
+</TabItem>
 </Tabs>
 
 
