@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -11,39 +12,61 @@ import (
 )
 
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	principal := auth.Principal(ctx)
+	respErrors := multierror.Error{}
+
+	for _, obj := range msg.Objects {
+		clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), obj.ClusterName)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("error getting impersonating client: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		c, err := clustersClient.Scoped(obj.ClusterName)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting cluster client: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		key := client.ObjectKey{
+			Name:      obj.Name,
+			Namespace: obj.Namespace,
+		}
+
+		obj, err := getReconcilableObject(obj.Kind)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("converting to reconcilable source: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		log := cs.logger.WithValues(
+			"user", principal.ID,
+			"kind", obj.GroupVersionKind().Kind,
+			"name", key.Name,
+			"namespace", key.Namespace,
+		)
+
+		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting reconcilable object: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		patch := client.MergeFrom(obj.DeepCopyClientObject())
+
+		obj.SetSuspended(msg.Suspend)
+
+		if msg.Suspend {
+			log.Info("Suspending resource")
+		} else {
+			log.Info("Resuming resource")
+		}
+
+		if err := c.Patch(ctx, obj.AsClientObject(), patch); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("patching object: %w", err), respErrors.Errors...)
+		}
 	}
 
-	c, err := clustersClient.Scoped(msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("getting cluster client: %w", err)
-	}
-
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	obj, err := getReconcilableObject(msg.Kind)
-	if err != nil {
-		return nil, fmt.Errorf("converting to reconcilable source: %w", err)
-	}
-
-	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
-		return nil, fmt.Errorf("getting reconcilable object: %w", err)
-	}
-
-	patch := client.MergeFrom(obj.DeepCopyClientObject())
-
-	obj.SetSuspended(msg.Suspend)
-
-	if err := c.Patch(ctx, obj.AsClientObject(), patch); err != nil {
-		return nil, fmt.Errorf("patching object: %w", err)
-	}
-
-	return &pb.ToggleSuspendResourceResponse{}, nil
+	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
 }
 
 func getReconcilableObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {

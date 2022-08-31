@@ -46,6 +46,8 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 
 	var results []*pb.HelmRelease
 
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
 	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*helmv2.HelmReleaseList)
@@ -56,10 +58,13 @@ func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmRele
 			for _, helmrelease := range list.Items {
 				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
 				if err != nil {
-					return nil, err
+					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: err.Error()})
+					continue
 				}
 
-				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv))
+				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
+
+				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
 			}
 		}
 	}
@@ -92,7 +97,11 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 		return nil, err
 	}
 
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory)
+	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+
+	tenant := GetTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
+
+	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
 
 	res.ApiVersion = apiVersion
 

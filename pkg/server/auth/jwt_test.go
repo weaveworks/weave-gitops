@@ -39,7 +39,7 @@ func TestJWTCookiePrincipalGetter(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
+			if diff := cmp.Diff(tt.want, principal, allowUnexportedPrincipal()); diff != "" {
 				t.Fatalf("failed to get principal:\n%s", diff)
 			}
 		})
@@ -67,7 +67,7 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.want, principal); diff != "" {
+			if diff := cmp.Diff(tt.want, principal, allowUnexportedPrincipal()); diff != "" {
 				t.Fatalf("failed to get principal:\n%s", diff)
 			}
 		})
@@ -153,7 +153,6 @@ func TestMultiAuth(t *testing.T) {
 			if tt.err != nil {
 				g.Expect(err).To(MatchError(tt.err))
 			}
-
 			g.Expect(principal).To(Equal(tt.want))
 		})
 	}
@@ -177,4 +176,8 @@ type errorPrincipalGetter struct {
 
 func (s errorPrincipalGetter) Principal(r *http.Request) (*auth.UserPrincipal, error) {
 	return nil, s.err
+}
+
+func allowUnexportedPrincipal() cmp.Option {
+	return cmp.AllowUnexported(auth.UserPrincipal{})
 }

@@ -17,7 +17,7 @@ func HashCommand(opts *config.Options) *cobra.Command {
 		Short: "Generates a hashed secret",
 		Example: `
 # PASSWORD="<your password>"
-# echo $PASSWORD | gitops get bcrypt-hash
+# echo -n $PASSWORD | gitops get bcrypt-hash
 `,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -38,16 +38,19 @@ func hashCommandRunE() func(*cobra.Command, []string) error {
 
 		var p []byte
 
-		if stats.Size() == 0 {
-			fmt.Print("error: no password found\nEnter Password: ")
+		if (stats.Mode() & os.ModeCharDevice) == 0 {
+			p, err = io.ReadAll(os.Stdin)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			fmt.Print("Enter Password: ")
 
 			p, err = term.ReadPassword(int(os.Stdin.Fd()))
 
-			if err != nil {
-				return nil
-			}
-		} else {
-			p, err = io.ReadAll(os.Stdin)
+			fmt.Println()
+
 			if err != nil {
 				return err
 			}

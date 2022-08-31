@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
+import { colors } from "../typedefs/styled.d";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import { computeMessage, computeReady, ReadyType } from "./KubeStatusIndicator";
@@ -14,20 +15,34 @@ type StatusProps = {
 };
 
 function PageStatus({ conditions, suspended, className }: StatusProps) {
-  const ok = suspended ? false : computeReady(conditions);
   const msg = suspended ? "Suspended" : computeMessage(conditions);
 
-  let iconType;
-  if (suspended) iconType = IconType.SuspendedIcon;
-  else if (ok)
-    ok === ReadyType.Reconciling
-      ? (iconType = IconType.ReconcileIcon)
-      : (iconType = IconType.CheckCircleIcon);
-  else iconType = IconType.FailedIcon;
+  let iconType: IconType;
+  let iconColor: keyof typeof colors;
+  if (suspended) {
+    iconType = IconType.SuspendedIcon;
+    iconColor = "suspended";
+  } else {
+    const ok = computeReady(conditions);
+    switch (ok) {
+      case ReadyType.Reconciling:
+        iconType = IconType.ReconcileIcon;
+        iconColor = "primary";
+        break;
+      case ReadyType.Ready:
+        iconType = IconType.CheckCircleIcon;
+        iconColor = "success";
+        break;
+      case ReadyType.NotReady:
+        iconType = IconType.FailedIcon;
+        iconColor = "alert";
+        break;
+    }
+  }
 
   return (
     <Flex align className={className}>
-      <Icon type={iconType} color={ok ? "success" : "alert"} size="medium" />
+      <Icon type={iconType} color={iconColor} size="medium" />
       <Spacer padding="xs" />
       <Text color="neutral30">{msg}</Text>
     </Flex>

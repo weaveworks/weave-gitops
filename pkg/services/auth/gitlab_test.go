@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -42,7 +42,7 @@ var _ = Describe("GitlabAuthClient", func() {
 		b, err := json.Marshal(rs)
 		Expect(err).NotTo(HaveOccurred())
 
-		res.Body = ioutil.NopCloser(bytes.NewReader(b))
+		res.Body = io.NopCloser(bytes.NewReader(b))
 
 		rt.RoundTripReturns(res, nil)
 

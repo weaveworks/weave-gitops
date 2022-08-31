@@ -4,6 +4,7 @@ import {
   FluxObject,
   HelmRepository,
   HelmChart,
+  OCIRepository,
 } from "../objects";
 import { FluxObjectKind } from "../api/core/types.pb";
 
@@ -127,8 +128,6 @@ describe("objects lib", () => {
     });
 
     it("extracts source ref", () => {
-      // Note: listHelmChart returns incorrect sourceRef name and
-      // doesn't ensure namespace key, so this is incompatible with it.
       expect(obj.sourceRef).toEqual({
         kind: "KindHelmRepository",
         name: "helmrepository",
@@ -243,6 +242,38 @@ describe("objects lib", () => {
 
     it("extracts endpoint", () => {
       expect(obj.endpoint).toEqual("minio.minio.svc.cluster.local:9000");
+    });
+  });
+
+  describe("supports basic oci object", () => {
+    const response = {
+      object: {
+        payload:
+          '{"apiVersion":"source.toolkit.fluxcd.io/v1beta2","kind":"OCIRepository","metadata":{"creationTimestamp":"2022-08-09T08:55:13Z","finalizers":["finalizers.fluxcd.io"],"generation":1,"managedFields":[{"apiVersion":"source.toolkit.fluxcd.io/v1beta2","fieldsType":"FieldsV1","fieldsV1":{"f:spec":{".":{},"f:interval":{},"f:provider":{},"f:ref":{".":{},"f:semver":{}},"f:timeout":{},"f:url":{}}},"manager":"flux","operation":"Update","time":"2022-08-09T08:55:13Z"},{"apiVersion":"source.toolkit.fluxcd.io/v1beta2","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:finalizers":{".":{},"v:\\"finalizers.fluxcd.io\\"":{}}}},"manager":"source-controller","operation":"Update","time":"2022-08-09T08:55:13Z"},{"apiVersion":"source.toolkit.fluxcd.io/v1beta2","fieldsType":"FieldsV1","fieldsV1":{"f:status":{"f:artifact":{".":{},"f:checksum":{},"f:lastUpdateTime":{},"f:metadata":{".":{},"f:org.opencontainers.image.created":{},"f:org.opencontainers.image.revision":{},"f:org.opencontainers.image.source":{}},"f:path":{},"f:revision":{},"f:size":{},"f:url":{}},"f:conditions":{},"f:observedGeneration":{},"f:url":{}}},"manager":"source-controller","operation":"Update","subresource":"status","time":"2022-08-09T08:55:15Z"}],"name":"podinfo-oci","namespace":"flux-system","resourceVersion":"177657","uid":"179d98f9-10e9-45f3-bd96-295b54522c91"},"spec":{"interval":"10m0s","provider":"generic","ref":{"semver":"6.x"},"timeout":"60s","url":"oci://ghcr.io/stefanprodan/manifests/podinfo"},"status":{"artifact":{"checksum":"9f3bc0f341d4ecf2bab460cc59320a2a9ea292f01d7b96e32740a9abfd341088","lastUpdateTime":"2022-08-09T08:55:15Z","metadata":{"org.opencontainers.image.created":"2022-08-08T12:31:41+03:00","org.opencontainers.image.revision":"6.1.8/b3b00fe35424a45d373bf4c7214178bc36fd7872","org.opencontainers.image.source":"https://github.com/stefanprodan/podinfo.git"},"path":"ocirepository/flux-system/podinfo-oci/84dd766945aa73a62682f2411274dc738eb7547f8d6ae55e8bf84820f20c006d.tar.gz","revision":"84dd766945aa73a62682f2411274dc738eb7547f8d6ae55e8bf84820f20c006d","size":1105,"url":"http://source-controller.flux-system.svc.cluster.local./ocirepository/flux-system/podinfo-oci/84dd766945aa73a62682f2411274dc738eb7547f8d6ae55e8bf84820f20c006d.tar.gz"},"conditions":[{"lastTransitionTime":"2022-08-09T08:55:15Z","message":"stored artifact for digest \'84dd766945aa73a62682f2411274dc738eb7547f8d6ae55e8bf84820f20c006d\'","observedGeneration":1,"reason":"Succeeded","status":"True","type":"Ready"},{"lastTransitionTime":"2022-08-09T08:55:15Z","message":"stored artifact for digest \'84dd766945aa73a62682f2411274dc738eb7547f8d6ae55e8bf84820f20c006d\'","observedGeneration":1,"reason":"Succeeded","status":"True","type":"ArtifactInStorage"}],"observedGeneration":1,"url":"http://source-controller.flux-system.svc.cluster.local./ocirepository/flux-system/podinfo-oci/latest.tar.gz"}}\n',
+        clusterName: "Default",
+      },
+    };
+
+    const obj = new OCIRepository(response.object);
+
+    it("extracts source", () => {
+      expect(obj.source).toEqual("https://github.com/stefanprodan/podinfo.git");
+    });
+
+    it("extracts revision", () => {
+      expect(obj.revision).toEqual(
+        "6.1.8/b3b00fe35424a45d373bf4c7214178bc36fd7872"
+      );
+    });
+  });
+
+  describe("supports oci images without metadata", () => {
+    const obj = new OCIRepository({
+      payload: '{"status": {"artifact": {"metadata": {}}}}',
+    });
+    it("handles empty metadata", () => {
+      expect(obj.source).toEqual("");
+      expect(obj.revision).toEqual("");
     });
   });
 

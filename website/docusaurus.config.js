@@ -3,7 +3,7 @@ const versions = require("./versions.json");
 module.exports = {
   title: "Weave GitOps",
   tagline: "Weave GitOps Documentation",
-  url: "https://docs.gitops.weave.works/",
+  url: "https://docs.gitops.weave.works",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -52,6 +52,11 @@ module.exports = {
           docId: "getting-started",
           position: "left",
           label: "Getting Started",
+        },
+        {
+          to: 'security',
+          label: 'Security',
+          position: 'left',
         },
         {
           type: "docsVersionDropdown",

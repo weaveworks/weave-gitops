@@ -27,7 +27,7 @@ rules:
   resources: [ "helmreleases" ]
   verbs: [ "get", "list", "patch" ]
 - apiGroups: ["source.toolkit.fluxcd.io"]
-  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+  resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
   verbs: [ "get", "list", "patch" ]
 - apiGroups: ["infra.contrib.fluxcd.io"]
   resources: ["terraforms"]
@@ -62,12 +62,12 @@ rules:
 
 The resources that Flux works with directly, including the one from TF-controller.
 
-| Api Group                   | Resources                                              | Permissions      |
-|-----------------------------|--------------------------------------------------------|------------------|
-| kustomize.toolkit.fluxcd.io | kustomizations                                         | get, list, patch |
-| helm.toolkit.fluxcd.io      | helmreleases                                           | get, list, patch |
-| source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories | get, list, patch |
-| infra.contrib.fluxcd.io     | terraforms                                             | get, list, patch |
+| Api Group                   | Resources                                                               | Permissions      |
+| --------------------------- | ----------------------------------------------------------------------- | ---------------- |
+| kustomize.toolkit.fluxcd.io | kustomizations                                                          | get, list, patch |
+| helm.toolkit.fluxcd.io      | helmreleases                                                            | get, list, patch |
+| source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories, ocirepositories | get, list, patch |
+| infra.contrib.fluxcd.io     | terraforms                                                              | get, list, patch |
 
 In order for Weave GitOps to be able to accurately display the state of Flux it
 needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses. This is done using the

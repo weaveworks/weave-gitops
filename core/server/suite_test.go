@@ -73,7 +73,8 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	principal := &auth.UserPrincipal{}
+	// Put the user in the `system:masters` group to avoid auth errors
+	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(clientsFactory, principal),
 	)
@@ -143,7 +144,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	}
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
+	fetcher.FetchReturns([]clustersmngr.Cluster{{Name: "Default"}}, nil)
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
@@ -153,6 +154,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
 		f := &clustersmngrfakes.FakeClientsPool{}
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
+		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
 		return f
 	})
 
@@ -170,7 +172,8 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	principal := &auth.UserPrincipal{}
+	// Put the user in the `system:masters` group to avoid auth errors
+	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(cfg.ClientsFactory, principal),
 	)

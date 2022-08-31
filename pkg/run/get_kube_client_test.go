@@ -1,11 +1,9 @@
-package run_test
+package run
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 )
 
 var _ = Describe("GetKubeClient", func() {
@@ -16,20 +14,20 @@ var _ = Describe("GetKubeClient", func() {
 	})
 
 	It("returns kube client", func() {
-		kubeConfigArgs := run.GetKubeConfigArgs()
+		kubeConfigArgs := GetKubeConfigArgs()
 
-		namespace := wego.DefaultNamespace
+		namespace := "test-namespace"
 
 		kubeConfigArgs.Namespace = &namespace
 
 		_, err := kubeConfigArgs.ToRESTConfig()
 		Expect(err).NotTo(HaveOccurred())
 
-		kubeClientOpts := run.GetKubeClientOptions()
+		kubeClientOpts := GetKubeClientOptions()
 
-		contextName := "some-context"
+		contextName := "test-context"
 
-		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
+		kubeClient, err := GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(kubeClient).ToNot(BeNil())

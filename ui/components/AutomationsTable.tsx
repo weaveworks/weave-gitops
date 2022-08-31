@@ -2,17 +2,20 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { statusSortHelper, removeKind } from "../lib/utils";
-import { Field } from "./DataTable";
-import { filterConfig, filterByStatusCallback } from "./FilterableTable";
+import { removeKind, statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -22,15 +25,32 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
   automations = automations.map((a) => {
     return { ...a, type: removeKind(a.kind) };
   });
-  const initialFilterState = {
+
+  let initialFilterState = {
     ...filterConfig(automations, "type"),
     ...filterConfig(automations, "namespace"),
-    ...filterConfig(automations, "clusterName"),
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "tenant"),
+    };
+  }
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(automations, "clusterName"),
+    };
+  }
 
   let fields: Field[] = [
     {
@@ -64,10 +84,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Namespace",
       value: "namespace",
     },
-    {
-      label: "Cluster",
-      value: "clusterName",
-    },
+    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+      ? [{ label: "Tenant", value: "tenant" }]
+      : []),
+    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [{ label: "Cluster", value: "clusterName" }]
+      : []),
     {
       label: "Source",
       value: (a: Automation) => {
@@ -139,11 +161,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <URLAddressableTable
+    <DataTable
       fields={fields}
-      filters={initialFilterState}
       rows={automations}
       className={className}
+      filters={initialFilterState}
+      hasCheckboxes
     />
   );
 }

@@ -237,6 +237,36 @@ jobs:
         aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
         aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
+  ci-publish-js-lib:
+    name: Publish js library
+    runs-on: ubuntu-latest
+    needs: [ci-js]
+    if: github.event_name == 'push'
+    permissions:
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.X"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@weaveworks"
+      - run: npm install
+      - run: make ui-lib
+      - name: Update package version
+        run: |
+          GITOPS_VERSION=$(git describe)
+          jq '.version = "'$GITOPS_VERSION'" | .name = "@weaveworks/weave-gitops-main"' < dist/package.json > dist/package-new.json
+          mv dist/package-new.json dist/package.json
+          cp .npmrc dist
+      - run: cd dist && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # We only push images on merge so create a passing check if everything finished
   finish-ci-pr:
     name: PR CI Pipeline
@@ -257,6 +287,7 @@ jobs:
     needs:
       - ci-upload-images
       - ci-upload-binary
+      - ci-publish-js-lib
     steps:
       - run: echo "All done"
 
@@ -273,6 +304,6 @@ jobs:
       with:
         slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
         message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
-        channel: proj-core-reloaded
+        channel: team-denim
         color: red
         verbose: false

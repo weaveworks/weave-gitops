@@ -188,7 +188,7 @@ func TestKustomization(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res, err := KustomizationToProto(&tt.state, tt.clusterName)
+			res, err := KustomizationToProto(&tt.state, tt.clusterName, "")
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(res).To(Equal(tt.result))

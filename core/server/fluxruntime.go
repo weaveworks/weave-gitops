@@ -80,6 +80,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 				Namespace:   d.Namespace,
 				Conditions:  []*pb.Condition{},
 				ClusterName: clusterName,
+				Uid:         string(d.GetUID()),
 			}
 
 			for _, cond := range d.Status.Conditions {
@@ -136,6 +137,7 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 			Version:     version,
 			Kind:        d.Spec.Names.Kind,
 			ClusterName: msg.ClusterName,
+			Uid:         string(d.GetUID()),
 		}
 		results = append(results, r)
 	}

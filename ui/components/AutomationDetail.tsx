@@ -34,10 +34,10 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
   const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
-    automation.name,
-    automation.namespace,
-    fluxObjectKindToKind(automation.kind),
-    automation.clusterName
+    automation?.name,
+    automation?.namespace,
+    fluxObjectKindToKind(automation?.kind),
+    automation?.clusterName
   );
 
   const sync = useSyncFluxObject({
@@ -49,10 +49,14 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
 
   const suspend = useToggleSuspend(
     {
-      name: automation?.name,
-      namespace: automation?.namespace,
-      clusterName: automation?.clusterName,
-      kind: automation?.kind,
+      objects: [
+        {
+          name: automation?.name,
+          namespace: automation?.namespace,
+          clusterName: automation?.clusterName,
+          kind: automation?.kind,
+        },
+      ],
       suspend: !automation?.suspended,
     },
     automation?.kind === FluxObjectKind.KindHelmRelease

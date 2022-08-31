@@ -126,7 +126,7 @@ func TestInitAuthServer(t *testing.T) {
 
 			fakeKubernetesClient := partialKubernetesClient.Build()
 
-			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, false, tt.authMethods)
+			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, "test-namespace", tt.authMethods)
 
 			if tt.expectErr {
 				g.Expect(err).To(gomega.HaveOccurred())
@@ -147,7 +147,7 @@ func makeOIDCSecret(oidcConfig *mockoidc.Config, secretName string) *corev1.Secr
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: "flux-system",
+			Namespace: "test-namespace",
 		},
 		Data: map[string][]byte{
 			"issuerURL":    []byte(oidcConfig.Issuer),
@@ -164,7 +164,7 @@ func makeClusterUserSecret(password, secretName string) *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: "flux-system",
+			Namespace: "test-namespace",
 		},
 		Data: map[string][]byte{
 			"password": hashed,

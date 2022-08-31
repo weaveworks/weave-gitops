@@ -1,12 +1,12 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -14,12 +14,22 @@ type Props = {
 };
 
 function ControllersTable({ className, controllers = [] }: Props) {
-  const initialFilterState = {
-    ...filterConfig(controllers, "clusterName"),
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
+  let initialFilterState = {
     ...filterConfig(controllers, "status", filterByStatusCallback),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(controllers, "clusterName"),
+    };
+  }
+
   return (
-    <URLAddressableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
       rows={controllers}
@@ -42,10 +52,9 @@ function ControllersTable({ className, controllers = [] }: Props) {
             ) : null,
           sortValue: statusSortHelper,
         },
-        {
-          label: "Cluster",
-          value: "clusterName",
-        },
+        ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+          ? [{ label: "Cluster", value: "clusterName" }]
+          : []),
         {
           value: (d: Deployment) => (
             <>

@@ -23,6 +23,8 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+const testNamespace = "flux-system"
+
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
@@ -48,7 +50,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -121,7 +123,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{} // This is not a valid AuthMethod
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -184,7 +186,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -246,7 +248,7 @@ func TestRateLimit(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -279,4 +281,58 @@ func TestRateLimit(t *testing.T) {
 	res4, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"bad-password"}`)))
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res4).To(HaveHTTPStatus(http.StatusUnauthorized))
+}
+
+func TestUserPrincipalValid(t *testing.T) {
+	g := gomega.NewGomegaWithT(t)
+
+	tests := []struct {
+		name    string
+		user    *auth.UserPrincipal
+		isValid bool
+	}{
+		{
+			name:    "Full valid OIDC user",
+			user:    auth.NewUserPrincipal(auth.ID("Jane"), auth.Groups([]string{"team-a", "qa"})),
+			isValid: true,
+		},
+		{
+			name:    "any token",
+			user:    auth.NewUserPrincipal(auth.Token("abcdefghi09123")),
+			isValid: true,
+		},
+		{
+			name:    "Just a user id",
+			user:    auth.NewUserPrincipal(auth.ID("Samir")),
+			isValid: true,
+		},
+		{
+			name:    "Empty",
+			user:    auth.NewUserPrincipal(),
+			isValid: false,
+		},
+		{
+			name:    "Group only",
+			user:    auth.NewUserPrincipal(auth.Groups([]string{"team-b"})),
+			isValid: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := tt.user.Valid()
+
+			g.Expect(res).To(Equal(tt.isValid))
+		})
+	}
+}
+
+func TestUserPrincipal_String(t *testing.T) {
+	// This is primarily to guard against leaking the auth token if the
+	// principal is logged out.
+	p := auth.NewUserPrincipal(auth.ID("testing"), auth.Groups([]string{"group1", "group2"}), auth.Token("test-token"))
+
+	if s := p.String(); s != `id="testing" groups=[group1 group2]` {
+		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
+	}
 }

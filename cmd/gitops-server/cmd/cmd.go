@@ -35,6 +35,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -42,8 +43,6 @@ import (
 const (
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
-	// Env var prefix that will be set as a feature flag automatically
-	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -89,7 +88,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
-	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), "Which auth methods to use, valid values are 'oidc' and 'user-account'")
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
@@ -102,8 +101,6 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-	// Dev mode
-	cmd.Flags().BoolVar(&options.DevMode, "dev-mode", false, "Enables development mode - this disables verifying cookie signatures, do not use")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -119,20 +116,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
 
-	for _, envVar := range os.Environ() {
-		keyVal := strings.SplitN(envVar, "=", 2)
-		if len(keyVal) != 2 {
-			continue
-		}
-
-		key, val := keyVal[0], keyVal[1]
-
-		if !strings.HasPrefix(key, featureFlagPrefix) {
-			continue
-		}
-
-		featureflags.Set(key, val)
-	}
+	featureflags.SetFromEnv(os.Environ())
 
 	mux := http.NewServeMux()
 
@@ -166,7 +150,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, options.DevMode, options.AuthMethods)
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	namespace, _, err := kubeConfig.Namespace()
+	if err != nil {
+		return fmt.Errorf("Couldn't get current namespace")
+	}
+
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
 
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
@@ -312,7 +305,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 			ClientAuth: tls.RequireAndVerifyClientCert,
 		}
 	} else {
-		log.Info("Using TLS from %q and %q", options.TLSCertFile, options.TLSKeyFile)
+		log.Info("Using TLS", "cert_file", options.TLSCertFile, "key_file", options.TLSKeyFile)
 	}
 
 	// if tlsCert and tlsKey are both empty (""), ListenAndServeTLS will ignore

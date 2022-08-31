@@ -1,0 +1,147 @@
+---
+title: Manual approval for progressive delivery deployments
+sidebar_position: 7
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+Weave GitOps Enterprise helps you understand the state of progressive delivery 
+updates to your applications with [Flagger](https://flagger.app). The Delivery 
+view shows all your deployed `Canary` objects and the status for how a rollout 
+is progressing. 
+
+By default, Flagger will automatically promote a new version of an application 
+should it pass the defined checks during an analysis phase. However, you can 
+also configure [webhooks](https://docs.flagger.app/usage/webhooks) to enable 
+manual approvals for Flagger to proceed to the next phase of a rollout.
+
+In this guide we will show you how to get started with manually gating a 
+progressive delivery promotion with Flagger, using the in-built load tester as 
+a way to demonstrate and learn the capability so that you could configure 
+your own gates.
+
+## Pre-requisites
+- Basic knowledge of [Flagger](https://flagger.app).
+- An existing `Canary` object and target deployment.
+- Flagger's load tester [installed](https://docs.flagger.app/usage/webhooks#load-testing)
+
+## Basic introduction to Webhooks and Gating
+Flagger can be configured to work with several types of hooks which will be called at 
+given stages during a progressive delivery rollout. Some of these allow you to manually 
+gate whether a rollout proceeds at certain points:
+- Before a new deployment is scaled up and canary analysis begins with `confirm-rollout`. 
+- Before traffic weight is increased with `confirm-traffic-increase`.
+- Before a new version is promoted following successful canary analysis with `confirm-promotion`.
+
+Any URL can be used as a webhook target, it will approve if it returns with a
+`200 OK` status code, and halt if it's `403 Forbidden`.
+
+The webhook will receive a JSON payload that can be unmarshaled as
+`CanaryWebhookPayload`:
+
+```go
+type CanaryWebhookPayload struct {
+	// Name of the canary
+	Name string `json:"name"`
+
+	// Namespace of the canary
+	Namespace string `json:"namespace"`
+
+	// Phase of the canary analysis
+	Phase CanaryPhase `json:"phase"`
+
+	// Metadata (key-value pairs) for this webhook
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+```
+
+For more information on Webhooks in Flagger, see the 
+[Flagger documentation](https://docs.flagger.app/usage/webhooks)
+
+
+## Using Flagger's load tester to manually gate a promotion
+To enable manual approval of a promotion we are going to configure the 
+`confirm-promotion` webhook to call a particular gate provided through 
+Flagger's included load tester. This is an easy way to experiment with 
+the capability using Flagger's included components. 
+
+**Important note**
+We strongly recommend that you DO NOT USE the load tester for manual gating 
+in a production environment. There is no auth on the load tester, so 
+anyone with access to the cluster would be able to open and close; and 
+the load tester has no storage, so if restarted - all gates would close. 
+
+Instead, configure these webhooks for appropriate integration with a 
+tool of your choice such Jira, Slack, Jenkins, etc.
+
+### Configure the confirm-promotion webhook
+In your Canary object, add the following in the `analysis` section:
+
+```yaml
+  analysis:
+    webhooks:
+      - name: "ask for confirmation"
+        type: confirm-promotion
+        url: http://flagger-loadtester.test/gate/check
+```
+
+This gate is closed by default.
+
+### Deploy a new version of your application
+Trigger a Canary rollout by updating your target deployment/daemonset, for 
+example by bumping the container image tag. A full list of ways to trigger 
+a rollout is available 
+[here](https://docs.flagger.app/faq#how-to-retry-a-failed-release).
+
+You can watch the progression of a Canary in Weave GitOps Enterprise (WGE) 
+through the Applications > Delivery view:
+
+![Podinfo Canary progressing](/img/pd-table-progressing.png)
+
+
+### Wait for the Canary analysis to complete
+Once the Canary analysis has successfully completed, Flagger will call the 
+`confirm-promotion` webhook and change status to `WaitingPromotion` as you 
+can see in the screenshots below:
+
+![Podinfo Canary showing Waiting Promotion - table view](/img/pd-table-waiting.png)
+
+![Podinfo Canary showing Waiting Promotion - details view](/img/pd-details-waiting.png)
+
+### Open the gate
+To open the gate and therefore confirm that you are happy for the new 
+version of your application to be promoted, we can exec into the load tester 
+container:
+
+```
+$ kubectl -n test exec -it flagger-loadtester-xxxx-xxxx sh
+
+# to open
+> curl -d '{"name": "app","namespace":"test"}' http://localhost:8080/gate/open
+```
+
+Flagger will now proceed to promote the Canary version to the primary and 
+complete the progressive delivery rollout :tada:
+
+![Podinfo Canary succeeded - full events history](/img/pd-events-gate-passed.png)
+
+![Podinfo Canary succeeded - promoting](/img/pd-table-promoting.png)
+
+![Podinfo Canary succeeded - promoted](/img/pd-table-succeeded.png)
+
+
+To manually close the gate again you can issue:
+
+```
+> curl -d '{"name": "app","namespace":"test"}' http://localhost:8080/gate/close
+```
+
+**References:**
+
+* This guide was informed by the 
+[Official Flagger documentation](https://docs.flagger.app/usage/webhooks#manual-gating)

@@ -3,10 +3,17 @@ import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListEventsResponse } from "../lib/api/core/core.pb";
 import { ObjectRef } from "../lib/api/core/types.pb";
-import { RequestError } from "../lib/types";
+import { ReactQueryOptions, RequestError } from "../lib/types";
 import { removeKind } from "../lib/utils";
 
-export function useListEvents(obj: ObjectRef) {
+export function useListEvents(
+  obj: ObjectRef,
+  opts: ReactQueryOptions<ListEventsResponse, RequestError> = {
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5000,
+  }
+) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListEventsResponse, RequestError>(
@@ -15,10 +22,6 @@ export function useListEvents(obj: ObjectRef) {
       api.ListEvents({
         involvedObject: { ...obj, kind: removeKind(obj.kind) },
       }),
-    {
-      retry: false,
-      refetchOnWindowFocus: false,
-      refetchInterval: 5000,
-    }
+    opts
   );
 }

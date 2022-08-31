@@ -1,30 +1,33 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	LoginOIDC                 string = "oidc"
-	LoginUsername             string = "username"
-	ClusterUserAuthSecretName string = "cluster-user-auth"
-	DefaultOIDCAuthSecretName string = "oidc-auth"
-	FeatureFlagClusterUser    string = "CLUSTER_USER_AUTH"
-	FeatureFlagOIDCAuth       string = "OIDC_AUTH"
-	FeatureFlagSet            string = "true"
+	LoginOIDC                  string = "oidc"
+	LoginUsername              string = "username"
+	ClusterUserAuthSecretName  string = "cluster-user-auth"
+	DefaultOIDCAuthSecretName  string = "oidc-auth"
+	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
+	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
+	FeatureFlagSet             string = "true"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -49,6 +52,7 @@ type AuthConfig struct {
 	tokenSignerVerifier TokenSignerVerifier
 	config              OIDCConfig
 	authMethods         map[AuthMethod]bool
+	namespace           string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -69,6 +73,85 @@ type UserInfo struct {
 	Groups []string `json:"groups"`
 }
 
+func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
+	cfg := OIDCConfig{
+		IssuerURL:    string(secret.Data["issuerURL"]),
+		ClientID:     string(secret.Data["clientID"]),
+		ClientSecret: string(secret.Data["clientSecret"]),
+		RedirectURL:  string(secret.Data["redirectURL"]),
+	}
+
+	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
+	if err != nil {
+		tokenDuration = time.Hour
+	}
+
+	cfg.TokenDuration = tokenDuration
+
+	return cfg
+}
+
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
+	if authMethods[OIDC] {
+		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
+			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
+		}
+
+		if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
+			return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
+		}
+	}
+
+	return AuthConfig{
+		Log:                 log.WithName("auth-server"),
+		client:              http.DefaultClient,
+		kubernetesClient:    kubernetesClient,
+		tokenSignerVerifier: tsv,
+		config:              oidcCfg,
+		namespace:           namespace,
+		authMethods:         authMethods,
+	}, nil
+}
+
+// NewAuthServer creates a new AuthServer object.
+func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
+	if cfg.authMethods[UserAccount] {
+		var secret corev1.Secret
+		err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+			Namespace: cfg.namespace,
+			Name:      ClusterUserAuthSecretName,
+		}, &secret)
+
+		if err != nil {
+			return nil, fmt.Errorf("Could not get secret for cluster user, %w", err)
+		} else {
+			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+		}
+	} else {
+		featureflags.Set(FeatureFlagClusterUser, "false")
+	}
+
+	var provider *oidc.Provider
+
+	if cfg.config.IssuerURL == "" {
+		featureflags.Set(FeatureFlagOIDCAuth, "false")
+	} else if cfg.authMethods[OIDC] {
+		var err error
+
+		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
+		if err != nil {
+			return nil, fmt.Errorf("could not create provider: %w", err)
+		}
+		featureflags.Set(FeatureFlagOIDCAuth, FeatureFlagSet)
+	}
+
+	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
+		return nil, fmt.Errorf("Neither OIDC auth or local auth enabled, can't start")
+	}
+
+	return &AuthServer{cfg, provider}, nil
+}
+
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
 // in unit tests only.
 func (s *AuthServer) SetRedirectURL(url string) {
@@ -77,6 +160,10 @@ func (s *AuthServer) SetRedirectURL(url string) {
 
 func (s *AuthServer) oidcEnabled() bool {
 	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
+}
+
+func (s *AuthServer) oidcPassthroughEnabled() bool {
+	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -234,8 +321,8 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Namespace: v1alpha1.DefaultNamespace,
 			Name:      ClusterUserAuthSecretName,
+			Namespace: s.namespace,
 		}, &hashedSecret); err != nil {
 			s.Log.Error(err, "Failed to query for the secret")
 			JSONError(s.Log, rw, "Please ensure that a password has been set.", http.StatusBadRequest)
@@ -325,8 +412,17 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			return
 		}
 
+		var userPrincipal UserPrincipal
+
+		// Extract custom claims
+		if err := info.Claims(&userPrincipal); err != nil {
+			JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
+			return
+		}
+
 		ui := UserInfo{
-			Email: info.Email,
+			Email:  info.Email,
+			Groups: userPrincipal.Groups,
 		}
 
 		toJson(rw, ui, s.Log)

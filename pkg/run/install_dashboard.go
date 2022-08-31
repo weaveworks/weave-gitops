@@ -8,7 +8,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -19,59 +18,68 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/kustomize/api/resource"
+	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 	"sigs.k8s.io/yaml"
 )
 
 const (
-	helmRepositoryName      = "ww-gitops"
-	helmReleaseName         = "ww-gitops"
-	helmChartName           = "weave-gitops"
-	helmChartNamespacedName = wego.DefaultNamespace + "-ww-gitops"
-	podName                 = "ww-gitops-weave-gitops"
-	helmRepositoryUrl       = "https://helm.gitops.weave.works"
+	helmChartName     = "weave-gitops"
+	helmRepositoryUrl = "https://helm.gitops.weave.works"
 )
 
-// InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.Client, kubeConfigArgs *genericclioptions.ConfigFlags, namespace string) error {
-	log.Actionf("Installing the GitOps Dashboard ...")
-
+func ReadPassword(log logger.Logger) (string, error) {
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
 	if err != nil {
 		log.Failuref("Could not read password")
-		return err
+		return "", err
 	}
 
+	return password, nil
+}
+
+func GenerateSecret(log logger.Logger, password string) (string, error) {
 	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Failuref("Error generating secret from password")
-		return err
+		return "", err
 	}
 
 	log.Successf("Secret has been generated:")
-	fmt.Println(string(secret))
 
-	log.Actionf("Installing the GitOps Dashboard ...")
+	return string(secret), nil
+}
 
-	helmRepository := makeHelmRepository(namespace)
-	helmRelease, err := makeHelmRelease(log, string(secret), namespace)
+// CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
+func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) ([]byte, error) {
+	log.Actionf("Creating GitOps Dashboard objects ...")
+
+	helmRepository := makeHelmRepository(name, namespace)
+	helmRelease, err := makeHelmRelease(log, name, namespace, username, secret, chartVersion)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
-		return err
+		return nil, err
 	}
 
-	manifests, err := generateManifests(log, string(secret), helmRepository, helmRelease)
+	log.Generatef("Generating GitOps Dashboard manifests ...")
+
+	manifests, err := generateManifestsForDashboard(log, helmRepository, helmRelease)
 	if err != nil {
 		log.Failuref("Generating GitOps Dashboard manifests failed")
-		return err
+		return nil, err
 	}
 
-	log.Successf("Generated GitOps Dashboard manifests")
+	return manifests, nil
+}
 
-	applyOutput, err := apply(log, ctx, kubeClient, kubeConfigArgs, manifests)
+// InstallDashboard installs the GitOps Dashboard.
+func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifests []byte) error {
+	log.Actionf("Installing the GitOps Dashboard ...")
+
+	applyOutput, err := apply(log, ctx, manager, manifests)
 	if err != nil {
 		log.Failuref("GitOps Dashboard install failed")
 		return err
@@ -85,22 +93,28 @@ func InstallDashboard(log logger.Logger, ctx context.Context, kubeClient client.
 }
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, namespace string) bool {
+func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, name string, namespace string) bool {
+	return getDashboardHelmChart(log, ctx, kubeClient, name, namespace) != nil
+}
+
+// GetDashboardHelmChart checks if the GitOps Dashboard is installed.
+func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, name string, namespace string) *sourcev1.HelmChart {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:      namespace + "-" + name,
 			Namespace: namespace,
-			Name:      helmChartNamespacedName,
 		},
 	}
+
 	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
-		return false
+		return nil
 	}
 
-	return true
+	return &helmChart
 }
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
@@ -109,7 +123,9 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 		ContainerPort: server.DefaultPort,
 	}
 	// get pod from specMap
-	pod, err := GetPodFromSpecMap(specMap, kubeClient)
+	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+	pod, err := GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -139,12 +155,15 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time.Duration, dashboardPort string) error {
+func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
+	helmChartName := namespace + "-" + name
+
+	// reconcile dashboard
 	namespacedName := types.NamespacedName{
 		Namespace: namespace,
-		Name:      helmChartNamespacedName,
+		Name:      helmChartName,
 	}
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
@@ -152,10 +171,15 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		Kind:    "HelmChart",
 	}
 
-	// reconcile dashboard
-	sourceRequestedAt, err := RequestReconciliation(context.Background(), kubeClient,
-		namespacedName, gvk)
-	if err != nil {
+	var sourceRequestedAt string
+
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		var err error
+		sourceRequestedAt, err = requestReconciliation(context.Background(), kubeClient,
+			namespacedName, gvk)
+
+		return err == nil, nil
+	}); err != nil {
 		return err
 	}
 
@@ -164,7 +188,7 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		dashboard := &sourcev1.HelmChart{}
 		if err := kubeClient.Get(context.Background(), types.NamespacedName{
 			Namespace: namespace,
-			Name:      helmChartNamespacedName,
+			Name:      helmChartName,
 		}, dashboard); err != nil {
 			return false, err
 		}
@@ -174,23 +198,16 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 		return err
 	}
 
-	// wait for dashboard pod to be running
-	specMap := &PortForwardSpec{
-		Namespace:     namespace,
-		Name:          podName,
-		Kind:          "deployment",
-		HostPort:      dashboardPort,
-		ContainerPort: server.DefaultPort,
-	}
-
 	// wait for dashboard to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard, _ := GetPodFromSpecMap(specMap, kubeClient)
+		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
+
+		dashboard, _ := GetPodFromResourceDescription(namespacedName, "deployment", kubeClient)
 		if dashboard == nil {
 			return false, nil
 		}
 
-		return IsPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
+		return isPodStatusConditionPresentAndEqual(dashboard.Status.Conditions, corev1.PodReady, corev1.ConditionTrue), nil
 	}); err != nil {
 		return err
 	}
@@ -198,8 +215,8 @@ func ReconcileDashboard(kubeClient client.Client, namespace string, timeout time
 	return nil
 }
 
-// generateManifests generates dashboard manifests from objects.
-func generateManifests(log logger.Logger, secret string, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+// generateManifestsForDashboard generates dashboard manifests from objects.
+func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
@@ -212,30 +229,51 @@ func generateManifests(log logger.Logger, secret string, helmRepository *sourcev
 		return nil, err
 	}
 
+	sanitizedHelmRepositoryData, err := sanitizeResourceData(log, helmRepositoryData)
+	if err != nil {
+		log.Failuref("Error sanitizing HelmRepository data")
+		return nil, err
+	}
+
+	sanitizedHelmReleaseData, err := sanitizeResourceData(log, helmReleaseData)
+	if err != nil {
+		log.Failuref("Error sanitizing HelmRelease data")
+		return nil, err
+	}
+
 	divider := []byte("---\n")
 
-	content := append(divider, helmRepositoryData...)
+	content := sanitizedHelmRepositoryData
 	content = append(content, divider...)
-	content = append(content, helmReleaseData...)
+	content = append(content, sanitizedHelmReleaseData...)
 
 	return content, nil
 }
 
 // makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
+func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1.HelmRepositoryKind,
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmRepositoryName,
+			Name:      name,
 			Namespace: namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/name":       "weave-gitops-dashboard",
+				"app.kubernetes.io/component":  "ui",
+				"app.kubernetes.io/part-of":    "weave-gitops",
+				"app.kubernetes.io/created-by": "weave-gitops-cli",
+			},
+			Annotations: map[string]string{
+				"metadata.weave.works/description": "This is the Weave GitOps Dashboard.  It provides a simple way to get insights into your GitOps workloads.",
+			},
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			URL: helmRepositoryUrl,
 			Interval: metav1.Duration{
-				Duration: time.Minute,
+				Duration: time.Minute * 60,
 			},
 		},
 	}
@@ -244,52 +282,56 @@ func makeHelmRepository(namespace string) *sourcev1.HelmRepository {
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, secret string, namespace string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
 			APIVersion: helmv2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmReleaseName,
+			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Interval: metav1.Duration{
-				Duration: time.Minute,
+				Duration: 60 * time.Minute,
 			},
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:   helmChartName,
-					Version: "2.0.6",
+					Chart: helmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: "HelmRepository",
-						Name: helmRepositoryName,
+						Name: name,
 					},
-					ReconcileStrategy: "ChartVersion",
 				},
 			},
 		},
 	}
 
-	valuesData, err := makeValues(secret)
-	if err != nil {
-		log.Failuref("Error generating values from secret")
-		return nil, err
+	if chartVersion != "" {
+		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	helmRelease.Spec.Values = &apiextensionsv1.JSON{Raw: valuesData}
+	if username != "" && secret != "" {
+		values, err := makeValues(username, secret)
+		if err != nil {
+			log.Failuref("Error generating values from secret")
+			return nil, err
+		}
+
+		helmRelease.Spec.Values = &apiextensionsv1.JSON{Raw: values}
+	}
 
 	return helmRelease, nil
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(secret string) ([]byte, error) {
+func makeValues(username string, secret string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,
+			"username":     username,
 			"passwordHash": secret,
-			"username":     "admin",
 		},
 	}
 
@@ -299,4 +341,44 @@ func makeValues(secret string) ([]byte, error) {
 	}
 
 	return jsonRaw, nil
+}
+
+func sanitizeResourceData(log logger.Logger, resourceData []byte) ([]byte, error) {
+	// remove status
+	resNode, err := kyaml.Parse(string(resourceData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse resource data: %v", err.Error())
+	}
+
+	res := &resource.Resource{RNode: *resNode}
+
+	err = res.PipeE(kyaml.FieldClearer{Name: "status"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove status: %v", err.Error())
+	}
+
+	// remove creationTimestamp
+	metadataNode, err := res.Pipe(kyaml.Get("metadata"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get metadata: %v", err.Error())
+	}
+
+	metadataRes := &resource.Resource{RNode: *metadataNode}
+
+	err = metadataRes.PipeE(kyaml.FieldClearer{Name: "creationTimestamp"})
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove creationTimestamp: %v", err.Error())
+	}
+
+	err = res.PipeE(kyaml.FieldSetter{Name: "metadata", Value: &metadataRes.RNode})
+	if err != nil {
+		return nil, fmt.Errorf("failed to set metadata: %v", err.Error())
+	}
+
+	resourceData, err = res.AsYAML()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal resource to YAML: %v", err.Error())
+	}
+
+	return resourceData, nil
 }

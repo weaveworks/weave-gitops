@@ -42,12 +42,16 @@ function EventsTable({ className, involvedObject }: Props) {
         {
           value: (e: Event) => <Text capitalize>{e.reason}</Text>,
           label: "Reason",
+          sortValue: (e: Event) => e.reason,
         },
         { value: "message", label: "Message", maxWidth: 600 },
         { value: "component", label: "Component" },
         {
           label: "Timestamp",
           value: (e: Event) => <Timestamp time={e.timestamp} />,
+          sortValue: (e: Event) => -Date.parse(e.timestamp),
+          defaultSort: true,
+          secondarySort: true,
         },
       ]}
       rows={data.events}

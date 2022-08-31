@@ -13,7 +13,7 @@ type HelmReleaseStorage struct {
 	Manifest string `json:"manifest,omitempty"`
 }
 
-func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, inventory []*pb.GroupVersionKind) *pb.HelmRelease {
+func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, inventory []*pb.GroupVersionKind, tenant string) *pb.HelmRelease {
 	var chartInterval *pb.Interval
 
 	if helmrelease.Spec.Chart.Spec.Interval != nil {
@@ -54,5 +54,7 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		LastAppliedRevision:   helmrelease.Status.LastAppliedRevision,
 		LastAttemptedRevision: helmrelease.Status.LastAttemptedRevision,
 		ApiVersion:            version,
+		Tenant:                tenant,
+		Uid:                   string(helmrelease.GetUID()),
 	}
 }

@@ -1,7 +1,7 @@
 package runner_test
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -28,7 +28,7 @@ func CaptureStdout(c func()) string {
 
 	w.Close()
 
-	stdout, _ := ioutil.ReadAll(r)
+	stdout, _ := io.ReadAll(r)
 
 	return string(stdout)
 }

@@ -77,18 +77,13 @@ jobs:
           git commit -am "Update README to point download link to $GITOPS_VERSION"
         if: ${{ !contains(github.event.inputs.version, '-') }}
 
-      - name: Set tag for building changelog
-        run: |
-          git config user.name weave-gitops-bot
-          git config user.email weave-gitops-bot@weave.works
-          git tag -a ${{ github.event.inputs.version }} -m ${{ github.event.inputs.version }}
-          # Do not push tag - we'll push it when approved
       - name: Build Changelog
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v3
         with:
           configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
           ignorePreReleases: true
+          toTag: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Pull Request

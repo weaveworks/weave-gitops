@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func K8sObjectToProto(object client.Object, clusterName string) (*pb.Object, error) {
+func K8sObjectToProto(object client.Object, clusterName string, tenant string) (*pb.Object, error) {
 	var buf bytes.Buffer
 
 	serializer := json.NewSerializer(json.DefaultMetaFactory, nil, nil, false)
@@ -19,6 +19,8 @@ func K8sObjectToProto(object client.Object, clusterName string) (*pb.Object, err
 	obj := &pb.Object{
 		Payload:     buf.String(),
 		ClusterName: clusterName,
+		Tenant:      tenant,
+		Uid:         string(object.GetUID()),
 	}
 
 	return obj, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -28,6 +30,9 @@ const (
 	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
+	kubeClientTimeout       = 8 * time.Second
+	kubeClientDialTimeout   = 5 * time.Second
+	kubeClientDialKeepAlive = 30 * time.Second
 )
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -43,6 +48,7 @@ func (ce *ClientError) Error() string {
 }
 
 // ClientsFactory is a factory for creating clients for clusters
+//
 //counterfeiter:generate . ClientsFactory
 type ClientsFactory interface {
 	// GetImpersonatedClient returns the clusters client for the given user
@@ -142,7 +148,11 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
-			cf.log.Error(err, "Failed to update namespaces")
+			if merr, ok := err.(*multierror.Error); ok {
+				for _, cerr := range merr.Errors {
+					cf.log.Error(cerr, "failed to update namespaces")
+				}
+			}
 		}
 
 		return false, nil
@@ -152,35 +162,43 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 }
 
 func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
-	clients, err := clientsForClusters(cf.clusters.Get())
+	var result *multierror.Error
+
+	serverClient, err := cf.GetServerClient(ctx)
 	if err != nil {
-		cf.log.Error(err, "failed to create client")
-		return err
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*ClientError); ok {
+					result = multierror.Append(result, fmt.Errorf("%w, cluster: %v", cerr, cerr.ClusterName))
+				}
+			}
+		}
 	}
 
 	cf.syncCaches()
 
-	wg := sync.WaitGroup{}
+	nsList := NewClusteredList(func() client.ObjectList {
+		return &v1.NamespaceList{}
+	})
 
-	for clusterName, c := range clients {
-		wg.Add(1)
-
-		go func(clusterName string, c client.Client) {
-			defer wg.Done()
-
-			nsList := &v1.NamespaceList{}
-
-			if err := c.List(ctx, nsList); err != nil {
-				cf.log.Error(err, "failed listing namespaces", "cluster", clusterName)
-			}
-
-			cf.clustersNamespaces.Set(clusterName, nsList.Items)
-		}(clusterName, c)
+	if err := serverClient.ClusteredList(ctx, nsList, false); err != nil {
+		result = multierror.Append(result, err)
 	}
 
-	wg.Wait()
+	for clusterName, lists := range nsList.Lists() {
+		// This is the "namespace loop", but namespaces aren't
+		// namespaced so only 1 item
+		for _, l := range lists {
+			list, ok := l.(*v1.NamespaceList)
+			if !ok {
+				continue
+			}
 
-	return nil
+			cf.clustersNamespaces.Set(clusterName, list.Items)
+		}
+	}
+
+	return result.ErrorOrNil()
 }
 
 func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
@@ -191,6 +209,7 @@ func (cf *clientsFactory) syncCaches() {
 	newHash := cf.clusters.Hash()
 
 	if newHash != cf.clustersHash {
+		cf.log.Info("Clearing namespace caches")
 		cf.clustersNamespaces.Clear()
 		cf.usersNamespaces.Clear()
 		cf.clustersHash = newHash
@@ -268,7 +287,13 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 
 	for _, cluster := range cf.clusters.Get() {
 		if cluster.Name == clusterName {
-			config = ClientConfigWithUser(user)(cluster)
+			var err error
+
+			config, err = ClientConfigWithUser(user)(cluster)
+			if err != nil {
+				return nil, fmt.Errorf("error creating client for cluster: %w", err)
+			}
+
 			break
 		}
 	}
@@ -287,14 +312,32 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 
 func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	pool := cf.newClustersPool(cf.scheme)
+	errChan := make(chan error, len(cf.clusters.Get()))
+
+	var wg sync.WaitGroup
 
 	for _, cluster := range cf.clusters.Get() {
-		if err := pool.Add(restConfigFromCluster, cluster); err != nil {
-			return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
-		}
+		wg.Add(1)
+
+		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
+			defer wg.Done()
+
+			if err := pool.Add(ClientConfigAsServer, cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+		}(cluster, pool, errChan)
 	}
 
-	return NewClient(pool, cf.clustersNamespaces.namespaces), nil
+	wg.Wait()
+	close(errChan)
+
+	var result *multierror.Error
+
+	for err := range errChan {
+		result = multierror.Append(result, err)
+	}
+
+	return NewClient(pool, cf.clustersNamespaces.namespaces), result.ErrorOrNil()
 }
 
 func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
@@ -308,7 +351,12 @@ func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.U
 
 			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
 
-			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, impersonatedConfig(cluster, user), clusterNs)
+			cfg, err := ClientConfigWithUser(user)(cluster)
+			if err != nil {
+				cf.log.Error(err, "failed creating client config", "cluster", cluster.Name, "user", user.ID)
+			}
+
+			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, cfg, clusterNs)
 			if err != nil {
 				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.Name, "user", user.ID)
 			}
@@ -335,38 +383,80 @@ func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 	return cf.GetUserNamespaces(user)
 }
 
-func impersonatedConfig(cluster Cluster, user *auth.UserPrincipal) *rest.Config {
-	shallowCopy := *restConfigFromCluster(cluster)
-
-	shallowCopy.Impersonate = rest.ImpersonationConfig{
-		UserName: user.ID,
-		Groups:   user.Groups,
-	}
-
-	return &shallowCopy
-}
-
-func clientsForClusters(clusters []Cluster) (map[string]client.Client, error) {
-	clients := map[string]client.Client{}
-
-	for _, cluster := range clusters {
-		c, err := client.New(restConfigFromCluster(cluster), client.Options{})
-		if err != nil {
-			return nil, fmt.Errorf("failed creating client for cluster %s: %w", cluster.Name, err)
-		}
-
-		clients[cluster.Name] = c
-	}
-
-	return clients, nil
-}
-
-func restConfigFromCluster(cluster Cluster) *rest.Config {
-	return &rest.Config{
+// restConfigFromCluster creates a generic rest.Config for a given cluster.
+// You should not call this directly, but rather via
+// ClientConfigAsServer or ClientConfigWithUser
+func restConfigFromCluster(cluster Cluster) (*rest.Config, error) {
+	config := &rest.Config{
 		Host:            cluster.Server,
-		BearerToken:     cluster.BearerToken,
 		TLSClientConfig: cluster.TLSConfig,
 		QPS:             ClientQPS,
 		Burst:           ClientBurst,
+		Timeout:         kubeClientTimeout,
+		Dial: (&net.Dialer{
+			Timeout: kubeClientDialTimeout,
+			// KeepAlive is default to 30s within client-go.
+			KeepAlive: kubeClientDialKeepAlive,
+		}).DialContext,
+	}
+
+	// flowcontrol.IsEnabled makes a request to the K8s API of the cluster stored in the config.
+	// It does a HEAD request to /livez/ping which uses the config.Dial timeout. We can use this
+	// function to error early rather than wait to call client.New.
+	enabled, err := flowcontrol.IsEnabled(context.Background(), config)
+	if err != nil {
+		return nil, fmt.Errorf("error querying cluster for flowcontrol config: %w", err)
+	}
+
+	if enabled {
+		// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
+		// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
+		config.QPS = -1
+		config.Burst = -1
+
+		return config, nil
+	}
+
+	config.QPS = ClientQPS
+	config.Burst = ClientBurst
+
+	return config, nil
+}
+
+// clientConfigAsServer returns a *rest.Config for a given cluster
+// as the server service acconut
+func ClientConfigAsServer(cluster Cluster) (*rest.Config, error) {
+	config, err := restConfigFromCluster(cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	config.BearerToken = cluster.BearerToken
+
+	return config, nil
+}
+
+// ClientConfigWithUser returns a function that returns a *rest.Config with the relevant
+// user authentication details pre-defined for a given cluster.
+func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
+	return func(cluster Cluster) (*rest.Config, error) {
+		config, err := restConfigFromCluster(cluster)
+		if err != nil {
+			return nil, err
+		}
+
+		if !user.Valid() {
+			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
+		} else if tok := user.Token(); tok != "" {
+			config.BearerToken = tok
+		} else {
+			config.BearerToken = cluster.BearerToken
+			config.Impersonate = rest.ImpersonationConfig{
+				UserName: user.ID,
+				Groups:   user.Groups,
+			}
+		}
+
+		return config, nil
 	}
 }

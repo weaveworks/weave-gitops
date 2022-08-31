@@ -2,6 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import HelmChartDetailComponent from "../../components/HelmChartDetail";
 import Page from "../../components/Page";
+import { useGetObject } from "../../hooks/objects";
+import { HelmChart, Kind } from "../../lib/objects";
 
 type Props = {
   className?: string;
@@ -11,13 +13,15 @@ type Props = {
 };
 
 function HelmChartDetail({ className, name, namespace, clusterName }: Props) {
+  const {
+    data: helmChart,
+    isLoading,
+    error,
+  } = useGetObject<HelmChart>(name, namespace, Kind.HelmChart, clusterName);
+
   return (
-    <Page error={null} className={className}>
-      <HelmChartDetailComponent
-        name={name}
-        namespace={namespace}
-        clusterName={clusterName}
-      />
+    <Page error={error} loading={isLoading} className={className} title={name}>
+      <HelmChartDetailComponent helmChart={helmChart} />
     </Page>
   );
 }

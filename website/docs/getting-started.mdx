@@ -80,43 +80,14 @@ The bootstrap command above does following:
 - Deploys Flux Components to your Kubernetes Cluster
 - Configures Flux components to track the path /clusters/my-cluster/ in the repository
 
-### Configure access to the dashboard
+### Install Weave GitOps
 
 For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
 
-We will generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
-
-1. Clone your git repository where Flux has been bootstrapped (you could skip this step if you performed previous steps in this doc).
-
+1. Install the Weave GitOps CLI
    ```
-   git clone https://github.com/$GITHUB_USER/fleet-infra
-   cd fleet-infra
+   brew install weaveworks/tap/weave-gitops 
    ```
-
-1. Generate the password:
-
-   ```
-   PASSWORD="<your password>"
-   echo  $PASSWORD | gitops get bcrypt-hash
-   $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-   ```
-
-1. Save this [bcrypt-hash](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md) in a values file:
-
-   ```yaml title="./weave-gitops-values.yaml"
-   adminUser:
-     create: true
-     username: admin
-     passwordHash: $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-   ```
-
-   :::info
-   Storing a hash of a password is relatively safe for demo and testing purposes but it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
-   :::
-
-### Install Weave GitOps
-
-Weave GitOps is installable via a Helm Chart and as such can be managed by Flux.
 
 1. Clone your git repository where Flux has been bootstrapped.
 
@@ -125,51 +96,23 @@ Weave GitOps is installable via a Helm Chart and as such can be managed by Flux.
    cd fleet-infra
    ```
 
-1. Create a `HelmRepository` Source for Weave GitOps
+1. Run the following command which will create a `HelmRepository` and `HelmRelease` to deploy Weave GitOps
 
    ```
-   flux create source helm ww-gitops \
-     --interval=60m \
-     --url=oci://ghcr.io/weaveworks/charts \
-     --export > ./clusters/my-cluster/weave-gitops-source.yaml
+   PASSWORD="<your password>"
+   gitops create dashboard ww-gitops \
+     --password=$PASSWORD \
+     --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
    ```
 
-   The generated file should look like this:
+:::warning
+This command stores a hash of a password.  While this is relatively safe for demo and testing purposes it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+:::
 
-   ```yaml title="./clusters/my-cluster/weave-gitops-source.yaml"
-   apiVersion: source.toolkit.fluxcd.io/v1beta2
-   kind: HelmRepository
-   metadata:
-     name: ww-gitops
-     namespace: flux-system
-   spec:
-     interval: 1h0m0s
-     type: oci
-     url: oci://ghcr.io/weaveworks/charts
-   ```
-
-1. Commit and push the `weave-gitops-source.yaml` to the `fleet-infra` repository
+1. Commit and push the `weave-gitops-dashboard.yaml` to the `fleet-infra` repository
 
    ```
-   git add -A && git commit -m "Add Weave GitOps HelmRepository"
-   git push
-   ```
-
-1. Create a `HelmRelease` to deploy Weave GitOps
-
-   ```
-   flux create helmrelease ww-gitops \
-     --interval=60m \
-     --source=HelmRepository/ww-gitops \
-     --chart=weave-gitops \
-     --values=<path to weave-gitops-values.yaml> \
-     --export > ./clusters/my-cluster/weave-gitops-helmrelease.yaml
-   ```
-
-1. Commit and push the `weave-gitops-helmrelease.yaml` to the `fleet-infra` repository
-
-   ```
-   git add -A && git commit -m "Add Weave GitOps HelmRelease"
+   git add -A && git commit -m "Add Weave GitOps Dashboard"
    git push
    ```
 

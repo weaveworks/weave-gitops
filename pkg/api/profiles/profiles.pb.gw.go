@@ -31,9 +31,20 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
+var (
+	filter_Profiles_GetProfiles_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Profiles_GetProfiles_0(ctx context.Context, marshaler runtime.Marshaler, client ProfilesClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetProfilesRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Profiles_GetProfiles_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.GetProfiles(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -44,10 +55,21 @@ func local_request_Profiles_GetProfiles_0(ctx context.Context, marshaler runtime
 	var protoReq GetProfilesRequest
 	var metadata runtime.ServerMetadata
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Profiles_GetProfiles_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.GetProfiles(ctx, &protoReq)
 	return msg, metadata, err
 
 }
+
+var (
+	filter_Profiles_GetProfileValues_0 = &utilities.DoubleArray{Encoding: map[string]int{"profileName": 0, "profileVersion": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+)
 
 func request_Profiles_GetProfileValues_0(ctx context.Context, marshaler runtime.Marshaler, client ProfilesClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetProfileValuesRequest
@@ -60,24 +82,31 @@ func request_Profiles_GetProfileValues_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["profile_name"]
+	val, ok = pathParams["profileName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileName")
 	}
 
 	protoReq.ProfileName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileName", err)
 	}
 
-	val, ok = pathParams["profile_version"]
+	val, ok = pathParams["profileVersion"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_version")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileVersion")
 	}
 
 	protoReq.ProfileVersion, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_version", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileVersion", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Profiles_GetProfileValues_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetProfileValues(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -96,24 +125,31 @@ func local_request_Profiles_GetProfileValues_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["profile_name"]
+	val, ok = pathParams["profileName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileName")
 	}
 
 	protoReq.ProfileName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileName", err)
 	}
 
-	val, ok = pathParams["profile_version"]
+	val, ok = pathParams["profileVersion"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profile_version")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "profileVersion")
 	}
 
 	protoReq.ProfileVersion, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profile_version", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "profileVersion", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Profiles_GetProfileValues_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetProfileValues(ctx, &protoReq)
@@ -156,7 +192,7 @@ func RegisterProfilesHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profileName}/{profileVersion}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -238,7 +274,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profile_name}/{profile_version}/values"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_profiles.v1.Profiles/GetProfileValues", runtime.WithHTTPPathPattern("/v1/profiles/{profileName}/{profileVersion}/values"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -260,7 +296,7 @@ func RegisterProfilesHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 var (
 	pattern_Profiles_GetProfiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "profiles"}, ""))
 
-	pattern_Profiles_GetProfileValues_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "profiles", "profile_name", "profile_version", "values"}, ""))
+	pattern_Profiles_GetProfileValues_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "profiles", "profileName", "profileVersion", "values"}, ""))
 )
 
 var (

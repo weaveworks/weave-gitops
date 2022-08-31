@@ -152,7 +152,7 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 
 		if p != nil {
-			m.Log.V(logger.LogLevelDebug).Info("Found principal", "user", p.ID, "groups", p.Groups, "tokenLength", len(p.Token), "method", reflect.TypeOf(v))
+			m.Log.V(logger.LogLevelDebug).Info("Found principal", "user", p.ID, "groups", p.Groups, "tokenLength", len(p.Token()), "method", reflect.TypeOf(v))
 
 			return p, nil
 		}

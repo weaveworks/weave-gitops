@@ -3,42 +3,52 @@ import styled from "styled-components";
 import { removeKind } from "../lib/utils";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { HelmRepository } from "../lib/objects";
+import { useFeatureFlags } from "../hooks/featureflags";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
+import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  helmRepository: HelmRepository;
 };
 
-function HelmRepositoryDetail({
-  name,
-  namespace,
-  className,
-  clusterName,
-}: Props) {
+function HelmRepositoryDetail({ className, helmRepository }: Props) {
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+
+  const tenancyInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRepository.tenant
+      ? [["Tenant", helmRepository.tenant]]
+      : [];
+  const clusterInfo: InfoField[] =
+    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+      ? [["Cluster", helmRepository.clusterName]]
+      : [];
+
   return (
     <SourceDetail
       className={className}
-      name={name}
-      namespace={namespace}
-      clusterName={clusterName}
       type={FluxObjectKind.KindHelmRepository}
-      info={(hr: HelmRepository = new HelmRepository({})) => [
+      source={helmRepository}
+      info={[
         ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
-        ["Repository Type", hr.repositoryType.toLowerCase()],
-        ["URL", <Link>hr.url</Link>],
+        ["Repository Type", helmRepository.repositoryType.toLowerCase()],
+        ["URL", <Link href={helmRepository.url}>{helmRepository.url}</Link>],
         [
           "Last Updated",
-          hr.lastUpdatedAt ? <Timestamp time={hr.lastUpdatedAt} /> : "-",
+          helmRepository.lastUpdatedAt ? (
+            <Timestamp time={helmRepository.lastUpdatedAt} />
+          ) : (
+            "-"
+          ),
         ],
-        ["Interval", <Interval interval={hr.interval} />],
-        ["Cluster", hr.clusterName],
-        ["Namespace", hr.namespace],
+        ["Interval", <Interval interval={helmRepository.interval} />],
+        ...clusterInfo,
+        ["Namespace", helmRepository.namespace],
+        ...tenancyInfo,
       ]}
     />
   );

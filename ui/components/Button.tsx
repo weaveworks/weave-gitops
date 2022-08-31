@@ -35,6 +35,7 @@ function UnstyledButton({ loading, ...props }: Props) {
       disableElevation={true}
       {...defaultProps}
       {...props}
+      innerRef={props.innerRef}
     />
   );
 }
@@ -57,8 +58,8 @@ const Button = styled(UnstyledButton)`
 export const IconButton = styled(UnstyledButton)`
   &.MuiButton-root {
     border-radius: 50%;
-    min-width: 48px;
-    height: 48px;
+    min-width: 38px;
+    height: 38px;
     padding: 0;
   }
   &.MuiButton-text {

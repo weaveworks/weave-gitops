@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 2.2.4 which installs weave gitops v0.9.1.
+This reference was generated for the chart version 3.0.2 which installs weave gitops v0.9.3.
 
 ## Values
 
@@ -17,16 +17,21 @@ This reference was generated for the chart version 2.2.4 which installs weave gi
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
 | adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
 | affinity | object | `{}` |  |
+| envVars[0].name | string | `"WEAVE_GITOPS_FEATURE_TENANCY"` |  |
+| envVars[0].value | string | `"true"` |  |
+| envVars[1].name | string | `"WEAVE_GITOPS_FEATURE_CLUSTER"` |  |
+| envVars[1].value | string | `"false"` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
-| image.tag | string | `"v0.9.1"` |  |
+| image.tag | string | `"v0.9.3"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.hosts | string | `nil` |  |
 | ingress.tls | list | `[]` |  |
+| listOCIRepositories | bool | `false` | If set to true, OCI repositories will be included in the source view. This requires flux 0.32 or later. |
 | logLevel | string | `"info"` | What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error' |
 | metrics.enabled | bool | `false` | Start the metrics exporter |
 | metrics.service.annotations | object | `{"prometheus.io/path":"/metrics","prometheus.io/port":"{{ .Values.metrics.service.port }}","prometheus.io/scrape":"true"}` | Annotations to set on the service |

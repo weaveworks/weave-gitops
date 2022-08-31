@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -365,7 +364,7 @@ func (g *GoGit) GetRemoteUrl(dir string, remoteName string) (string, error) {
 }
 
 func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) error {
-	path, err := ioutil.TempDir("", "temp-src")
+	path, err := os.MkdirTemp("", "temp-src")
 	if err != nil {
 		return fmt.Errorf("error creating temporary folder %w", err)
 	}
