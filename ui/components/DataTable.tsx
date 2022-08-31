@@ -161,31 +161,27 @@ function filterText(
 
   return _.filter(rows, (row) => {
     let matches = false;
-    for (const colName in row) {
-      const value = row[colName];
 
-      const field = _.find(fields, (f) => {
-        if (typeof f.value === "string") {
-          return f.value === colName;
+    fields.forEach((field) => {
+      if (field.textSearchable) {
+        let value;
+        if (field.sortValue) {
+          value = field.sortValue(row);
+        } else {
+          typeof field.value === "function"
+            ? (value = field.value(row))
+            : (value = row[field.value]);
         }
-
-        if (f.sortValue) {
-          return f.sortValue(row) === value;
-        }
-      });
-
-      if (!field || !field.textSearchable) {
-        continue;
-      }
-
-      // This allows us to look for a fragment in the string.
-      // For example, if the user searches for "pod", the "podinfo" kustomization should be returned.
-      for (const filterString of textFilters) {
-        if (_.includes(value, filterString)) {
-          matches = true;
+        for (let i = 0; i < textFilters.length; i++) {
+          if (value.includes(textFilters[i])) {
+            matches = true;
+          } else {
+            matches = false;
+            break;
+          }
         }
       }
-    }
+    });
 
     return matches;
   });

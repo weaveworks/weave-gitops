@@ -619,16 +619,15 @@ describe("DataTableFilters", () => {
       )
     );
 
-    const term1 = rows[0].name;
+    const term1 = "a";
     addTextSearchInput(term1);
 
-    const term2 = rows[3].name;
+    const term2 = "r";
     addTextSearchInput(term2);
 
     const tableRows = document.querySelectorAll("tbody tr");
-    expect(tableRows).toHaveLength(2);
-    expect(tableRows[0].innerHTML).toContain(term1);
-    expect(tableRows[1].innerHTML).toContain(term2);
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain(rows[3].name);
   });
   it("filters by fragments of text fields", () => {
     render(
