@@ -31,7 +31,7 @@ export enum V2Routes {
   HelmChart = "/helm_chart",
   Bucket = "/bucket",
   OCIRepository = "/oci",
-  Settings = "/settings",
+  Notifications = "/notifications",
 
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.

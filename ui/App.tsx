@@ -31,8 +31,8 @@ import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
+import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
-import Settings from "./pages/v2/Settings";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -81,8 +81,8 @@ const App = () => (
           component={withSearchParams(OCIRepositoryPage)}
         />
         <Route
-          path={V2Routes.Settings}
-          component={withSearchParams(Settings)}
+          path={V2Routes.Notifications}
+          component={withSearchParams(Notifications)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />

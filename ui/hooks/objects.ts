@@ -9,26 +9,30 @@ import {
   GitRepository,
   HelmChart,
   HelmRepository,
-  OCIRepository,
   Kind,
+  OCIRepository,
+  Provider,
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
 
 export function convertResponse(kind: Kind, response?: ResponseObject) {
-  if (kind == Kind.HelmRepository) {
+  if (kind === Kind.HelmRepository) {
     return new HelmRepository(response);
   }
-  if (kind == Kind.HelmChart) {
+  if (kind === Kind.HelmChart) {
     return new HelmChart(response);
   }
-  if (kind == Kind.Bucket) {
+  if (kind === Kind.Bucket) {
     return new Bucket(response);
   }
-  if (kind == Kind.GitRepository) {
+  if (kind === Kind.GitRepository) {
     return new GitRepository(response);
   }
-  if (kind == Kind.OCIRepository) {
+  if (kind === Kind.OCIRepository) {
     return new OCIRepository(response);
+  }
+  if (kind === Kind.Provider) {
+    return new Provider(response);
   }
 
   return new FluxObject(response);

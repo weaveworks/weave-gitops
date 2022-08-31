@@ -9,6 +9,7 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
+import { V2Routes } from "../lib/types";
 import Icon, { IconType } from "./Icon";
 
 const SettingsMenu = styled(Menu)`
@@ -77,7 +78,9 @@ function UserSettings({ className }: { className?: string }) {
         transformOrigin={{ horizontal: 150, vertical: "top" }}
       >
         <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
-        <MenuItem onClick={() => history.push("/settings")}>Settings</MenuItem>
+        <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
+          Notifications
+        </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>
             <Icon type={IconType.LogoutIcon} size="base" />

@@ -190,3 +190,12 @@ export class OCIRepository extends FluxObject {
     return metadata["org.opencontainers.image.revision"] || "";
   }
 }
+
+export class Provider extends FluxObject {
+  get provider(): string {
+    return this.obj.spec.type || "";
+  }
+  get channel(): string {
+    return this.obj.spec.channel || "";
+  }
+}

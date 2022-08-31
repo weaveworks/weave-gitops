@@ -110,13 +110,13 @@ const LinkTab = React.forwardRef((p: any, ref) => {
 
 function Nav({ className, navItems }: Props) {
   const { currentPage } = useNavigation();
-  let value = getParentNavValue(currentPage);
+  const value = getParentNavValue(currentPage);
   return (
     <NavContent className={className}>
       <Tabs
         centered={false}
         orientation="vertical"
-        value={value === V2Routes.Settings ? V2Routes.Automations : value}
+        value={value === V2Routes.Notifications ? "" : value}
       >
         {_.map(navItems, (n) => {
           const { label, link } = n;
