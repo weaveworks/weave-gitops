@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.9.3-patch.1",
+  "version": "0.9.4-rc.0",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -54,6 +54,7 @@
     "history": "^5.0.0",
     "http-proxy-middleware": "^2.0.3",
     "jest-canvas-mock": "^2.4.0",
+    "jest-fail-on-console": "^3.0.1",
     "jest-worker": "^27.5.1",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",

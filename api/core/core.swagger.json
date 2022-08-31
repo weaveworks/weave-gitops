@@ -17,37 +17,6 @@
     "application/json"
   ],
   "paths": {
-    "/v1/buckets": {
-      "get": {
-        "summary": "ListBuckets lists bucket objects from a cluster.",
-        "operationId": "Core_ListBuckets",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListBucketsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
     "/v1/child_objects": {
       "post": {
         "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
@@ -214,68 +183,6 @@
         ]
       }
     },
-    "/v1/gitrepositories": {
-      "get": {
-        "summary": "ListGitRepository lists git repositories objects from a cluster.",
-        "operationId": "Core_ListGitRepositories",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListGitRepositoriesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/helmcharts": {
-      "get": {
-        "summary": "ListHelmCharts lists helm chart objects from a cluster.",
-        "operationId": "Core_ListHelmCharts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmChartsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
     "/v1/helmrelease/{name}": {
       "get": {
         "summary": "GetHelmRelease gets data about a single HelmRelease from the cluster.",
@@ -328,37 +235,6 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1ListHelmReleasesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/helmrepositories": {
-      "get": {
-        "summary": "ListHelmRepository lists helm repository objects from a cluster.",
-        "operationId": "Core_ListHelmRepositories",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmRepositoriesResponse"
             }
           },
           "default": {
@@ -573,15 +449,15 @@
         ]
       }
     },
-    "/v1/oci": {
+    "/v1/objects": {
       "get": {
-        "summary": "ListOCIRepositories lists OCI repository objects from a cluster.",
-        "operationId": "Core_ListOCIRepositories",
+        "summary": "ListObjects gets data about a primary objects.",
+        "operationId": "Core_ListObjects",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListOCIRepositoriesResponse"
+              "$ref": "#/definitions/v1ListObjectsResponse"
             }
           },
           "default": {
@@ -594,6 +470,12 @@
         "parameters": [
           {
             "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
             "in": "query",
             "required": false,
             "type": "string"
@@ -728,15 +610,6 @@
     }
   },
   "definitions": {
-    "BucketProvider": {
-      "type": "string",
-      "enum": [
-        "Generic",
-        "AWS",
-        "GCP"
-      ],
-      "default": "Generic"
-    },
     "CrdName": {
       "type": "object",
       "properties": {
@@ -775,63 +648,6 @@
         }
       }
     },
-    "v1Bucket": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "endpoint": {
-          "type": "string"
-        },
-        "insecure": {
-          "type": "boolean"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "provider": {
-          "$ref": "#/definitions/BucketProvider"
-        },
-        "region": {
-          "type": "string"
-        },
-        "secretRefName": {
-          "type": "string"
-        },
-        "timeout": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "bucketName": {
-          "type": "string"
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        }
-      }
-    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -866,6 +682,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -895,6 +714,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -920,6 +742,9 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "uid": {
           "type": "string"
         }
       }
@@ -1083,67 +908,6 @@
         }
       }
     },
-    "v1GitRepository": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "reference": {
-          "$ref": "#/definitions/v1GitRepositoryRef"
-        },
-        "secretRef": {
-          "type": "string"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GitRepositoryRef": {
-      "type": "object",
-      "properties": {
-        "branch": {
-          "type": "string"
-        },
-        "tag": {
-          "type": "string"
-        },
-        "semver": {
-          "type": "string"
-        },
-        "commit": {
-          "type": "string"
-        }
-      }
-    },
     "v1GroupVersionKind": {
       "type": "object",
       "properties": {
@@ -1200,6 +964,9 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1253,57 +1020,11 @@
         },
         "tenant": {
           "type": "string"
-        }
-      }
-    },
-    "v1HelmRepository": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
         },
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "repositoryType": {
-          "$ref": "#/definitions/v1HelmRepositoryType"
-        },
-        "tenant": {
+        "uid": {
           "type": "string"
         }
       }
-    },
-    "v1HelmRepositoryType": {
-      "type": "string",
-      "enum": [
-        "Default",
-        "OCI"
-      ],
-      "default": "Default"
     },
     "v1Interval": {
       "type": "object",
@@ -1369,23 +1090,9 @@
         },
         "tenant": {
           "type": "string"
-        }
-      }
-    },
-    "v1ListBucketsResponse": {
-      "type": "object",
-      "properties": {
-        "buckets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Bucket"
-          }
         },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
+        "uid": {
+          "type": "string"
         }
       }
     },
@@ -1448,40 +1155,6 @@
         }
       }
     },
-    "v1ListGitRepositoriesResponse": {
-      "type": "object",
-      "properties": {
-        "gitRepositories": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1GitRepository"
-          }
-        },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
-        }
-      }
-    },
-    "v1ListHelmChartsResponse": {
-      "type": "object",
-      "properties": {
-        "helmCharts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1HelmChart"
-          }
-        },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
-        }
-      }
-    },
     "v1ListHelmReleasesResponse": {
       "type": "object",
       "properties": {
@@ -1489,23 +1162,6 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmRelease"
-          }
-        },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
-        }
-      }
-    },
-    "v1ListHelmRepositoriesResponse": {
-      "type": "object",
-      "properties": {
-        "helmRepositories": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1HelmRepository"
           }
         },
         "errors": {
@@ -1547,13 +1203,13 @@
         }
       }
     },
-    "v1ListOCIRepositoriesResponse": {
+    "v1ListObjectsResponse": {
       "type": "object",
       "properties": {
-        "ociRepositories": {
+        "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1OCIRepository"
+            "$ref": "#/definitions/v1Object"
           }
         },
         "errors": {
@@ -1590,44 +1246,6 @@
         }
       }
     },
-    "v1OCIRepository": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "url": {
-          "type": "string"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        }
-      }
-    },
     "v1Object": {
       "type": "object",
       "properties": {
@@ -1638,6 +1256,9 @@
           "type": "string"
         },
         "tenant": {
+          "type": "string"
+        },
+        "uid": {
           "type": "string"
         }
       }
@@ -1668,6 +1289,23 @@
         }
       }
     },
+    "v1SuspendReqObj": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
     "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
@@ -1694,17 +1332,11 @@
     "v1ToggleSuspendResourceRequest": {
       "type": "object",
       "properties": {
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SuspendReqObj"
+          }
         },
         "suspend": {
           "type": "boolean"

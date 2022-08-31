@@ -55,5 +55,6 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		LastAttemptedRevision: helmrelease.Status.LastAttemptedRevision,
 		ApiVersion:            version,
 		Tenant:                tenant,
+		Uid:                   string(helmrelease.GetUID()),
 	}
 }

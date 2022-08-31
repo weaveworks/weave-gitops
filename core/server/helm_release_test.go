@@ -138,6 +138,84 @@ func TestGetHelmRelease(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 }
 
+/**
+ * This test demonstrates the behavior of ListHelmReleases.
+ * The third HR created in this test is managed by the Helm Release Controller,
+ * but does not have a corresponding secret. Because of this the getHelmReleaseInventory
+ * call throws an error. This should not cause the entire list call to error out, and
+ * instead skip just the one HR that is in error state.
+ **/
+func TestListHelmReleases_withInventory(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: scheme,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	appName := "myapp" + rand.String(5)
+	nsA := newNamespace(ctx, k, g)
+	nsB := newNamespace(ctx, k, g)
+	nsC := newNamespace(ctx, k, g)
+
+	newHelmRelease(ctx, appName, nsA.Name, k, g)
+	newHelmRelease(ctx, appName, nsB.Name, k, g)
+
+	res1, error1 := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
+
+	g.Expect(error1).NotTo(HaveOccurred())
+
+	releasesFound := len(res1.HelmReleases)
+
+	// Create helm release without a corresponding secret.
+	helmRelease := helmv2.HelmRelease{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      appName,
+			Namespace: nsC.Name,
+		},
+		Status: helmv2.HelmReleaseStatus{
+			LastReleaseRevision: 2,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind: "GitRepository",
+						Name: "somesource",
+					},
+				},
+			},
+		},
+	}
+
+	opt := []client.PatchOption{
+		client.ForceOwnership,
+		client.FieldOwner("helmrelease-controller"),
+	}
+
+	g.Expect(k.Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
+
+	helmRelease.Status.LastReleaseRevision = 1
+	helmRelease.ManagedFields = nil
+
+	g.Expect(k.Status().Patch(ctx, &helmRelease, client.Apply, opt...)).To(Succeed())
+
+	res2, error2 := c.ListHelmReleases(ctx, &pb.ListHelmReleasesRequest{})
+
+	g.Expect(error2).NotTo(HaveOccurred())
+	g.Expect(res2.HelmReleases).To(HaveLen(releasesFound))
+}
+
 func TestGetHelmRelease_withInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()

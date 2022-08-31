@@ -1,27 +1,25 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import {
   Bucket,
-  FluxObjectKind,
   GitRepository,
   HelmRepository,
   OCIRepository,
-} from "../lib/api/core/types.pb";
-import { formatURL, objectTypeToRoute } from "../lib/nav";
+  Source,
+} from "../lib/objects";
 import { showInterval } from "../lib/time";
-import { Source } from "../lib/types";
-import {
-  convertGitURLToGitProvider,
-  removeKind,
-  statusSortHelper,
-} from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
-import { Field } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -32,11 +30,6 @@ type Props = {
 function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-
-  const [filterDialogOpen, setFilterDialog] = React.useState(false);
-  sources = sources?.map((s) => {
-    return { ...s, type: removeKind(s.kind) };
-  });
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),
@@ -166,12 +159,11 @@ function SourcesTable({ className, sources }: Props) {
   ];
 
   return (
-    <URLAddressableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
+      hasCheckboxes
       rows={sources}
-      dialogOpen={filterDialogOpen}
-      onDialogClose={() => setFilterDialog(false)}
       fields={fields}
     />
   );

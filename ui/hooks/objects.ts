@@ -14,7 +14,7 @@ import {
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
 
-function convertResponse(kind: Kind, response?: ResponseObject) {
+export function convertResponse(kind: Kind, response?: ResponseObject) {
   if (kind == Kind.HelmRepository) {
     return new HelmRepository(response);
   }

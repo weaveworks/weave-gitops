@@ -3,7 +3,7 @@ package helm
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -304,7 +304,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 		return nil, fmt.Errorf("error fetching index file: %w", err)
 	}
 
-	b, err := ioutil.ReadAll(res)
+	b, err := io.ReadAll(res)
 	if err != nil {
 		return nil, fmt.Errorf("error reading response: %w", err)
 	}

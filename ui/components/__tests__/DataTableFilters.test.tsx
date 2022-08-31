@@ -4,16 +4,15 @@ import _ from "lodash";
 import React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";
 import { statusSortHelper } from "../../lib/utils";
-import { Field } from "../DataTable";
-import FilterableTable, {
+import DataTable, {
+  Field,
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
-} from "../FilterableTable";
-import { FilterSelections } from "../FilterDialog";
+} from "../DataTable";
 
 const addTextSearchInput = (term: string) => {
   const input = document.getElementById("table-search");
@@ -22,7 +21,7 @@ const addTextSearchInput = (term: string) => {
   fireEvent.submit(form);
 };
 
-describe("FilterableTable", () => {
+describe("DataTableFilters", () => {
   const rows = [
     {
       name: "cool",
@@ -180,7 +179,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable fields={fields} rows={rows} filters={{}} />,
+          <DataTable fields={fields} rows={rows} filters={{}} />,
           "/applications",
           {}
         )
@@ -190,25 +189,6 @@ describe("FilterableTable", () => {
     expect(screen.queryAllByText("slick")).toBeTruthy();
     expect(screen.queryAllByText("cool")).toBeTruthy();
   });
-  it("should filter rows", () => {
-    render(
-      withTheme(
-        withContext(
-          <FilterableTable
-            fields={fields}
-            rows={rows}
-            filters={{ name: ["slick"] }}
-            initialSelections={{ "name:slick": true }}
-          />,
-          "/applications",
-          {}
-        )
-      )
-    );
-
-    expect(screen.queryAllByText("slick")[0]).toBeTruthy();
-    expect(screen.queryAllByText("cool")[0]).toBeFalsy();
-  });
   it("should filter on click", () => {
     const initialFilterState = {
       ...filterConfig(rows, "type"),
@@ -217,7 +197,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -259,7 +239,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -351,7 +331,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -406,7 +386,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -437,7 +417,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -467,7 +447,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -507,7 +487,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -552,7 +532,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -579,7 +559,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -609,7 +589,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
             filters={initialFilterState}
@@ -632,12 +612,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
-            fields={fields}
-            rows={rows}
-            filters={{}}
-            dialogOpen
-          />,
+          <DataTable fields={fields} rows={rows} filters={{}} dialogOpen />,
           "/applications",
           {}
         )
@@ -659,12 +634,7 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
-            fields={fields}
-            rows={rows}
-            filters={{}}
-            dialogOpen
-          />,
+          <DataTable fields={fields} rows={rows} filters={{}} dialogOpen />,
           "/applications",
           {}
         )
@@ -679,30 +649,6 @@ describe("FilterableTable", () => {
     expect(tableRows).toHaveLength(1);
     expect(tableRows[0].innerHTML).toContain(row.name);
   });
-  it("adds an initial filter selection state", () => {
-    const initialFilterConfig = {
-      ...filterConfig(rows, "type"),
-    };
-
-    render(
-      withTheme(
-        withContext(
-          <FilterableTable
-            fields={fields}
-            rows={rows}
-            initialSelections={{ "type:foo": true }}
-            filters={initialFilterConfig}
-            dialogOpen
-          />,
-          "/applications",
-          {}
-        )
-      )
-    );
-    const tableRows = document.querySelectorAll("tbody tr");
-    expect(tableRows).toHaveLength(2);
-    expect(tableRows[0].innerHTML).toContain("foo");
-  });
   it("adds filter selection from a URL", () => {
     const initialFilterConfig = {
       ...filterConfig(rows, "type"),
@@ -713,14 +659,13 @@ describe("FilterableTable", () => {
     render(
       withTheme(
         withContext(
-          <FilterableTable
+          <DataTable
             fields={fields}
             rows={rows}
-            initialSelections={parseFilterStateFromURL(search)}
             filters={initialFilterConfig}
             dialogOpen
           />,
-          "/applications",
+          "/applications" + search,
           {}
         )
       )
@@ -730,36 +675,7 @@ describe("FilterableTable", () => {
     expect(tableRows[0].innerHTML).toContain("foo");
   });
   it("returns a query string on filter change", () => {
-    const initialFilterConfig = {
-      ...filterConfig(rows, "type"),
-    };
-
-    const recorder = jest.fn();
-    const handler = (sel: FilterSelections) => {
-      recorder(sel);
-    };
-
-    render(
-      withTheme(
-        withContext(
-          <FilterableTable
-            onFilterChange={handler}
-            fields={fields}
-            rows={rows}
-            filters={initialFilterConfig}
-            dialogOpen
-          />,
-          "/applications",
-          {}
-        )
-      )
-    );
-    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
-    fireEvent.click(checkbox1);
-    const args = recorder.mock.calls[0][0];
-
-    expect(args["type:foo"]).toEqual(true);
-    const queryString = filterSelectionsToQueryString(args);
+    const queryString = filterSelectionsToQueryString({ "type:foo": true });
     expect(queryString).toEqual("filters=type%3Afoo_");
     expect(parseFilterStateFromURL(queryString)).toEqual({
       "type:foo": true,

@@ -74,6 +74,7 @@ message Kustomization {
     string        clusterName                = 11;
     string        apiVersion                 = 12;
     string        tenant                     = 17;
+    string        uid                        = 18;
 }
 
 message HelmChart {
@@ -89,6 +90,7 @@ message HelmChart {
     string        clusterName          = 10;
     string        apiVersion           = 11;
     string        tenant               = 12;
+    string        uid                  = 13;
 }
 
 message HelmRelease {
@@ -106,79 +108,14 @@ message HelmRelease {
     string    lastAttemptedRevision      = 15;
     string    apiVersion                 = 16;
     string    tenant                     = 17;
+    string    uid                        = 18;
 }
-
-message GitRepository {
-    string           namespace            = 1;
-    string           name                 = 2;
-    string           url                  = 3;
-    GitRepositoryRef reference            = 4;
-    string           secretRef            = 5;
-    Interval         interval             = 6;
-    repeated         Condition conditions = 7;
-    bool             suspended            = 8;
-    string           lastUpdatedAt        = 9;
-    string           clusterName          = 10;
-    string           apiVersion           = 11;
-    string           tenant               = 12;
-}
-
-message HelmRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    HelmRepositoryType repositoryType       = 10;
-    string             tenant               = 11;
-}
-
-message Bucket {
-    string   namespace = 1;
-    string   name      = 2;
-    string   endpoint  = 3;
-    bool     insecure  = 4;
-    Interval interval  = 5;
-    enum Provider {
-      Generic = 0;
-      AWS     = 1;
-      GCP     = 2;
-    };
-    Provider provider             = 6;
-    string   region               = 7;
-    string   secretRefName        = 8;
-    int32    timeout              = 9;
-    repeated Condition conditions = 10;
-    string   bucketName           = 11;
-    bool     suspended            = 12;
-    string   lastUpdatedAt        = 13;
-    string   clusterName          = 14;
-    string   apiVersion           = 15;
-    string   tenant               = 16;
-}
-
-message OCIRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    string             tenant               = 10;
-}
-
 
 message Object {
     string payload     = 1;
     string clusterName = 2;
     string tenant      = 3;
+    string uid         = 4;
 }
 
 message Deployment {
@@ -188,6 +125,7 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
+    string   uid                  = 7;
 }
 
 message Crd {
@@ -199,6 +137,7 @@ message Crd {
     string   version              = 2;
     string   kind                 = 3;
     string   clusterName          = 4;
+    string   uid                  = 5;
 }
 
 // UnstructuredObject is a Kubernetes object of an unknown type
@@ -230,4 +169,12 @@ message Event {
     string component = 5;
     string host      = 6;
     string name      = 7;
+    string uid       = 8;
+}
+
+message SuspendReqObj {
+    FluxObjectKind kind        = 1;
+    string         name        = 2;
+    string         namespace   = 3;
+    string         clusterName = 4;
 }

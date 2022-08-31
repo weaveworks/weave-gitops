@@ -3,7 +3,6 @@ package gitrepo
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -39,7 +38,7 @@ func CommitAndPush(ctx context.Context, client git.Git, commitMsg string, logger
 // directory and returns a function to use by the caller for cleanup.  The temp directory is
 // also returned.
 func CloneRepo(ctx context.Context, client git.Git, url gitproviders.RepoURL, branch string) (func(), string, error) {
-	repoDir, err := ioutil.TempDir("", "user-repo-")
+	repoDir, err := os.MkdirTemp("", "user-repo-")
 	if err != nil {
 		return nil, "", fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
 	}

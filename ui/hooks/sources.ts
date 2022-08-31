@@ -1,22 +1,17 @@
-import _ from "lodash";
 import { useContext } from "react";
 import { useQuery } from "react-query";
-import { CoreClientContext } from "../contexts/CoreClientContext";
-import {
-  ListBucketsResponse,
-  ListGitRepositoriesResponse,
-  ListHelmChartsResponse,
-  ListHelmRepositoriesResponse,
-  ListOCIRepositoriesResponse,
-} from "../lib/api/core/core.pb";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { CoreClientContext } from "../contexts/CoreClientContext";
+import { Kind, Source } from "../lib/objects";
+import { addKind } from "../lib/utils";
+import { ListObjectsResponse } from "../lib/api/core/core.pb";
 import {
-  MultiRequestError,
-  NoNamespace,
   ReactQueryOptions,
+  NoNamespace,
   RequestError,
-  Source,
+  MultiRequestError,
 } from "../lib/types";
+import { convertResponse } from "./objects";
 
 type Res = { result: Source[]; errors: MultiRequestError[] };
 
@@ -31,76 +26,35 @@ export function useListSources(
   const { api } = useContext(CoreClientContext);
 
   return useQuery<Res, RequestError>(
-    "sources",
+    ["sources", namespace],
     () => {
       const p = [
-        api.ListGitRepositories({ namespace }),
-        api.ListHelmRepositories({ namespace }),
-        api.ListBuckets({ namespace }),
-        api.ListHelmCharts({ namespace }),
-        api.ListOCIRepositories({ namespace }),
-      ];
-      return Promise.all<any>(p).then((result) => {
-        const [
-          repoRes,
-          helmRepositories,
-          bucketsRes,
-          chartRes,
-          ociRepositories,
-        ] = result;
-        const repos = (repoRes as ListGitRepositoriesResponse).gitRepositories;
-        const hrs = (helmRepositories as ListHelmRepositoriesResponse)
-          .helmRepositories;
-        const buckets = (bucketsRes as ListBucketsResponse).buckets;
-        const charts = (chartRes as ListHelmChartsResponse).helmCharts;
-        const ocis = (ociRepositories as ListOCIRepositoriesResponse)
-          .ociRepositories;
-        return {
-          result: [
-            ..._.map(repos, (r) => ({
-              ...r,
-              kind: FluxObjectKind.KindGitRepository,
-            })),
-            ..._.map(hrs, (c) => ({
-              ...c,
-              kind: FluxObjectKind.KindHelmRepository,
-            })),
-            ..._.map(buckets, (b) => ({
-              ...b,
-              kind: FluxObjectKind.KindBucket,
-            })),
-            ..._.map(charts, (ch) => ({
-              ...ch,
-              kind: FluxObjectKind.KindHelmChart,
-            })),
-            ..._.map(ocis, (c) => ({
-              ...c,
-              kind: FluxObjectKind.KindOCIRepository,
-            })),
-          ],
-          errors: [
-            ..._.map(repoRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindGitRepository,
-            })),
-            ..._.map(helmRepositories.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindHelmRepository,
-            })),
-            ..._.map(bucketsRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindBucket,
-            })),
-            ..._.map(chartRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindHelmChart,
-            })),
-            ..._.map(ociRepositories.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindOCIRepository,
-            })),
-          ],
-        };
+        Kind.GitRepository,
+        Kind.HelmRepository,
+        Kind.Bucket,
+        Kind.HelmChart,
+        Kind.OCIRepository,
+      ].map((kind) =>
+        api
+          .ListObjects({ namespace, kind })
+          .then((response: ListObjectsResponse) => {
+            return { kind, response };
+          })
+      );
+      return Promise.all(p).then((responses) => {
+        const empty = { result: [], errors: [] };
+        return responses.reduce((final, { kind, response }) => {
+          final.result = final.result.concat(
+            response.objects.map((o) => convertResponse(kind, o) as Source)
+          );
+          if (response.errors.length) {
+            final.errors = final.errors.concat({
+              ...response.errors,
+              kind: FluxObjectKind[addKind(kind)],
+            });
+          }
+          return final;
+        }, empty);
       });
     },
     opts

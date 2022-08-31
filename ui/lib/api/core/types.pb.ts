@@ -20,12 +20,6 @@ export enum HelmRepositoryType {
   OCI = "OCI",
 }
 
-export enum BucketProvider {
-  Generic = "Generic",
-  AWS = "AWS",
-  GCP = "GCP",
-}
-
 export type Interval = {
   hours?: string
   minutes?: string
@@ -79,6 +73,7 @@ export type Kustomization = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type HelmChart = {
@@ -94,6 +89,7 @@ export type HelmChart = {
   clusterName?: string
   apiVersion?: string
   tenant?: string
+  uid?: string
 }
 
 export type HelmRelease = {
@@ -111,73 +107,14 @@ export type HelmRelease = {
   lastAttemptedRevision?: string
   apiVersion?: string
   tenant?: string
-}
-
-export type GitRepository = {
-  namespace?: string
-  name?: string
-  url?: string
-  reference?: GitRepositoryRef
-  secretRef?: string
-  interval?: Interval
-  conditions?: Condition[]
-  suspended?: boolean
-  lastUpdatedAt?: string
-  clusterName?: string
-  apiVersion?: string
-  tenant?: string
-}
-
-export type HelmRepository = {
-  namespace?: string
-  name?: string
-  url?: string
-  interval?: Interval
-  conditions?: Condition[]
-  suspended?: boolean
-  lastUpdatedAt?: string
-  clusterName?: string
-  apiVersion?: string
-  repositoryType?: HelmRepositoryType
-  tenant?: string
-}
-
-export type Bucket = {
-  namespace?: string
-  name?: string
-  endpoint?: string
-  insecure?: boolean
-  interval?: Interval
-  provider?: BucketProvider
-  region?: string
-  secretRefName?: string
-  timeout?: number
-  conditions?: Condition[]
-  bucketName?: string
-  suspended?: boolean
-  lastUpdatedAt?: string
-  clusterName?: string
-  apiVersion?: string
-  tenant?: string
-}
-
-export type OCIRepository = {
-  namespace?: string
-  name?: string
-  url?: string
-  interval?: Interval
-  conditions?: Condition[]
-  suspended?: boolean
-  lastUpdatedAt?: string
-  clusterName?: string
-  apiVersion?: string
-  tenant?: string
+  uid?: string
 }
 
 export type Object = {
   payload?: string
   clusterName?: string
   tenant?: string
+  uid?: string
 }
 
 export type Deployment = {
@@ -187,6 +124,7 @@ export type Deployment = {
   images?: string[]
   suspended?: boolean
   clusterName?: string
+  uid?: string
 }
 
 export type CrdName = {
@@ -199,6 +137,7 @@ export type Crd = {
   version?: string
   kind?: string
   clusterName?: string
+  uid?: string
 }
 
 export type UnstructuredObject = {
@@ -229,4 +168,12 @@ export type Event = {
   component?: string
   host?: string
   name?: string
+  uid?: string
+}
+
+export type SuspendReqObj = {
+  kind?: FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
 }

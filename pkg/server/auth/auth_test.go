@@ -288,32 +288,32 @@ func TestUserPrincipalValid(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		user    auth.UserPrincipal
+		user    *auth.UserPrincipal
 		isValid bool
 	}{
 		{
 			name:    "Full valid OIDC user",
-			user:    auth.UserPrincipal{ID: "Jane", Groups: []string{"team-a", "qa"}},
+			user:    auth.NewUserPrincipal(auth.ID("Jane"), auth.Groups([]string{"team-a", "qa"})),
 			isValid: true,
 		},
 		{
 			name:    "any token",
-			user:    auth.UserPrincipal{Token: "abcdefghi09123"},
+			user:    auth.NewUserPrincipal(auth.Token("abcdefghi09123")),
 			isValid: true,
 		},
 		{
 			name:    "Just a user id",
-			user:    auth.UserPrincipal{ID: "Samir"},
+			user:    auth.NewUserPrincipal(auth.ID("Samir")),
 			isValid: true,
 		},
 		{
 			name:    "Empty",
-			user:    auth.UserPrincipal{},
+			user:    auth.NewUserPrincipal(),
 			isValid: false,
 		},
 		{
 			name:    "Group only",
-			user:    auth.UserPrincipal{Groups: []string{"team-b"}},
+			user:    auth.NewUserPrincipal(auth.Groups([]string{"team-b"})),
 			isValid: false,
 		},
 	}
@@ -324,5 +324,15 @@ func TestUserPrincipalValid(t *testing.T) {
 
 			g.Expect(res).To(Equal(tt.isValid))
 		})
+	}
+}
+
+func TestUserPrincipal_String(t *testing.T) {
+	// This is primarily to guard against leaking the auth token if the
+	// principal is logged out.
+	p := auth.NewUserPrincipal(auth.ID("testing"), auth.Groups([]string{"group1", "group2"}), auth.Token("test-token"))
+
+	if s := p.String(); s != `id="testing" groups=[group1 group2]` {
+		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
 	}
 }

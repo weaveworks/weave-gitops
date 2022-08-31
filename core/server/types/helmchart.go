@@ -22,5 +22,6 @@ func HelmChartToProto(helmchart *sourcev1.HelmChart, clusterName string, tenant 
 		ClusterName:   clusterName,
 		ApiVersion:    helmchart.APIVersion,
 		Tenant:        tenant,
+		Uid:           string(helmchart.GetUID()),
 	}
 }

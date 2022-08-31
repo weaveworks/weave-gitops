@@ -1,13 +1,13 @@
 import { stringify } from "yaml";
-import { addKind } from "./utils";
 import {
-  GitRepositoryRef,
   Condition,
   FluxObjectKind,
   FluxObjectRef,
-  Object as ResponseObject,
+  GitRepositoryRef,
   Interval,
+  Object as ResponseObject,
 } from "./api/core/types.pb";
+import { addKind } from "./utils";
 
 export enum Kind {
   GitRepository = "GitRepository",
@@ -34,6 +34,7 @@ export class FluxObject {
   obj: any;
   clusterName: string;
   tenant: string;
+  uid: string;
 
   constructor(response: ResponseObject) {
     try {
@@ -42,8 +43,8 @@ export class FluxObject {
       this.obj = {};
     }
     this.clusterName = response?.clusterName;
-
     this.tenant = response?.tenant;
+    this.uid = response?.uid;
   }
 
   get yaml(): string {
@@ -80,6 +81,13 @@ export class FluxObject {
     if (this.obj.kind) {
       return FluxObjectKind[addKind(this.obj.kind)];
     }
+  }
+
+  // TODO: this actually returns the k8s kind name,
+  // while kind returns a value with a non-standard name.
+  // We shouldn't need both, and this value should be sufficient
+  get type(): Kind | undefined {
+    return this.obj.kind;
   }
 
   get conditions(): Condition[] {
@@ -125,9 +133,9 @@ export class HelmRepository extends FluxObject {
 }
 
 export class HelmChart extends FluxObject {
-  get sourceRef(): FluxObjectRef {
+  get sourceRef(): FluxObjectRef | undefined {
     if (!this.obj.spec?.sourceRef) {
-      return {};
+      return;
     }
     const sourceRef = {
       ...this.obj.spec.sourceRef,

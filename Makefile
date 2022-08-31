@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=0.31.5
+FLUX_VERSION=0.33.0
 DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290
 
 # Go build args
@@ -109,7 +109,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.48.0
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)

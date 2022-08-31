@@ -60,56 +60,22 @@ service Core {
     }
 
 
-    // Sources
-
-    /*
-     * ListGitRepository lists git repositories objects from a cluster.
-     */
-    rpc ListGitRepositories(ListGitRepositoriesRequest) returns (ListGitRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/gitrepositories"
-        };
-    }
-
-    /*
-     * ListHelmCharts lists helm chart objects from a cluster.
-     */
-    rpc ListHelmCharts(ListHelmChartsRequest) returns (ListHelmChartsResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmcharts"
-        };
-    }
-    /*
-     * ListHelmRepository lists helm repository objects from a cluster.
-     */
-    rpc ListHelmRepositories(ListHelmRepositoriesRequest) returns (ListHelmRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmrepositories"
-        };
-    }
-    /*
-     * ListBuckets lists bucket objects from a cluster.
-     */
-    rpc ListBuckets(ListBucketRequest) returns (ListBucketsResponse) {
-        option (google.api.http) = {
-            get : "/v1/buckets"
-        };
-    }
-    /*
-     * ListOCIRepositories lists OCI repository objects from a cluster.
-     */
-    rpc ListOCIRepositories(ListOCIRepositoriesRequest) returns (ListOCIRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/oci"
-        };
-    }
-
     /*
     * GetObject gets data about a single primary object from a cluster.
     */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
             get : "/v1/object/{name}"
+        };
+    }
+
+
+    /*
+    * ListObjects gets data about a primary objects.
+    */
+    rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+        option (google.api.http) = {
+            get : "/v1/objects"
         };
     }
 
@@ -258,41 +224,6 @@ message GetHelmReleaseResponse {
     HelmRelease helmRelease = 1;
 }
 
-message ListGitRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListGitRepositoriesResponse {
-    repeated GitRepository gitRepositories = 1;
-    repeated ListError errors = 2;
-}
-
-message ListHelmRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListHelmRepositoriesResponse {
-    repeated HelmRepository helmRepositories = 1;
-    repeated ListError errors = 2;
-}
-
-message ListBucketRequest {
-    string namespace = 1;
-}
-
-message ListBucketsResponse {
-    repeated Bucket buckets = 1;
-    repeated ListError errors = 2;
-}
-
-message ListOCIRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListOCIRepositoriesResponse {
-    repeated OCIRepository ociRepositories = 1;
-    repeated ListError errors = 2;
-}
 message ListFluxRuntimeObjectsRequest {
     string namespace   = 1;
     string clusterName = 2;
@@ -309,15 +240,6 @@ message ListFluxCrdsRequest {
 
 message ListFluxCrdsResponse {
     repeated Crd crds = 1;
-    repeated ListError errors = 2;
-}
-
-message ListHelmChartsRequest {
-    string namespace = 1;
-}
-
-message ListHelmChartsResponse {
-    repeated HelmChart helmCharts = 1;
     repeated ListError errors = 2;
 }
 
@@ -340,6 +262,16 @@ message GetObjectRequest {
 
 message GetObjectResponse {
     Object object = 1;
+}
+
+message ListObjectsRequest {
+    string namespace   = 1;
+    string kind        = 2;
+}
+
+message ListObjectsResponse {
+    repeated Object objects = 1;
+    repeated ListError errors = 2;
 }
 
 message GetReconciledObjectsRequest {
@@ -378,7 +310,7 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    ObjectRef involvedObject = 2;
+    ObjectRef involvedObject = 1;
 }
 
 message ListEventsResponse {
@@ -414,13 +346,9 @@ message GetFeatureFlagsResponse {
 }
 
 message ToggleSuspendResourceRequest {
-    FluxObjectKind kind        = 1;
-    string         name        = 2;
-    string         namespace   = 3;
-    string         clusterName = 4;
-    bool           suspend     = 5;
+    repeated SuspendReqObj objects = 1;
+    bool                   suspend = 2;
 }
 
 message ToggleSuspendResourceResponse {
-
 }
