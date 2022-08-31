@@ -17,6 +17,7 @@ export enum Kind {
   Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
   OCIRepository = "OCIRepository",
+  Provider = "Provider",
 }
 
 export type Source =
