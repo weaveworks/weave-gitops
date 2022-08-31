@@ -267,4 +267,13 @@ func TestUpdateClusters(t *testing.T) {
 		g.Expect(clusterNames(update.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
 		g.Expect(clusterNames(update.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c1})))
 	})
+
+	t.Run("Updates channel should be closed when calling Unsubscribe", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		watcher.Unsubscribe()
+
+		_, ok := <-watcher.Updates
+
+		g.Expect(ok).To(BeFalse())
+	})
 }

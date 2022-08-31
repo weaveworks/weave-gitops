@@ -141,7 +141,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 
 // Subscribe returns a new ClustersWatcher.
 func (cf *clientsFactory) Subscribe() *ClustersWatcher {
-	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 5)}
+	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 1)}
 	cf.watchers = append(cf.watchers, cw)
 
 	return cw
