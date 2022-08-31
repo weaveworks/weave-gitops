@@ -8,6 +8,8 @@ WEAVE_GITOPS_DOC_REPO=$2
 
 cd $WEAVE_GITOPS_DOC_REPO/docs
 yarn install
+# update version information
+sed -i 's#download/v\([^/]*\)#download/v'$GITOPS_VERSION'#' installation.mdx
 # create CLI reference
 git rm -f --ignore-unmatch references/cli-reference.md
 git rm -f --ignore-unmatch references/cli-reference/*.md
