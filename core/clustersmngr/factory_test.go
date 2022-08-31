@@ -234,10 +234,10 @@ func TestUpdateClusters(t *testing.T) {
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		update := <-watcher.Updates
+		updates := <-watcher.Updates
 
-		g.Expect(clusterNames(update.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
-		g.Expect(clusterNames(update.Removed)).To(BeEmpty())
+		g.Expect(clusterNames(updates.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
+		g.Expect(clusterNames(updates.Removed)).To(BeEmpty())
 	})
 
 	t.Run("watcher should be notified with one cluster removed", func(t *testing.T) {
@@ -245,10 +245,10 @@ func TestUpdateClusters(t *testing.T) {
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		update := <-watcher.Updates
+		updates := <-watcher.Updates
 
-		g.Expect(clusterNames(update.Added)).To(BeEmpty())
-		g.Expect(clusterNames(update.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+		g.Expect(clusterNames(updates.Added)).To(BeEmpty())
+		g.Expect(clusterNames(updates.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
 	})
 
 	t.Run("watcher shouldn't be notified when there are no updates", func(t *testing.T) {
@@ -261,19 +261,52 @@ func TestUpdateClusters(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
-		update := <-watcher.Updates
+		updates := <-watcher.Updates
 
 		// Assert watcher received a notification from the second UpdateClusters call
-		g.Expect(clusterNames(update.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
-		g.Expect(clusterNames(update.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c1})))
+		g.Expect(clusterNames(updates.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+		g.Expect(clusterNames(updates.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c1})))
 	})
 
 	t.Run("Updates channel should be closed when calling Unsubscribe", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		watcher.Unsubscribe()
 
-		_, ok := <-watcher.Updates
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		updates, ok := <-watcher.Updates
 
 		g.Expect(ok).To(BeFalse())
+		g.Expect(updates.Added).To(BeNil())
+	})
+
+	t.Run("Unsubscribe should close the correct channel", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		watcher1 := clientsFactory.Subscribe()
+		g.Expect(watcher1).ToNot(BeNil())
+		watcher2 := clientsFactory.Subscribe()
+		g.Expect(watcher2).ToNot(BeNil())
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		watcher2.Unsubscribe()
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+
+		updates1, ok1 := <-watcher1.Updates
+		g.Expect(ok1).To(BeTrue())
+		g.Expect(clusterNames(updates1.Added)).To(BeEmpty())
+		g.Expect(clusterNames(updates1.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+
+		updates2, ok2 := <-watcher2.Updates
+		g.Expect(ok2).To(BeFalse())
+		g.Expect(updates2.Added).To(BeNil())
 	})
 }
