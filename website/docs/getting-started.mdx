@@ -23,8 +23,6 @@ To follow along, you will need the following:
 - A Kubernetes cluster - such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/).
 - A [GitHub](https://github.com) account and [personal access token with repo permissions](https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
-- Optionally - the [gitops CLI](./installation.mdx#gitops-cli) to generate a bcrypt hash of a password for logging into the dashboard.
-
 ### Install Flux
 
 1. Install the flux CLI
@@ -89,6 +87,9 @@ For this guide we will use the cluster user, for complete documentation includin
    ```
    brew install weaveworks/tap/weave-gitops 
    ```
+
+  For other installation methods, see our [installation doc](./installation.mdx).
+
 
 1. Clone your git repository where Flux has been bootstrapped.
 
