@@ -42,5 +42,6 @@ func makeUnreachableLeafCluster(t *testing.T, name string) clustersmngr.Cluster 
 	// hopefully no k8s server is listening here
 	// FIXME: better addresses?
 	c.Server = "0.0.0.0:65535"
+
 	return c
 }

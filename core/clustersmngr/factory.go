@@ -397,6 +397,7 @@ func ApplyKubeConfigOptions(config *rest.Config, options ...KubeConfigOption) (*
 			return nil, err
 		}
 	}
+
 	return config, nil
 }
 
