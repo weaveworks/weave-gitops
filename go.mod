@@ -76,7 +76,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
-	github.com/fluxcd/notification-controller/api v0.25.2 // indirect
 	github.com/fluxcd/pkg/kustomize v0.6.0 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
