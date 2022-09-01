@@ -318,11 +318,8 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    string         name        = 1;
-    string         namespace   = 2;
-    FluxObjectKind kind        = 3;
-    string         clusterName = 4;
-    bool           withSource  = 5;
+    repeated SuspendReqObj objects    = 1;
+    bool                   withSource = 2;
 }
 
 message SyncFluxObjectResponse {

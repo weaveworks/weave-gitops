@@ -1309,17 +1309,11 @@
     "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "clusterName": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SuspendReqObj"
+          }
         },
         "withSource": {
           "type": "boolean"

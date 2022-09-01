@@ -61,44 +61,57 @@ func TestSync(t *testing.T) {
 	}{{
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindKustomization,
-			WithSource:  false,
+			Objects: []*pb.SuspendReqObj{{ClusterName: "Default",
+				Kind: pb.FluxObjectKind_KindKustomization}},
+			WithSource: false,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindKustomization,
-			WithSource:  true,
+			Objects: []*pb.SuspendReqObj{{ClusterName: "Default",
+				Kind: pb.FluxObjectKind_KindKustomization}},
+			WithSource: true,
 		},
 		automation: internal.KustomizationAdapter{Kustomization: kust},
 		source:     internal.NewReconcileable(gitRepo),
 	}, {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindHelmRelease,
-			WithSource:  false,
+			Objects: []*pb.SuspendReqObj{{ClusterName: "Default",
+				Kind: pb.FluxObjectKind_KindHelmRelease}},
+			WithSource: false,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindHelmRelease,
-			WithSource:  true,
+			Objects: []*pb.SuspendReqObj{{ClusterName: "Default",
+				Kind: pb.FluxObjectKind_KindHelmRelease}},
+			WithSource: true,
 		},
 		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
 		source:     internal.NewReconcileable(helmRepo),
-	}}
+	},
+		{
+			name: "multiple objects",
+			msg: &pb.SyncFluxObjectRequest{
+				Objects: []*pb.SuspendReqObj{{ClusterName: "Default",
+					Kind: pb.FluxObjectKind_KindHelmRelease}, {ClusterName: "Default",
+					Kind: pb.FluxObjectKind_KindHelmRelease}},
+				WithSource: true,
+			},
+			automation: internal.HelmReleaseAdapter{HelmRelease: hr},
+			source:     internal.NewReconcileable(helmRepo),
+		}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := tt.msg
-			msg.Name = tt.automation.GetName()
-			msg.Namespace = tt.automation.GetNamespace()
+			for _, msg := range msg.Objects {
+				msg.Name = tt.automation.GetName()
+				msg.Namespace = tt.automation.GetNamespace()
+			}
 
 			done := make(chan error)
 			defer close(done)

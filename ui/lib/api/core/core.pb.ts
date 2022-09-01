@@ -143,10 +143,7 @@ export type ListEventsResponse = {
 }
 
 export type SyncFluxObjectRequest = {
-  name?: string
-  namespace?: string
-  kind?: Gitops_coreV1Types.FluxObjectKind
-  clusterName?: string
+  objects?: Gitops_coreV1Types.SuspendReqObj[]
   withSource?: boolean
 }
 
