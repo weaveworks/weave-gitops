@@ -11,6 +11,7 @@ require (
 	github.com/fluxcd/go-git-providers v0.8.0
 	github.com/fluxcd/helm-controller/api v0.23.1
 	github.com/fluxcd/kustomize-controller/api v0.27.1
+	github.com/fluxcd/notification-controller/api v0.25.2
 	github.com/fluxcd/pkg/apis/meta v0.15.0
 	github.com/fluxcd/pkg/runtime v0.17.0
 	github.com/fluxcd/pkg/ssa v0.18.0
@@ -74,7 +75,6 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
-	github.com/fluxcd/notification-controller/api v0.25.2 // indirect
 	github.com/fluxcd/pkg/kustomize v0.6.0 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
