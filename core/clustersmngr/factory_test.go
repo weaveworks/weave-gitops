@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -131,10 +132,7 @@ func TestUpdateNamespaces(t *testing.T) {
 
 	t.Run("UpdateNamespaces will return partial results if a single cluster fails to connect", func(t *testing.T) {
 		clusterName3 := "foobar"
-		c3 := makeLeafCluster(t, clusterName3)
-		// hopefully no k8s server is listening here
-		// FIXME: better addresses?
-		c3.Server = "0.0.0.0:65535"
+		c3 := makeUnreachableLeafCluster(t, clusterName3)
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2, c3}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
@@ -191,5 +189,39 @@ func TestUpdateUsers(t *testing.T) {
 		g.Expect(contents).To(HaveLen(1))
 		g.Expect(contents).To(HaveKey(clusterName1))
 		g.Expect(contents).NotTo(HaveKey(clusterName2))
+	})
+}
+
+func TestUpdateUsersFailsToConnect(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+	nsChecker := nsaccess.NewChecker(nil)
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+
+	clusterName1 := "foo"
+
+	c1 := makeLeafCluster(t, clusterName1)
+
+	u1 := &auth.UserPrincipal{ID: "drstrange"}
+
+	t.Run("UpdateUserNamespaces remains unchanged if a connection failure occurs", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
+		g.Expect(clientsFactory.GetClustersNamespaces()).To(HaveLen(1))
+
+		c1 = makeUnreachableLeafCluster(t, clusterName1)
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		clientsFactory.UpdateUserNamespaces(ctx, u1)
+
+		// Get clusters namespace hasn't been changed.
+		g.Expect(clientsFactory.GetClustersNamespaces()).To(HaveLen(1))
 	})
 }

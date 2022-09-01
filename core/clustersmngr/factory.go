@@ -354,11 +354,13 @@ func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.U
 			cfg, err := ClientConfigWithUser(user)(cluster)
 			if err != nil {
 				cf.log.Error(err, "failed creating client config", "cluster", cluster.Name, "user", user.ID)
+				return
 			}
 
 			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, cfg, clusterNs)
 			if err != nil {
 				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.Name, "user", user.ID)
+				return
 			}
 
 			cf.usersNamespaces.Set(user, cluster.Name, filteredNs)
