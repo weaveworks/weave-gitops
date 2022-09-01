@@ -26,6 +26,7 @@ Weave GitOps is an extension to Flux and therefore requires that Flux 0.31 or la
 
 This version of Weave GitOps is tested against the following Flux releases:
 * 0.31
+* 0.32
 
 ### Install the Helm Chart
 
@@ -74,6 +75,10 @@ on those clusters, such as Git repositories and recent commits. Additionally, it
 aggregates Prometheus alerts to assist with troubleshooting.
 
 To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.works](mailto:sales@weave.works)
+
+:::note 
+There is no need to install Weave GitOps (Core) before installing Weave GitOps Enterprise
+:::
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
@@ -361,7 +366,8 @@ Flux will reconcile the helm-release and WGE will be deployed into the cluster. 
 
 In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
 
-There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI.
+There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI, which can be installed by following 
+the instructions [here](#gitops-cli).
 
 ```bash
 PASSWORD="<your password>"
@@ -593,3 +599,26 @@ The quickest way to access your dashboard is by setting up a port forward:
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 Then, [open the dashboard](http://localhost:9001/).
+
+## gitops CLI
+
+Weave GitOps includes a command-line interface to help users create and manage resources.
+
+The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
+
+Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+
+To install:
+
+```console
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.9.3/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+Alternatively, users can use Homebrew:
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/gitops
+```

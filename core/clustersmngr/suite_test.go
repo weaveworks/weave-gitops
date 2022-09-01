@@ -36,3 +36,12 @@ func makeLeafCluster(t *testing.T, name string) clustersmngr.Cluster {
 		TLSConfig:   k8sEnv.Rest.TLSClientConfig,
 	}
 }
+
+func makeUnreachableLeafCluster(t *testing.T, name string) clustersmngr.Cluster {
+	c := makeLeafCluster(t, name)
+	// hopefully no k8s server is listening here
+	// FIXME: better addresses?
+	c.Server = "0.0.0.0:65535"
+
+	return c
+}

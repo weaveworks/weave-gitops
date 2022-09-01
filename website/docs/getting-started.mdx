@@ -22,8 +22,7 @@ but note ⚠️ you may need to alter commands where we are committing files to 
 To follow along, you will need the following:
 - A Kubernetes cluster - such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/).
 - A [GitHub](https://github.com) account and [personal access token with repo permissions](https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
-- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
-
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
 ### Install Flux
 
 1. Install the flux CLI
@@ -32,7 +31,7 @@ To follow along, you will need the following:
    brew install fluxcd/tap/flux
    ```
 
-   For For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
+   For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
 
 1. Make sure that the CLI version is at least 0.31.0
 
@@ -88,6 +87,8 @@ For this guide we will use the cluster user, for complete documentation includin
    ```
    brew install weaveworks/tap/weave-gitops 
    ```
+
+   For other installation methods, see our [installation doc](./installation.mdx).
 
 1. Clone your git repository where Flux has been bootstrapped.
 
