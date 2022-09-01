@@ -61,7 +61,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool)
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker
@@ -151,12 +151,14 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 		t.Fatal(err)
 	}
 
+	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
+	// and the default options include the Flowcontrol setup which is not mocked out
 	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
 		f := &clustersmngrfakes.FakeClientsPool{}
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
 		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
 		return f
-	})
+	}, nil)
 
 	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker

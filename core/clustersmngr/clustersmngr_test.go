@@ -51,7 +51,7 @@ func TestClientConfigWithUser(t *testing.T) {
 			// Set up
 			clusterName := fmt.Sprintf("clustersmngr-test-%d-%s", idx, rand.String(5))
 
-			clusterCfgFunc := clustersmngr.ClientConfigWithUser(tt.principal)
+			clusterCfgFunc := clustersmngr.ClientConfigWithUser(tt.principal, clustersmngr.DefaultKubeConfigOptions...)
 
 			cluster := makeLeafCluster(t, clusterName)
 
