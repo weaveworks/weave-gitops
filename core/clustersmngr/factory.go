@@ -450,7 +450,7 @@ func ClientConfigAsServer(options ...KubeConfigOption) ClusterClientConfigFunc {
 
 		config.BearerToken = cluster.BearerToken
 
-		return config, nil
+		return ApplyKubeConfigOptions(config, options...)
 	}
 }
 
