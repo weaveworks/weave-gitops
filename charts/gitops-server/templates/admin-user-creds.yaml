@@ -12,19 +12,5 @@ data:
   username: {{ .username | b64enc | quote }}
   password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
   {{- end }}
-{{- if ne .Release.Namespace "flux-system" }}
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cluster-user-auth
-  namespace: flux-system
-type: Opaque
-data:
-  {{- with .Values.adminUser }}
-  username: {{ .username | b64enc | quote }}
-  password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
-  {{- end }}
-{{- end }}
 {{- end }}
 {{- end }}
