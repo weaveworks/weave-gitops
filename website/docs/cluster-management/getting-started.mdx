@@ -224,6 +224,25 @@ metadata:
     metadata.weave.works/dashboard.prometheus: https://prometheus.io/
 ```
 
+#### Specifying CAPI cluster kinds
+
+To be able to explicitly specify the type of cluster, you need to use metadata annotations using `weave.works/cluster-kind` for the annotation key as the below pattern:
+
+```
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  annotations:
+      weave.works/cluster-kind: <CLUSTER_KIND>
+```
+where the **CLUSTER_KIND** can be one of the following supported ones:
+  - DockerCluster
+  - AWSCluster
+  - AWSManagedCluster
+  - AzureCluster
+  - AzureManagedCluster
+  - GCPCluster
+
 ## Test
 
 You should now be able to create a new cluster from your template and install profiles onto it with a single Pull Request via the WGE UI!
