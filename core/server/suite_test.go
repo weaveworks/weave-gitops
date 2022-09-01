@@ -61,7 +61,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool)
+	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool, []clustersmngr.KubeConfigOption{clustersmngr.WithFlowControl})
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker
@@ -156,7 +156,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
 		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
 		return f
-	})
+	}, nil)
 
 	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clientsFactory)
 	coreCfg.NSAccess = &nsChecker

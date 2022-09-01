@@ -74,6 +74,7 @@ type ClientsFactory interface {
 }
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
+type KubeConfigOption func(*rest.Config) (*rest.Config, error)
 
 type clientsFactory struct {
 	clustersFetcher ClusterFetcher
@@ -92,9 +93,10 @@ type clientsFactory struct {
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
+	kubeConfigOptions   []KubeConfigOption
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn) ClientsFactory {
+func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, kubeConfigOptions []KubeConfigOption) ClientsFactory {
 	return &clientsFactory{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -105,6 +107,7 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
 		newClustersPool:     clusterPoolFactory,
+		kubeConfigOptions:   []KubeConfigOption{},
 	}
 }
 
@@ -232,7 +235,7 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
+			if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -271,7 +274,7 @@ func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, u
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	if err := pool.Add(ClientConfigWithUser(user), cl); err != nil {
+	if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cl); err != nil {
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
@@ -289,7 +292,7 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 		if cluster.Name == clusterName {
 			var err error
 
-			config, err = ClientConfigWithUser(user)(cluster)
+			config, err = ClientConfigWithUser(user, cf.kubeConfigOptions...)(cluster)
 			if err != nil {
 				return nil, fmt.Errorf("error creating client for cluster: %w", err)
 			}
@@ -322,7 +325,7 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigAsServer, cluster); err != nil {
+			if err := pool.Add(ClientConfigAsServer(cf.kubeConfigOptions...), cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -351,7 +354,7 @@ func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.U
 
 			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
 
-			cfg, err := ClientConfigWithUser(user)(cluster)
+			cfg, err := ClientConfigWithUser(user, cf.kubeConfigOptions...)(cluster)
 			if err != nil {
 				cf.log.Error(err, "failed creating client config", "cluster", cluster.Name, "user", user.ID)
 				return
@@ -385,11 +388,21 @@ func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 	return cf.GetUserNamespaces(user)
 }
 
+func ApplyKubeConfigOptions(config *rest.Config, options ...KubeConfigOption) (*rest.Config, error) {
+	for _, o := range options {
+		_, err := o(config)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return config, nil
+}
+
 // restConfigFromCluster creates a generic rest.Config for a given cluster.
 // You should not call this directly, but rather via
 // ClientConfigAsServer or ClientConfigWithUser
-func restConfigFromCluster(cluster Cluster) (*rest.Config, error) {
-	config := &rest.Config{
+func restConfigFromCluster(cluster Cluster) *rest.Config {
+	return &rest.Config{
 		Host:            cluster.Server,
 		TLSClientConfig: cluster.TLSConfig,
 		QPS:             ClientQPS,
@@ -401,7 +414,9 @@ func restConfigFromCluster(cluster Cluster) (*rest.Config, error) {
 			KeepAlive: kubeClientDialKeepAlive,
 		}).DialContext,
 	}
+}
 
+func WithFlowControl(config *rest.Config) (*rest.Config, error) {
 	// flowcontrol.IsEnabled makes a request to the K8s API of the cluster stored in the config.
 	// It does a HEAD request to /livez/ping which uses the config.Dial timeout. We can use this
 	// function to error early rather than wait to call client.New.
@@ -427,25 +442,21 @@ func restConfigFromCluster(cluster Cluster) (*rest.Config, error) {
 
 // clientConfigAsServer returns a *rest.Config for a given cluster
 // as the server service acconut
-func ClientConfigAsServer(cluster Cluster) (*rest.Config, error) {
-	config, err := restConfigFromCluster(cluster)
-	if err != nil {
-		return nil, err
+func ClientConfigAsServer(options ...KubeConfigOption) ClusterClientConfigFunc {
+	return func(cluster Cluster) (*rest.Config, error) {
+		config := restConfigFromCluster(cluster)
+
+		config.BearerToken = cluster.BearerToken
+
+		return config, nil
 	}
-
-	config.BearerToken = cluster.BearerToken
-
-	return config, nil
 }
 
 // ClientConfigWithUser returns a function that returns a *rest.Config with the relevant
 // user authentication details pre-defined for a given cluster.
-func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
+func ClientConfigWithUser(user *auth.UserPrincipal, options ...KubeConfigOption) ClusterClientConfigFunc {
 	return func(cluster Cluster) (*rest.Config, error) {
-		config, err := restConfigFromCluster(cluster)
-		if err != nil {
-			return nil, err
-		}
+		config := restConfigFromCluster(cluster)
 
 		if !user.Valid() {
 			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
@@ -459,6 +470,6 @@ func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
 			}
 		}
 
-		return config, nil
+		return ApplyKubeConfigOptions(config, options...)
 	}
 }
