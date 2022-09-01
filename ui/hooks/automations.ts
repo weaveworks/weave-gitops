@@ -22,6 +22,7 @@ import {
   RequestError,
   Syncable,
 } from "../lib/types";
+import { notifyError, notifySuccess } from "../lib/utils";
 
 export type Automation = Kustomization & HelmRelease & { kind: FluxObjectKind };
 
@@ -110,13 +111,16 @@ export function useGetHelmRelease(
   );
 }
 
-export function useSyncFluxObject(obj: Syncable) {
+export function useSyncFluxObject(objs: Syncable[]) {
   const { api } = useContext(CoreClientContext);
   const mutation = useMutation<
     SyncFluxObjectResponse,
     RequestError,
     SyncFluxObjectRequest
-  >(({ withSource }) => api.SyncFluxObject({ ...obj, withSource }));
+  >(({ withSource }) => api.SyncFluxObject({ objects: objs, withSource }), {
+    onSuccess: () => notifySuccess("Sync request successful!"),
+    onError: (error) => notifyError(error.message),
+  });
 
   return mutation;
 }
