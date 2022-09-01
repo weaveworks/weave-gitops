@@ -32,7 +32,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, nil)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -72,7 +72,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, nil)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -96,7 +96,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, nil)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -156,7 +156,7 @@ func TestUpdateUsers(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, nil)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -202,7 +202,7 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, nil)
+	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 

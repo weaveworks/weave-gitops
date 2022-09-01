@@ -73,6 +73,8 @@ type ClientsFactory interface {
 	Start(ctx context.Context)
 }
 
+var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
 
