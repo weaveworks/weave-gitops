@@ -20,9 +20,11 @@ export type CoreClientContextType = {
 export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
-export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
-  const wrapped = {};
-  //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
+// From https://www.typescriptlang.org/docs/handbook/decorators.html#class-decorators
+type GenericClassType = { new (...args: any[]): {} };
+export function UnAuthorizedInterceptor<T extends GenericClassType>(api: T) {
+  const wrapped = {} as T;
+  // Wrap each API method in a check that redirects to the signin page if a 401 is returned.
   for (const method of Object.getOwnPropertyNames(api)) {
     if (typeof api[method] != "function") {
       continue;
@@ -42,7 +44,7 @@ export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
       });
     };
   }
-  return wrapped as typeof Core;
+  return wrapped;
 }
 
 function FeatureFlags(api) {
