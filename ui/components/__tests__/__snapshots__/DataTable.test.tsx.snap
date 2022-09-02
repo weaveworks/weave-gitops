@@ -234,18 +234,6 @@ exports[`DataTable snapshots renders 1`] = `
   padding: 4px;
 }
 
-.c5 {
-  padding: 4px 0px;
-  -webkit-flex-wrap: nowrap;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-}
-
-.c5 .MuiChip-root {
-  margin-right: 4px;
-}
-
 .c19 {
   position: relative;
   height: 100%;
@@ -283,6 +271,18 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c22 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
+}
+
+.c5 {
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c5 .MuiChip-root {
+  margin-right: 4px;
 }
 
 .c10 {
