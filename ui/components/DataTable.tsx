@@ -163,22 +163,23 @@ function filterText(
     let matches = false;
 
     fields.forEach((field) => {
-      if (field.textSearchable) {
-        let value;
-        if (field.sortValue) {
-          value = field.sortValue(row);
+      if (!field.textSearchable) return matches;
+
+      let value;
+      if (field.sortValue) {
+        value = field.sortValue(row);
+      } else {
+        typeof field.value === "function"
+          ? (value = field.value(row))
+          : (value = row[field.value]);
+      }
+
+      for (let i = 0; i < textFilters.length; i++) {
+        if (value.includes(textFilters[i])) {
+          matches = true;
         } else {
-          typeof field.value === "function"
-            ? (value = field.value(row))
-            : (value = row[field.value]);
-        }
-        for (let i = 0; i < textFilters.length; i++) {
-          if (value.includes(textFilters[i])) {
-            matches = true;
-          } else {
-            matches = false;
-            break;
-          }
+          matches = false;
+          break;
         }
       }
     });
