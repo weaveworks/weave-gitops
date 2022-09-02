@@ -33,7 +33,7 @@ const SlideContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
 `;
 
-export const filterSeparator = ":";
+export const filterSeparator = " --- ";
 
 type FilterSectionProps = {
   header: string;
@@ -48,7 +48,9 @@ const FilterSection = ({
   formState,
   onSectionSelect,
 }: FilterSectionProps) => {
-  const compoundKeys = options.map((option) => `${header}:${option}`);
+  const compoundKeys = options.map(
+    (option) => `${header}${filterSeparator}${option}`
+  );
   // every on an empty list is true so check that too
   const all =
     compoundKeys.length > 0 && compoundKeys.every((key) => formState[key]);

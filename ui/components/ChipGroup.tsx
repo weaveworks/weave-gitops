@@ -17,10 +17,12 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
   return (
     <Flex className={className} wide align start>
       {_.map(chips, (chip, index) => {
-        if (chip.slice(-1) === ":") chip += " -";
         return (
           <Flex key={index}>
-            <Chip label={chip} onDelete={() => onChipRemove([chip])} />
+            <Chip
+              label={chip.slice(-1) === ":" ? chip + " -" : chip}
+              onDelete={() => onChipRemove([chip])}
+            />
           </Flex>
         );
       })}

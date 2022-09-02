@@ -3,7 +3,7 @@ import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
 import { initialFormState } from "../DataTable";
-import FilterDialog from "../FilterDialog";
+import FilterDialog, { filterSeparator } from "../FilterDialog";
 
 describe("FilterDialog", () => {
   const setActiveFilters = jest.fn();
@@ -55,7 +55,9 @@ describe("FilterDialog", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("Name:app") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `Name${filterSeparator}app`
+    ) as HTMLInputElement;
 
     expect(checkbox1.checked).toEqual(false);
     fireEvent.click(checkbox1);
