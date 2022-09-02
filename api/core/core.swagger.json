@@ -648,6 +648,23 @@
         }
       }
     },
+    "v1ClusteredObjRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1FluxObjectKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -1289,37 +1306,14 @@
         }
       }
     },
-    "v1SuspendReqObj": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        }
-      }
-    },
     "v1SyncFluxObjectRequest": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "clusterName": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusteredObjRef"
+          }
         },
         "withSource": {
           "type": "boolean"
@@ -1335,7 +1329,7 @@
         "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1SuspendReqObj"
+            "$ref": "#/definitions/v1ClusteredObjRef"
           }
         },
         "suspend": {

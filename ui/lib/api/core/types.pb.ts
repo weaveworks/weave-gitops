@@ -38,6 +38,13 @@ export type ObjectRef = {
   namespace?: string
 }
 
+export type ClusteredObjRef = {
+  kind?: FluxObjectKind
+  name?: string
+  namespace?: string
+  clusterName?: string
+}
+
 export type Condition = {
   type?: string
   status?: string
@@ -169,11 +176,4 @@ export type Event = {
   host?: string
   name?: string
   uid?: string
-}
-
-export type SuspendReqObj = {
-  kind?: FluxObjectKind
-  name?: string
-  namespace?: string
-  clusterName?: string
 }
