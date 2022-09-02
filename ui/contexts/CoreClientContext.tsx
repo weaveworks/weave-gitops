@@ -21,7 +21,7 @@ export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
 // From https://www.typescriptlang.org/docs/handbook/decorators.html#class-decorators
-type GenericClassType = { new (...args: any[]): {} };
+type GenericClassType = { new (...args: any[]): any };
 export function UnAuthorizedInterceptor<T extends GenericClassType>(api: T) {
   const wrapped = {} as T;
   // Wrap each API method in a check that redirects to the signin page if a 401 is returned.
