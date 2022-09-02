@@ -77,21 +77,19 @@ const FilterSection = ({
             {convertHeaders(header)}
           </Text>
         </ListItem>
-        {options.sort().map((option: string, index: number) => {
-          return (
-            <ListItem key={index}>
-              <ListItemIcon>
-                <FormCheckbox
-                  label=""
-                  name={`${header}${filterSeparator}${option}`}
-                />
-              </ListItemIcon>
-              <Text color="neutral40" size="small">
-                {_.toString(option) || "-"}
-              </Text>
-            </ListItem>
-          );
-        })}
+        {options.sort().map((option: string, index: number) => (
+          <ListItem key={index}>
+            <ListItemIcon>
+              <FormCheckbox
+                label=""
+                name={`${header}${filterSeparator}${option}`}
+              />
+            </ListItemIcon>
+            <Text color="neutral40" size="small">
+              {_.toString(option) || "-"}
+            </Text>
+          </ListItem>
+        ))}
       </List>
     </ListItem>
   );
