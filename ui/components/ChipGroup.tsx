@@ -22,7 +22,9 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
           <Flex key={index}>
             <Chip
               label={
-                chip.slice(-1) === `${filterSeparator}` ? chip + " N/A" : chip
+                chip.slice(-1) === `${filterSeparator.slice(-1)}`
+                  ? chip + " N/A"
+                  : chip
               }
               onDelete={() => onChipRemove([chip])}
             />
