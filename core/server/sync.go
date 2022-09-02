@@ -27,6 +27,7 @@ var k8sTimeout = 1 * time.Minute
 func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
 	principal := auth.Principal(ctx)
 	respErrors := multierror.Error{}
+
 	for _, sync := range msg.Objects {
 		clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, principal, sync.ClusterName)
 		if err != nil {

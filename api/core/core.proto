@@ -318,8 +318,8 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    repeated SuspendReqObj objects    = 1;
-    bool                   withSource = 2;
+    repeated ClusteredObjRef objects    = 1;
+    bool                     withSource = 2;
 }
 
 message SyncFluxObjectResponse {
@@ -343,8 +343,8 @@ message GetFeatureFlagsResponse {
 }
 
 message ToggleSuspendResourceRequest {
-    repeated SuspendReqObj objects = 1;
-    bool                   suspend = 2;
+    repeated ClusteredObjRef objects = 1;
+    bool                     suspend = 2;
 }
 
 message ToggleSuspendResourceResponse {
