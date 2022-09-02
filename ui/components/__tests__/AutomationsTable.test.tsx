@@ -7,11 +7,13 @@ import {HelmRelease} from "../../lib/api/core/types.pb";
 import {render, screen} from "@testing-library/react";
 import Automations from "../../pages/v2/Automations";
 import {Automation} from "../../hooks/automations";
+import DataTable from "../DataTable";
 
 describe("AutomationsTable", () => {
   it("renders", () => {
     const helmReleaseAsJson = `
     {
+          "kind": "KindHelmRelease",
           "releaseName": "",
           "namespace": "flux-system",
           "name": "weave-policy-agent",
@@ -43,13 +45,6 @@ describe("AutomationsTable", () => {
                   "type": "Ready",
                   "status": "False",
                   "reason": "UpgradeFailed",
-                  "message": "Helm upgrade failed: another operation (install/upgrade/rollback) is in progress",
-                  "timestamp": "2022-09-02T15:07:50Z"
-              },
-              {
-                  "type": "Released",
-                  "status": "False",
-                  "reason": "UpgradeFailed",
                   "message": "Helm upgrade failed: another operation (install/upgrade/rollback) is in progress    Last Helm logs:    checking 1 resources for changes    Replaced 'policies.pac.weave.works' with kind  for kind CustomResourceDefinition    Clearing discovery cache    beginning wait for 1 resources with timeout of 1m0s    preparing upgrade for policy-system-weave-policy-agent",             
                   "timestamp": "2022-09-02T15:07:49Z"
               }
@@ -65,9 +60,18 @@ describe("AutomationsTable", () => {
     }`;
 
     const helmRelease:Automation = JSON.parse(helmReleaseAsJson);
-    // render(withTheme(<AutomationsTable  automations={[helmRelease] as Automation[]}/>));
-    // const msg = screen.getByText("");
-    // expect(msg).toBeTruthy();
+    render(
+        withTheme(
+            withContext(
+                <AutomationsTable  automations={[helmRelease] as Automation[]}/>,
+                "/applications",
+                {}
+            )
+        )
+    );
+
+    const firstRow = screen.getAllByRole("row")[1];
+    expect(firstRow.innerHTML).toMatch(/preparing upgrade for policy-system-weave-policy-agent/);
   });
 });
 
