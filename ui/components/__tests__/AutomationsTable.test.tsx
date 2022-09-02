@@ -10,7 +10,7 @@ import {Automation} from "../../hooks/automations";
 import DataTable from "../DataTable";
 
 describe("AutomationsTable", () => {
-  it("renders", () => {
+  it("renders condition messages in full", () => {
     const helmReleaseAsJson = `
     {
           "kind": "KindHelmRelease",
