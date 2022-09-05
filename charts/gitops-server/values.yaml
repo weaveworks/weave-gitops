@@ -66,7 +66,7 @@ adminUser:
   create: false
   # -- Specifies whether the clusterRole & binding to the admin user should be created.
   # Will be created only if `adminUser.create` is enabled. Without this,
-  # the adminUser will only be able to see resources in the `flux-system` namespace.
+  # the adminUser will only be able to see resources in the target namespace.
   createClusterRole: true
   # -- Whether we should create the secret for the local
   # adminUser. Will be created only if `adminUser.create` is
