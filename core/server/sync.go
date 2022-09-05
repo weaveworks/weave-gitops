@@ -10,6 +10,7 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/server/internal"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -25,93 +26,105 @@ var k8sTimeout = 1 * time.Minute
 
 func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
 	principal := auth.Principal(ctx)
+	respErrors := multierror.Error{}
 
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, principal, msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	c, err := clustersClient.Scoped(msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("getting cluster client: %w", err)
-	}
-
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	obj, err := getFluxObject(msg.Kind)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
-		return nil, err
-	}
-
-	automation, isAutomation := obj.(internal.Automation)
-	if msg.WithSource && isAutomation {
-		sourceRef := automation.SourceRef()
-
-		_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
-
+	for _, sync := range msg.Objects {
+		clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, principal, sync.ClusterName)
 		if err != nil {
-			return nil, fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err)
+			respErrors = *multierror.Append(fmt.Errorf("error getting impersonating client: %w", err), respErrors.Errors...)
+			continue
 		}
 
-		sourceNs := sourceRef.Namespace()
-
-		// sourceRef.Namespace is an optional field in flux
-		// From the flux type reference:
-		// "Namespace of the referent, defaults to the namespace of the Kubernetes resource object that contains the reference."
-		// https://github.com/fluxcd/kustomize-controller/blob/4da17e1ffb9c2b9e057ff3440f66500394a4f765/api/v1beta2/reference_types.go#L37
-		if sourceNs == "" {
-			sourceNs = msg.Namespace
+		c, err := clustersClient.Scoped(sync.ClusterName)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting cluster client: %w", err), respErrors.Errors...)
+			continue
 		}
 
-		sourceKey := client.ObjectKey{
-			Name:      sourceRef.Name(),
-			Namespace: sourceNs,
+		key := client.ObjectKey{
+			Name:      sync.Name,
+			Namespace: sync.Namespace,
 		}
 
-		sourceGvk := sourceObj.GroupVersionKind()
+		obj, err := getFluxObject(sync.Kind)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("error converting to object: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("error getting object: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		automation, isAutomation := obj.(internal.Automation)
+		if msg.WithSource && isAutomation {
+			sourceRef := automation.SourceRef()
+
+			_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
+
+			if err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
+				continue
+			}
+
+			sourceNs := sourceRef.Namespace()
+
+			// sourceRef.Namespace is an optional field in flux
+			// From the flux type reference:
+			// "Namespace of the referent, defaults to the namespace of the Kubernetes resource object that contains the reference."
+			// https://github.com/fluxcd/kustomize-controller/blob/4da17e1ffb9c2b9e057ff3440f66500394a4f765/api/v1beta2/reference_types.go#L37
+			if sourceNs == "" {
+				sourceNs = sync.Namespace
+			}
+
+			sourceKey := client.ObjectKey{
+				Name:      sourceRef.Name(),
+				Namespace: sourceNs,
+			}
+
+			sourceGvk := sourceObj.GroupVersionKind()
+
+			log := cs.logger.WithValues(
+				"user", principal.ID,
+				"kind", sourceRef.Kind(),
+				"name", sourceRef.Name(),
+				"namespace", sourceNs,
+			)
+			log.Info("Syncing resource")
+
+			if err := requestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("requesting source reconciliation: %w", err), respErrors.Errors...)
+				continue
+			}
+
+			if err := waitForSync(ctx, c, sourceKey, sourceObj); err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("syncing source: %w", err), respErrors.Errors...)
+				continue
+			}
+		}
 
 		log := cs.logger.WithValues(
 			"user", principal.ID,
-			"kind", sourceRef.Kind(),
-			"name", sourceRef.Name(),
-			"namespace", sourceNs,
+			"kind", obj.GroupVersionKind().Kind,
+			"name", key.Name,
+			"namespace", key.Namespace,
 		)
 		log.Info("Syncing resource")
 
-		if err := requestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
-			return nil, fmt.Errorf("request source reconciliation: %w", err)
+		gvk := obj.GroupVersionKind()
+		if err := requestReconciliation(ctx, c, key, gvk); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("requesting reconciliation: %w", err), respErrors.Errors...)
+			continue
 		}
 
-		if err := waitForSync(ctx, c, sourceKey, sourceObj); err != nil {
-			return nil, fmt.Errorf("syncing source; %w", err)
+		if err := waitForSync(ctx, c, key, obj); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("syncing automation: %w", err), respErrors.Errors...)
+			continue
 		}
 	}
 
-	log := cs.logger.WithValues(
-		"user", principal.ID,
-		"kind", obj.GroupVersionKind().Kind,
-		"name", msg.Name,
-		"namespace", msg.Namespace,
-	)
-	log.Info("Syncing resource")
-
-	gvk := obj.GroupVersionKind()
-	if err := requestReconciliation(ctx, c, key, gvk); err != nil {
-		return nil, fmt.Errorf("requesting reconciliation: %w", err)
-	}
-
-	if err := waitForSync(ctx, c, key, obj); err != nil {
-		return nil, fmt.Errorf("syncing automation; %w", err)
-	}
-
-	return &pb.SyncFluxObjectResponse{}, nil
+	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
 }
 
 func getFluxObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {

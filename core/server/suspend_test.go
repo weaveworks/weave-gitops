@@ -57,20 +57,20 @@ func TestSuspend_Suspend(t *testing.T) {
 		},
 	}
 
-	requestObjects := []*api.SuspendReqObj{}
+	requestObjects := []*api.ClusteredObjRef{}
 
 	for _, tt := range tests {
 		t.Run(tt.kind.String(), func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			g.Expect(k.Create(ctx, tt.obj)).Should(Succeed())
-			object := &api.SuspendReqObj{
+			object := &api.ClusteredObjRef{
 				Kind:        tt.kind,
 				Name:        tt.obj.GetName(),
 				Namespace:   tt.obj.GetNamespace(),
 				ClusterName: "Default",
 			}
 			req := &api.ToggleSuspendResourceRequest{
-				Objects: []*api.SuspendReqObj{object},
+				Objects: []*api.ClusteredObjRef{object},
 				Suspend: true,
 			}
 			_, err = c.ToggleSuspendResource(ctx, req)
@@ -100,7 +100,7 @@ func TestSuspend_Suspend(t *testing.T) {
 
 		_, err = c.ToggleSuspendResource(ctx, &api.ToggleSuspendResourceRequest{
 
-			Objects: []*api.SuspendReqObj{{
+			Objects: []*api.ClusteredObjRef{{
 				Kind:        api.FluxObjectKind_KindGitRepository,
 				Name:        "fakeName",
 				Namespace:   "fakeNamespace",

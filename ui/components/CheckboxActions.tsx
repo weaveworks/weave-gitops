@@ -2,11 +2,13 @@ import { Tooltip } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Spacer from "./Spacer";
+import SyncButton from "./SyncButton";
 
 export const makeObjects = (checked: string[], rows: any[]) => {
   const objects = [];
@@ -32,27 +34,35 @@ type Props = {
 };
 
 function CheckboxActions({ className, checked = [], rows = [] }: Props) {
-  const [suspendReqs, setSuspendReqs] = React.useState([]);
+  const [reqObjects, setReqObjects] = React.useState([]);
   const hasChecked = checked.length > 0;
 
   React.useEffect(() => {
-    if (hasChecked && rows.length) setSuspendReqs(makeObjects(checked, rows));
+    if (hasChecked && rows.length) setReqObjects(makeObjects(checked, rows));
   }, [checked, rows]);
 
   function createSuspendHandler(suspend: boolean) {
     const result = useToggleSuspend(
       {
-        objects: suspendReqs,
+        objects: reqObjects,
         suspend: suspend,
       },
-      suspendReqs[0] ? suspendReqs[0].kind : ""
+      reqObjects[0] ? reqObjects[0].kind : ""
     );
 
     return () => result.mutateAsync();
   }
 
+  const sync = useSyncFluxObject(reqObjects);
+
   return (
     <Flex start align className={className}>
+      <SyncButton
+        onClick={(opts) => sync.mutateAsync(opts)}
+        loading={sync.isLoading}
+        disabled={!hasChecked}
+      />
+      <Spacer padding="xxs" />
       <Tooltip title="Suspend Selected" placement="top">
         <div>
           <Button disabled={!hasChecked} onClick={createSuspendHandler(true)}>
@@ -68,6 +78,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
           </Button>
         </div>
       </Tooltip>
+      <Spacer padding="xxs" />
     </Flex>
   );
 }

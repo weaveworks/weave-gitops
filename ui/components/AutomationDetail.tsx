@@ -1,13 +1,11 @@
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import { Automation, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { useGetObject } from "../hooks/objects";
 import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { fluxObjectKindToKind } from "../lib/objects";
-import Alert from "./Alert";
 import Button from "./Button";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -31,7 +29,6 @@ type Props = {
 };
 
 function AutomationDetail({ automation, className, info, customTabs }: Props) {
-  const { notifySuccess } = React.useContext(AppContext);
   const { path } = useRouteMatch();
   const { data: object } = useGetObject(
     automation?.name,
@@ -40,12 +37,14 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
     automation?.clusterName
   );
 
-  const sync = useSyncFluxObject({
-    name: automation?.name,
-    namespace: automation?.namespace,
-    clusterName: automation?.clusterName,
-    kind: automation?.kind,
-  });
+  const sync = useSyncFluxObject([
+    {
+      name: automation?.name,
+      namespace: automation?.namespace,
+      clusterName: automation?.clusterName,
+      kind: automation?.kind,
+    },
+  ]);
 
   const suspend = useToggleSuspend(
     {
@@ -63,12 +62,6 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       ? "helmrelease"
       : "kustomizations"
   );
-
-  const handleSyncClicked = (opts) => {
-    sync.mutateAsync(opts).then(() => {
-      notifySuccess("Resource synced successfully");
-    });
-  };
 
   // default routes
   const defaultTabs: Array<routeTab> = [
@@ -154,27 +147,13 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       <Text size="large" semiBold titleHeight>
         {automation?.name}
       </Text>
-      {sync.isError && (
-        <Alert
-          severity="error"
-          message={sync.error.message}
-          title="Sync Error"
-        />
-      )}
-      {suspend.isError && (
-        <Alert
-          severity="error"
-          message={suspend.error.message}
-          title="Sync Error"
-        />
-      )}
       <PageStatus
         conditions={automation?.conditions}
         suspended={automation?.suspended}
       />
       <Flex wide start>
         <SyncButton
-          onClick={handleSyncClicked}
+          onClick={(opts) => sync.mutateAsync(opts)}
           loading={sync.isLoading}
           disabled={automation?.suspended}
         />

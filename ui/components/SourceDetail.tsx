@@ -2,12 +2,10 @@ import _ from "lodash";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { Source } from "../lib/objects";
-import Alert from "./Alert";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
 import EventsTable from "./EventsTable";
@@ -31,7 +29,6 @@ type Props = {
 };
 
 function SourceDetail({ className, source, info, type }: Props) {
-  const { notifySuccess } = React.useContext(AppContext);
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
@@ -51,12 +48,14 @@ function SourceDetail({ className, source, info, type }: Props) {
     "sources"
   );
 
-  const sync = useSyncFluxObject({
-    name: source.name,
-    namespace: source.namespace,
-    clusterName: source.clusterName,
-    kind: type,
-  });
+  const sync = useSyncFluxObject([
+    {
+      name: source.name,
+      namespace: source.namespace,
+      clusterName: source.clusterName,
+      kind: type,
+    },
+  ]);
 
   if (automationsLoading) {
     return <LoadingPage />;
@@ -85,24 +84,15 @@ function SourceDetail({ className, source, info, type }: Props) {
     return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name);
   });
 
-  const handleSyncClicked = () => {
-    sync.mutateAsync({ withSource: false }).then(() => {
-      notifySuccess("Resource synced successfully");
-    });
-  };
-
   return (
     <Flex wide tall column className={className}>
       <Text size="large" semiBold titleHeight>
         {source.name}
       </Text>
-      {suspend.error && (
-        <Alert severity="error" title="Error" message={suspend.error.message} />
-      )}
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
       <Flex wide start>
         <SyncButton
-          onClick={handleSyncClicked}
+          onClick={() => sync.mutateAsync({ withSource: false })}
           loading={sync.isLoading}
           disabled={source.suspended}
           hideDropdown={true}
