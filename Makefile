@@ -57,7 +57,7 @@ unit-tests: ## Run unit tests
 	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
 	# This tool doesn't have releases - it also is only a shim
 	@go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.19.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
+	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.24.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh

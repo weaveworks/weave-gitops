@@ -38,6 +38,13 @@ message ObjectRef {
     string         namespace = 3;
 }
 
+message ClusteredObjRef {
+    FluxObjectKind kind        = 1;
+    string         name        = 2;
+    string         namespace   = 3;
+    string         clusterName = 4;
+}
+
 message Condition {
     string type = 1;
     string status = 2;
@@ -170,11 +177,4 @@ message Event {
     string host      = 6;
     string name      = 7;
     string uid       = 8;
-}
-
-message SuspendReqObj {
-    FluxObjectKind kind        = 1;
-    string         name        = 2;
-    string         namespace   = 3;
-    string         clusterName = 4;
 }

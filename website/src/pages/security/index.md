@@ -52,5 +52,5 @@ Date | CVE | Security Advisory                                                  
 
 Date | CVE | Security Advisory                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-08-27 | [CVE-2022-38790](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-38790) | [Malicious links can be crafted by users and shown in the UI](cve/enterprise/CVE-2022-38790) | Critical  | < v0.9.0-rc.5|
+2022-08-27 | [CVE-2022-38790](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38790) | [Malicious links can be crafted by users and shown in the UI](cve/enterprise/CVE-2022-38790) | Critical  | < v0.9.0-rc.5|
 

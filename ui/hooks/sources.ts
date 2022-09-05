@@ -1,9 +1,7 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { Kind, Source } from "../lib/objects";
-import { addKind } from "../lib/utils";
 import { ListObjectsResponse } from "../lib/api/core/core.pb";
 import {
   ReactQueryOptions,
@@ -42,19 +40,20 @@ export function useListSources(
           })
       );
       return Promise.all(p).then((responses) => {
-        const empty = { result: [], errors: [] };
-        return responses.reduce((final, { kind, response }) => {
-          final.result = final.result.concat(
-            response.objects.map((o) => convertResponse(kind, o) as Source)
+        const final = { result: [], errors: [] };
+        for (const { kind, response } of responses) {
+          final.result.push(
+            ...response.objects.map((o) => convertResponse(kind, o) as Source)
           );
           if (response.errors.length) {
-            final.errors = final.errors.concat({
-              ...response.errors,
-              kind: FluxObjectKind[addKind(kind)],
-            });
+            final.errors.push(
+              ...response.errors.map((o) => {
+                return { ...o, kind };
+              })
+            );
           }
-          return final;
-        }, empty);
+        }
+        return final;
       });
     },
     opts

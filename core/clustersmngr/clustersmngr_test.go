@@ -51,7 +51,7 @@ func TestClientConfigWithUser(t *testing.T) {
 			// Set up
 			clusterName := fmt.Sprintf("clustersmngr-test-%d-%s", idx, rand.String(5))
 
-			clusterCfgFunc := clustersmngr.ClientConfigWithUser(tt.principal)
+			clusterCfgFunc := clustersmngr.ClientConfigWithUser(tt.principal, clustersmngr.DefaultKubeConfigOptions...)
 
 			cluster := makeLeafCluster(t, clusterName)
 
@@ -76,11 +76,9 @@ func TestClientConfigWithUser(t *testing.T) {
 					g.Expect(rest.ImpersonationConfig{}).To(Equal(res.Impersonate))
 				}
 
-				// BeEquivalentTo will type cast to float32 for us. Which stops us having
-				// to explicitly declare the type of ClientQPS (which just has to match
-				// whatever is required in the struct)
-				g.Expect(res.QPS).To(BeEquivalentTo(clustersmngr.ClientQPS))
-				g.Expect(res.Burst).To(Equal(clustersmngr.ClientBurst))
+				// Expect flowcontrol to be active, so no explicitly set rate limit
+				g.Expect(res.QPS).To(BeEquivalentTo(-1))
+				g.Expect(res.Burst).To(Equal(-1))
 			}
 		})
 	}
