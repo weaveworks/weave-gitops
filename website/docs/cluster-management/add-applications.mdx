@@ -1,0 +1,30 @@
+---
+title: Add Applications
+sidebar_position: 7
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Add Applications <TierLabel tiers="enterprise" />
+
+## How to: Add an Applications
+
+
+### Add an Applications to a target cluster
+
+1. From the applications page you can click the add applications button.
+2. A Form will show up to you to fill in the details of the application.
+2. You can add either a kustomization or a helmrelease.
+3. You can select the target cluster from the dropdown.
+
+
+
+### Add an Applications to management cluster while creating new cluster
+
+1. From the clusters page you can click the add cluster button.
+2. A Form will show up to you to fill in the details of the cluster.
+3. You now will find new section called applications where you can add applications.
+4. You can add kustomization.
+
+Note Only the bootstrap GitRepository can be referenced by kustomizations when creating a new cluster.
