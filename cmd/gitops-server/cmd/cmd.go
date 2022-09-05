@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -292,7 +291,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	}
 
 	if options.MTLS {
-		caCert, err := ioutil.ReadFile(options.TLSCertFile)
+		caCert, err := os.ReadFile(options.TLSCertFile)
 		if err != nil {
 			return fmt.Errorf("failed reading cert file %s. %s", options.TLSCertFile, err)
 		}

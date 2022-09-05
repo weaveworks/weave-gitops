@@ -33,7 +33,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18.X
+          go-version: 1.19.X
       - name: Upgrade flux
         run: |
           sed -i 's/^FLUX_VERSION=.*/FLUX_VERSION=${{ needs.has-new-flux.outputs.version }}/' Makefile

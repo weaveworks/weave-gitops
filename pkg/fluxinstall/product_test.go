@@ -6,7 +6,6 @@ import (
 	"compress/gzip"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 
@@ -95,7 +94,7 @@ func (m *MockProductHTTPClient) Get(url string) (resp *http.Response, err error)
 		}
 
 		return &http.Response{
-			Body: ioutil.NopCloser(bytes.NewReader(body)),
+			Body: io.NopCloser(bytes.NewReader(body)),
 		}, nil
 	} else if url == "https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_checksums.txt" {
 		body := []byte(`77622fd02dd5ad9377e17ecb59fa4f9598016bf0bf9761d09c9ed633840d7c7d  flux_0.32.0_linux_amd64.tar.gz
@@ -104,7 +103,7 @@ func (m *MockProductHTTPClient) Get(url string) (resp *http.Response, err error)
 `)
 
 		return &http.Response{
-			Body: ioutil.NopCloser(bytes.NewReader(body)),
+			Body: io.NopCloser(bytes.NewReader(body)),
 		}, nil
 	}
 

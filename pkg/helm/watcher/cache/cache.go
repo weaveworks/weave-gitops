@@ -33,6 +33,7 @@ type profileVersion = string
 type ValueMap map[profileName]map[profileVersion][]byte
 
 // Cache defines an interface to work with the profile data cacher.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Cache
 type Cache interface {

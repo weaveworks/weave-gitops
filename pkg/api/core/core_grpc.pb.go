@@ -18,55 +18,39 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
-	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
-	//
 	// GetKustomization gets data about a single Kustomization from a cluster.
 	GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error)
-	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
-	//
 	// GetHelmRelease gets data about a single HelmRelease from the cluster.
 	GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error)
-	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
-	//
 	// ListObjects gets data about a primary objects.
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
-	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
-	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
-	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
-	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
-	//
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
-	//
 	// ListEvents returns with a list of events
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
-	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
-	//
 	// GetVersion returns version information about the server
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
-	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
-	//
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 }
@@ -236,55 +220,39 @@ func (c *coreClient) ToggleSuspendResource(ctx context.Context, in *ToggleSuspen
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
 type CoreServer interface {
-	//
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
-	//
 	// GetKustomization gets data about a single Kustomization from a cluster.
 	GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error)
-	//
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
-	//
 	// GetHelmRelease gets data about a single HelmRelease from the cluster.
 	GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error)
-	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
-	//
 	// ListObjects gets data about a primary objects.
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
-	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
-	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
-	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
-	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
-	//
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
-	//
 	// ListEvents returns with a list of events
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
-	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
-	//
 	// GetVersion returns version information about the server
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
-	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
-	//
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	mustEmbedUnimplementedCoreServer()
