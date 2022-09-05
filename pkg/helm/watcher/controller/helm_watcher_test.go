@@ -334,7 +334,7 @@ type mockClient struct {
 	obj       *sourcev1.HelmRepository
 }
 
-func (m *mockClient) Get(ctx context.Context, key client.ObjectKey, object client.Object) error {
+func (m *mockClient) Get(ctx context.Context, key client.ObjectKey, object client.Object, opts ...client.GetOption) error {
 	if m.obj != nil {
 		if v, ok := object.(*sourcev1.HelmRepository); ok {
 			*v = *m.obj

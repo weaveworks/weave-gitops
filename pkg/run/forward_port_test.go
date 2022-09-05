@@ -75,7 +75,7 @@ func (c *mockClientForGetPodFromResourceDescription) List(_ context.Context, lis
 	return nil
 }
 
-func (c *mockClientForGetPodFromResourceDescription) Get(_ context.Context, key client.ObjectKey, obj client.Object) error {
+func (c *mockClientForGetPodFromResourceDescription) Get(_ context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	switch c.state {
 	case stateGetReturnErr:
 		return errors.New("fake error")
