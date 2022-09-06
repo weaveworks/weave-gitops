@@ -44,6 +44,57 @@ policySource:
   path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
   secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
 ```
+
+---
+## Admission Controller Setup
+
+To enable admission control:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      enabled: true
+```
+
+Enabling admission controller requires certificates for secure communication with the webhook client and the admission server. The best way to achieve this is by installing [cert manager](https://cert-manager.io/docs/installation/) and then configuring the profile as follows:
+
+```yaml
+policy-agent:
+  useCertManager: true
+```
+
+There is the option of providing previously generated certificates although it is not recommended and it is up to the user to manage it:
+
+```yaml
+policy-agent:
+  certificate: "---" # admission server certificate
+  key: "---" # admission server private key
+  caCertificate: "---" # CA bundle to validate the webhook server, used by the client
+```
+
+If the agent webhook could not be reached or the request failed to complete, the corresponding request would be refused. To change that behavior and accepts the reuqest in cases of failure, this needs to be set:
+
+```yaml
+policy-agent:
+  failurePolicy: Ignore
+```
+
+---
+## Audit
+Audit functionality provide a full scan on the cluster(s) and report back policy violations. This usually is used for policy violations reporting, and Compliance posture analysis against known benchmarks like PCI DSS, CIS, .etc.
+
+To enable audit functionality:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      enabled: true
+```
+
+Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
+
 ---
 ## Policy Sets
 
@@ -96,7 +147,7 @@ The agent profile supports multiple methods for different scenarios either Admis
 <Tabs groupId="violations-sinks" default>
 <TabItem value="text-file" label="Text File">
 
-The results would be dumped into a text file in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
+The results would be dumped into a text file in `logs` directory in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
 
 To enable writing to a text file in audit scenario:
 
@@ -106,7 +157,7 @@ policy-agent:
     audit:
       sinks:
         fileSystemSink:
-          filePath: "/path/to/file"
+          fileName: "/path/to/file"
 ```
 
 To enable writing to a text file in admission scenario:
@@ -117,7 +168,7 @@ policy-agent:
     admission:
       sinks:
         fileSystemSink:
-          filePath: "/path/to/file"
+          fileName: "/path/to/file"
 ```
 
 It is possible to make the file persistent, this assumes that there is a [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) already configured on the cluster.
@@ -127,7 +178,6 @@ policy-agent:
   persistence:
     enabled: false # specifies whether to use persistence or not
     claimStorage: 1Gi # claim size
-    sinkDir: /path/to # directory to be mounted 
     storageClassName: standard # k8s StorageClass name
 ```
 </TabItem>
@@ -215,57 +265,6 @@ policy-agent:
 ```
 </TabItem>
 </Tabs>
-
-
----
-## Admission Controller Setup
-
-To enable admission control:
-
-```yaml
-policy-agent:
-  config:
-    admission:
-      enabled: true
-```
-
-Enabling admission controller requires certificates for secure communication with the webhook client and the admission server. The best way to achieve this is by installing [cert manager](https://cert-manager.io/docs/installation/) and then configuring the profile as follows:
-
-```yaml
-policy-agent:
-  useCertManager: true
-```
-
-There is the option of providing previously generated certificates although it is not recommended and it is up to the user to manage it:
-
-```yaml
-policy-agent:
-  certificate: "---" # admission server certificate
-  key: "---" # admission server private key
-  caCertificate: "---" # CA bundle to validate the webhook server, used by the client
-```
-
-If the agent webhook could not be reached or the request failed to complete, the corresponding request would be refused. To change that behavior and accepts the reuqest in cases of failure, this needs to be set:
-
-```yaml
-policy-agent:
-  failurePolicy: Ignore
-```
-
----
-## Audit
-Audit functionality provide a full scan on the cluster(s) and report back policy violations. This usually is used for policy violations reporting, and Compliance posture analysis against known benchmarks like PCI DSS, CIS, .etc.
-
-To enable audit functionality:
-
-```yaml
-policy-agent:
-  config:
-    audit:
-      enabled: true
-```
-
-Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
 
 ---
 ## Policy Validation
