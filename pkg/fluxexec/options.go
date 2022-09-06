@@ -257,6 +257,16 @@ func CommitMessageAppendix(commitMessageAppendix string) *CommitMessageAppendixO
 	return &CommitMessageAppendixOption{commitMessageAppendix}
 }
 
+type GroupOption struct {
+	group []string
+}
+
+// Group represents the --group flag.
+// Bitbucket Server groups to be given write access (also accepts comma-separated values)
+func Group(group ...string) *GroupOption {
+	return &GroupOption{group}
+}
+
 type GpgKeyIdOption struct {
 	gpgKeyId string
 }
@@ -354,4 +364,13 @@ type TokenAuthOption struct {
 // TokenAuth represents the --token-auth flag.
 func TokenAuth(tokenAuth bool) *TokenAuthOption {
 	return &TokenAuthOption{tokenAuth}
+}
+
+type UsernameOption struct {
+	username string
+}
+
+// Username represents the --username flag.
+func Username(username string) *UsernameOption {
+	return &UsernameOption{username}
 }
