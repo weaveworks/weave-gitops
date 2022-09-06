@@ -17,6 +17,7 @@ export enum Kind {
   Kustomization = "Kustomization",
   HelmRelease = "HelmRelease",
   OCIRepository = "OCIRepository",
+  Provider = "Provider",
 }
 
 export type Source =
@@ -187,5 +188,14 @@ export class OCIRepository extends FluxObject {
       return "";
     }
     return metadata["org.opencontainers.image.revision"] || "";
+  }
+}
+
+export class Provider extends FluxObject {
+  get provider(): string {
+    return this.obj.spec.type || "";
+  }
+  get channel(): string {
+    return this.obj.spec.channel || "";
   }
 }

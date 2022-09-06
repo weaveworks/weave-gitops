@@ -67,7 +67,7 @@ const FilterSection = ({
         <ListItem>
           <ListItemIcon>
             <Checkbox
-              disabled={!options[0]}
+              disabled={!options.length}
               checked={all}
               onChange={handleChange}
               id={header}
@@ -78,20 +78,19 @@ const FilterSection = ({
           </Text>
         </ListItem>
         {options.sort().map((option: string, index: number) => {
-          if (option)
-            return (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <FormCheckbox
-                    label=""
-                    name={`${header}${filterSeparator}${option}`}
-                  />
-                </ListItemIcon>
-                <Text color="neutral40" size="small">
-                  {_.toString(option)}
-                </Text>
-              </ListItem>
-            );
+          return (
+            <ListItem key={index}>
+              <ListItemIcon>
+                <FormCheckbox
+                  label=""
+                  name={`${header}${filterSeparator}${option}`}
+                />
+              </ListItemIcon>
+              <Text color="neutral40" size="small">
+                {_.toString(option)}
+              </Text>
+            </ListItem>
+          );
         })}
       </List>
     </ListItem>
