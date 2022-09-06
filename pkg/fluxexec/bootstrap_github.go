@@ -7,6 +7,7 @@ import (
 )
 
 type bootstrapGitHubConfig struct {
+	globalOptions    []GlobalOption
 	bootstrapOptions []BootstrapOption
 
 	hostname     string
@@ -22,12 +23,9 @@ type bootstrapGitHubConfig struct {
 }
 
 var defaultBootstrapGitHubOptions = bootstrapGitHubConfig{
-	hostname:     "github.com",
-	interval:     "1m0s",
-	personal:     false,
-	private:      true,
-	readWriteKey: true,
-	reconcile:    true,
+	hostname: "github.com",
+	interval: "1m0s",
+	private:  true,
 }
 
 // BootstrapGitHubOption represents options used in the BootstrapGitHub method.
@@ -96,10 +94,15 @@ func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHu
 
 	args := []string{"bootstrap", "github"}
 
-	// Add the bootstrap args first.
+	// Add the global args first.
+	globalArgs := flux.globalArgs(c.globalOptions...)
+	args = append(args, globalArgs...)
+
+	// The add the bootstrap args.
 	bootstrapArgs := flux.bootstrapArgs(c.bootstrapOptions...)
 	args = append(args, bootstrapArgs...)
 
+	// Then follow with the bootstrap github args.
 	if c.hostname != "" {
 		args = append(args, "--hostname", c.hostname)
 	}
@@ -140,6 +143,5 @@ func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHu
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
-	// TODO how to deal with the env
 	return flux.buildFluxCmd(ctx, nil, args...), nil
 }
