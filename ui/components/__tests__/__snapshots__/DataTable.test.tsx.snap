@@ -274,6 +274,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c5 {
+  height: 40px;
   padding: 4px 0px;
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
