@@ -191,6 +191,8 @@ describe("DataTableFilters", () => {
 
     expect(screen.queryAllByText("slick")).toBeTruthy();
     expect(screen.queryAllByText("cool")).toBeTruthy();
+    expect(screen.queryAllByText("neat")).toBeTruthy();
+    expect(screen.queryAllByText("rad")).toBeTruthy();
   });
   it("should filter on click", () => {
     const initialFilterState = {
