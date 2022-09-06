@@ -121,9 +121,9 @@ To make use of this policy set in the profile:
 ```yaml
 policy-agent:
   config: 
-    admissionMode:
+    admission:
       policySet: admission-policy-set # name of policy set to be used for admission
-    auditMode: 
+    audit: 
       policySet: audit-policy-set # name of policy set to be used for audit
 ```
 
@@ -137,7 +137,7 @@ By default the agent only writes policy validation that are violating a certain 
 ```yaml
 policy-agent:
   config:
-    auditMode:
+    audit:
       writeCompliance: true
 ```
 
@@ -154,8 +154,8 @@ To enable writing to a text file in audit scenario:
 ```yaml
 policy-agent:
   config:
-    auditMode:
-      validationSinks:
+    audit:
+      sinks:
         fileSystemSink:
           fileName: "file.json"
 ```
@@ -165,8 +165,8 @@ To enable writing to a text file in admission scenario:
 ```yaml
 policy-agent:
   config:
-    admissionMode:
-      validationSinks:
+    admission:
+      sinks:
         fileSystemSink:
           fileName: "file.json"
 ```
@@ -189,8 +189,8 @@ To enable writing Kubernetes events in audit scenario:
 ```yaml
 policy-agent:
   config:
-    auditMode:
-      validationSinks:
+    audit:
+      sinks:
         k8sEventsSink:
           enabled: true
 ```
@@ -200,8 +200,8 @@ To enable writing Kubernetes events in admission scenario:
 ```yaml
 policy-agent:
   config:
-    admissionMode:
-      validationSinks:
+    admission:
+      sinks:
         k8sEventsSink:
           enabled: true
 ```
@@ -214,8 +214,8 @@ To enable writing to flux notification controller in audit scenario:
 ```yaml
 policy-agent:
   config:
-    auditMode:
-      validationSinks:
+    audit:
+      sinks:
         fluxNotificationSink:
           address: ""
 ```
@@ -225,8 +225,8 @@ To enable writing to flux notification controller in admission scenario:
 ```yaml
 policy-agent:
   config:
-    admissionMode:
-      validationSinks:
+    admission:
+      sinks:
         fluxNotificationSink:
           address: ""
 ```
@@ -239,8 +239,8 @@ To enable writing to elasticsearh in audit scenario:
 ```yaml
 policy-agent:
   config:
-    auditMode:
-      validationSinks:
+    audit:
+      sinks:
         elasticSink:
           address: ""
           username: ""
@@ -254,8 +254,8 @@ To enable writing to flux notification controller in admission scenario:
 ```yaml
 policy-agent:
   config:
-    admissionMode:
-      validationSinks:
+    admission:
+      sinks:
         elasticSink:
           address: ""
           username: ""
