@@ -13,52 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type ClusterHelmIndexerTracker struct {
-	clustersWatcher *clustersmngr.ClustersWatcher
-	clusters        []clustersmngr.Cluster
-}
-
-func newClusterHelmIndexerTracker(cf clustersmngr.ClustersManager) *ClusterHelmIndexerTracker {
-	return &ClusterHelmIndexerTracker{
-		clustersWatcher: cf.Subscribe(),
-	}
-}
-
-// Start the indexer and wait for cluster updates notifications.
-func (i *ClusterHelmIndexerTracker) Start(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case updates := <-i.clustersWatcher.Updates:
-				for _, added := range updates.Added {
-					if i.contains(added) == false {
-						i.clusters = append(i.clusters, added)
-					}
-				}
-
-				for index, removed := range updates.Removed {
-					if i.contains(removed) {
-						i.clusters = append(i.clusters[:index], i.clusters[index+1:]...)
-					}
-				}
-			}
-		}
-	}()
-}
-
-// contains returns true if the given cluster is in the list of cluster names.
-func (i *ClusterHelmIndexerTracker) contains(cluster clustersmngr.Cluster) bool {
-	for _, n := range i.clusters {
-		if cluster.Name == n.Name && cluster.Server == n.Server {
-			return true
-		}
-	}
-
-	return false
-}
-
 func TestClusterHelmIndexerTracker(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
@@ -85,8 +39,8 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	watcher := clientsFactory.Subscribe()
 	g.Expect(watcher).ToNot(BeNil())
 
-	indexer := newClusterHelmIndexerTracker(clientsFactory)
-	g.Expect(indexer.clustersWatcher).ToNot(BeNil())
+	indexer := clustersmngr.NewClusterHelmIndexerTracker(clientsFactory)
+	g.Expect(indexer.ClustersWatcher).ToNot(BeNil())
 
 	indexer.Start(ctx)
 
@@ -107,6 +61,6 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		log.Printf("indexer.Added: %+v", indexer)
 
 		<-watcher.Updates
-		g.Expect(clusterNames(indexer.clusters)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
+		g.Expect(clusterNames(indexer.Clusters)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
 	})
 }
