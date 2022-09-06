@@ -22,7 +22,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		return nil, err
 	}
 
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
@@ -52,7 +52,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 
 	var results []*pb.Object
 
-	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
 	for n, lists := range clist.Lists() {
 		for _, l := range lists {
@@ -81,7 +81,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 }
 
 func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -103,7 +103,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, err
 	}
 
-	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
 	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 

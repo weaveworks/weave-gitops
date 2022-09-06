@@ -32,34 +32,34 @@ const temporarilyEmptyAppName = ""
 type coreServer struct {
 	pb.UnimplementedCoreServer
 
-	logger         logr.Logger
-	nsChecker      nsaccess.Checker
-	clientsFactory clustersmngr.ClientsFactory
-	primaryKinds   *PrimaryKinds
+	logger          logr.Logger
+	nsChecker       nsaccess.Checker
+	clustersManager clustersmngr.ClustersManager
+	primaryKinds    *PrimaryKinds
 }
 
 type CoreServerConfig struct {
-	log            logr.Logger
-	RestCfg        *rest.Config
-	clusterName    string
-	NSAccess       nsaccess.Checker
-	ClientsFactory clustersmngr.ClientsFactory
-	PrimaryKinds   *PrimaryKinds
+	log             logr.Logger
+	RestCfg         *rest.Config
+	clusterName     string
+	NSAccess        nsaccess.Checker
+	ClustersManager clustersmngr.ClustersManager
+	PrimaryKinds    *PrimaryKinds
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clusterClientFactory clustersmngr.ClientsFactory) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager) CoreServerConfig {
 	return CoreServerConfig{
-		log:            log.WithName("core-server"),
-		RestCfg:        cfg,
-		clusterName:    clusterName,
-		NSAccess:       nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
-		ClientsFactory: clusterClientFactory,
-		PrimaryKinds:   DefaultPrimaryKinds(),
+		log:             log.WithName("core-server"),
+		RestCfg:         cfg,
+		clusterName:     clusterName,
+		NSAccess:        nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		ClustersManager: clustersManager,
+		PrimaryKinds:    DefaultPrimaryKinds(),
 	}
 }
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
-	err := telemetry.InitTelemetry(cfg.ClientsFactory)
+	err := telemetry.InitTelemetry(cfg.ClustersManager)
 	if err != nil {
 		// If there's an error turning on telemetry, that's not a
 		// thing that should interrupt anything else
@@ -67,9 +67,9 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	}
 
 	return &coreServer{
-		logger:         cfg.log,
-		nsChecker:      cfg.NSAccess,
-		clientsFactory: cfg.ClientsFactory,
-		primaryKinds:   cfg.PrimaryKinds,
+		logger:          cfg.log,
+		nsChecker:       cfg.NSAccess,
+		clustersManager: cfg.ClustersManager,
+		primaryKinds:    cfg.PrimaryKinds,
 	}, nil
 }

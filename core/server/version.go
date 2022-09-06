@@ -27,7 +27,7 @@ const (
 )
 
 func (cs *coreServer) getScopedClient(ctx context.Context) (client.Client, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
@@ -81,7 +81,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 }
 
 func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
-	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	dc, err := cs.clustersManager.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
 	if err != nil {
 		return "", fmt.Errorf("error creating discovery client: %w", err)
 	}

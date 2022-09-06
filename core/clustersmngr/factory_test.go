@@ -32,14 +32,14 @@ func TestGetImpersonatedClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
-	err = clientsFactory.UpdateClusters(ctx)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
-	err = clientsFactory.UpdateNamespaces(ctx)
+	err = clustersManager.UpdateNamespaces(ctx)
 	g.Expect(err).To(BeNil())
 
-	_, err = clientsFactory.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: "user-id"})
+	_, err = clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: "user-id"})
 	g.Expect(err).To(BeNil())
 
 	t.Run("checks all namespaces in the cluster when through the filtering", func(t *testing.T) {
@@ -72,14 +72,14 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
-	err = clientsFactory.UpdateClusters(ctx)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
-	err = clientsFactory.UpdateNamespaces(ctx)
+	err = clustersManager.UpdateNamespaces(ctx)
 	g.Expect(err).To(BeNil())
 
-	dc, err := clientsFactory.GetImpersonatedDiscoveryClient(ctx, &auth.UserPrincipal{ID: "user-id"}, clustersmngr.DefaultCluster)
+	dc, err := clustersManager.GetImpersonatedDiscoveryClient(ctx, &auth.UserPrincipal{ID: "user-id"}, clustersmngr.DefaultCluster)
 	g.Expect(err).To(BeNil())
 
 	_, err = dc.ServerVersion()
@@ -96,7 +96,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -107,10 +107,10 @@ func TestUpdateNamespaces(t *testing.T) {
 	t.Run("UpdateNamespaces will return a map based on the clusters returned by Fetch", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(Succeed())
 
-		contents := clientsFactory.GetClustersNamespaces()
+		contents := clustersManager.GetClustersNamespaces()
 
 		g.Expect(contents).To(HaveLen(2))
 		g.Expect(contents).To(HaveKey(clusterName1))
@@ -120,10 +120,10 @@ func TestUpdateNamespaces(t *testing.T) {
 	t.Run("When a cluster is no longer in the clusters cache, the clustersNamespaces cache updates to reflect this", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
 
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(Succeed())
 
-		contents := clientsFactory.GetClustersNamespaces()
+		contents := clustersManager.GetClustersNamespaces()
 
 		g.Expect(contents).To(HaveLen(1))
 		g.Expect(contents).To(HaveKey(clusterName1))
@@ -135,10 +135,10 @@ func TestUpdateNamespaces(t *testing.T) {
 		c3 := makeUnreachableLeafCluster(t, clusterName3)
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2, c3}, nil)
 
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed adding cluster client to pool.*cluster: %s.*", clusterName3)))
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed adding cluster client to pool.*cluster: %s.*", clusterName3)))
 
-		contents := clientsFactory.GetClustersNamespaces()
+		contents := clustersManager.GetClustersNamespaces()
 
 		g.Expect(contents).To(HaveLen(2))
 		g.Expect(contents).To(HaveKey(clusterName1))
@@ -156,7 +156,7 @@ func TestUpdateUsers(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -169,10 +169,10 @@ func TestUpdateUsers(t *testing.T) {
 	t.Run("UpdateUsers will return a map based on the clusters returned by Fetch", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		clientsFactory.UpdateUserNamespaces(ctx, u1)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		clustersManager.UpdateUserNamespaces(ctx, u1)
 
-		contents := clientsFactory.GetUserNamespaces(u1)
+		contents := clustersManager.GetUserNamespaces(u1)
 
 		g.Expect(contents).To(HaveLen(2))
 		g.Expect(contents).To(HaveKey(clusterName1))
@@ -182,9 +182,9 @@ func TestUpdateUsers(t *testing.T) {
 	t.Run("GetUsersNamespaces will only return cached items matched to the current clusters list", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
 
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
 
-		contents := clientsFactory.GetUserNamespaces(u1)
+		contents := clustersManager.GetUserNamespaces(u1)
 
 		g.Expect(contents).To(HaveLen(1))
 		g.Expect(contents).To(HaveKey(clusterName1))
@@ -202,7 +202,7 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 
@@ -212,16 +212,133 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 
 	t.Run("UpdateUserNamespaces remains unchanged if a connection failure occurs", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clientsFactory.UpdateNamespaces(ctx)).To(Succeed())
-		g.Expect(clientsFactory.GetClustersNamespaces()).To(HaveLen(1))
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClustersNamespaces()).To(HaveLen(1))
 
 		c1 = makeUnreachableLeafCluster(t, clusterName1)
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		clientsFactory.UpdateUserNamespaces(ctx, u1)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		clustersManager.UpdateUserNamespaces(ctx, u1)
 
 		// Get clusters namespace hasn't been changed.
-		g.Expect(clientsFactory.GetClustersNamespaces()).To(HaveLen(1))
+		g.Expect(clustersManager.GetClustersNamespaces()).To(HaveLen(1))
+	})
+}
+
+func TestUpdateClusters(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+	ctx := context.Background()
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	err = clustersManager.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	clusterName1 := "bar"
+	clusterName2 := "foo"
+
+	c1 := makeLeafCluster(t, clusterName1)
+	c2 := makeLeafCluster(t, clusterName2)
+
+	watcher := clustersManager.Subscribe()
+	g.Expect(watcher).ToNot(BeNil())
+
+	clusterNames := func(c []clustersmngr.Cluster) []string {
+		names := []string{}
+		for _, v := range c {
+			names = append(names, v.Name)
+		}
+
+		return names
+	}
+
+	t.Run("watcher should be notified with two clusters added", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		updates := <-watcher.Updates
+
+		g.Expect(clusterNames(updates.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
+		g.Expect(clusterNames(updates.Removed)).To(BeEmpty())
+	})
+
+	t.Run("watcher should be notified with one cluster removed", func(t *testing.T) {
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		updates := <-watcher.Updates
+
+		g.Expect(clusterNames(updates.Added)).To(BeEmpty())
+		g.Expect(clusterNames(updates.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+	})
+
+	t.Run("watcher shouldn't be notified when there are no updates", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		// Call 1 with no updates
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		// Call 2 with updates
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		updates := <-watcher.Updates
+
+		// Assert watcher received a notification from the second UpdateClusters call
+		g.Expect(clusterNames(updates.Added)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+		g.Expect(clusterNames(updates.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c1})))
+	})
+
+	t.Run("Updates channel should be closed when calling Unsubscribe", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		watcher.Unsubscribe()
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		updates, ok := <-watcher.Updates
+
+		g.Expect(ok).To(BeFalse())
+		g.Expect(updates.Added).To(BeNil())
+	})
+
+	t.Run("Unsubscribe should close the correct channel", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		watcher1 := clustersManager.Subscribe()
+		g.Expect(watcher1).ToNot(BeNil())
+		watcher2 := clustersManager.Subscribe()
+		g.Expect(watcher2).ToNot(BeNil())
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		watcher2.Unsubscribe()
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+
+		updates1, ok1 := <-watcher1.Updates
+		g.Expect(ok1).To(BeTrue())
+		g.Expect(clusterNames(updates1.Added)).To(BeEmpty())
+		g.Expect(clusterNames(updates1.Removed)).To(Equal(clusterNames([]clustersmngr.Cluster{c2})))
+
+		updates2, ok2 := <-watcher2.Updates
+		g.Expect(ok2).To(BeFalse())
+		g.Expect(updates2.Added).To(BeNil())
 	})
 }

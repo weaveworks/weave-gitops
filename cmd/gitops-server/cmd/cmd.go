@@ -175,10 +175,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
-	clusterClientsFactory.Start(ctx)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager.Start(ctx)
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
+	coreConfig := core.NewCoreConfig(log, rest, clusterName, clustersManager)
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
