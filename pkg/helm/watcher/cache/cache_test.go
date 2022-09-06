@@ -143,6 +143,7 @@ func TestDeleteExistingData(t *testing.T) {
 	}
 	assert.NoError(t, profileCache.Put(context.Background(), testClusterName, testName, data), "put call from cache should have worked")
 	assert.NoError(t, profileCache.Delete(context.Background(), testClusterName, testName), "delete operation should have worked")
+
 	_, err := os.Stat(filepath.Join(dir, helmNamespace, helmName))
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
@@ -191,6 +192,7 @@ func TestListAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
 	}
 	assert.NoError(t, profileCache.Put(context.Background(), testClusterName, testName, data), "put call from cache should have worked")
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, clusterNamespace, clusterName, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
+
 	_, err := profileCache.ListAvailableVersionsForProfile(context.Background(), testClusterName, testName, profile1.Name)
 	assert.EqualError(t, err, "failed to read profiles data for helm repo: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
 }

@@ -190,6 +190,7 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 		Name:      chart.GetHelmRepository().GetName(),
 		Namespace: chart.GetHelmRepository().GetNamespace(),
 	}
+
 	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, types.NamespacedName{}, repoNamespacedName, chart.Name)
 	if err != nil {
 		return "", err

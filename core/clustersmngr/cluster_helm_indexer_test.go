@@ -18,7 +18,7 @@ type ClusterHelmIndexerTracker struct {
 	clusters        []clustersmngr.Cluster
 }
 
-func newClusterHelmIndexerTracker(cf clustersmngr.ClientsFactory) *ClusterHelmIndexerTracker {
+func newClusterHelmIndexerTracker(cf clustersmngr.ClustersManager) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
 		clustersWatcher: cf.Subscribe(),
 	}
@@ -71,8 +71,8 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsFactory := clustersmngr.NewClientFactory(
-		clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool)
+	clientsFactory := clustersmngr.NewClustersManager(
+		clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
