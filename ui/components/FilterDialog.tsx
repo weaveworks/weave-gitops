@@ -87,7 +87,7 @@ const FilterSection = ({
                 />
               </ListItemIcon>
               <Text color="neutral40" size="small">
-                {_.toString(option) || "-"}
+                {_.toString(option)}
               </Text>
             </ListItem>
           );
