@@ -189,8 +189,17 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client)
 		}
 		// upload the file
 		_, err = client.FPutObject(context.Background(), bucket, objectName, path, minio.PutObjectOptions{})
+
 		if err != nil {
-			return err
+			errResp, ok := err.(minio.ErrorResponse)
+			if ok && errResp.Code == "MissingContentLength" {
+				// This happens when the file was empty - this is OK
+				return nil
+			}
+			// Report the error, but continue anyway - this could be e.g.
+			// a file with odd permissions, which isn't necessarily a problem
+			log.Failuref("Couldn't upload %v: %v", path, err)
+			return nil
 		}
 		uploadCount = uploadCount + 1
 		if uploadCount%10 == 0 {
