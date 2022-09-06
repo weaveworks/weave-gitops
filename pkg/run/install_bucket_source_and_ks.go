@@ -14,6 +14,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/minio/minio-go/v7"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -150,7 +151,7 @@ func GetRelativePathToRootDir(rootDir string, path string) (string, error) {
 }
 
 // SyncDir recursively uploads all files in a directory to an S3 bucket with minio library
-func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client) error {
+func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
 	log.Actionf("Refreshing bucket %s ...", bucket)
 
 	if err := client.RemoveBucketWithOptions(context.Background(), bucket, minio.RemoveBucketOptions{
@@ -186,6 +187,9 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client)
 		if err != nil {
 			log.Failuref("Error getting relative path: %v", err)
 			return err
+		}
+		if ignorer.MatchesPath(path) {
+			return nil
 		}
 		// upload the file
 		_, err = client.FPutObject(context.Background(), bucket, objectName, path, minio.PutObjectOptions{})
@@ -343,7 +347,7 @@ func findConditionMessages(kubeClient client.Client, ks *kustomizev1.Kustomizati
 	return messages, nil
 }
 
-func WatchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os.FileInfo, err error) error {
+func WatchDirsForFileWalker(watcher *fsnotify.Watcher, ignorer *ignore.GitIgnore) func(path string, info os.FileInfo, err error) error {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("error walking path: %v", err)
@@ -352,6 +356,10 @@ func WatchDirsForFileWalker(watcher *fsnotify.Watcher) func(path string, info os
 		if info.IsDir() {
 			// if it's a hidden directory, ignore it
 			if strings.HasPrefix(info.Name(), ".") {
+				return filepath.SkipDir
+			}
+
+			if ignorer.MatchesPath(path) {
 				return filepath.SkipDir
 			}
 
@@ -468,4 +476,25 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	}
 
 	return devKsErr
+}
+
+func CreateIgnorer(gitRootDir string) *ignore.GitIgnore {
+	ignoreFile := filepath.Join(gitRootDir, ".gitignore")
+
+	var ignorer *ignore.GitIgnore = nil
+	if _, err := os.Stat(ignoreFile); err == nil {
+		ignorer, err = ignore.CompileIgnoreFile(ignoreFile)
+		if err != nil {
+			// If we couldn't parse gitignore, just ignore nothing
+			ignorer = nil
+		}
+	}
+
+	if ignorer == nil {
+		// Whether there was no gitignore file or the one that was there was broken,
+		// fall back to just no ignore lines - this is just a pass-through
+		ignorer = ignore.CompileIgnoreLines()
+	}
+
+	return ignorer
 }
