@@ -33,7 +33,7 @@ const SlideContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
 `;
 
-export const filterSeparator = " --- ";
+export const filterSeparator = ": ";
 
 type FilterSectionProps = {
   header: string;

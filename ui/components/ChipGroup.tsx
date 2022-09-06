@@ -22,8 +22,8 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
           <Flex key={index}>
             <Chip
               label={
-                chip.slice(-1) === `${filterSeparator.slice(-1)}`
-                  ? chip + " N/A"
+                chip.slice(-filterSeparator.length) === `${filterSeparator}`
+                  ? chip + "-"
                   : chip
               }
               onDelete={() => onChipRemove([chip])}
@@ -40,6 +40,7 @@ export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
   .MuiChip-root {
     margin-right: ${(props) => props.theme.spacing.xxs};
   }
+  height: 40px;
   padding: 4px 0px;
   flex-wrap: nowrap;
   overflow-x: auto;
