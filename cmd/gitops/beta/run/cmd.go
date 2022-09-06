@@ -332,6 +332,10 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		}
 
+		if err := run.InitializeTargetDir(targetPath); err != nil {
+			return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
+		}
+
 		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs, flags.Timeout); err != nil {
 			return err
 		}
