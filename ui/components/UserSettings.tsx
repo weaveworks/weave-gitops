@@ -58,7 +58,7 @@ function UserSettings({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      <Tooltip title="Account settings" enterDelay={500}>
+      <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
           aria-controls={open ? "account-menu" : undefined}
