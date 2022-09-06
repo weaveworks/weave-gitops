@@ -80,7 +80,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 
 	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&secret), &secret); err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &secret); err != nil {
-			log.Failuref("Error creating secret %s: %v", secret.Name, err.Error())
+			return fmt.Errorf("couldn't create secret %s: %v", secret.Name, err.Error())
 		} else {
 			log.Successf("Created secret %s", secret.Name)
 		}
@@ -93,7 +93,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 
 	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&source), &source); err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &source); err != nil {
-			log.Failuref("Error creating source %s: %v", source.Name, err.Error())
+			return fmt.Errorf("couldn't create source %s: %v", source.Name, err.Error())
 		} else {
 			log.Successf("Created source %s", source.Name)
 		}
@@ -106,7 +106,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 
 	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&ks), &ks); err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(context.Background(), &ks); err != nil {
-			log.Failuref("Error creating ks %s: %v", ks.Name, err.Error())
+			return fmt.Errorf("couldn't create kustomization %s: %v", ks.Name, err.Error())
 		} else {
 			log.Successf("Created ks %s", ks.Name)
 		}
