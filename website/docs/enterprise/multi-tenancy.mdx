@@ -71,7 +71,7 @@ The file above defines two tenants: `first-tenant` and `second-tenant` as follow
   - `url`: the URL for that source.
 - `allowedClusters`: limits which secrets containing cluster configuraton can be used. It stops WGE `GitopsCluster` and flux `Kustomization` from being deployed if they point to a secret not in the list, essentially giving control on which cluster can be added to a multi-cluster setup. Requires `policy-agent`.
   - `kubeConfig`: name of the secret that can be used for this tenant.
-- `teamRBAC`: Generate Roles and Rolebinding for a list of `groupNames`. This allows you to easily give an OIDC group access to a tenants resources. When the Weave Gitops Enterprise UI is configured with your OIDC provider, tenants can log in and view the status of the resources they have been granted access to.
+- `teamRBAC`: Generate Roles and Rolebindings for a list of `groupNames`. This allows you to easily give an OIDC group access to a tenant's resources. When the Weave Gitops Enterprise UI is configured with your OIDC provider, tenants can log in and view the status of the resources they have been granted access to.
 
 Global options:
 
