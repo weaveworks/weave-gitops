@@ -19,7 +19,7 @@ function KustomizationPage({ className, name, namespace, clusterName }: Props) {
   );
   const kustomization = data?.kustomization;
   return (
-    <Page loading={isLoading} error={error} className={className} title={name}>
+    <Page loading={isLoading} error={error} className={className}>
       <KustomizationDetail kustomization={kustomization} />
     </Page>
   );

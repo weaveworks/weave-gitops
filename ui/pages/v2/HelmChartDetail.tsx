@@ -20,7 +20,7 @@ function HelmChartDetail({ className, name, namespace, clusterName }: Props) {
   } = useGetObject<HelmChart>(name, namespace, Kind.HelmChart, clusterName);
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <HelmChartDetailComponent helmChart={helmChart} />
     </Page>
   );
