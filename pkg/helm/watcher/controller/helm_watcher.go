@@ -38,7 +38,6 @@ type HelmWatcherReconciler struct {
 	Cache                 cache.Cache
 	RepoManager           helm.HelmRepoManager
 	ExternalEventRecorder eventRecorder
-	Scheme                *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories,verbs=get;list;watch;create;update;patch;delete

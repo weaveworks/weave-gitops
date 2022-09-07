@@ -107,7 +107,6 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 		Client:                mgr.GetClient(),
 		Cache:                 w.cache,
 		RepoManager:           w.repoManager,
-		Scheme:                scheme,
 		ExternalEventRecorder: eventRecorder,
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")

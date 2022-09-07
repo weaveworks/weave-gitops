@@ -61,7 +61,7 @@ type ClusterFetcher interface {
 type ClientsPool interface {
 	Add(cfg ClusterClientConfigFunc, cluster Cluster) error
 	Clients() map[string]client.Client
-	Client(cluster string) (client.Client, error)
+	Client(clusterName string) (client.Client, error)
 }
 
 type clientsPool struct {
@@ -108,10 +108,10 @@ func (cp *clientsPool) Clients() map[string]client.Client {
 }
 
 // Client returns the client for the given cluster
-func (cp *clientsPool) Client(name string) (client.Client, error) {
-	if c, found := cp.clients[name]; found && c != nil {
+func (cp *clientsPool) Client(clusterName string) (client.Client, error) {
+	if c, found := cp.clients[clusterName]; found && c != nil {
 		return c, nil
 	}
 
-	return nil, ClusterNotFoundError{Cluster: name}
+	return nil, ClusterNotFoundError{Cluster: clusterName}
 }

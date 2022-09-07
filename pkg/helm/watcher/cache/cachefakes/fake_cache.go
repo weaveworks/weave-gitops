@@ -24,6 +24,18 @@ type FakeCache struct {
 	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DeleteClusterStub        func(context.Context, types.NamespacedName) error
+	deleteClusterMutex       sync.RWMutex
+	deleteClusterArgsForCall []struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+	}
+	deleteClusterReturns struct {
+		result1 error
+	}
+	deleteClusterReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetProfileValuesStub        func(context.Context, types.NamespacedName, types.NamespacedName, string, string) ([]byte, error)
 	getProfileValuesMutex       sync.RWMutex
 	getProfileValuesArgsForCall []struct {
@@ -149,6 +161,68 @@ func (fake *FakeCache) DeleteReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeCache) DeleteCluster(arg1 context.Context, arg2 types.NamespacedName) error {
+	fake.deleteClusterMutex.Lock()
+	ret, specificReturn := fake.deleteClusterReturnsOnCall[len(fake.deleteClusterArgsForCall)]
+	fake.deleteClusterArgsForCall = append(fake.deleteClusterArgsForCall, struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+	}{arg1, arg2})
+	stub := fake.DeleteClusterStub
+	fakeReturns := fake.deleteClusterReturns
+	fake.recordInvocation("DeleteCluster", []interface{}{arg1, arg2})
+	fake.deleteClusterMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeCache) DeleteClusterCallCount() int {
+	fake.deleteClusterMutex.RLock()
+	defer fake.deleteClusterMutex.RUnlock()
+	return len(fake.deleteClusterArgsForCall)
+}
+
+func (fake *FakeCache) DeleteClusterCalls(stub func(context.Context, types.NamespacedName) error) {
+	fake.deleteClusterMutex.Lock()
+	defer fake.deleteClusterMutex.Unlock()
+	fake.DeleteClusterStub = stub
+}
+
+func (fake *FakeCache) DeleteClusterArgsForCall(i int) (context.Context, types.NamespacedName) {
+	fake.deleteClusterMutex.RLock()
+	defer fake.deleteClusterMutex.RUnlock()
+	argsForCall := fake.deleteClusterArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeCache) DeleteClusterReturns(result1 error) {
+	fake.deleteClusterMutex.Lock()
+	defer fake.deleteClusterMutex.Unlock()
+	fake.DeleteClusterStub = nil
+	fake.deleteClusterReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeCache) DeleteClusterReturnsOnCall(i int, result1 error) {
+	fake.deleteClusterMutex.Lock()
+	defer fake.deleteClusterMutex.Unlock()
+	fake.DeleteClusterStub = nil
+	if fake.deleteClusterReturnsOnCall == nil {
+		fake.deleteClusterReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteClusterReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -423,6 +497,8 @@ func (fake *FakeCache) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.deleteClusterMutex.RLock()
+	defer fake.deleteClusterMutex.RUnlock()
 	fake.getProfileValuesMutex.RLock()
 	defer fake.getProfileValuesMutex.RUnlock()
 	fake.listAvailableVersionsForProfileMutex.RLock()
