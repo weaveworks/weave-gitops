@@ -30,7 +30,7 @@ function GitRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <GitRepositoryDetailComponent gitRepository={gitRepository} />
     </Page>
   );

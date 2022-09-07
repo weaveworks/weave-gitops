@@ -11,6 +11,7 @@ require (
 	github.com/fluxcd/go-git-providers v0.8.0
 	github.com/fluxcd/helm-controller/api v0.23.1
 	github.com/fluxcd/kustomize-controller/api v0.27.1
+	github.com/fluxcd/notification-controller/api v0.25.2
 	github.com/fluxcd/pkg/apis/meta v0.15.0
 	github.com/fluxcd/pkg/runtime v0.17.0
 	github.com/fluxcd/pkg/ssa v0.18.0
