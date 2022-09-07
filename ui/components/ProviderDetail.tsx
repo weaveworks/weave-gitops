@@ -14,8 +14,6 @@ type Props = {
 
 function ProviderDetail({ className, provider }: Props) {
   const { path } = useRouteMatch();
-  console.log(path);
-  console.log(provider);
   return (
     <Flex column tall wide className={className}>
       <SubRouterTabs rootPath={`${path}/alerts`}>

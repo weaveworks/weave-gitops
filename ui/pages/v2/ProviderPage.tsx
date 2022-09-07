@@ -13,7 +13,6 @@ type Props = {
 };
 
 function ProviderPage({ className, name, namespace, clusterName }: Props) {
-  console.log(name, namespace, clusterName);
   const { data, isLoading, error } = useGetObject<Provider>(
     name,
     namespace,
