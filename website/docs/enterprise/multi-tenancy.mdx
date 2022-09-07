@@ -25,7 +25,7 @@ To make use of the policy features, [policy agent](../policy/intro.mdx) needs to
 
 Below is an example of a tenancy file:
 
-```yaml
+```yaml title="tenancy.yaml"
 tenants:
   - name: first-tenant
     namespaces:
@@ -46,6 +46,21 @@ tenants:
     allowedClusters:
     - kubeConfig: cluster-1-kubeconfig
     - kubeConfig: cluster-2-kubeconfig
+    teamRBAC:
+      groupNames:
+      - foo-group
+      - bar-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
+serviceAccount:
+  name: "reconcilerServiceAccount"
 ```
 
 The file above defines two tenants: `first-tenant` and `second-tenant` as follows:
@@ -56,6 +71,11 @@ The file above defines two tenants: `first-tenant` and `second-tenant` as follow
   - `url`: the URL for that source.
 - `allowedClusters`: limits which secrets containing cluster configuraton can be used. It stops WGE `GitopsCluster` and flux `Kustomization` from being deployed if they point to a secret not in the list, essentially giving control on which cluster can be added to a multi-cluster setup. Requires `policy-agent`.
   - `kubeConfig`: name of the secret that can be used for this tenant.
+- `teamRBAC`: Generate Roles and Rolebindings for a list of `groupNames`. This allows you to easily give an OIDC group access to a tenant's resources. When the Weave Gitops Enterprise UI is configured with your OIDC provider, tenants can log in and view the status of the resources they have been granted access to.
+
+Global options:
+
+- `serviceAccount`: Override the name of the generated `ServiceAccount` for all tenants. This allows you to easily use the flux controllers' [`--default-service-account`](https://github.com/fluxcd/flux2-multi-tenancy#enforce-tenant-isolation) feature. Tenants do not need to make sure they correctly specify the `serviceAccount` when using `Kustomization` or `HelmRelease` resources. The kustomization-controller and helm-controller will instead look for the `default-service-account` in the namespace being reconciled to and use that. Just configure `serviceAccount.name` and `--default-service-account` to the same value.
 
 ### Gitops create tenants command
 
