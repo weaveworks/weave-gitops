@@ -62,24 +62,24 @@ type GitRepositoryAdapter struct {
 	*sourcev1.GitRepository
 }
 
-func (o GitRepositoryAdapter) GetLastHandledReconcileRequest() string {
-	return o.Status.GetLastHandledReconcileRequest()
+func (obj GitRepositoryAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
 }
 
-func (o GitRepositoryAdapter) AsClientObject() client.Object {
-	return o.GitRepository
+func (obj GitRepositoryAdapter) AsClientObject() client.Object {
+	return obj.GitRepository
 }
 
-func (o GitRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj GitRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind)
 }
 
-func (o GitRepositoryAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj GitRepositoryAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o GitRepositoryAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type BucketAdapter struct {
@@ -94,16 +94,16 @@ func (obj BucketAdapter) AsClientObject() client.Object {
 	return obj.Bucket
 }
 
-func (o BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
 }
 
-func (o BucketAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj BucketAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o BucketAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj BucketAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type HelmChartAdapter struct {
@@ -118,16 +118,16 @@ func (obj HelmChartAdapter) AsClientObject() client.Object {
 	return obj.HelmChart
 }
 
-func (o HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
 }
 
-func (o HelmChartAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj HelmChartAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o HelmChartAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj HelmChartAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type HelmRepositoryAdapter struct {
@@ -142,16 +142,16 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 	return obj.HelmRepository
 }
 
-func (o HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 }
 
-func (o HelmRepositoryAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type OCIRepositoryAdapter struct {
@@ -166,16 +166,16 @@ func (obj OCIRepositoryAdapter) AsClientObject() client.Object {
 	return obj.OCIRepository
 }
 
-func (o OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
 }
 
-func (o OCIRepositoryAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o OCIRepositoryAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj OCIRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type HelmReleaseAdapter struct {
@@ -190,8 +190,8 @@ func (obj HelmReleaseAdapter) AsClientObject() client.Object {
 	return obj.HelmRelease
 }
 
-func (o HelmReleaseAdapter) SourceRef() SourceRef {
-	sr := o.Spec.Chart.Spec.SourceRef
+func (obj HelmReleaseAdapter) SourceRef() SourceRef {
+	sr := obj.Spec.Chart.Spec.SourceRef
 
 	return sRef{
 		apiVersion: sr.APIVersion,
@@ -201,49 +201,49 @@ func (o HelmReleaseAdapter) SourceRef() SourceRef {
 	}
 }
 
-func (o HelmReleaseAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj HelmReleaseAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind)
 }
 
-func (o HelmReleaseAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj HelmReleaseAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o HelmReleaseAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj HelmReleaseAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type KustomizationAdapter struct {
 	*kustomizev1.Kustomization
 }
 
-func (o KustomizationAdapter) GetLastHandledReconcileRequest() string {
-	return o.Status.GetLastHandledReconcileRequest()
+func (obj KustomizationAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
 }
 
-func (o KustomizationAdapter) AsClientObject() client.Object {
-	return o.Kustomization
+func (obj KustomizationAdapter) AsClientObject() client.Object {
+	return obj.Kustomization
 }
 
-func (o KustomizationAdapter) SourceRef() SourceRef {
+func (obj KustomizationAdapter) SourceRef() SourceRef {
 	return sRef{
-		apiVersion: o.Spec.SourceRef.APIVersion,
-		name:       o.Spec.SourceRef.Name,
-		namespace:  o.Spec.SourceRef.Namespace,
-		kind:       o.Spec.SourceRef.Kind,
+		apiVersion: obj.Spec.SourceRef.APIVersion,
+		name:       obj.Spec.SourceRef.Name,
+		namespace:  obj.Spec.SourceRef.Namespace,
+		kind:       obj.Spec.SourceRef.Kind,
 	}
 }
 
-func (o KustomizationAdapter) GroupVersionKind() schema.GroupVersionKind {
+func (obj KustomizationAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
 }
 
-func (o KustomizationAdapter) SetSuspended(suspend bool) {
-	o.Spec.Suspend = suspend
+func (obj KustomizationAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
 }
 
-func (o KustomizationAdapter) DeepCopyClientObject() client.Object {
-	return o.DeepCopy()
+func (obj KustomizationAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
 }
 
 type sRef struct {

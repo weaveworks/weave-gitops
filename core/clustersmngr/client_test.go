@@ -12,7 +12,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -42,7 +41,7 @@ func TestClientGet(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -78,7 +77,7 @@ func TestClientClusteredList(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -103,7 +102,7 @@ func TestClientClusteredList(t *testing.T) {
 	g.Expect(klist.Items[0].Name).To(Equal(appName))
 
 	gitRepo := &sourcev1.GitRepository{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -139,7 +138,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 
 	createKust := func(name string, nsName string) {
 		kust := &kustomizev1.Kustomization{
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,
 				Namespace: nsName,
 			},
@@ -215,7 +214,7 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 	clusterRole := rbacv1.ClusterRole{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: appName,
 		},
 		Rules: []rbacv1.PolicyRule{
@@ -289,7 +288,7 @@ func TestClientList(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -326,7 +325,7 @@ func TestClientCreate(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -361,7 +360,7 @@ func TestClientDelete(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -394,7 +393,7 @@ func TestClientUpdate(t *testing.T) {
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	kust := &kustomizev1.Kustomization{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},
@@ -436,7 +435,7 @@ func TestClientPatch(t *testing.T) {
 			Kind:       kustomizev1.KustomizationKind,
 			APIVersion: kustomizev1.GroupVersion.String(),
 		},
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      appName,
 			Namespace: ns.Name,
 		},

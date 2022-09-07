@@ -18,13 +18,13 @@ func AsGroup(asGroup ...string) *AsGroupOption {
 	return &AsGroupOption{asGroup}
 }
 
-type AsUidOption struct {
-	asUid string
+type AsUIDOption struct {
+	asUID string
 }
 
-// AsUid represents the --as-uid flag.
-func AsUid(asUid string) *AsUidOption {
-	return &AsUidOption{asUid}
+// AsUID represents the --as-uid flag.
+func AsUID(asUID string) *AsUIDOption {
+	return &AsUIDOption{asUID}
 }
 
 type CacheDirOption struct {
@@ -81,31 +81,31 @@ func KubeContext(context string) *ContextOption {
 	return &ContextOption{context}
 }
 
-type InsecureSkipTlsVerifyOption struct {
-	insecureSkipTlsVerify bool
+type InsecureSkipTLSVerifyOption struct {
+	insecureSkipTLSVerify bool
 }
 
-// InsecureSkipTlsVerify represents the --insecure-skip-tls-verify flag.
-func InsecureSkipTlsVerify(insecureSkipTlsVerify bool) *InsecureSkipTlsVerifyOption {
-	return &InsecureSkipTlsVerifyOption{insecureSkipTlsVerify}
+// InsecureSkipTLSVerify represents the --insecure-skip-tls-verify flag.
+func InsecureSkipTLSVerify(insecureSkipTLSVerify bool) *InsecureSkipTLSVerifyOption {
+	return &InsecureSkipTLSVerifyOption{insecureSkipTLSVerify}
 }
 
-type KubeApiBurstOption struct {
-	kubeApiBurst int
+type KubeAPIBurstOption struct {
+	kubeAPIBurst int
 }
 
-// KubeApiBurst represents the --kube-api-burst flag.
-func KubeApiBurst(kubeApiBurst int) *KubeApiBurstOption {
-	return &KubeApiBurstOption{kubeApiBurst}
+// KubeAPIBurst represents the --kube-api-burst flag.
+func KubeAPIBurst(kubeAPIBurst int) *KubeAPIBurstOption {
+	return &KubeAPIBurstOption{kubeAPIBurst}
 }
 
-type KubeApiQpsOption struct {
-	kubeApiQps float32
+type KubeAPIQPSOption struct {
+	kubeAPIQPS float32
 }
 
-// KubeApiQps represents the --kube-api-qps flag.
-func KubeApiQps(kubeApiQps float32) *KubeApiQpsOption {
-	return &KubeApiQpsOption{kubeApiQps}
+// KubeAPIQPS represents the --kube-api-qps flag.
+func KubeAPIQPS(kubeAPIQPS float32) *KubeAPIQPSOption {
+	return &KubeAPIQPSOption{kubeAPIQPS}
 }
 
 type KubeconfigOption struct {

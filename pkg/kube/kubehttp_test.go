@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/rest"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
-	kyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("KubeHTTP", func() {
@@ -134,7 +134,7 @@ func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
 	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: name, Context: clientcmdapi.Context{Cluster: clusterName}})
 	c.Clusters = append(c.Clusters, clientcmdapi.NamedCluster{Name: clusterName, Cluster: clientcmdapi.Cluster{Server: "127.0.0.1"}})
 
-	kubeconfig, err := kyaml.Marshal(&c)
+	kubeconfig, err := yaml.Marshal(&c)
 	Expect(err).ToNot(HaveOccurred())
 
 	_, err = f.Write(kubeconfig)

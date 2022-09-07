@@ -52,7 +52,7 @@ var _ = Describe("GitlabAuthClient", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(tokenState.AccessToken).To(Equal(rs.AccessToken))
-		Expect(tokenState.ExpiresInSeconds).To(Equal(time.Duration(rs.ExpiresIn) * time.Second))
+		Expect(tokenState.ExpiresIn).To(Equal(time.Duration(rs.ExpiresIn) * time.Second))
 	})
 
 	Describe("ValidateToken", func() {

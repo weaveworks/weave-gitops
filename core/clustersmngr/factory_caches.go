@@ -145,6 +145,6 @@ func (un *UsersNamespaces) Clear() {
 	un.Cache.Clear()
 }
 
-func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
+func (un UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
 	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
 }

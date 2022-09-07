@@ -8,13 +8,11 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
-	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -182,7 +180,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	nss := &v1.Namespace{}
+	nss := &corev1.Namespace{}
 	nss.Name = "ns1"
 	g.Expect(k.Create(ctx, nss)).To(Succeed())
 
@@ -193,7 +191,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	g.Expect(res.Errors[0].Namespace).To(BeEmpty())
 	g.Expect(res.Errors[0].ClusterName).To(Equal(clustersmngr.DefaultCluster))
 
-	fluxNs := &v1.Namespace{}
+	fluxNs := &corev1.Namespace{}
 	fluxNs.Name = "flux-ns"
 	fluxNs.Labels = map[string]string{
 		stypes.PartOfLabel: server.FluxNamespacePartOf,
@@ -256,7 +254,7 @@ func TestListFluxCrds(t *testing.T) {
 
 	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd1",
-		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+		Labels: map[string]string{stypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group:    "group",
 		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
@@ -264,7 +262,7 @@ func TestListFluxCrds(t *testing.T) {
 	}}
 	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd2",
-		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+		Labels: map[string]string{stypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group:    "group",
 		Versions: []apiextensions.CustomResourceDefinitionVersion{{Name: "0"}},

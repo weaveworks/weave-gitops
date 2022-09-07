@@ -8,7 +8,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/fluxcd/pkg/apis/meta"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/ginkgo/v2"
@@ -209,7 +208,7 @@ var _ = Describe("RepoManager", func() {
 		When("the entry fails to be built", func() {
 			It("errors", func() {
 				helmRepo := makeTestHelmRepository("http://[::1]:namedport/index.yaml")
-				helmRepo.Spec.SecretRef = &meta.LocalObjectReference{
+				helmRepo.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 					Name: "name",
 				}
 				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}

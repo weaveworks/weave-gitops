@@ -11,7 +11,7 @@ import (
 
 //counterfeiter:generate . Flux
 type Flux interface {
-	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
+	CreateSecretGit(name string, repoURL gitproviders.RepoURL, namespace string) ([]byte, error)
 }
 
 const (
@@ -33,10 +33,10 @@ func New(cliRunner runner.Runner) *FluxClient {
 var _ Flux = &FluxClient{}
 
 // CreatSecretGit Creates a Git secret returns the deploy key
-func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateSecretGit(name string, repoURL gitproviders.RepoURL, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "secret", "git", name,
-		"--url", repoUrl.String(),
+		"--url", repoURL.String(),
 		"--namespace", namespace,
 		"--export",
 	}

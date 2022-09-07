@@ -207,10 +207,10 @@ var _ = Describe("ApplicationsServer", func() {
 	Describe("GetGitlabAuthURL", func() {
 		It("returns the gitlab url", func() {
 			urlString := "http://gitlab.com/oauth/authorize"
-			authUrl, err := url.Parse(urlString)
+			authURL, err := url.Parse(urlString)
 			Expect(err).NotTo(HaveOccurred())
 
-			glAuthClient.AuthURLReturns(*authUrl, nil)
+			glAuthClient.AuthURLReturns(*authURL, nil)
 
 			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
 				RedirectUri: "http://example.com/oauth/fake",

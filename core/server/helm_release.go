@@ -10,7 +10,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/hashicorp/go-multierror"
@@ -110,7 +109,7 @@ func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmRelease
 	}, err
 }
 
-func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
+func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
 	storageNamespace := helmRelease.GetStorageNamespace()
 
 	storageName := helmRelease.GetReleaseName()

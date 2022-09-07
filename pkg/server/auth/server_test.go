@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -34,7 +33,7 @@ var httpClient = &http.Client{
 }
 
 func TestCallbackAllowsGet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodPost,
@@ -59,7 +58,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 }
 
 func TestCallbackErrorFromOIDC(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -71,7 +70,7 @@ func TestCallbackErrorFromOIDC(t *testing.T) {
 }
 
 func TestCallbackCodeIsEmpty(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -83,7 +82,7 @@ func TestCallbackCodeIsEmpty(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotSet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -95,7 +94,7 @@ func TestCallbackStateCookieNotSet(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotValid(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -112,7 +111,7 @@ func TestCallbackStateCookieNotValid(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -129,7 +128,7 @@ func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -148,7 +147,7 @@ func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 }
 
 func TestCallbackCodeExchangeError(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -171,7 +170,7 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 }
 
 func TestSignInAllowsPOST(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodGet,
@@ -199,7 +198,7 @@ func TestSignInAllowsPOST(t *testing.T) {
 }
 
 func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	if err != nil {
@@ -222,7 +221,7 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 }
 
 func TestSignInNoSecret(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -242,7 +241,7 @@ func TestSignInNoSecret(t *testing.T) {
 }
 
 func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	username := "admin"
 	password := "my-secret-password"
@@ -286,7 +285,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 }
 
 func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	password := "my-secret-password"
 
@@ -327,7 +326,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 }
 
 func TestSingInCorrectPassword(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	password := "my-secret-password"
 
@@ -382,7 +381,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 }
 
 func TestUserInfoAllowsGET(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodPost,
@@ -407,7 +406,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 }
 
 func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -419,7 +418,7 @@ func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 }
 
 func TestUserInfoAdminFlow(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -459,7 +458,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 }
 
 func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -500,7 +499,7 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 }
 
 func TestUserInfoAdminFlowBadCookie(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -544,7 +543,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 		code  = "mnopqr"
 	)
 
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -626,7 +625,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 }
 
 func TestLogoutSuccess(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -668,7 +667,7 @@ func TestLogoutSuccess(t *testing.T) {
 }
 
 func TestLogoutWithWrongMethod(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -694,7 +693,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 
 func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod) (*auth.AuthServer, *mockoidc.MockOIDC) {
 	t.Helper()
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	featureflags.Set("OIDC_AUTH", "") // Reset this
 
@@ -732,7 +731,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 }
 
 func TestAuthMethods(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	featureflags.Set("OIDC_AUTH", "")
 	featureflags.Set("CLUSTER_USER_AUTH", "")

@@ -30,16 +30,16 @@ var ErrRepositoryNoPermissionsOrDoesNotExist = errors.New("no permissions to acc
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	RepositoryExists(ctx context.Context, repoUrl RepoURL) (bool, error)
-	DeployKeyExists(ctx context.Context, repoUrl RepoURL) (bool, error)
-	GetDefaultBranch(ctx context.Context, repoUrl RepoURL) (string, error)
-	GetRepoVisibility(ctx context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error)
-	UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error
-	CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
-	GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	RepositoryExists(ctx context.Context, repoURL RepoURL) (bool, error)
+	DeployKeyExists(ctx context.Context, repoURL RepoURL) (bool, error)
+	GetDefaultBranch(ctx context.Context, repoURL RepoURL) (string, error)
+	GetRepoVisibility(ctx context.Context, repoURL RepoURL) (*gitprovider.RepositoryVisibility, error)
+	UploadDeployKey(ctx context.Context, repoURL RepoURL, deployKey []byte) error
+	CreatePullRequest(ctx context.Context, repoURL RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
+	GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
-	GetRepoDirFiles(ctx context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error)
-	MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error
+	GetRepoDirFiles(ctx context.Context, repoURL RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error)
+	MergePullRequest(ctx context.Context, repoURL RepoURL, pullRequestNumber int, commitMesage string) error
 }
 
 type PullRequestInfo struct {

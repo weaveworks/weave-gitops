@@ -218,7 +218,7 @@ var _ = Describe("makeHelmRepository", func() {
 		annotations := actual.Annotations
 		Expect(annotations["metadata.weave.works/description"]).NotTo(BeEmpty())
 
-		Expect(actual.Spec.URL).To(Equal(helmRepositoryUrl))
+		Expect(actual.Spec.URL).To(Equal(helmRepositoryURL))
 		Expect(actual.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 	})
 })

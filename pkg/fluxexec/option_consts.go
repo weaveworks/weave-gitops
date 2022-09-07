@@ -8,12 +8,12 @@ const (
 	KeyAlgorithmED25519 KeyAlgorithm = "ed25519"
 )
 
-type EcdsaCurve string
+type ECDSACurve string
 
 const (
-	EcdsaCurveP256 EcdsaCurve = "p256"
-	EcdsaCurveP384 EcdsaCurve = "p384"
-	EcdsaCurveP521 EcdsaCurve = "p521"
+	ECDSACurveP256 ECDSACurve = "p256"
+	ECDSACurveP384 ECDSACurve = "p384"
+	ECDSACurveP521 ECDSACurve = "p521"
 )
 
 type Component string

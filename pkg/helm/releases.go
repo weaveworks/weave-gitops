@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
-	kyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 const DefaultBufferSize = 2048
@@ -54,7 +54,7 @@ func AppendHelmReleaseToString(content string, newRelease *helmv2.HelmRelease) (
 		sb.WriteString(content + "\n")
 	}
 
-	helmReleaseManifest, err := kyaml.Marshal(newRelease)
+	helmReleaseManifest, err := yaml.Marshal(newRelease)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal HelmRelease: %w", err)
 	}
@@ -91,7 +91,7 @@ func MarshalHelmReleases(existingReleases []*helmv2.HelmRelease) (string, error)
 	var sb strings.Builder
 
 	for _, r := range existingReleases {
-		b, err := kyaml.Marshal(r)
+		b, err := yaml.Marshal(r)
 		if err != nil {
 			return "", fmt.Errorf("failed to marshal: %w", err)
 		}
