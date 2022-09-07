@@ -40,6 +40,7 @@ type ValueMap map[profileName]map[profileVersion][]byte
 type Cache interface {
 	Put(ctx context.Context, cluster, helmRepoName types.NamespacedName, value Data) error
 	Delete(ctx context.Context, cluster, helmRepoName types.NamespacedName) error
+	DeleteCluster(ctx context.Context, cluster types.NamespacedName) error
 	// ListProfiles specifically retrieve profiles data only to avoid traversing the values structure for no reason.
 	ListProfiles(ctx context.Context, cluster, helmRepoName types.NamespacedName) ([]*pb.Profile, error)
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
@@ -135,6 +136,19 @@ func (c *ProfileCache) Delete(ctx context.Context, cluster, helmRepoName types.N
 	return c.tryWithLock(ctx, deleteOperation)
 }
 
+// DeleteCluster clears the cache folder for a specific Cluster.
+func (c *ProfileCache) DeleteCluster(ctx context.Context, cluster types.NamespacedName) error {
+	deleteOperation := func() error {
+		location := filepath.Join(c.cacheLocation, cluster.Namespace, cluster.Name)
+		if err := os.RemoveAll(location); err != nil {
+			return fmt.Errorf("failed to clean up cache for location %s with error: %w", location, err)
+		}
+		return nil
+	}
+
+	return c.tryWithLock(ctx, deleteOperation)
+}
+
 // ListProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
 func (c *ProfileCache) ListProfiles(ctx context.Context, cluster, helmRepoName types.NamespacedName) ([]*pb.Profile, error) {
 	logger := logr.FromContextOrDiscard(ctx)
@@ -198,8 +212,9 @@ func (c *ProfileCache) GetProfileValues(ctx context.Context, cluster, helmRepoNa
 	var result []byte
 
 	getValuesOperation := func() error {
-		values, err := os.ReadFile(filepath.Join(
-			c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name, profileName, profileVersion, valuesFilename))
+		cachePath := filepath.Join(
+			c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name, profileName, profileVersion, valuesFilename)
+		values, err := os.ReadFile(cachePath)
 		if err != nil {
 			return fmt.Errorf("failed to read values file: %w", err)
 		}

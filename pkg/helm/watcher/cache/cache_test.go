@@ -148,6 +148,24 @@ func TestDeleteExistingData(t *testing.T) {
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
+func TestDeleteCluster(t *testing.T) {
+	profileCache, _ := setupCache(t)
+	data := Data{
+		Profiles: []*pb.Profile{profile1},
+		Values: ValueMap{
+			profile1.Name: values1,
+		},
+	}
+	assert.NoError(t, profileCache.Put(context.Background(), testClusterName, testName, data), "put call from cache should have worked")
+	_, err := profileCache.GetProfileValues(context.Background(), testClusterName, testName, profile1.Name, "0.0.3")
+	assert.NoError(t, err)
+
+	assert.NoError(t, profileCache.DeleteCluster(context.Background(), testClusterName))
+
+	_, err = profileCache.GetProfileValues(context.Background(), testClusterName, testName, profile1.Name, "0.0.3")
+	assert.ErrorContains(t, err, "failed to read values file")
+}
+
 func TestListAvailableVersionsForProfile(t *testing.T) {
 	profileCache, _ := setupCache(t)
 	data := Data{
