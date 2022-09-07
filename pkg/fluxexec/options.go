@@ -374,3 +374,39 @@ type UsernameOption struct {
 func Username(username string) *UsernameOption {
 	return &UsernameOption{username}
 }
+
+type PasswordOption struct {
+	password string
+}
+
+// Password represents the --password flag.
+func Password(password string) *PasswordOption {
+	return &PasswordOption{password}
+}
+
+type AllowInsecureHTTPOption struct {
+	allowInsecureHTTP bool
+}
+
+// AllowInsecureHTTP represents the --allow-insecure-http flag.
+func AllowInsecureHTTP(allowInsecureHTTP bool) *AllowInsecureHTTPOption {
+	return &AllowInsecureHTTPOption{allowInsecureHTTP: allowInsecureHTTP}
+}
+
+type SilentOption struct {
+	silent bool
+}
+
+// Silent represents the --silent flag.
+func Silent(silent bool) *SilentOption {
+	return &SilentOption{silent: silent}
+}
+
+type URLOption struct {
+	url string
+}
+
+// URL represents the --url flag.
+func URL(url string) *URLOption {
+	return &URLOption{url: url}
+}
