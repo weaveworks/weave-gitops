@@ -110,6 +110,7 @@ func allResources(rules []rbacv1.PolicyRule) []string {
 	for _, r := range rules {
 		resources.Insert(r.Resources...)
 	}
+
 	return resources.List()
 }
 
@@ -118,62 +119,64 @@ func allAPIGroups(rules []rbacv1.PolicyRule) []string {
 	for _, r := range rules {
 		apiGroups.Insert(r.APIGroups...)
 	}
+
 	return apiGroups.List()
 }
 
 // hasAll rules determines if a set of SubjectRulesReview rules match a minimum set of policy rules
+//
+// We need to understand the "sum" of all the rules for a role.
+// Convert to a hash lookup to make it easier to tell what a user can do.
+// Looks like { "apps": { "deployments": { get: true, list: true } } }
+//
+// We handle wildcards by expanding them out to all the types of resources/APIGroups
+// that are relevant to the provided rules.
+// This creates slightly nonsensical sets sometimes, for example given:
+//
+// PolicyRules:
+//
+//	{
+//		APIGroups: []string{""},
+//		Resources: []string{"secrets"},
+//		Verbs:     []string{"get"},
+//	},
+//
+//	{
+//		APIGroups: []string{"apps"},
+//		Resources: []string{"deployment"}",
+//		Verbs:     []string{"get"},
+//	},
+//
+// SubjectRulesReviewStatus:
+// ["*", "*", "get"]
+//
+// We get:
+//
+//	{
+//		"": {
+//			"secrets": { get: true }
+//			"deployments": { get: true }
+//		},
+//		"apps": {
+//			"secrets": { get: true }
+//			"deployments", "secrets": { get: true }
+//		}
+//	}
+//
+// Secrets don't exist in "apps" according to k8s,
+// but the "index checker" that checks this struct does not mind.
 func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1.PolicyRule, ns string) bool {
-	/*
-		We need to understand the "sum" of all the rules for a role.
-		Convert to a hash lookup to make it easier to tell what a user can do.
-		Looks like { "apps": { "deployments": { get: true, list: true } } }
-
-		We handle wildcards by expanding them out to all the types of resources/APIGroups
-		that are relevant to the provided rules.
-		This creates slightly nonsensical sets sometimes, for example given:
-
-		PolicyRules:
-		{
-			APIGroups: []string{""},
-			Resources: []string{"secrets"},
-			Verbs:     []string{"get"},
-		},
-		{
-			APIGroups: []string{"apps"},
-			Resources: []string{"deployment"}",
-			Verbs:     []string{"get"},
-		},
-
-		SubjectRulesReviewStatus:
-		["*", "*", "get"]
-
-		We get:
-		{
-			"": {
-				"secrets": { get: true }
-				"deployments": { get: true }
-			},
-			"apps": {
-				"secrets": { get: true }
-				"deployments", "secrets": { get: true }
-			}
-		}
-
-		Secrets don't exist in "apps" according to k8s,
-		but the "index checker" that checks this struct does not mind.
-	*/
-
 	derivedAccess := map[string]map[string]map[string]bool{}
 
 	allResourcesInRules := allResources(rules)
 	allAPIGroupsInRules := allAPIGroups(rules)
 
 	for _, statusRule := range status.ResourceRules {
-
 		apiGroups := statusRule.APIGroups
 		if containsWildcard(apiGroups) {
 			apiGroups = allAPIGroupsInRules
 		}
+
 		for _, apiGroup := range apiGroups {
 			if _, ok := derivedAccess[apiGroup]; !ok {
 				derivedAccess[apiGroup] = map[string]map[string]bool{}
@@ -183,6 +186,7 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 			if containsWildcard(resources) {
 				resources = allResourcesInRules
 			}
+
 			for _, resource := range resources {
 				if _, ok := derivedAccess[apiGroup][resource]; !ok {
 					derivedAccess[apiGroup][resource] = map[string]bool{}
@@ -192,6 +196,7 @@ func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1
 				if containsWildcard(verbs) {
 					verbs = allK8sVerbs
 				}
+
 				for _, v := range verbs {
 					derivedAccess[apiGroup][resource][v] = true
 				}
@@ -244,6 +249,7 @@ func containsWildcard(permissions []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
