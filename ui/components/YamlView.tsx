@@ -66,12 +66,13 @@ export default styled(YamlView).attrs({
   className: YamlView.name,
 })`
   margin-bottom: ${(props) => props.theme.spacing.small};
-  width: calc(100% - ${(props) => props.theme.spacing.medium});
+  width: 100%;
   font-size: ${(props) => props.theme.fontSizes.small};
   border: 1px solid ${(props) => props.theme.colors.neutral20};
   border-radius: 8px;
-  overflow: scroll;
+  overflow: hidden;
   pre {
+    overflow-y: scroll;
     padding: ${(props) => props.theme.spacing.small};
     white-space: pre-wrap;
   }

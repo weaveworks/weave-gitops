@@ -1,8 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { formatURL } from "../lib/nav";
 import { Provider } from "../lib/objects";
+import { V2Routes } from "../lib/types";
 import DataTable, { Field, filterConfig } from "./DataTable";
+import Link from "./Link";
 
 type Props = {
   className?: string;
@@ -34,7 +37,20 @@ function NotificationsTable({ className, rows }: Props) {
   const providerFields: Field[] = [
     {
       label: "Name",
-      value: "name",
+      value: (p) => {
+        return (
+          <Link
+            to={formatURL(V2Routes.Provider, {
+              name: p.name,
+              namespace: p.namespace,
+              clusterName: p.clusterName,
+            })}
+          >
+            {p.name}
+          </Link>
+        );
+      },
+      sortValue: ({ name }) => name,
       textSearchable: true,
       defaultSort: true,
     },

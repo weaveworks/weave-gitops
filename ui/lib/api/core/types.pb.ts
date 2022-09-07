@@ -13,6 +13,7 @@ export enum FluxObjectKind {
   KindHelmRelease = "KindHelmRelease",
   KindCluster = "KindCluster",
   KindOCIRepository = "KindOCIRepository",
+  KindProvider = "KindProvider",
 }
 
 export enum HelmRepositoryType {
