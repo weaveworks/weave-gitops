@@ -11,7 +11,7 @@ import DataTable, {
 import KubeStatusIndicator from "./KubeStatusIndicator";
 type Props = {
   className?: string;
-  rows?: any[];
+  rows?: Alert[];
 };
 
 function AlertsTable({ className, rows = [] }: Props) {

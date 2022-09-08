@@ -6,7 +6,8 @@ import { Alert, Kind, Provider } from "../lib/objects";
 import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
 import { convertResponse } from "./objects";
 
-type Res = { objects: Provider[] | Alert[]; errors: ListError[] };
+type Res = { objects: Provider[]; errors: ListError[] };
+type AlertsRes = { objects: Alert[]; errors: ListError[] };
 
 export function useListProviders(
   namespace: string = NoNamespace,
@@ -33,13 +34,13 @@ export function useListProviders(
 export function useListAlerts(
   name = "",
   namespace: string = NoNamespace,
-  opts: ReactQueryOptions<Res, RequestError> = {
+  opts: ReactQueryOptions<AlertsRes, RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);
-  return useQuery<Res, RequestError>(
+  return useQuery<AlertsRes, RequestError>(
     ["alerts", namespace],
     () => {
       return api.ListObjects({ namespace, kind: Kind.Alert }).then((res) => {
