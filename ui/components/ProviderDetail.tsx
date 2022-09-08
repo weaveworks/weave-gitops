@@ -1,11 +1,10 @@
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { useFeatureFlags } from "../hooks/featureflags";
 import { useListAlerts } from "../hooks/notifications";
-import { CrossNamespaceObjectRef, Kind, Provider } from "../lib/objects";
-import DataTable, { Field, filterConfig } from "./DataTable";
-import EventsTable from "./EventsTable";
+import { Provider } from "../lib/objects";
+import Alert from "./Alert";
+import AlertsTable from "./AlertsTable";
 import Flex from "./Flex";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import YamlView from "./YamlView";
@@ -17,75 +16,16 @@ type Props = {
 
 function ProviderDetail({ className, provider }: Props) {
   const { path } = useRouteMatch();
-  const { data, isLoading, error } = useListAlerts(
-    provider.name,
-    provider.namespace
-  );
-  const { data: flagData } = useFeatureFlags();
-  const flags = flagData?.flags || {};
-
-  let initialFilterState = {
-    ...filterConfig(data, "name"),
-    ...filterConfig(data, "namespace"),
-    ...filterConfig(data, "eventSeverity"),
-  };
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
-    initialFilterState = {
-      ...initialFilterState,
-      ...filterConfig(data, "clusterName"),
-    };
-  }
-
-  const alertFields: Field[] = [
-    {
-      label: "Name",
-      value: "name",
-    },
-    {
-      label: "Namespace",
-      value: "namespace",
-    },
-    {
-      label: "Severity",
-      value: "eventSeverity",
-    },
-    {
-      label: "Event Sources",
-      value: (a) => {
-        return (
-          <ul>
-            {a?.eventSources?.map((obj: CrossNamespaceObjectRef) => (
-              <li>
-                {obj.kind}: {obj.name}
-              </li>
-            ))}
-          </ul>
-        );
-      },
-      labelRenderer: (a) => <h2>Event Sources</h2>,
-    },
-    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [{ label: "Cluster", value: (obj) => obj.clusterName }]
-      : []),
-  ];
+  const { data, error } = useListAlerts(provider.provider, provider.namespace);
   return (
     <Flex column tall wide className={className}>
       <SubRouterTabs rootPath={`${path}/alerts`}>
         <RouterTab name="Alerts" path={`${path}/alerts`}>
-          <DataTable
-            fields={alertFields}
-            rows={data?.objects || []}
-            filters={initialFilterState}
-          />
-        </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
-          <EventsTable
-            involvedObject={{
-              kind: Kind.Provider,
-              name: provider?.name,
-              namespace: provider?.namespace,
-            }}
-          />
+          {error ? (
+            <Alert message={error.message} />
+          ) : (
+            <AlertsTable rows={data?.objects} />
+          )}
         </RouterTab>
         <RouterTab name="Yaml" path={`${path}/yaml`}>
           <YamlView object={provider} yaml={provider.yaml} />

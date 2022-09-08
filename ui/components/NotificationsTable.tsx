@@ -4,7 +4,13 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { formatURL } from "../lib/nav";
 import { Provider } from "../lib/objects";
 import { V2Routes } from "../lib/types";
-import DataTable, { Field, filterConfig } from "./DataTable";
+import { statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
+import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
 type Props = {
@@ -20,6 +26,7 @@ function NotificationsTable({ className, rows }: Props) {
     ...filterConfig(rows, "provider"),
     ...filterConfig(rows, "channel"),
     ...filterConfig(rows, "namespace"),
+    ...filterConfig(rows, "status", filterByStatusCallback),
   };
   if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
     initialFilterState = {
@@ -65,6 +72,18 @@ function NotificationsTable({ className, rows }: Props) {
     {
       label: "Namespace",
       value: "namespace",
+    },
+    {
+      label: "Status",
+      value: (p: Provider) =>
+        p.conditions.length > 0 ? (
+          <KubeStatusIndicator
+            short
+            conditions={p.conditions}
+            suspended={p.suspended}
+          />
+        ) : null,
+      sortValue: statusSortHelper,
     },
     ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
       ? [{ label: "Cluster", value: (obj) => obj.clusterName }]

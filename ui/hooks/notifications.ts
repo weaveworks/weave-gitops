@@ -43,12 +43,11 @@ export function useListAlerts(
     ["alerts", namespace],
     () => {
       return api.ListObjects({ namespace, kind: Kind.Alert }).then((res) => {
-        console.log(res);
-        const alerts = res.objects?.map((obj) => {
-          const alert = convertResponse(Kind.Alert, obj) as Alert;
-          if (alert.providerRef === name) return alert;
-        });
-        return { objects: alerts, errors: res.errors };
+        const alerts = res.objects?.map(
+          (obj) => convertResponse(Kind.Alert, obj) as Alert
+        );
+        const matches = alerts.filter((alert) => alert.providerRef === name);
+        return { objects: matches, errors: res.errors };
       });
     },
     opts
