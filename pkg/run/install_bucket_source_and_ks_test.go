@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -127,5 +128,22 @@ var _ = Describe("findConditionMessages", func() {
 			"Deployment default/app3: app 3 error",
 			"Deployment default/app3: time out",
 		}))
+	})
+})
+
+var _ = Describe("CreateIgnorer", func() {
+	It("finds and parses existing gitignore", func() {
+		str, err := filepath.Abs("../..")
+		Expect(err).ToNot(HaveOccurred())
+		ignorer := CreateIgnorer(str)
+		Expect(ignorer.MatchesPath("pkg/server")).To(Equal(false))
+		Expect(ignorer.MatchesPath("temp~")).To(Equal(true))
+		Expect(ignorer.MatchesPath("bin/gitops")).To(Equal(true))
+	})
+	It("doesn't mind no gitignore", func() {
+		str, err := filepath.Abs(".")
+		Expect(err).ToNot(HaveOccurred())
+		ignorer := CreateIgnorer(str)
+		Expect(ignorer.MatchesPath("bin/gitops")).To(Equal(false))
 	})
 })
