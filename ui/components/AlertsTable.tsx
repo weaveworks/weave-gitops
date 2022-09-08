@@ -41,7 +41,7 @@ function AlertsTable({ className, rows = [] }: Props) {
     },
     {
       label: "Severity",
-      value: "eventSeverity",
+      value: "severity",
     },
     {
       label: "Event Sources",
