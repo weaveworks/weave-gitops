@@ -31,7 +31,7 @@ export function useListProviders(
 }
 
 export function useListAlerts(
-  name: string = "",
+  name = "",
   namespace: string = NoNamespace,
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
