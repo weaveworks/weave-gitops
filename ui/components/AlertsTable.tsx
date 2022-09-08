@@ -47,18 +47,16 @@ function AlertsTable({ className, rows = [] }: Props) {
       label: "Event Sources",
       value: (a) => {
         return (
-          <ul>
+          <ul className="event-sources">
             {a?.eventSources?.map((obj: CrossNamespaceObjectRef) => (
-              <li key={obj.name}>
+              <li className="event-sources" key={obj.name}>
                 {obj.kind}: {obj.name}
               </li>
             ))}
           </ul>
         );
       },
-      labelRenderer: () => (
-        <h2 style={{ paddingLeft: "12px" }}>Event Sources</h2>
-      ),
+      labelRenderer: () => <h2 className="event-sources">Event Sources</h2>,
     },
     {
       label: "Status",
@@ -88,10 +86,20 @@ function AlertsTable({ className, rows = [] }: Props) {
 }
 
 export default styled(AlertsTable).attrs({ className: AlertsTable.name })`
+  //these styles did not apply when wrapped in .event-sources, only in this more repetitive format
   ul {
-    padding: 0px;
+    &.event-sources {
+      padding: 0px;
+    }
+  }
+  h2 {
+    &.event-sources {
+      padding-left: ${(props) => props.theme.spacing.small};
+    }
   }
   li {
-    display: block;
+    &.event-sources {
+      display: block;
+    }
   }
 `;
