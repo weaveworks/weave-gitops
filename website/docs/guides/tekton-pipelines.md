@@ -27,6 +27,13 @@ This will install the core Tekton pipeline components as well as the trigger com
 - [Tekton Dashboard](https://tekton.dev/docs/dashboard/install)
 > You do not need these for the pipelines to run, but they are ***highly recommended*** and are very useful in viewing pipelines and debugging.
 
+## General Tekton Flow
+The overall flow for a Tekton pipeline is relatively the same for all use cases and it will look something like this:
+
+EventListerer -> TriggerTemplate -> PipelineRun -> Pipeline -> Task
+
+This will be the flow we will be creating for this demo.  More often then not we usually know what we want our pipeline to accomplish before we know how we want to trigger it.  So with that in mind we are going to start at the end with our Task definitions and work our way back to the EventListener.
+
 ## Create CI Pipeline
 ### Define Tasks
 To create the pipline, we want to first define our Tasks.  From the [Tekton Tasks docs](https://tekton.dev/docs/pipelines/tasks), "A Task is a collection of Steps that you define and arrange in a specific order of execution as part of your continuous integration flow."  Each Step references a container image that will to used to run the Step command.  This image needs to contain all the tools necessary for the Step to complete successfully.  Here is an example Task definition:
@@ -92,7 +99,6 @@ Tekton also provides some ready to use Tasks via the [Tekton Hub](https://hub.te
 ### Define Pipeline
 Now that we have our Tasks defined it is time to group them together into a [Pipeline](https://tekton.dev/docs/pipelines/pipelines).
 
-# TODO - update refs
 ```yaml
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
