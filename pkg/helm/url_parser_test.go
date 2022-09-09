@@ -1,6 +1,8 @@
 package helm
 
 import (
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -19,7 +21,26 @@ type Service struct {
 // ParseArtifactURL takes HelmRepository Artifact URL for a remote cluster and
 // returns the components of the URL.
 func ParseArtifactURL(serviceURL string) (*Service, error) {
-	return nil, nil
+	u, err := url.Parse(serviceURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Split hostname to get namespace and name.
+	host := strings.Split(u.Hostname(), ".")
+
+	port := u.Port()
+	if port == "" {
+		port = "80"
+	}
+
+	return &Service{
+		Scheme:    u.Scheme,
+		Namespace: host[1],
+		Name:      host[0],
+		Path:      u.Path,
+		Port:      port,
+	}, nil
 }
 
 func TestParseService(t *testing.T) {
