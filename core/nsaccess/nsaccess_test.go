@@ -208,41 +208,75 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 
 		g.Expect(filtered).To(HaveLen(1))
 	})
-	t.Run("works when a user has * permissions on a resource", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
-		defer removeNs(t, adminClient, ns)
-
-		userName = userName + "-" + rand.String(5)
-
-		roleName := makeRole(ns)
-
-		roleRules := []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"secrets", "events", "namespaces"},
-				Verbs:     []string{"*"},
+	t.Run("works when a user has * permissions on api/group/verb", func(t *testing.T) {
+		testCases := map[string][]rbacv1.PolicyRule{
+			"_ _ *": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"secrets", "events", "namespaces"},
+					Verbs:     []string{"*"},
+				},
+			},
+			"_ * _": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"*"},
+					Verbs:     []string{"get", "list"},
+				},
+			},
+			"* _ _": {
+				{
+					APIGroups: []string{"*"},
+					Resources: []string{"secrets", "events", "namespaces"},
+					Verbs:     []string{"get", "list"},
+				},
+			},
+			"_ * *": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"*"},
+					Verbs:     []string{"*"},
+				},
+			},
+			"* * *": {
+				{
+					APIGroups: []string{"*"},
+					Resources: []string{"*"},
+					Verbs:     []string{"*"},
+				},
 			},
 		}
 
-		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+		for name, roleRules := range testCases {
+			t.Run(name, func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+				defer removeNs(t, adminClient, ns)
 
-		requiredRules := []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"secrets", "events", "namespaces"},
-				Verbs:     []string{"get", "list"},
-			},
+				userName = userName + "-" + rand.String(5)
+
+				roleName := makeRole(ns)
+
+				userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+				requiredRules := []rbacv1.PolicyRule{
+					{
+						APIGroups: []string{""},
+						Resources: []string{"secrets", "events", "namespaces"},
+						Verbs:     []string{"get", "list"},
+					},
+				}
+
+				list := &corev1.NamespaceList{}
+				g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+				checker := NewChecker(requiredRules)
+				filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				g.Expect(filtered).To(HaveLen(1))
+			})
 		}
-
-		list := &corev1.NamespaceList{}
-		g.Expect(adminClient.List(ctx, list)).To(Succeed())
-
-		checker := NewChecker(requiredRules)
-		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
-		g.Expect(err).NotTo(HaveOccurred())
-
-		g.Expect(filtered).To(HaveLen(1))
 	})
 }
 
