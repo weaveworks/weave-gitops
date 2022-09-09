@@ -106,7 +106,7 @@ Flags:
 Use "gitops [command] --help" for more information about a command.
 ```
 
-For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference/gitops)
+For more information please see the [docs](https://docs.gitops.weave.works/docs/references/cli-reference/gitops/)
 
 ## FAQ
 

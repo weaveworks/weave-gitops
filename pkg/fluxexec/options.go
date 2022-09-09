@@ -257,6 +257,16 @@ func CommitMessageAppendix(commitMessageAppendix string) *CommitMessageAppendixO
 	return &CommitMessageAppendixOption{commitMessageAppendix}
 }
 
+type GroupOption struct {
+	group []string
+}
+
+// Group represents the --group flag.
+// Bitbucket Server groups to be given write access (also accepts comma-separated values)
+func Group(group ...string) *GroupOption {
+	return &GroupOption{group}
+}
+
 type GpgKeyIdOption struct {
 	gpgKeyId string
 }
@@ -354,4 +364,49 @@ type TokenAuthOption struct {
 // TokenAuth represents the --token-auth flag.
 func TokenAuth(tokenAuth bool) *TokenAuthOption {
 	return &TokenAuthOption{tokenAuth}
+}
+
+type UsernameOption struct {
+	username string
+}
+
+// Username represents the --username flag.
+func Username(username string) *UsernameOption {
+	return &UsernameOption{username}
+}
+
+type PasswordOption struct {
+	password string
+}
+
+// Password represents the --password flag.
+func Password(password string) *PasswordOption {
+	return &PasswordOption{password}
+}
+
+type AllowInsecureHTTPOption struct {
+	allowInsecureHTTP bool
+}
+
+// AllowInsecureHTTP represents the --allow-insecure-http flag.
+func AllowInsecureHTTP(allowInsecureHTTP bool) *AllowInsecureHTTPOption {
+	return &AllowInsecureHTTPOption{allowInsecureHTTP: allowInsecureHTTP}
+}
+
+type SilentOption struct {
+	silent bool
+}
+
+// Silent represents the --silent flag.
+func Silent(silent bool) *SilentOption {
+	return &SilentOption{silent: silent}
+}
+
+type URLOption struct {
+	url string
+}
+
+// URL represents the --url flag.
+func URL(url string) *URLOption {
+	return &URLOption{url: url}
 }

@@ -336,6 +336,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
+		ignorer := run.CreateIgnorer(rootDir)
+
 		minioClient, err := minio.New(
 			"localhost:9000",
 			&minio.Options{
@@ -354,7 +356,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
+		err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher, ignorer))
 		if err != nil {
 			return err
 		}
@@ -406,7 +408,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 						// reset counter
 						atomic.StoreUint64(&counter, 0)
 
-						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient); err != nil {
+						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
 							log.Failuref("Error syncing dir: %v", err)
 						}
 
@@ -421,7 +423,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 								log.Failuref("Error creating new watcher: %v", err)
 							}
 
-							err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher))
+							err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher, ignorer))
 							if err != nil {
 								log.Failuref("Error re-walking dir: %v", err)
 							}
