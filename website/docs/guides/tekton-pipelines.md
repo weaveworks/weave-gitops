@@ -42,7 +42,7 @@ spec:
     - name: source
     - name: gh-pages
   params:
-    - name: chart-dir
+    - name: chart-path
       type: string
     - name: version
       type: string
@@ -63,7 +63,7 @@ spec:
       workingDir: $(workspaces.source.path)
       script: |
         #!/usr/bin/env sh
-        helm package $(params.chart-dir) --version $(params.version) --app-version $(params.version)
+        helm package $(params.chart-path) --version $(params.version) --app-version $(params.version)
     - name: index
       image: alpine/helm
       workingDir: $(workspaces.gh-pages.path)
@@ -106,6 +106,8 @@ spec:
     - name: git-revision
       type: string
     - name: image-name
+      type: string
+    - name: chart-path
       type: string
     - name: tag
       type: string
@@ -169,8 +171,8 @@ spec:
       taskRef:
         name: helm-release
       params:
-        - name: chart-dir
-          value: charts/demo-chart # param values can be variablized or hard coded like this
+        - name: chart-path
+          value: $(params.chart-path)
         - name: version
           value: $(params.tag)
         - name: repo-url
@@ -200,13 +202,10 @@ spec:
     - name: git-url
     - name: git-revision
     - name: destination-git-url
-      default: https://github.com/rparmer/tekton-pipeline-environments.git
     - name: destination-git-full-name
-      default: rparmer/tekton-pipeline-environments
     - name: image-name
-      default: ghcr.io/rparmer/tekton
+    - name: path-to-image-context
     - name: tag
-      default: latest
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -230,7 +229,7 @@ spec:
           - name: tag
             value: $(tt.params.tag)
           - name: path-to-image-context
-            value: demo
+            value: $(tt.params.path-to-image-context)
         workspaces:
           - name: shared-data # pvc volume definition (used to share data between tasks)
             volumeClaimTemplate:
@@ -261,7 +260,7 @@ spec:
 ### Create EventListener
 Now we are going to create an EventListener that we'll configure to listen to Github events.  By default the EventListener is not exposed outside of the cluster.  To overcome this we will add a custom Ingress resource so that our listener is reachable from Github.
 
-> Make sure to replace `<YOUR URL HERE>` with your true ingress url.  You may need to add additional configuration to match your environment needs.
+> Make sure to replace all values marked `<REPLACE ME>` with your true values.  You may also need to add additional configuration to your Ingress config to fit your environment needs.
 
 ```yaml
 ---
@@ -304,7 +303,7 @@ metadata:
   namespace: default
 type: Opaque
 stringData:
-  secretToken: "1234567"
+  secretToken: "1234567" # This value will be set as the webhook secret in GitHub
 ---
 apiVersion: triggers.tekton.dev/v1beta1
 kind: EventListener
@@ -337,7 +336,18 @@ spec:
                 - key: tag
                   expression: "body.ref.split('/')[2]"
       bindings:
+        # use TriggerBinding to pass values to TriggerTemplate
         - ref: github-tag-binding
+
+        # static values passed to TriggerTemplate
+        - name: destination-git-url
+          value: <REPLACE ME>
+        - name: destination-git-full-name
+          value: <REPLACE ME>
+        - name: image-name
+          value: <REPLACE ME>
+        - name: path-to-image-context
+          value: <REPLACE ME>
       template:
         ref: sample-release-pipeline-trigger-template
   resources:
@@ -362,7 +372,7 @@ metadata:
   namespace: default
 spec:
   rules:
-  - host: <YOUR URL HERE>
+  - host: <REPLACE ME>
     http:
       paths:
       - path: /
@@ -374,10 +384,10 @@ spec:
               name: http-listener
 ```
 
-After this is created you'll need to create a webhook on your GitHub repo to call the EventListener url.  Details on how to create a webhook are availble in the [GitHub Docs](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks).  Make sure to set the content type to `application/json` and for this walkthrough you only trigger on `push` events.
+After this is created you'll need to create a webhook on your GitHub repo to call the EventListener url.  Details on how to create a webhook are availble in the [GitHub Docs](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks).  Make sure to set the content type to `application/json`, set the secret to the value you set earlier for the `tekton-github-secret` k8s secret, and for this walkthrough you only need to trigger on `push` events.
 
 ## Testing
-At this point you should have all the pieces in place for the pipeline to trigger and run successfully.  So lets try it out.  Create a new tag for your chart and push it to the repository.
+At this point you should have all the pieces in place for the pipeline to trigger and run successfully.  So lets try it out.  Create a new tag on your chart's repository and push it.
 
 ```bash
 git tag v0.0.1
