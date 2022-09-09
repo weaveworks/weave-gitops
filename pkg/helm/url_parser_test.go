@@ -31,13 +31,19 @@ func ParseArtifactURL(artifactURL string) (*Service, error) {
 	// Split hostname to get namespace and name.
 	host := strings.Split(u.Hostname(), ".")
 
-	if len(host) != 5 || host[2] != "svc" || u.Path == "/" {
+	if len(host) != 6 || host[2] != "svc" || u.Path == "/" {
 		return nil, fmt.Errorf("invalid artifact URL %s", artifactURL)
 	}
 
 	port := u.Port()
 	if port == "" {
 		port = "80"
+	}
+
+	// When we use Helm to fetch the index file, it appends "/index.yaml" to the
+	// artifact URL which causes it to 404 so this is trimmed.
+	if strings.HasSuffix(u.Path, ".yaml/index.yaml") {
+		u.Path = strings.TrimSuffix(u.Path, "/index.yaml")
 	}
 
 	return &Service{
@@ -49,7 +55,7 @@ func ParseArtifactURL(artifactURL string) (*Service, error) {
 	}, nil
 }
 
-func TestParseService(t *testing.T) {
+func TestParseArtifactURL(t *testing.T) {
 	testCases := []struct {
 		name        string
 		artifactURL string
@@ -58,7 +64,7 @@ func TestParseService(t *testing.T) {
 	}{
 		{
 			"parses correctly",
-			"http://source-controller.flux-system.svc.cluster.local/demo-index.yaml",
+			"http://source-controller.flux-system.svc.cluster.local./demo-index.yaml",
 			&Service{
 				Scheme:    "http",
 				Namespace: "flux-system",
@@ -68,6 +74,19 @@ func TestParseService(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"url includes Helm index location after artifact url",
+			"http://source-controller.flux-system.svc.cluster.local./demo-index.yaml/index.yaml",
+			&Service{
+				Scheme:    "http",
+				Namespace: "flux-system",
+				Name:      "source-controller",
+				Path:      "/demo-index.yaml",
+				Port:      "80",
+			},
+			nil,
+		},
+
 		{
 			"wrong url",
 			"http://github.com/example.repo",
