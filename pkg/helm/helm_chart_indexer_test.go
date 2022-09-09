@@ -23,9 +23,20 @@ type HelmChartIndexer struct {
 	CacheDB *sql.DB
 }
 
-func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
+// AddChart inserts a new chart into helm_charts table.
+func (i *HelmChartIndexer) AddChart(ctx context.Context, db *sql.DB, name, version string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
+	sqlStatement := `
+INSERT INTO helm_charts (name, version,
+	repo_kind, repo_api_version, repo_name, repo_namespace,
+	cluster_name, cluster_namespace)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	return nil
+	_, err := db.Exec(
+		sqlStatement, name, version,
+		repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace,
+		clusterRef.Name, clusterRef.Namespace)
+
+	return err
 }
 
 func (i *HelmChartIndexer) Count(ctx context.Context) (int64, error) {
@@ -53,7 +64,7 @@ func TestHelmChartIndex(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1",
+	if err := indexer.AddChart(context.TODO(), db, "redis", "1.0.1",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
@@ -85,7 +96,7 @@ func objref(kind, apiVersion, name, namespace string) ObjectReference {
 
 func applySchema(db *sql.DB) error {
 	_, err := db.Exec(`
-CREATE TABLE helm_charts (
+CREATE TABLE IF NOT EXISTS helm_charts (
 	name text, version text,
 	repo_kind text, repo_api_version text, repo_name text, repo_namespace text,
 	cluster_name text, cluster_namespace text);
