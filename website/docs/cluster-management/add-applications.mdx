@@ -4,27 +4,30 @@ sidebar_position: 7
 hide_title: true
 ---
 
-import TierLabel from "../_components/TierLabel";
+import TierLabel from "../\_components/TierLabel";
 
 # Add Applications <TierLabel tiers="enterprise" />
 
-## How to: Add an Applications
+It is always useful to be able to install software packages to bootstrapped cluster. Weave GitOps Enterprise enables this by adding applications to target cluster through the UI and that is by adding kustomization or helmrelease. And here is how we can do that:
 
+### Add an Applications to a target cluster(bootstrapped)
 
-### Add an Applications to a target cluster
+1. At the applications page you can now find add applications button.
 
-1. From the applications page you can click the add applications button.
-2. A Form will show up to you to fill in the details of the application.
-2. You can add either a kustomization or a helmrelease.
-3. You can select the target cluster from the dropdown.
+![Profiles Selection](./img/add-application-btn.png)
 
+2. A form will show up to you so that you can select the target cluster that you want to add application to.
 
+![Profiles Selection](./img/add-application-form.png)
 
-### Add an Applications to management cluster while creating new cluster
+3. Then You will be able to select either source type of git repository or helm repository from the selected cluster.
 
-1. From the clusters page you can click the add cluster button.
-2. A Form will show up to you to fill in the details of the cluster.
-3. You now will find new section called applications where you can add applications.
-4. You can add kustomization.
+![Profiles Selection](./img/add-application-select-source.png)
 
-Note Only the bootstrap GitRepository can be referenced by kustomizations when creating a new cluster.
+4. If you select git repository as source type, you will be abl to add application from kustomization.
+
+![Profiles Selection](./img/add-application-kustomization.png)
+
+5. If you select helm repository as source type, you will be abl to add application from helm release. And if you had selected the profiles Helm chart repository URL, you will be able to select a profile from the Profiles list that have been created in at [Profiles](profiles.mdx).
+
+![Profiles Selection](./img/add-application-helm-release.png)
