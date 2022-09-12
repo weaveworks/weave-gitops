@@ -471,7 +471,7 @@ function UnstyledDataTable({
             key={f.label}
           >
             <Text>
-              {typeof f.value === "function" ? f.value(r) : r[f.value]}
+              {(typeof f.value === "function" ? f.value(r) : r[f.value]) || "-"}
             </Text>
           </TableCell>
         ))}

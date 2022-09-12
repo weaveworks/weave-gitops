@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -85,8 +86,8 @@ type MockProductHttpClient struct {
 }
 
 func (m *MockProductHttpClient) Get(url string) (resp *http.Response, err error) {
-	if url == "https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_linux_amd64.tar.gz" ||
-		url == "https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_darwin_amd64.tar.gz" {
+	var archivePattern = regexp.MustCompile(`https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_(linux|darwin)_(amd64|arm64).tar.gz`)
+	if archivePattern.MatchString(url) {
 		body, err := createMockFluxArchive([]byte("flux"))
 
 		if err != nil {
@@ -99,6 +100,7 @@ func (m *MockProductHttpClient) Get(url string) (resp *http.Response, err error)
 	} else if url == "https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_checksums.txt" {
 		body := []byte(`77622fd02dd5ad9377e17ecb59fa4f9598016bf0bf9761d09c9ed633840d7c7d  flux_0.32.0_linux_amd64.tar.gz
 77622fd02dd5ad9377e17ecb59fa4f9598016bf0bf9761d09c9ed633840d7c7d  flux_0.32.0_darwin_amd64.tar.gz
+77622fd02dd5ad9377e17ecb59fa4f9598016bf0bf9761d09c9ed633840d7c7d  flux_0.32.0_darwin_arm64.tar.gz
 `)
 
 		return &http.Response{

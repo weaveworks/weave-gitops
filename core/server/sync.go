@@ -29,7 +29,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	respErrors := multierror.Error{}
 
 	for _, sync := range msg.Objects {
-		clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, principal, sync.ClusterName)
+		clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, principal, sync.ClusterName)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error getting impersonating client: %w", err), respErrors.Errors...)
 			continue

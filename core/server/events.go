@@ -16,7 +16,7 @@ import (
 )
 
 func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest) (*pb.ListEventsResponse, error) {
-	k8s, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	k8s, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, doClientError(err)
 	}

@@ -5,6 +5,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	notificationv1 "github.com/fluxcd/notification-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -29,6 +30,7 @@ func DefaultPrimaryKinds() *PrimaryKinds {
 	kinds.kinds[sourcev1.HelmRepositoryKind] = sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 	kinds.kinds[sourcev1.BucketKind] = sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
 	kinds.kinds[sourcev1.OCIRepositoryKind] = sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
+	kinds.kinds[notificationv1.ProviderKind] = notificationv1.GroupVersion.WithKind(notificationv1.ProviderKind)
 
 	return kinds
 }

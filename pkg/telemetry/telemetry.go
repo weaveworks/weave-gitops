@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func InitTelemetry(factory clustersmngr.ClientsFactory) error {
+func InitTelemetry(factory clustersmngr.ClustersManager) error {
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") == "true" {
 		var namespace types.UID
 
