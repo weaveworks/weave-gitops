@@ -22,7 +22,7 @@ describe("ChipGroup", () => {
     screen.debug();
     expect(screen.queryByText("app")).toBeTruthy();
     expect(screen.queryByText("app3")).toBeTruthy();
-    expect(screen.queryByText(`appappapp${filterSeparator}-`)).toBeTruthy();
+    expect(screen.queryByText(`appappapp${filterSeparator}`)).toBeTruthy();
     expect(screen.queryByText("Clear All")).toBeTruthy();
   });
 });
