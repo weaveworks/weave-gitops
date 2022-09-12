@@ -69,21 +69,27 @@ message GroupVersionKind {
     string version = 3;
 }
 
+message NamespacedObjectReference {
+    string name      = 1;
+    string namespace = 2;
+}
+
 message Kustomization {
-    string        namespace                  = 1;
-    string        name                       = 2;
-    string        path                       = 3;
-    FluxObjectRef sourceRef                  = 4;
-    Interval      interval                   = 5;
-    repeated      Condition conditions       = 6;
-    string        lastAppliedRevision        = 7;
-    string        lastAttemptedRevision      = 8;
-    repeated      GroupVersionKind inventory = 9;
-    bool          suspended                  = 10;
-    string        clusterName                = 11;
-    string        apiVersion                 = 12;
-    string        tenant                     = 17;
-    string        uid                        = 18;
+    string        namespace                           = 1;
+    string        name                                = 2;
+    string        path                                = 3;
+    FluxObjectRef sourceRef                           = 4;
+    Interval      interval                            = 5;
+    repeated      Condition conditions                = 6;
+    string        lastAppliedRevision                 = 7;
+    string        lastAttemptedRevision               = 8;
+    repeated      GroupVersionKind inventory          = 9;
+    bool          suspended                           = 10;
+    string        clusterName                         = 11;
+    string        apiVersion                          = 12;
+    string        tenant                              = 17;
+    string        uid                                 = 18;
+    repeated      NamespacedObjectReference dependsOn = 19;
 }
 
 message HelmChart {
@@ -103,21 +109,22 @@ message HelmChart {
 }
 
 message HelmRelease {
-    string    releaseName                = 1;
-    string    namespace                  = 2;
-    string    name                       = 3;
-    Interval  interval                   = 4;
-    HelmChart helmChart                  = 5;
-    repeated  Condition conditions       = 6;
-    repeated  GroupVersionKind inventory = 10;
-    bool      suspended                  = 11;
-    string    clusterName                = 12;
-    string    helmChartName              = 13;
-    string    lastAppliedRevision        = 14;
-    string    lastAttemptedRevision      = 15;
-    string    apiVersion                 = 16;
-    string    tenant                     = 17;
-    string    uid                        = 18;
+    string    releaseName                         = 1;
+    string    namespace                           = 2;
+    string    name                                = 3;
+    Interval  interval                            = 4;
+    HelmChart helmChart                           = 5;
+    repeated  Condition conditions                = 6;
+    repeated  GroupVersionKind inventory          = 10;
+    bool      suspended                           = 11;
+    string    clusterName                         = 12;
+    string    helmChartName                       = 13;
+    string    lastAppliedRevision                 = 14;
+    string    lastAttemptedRevision               = 15;
+    string    apiVersion                          = 16;
+    string    tenant                              = 17;
+    string    uid                                 = 18;
+    repeated  NamespacedObjectReference dependsOn = 19;
 }
 
 message Object {

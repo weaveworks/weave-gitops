@@ -29,6 +29,15 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 
 	version, _ := helmrelease.GroupVersionKind().ToAPIVersionAndKind()
 
+	dependsOn := []*pb.NamespacedObjectReference{}
+
+	for _, v := range helmrelease.Spec.DependsOn {
+		dependsOn = append(dependsOn, &pb.NamespacedObjectReference{
+			Name:      v.Name,
+			Namespace: v.Namespace,
+		})
+	}
+
 	return &pb.HelmRelease{
 		Name:        helmrelease.Name,
 		ReleaseName: helmrelease.Spec.ReleaseName,
@@ -56,5 +65,6 @@ func HelmReleaseToProto(helmrelease *v2beta1.HelmRelease, clusterName string, in
 		ApiVersion:            version,
 		Tenant:                tenant,
 		Uid:                   string(helmrelease.GetUID()),
+		DependsOn:             dependsOn,
 	}
 }

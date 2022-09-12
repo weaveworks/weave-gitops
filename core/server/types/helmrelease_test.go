@@ -42,6 +42,7 @@ func TestHelmRelease(t *testing.T) {
 				Inventory:   []*pb.GroupVersionKind{},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 		{
@@ -83,6 +84,7 @@ func TestHelmRelease(t *testing.T) {
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
 				ApiVersion:  "some-version",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 		{
@@ -138,6 +140,7 @@ func TestHelmRelease(t *testing.T) {
 				LastAttemptedRevision: "2.0",
 				ClusterName:           "Default",
 				ApiVersion:            "some-version",
+				DependsOn:             []*pb.NamespacedObjectReference{},
 			},
 		},
 	}

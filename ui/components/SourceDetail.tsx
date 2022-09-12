@@ -6,6 +6,7 @@ import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { Source } from "../lib/objects";
+import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
 import EventsTable from "./EventsTable";
@@ -81,7 +82,9 @@ function SourceDetail({ className, source, info, type }: Props) {
       return isNameRelevant((a as HelmRelease)?.helmChart?.name);
     }
 
-    return isRelevant(a?.sourceRef?.kind, a?.sourceRef?.name);
+    const sourceRef = getSourceRefForAutomation(a);
+
+    return isRelevant(sourceRef?.kind, sourceRef?.name);
   });
 
   return (

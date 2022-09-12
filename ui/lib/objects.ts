@@ -5,10 +5,11 @@ import {
   FluxObjectRef,
   GitRepositoryRef,
   Interval,
+  NamespacedObjectReference,
   Object as ResponseObject,
   ObjectRef,
 } from "./api/core/types.pb";
-import { addKind } from "./utils";
+import { addKind, removeKind } from "./utils";
 
 export enum Kind {
   GitRepository = "GitRepository",
@@ -198,6 +199,18 @@ export class OCIRepository extends FluxObject {
   }
 }
 
+export class Kustomization extends FluxObject {
+  get dependsOn(): NamespacedObjectReference[] {
+    return this.obj.spec?.dependsOn || [];
+  }
+}
+
+export class HelmRelease extends FluxObject {
+  get dependsOn(): NamespacedObjectReference[] {
+    return this.obj.spec?.dependsOn || [];
+  }
+}
+
 export class Provider extends FluxObject {
   get provider(): string {
     return this.obj.spec.type || "";
@@ -216,5 +229,38 @@ export class Alert extends FluxObject {
   }
   get eventSources(): CrossNamespaceObjectRef[] {
     return this.obj.spec.eventSources || [];
+  }
+}
+
+export class FluxObjectNode {
+  obj: any;
+  uid: string;
+  displayKind?: string;
+  name: string;
+  namespace: string;
+  suspended: boolean;
+  conditions: Condition[];
+  dependsOn: NamespacedObjectReference[];
+  isCurrentNode?: boolean;
+  id: string;
+  parentIds: string[];
+
+  constructor(fluxObject: FluxObject, isCurrentNode?: boolean) {
+    this.obj = fluxObject.obj;
+    this.uid = fluxObject.uid;
+    this.displayKind = removeKind(fluxObject.kind);
+    this.name = fluxObject.name;
+    this.namespace = fluxObject.namespace;
+    this.suspended = fluxObject.suspended;
+    this.conditions = fluxObject.conditions;
+    this.dependsOn =
+      (fluxObject as Kustomization | HelmRelease).dependsOn || [];
+    this.isCurrentNode = isCurrentNode;
+    this.id = this.namespace + "/" + this.name;
+    this.parentIds = this.dependsOn.map((dependency) => {
+      const namespace = dependency.namespace || this.namespace;
+
+      return namespace + "/" + dependency.name;
+    });
   }
 }

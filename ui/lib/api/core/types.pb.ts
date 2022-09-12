@@ -68,6 +68,11 @@ export type GroupVersionKind = {
   version?: string
 }
 
+export type NamespacedObjectReference = {
+  name?: string
+  namespace?: string
+}
+
 export type Kustomization = {
   namespace?: string
   name?: string
@@ -83,6 +88,7 @@ export type Kustomization = {
   apiVersion?: string
   tenant?: string
   uid?: string
+  dependsOn?: NamespacedObjectReference[]
 }
 
 export type HelmChart = {
@@ -117,6 +123,7 @@ export type HelmRelease = {
   apiVersion?: string
   tenant?: string
   uid?: string
+  dependsOn?: NamespacedObjectReference[]
 }
 
 export type Object = {

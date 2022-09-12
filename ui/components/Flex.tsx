@@ -10,6 +10,7 @@ type Props = {
   center?: boolean;
   wide?: boolean;
   wrap?: boolean;
+  shadow?: boolean;
   onMouseEnter?: React.ReactEventHandler;
   onMouseLeave?: React.ReactEventHandler;
 };
@@ -25,6 +26,7 @@ const Styled = (component) => styled(component)`
   ${({ end }) => end && "justify-content: flex-end"};
   ${({ between }) => between && "justify-content: space-between"};
   ${({ center }) => center && "justify-content: center"};
+  ${({ shadow }) => shadow && "box-shadow: 5px 10px 50px 3px #0000001a"};
 `;
 
 class Flex extends React.PureComponent<Props> {

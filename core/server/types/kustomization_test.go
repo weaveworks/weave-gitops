@@ -34,6 +34,7 @@ func TestKustomization(t *testing.T) {
 				Interval:    &pb.Interval{},
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 		{
@@ -68,6 +69,7 @@ func TestKustomization(t *testing.T) {
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
 				ApiVersion:  "some-version",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 		{
@@ -102,6 +104,7 @@ func TestKustomization(t *testing.T) {
 				Conditions:  []*pb.Condition{},
 				ClusterName: "Default",
 				ApiVersion:  "some-version",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 		{
@@ -182,6 +185,7 @@ func TestKustomization(t *testing.T) {
 				Suspended:   true,
 				ClusterName: "Default",
 				ApiVersion:  "some-version",
+				DependsOn:   []*pb.NamespacedObjectReference{},
 			},
 		},
 	}
