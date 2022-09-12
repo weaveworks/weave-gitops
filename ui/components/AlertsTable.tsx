@@ -20,7 +20,7 @@ function AlertsTable({ className, rows = [] }: Props) {
   let initialFilterState = {
     ...filterConfig(rows, "name"),
     ...filterConfig(rows, "namespace"),
-    ...filterConfig(rows, "eventSeverity"),
+    ...filterConfig(rows, "severity"),
     ...filterConfig(rows, "status", filterByStatusCallback),
   };
   if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {

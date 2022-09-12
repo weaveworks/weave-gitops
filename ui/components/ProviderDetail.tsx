@@ -22,7 +22,7 @@ function ProviderDetail({ className, provider }: Props) {
       <SubRouterTabs rootPath={`${path}/alerts`}>
         <RouterTab name="Alerts" path={`${path}/alerts`}>
           {error ? (
-            <Alert message={error.message} />
+            <Alert severity="error" message={error.message} />
           ) : (
             <AlertsTable rows={data?.objects} />
           )}
