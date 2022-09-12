@@ -476,30 +476,37 @@ function UnstyledDataTable({
   });
   return (
     <Flex wide tall column className={className}>
-      <Flex wide align between>
+      <Flex
+        wide
+        align
+        between={filters ? true : false}
+        start={filters ? false : true}
+      >
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
-        <Flex wide align end>
-          <ChipGroup
-            chips={chips}
-            onChipRemove={handleChipRemove}
-            onClearAll={handleClearAll}
-          />
-          <IconFlex align>
-            <SearchField onSubmit={handleTextSearchSubmit} />
-            <IconButton
-              onClick={() => setFilterDialogOpen(!filterDialogOpen)}
-              className={className}
-              variant={filterDialogOpen ? "contained" : "text"}
-              color="inherit"
-            >
-              <Icon
-                type={IconType.FilterIcon}
-                size="medium"
-                color="neutral30"
-              />
-            </IconButton>
-          </IconFlex>
-        </Flex>
+        {filters && (
+          <Flex wide align end>
+            <ChipGroup
+              chips={chips}
+              onChipRemove={handleChipRemove}
+              onClearAll={handleClearAll}
+            />
+            <IconFlex align>
+              <SearchField onSubmit={handleTextSearchSubmit} />
+              <IconButton
+                onClick={() => setFilterDialogOpen(!filterDialogOpen)}
+                className={className}
+                variant={filterDialogOpen ? "contained" : "text"}
+                color="inherit"
+              >
+                <Icon
+                  type={IconType.FilterIcon}
+                  size="medium"
+                  color="neutral30"
+                />
+              </IconButton>
+            </IconFlex>
+          </Flex>
+        )}
       </Flex>
       <Flex wide tall>
         <TableContainer>
