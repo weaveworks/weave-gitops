@@ -47,10 +47,10 @@ func (ce *ClientError) Error() string {
 	return ce.Err.Error()
 }
 
-// ClientsFactory is a factory for creating clients for clusters
+// ClustersManager is a manager for creating clients for clusters
 //
-//counterfeiter:generate . ClientsFactory
-type ClientsFactory interface {
+//counterfeiter:generate . ClustersManager
+type ClustersManager interface {
 	// GetImpersonatedClient returns the clusters client for the given user
 	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
 	// GetImpersonatedClientForCluster returns the client for the given user and cluster
@@ -71,6 +71,10 @@ type ClientsFactory interface {
 	GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
+	// Subscribe returns a new ClustersWatcher
+	Subscribe() *ClustersWatcher
+	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
+	RemoveWatcher(cw *ClustersWatcher)
 }
 
 var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
@@ -78,7 +82,7 @@ var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
 
-type clientsFactory struct {
+type clustersManager struct {
 	clustersFetcher ClusterFetcher
 	nsChecker       nsaccess.Checker
 	log             logr.Logger
@@ -96,10 +100,36 @@ type clientsFactory struct {
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
 	kubeConfigOptions   []KubeConfigOption
+
+	// list of watchers to notify of clusters updates
+	watchers []*ClustersWatcher
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, kubeConfigOptions []KubeConfigOption) ClientsFactory {
-	return &clientsFactory{
+// ClusterListUpdate records the changes to the cluster state managed by the factory.
+type ClusterListUpdate struct {
+	Added   []Cluster
+	Removed []Cluster
+}
+
+// ClustersWatcher watches for cluster list updates and notifies the registered clients.
+type ClustersWatcher struct {
+	Updates chan ClusterListUpdate
+	cf      *clustersManager
+}
+
+// Notify publishes cluster updates to the current watcher.
+func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []Cluster) {
+	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: removedClusters}
+}
+
+// Unsubscribe removes the given ClustersWatcher from the list of watchers.
+func (cw *ClustersWatcher) Unsubscribe() {
+	cw.cf.RemoveWatcher(cw)
+	close(cw.Updates)
+}
+
+func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
+	return &clustersManager{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
@@ -110,15 +140,36 @@ func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger
 		scheme:              scheme,
 		newClustersPool:     clusterPoolFactory,
 		kubeConfigOptions:   []KubeConfigOption{},
+		watchers:            []*ClustersWatcher{},
 	}
 }
 
-func (cf *clientsFactory) Start(ctx context.Context) {
+// Subscribe returns a new ClustersWatcher.
+func (cf *clustersManager) Subscribe() *ClustersWatcher {
+	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 1)}
+	cf.watchers = append(cf.watchers, cw)
+
+	return cw
+}
+
+// RemoveWatcher removes the given ClustersWatcher from the list of watchers.
+func (cf *clustersManager) RemoveWatcher(cw *ClustersWatcher) {
+	watchers := []*ClustersWatcher{}
+	for _, w := range cf.watchers {
+		if cw != w {
+			watchers = append(watchers, w)
+		}
+	}
+
+	cf.watchers = watchers
+}
+
+func (cf *clustersManager) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
 }
 
-func (cf *clientsFactory) watchClusters(ctx context.Context) {
+func (cf *clustersManager) watchClusters(ctx context.Context) {
 	if err := cf.UpdateClusters(ctx); err != nil {
 		cf.log.Error(err, "failed updating clusters")
 	}
@@ -136,18 +187,26 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 	}
 }
 
-func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
+// UpdateClusters updates the clusters list and notifies the registered watchers.
+func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
 	clusters, err := cf.clustersFetcher.Fetch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch clusters: %w", err)
 	}
 
-	cf.clusters.Set(clusters)
+	addedClusters, removedClusters := cf.clusters.Set(clusters)
+
+	if len(addedClusters) > 0 || len(removedClusters) > 0 {
+		// notify watchers of the changes
+		for _, w := range cf.watchers {
+			w.Notify(addedClusters, removedClusters)
+		}
+	}
 
 	return nil
 }
 
-func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
+func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 	// waits the first load of cluster to start watching namespaces
 	<-cf.initialClustersLoad
 
@@ -166,7 +225,7 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 	}
 }
 
-func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
+func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 	var result *multierror.Error
 
 	serverClient, err := cf.GetServerClient(ctx)
@@ -206,11 +265,11 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 	return result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
+func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
 	return cf.clustersNamespaces.namespaces
 }
 
-func (cf *clientsFactory) syncCaches() {
+func (cf *clustersManager) syncCaches() {
 	newHash := cf.clusters.Hash()
 
 	if newHash != cf.clustersHash {
@@ -221,7 +280,7 @@ func (cf *clientsFactory) syncCaches() {
 	}
 }
 
-func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
@@ -255,7 +314,7 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
+func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
@@ -283,7 +342,7 @@ func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, u
 	return NewClient(pool, cf.userNsList(ctx, user)), nil
 }
 
-func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
+func (cf *clustersManager) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
@@ -315,7 +374,7 @@ func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, us
 	return dc, nil
 }
 
-func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
+func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) {
 	pool := cf.newClustersPool(cf.scheme)
 	errChan := make(chan error, len(cf.clusters.Get()))
 
@@ -345,7 +404,7 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	return NewClient(pool, cf.clustersNamespaces.namespaces), result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
+func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
 	wg := sync.WaitGroup{}
 
 	for _, cluster := range cf.clusters.Get() {
@@ -375,11 +434,11 @@ func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.U
 	wg.Wait()
 }
 
-func (cf *clientsFactory) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
+func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
 
-func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
+func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
 	userNamespaces := cf.GetUserNamespaces(user)
 	if len(userNamespaces) > 0 {
 		return userNamespaces

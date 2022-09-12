@@ -44,100 +44,6 @@ policySource:
   path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
   secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
 ```
----
-## Policy Sets
-
-Policy set is a custom resource that gives more control over which policies to be used in each scenario. There are cases in which certain policies are required to be observed but denying the requests of violating objects would be disruptive. Policy set allows definining additional filters for each scenario: `Audit` and `Admission` so it is possible to report violations on certain policies without the need of blocking the deployments if certain policies are not as critical as others.
-
-Policy set should also be hosted on the policy library. The following definition defines which specific policies should be used using policy names:
-
-```yaml
-apiVersion: pac.weave.works/v2beta1
-kind: PolicySet
-metadata:
-    name: admission-policy-set
-spec:
-    id: admission-policy-set
-    name: admission-policy-set
-    filters:
-      ids:
-        - weave.policies.containers-running-with-privilege-escalation
-        - weave.policies.containers-read-only-root-filesystem
-```
-
-To make use of this policy set in the profile:
-
-```yaml
-policy-agent:
-  config:
-    AGENT_ADMISSION_POLICY_SET: admission-policy-set # name of policy set to be used for admission
-    AGENT_AUDIT_POLICY_SET: audit-policy-set # name of policy set to be used for audit
-```
-
----
-## Policy Validation Sinks
-
-When validating a resource a validation object is generated that contains information about the status of that validation and metadata about the resource and policy involved. These objects should be exported to be visible for users as a critical part of the audit flow, but can also be useful as logs for the admission scenario.
-
-By default the agent only writes policy validation that are violating a certain policy when performing an audit, to write compliance results as well, the following needs to be specified in the profile:
-
-```yaml
-policy-agent:
-  config:
-    AGENT_WRITE_COMPLIANCE: "true"
-```
-
-The agent profile supports multiple methods to expose this data and multiple can be used at the same time:
-
-
-<Tabs groupId="violations-sinks" default>
-<TabItem value="text-file" label="Text File">
-
-The results would be dumped into a text file in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
-
-To enable writing to a text file:
-
-```yaml
-policy-agent:
-  config:
-    AGENT_FILESYSTEM_SINK_FILE_PATH: "/path/to/file"
-```
-
-It is possible to make the file persistent, this assumes that there is a [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) already configured on the cluster.
-
-```yaml
-policy-agent:
-  persistence:
-    enabled: false # specifies whether to use persistence or not
-    claimStorage: 1Gi # claim size
-    sinkDir: /path/to # directory to be mounted 
-    storageClassName: standard # k8s StorageClass name
-```
-</TabItem>
-<TabItem value="kubernetes-events" label="Kubernetes Events">
-The results would be written as Kubernetes events. This means that they are accessible through the kubernetes API and can be consumed by custom exporters.
-
-To enable writing Kubernetes events:
-
-```yaml
-policy-agent:
-  config:
-    AGENT_ENABLE_K8S_EVENTS_SINK: "true"
-```
-</TabItem>
-<TabItem value="notification-controller" label="Notification Controller">
-This requires the cluster to be managed using flux. It makes use of flux notification controller to send events to multiple sources, depending on the controller configuration. The agent writes the events to the controller and it proceeds to publish it to the configured listeners.
-
-To enable writing to flux notification controller:
-
-```yaml
-policy-agent:
-  config:
-    AGENT_FLUX_NOTIFICATION_SINK_ADDR: "true"
-```
-</TabItem>
-</Tabs>
-
 
 ---
 ## Admission Controller Setup
@@ -147,7 +53,8 @@ To enable admission control:
 ```yaml
 policy-agent:
   config:
-    AGENT_ENABLE_ADMISSION: "1"
+    admission:
+      enabled: true
 ```
 
 Enabling admission controller requires certificates for secure communication with the webhook client and the admission server. The best way to achieve this is by installing [cert manager](https://cert-manager.io/docs/installation/) and then configuring the profile as follows:
@@ -182,10 +89,182 @@ To enable audit functionality:
 ```yaml
 policy-agent:
   config:
-    AGENT_ENABLE_AUDIT: "1"
+    audit:
+      enabled: true
 ```
 
 Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
+
+---
+## Policy Sets
+
+Policy set is a custom resource that gives more control over which policies to be used in each scenario. There are cases in which certain policies are required to be observed but denying the requests of violating objects would be disruptive. Policy set allows definining additional filters for each scenario: `Audit` and `Admission` so it is possible to report violations on certain policies without the need of blocking the deployments if certain policies are not as critical as others.
+
+Policy set should also be hosted on the policy library. The following definition defines which specific policies should be used using policy names:
+
+```yaml
+apiVersion: pac.weave.works/v2beta1
+kind: PolicySet
+metadata:
+    name: admission-policy-set
+spec:
+    id: admission-policy-set
+    name: admission-policy-set
+    filters:
+      ids:
+        - weave.policies.containers-running-with-privilege-escalation
+        - weave.policies.containers-read-only-root-filesystem
+```
+
+To make use of this policy set in the profile:
+
+```yaml
+policy-agent:
+  config: 
+    admission:
+      policySet: admission-policy-set # name of policy set to be used for admission
+    audit: 
+      policySet: audit-policy-set # name of policy set to be used for audit
+```
+
+---
+## Policy Validation Sinks
+
+When validating a resource a validation object is generated that contains information about the status of that validation and metadata about the resource and policy involved. These objects should be exported to be visible for users as a critical part of the audit flow, but can also be useful as logs for the admission scenario.
+
+By default the agent only writes policy validation that are violating a certain policy when performing an audit, to write compliance results as well, the following needs to be specified in the profile:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      writeCompliance: true
+```
+
+The agent profile supports multiple methods for different scenarios either Admission or Audit to expose this data and multiple can be used at the same time:
+
+
+<Tabs groupId="violations-sinks" default>
+<TabItem value="text-file" label="Text File">
+
+The results would be dumped into a text file in `logs` directory in the agent container as a json string. It is important to note that this file would not be persistent and would be deleted upon pod restart, so generally this approach is not recommended for production environment.
+
+To enable writing to a text file in audit scenario:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      sinks:
+        fileSystemSink:
+          fileName: "file.json"
+```
+
+To enable writing to a text file in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        fileSystemSink:
+          fileName: "file.json"
+```
+
+It is possible to make the file persistent, this assumes that there is a [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) already configured on the cluster.
+
+```yaml
+policy-agent:
+  persistence:
+    enabled: false # specifies whether to use persistence or not
+    claimStorage: 1Gi # claim size
+    storageClassName: standard # k8s StorageClass name
+```
+</TabItem>
+<TabItem value="kubernetes-events" label="Kubernetes Events">
+The results would be written as Kubernetes events. This means that they are accessible through the kubernetes API and can be consumed by custom exporters.
+
+To enable writing Kubernetes events in audit scenario:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      sinks:
+        k8sEventsSink:
+          enabled: true
+```
+
+To enable writing Kubernetes events in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        k8sEventsSink:
+          enabled: true
+```
+</TabItem>
+<TabItem value="notification-controller" label="Notification Controller">
+This requires the cluster to be managed using flux. It makes use of flux notification controller to send events to multiple sources, depending on the controller configuration. The agent writes the events to the controller and it proceeds to publish it to the configured listeners.
+
+To enable writing to flux notification controller in audit scenario:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      sinks:
+        fluxNotificationSink:
+          address: ""
+```
+
+To enable writing to flux notification controller in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        fluxNotificationSink:
+          address: ""
+```
+</TabItem>
+<TabItem value="elasticsearch" label="Elasticsearch">
+The results of validating entities against policies would be written in Elasticsearch index.
+
+To enable writing to elasticsearh in audit scenario:
+
+```yaml
+policy-agent:
+  config:
+    audit:
+      sinks:
+        elasticSink:
+          address: ""
+          username: ""
+          password: ""
+          indexName: ""
+          insertionMode: "upsert"
+```
+
+To enable writing to flux notification controller in admission scenario:
+
+```yaml
+policy-agent:
+  config:
+    admission:
+      sinks:
+        elasticSink:
+          address: ""
+          username: ""
+          password: ""
+          indexName: ""
+          insertionMode: "insert"
+```
+</TabItem>
+</Tabs>
 
 ---
 ## Policy Validation

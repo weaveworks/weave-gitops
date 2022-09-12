@@ -20,7 +20,7 @@ function HelmReleasePage({ className, name, namespace, clusterName }: Props) {
   const helmRelease = data?.helmRelease;
 
   return (
-    <Page loading={isLoading} error={error} className={className} title={name}>
+    <Page loading={isLoading} error={error} className={className}>
       <HelmReleaseDetail
         helmRelease={helmRelease}
         name={name}

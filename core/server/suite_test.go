@@ -61,9 +61,9 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
 
-	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clientsFactory)
+	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
 
 	core, err := server.NewCoreServer(coreCfg)
@@ -76,7 +76,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	// Put the user in the `system:masters` group to avoid auth errors
 	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(clientsFactory, principal),
+		withClientsPoolInterceptor(clustersManager, principal),
 	)
 
 	pb.RegisterCoreServer(s, core)
@@ -109,16 +109,16 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	return pb.NewCoreClient(conn), coreCfg
 }
 
-func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, user *auth.UserPrincipal) grpc.ServerOption {
+func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		if err := clientsFactory.UpdateClusters(ctx); err != nil {
+		if err := clustersManager.UpdateClusters(ctx); err != nil {
 			return nil, err
 		}
-		if err := clientsFactory.UpdateNamespaces(ctx); err != nil {
+		if err := clustersManager.UpdateNamespaces(ctx); err != nil {
 			return nil, err
 		}
 
-		clientsFactory.UpdateUserNamespaces(ctx, user)
+		clustersManager.UpdateUserNamespaces(ctx, user)
 
 		ctx = auth.WithPrincipal(ctx, user)
 
@@ -153,14 +153,14 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 
 	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
 	// and the default options include the Flowcontrol setup which is not mocked out
-	clientsFactory := clustersmngr.NewClientFactory(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
+	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
 		f := &clustersmngrfakes.FakeClientsPool{}
 		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
 		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
 		return f
 	}, nil)
 
-	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clientsFactory)
+	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
 
 	return coreCfg
@@ -177,7 +177,7 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 	// Put the user in the `system:masters` group to avoid auth errors
 	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(cfg.ClientsFactory, principal),
+		withClientsPoolInterceptor(cfg.ClustersManager, principal),
 	)
 
 	pb.RegisterCoreServer(s, core)

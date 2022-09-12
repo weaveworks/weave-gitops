@@ -11,6 +11,7 @@ require (
 	github.com/fluxcd/go-git-providers v0.8.0
 	github.com/fluxcd/helm-controller/api v0.23.1
 	github.com/fluxcd/kustomize-controller/api v0.27.1
+	github.com/fluxcd/notification-controller/api v0.25.2
 	github.com/fluxcd/pkg/apis/meta v0.15.0
 	github.com/fluxcd/pkg/runtime v0.17.0
 	github.com/fluxcd/pkg/ssa v0.18.0
@@ -34,6 +35,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.20.1
 	github.com/pkg/errors v0.9.1
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/slok/go-http-metrics v0.10.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.11.0
