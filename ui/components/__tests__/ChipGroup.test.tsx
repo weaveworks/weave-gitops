@@ -6,7 +6,7 @@ import ChipGroup from "../ChipGroup";
 
 describe("ChipGroup", () => {
   const setActiveChips = jest.fn();
-  const chipList = ["app", "app2", "app3"];
+  const chipList = ["app", "app2", "app3", `appappapp`];
 
   it("should render chips", () => {
     render(

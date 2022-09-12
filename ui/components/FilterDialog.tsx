@@ -33,7 +33,7 @@ const SlideContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
 `;
 
-export const filterSeparator = ":";
+export const filterSeparator = ": ";
 
 type FilterSectionProps = {
   header: string;
@@ -48,7 +48,9 @@ const FilterSection = ({
   formState,
   onSectionSelect,
 }: FilterSectionProps) => {
-  const compoundKeys = options.map((option) => `${header}:${option}`);
+  const compoundKeys = options.map(
+    (option) => `${header}${filterSeparator}${option}`
+  );
   // every on an empty list is true so check that too
   const all =
     compoundKeys.length > 0 && compoundKeys.every((key) => formState[key]);
@@ -77,21 +79,19 @@ const FilterSection = ({
             {convertHeaders(header)}
           </Text>
         </ListItem>
-        {options.sort().map((option: string, index: number) => {
-          return (
-            <ListItem key={index}>
-              <ListItemIcon>
-                <FormCheckbox
-                  label=""
-                  name={`${header}${filterSeparator}${option}`}
-                />
-              </ListItemIcon>
-              <Text color="neutral40" size="small">
-                {_.toString(option)}
-              </Text>
-            </ListItem>
-          );
-        })}
+        {options.sort().map((option: string, index: number) => (
+          <ListItem key={index}>
+            <ListItemIcon>
+              <FormCheckbox
+                label=""
+                name={`${header}${filterSeparator}${option}`}
+              />
+            </ListItemIcon>
+            <Text color="neutral40" size="small">
+              {_.toString(option) || "-"}
+            </Text>
+          </ListItem>
+        ))}
       </List>
     </ListItem>
   );
