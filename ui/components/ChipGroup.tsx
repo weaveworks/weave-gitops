@@ -2,7 +2,6 @@ import { Chip } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { filterSeparator } from "./FilterDialog";
 import Flex from "./Flex";
 
 export interface Props {
@@ -20,14 +19,7 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
       {_.map(chips, (chip, index) => {
         return (
           <Flex key={index}>
-            <Chip
-              label={
-                chip.slice(-filterSeparator.length) === `${filterSeparator}`
-                  ? chip + "-"
-                  : chip
-              }
-              onDelete={() => onChipRemove([chip])}
-            />
+            <Chip label={chip} onDelete={() => onChipRemove([chip])} />
           </Flex>
         );
       })}
