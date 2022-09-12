@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -128,6 +129,63 @@ var _ = Describe("findConditionMessages", func() {
 			"Deployment default/app3: app 3 error",
 			"Deployment default/app3: time out",
 		}))
+	})
+})
+
+var _ = Describe("InitializeTargetDir", func() {
+	It("creates a file in an empty directory", func() {
+		dir, err := os.MkdirTemp("", "target-dir")
+		Expect(err).ToNot(HaveOccurred())
+		defer os.RemoveAll(dir)
+
+		kustomizationPath := filepath.Join(dir, "kustomization.yaml")
+
+		_, err = os.Stat(kustomizationPath)
+		Expect(err).To(HaveOccurred()) // File not created yet
+
+		err = InitializeTargetDir(dir)
+		Expect(err).ToNot(HaveOccurred())
+
+		fi, err := os.Stat(kustomizationPath)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = InitializeTargetDir(dir)
+		Expect(err).ToNot(HaveOccurred())
+
+		fi2, err := os.Stat(kustomizationPath)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(fi2.ModTime()).To(Equal(fi.ModTime())) // File not updated
+	})
+
+	It("creates a file in nonexistent directory", func() {
+		dir, err := os.MkdirTemp("", "target-dir")
+		Expect(err).ToNot(HaveOccurred())
+		defer os.RemoveAll(dir)
+
+		childDir := filepath.Join(dir, "subdirectory")
+		_, err = os.Stat(childDir)
+		Expect(err).To(HaveOccurred()) // Directory not created yet
+
+		kustomizationPath := filepath.Join(childDir, "kustomization.yaml")
+
+		err = InitializeTargetDir(childDir)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, err = os.Stat(kustomizationPath)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	It("throws an error if pointed at a file", func() {
+		dir, err := os.MkdirTemp("", "target-dir")
+		Expect(err).ToNot(HaveOccurred())
+		defer os.RemoveAll(dir)
+
+		kustomizationPath := filepath.Join(dir, "kustomization.yaml")
+		err = InitializeTargetDir(dir)
+		Expect(err).ToNot(HaveOccurred())
+
+		err = InitializeTargetDir(kustomizationPath)
+		Expect(err).To(HaveOccurred())
 	})
 })
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -298,10 +299,10 @@ func findConditionMessages(kubeClient client.Client, ks *kustomizev1.Kustomizati
 			return nil, fmt.Errorf("invalid inventory item '%s', error: %w", entry.ID, err)
 		}
 
-		gvkId := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
+		gvkID := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
 
-		if _, exist := gvks[gvkId]; !exist {
-			gvks[gvkId] = schema.GroupVersionKind{
+		if _, exist := gvks[gvkID]; !exist {
+			gvks[gvkID] = schema.GroupVersionKind{
 				Group:   objMeta.GroupKind.Group,
 				Version: entry.Version,
 				Kind:    objMeta.GroupKind.Kind,
@@ -370,6 +371,53 @@ func WatchDirsForFileWalker(watcher *fsnotify.Watcher, ignorer *ignore.GitIgnore
 
 		return nil
 	}
+}
+
+func InitializeTargetDir(targetPath string) error {
+	shouldCreate := false
+	stat, err := os.Stat(targetPath)
+
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	} else if err != nil {
+		err := os.Mkdir(targetPath, 0755)
+		if err != nil {
+			return err
+		}
+		shouldCreate = true
+	} else if !stat.IsDir() {
+		return fmt.Errorf("target must be a directory")
+	} else {
+		f, err := os.Open(targetPath)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Readdirnames(1)
+		if err != nil && errors.Is(err, io.EOF) {
+			shouldCreate = true
+		} else if err != nil {
+			return err
+		}
+	}
+
+	if shouldCreate {
+		f, err := os.Create(filepath.Join(targetPath, "kustomization.yaml"))
+		if err != nil {
+			return fmt.Errorf("error creating entrypoint kustomization.yaml: %w", err)
+		}
+
+		_, err = f.Write([]byte(`---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [] # 👋 Start adding the resources you want to sync here
+`))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ReconcileDevBucketSourceAndKS reconciles the dev-bucket and dev-ks asynchronously.
