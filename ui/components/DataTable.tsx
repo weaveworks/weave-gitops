@@ -169,16 +169,15 @@ function filterText(
       if (field.sortValue) {
         value = field.sortValue(row);
       } else {
-        typeof field.value === "function"
-          ? (value = field.value(row))
-          : (value = row[field.value]);
+        value =
+          typeof field.value === "function"
+            ? field.value(row)
+            : row[field.value];
       }
 
       for (let i = 0; i < textFilters.length; i++) {
-        if (value.includes(textFilters[i])) {
-          matches = true;
-        } else {
-          matches = false;
+        matches = value.includes(textFilters[i]);
+        if (!matches) {
           break;
         }
       }
