@@ -30,23 +30,6 @@ spec:
         name: "${CLUSTER_NAME}"
 ```
 
-### Resource templates - `spec.resourcetemplates`
-
-Add the list of objects to be rendered out to the `spec.resourcetemplates` section.
-
-Under each resource template, annotations can be added for easier UI navigation. Use `capi.weave.works/display-name` to describe the annotation. For example:
-
-```yaml
-apiVersion: capi.weave.works/v1alpha1
-kind: Cluster
-metadata:
-  name: "${CLUSTER_NAME}"
-  annotations:
-    capi.weave.works/display-name: ClusterName
-```
-
-This will result in showing `ClusterName` as the display name for the cluster name text field as opposed to the template parameter $CLUSTER_NAME, when the template is rendered in the UI.
-
 ### Parameter metadata - `spec.params`
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
