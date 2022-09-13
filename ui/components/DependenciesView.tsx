@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { useListObjects } from "../hooks/objects";
 import { fluxObjectKindToKind, FluxObjectNode } from "../lib/objects";
-import { getGraphNodes } from "../lib/utils";
+import { getGraphNodes } from "../lib/dependencies";
 import Flex from "./Flex";
 import DagGraph from "./DagGraph";
 import RequestStateHandler from "./RequestStateHandler";
