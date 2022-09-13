@@ -1,6 +1,8 @@
-import { findNode, getNeighborNodes, getGraphNodes } from "../dependencies";
+import { getNeighborNodes, getGraphNodes } from "../dependencies";
+import { makeObjectId } from "../objects";
 import {
   FluxObjectNode,
+  FluxObjectNodesMap,
   Kustomization as FluxObjectKustomization,
 } from "../objects";
 
@@ -105,24 +107,22 @@ describe("dependencies", () => {
     },
   ];
 
-  describe("findNode", () => {
-    it("returns correct node", () => {
-      const node = findNode(nodes, "kustomizationa", "default");
-
-      expect(node).toBe(nodes[1]);
-    });
-  });
   describe("getNeighborNodes", () => {
     it("returns correct neighbor nodes", () => {
-      const node = findNode(nodes, "kustomizationb", "default");
+      const nodesMap: FluxObjectNodesMap = {};
+      nodes.forEach((node) => {
+        nodesMap[node.id] = node;
+      });
+
+      const node = nodesMap[makeObjectId("default", "kustomizationb")];
 
       expect(node).toBe(nodes[2]);
 
-      const neighborNodes = getNeighborNodes(nodes, node);
+      const neighborNodes = getNeighborNodes(nodesMap, node);
 
       expect(neighborNodes.length).toEqual(2);
-      expect(neighborNodes[0]).toBe(nodes[1]);
-      expect(neighborNodes[1]).toBe(nodes[4]);
+      expect(neighborNodes[0]).toBe(nodesMap[1]);
+      expect(neighborNodes[1]).toBe(nodesMap[4]);
     });
   });
   describe("getGraphNodes", () => {
@@ -139,7 +139,12 @@ describe("dependencies", () => {
       expect(kustomization.name).toEqual("kustomizationc");
       expect(kustomization.namespace).toEqual("default");
 
-      const graphNodes = getGraphNodes(nodes, kustomization);
+      const mappedNodes: FluxObjectNodesMap = {};
+      nodes.forEach((node) => {
+        mappedNodes[node.id] = node;
+      });
+
+      const graphNodes = getGraphNodes(mappedNodes, kustomization);
 
       expect(graphNodes.length).toEqual(6);
       expect(graphNodes[0]).toBe(nodes[3]);

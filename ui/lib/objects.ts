@@ -236,6 +236,8 @@ export function makeObjectId(namespace?: string, name?: string) {
   return namespace + "/" + name;
 }
 
+export type FluxObjectNodesMap = { [key: string]: FluxObjectNode };
+
 export class FluxObjectNode {
   obj: any;
   uid: string;

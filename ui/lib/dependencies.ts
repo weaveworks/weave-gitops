@@ -1,27 +1,10 @@
 import { Automation } from "../hooks/automations";
-import { FluxObjectNode } from "./objects";
-
-// findNode searches for a node by the node's name and namespace.
-export function findNode(
-  nodes: FluxObjectNode[],
-  name: string,
-  namespace: string
-): FluxObjectNode | null {
-  const matches = nodes.filter(
-    (node) => node.name === name && node.namespace === namespace
-  );
-
-  if (matches.length > 0) {
-    return matches[0];
-  } else {
-    return null;
-  }
-}
+import { FluxObjectNode, FluxObjectNodesMap, makeObjectId } from "./objects";
 
 // getNeighborNodes returns nodes which depend on the current node
 // or are dependencies of the current node.
 export function getNeighborNodes(
-  nodes: FluxObjectNode[],
+  nodes: FluxObjectNodesMap,
   currentNode: FluxObjectNode
 ): FluxObjectNode[] {
   const dependencyNodes = currentNode.dependsOn
@@ -33,11 +16,13 @@ export function getNeighborNodes(
         namespace = currentNode.namespace;
       }
 
-      return findNode(nodes, name, namespace);
+      return nodes[makeObjectId(namespace, name)];
     })
     .filter((n) => n);
 
-  const dependentNodes = nodes.filter((node) => {
+  const nodesArray: FluxObjectNode[] = Object.values(nodes);
+
+  const dependentNodes = nodesArray.filter((node) => {
     let isDependent = false;
 
     for (const dependency of node.dependsOn) {
@@ -61,11 +46,12 @@ export function getNeighborNodes(
 
 // getGraphNodes returns all nodes in the current node's dependency tree, including the current node.
 export function getGraphNodes(
-  nodes: FluxObjectNode[],
+  nodes: FluxObjectNodesMap,
   automation: Automation
 ): FluxObjectNode[] {
   // Find node, corresponding to the automation.
-  const currentNode = findNode(nodes, automation.name, automation.namespace);
+  const currentNode =
+    nodes[makeObjectId(automation.namespace, automation.name)];
 
   if (!currentNode) {
     return [];
@@ -76,7 +62,7 @@ export function getGraphNodes(
   // Find nodes in the current node's dependency tree.
   let graphNodes: FluxObjectNode[] = [];
 
-  const visitedNodes = new Map<string, boolean>();
+  const visitedNodes: { [name: string]: boolean } = {};
   visitedNodes[currentNode.id] = true;
   let nodesToExplore: FluxObjectNode[] = [currentNode];
 

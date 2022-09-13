@@ -2,7 +2,11 @@ import * as React from "react";
 import styled from "styled-components";
 import { Automation } from "../hooks/automations";
 import { useListObjects } from "../hooks/objects";
-import { fluxObjectKindToKind, FluxObjectNode } from "../lib/objects";
+import {
+  fluxObjectKindToKind,
+  FluxObjectNode,
+  FluxObjectNodesMap,
+} from "../lib/objects";
 import { getGraphNodes } from "../lib/dependencies";
 import Flex from "./Flex";
 import DagGraph from "./DagGraph";
@@ -109,10 +113,13 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
       return;
     }
 
-    const nodes = getGraphNodes(
-      data.objects.map((obj) => new FluxObjectNode(obj)),
-      automation
-    );
+    const allNodes: FluxObjectNodesMap = {};
+    data.objects.forEach((obj) => {
+      const n = new FluxObjectNode(obj);
+      allNodes[n.id] = n;
+    });
+
+    const nodes = getGraphNodes(allNodes, automation);
 
     nodes.sort((a, b) => a.id.localeCompare(b.id));
 
