@@ -103,7 +103,7 @@ describe("DataTable", () => {
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/podinfo/);
     });
-    it("should render text when rows is empty", () => {
+    it("should render text when rows are empty", () => {
       render(
         withTheme(
           withContext(

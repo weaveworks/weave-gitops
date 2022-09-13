@@ -161,31 +161,27 @@ function filterText(
 
   return _.filter(rows, (row) => {
     let matches = false;
-    for (const colName in row) {
-      const value = row[colName];
 
-      const field = _.find(fields, (f) => {
-        if (typeof f.value === "string") {
-          return f.value === colName;
-        }
+    fields.forEach((field) => {
+      if (!field.textSearchable) return matches;
 
-        if (f.sortValue) {
-          return f.sortValue(row) === value;
-        }
-      });
-
-      if (!field || !field.textSearchable) {
-        continue;
+      let value;
+      if (field.sortValue) {
+        value = field.sortValue(row);
+      } else {
+        value =
+          typeof field.value === "function"
+            ? field.value(row)
+            : row[field.value];
       }
 
-      // This allows us to look for a fragment in the string.
-      // For example, if the user searches for "pod", the "podinfo" kustomization should be returned.
-      for (const filterString of textFilters) {
-        if (_.includes(value, filterString)) {
-          matches = true;
+      for (let i = 0; i < textFilters.length; i++) {
+        matches = value.includes(textFilters[i]);
+        if (!matches) {
+          break;
         }
       }
-    }
+    });
 
     return matches;
   });
@@ -480,30 +476,37 @@ function UnstyledDataTable({
   });
   return (
     <Flex wide tall column className={className}>
-      <Flex wide align between>
+      <Flex
+        wide
+        align
+        between={filters ? true : false}
+        start={filters ? false : true}
+      >
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
-        <Flex wide align end>
-          <ChipGroup
-            chips={chips}
-            onChipRemove={handleChipRemove}
-            onClearAll={handleClearAll}
-          />
-          <IconFlex align>
-            <SearchField onSubmit={handleTextSearchSubmit} />
-            <IconButton
-              onClick={() => setFilterDialogOpen(!filterDialogOpen)}
-              className={className}
-              variant={filterDialogOpen ? "contained" : "text"}
-              color="inherit"
-            >
-              <Icon
-                type={IconType.FilterIcon}
-                size="medium"
-                color="neutral30"
-              />
-            </IconButton>
-          </IconFlex>
-        </Flex>
+        {filters && (
+          <Flex wide align end>
+            <ChipGroup
+              chips={chips}
+              onChipRemove={handleChipRemove}
+              onClearAll={handleClearAll}
+            />
+            <IconFlex align>
+              <SearchField onSubmit={handleTextSearchSubmit} />
+              <IconButton
+                onClick={() => setFilterDialogOpen(!filterDialogOpen)}
+                className={className}
+                variant={filterDialogOpen ? "contained" : "text"}
+                color="inherit"
+              >
+                <Icon
+                  type={IconType.FilterIcon}
+                  size="medium"
+                  color="neutral30"
+                />
+              </IconButton>
+            </IconFlex>
+          </Flex>
+        )}
       </Flex>
       <Flex wide tall>
         <TableContainer>

@@ -13,6 +13,9 @@ import DataTable, {
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
 } from "../DataTable";
+import { filterSeparator } from "../FilterDialog";
+
+const uriEncodedSeparator = encodeURIComponent(filterSeparator);
 
 const addTextSearchInput = (term: string) => {
   const input = document.getElementById("table-search");
@@ -188,6 +191,8 @@ describe("DataTableFilters", () => {
 
     expect(screen.queryAllByText("slick")).toBeTruthy();
     expect(screen.queryAllByText("cool")).toBeTruthy();
+    expect(screen.queryAllByText("neat")).toBeTruthy();
+    expect(screen.queryAllByText("rad")).toBeTruthy();
   });
   it("should filter on click", () => {
     const initialFilterState = {
@@ -209,7 +214,9 @@ describe("DataTableFilters", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `type${filterSeparator}foo`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
     const tableRows = document.querySelectorAll("tbody tr");
@@ -218,17 +225,19 @@ describe("DataTableFilters", () => {
     expect(tableRows[0].innerHTML).toContain("cool");
     expect(tableRows[1].innerHTML).toContain("slick");
 
-    const chip1 = screen.getByText("type:foo");
+    const chip1 = screen.getByText(`type${filterSeparator}foo`);
     expect(chip1).toBeTruthy();
 
-    const checkbox2 = document.getElementById("type:baz") as HTMLInputElement;
+    const checkbox2 = document.getElementById(
+      `type${filterSeparator}baz`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox2);
 
     const tableRows2 = document.querySelectorAll("tbody tr");
     expect(tableRows2).toHaveLength(3);
     expect(tableRows2[1].innerHTML).toContain("rad");
 
-    const chip2 = screen.getByText("type:baz");
+    const chip2 = screen.getByText(`type${filterSeparator}baz`);
     expect(chip2).toBeTruthy();
   });
   it("should filter by status", () => {
@@ -252,7 +261,7 @@ describe("DataTableFilters", () => {
     );
 
     const checkbox1 = document.getElementById(
-      "status:Ready"
+      `status${filterSeparator}Ready`
     ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
@@ -261,11 +270,11 @@ describe("DataTableFilters", () => {
     expect(tableRows).toHaveLength(1);
     expect(tableRows[0].innerHTML).toContain("slick");
 
-    const chip1 = screen.getByText("status:Ready");
+    const chip1 = screen.getByText(`status${filterSeparator}Ready`);
     expect(chip1).toBeTruthy();
 
     const checkbox2 = document.getElementById(
-      "status:Suspended"
+      `status${filterSeparator}Suspended`
     ) as HTMLInputElement;
     fireEvent.click(checkbox2);
 
@@ -273,7 +282,7 @@ describe("DataTableFilters", () => {
     expect(tableRows2).toHaveLength(2);
     expect(tableRows2[0].innerHTML).toContain("cool");
 
-    const chip2 = screen.getByText("status:Suspended");
+    const chip2 = screen.getByText(`status${filterSeparator}Suspended`);
     expect(chip2).toBeTruthy();
   });
   it("should filter by type with callback", () => {
@@ -348,14 +357,16 @@ describe("DataTableFilters", () => {
     expect(tableRows1).toHaveLength(4);
     expect(tableRows1[0].innerHTML).toContain("foo");
 
-    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `type${filterSeparator}foo`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
     const tableRows2 = document.querySelectorAll("tbody tr");
     expect(tableRows2).toHaveLength(1);
     expect(tableRows2[0].innerHTML).toContain("foo");
 
-    const chip1 = screen.getByText("type:foo");
+    const chip1 = screen.getByText(`type${filterSeparator}foo`);
     expect(chip1).toBeTruthy();
 
     const clearAll = screen.getByText("Clear All");
@@ -366,7 +377,9 @@ describe("DataTableFilters", () => {
 
     expect(tableRows3).toHaveLength(rows.length);
 
-    const checkbox2 = document.getElementById("type:bar") as HTMLInputElement;
+    const checkbox2 = document.getElementById(
+      `type${filterSeparator}bar`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox2);
 
     const tableRows4 = document.querySelectorAll("tbody tr");
@@ -375,7 +388,7 @@ describe("DataTableFilters", () => {
     expect(tableRows4[1].innerHTML).toContain("bar");
     expect(tableRows4[2].innerHTML).toContain("bar");
 
-    const chip2 = screen.getByText("type:bar");
+    const chip2 = screen.getByText(`type${filterSeparator}bar`);
     expect(chip2).toBeTruthy();
   });
   it("should select/deselect all when category checkbox is clicked", () => {
@@ -402,11 +415,11 @@ describe("DataTableFilters", () => {
     fireEvent.click(checkbox1);
     const tableRows = document.querySelectorAll("tbody tr");
     expect(tableRows).toHaveLength(4);
-    let checkbox2 = document.getElementById("status:Ready");
+    let checkbox2 = document.getElementById(`status${filterSeparator}Ready`);
     expect(checkbox2).toHaveProperty("checked", true);
     fireEvent.click(checkbox1);
     expect(tableRows).toHaveLength(4);
-    checkbox2 = document.getElementById("status:Ready");
+    checkbox2 = document.getElementById(`status${filterSeparator}Ready`);
     expect(checkbox2).toHaveProperty("checked", false);
   });
   it("should change select all box status when other checkboxes effect state", () => {
@@ -430,12 +443,12 @@ describe("DataTableFilters", () => {
     );
     const checkbox1 = document.getElementById("status") as HTMLInputElement;
     fireEvent.click(checkbox1);
-    let checkbox2 = document.getElementById("status:Ready");
+    let checkbox2 = document.getElementById(`status${filterSeparator}Ready`);
     fireEvent.click(checkbox2);
     const tableRows = document.querySelectorAll("tbody tr");
     expect(tableRows).toHaveLength(3);
     expect(checkbox1).toHaveProperty("checked", false);
-    checkbox2 = document.getElementById("status:Ready");
+    checkbox2 = document.getElementById(`status${filterSeparator}Ready`);
     fireEvent.click(checkbox2);
     expect(checkbox1).toHaveProperty("checked", true);
   });
@@ -459,10 +472,12 @@ describe("DataTableFilters", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `type${filterSeparator}foo`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
-    const chip1 = screen.getByText("type:foo");
+    const chip1 = screen.getByText(`type${filterSeparator}foo`);
     expect(chip1).toBeTruthy();
     expect(screen.queryByText("Clear All")).toBeTruthy();
 
@@ -475,7 +490,7 @@ describe("DataTableFilters", () => {
 
     // Should return to all rows being shown
     const tableRows2 = document.querySelectorAll("tbody tr");
-    expect(screen.queryByText("type:foo")).toBeFalsy();
+    expect(screen.queryByText(`type${filterSeparator}foo`)).toBeFalsy();
     expect(screen.queryByText("Clear All")).toBeFalsy();
     expect(tableRows2).toHaveLength(rows.length);
   });
@@ -499,17 +514,21 @@ describe("DataTableFilters", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("type:foo") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `type${filterSeparator}foo`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox1);
-    const chip1 = screen.getByText("type:foo");
+    const chip1 = screen.getByText(`type${filterSeparator}foo`);
     expect(chip1).toBeTruthy();
 
     const tableRows1 = document.querySelectorAll("tbody tr");
     expect(tableRows1).toHaveLength(2);
 
-    const checkbox2 = document.getElementById("type:baz") as HTMLInputElement;
+    const checkbox2 = document.getElementById(
+      `type${filterSeparator}baz`
+    ) as HTMLInputElement;
     fireEvent.click(checkbox2);
-    const chip2 = screen.getByText("type:baz");
+    const chip2 = screen.getByText(`type${filterSeparator}baz`);
     expect(chip2).toBeTruthy();
 
     const tableRows2 = document.querySelectorAll("tbody tr");
@@ -619,16 +638,15 @@ describe("DataTableFilters", () => {
       )
     );
 
-    const term1 = rows[0].name;
+    const term1 = "a";
     addTextSearchInput(term1);
 
-    const term2 = rows[3].name;
+    const term2 = "r";
     addTextSearchInput(term2);
 
     const tableRows = document.querySelectorAll("tbody tr");
-    expect(tableRows).toHaveLength(2);
-    expect(tableRows[0].innerHTML).toContain(term1);
-    expect(tableRows[1].innerHTML).toContain(term2);
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain(rows[3].name);
   });
   it("filters by fragments of text fields", () => {
     render(
@@ -654,7 +672,7 @@ describe("DataTableFilters", () => {
       ...filterConfig(rows, "type"),
     };
 
-    const search = `?filters=type%3Afoo_`;
+    const search = `?filters=type${uriEncodedSeparator}foo_`;
 
     render(
       withTheme(
@@ -675,10 +693,12 @@ describe("DataTableFilters", () => {
     expect(tableRows[0].innerHTML).toContain("foo");
   });
   it("returns a query string on filter change", () => {
-    const queryString = filterSelectionsToQueryString({ "type:foo": true });
-    expect(queryString).toEqual("filters=type%3Afoo_");
+    const queryString = filterSelectionsToQueryString({
+      [`type${filterSeparator}foo`]: true,
+    });
+    expect(queryString).toEqual(`filters=type${uriEncodedSeparator}foo_`);
     expect(parseFilterStateFromURL(queryString)).toEqual({
-      "type:foo": true,
+      [`type${filterSeparator}foo`]: true,
     });
   });
 });
