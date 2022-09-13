@@ -92,7 +92,11 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     isLoading: isLoadingData,
     error,
   } = automation
-    ? useListObjects("", fluxObjectKindToKind(automationKind))
+    ? useListObjects(
+        "",
+        fluxObjectKindToKind(automationKind),
+        automation?.clusterName
+      )
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
   React.useEffect(() => {
@@ -109,6 +113,8 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
       data.objects.map((obj) => new FluxObjectNode(obj)),
       automation
     );
+
+    nodes.sort((a, b) => a.id.localeCompare(b.id));
 
     if (nodes.length === 0) {
       setGraphNodes(graphNodesPlaceholder);

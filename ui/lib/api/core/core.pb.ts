@@ -90,6 +90,7 @@ export type GetObjectResponse = {
 export type ListObjectsRequest = {
   namespace?: string
   kind?: string
+  clusterName?: string
 }
 
 export type ListObjectsResponse = {

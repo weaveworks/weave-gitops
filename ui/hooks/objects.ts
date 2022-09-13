@@ -84,6 +84,7 @@ type Res = { objects: FluxObject[]; errors: ListError[] };
 export function useListObjects<T extends FluxObject>(
   namespace: string,
   kind: Kind,
+  clusterName: string,
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
@@ -92,9 +93,9 @@ export function useListObjects<T extends FluxObject>(
   const { api } = useContext(CoreClientContext);
 
   return useQuery<Res, RequestError>(
-    ["objects", namespace],
+    ["objects", clusterName, kind, namespace],
     () => {
-      return api.ListObjects({ namespace, kind }).then((res) => {
+      return api.ListObjects({ namespace, kind, clusterName }).then((res) => {
         const objects = res.objects?.map(
           (obj) => convertResponse(kind, obj) as T
         );

@@ -479,6 +479,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

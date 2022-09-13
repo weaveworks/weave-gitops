@@ -267,6 +267,7 @@ message GetObjectResponse {
 message ListObjectsRequest {
     string namespace   = 1;
     string kind        = 2;
+    string clusterName = 3;
 }
 
 message ListObjectsResponse {
