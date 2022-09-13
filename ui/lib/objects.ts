@@ -9,7 +9,7 @@ import {
   Object as ResponseObject,
   ObjectRef,
 } from "./api/core/types.pb";
-import { addKind, removeKind } from "./utils";
+import { addKind } from "./utils";
 
 export enum Kind {
   GitRepository = "GitRepository",
@@ -232,6 +232,10 @@ export class Alert extends FluxObject {
   }
 }
 
+export function makeObjectId(namespace?: string, name?: string) {
+  return namespace + "/" + name;
+}
+
 export class FluxObjectNode {
   obj: any;
   uid: string;
@@ -248,7 +252,7 @@ export class FluxObjectNode {
   constructor(fluxObject: FluxObject, isCurrentNode?: boolean) {
     this.obj = fluxObject.obj;
     this.uid = fluxObject.uid;
-    this.displayKind = removeKind(fluxObject.kind);
+    this.displayKind = fluxObject.type;
     this.name = fluxObject.name;
     this.namespace = fluxObject.namespace;
     this.suspended = fluxObject.suspended;
@@ -256,7 +260,7 @@ export class FluxObjectNode {
     this.dependsOn =
       (fluxObject as Kustomization | HelmRelease).dependsOn || [];
     this.isCurrentNode = isCurrentNode;
-    this.id = this.namespace + "/" + this.name;
+    this.id = makeObjectId(this.namespace, this.name);
     this.parentIds = this.dependsOn.map((dependency) => {
       const namespace = dependency.namespace || this.namespace;
 
