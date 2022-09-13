@@ -51,7 +51,7 @@ function AlertsTable({ className, rows = [] }: Props) {
           <ul className="event-sources">
             {a?.eventSources?.map((obj: CrossNamespaceObjectRef) => (
               <li className="event-sources" key={obj.name}>
-                {obj.kind}: {obj.name}
+                {obj.kind}: {obj.namespace}/{obj.name}
               </li>
             ))}
           </ul>
