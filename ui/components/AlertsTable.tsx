@@ -1,17 +1,35 @@
+import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { Alert, CrossNamespaceObjectRef } from "../lib/objects";
+import { Alert, CrossNamespaceObjectRef, Kind } from "../lib/objects";
+import { V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
   filterConfig,
 } from "./DataTable";
+import { filterSeparator } from "./FilterDialog";
 import KubeStatusIndicator from "./KubeStatusIndicator";
+import Link from "./Link";
 type Props = {
   className?: string;
   rows?: Alert[];
+};
+
+const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
+  const url =
+    obj.kind === Kind.Kustomization || obj.kind === Kind.HelmRelease
+      ? V2Routes.Automations
+      : V2Routes.Sources;
+  let filters = "";
+  if (obj.name !== "*") filters += `name${filterSeparator}${obj.name}_`;
+  if (obj.kind !== "*") filters += `type${filterSeparator}${obj.kind}_`;
+  if (obj.namespace !== "*")
+    filters += `namespace${filterSeparator}${obj.namespace}_`;
+  if (filters) return url + `?${qs.stringify({ filters: filters })}`;
+  return url;
 };
 
 function AlertsTable({ className, rows = [] }: Props) {
@@ -49,10 +67,14 @@ function AlertsTable({ className, rows = [] }: Props) {
       value: (a) => {
         return (
           <ul className="event-sources">
-            {a?.eventSources?.map((obj: CrossNamespaceObjectRef) => (
-              <li className="event-sources" key={obj.name}>
+            {a?.eventSources?.map((obj: CrossNamespaceObjectRef, index) => (
+              <Link
+                className="event-sources"
+                key={index}
+                to={makeEventSourceLink(obj)}
+              >
                 {obj.kind}: {obj.namespace}/{obj.name}
-              </li>
+              </Link>
             ))}
           </ul>
         );
@@ -98,7 +120,7 @@ export default styled(AlertsTable).attrs({ className: AlertsTable.name })`
       padding-left: ${(props) => props.theme.spacing.small};
     }
   }
-  li {
+  ${Link} {
     &.event-sources {
       display: block;
     }
