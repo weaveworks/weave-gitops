@@ -38,6 +38,7 @@ jobs:
         run: |
           sed -i 's/^FLUX_VERSION=.*/FLUX_VERSION=${{ needs.has-new-flux.outputs.version }}/' Makefile
           go get -u github.com/fluxcd/flux2
+          go mod tidy
           # Extract e.g. 0.34 from 0.34.5
           series="$(echo ${{ needs.has-new-flux.outputs.version }} | awk 'BEGIN{FS=OFS="."} NF--')"
           if ! grep -qe "^\* $series$" website/docs/installation.mdx; then
