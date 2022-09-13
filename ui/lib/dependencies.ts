@@ -77,14 +77,8 @@ export function getGraphNodes(
   let graphNodes: FluxObjectNode[] = [];
 
   const visitedNodes = new Map<string, boolean>();
-
-  let nodesToExplore: FluxObjectNode[] = [currentNode].concat(
-    getNeighborNodes(nodes, currentNode)
-  );
-
-  if (nodesToExplore.length === 1) {
-    return [];
-  }
+  visitedNodes[currentNode.id] = true;
+  let nodesToExplore: FluxObjectNode[] = [currentNode];
 
   while (nodesToExplore.length > 0) {
     const node = nodesToExplore.shift();
@@ -102,10 +96,9 @@ export function getGraphNodes(
     graphNodes = graphNodes.concat(node);
   }
 
-  // Remove duplicates from graphNodes.
-  graphNodes = graphNodes.filter(
-    (node, index) => graphNodes.indexOf(node) === index
-  );
+  if (graphNodes.length === 1) {
+    return [];
+  }
 
   return graphNodes;
 }
