@@ -30,8 +30,9 @@ const (
 	dashboardName    = "ww-gitops"
 	dashboardPodName = "ww-gitops-weave-gitops"
 	adminUsername    = "admin"
-	helmChartVersion = "3.0.0"
 )
+
+var HelmChartVersion = "3.0.0"
 
 type RunCommandFlags struct {
 	FluxVersion     string
@@ -292,7 +293,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 					return err
 				}
 
-				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, helmChartVersion)
+				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
 				if err != nil {
 					return fmt.Errorf("error creating dashboard objects: %w", err)
 				}

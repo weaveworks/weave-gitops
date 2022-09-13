@@ -8,6 +8,7 @@ BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=0.34.0
+CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
 DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290
 
 # Go build args
@@ -22,7 +23,8 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/core/server.GitCommit=$(GIT_COMMIT) \
-				 -X github.com/weaveworks/weave-gitops/core/server.Version=$(VERSION)
+				 -X github.com/weaveworks/weave-gitops/core/server.Version=$(VERSION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/beta/run.HelmChartVersion=$(CHART_VERSION)
 
 # Docker args
 # LDFLAGS is passed so we don't have to copy the entire .git directory into the image
