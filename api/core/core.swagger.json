@@ -776,7 +776,9 @@
         "KindKustomization",
         "KindHelmRelease",
         "KindCluster",
-        "KindOCIRepository"
+        "KindOCIRepository",
+        "KindProvider",
+        "KindAlert"
       ],
       "default": "KindGitRepository"
     },

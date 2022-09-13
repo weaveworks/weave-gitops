@@ -19,6 +19,8 @@ enum FluxObjectKind {
     KindHelmRelease    = 5;
     KindCluster        = 6;
     KindOCIRepository  = 7;
+    KindProvider       = 8;
+    KindAlert          = 9;
 };
 
 enum HelmRepositoryType {
