@@ -18,14 +18,13 @@ type Props = {
   rows?: Alert[];
 };
 
-const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
+export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
   const url =
     obj.kind === Kind.Kustomization || obj.kind === Kind.HelmRelease
       ? V2Routes.Automations
       : V2Routes.Sources;
   let filters = "";
   if (obj.name !== "*") filters += `name${filterSeparator}${obj.name}_`;
-  if (obj.kind !== "*") filters += `type${filterSeparator}${obj.kind}_`;
   if (obj.namespace !== "*")
     filters += `namespace${filterSeparator}${obj.namespace}_`;
   if (filters) return url + `?${qs.stringify({ filters: filters })}`;
@@ -67,15 +66,24 @@ function AlertsTable({ className, rows = [] }: Props) {
       value: (a) => {
         return (
           <ul className="event-sources">
-            {a?.eventSources?.map((obj: CrossNamespaceObjectRef, index) => (
-              <Link
-                className="event-sources"
-                key={index}
-                to={makeEventSourceLink(obj)}
-              >
-                {obj.kind}: {obj.namespace}/{obj.name}
-              </Link>
-            ))}
+            {a?.eventSources?.map((obj: CrossNamespaceObjectRef, index) => {
+              if (obj.name && obj.namespace && obj.kind)
+                return (
+                  <Link
+                    className="event-sources"
+                    key={index}
+                    to={makeEventSourceLink(obj)}
+                  >
+                    {obj.kind}: {obj.namespace}/{obj.name}
+                  </Link>
+                );
+              else
+                return (
+                  <li className="event-sources" key={index}>
+                    {obj.kind}: {obj.namespace}/{obj.name}
+                  </li>
+                );
+            })}
           </ul>
         );
       },
@@ -120,7 +128,7 @@ export default styled(AlertsTable).attrs({ className: AlertsTable.name })`
       padding-left: ${(props) => props.theme.spacing.small};
     }
   }
-  ${Link} {
+  ${Link}, li {
     &.event-sources {
       display: block;
     }
