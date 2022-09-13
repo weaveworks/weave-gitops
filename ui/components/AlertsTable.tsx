@@ -34,6 +34,7 @@ function AlertsTable({ className, rows = [] }: Props) {
     {
       label: "Name",
       value: "name",
+      textSearchable: true,
     },
     {
       label: "Namespace",
