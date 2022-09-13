@@ -7,15 +7,15 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
-	github.com/fluxcd/flux2 v0.33.0
+	github.com/fluxcd/flux2 v0.34.0
 	github.com/fluxcd/go-git-providers v0.8.0
-	github.com/fluxcd/helm-controller/api v0.23.1
-	github.com/fluxcd/kustomize-controller/api v0.27.1
-	github.com/fluxcd/notification-controller/api v0.25.2
+	github.com/fluxcd/helm-controller/api v0.24.0
+	github.com/fluxcd/kustomize-controller/api v0.28.0
+	github.com/fluxcd/notification-controller/api v0.26.0
 	github.com/fluxcd/pkg/apis/meta v0.15.0
-	github.com/fluxcd/pkg/runtime v0.17.0
-	github.com/fluxcd/pkg/ssa v0.18.0
-	github.com/fluxcd/source-controller/api v0.28.0
+	github.com/fluxcd/pkg/runtime v0.18.0
+	github.com/fluxcd/pkg/ssa v0.19.0
+	github.com/fluxcd/source-controller/api v0.29.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.2.3
@@ -57,7 +57,7 @@ require (
 	k8s.io/cli-runtime v0.25.0
 	k8s.io/client-go v0.25.0
 	sigs.k8s.io/cli-utils v0.33.0
-	sigs.k8s.io/controller-runtime v0.11.2
+	sigs.k8s.io/controller-runtime v0.12.3
 	sigs.k8s.io/kustomize/api v0.12.1
 	sigs.k8s.io/kustomize/kstatus v0.0.2
 	sigs.k8s.io/yaml v1.3.0
@@ -66,7 +66,7 @@ require (
 require (
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
-	github.com/aws/aws-sdk-go v1.44.53 // indirect
+	github.com/aws/aws-sdk-go v1.44.84 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/elazarl/goproxy v0.0.0-20220529153421-8ea89ba92021 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
-	github.com/fluxcd/pkg/kustomize v0.6.0 // indirect
+	github.com/fluxcd/pkg/kustomize v0.7.0 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
