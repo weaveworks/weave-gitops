@@ -10,8 +10,11 @@ import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./DataTable";
+import Flex, { MessageFlex } from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
+import Spacer from "./Spacer";
+import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -92,6 +95,34 @@ function NotificationsTable({ className, rows }: Props) {
       ? [{ label: "Tenant", value: "tenant" }]
       : []),
   ];
+
+  rows = [];
+
+  if (!rows.length)
+    return (
+      <Flex wide tall column align>
+        <Spacer padding="xxl" />
+        <MessageFlex column align={false}>
+          <Text size="large" semiBold>
+            No notifications are currently configured
+          </Text>
+          <Spacer padding="medium" />
+          <Text>
+            Set up notifications to alert on changes via multiple different
+            platforms such as Slack, Azure Event Hub, Grafana, OpsGenie and many
+            more!
+          </Text>
+          <Spacer padding="xs" />
+          <Text>
+            To learn more about how to set up notifications,
+            <Link href="https://fluxcd.io/flux/guides/notifications/" newTab>
+              {" "}
+              visit our documentation
+            </Link>
+          </Text>
+        </MessageFlex>
+      </Flex>
+    );
 
   return (
     <DataTable
