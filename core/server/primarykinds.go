@@ -31,6 +31,7 @@ func DefaultPrimaryKinds() *PrimaryKinds {
 	kinds.kinds[sourcev1.BucketKind] = sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
 	kinds.kinds[sourcev1.OCIRepositoryKind] = sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
 	kinds.kinds[notificationv1.ProviderKind] = notificationv1.GroupVersion.WithKind(notificationv1.ProviderKind)
+	kinds.kinds[notificationv1.AlertKind] = notificationv1.GroupVersion.WithKind(notificationv1.AlertKind)
 
 	return kinds
 }

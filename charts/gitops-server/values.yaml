@@ -93,9 +93,6 @@ securityContext: {}
 # runAsNonRoot: true
 # runAsUser: 1000
 
-# -- If set to true, OCI repositories will be included in the source view.
-# This requires flux 0.32 or later.
-listOCIRepositories: false
 service:
   create: true
   type: ClusterIP

@@ -28,6 +28,7 @@ export const getParentNavValue = (
       return V2Routes.FluxRuntime;
 
     case V2Routes.Notifications:
+    case V2Routes.Provider:
       return V2Routes.Notifications;
 
     default:

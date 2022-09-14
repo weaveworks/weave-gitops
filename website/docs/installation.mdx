@@ -18,16 +18,17 @@ This version of Weave GitOps is tested against the following Kubernetes releases
 * 1.22
 * 1.23
 * 1.24
+* 1.25
 
 Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
 
 #### Install Flux
-Weave GitOps is an extension to Flux and therefore requires that Flux 0.31 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.32 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
 This version of Weave GitOps is tested against the following Flux releases:
-* 0.31
 * 0.32
 * 0.33
+* 0.34
 
 ### Install the Helm Chart
 
@@ -52,7 +53,6 @@ spec:
       create: true
       username: <UPDATE>
       passwordHash: <UPDATE>
-    listOCIRepositories: true # Display OCI Repositories, requires flux 0.32
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository

@@ -6,6 +6,7 @@ import {
   GitRepositoryRef,
   Interval,
   Object as ResponseObject,
+  ObjectRef,
 } from "./api/core/types.pb";
 import { addKind } from "./utils";
 
@@ -18,6 +19,7 @@ export enum Kind {
   HelmRelease = "HelmRelease",
   OCIRepository = "OCIRepository",
   Provider = "Provider",
+  Alert = "Alert",
 }
 
 export type Source =
@@ -29,6 +31,11 @@ export type Source =
 
 export function fluxObjectKindToKind(fok: FluxObjectKind): Kind {
   return Kind[FluxObjectKind[fok].slice(4)];
+}
+
+export interface CrossNamespaceObjectRef extends ObjectRef {
+  apiVersion: string;
+  matchLabels: { key: string; value: string }[];
 }
 
 export class FluxObject {
@@ -197,5 +204,17 @@ export class Provider extends FluxObject {
   }
   get channel(): string {
     return this.obj.spec.channel || "";
+  }
+}
+
+export class Alert extends FluxObject {
+  get providerRef(): string {
+    return this.obj.spec.providerRef.name || "";
+  }
+  get severity(): string {
+    return this.obj.spec.eventSeverity || "";
+  }
+  get eventSources(): CrossNamespaceObjectRef[] {
+    return this.obj.spec.eventSources || [];
   }
 }

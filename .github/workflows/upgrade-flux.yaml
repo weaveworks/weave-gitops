@@ -1,0 +1,59 @@
+name: Upgrade flux
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * *"
+
+jobs:
+  has-new-flux:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set new version if different
+        id: version
+        run: |
+          old_version="$(grep '^FLUX_VERSION=' Makefile | cut -d'=' -f2)"
+          new_version="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
+
+          if [[ "$old_version" != "$new_version" ]]; then
+              echo "::set-output name=version::$new_version"
+          fi
+  upgrade-flux:
+    needs:
+      - has-new-flux
+    runs-on: ubuntu-latest
+    if: needs.has-new-flux.outputs.version
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.X
+      - name: Upgrade flux
+        run: |
+          sed -i 's/^FLUX_VERSION=.*/FLUX_VERSION=${{ needs.has-new-flux.outputs.version }}/' Makefile
+          go get -u github.com/fluxcd/flux2
+          go mod tidy
+          # Extract e.g. 0.34 from 0.34.5
+          series="$(echo ${{ needs.has-new-flux.outputs.version }} | awk 'BEGIN{FS=OFS="."} NF--')"
+          if ! grep -qe "^\* $series$" website/docs/installation.mdx; then
+            sed -i -e "/Flux releases:$/,/^$/ s/^$/* $series\n/" website/docs/installation.mdx
+          fi
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          author: weave-gitops-bot <weave-gitops-bot@weave.works>
+          signoff: true
+          committer: weave-gitops-bot <weave-gitops-bot@weave.works>
+          branch: upgrade-flux
+          base: main
+          title: "Upgrade flux to ${{ needs.has-new-flux.outputs.version }}"
+          token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+          body: |
+            Upgrade the flux version used by gitops run, the package
+            dependencies, and the supported flux version in the manual.

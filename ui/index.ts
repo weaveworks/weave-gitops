@@ -23,8 +23,10 @@ import KustomizationDetail from "./components/KustomizationDetail";
 import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
 import Metadata from "./components/Metadata";
+import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
+import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
@@ -74,7 +76,6 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-
 export {
   AppContextProvider,
   applicationsClient,
@@ -150,4 +151,6 @@ export {
   YamlView,
   ReconciledObjectsTable,
   ReconciliationGraph,
+  NotificationsTable,
+  ProviderDetail,
 };
