@@ -112,9 +112,8 @@ function NotificationsTable({ className, rows }: Props) {
           </Text>
           <Spacer padding="xs" />
           <Text>
-            To learn more about how to set up notifications,
+            To learn more about how to set up notifications,&nbsp;
             <Link href="https://fluxcd.io/flux/guides/notifications/" newTab>
-              {" "}
               visit our documentation
             </Link>
           </Text>
