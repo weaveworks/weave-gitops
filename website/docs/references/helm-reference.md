@@ -5,14 +5,14 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 3.0.3 which installs weave gitops v0.9.4.
+This reference was generated for the chart version 4.0.1 which installs weave gitops v0.9.4.
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | adminUser.create | bool | `false` | Whether the local admin user should be created. If you use this make sure you add it to `rbac.impersonationResourceNames`. |
-| adminUser.createClusterRole | bool | `true` | Specifies whether the clusterRole & binding to the admin user should be created. Will be created only if `adminUser.create` is enabled. Without this, the adminUser will only be able to see resources in the `flux-system` namespace. |
+| adminUser.createClusterRole | bool | `true` | Specifies whether the clusterRole & binding to the admin user should be created. Will be created only if `adminUser.create` is enabled. Without this, the adminUser will only be able to see resources in the target namespace. |
 | adminUser.createSecret | bool | `true` | Whether we should create the secret for the local adminUser. Will be created only if `adminUser.create` is enabled. Without this, we'll still set up the roles and permissions, but the secret with username and password has to be provided separately. |
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
 | adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
@@ -31,7 +31,6 @@ This reference was generated for the chart version 3.0.3 which installs weave gi
 | ingress.enabled | bool | `false` |  |
 | ingress.hosts | string | `nil` |  |
 | ingress.tls | list | `[]` |  |
-| listOCIRepositories | bool | `false` | If set to true, OCI repositories will be included in the source view. This requires flux 0.32 or later. |
 | logLevel | string | `"info"` | What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error' |
 | metrics.enabled | bool | `false` | Start the metrics exporter |
 | metrics.service.annotations | object | `{"prometheus.io/path":"/metrics","prometheus.io/port":"{{ .Values.metrics.service.port }}","prometheus.io/scrape":"true"}` | Annotations to set on the service |
