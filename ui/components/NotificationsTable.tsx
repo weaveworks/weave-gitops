@@ -96,8 +96,6 @@ function NotificationsTable({ className, rows }: Props) {
       : []),
   ];
 
-  rows = [];
-
   if (!rows.length)
     return (
       <Flex wide tall column align>
