@@ -27,6 +27,7 @@ export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
   if (obj.name !== "*") filters += `name${filterSeparator}${obj.name}_`;
   if (obj.namespace !== "*")
     filters += `namespace${filterSeparator}${obj.namespace}_`;
+  filters += `type${filterSeparator}${obj.kind}_`;
   if (filters) return url + `?${qs.stringify({ filters: filters })}`;
   return url;
 };
