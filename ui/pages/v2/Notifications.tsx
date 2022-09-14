@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { MessageFlex } from "../../components/Flex";
 import NotificationsTable from "../../components/NotificationsTable";
 import Page from "../../components/Page";
 import { useListProviders } from "../../hooks/notifications";
@@ -17,7 +18,11 @@ function Notifications({ className }: Props) {
       loading={isLoading}
       error={data?.errors || error}
     >
-      <NotificationsTable rows={data?.objects} />
+      {data?.objects === [] ? (
+        <MessageFlex></MessageFlex>
+      ) : (
+        <NotificationsTable rows={data?.objects} />
+      )}
     </Page>
   );
 }
