@@ -66,22 +66,19 @@ function AlertsTable({ className, rows = [] }: Props) {
         return (
           <ul className="event-sources">
             {a?.eventSources?.map((obj: CrossNamespaceObjectRef, index) => {
-              if (obj.name && obj.namespace && obj.kind)
-                return (
-                  <Link
-                    className="event-sources"
-                    key={index}
-                    to={makeEventSourceLink(obj)}
-                  >
-                    {obj.kind}: {obj.namespace}/{obj.name}
-                  </Link>
-                );
-              else
-                return (
-                  <li className="event-sources" key={index}>
-                    {obj.kind}: {obj.namespace}/{obj.name}
-                  </li>
-                );
+              obj.name && obj.namespace && obj.kind ? (
+                <Link
+                  className="event-sources"
+                  key={index}
+                  to={makeEventSourceLink(obj)}
+                >
+                  {obj.kind}: {obj.namespace}/{obj.name}
+                </Link>
+              ) : (
+                <li className="event-sources" key={index}>
+                  {obj.kind}: {obj.namespace}/{obj.name}
+                </li>
+              );
             })}
           </ul>
         );
