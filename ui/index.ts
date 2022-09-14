@@ -6,6 +6,8 @@ import DataTable, {
   filterByTypeCallback,
   filterConfig,
 } from "./components/DataTable";
+import DagGraph from "./components/DagGraph";
+import DependenciesView from "./components/DependenciesView";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
@@ -92,6 +94,8 @@ export {
   coreClient,
   CoreClientContextProvider,
   DataTable,
+  DagGraph,
+  DependenciesView,
   EventsTable,
   Flex,
   filterByStatusCallback,
@@ -124,10 +128,14 @@ export {
   LoadingPage,
   Metadata,
   muiTheme,
+  NotificationsTable,
   OAuthCallback,
   OCIRepository,
   OCIRepositoryDetail,
   Page,
+  ProviderDetail,
+  ReconciledObjectsTable,
+  ReconciliationGraph,
   RepoInputWithAuth,
   RouterTab,
   SignIn,
@@ -149,8 +157,4 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
-  ReconciledObjectsTable,
-  ReconciliationGraph,
-  NotificationsTable,
-  ProviderDetail,
 };

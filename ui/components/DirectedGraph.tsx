@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import GraphNode from "./GraphNode";
 
-type nodeSize = {
+type NodeSize = {
   width: number;
   height: number;
   verticalSeparation: number;
@@ -14,7 +14,7 @@ type Props = {
   className?: string;
   descendants: any[];
   links: any[];
-  nodeSize: nodeSize;
+  nodeSize: NodeSize;
   zoomPercent: number;
   pan: { x: number; y: number };
 };

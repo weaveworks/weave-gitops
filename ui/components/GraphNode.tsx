@@ -3,12 +3,17 @@ import * as React from "react";
 import styled from "styled-components";
 import { UnstructuredObjectWithChildren } from "../lib/graph";
 import images from "../lib/images";
+import { FluxObjectNode } from "../lib/objects";
 import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
 
+type DirectedGraphNode = UnstructuredObjectWithChildren & { kind: string } & {
+  isCurrentNode?: boolean;
+};
+
 type Props = {
   className?: string;
-  object?: UnstructuredObjectWithChildren & { kind: string };
+  object?: FluxObjectNode | DirectedGraphNode;
 };
 
 const nodeBorderRadius = 30;
@@ -81,8 +86,16 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
       return "";
   }
 }
+
+const StyledObjectName = styled.span<{ isCurrentNode: boolean }>`
+  font-weight: ${(p) => p.isCurrentNode && "600"};
+`;
+
 function GraphNode({ className, object }: Props) {
   const status = computeReady(object.conditions);
+
+  const directedGraphNode = object as DirectedGraphNode;
+
   return (
     <Node wide tall between className={className}>
       <StatusLine suspended={object.suspended} status={status} />
@@ -94,11 +107,16 @@ function GraphNode({ className, object }: Props) {
             placement="top"
             title={object.name.length > 23 ? object.name : ""}
           >
-            <span>{object.name}</span>
+            <StyledObjectName isCurrentNode={object.isCurrentNode}>
+              {object.name}
+            </StyledObjectName>
           </Tooltip>
         </Title>
         <Kinds start wide align>
-          {object.kind || object.groupVersionKind.kind || ""}
+          {(object as FluxObjectNode).displayKind ||
+            directedGraphNode.kind ||
+            directedGraphNode.groupVersionKind.kind ||
+            ""}
         </Kinds>
         <Kinds start wide align>
           <span>{object.namespace}</span>

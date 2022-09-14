@@ -6,7 +6,11 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import { removeKind, statusSortHelper } from "../lib/utils";
+import {
+  removeKind,
+  statusSortHelper,
+  getSourceRefForAutomation,
+} from "../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
@@ -98,9 +102,10 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         let sourceNamespace: string;
 
         if (a.kind === FluxObjectKind.KindKustomization) {
-          sourceKind = a.sourceRef?.kind;
-          sourceName = a.sourceRef?.name;
-          sourceNamespace = a.sourceRef?.namespace;
+          const sourceRef = getSourceRefForAutomation(a);
+          sourceKind = sourceRef?.kind;
+          sourceName = sourceRef?.name;
+          sourceNamespace = sourceRef?.namespace;
         } else {
           const hr = a as HelmRelease;
           sourceKind = FluxObjectKind.KindHelmChart;
@@ -120,7 +125,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           />
         );
       },
-      sortValue: (a: Automation) => a.sourceRef?.name,
+      sortValue: (a: Automation) => getSourceRefForAutomation(a)?.name,
     },
     {
       label: "Status",

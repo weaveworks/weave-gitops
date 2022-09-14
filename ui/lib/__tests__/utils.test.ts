@@ -11,7 +11,15 @@ import {
   pageTitleWithAppName,
   removeKind,
   statusSortHelper,
+  getSourceRefForAutomation,
 } from "../utils";
+import { Automation } from "../../hooks/automations";
+import {
+  FluxObjectKind,
+  FluxObjectRef,
+  HelmRelease,
+  Kustomization,
+} from "../api/core/types.pb";
 
 describe("utils lib", () => {
   describe("gitlabOAuthRedirectURI", () => {
@@ -307,6 +315,43 @@ describe("utils lib", () => {
           "fakeimage.itisfake.donotdoit.io/fake/fake/fake.com.net.org"
         )
       ).toEqual(false);
+    });
+  });
+  describe("getSourceRefForAutomation", () => {
+    it("should return sourceRef for kustomization", () => {
+      const objectRef: FluxObjectRef = {};
+
+      const kustomization: Kustomization = {
+        sourceRef: objectRef,
+      };
+
+      const automation: Automation = {
+        ...kustomization,
+        kind: FluxObjectKind.KindKustomization,
+      };
+
+      expect(getSourceRefForAutomation(automation)).toBe(objectRef);
+    });
+    it("should return sourceRef for helmrelease", () => {
+      const objectRef: FluxObjectRef = {};
+
+      const helmRelease: HelmRelease = {
+        helmChart: {
+          sourceRef: objectRef,
+        },
+      };
+
+      const automation: Automation = {
+        ...helmRelease,
+        kind: FluxObjectKind.KindHelmRelease,
+      };
+
+      expect(getSourceRefForAutomation(automation)).toBe(objectRef);
+    });
+    it("should return undefined if automation is undefined", () => {
+      let automation: Automation;
+
+      expect(getSourceRefForAutomation(automation)).toBeUndefined();
     });
   });
 });

@@ -231,3 +231,98 @@ func TestListObjectMultiple(t *testing.T) {
 	g.Expect(res.Objects[0].Payload).To(ContainSubstring("helm-name"))
 	g.Expect(res.Objects[1].Payload).To(ContainSubstring("helm-name"))
 }
+
+func TestListObjectSingleWithClusterName(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "Neil",
+			},
+		},
+	}
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kust-name",
+			Namespace: ns.Name,
+			UID:       "not a real uid",
+		},
+		Spec: kustomizev1.KustomizationSpec{},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
+		Namespace:   ns.Name,
+		Kind:        kustomizev1.KustomizationKind,
+		ClusterName: "Default",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Errors).To(BeEmpty())
+	g.Expect(res.Objects).To(HaveLen(1))
+	g.Expect(res.Objects[0].ClusterName).To(Equal("Default"))
+	g.Expect(res.Objects[0].Payload).To(ContainSubstring("kust-name"))
+	g.Expect(res.Objects[0].Uid).To(Equal("not a real uid"))
+	g.Expect(res.Objects[0].Tenant).To(Equal("Neil"))
+}
+
+func TestListObjectMultipleWithClusterName(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "kust-name",
+			Namespace: ns.Name,
+		},
+		Spec: kustomizev1.KustomizationSpec{},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{},
+	}
+	helm2 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "second-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm1, helm2).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
+		Namespace:   ns.Name,
+		Kind:        helmv2.HelmReleaseKind,
+		ClusterName: "Default",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Errors).To(BeEmpty())
+	g.Expect(res.Objects).To(HaveLen(2))
+	g.Expect(res.Objects[0].ClusterName).To(Equal("Default"))
+	g.Expect(res.Objects[0].Payload).To(ContainSubstring("helm-name"))
+	g.Expect(res.Objects[1].Payload).To(ContainSubstring("helm-name"))
+}

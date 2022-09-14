@@ -38,6 +38,15 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 
 	version, _ := kustomization.GroupVersionKind().ToAPIVersionAndKind()
 
+	dependsOn := []*pb.NamespacedObjectReference{}
+
+	for _, v := range kustomization.Spec.DependsOn {
+		dependsOn = append(dependsOn, &pb.NamespacedObjectReference{
+			Name:      v.Name,
+			Namespace: v.Namespace,
+		})
+	}
+
 	return &pb.Kustomization{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
@@ -57,6 +66,7 @@ func KustomizationToProto(kustomization *kustomizev1.Kustomization, clusterName 
 		ApiVersion:            version,
 		Tenant:                tenant,
 		Uid:                   string(kustomization.GetUID()),
+		DependsOn:             dependsOn,
 	}, nil
 }
 

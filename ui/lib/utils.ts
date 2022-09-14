@@ -1,7 +1,14 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
+import { Automation } from "../hooks/automations";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
-import { Condition, HelmRelease, Kustomization } from "./api/core/types.pb";
+import {
+  Condition,
+  FluxObjectKind,
+  FluxObjectRef,
+  HelmRelease,
+  Kustomization,
+} from "./api/core/types.pb";
 import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
@@ -161,3 +168,13 @@ export const convertImage = (image: string) => {
   //one slash docker images w/o docker.io
   return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
+
+// getSourceRefForAutomation returns the automation's sourceRef
+// depending on whether the automation is a Kustomization or a HelmRelease.
+export function getSourceRefForAutomation(
+  automation?: Automation
+): FluxObjectRef | undefined {
+  return automation?.kind === FluxObjectKind.KindKustomization
+    ? (automation as Kustomization)?.sourceRef
+    : (automation as HelmRelease)?.helmChart?.sourceRef;
+}
