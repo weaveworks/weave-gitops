@@ -21,7 +21,7 @@ import {
   Kustomization,
 } from "../api/core/types.pb";
 
-describe("utils", () => {
+describe("utils lib", () => {
   describe("gitlabOAuthRedirectURI", () => {
     let windowSpy;
 

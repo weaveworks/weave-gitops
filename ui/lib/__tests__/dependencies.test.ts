@@ -1,9 +1,9 @@
 import { getNeighborNodes, getGraphNodes } from "../dependencies";
-import { makeObjectId } from "../objects";
 import {
   FluxObjectNode,
   FluxObjectNodesMap,
   Kustomization as FluxObjectKustomization,
+  makeObjectId,
 } from "../objects";
 
 describe("dependencies", () => {
@@ -121,8 +121,8 @@ describe("dependencies", () => {
       const neighborNodes = getNeighborNodes(nodesMap, node);
 
       expect(neighborNodes.length).toEqual(2);
-      expect(neighborNodes[0]).toBe(nodesMap[1]);
-      expect(neighborNodes[1]).toBe(nodesMap[4]);
+      expect(neighborNodes[0]).toBe(nodes[1]);
+      expect(neighborNodes[1]).toBe(nodes[4]);
     });
   });
   describe("getGraphNodes", () => {

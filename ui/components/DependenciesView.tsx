@@ -8,71 +8,30 @@ import {
   FluxObjectNodesMap,
 } from "../lib/objects";
 import { getGraphNodes } from "../lib/dependencies";
-import Flex from "./Flex";
 import DagGraph from "./DagGraph";
+import Flex, { MessageFlex } from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
+import Text from "./Text";
 
-type MessageProps = {
-  className?: string;
-};
-
-function UnstyledMessage({ className }: MessageProps) {
-  return (
-    <Flex className={className} wide tall center>
-      <Flex column align shadow>
-        <h2>No Dependencies</h2>
-
-        <div>
-          There are no dependencies set up for your kustomizations or helm
-          releases at this time. You can set them up using the dependsOn field
-          on the kustomization or helm release object.
-        </div>
-
-        <h2>What are dependencies for?</h2>
-
-        <div>
-          Dependencies allow you to relate different kustomizations and helm
-          releases, as well as specifying an order in which your resources
-          should be started. For example, you can wait for a database to report
-          as 'Ready' before attempting to deploy other services.
-        </div>
-      </Flex>
-    </Flex>
-  );
-}
-
-const Message = styled(UnstyledMessage)`
+const NoDependenciesMessage = styled(MessageFlex)`
   & {
-    ${Flex} {
-      box-sizing: border-box;
-      width: 560px;
-      padding-top: ${(props) => props.theme.spacing.medium};
-      padding-right: ${(props) => props.theme.spacing.xl};
-      padding-bottom: ${(props) => props.theme.spacing.xxl};
-      padding-left: ${(props) => props.theme.spacing.xl};
-      margin-top: ${(props) => props.theme.spacing.xxl};
-      margin-bottom: ${(props) => props.theme.spacing.xxl};
-      border-radius: 10px;
-      background-color: #ffffffd9;
-      color: ${(props) => props.theme.colors.neutral30};
+    margin-top: ${({ theme }) => theme.spacing.xxl};
+    margin-bottom: ${({ theme }) => theme.spacing.xxl};
 
-      h2 {
-        margin-top: 0;
-        margin-bottom: 0;
-        font-size: ${(props) => props.theme.fontSizes.large};
-        font-weight: 600;
+    h2 {
+      margin-top: 0;
+      margin-bottom: 0;
 
-        &:not(:first-child) {
-          margin-top: ${(props) => props.theme.spacing.medium};
-        }
+      &:not(:first-child) {
+        margin-top: ${({ theme }) => theme.spacing.medium};
       }
+    }
 
-      div {
-        margin-top: ${(props) => props.theme.spacing.medium};
-        font-size: 16px;
-        font-weight: 400;
-        line-height: 20px;
-      }
+    p {
+      margin-top: ${({ theme }) => theme.spacing.medium};
+      margin-bottom: 0;
+      font-size: 16px;
+      line-height: 20px;
     }
   }
 `;
@@ -134,16 +93,35 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
 
   const shouldShowGraph = !!graphNodes && graphNodes.length > 0;
 
+  const Heading = Text.withComponent("h2");
+  const Paragraph = Text.withComponent("p");
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
-      {!isLoading && (
-        <>
-          {shouldShowGraph ? (
-            <DagGraph className={className} nodes={graphNodes} />
-          ) : (
-            <Message />
-          )}
-        </>
+      {shouldShowGraph ? (
+        <DagGraph className={className} nodes={graphNodes} />
+      ) : (
+        <Flex className={className} wide tall center>
+          <NoDependenciesMessage>
+            <Heading semiBold size="large">
+              No Dependencies
+            </Heading>
+            <Paragraph>
+              There are no dependencies set up for your kustomizations or helm
+              releases at this time. You can set them up using the dependsOn
+              field on the kustomization or helm release object.
+            </Paragraph>
+            <Heading semiBold size="large">
+              What are dependencies for?
+            </Heading>
+            <Paragraph>
+              Dependencies allow you to relate different kustomizations and helm
+              releases, as well as specifying an order in which your resources
+              should be started. For example, you can wait for a database to
+              report as 'Ready' before attempting to deploy other services.
+            </Paragraph>
+          </NoDependenciesMessage>
+        </Flex>
       )}
     </RequestStateHandler>
   );

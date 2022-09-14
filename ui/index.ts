@@ -128,6 +128,7 @@ export {
   LoadingPage,
   Metadata,
   muiTheme,
+  NotificationsTable,
   OAuthCallback,
   OCIRepository,
   OCIRepositoryDetail,

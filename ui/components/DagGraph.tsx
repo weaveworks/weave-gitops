@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Slider } from "@material-ui/core";
 import { FluxObjectNode } from "../lib/objects";
 import Flex from "./Flex";
-import DagGraphNode from "./DagGraphNode";
+import GraphNode from "./GraphNode";
 import Spacer from "./Spacer";
 
 type NodeSize = {
@@ -80,7 +80,6 @@ function DagGraph({ className, nodes }: Props) {
   };
 
   const arrowHalfWidth = nodeSize.arrowWidth / 2;
-  const nodeHalfHeight = nodeSize.height / 2;
   const linkStrokeWidth = 5;
 
   //use d3 to create DAG structure
@@ -96,7 +95,8 @@ function DagGraph({ className, nodes }: Props) {
   const descendants = root.descendants();
   const links = root.links();
 
-  const offsetX = zoomBox / 2 - width / 2;
+  const graphOffsetX = zoomBox / 2 - width / 2;
+  const verticalSeparationHalf = nodeSize.verticalSeparation / 2;
 
   return (
     <Flex className={className} wide tall>
@@ -116,10 +116,9 @@ function DagGraph({ className, nodes }: Props) {
           } ${zoomBox} ${zoomBox}`}
           ref={svgRef}
         >
-          <g transform={`translate(${offsetX}, 50)`}>
+          <g transform={`translate(${graphOffsetX}, -175)`}>
             <g stroke="#7a7a7a" strokeWidth={linkStrokeWidth} fill="none">
               {_.map(links, (l, index) => {
-                const verticalHalf = (l.target.y - l.source.y) / 2;
                 // l is an object with a source and target node, each with an x and y value.
                 // M tells the path where to start,
                 // H draws a straight horizontal line (capital letter means absolute coordinates),
@@ -135,11 +134,10 @@ function DagGraph({ className, nodes }: Props) {
                     />
                     <path
                       d={`M${l.source.x}, ${
-                        l.source.y + nodeSize.verticalSeparation
+                        l.source.y + nodeSize.height + linkStrokeWidth * 2
                       }
-                      v${verticalHalf}
-                      H${l.target.x}
-                      v${verticalHalf - nodeHalfHeight}`}
+                      L${l.target.x}, ${l.target.y - verticalSeparationHalf}
+                      v${verticalSeparationHalf}`}
                     />
                   </g>
                 );
@@ -154,15 +152,12 @@ function DagGraph({ className, nodes }: Props) {
                     height={nodeSize.height}
                     key={index}
                     transform={`translate(${d.x - nodeSize.width / 2}, ${d.y})`}
-                    // fill="white"
+                    fill="white"
                     strokeWidth={2}
                     stroke={"#737373"}
                     overflow="visible"
                   >
-                    <DagGraphNode
-                      object={d.data}
-                      isCurrentNode={d.data.isCurrentNode}
-                    />
+                    <GraphNode object={d.data} />
                   </foreignObject>
                 );
               })}

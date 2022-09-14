@@ -17,8 +17,8 @@ type Props = {
 
 const Styled = (component) => styled(component)`
   display: flex;
-  flex-direction: ${(props) => (props.column ? "column" : "row")};
-  align-items: ${(props) => (props.align ? "center" : "start")};
+  flex-direction: ${({ column }) => (column ? "column" : "row")};
+  align-items: ${({ align }) => (align ? "center" : "start")};
   ${({ tall }) => tall && `height: 100%`};
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
@@ -43,5 +43,21 @@ class Flex extends React.PureComponent<Props> {
     );
   }
 }
+
+export const MessageFlex = styled(Styled(Flex))`
+  box-sizing: border-box;
+  width: 560px;
+  padding: ${({ theme }) => theme.spacing.medium}
+    ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.xxl};
+  border-radius: 10px;
+  background-color: #ffffffd9;
+  color: ${({ theme }) => theme.colors.neutral30};
+`;
+
+MessageFlex.defaultProps = {
+  shadow: true,
+  align: true,
+  column: true,
+};
 
 export default Styled(Flex);

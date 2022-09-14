@@ -69,6 +69,7 @@ function ReconciliationGraph({
     ...parentObject,
     kind: removeKind(automationKind),
     children: objects,
+    isCurrentNode: true,
   };
   const rootNode = {
     ...source,
