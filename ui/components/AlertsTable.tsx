@@ -23,13 +23,11 @@ export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
     obj.kind === Kind.Kustomization || obj.kind === Kind.HelmRelease
       ? V2Routes.Automations
       : V2Routes.Sources;
-  let filters = "";
+  let filters = `type${filterSeparator}${obj.kind}_`;
   if (obj.name !== "*") filters += `name${filterSeparator}${obj.name}_`;
   if (obj.namespace !== "*")
     filters += `namespace${filterSeparator}${obj.namespace}_`;
-  filters += `type${filterSeparator}${obj.kind}_`;
-  if (filters) return url + `?${qs.stringify({ filters: filters })}`;
-  return url;
+  return url + `?${qs.stringify({ filters: filters })}`;
 };
 
 function AlertsTable({ className, rows = [] }: Props) {
