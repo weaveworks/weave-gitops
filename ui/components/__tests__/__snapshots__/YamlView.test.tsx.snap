@@ -67,14 +67,15 @@ exports[`YamlView snapshots renders 1`] = `
 
 .c0 {
   margin-bottom: 12px;
-  width: calc(100% - 24px);
+  width: 100%;
   font-size: 12px;
   border: 1px solid #d8d8d8;
   border-radius: 8px;
-  overflow: scroll;
+  overflow: hidden;
 }
 
 .c0 pre {
+  overflow-y: scroll;
   padding: 12px;
   white-space: pre-wrap;
 }

@@ -58,6 +58,7 @@ jobs:
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
+          echo "CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml) >> $GITHUB_ENV
       - name: "Make All"
         run: make all
       - name: Check Git State

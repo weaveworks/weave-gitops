@@ -33,6 +33,7 @@ import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
+import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,10 @@ const App = () => (
         <Route
           path={V2Routes.Notifications}
           component={withSearchParams(Notifications)}
+        />
+        <Route
+          path={V2Routes.Provider}
+          component={withSearchParams(ProviderPage)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />

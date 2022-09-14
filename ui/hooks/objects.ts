@@ -4,6 +4,7 @@ import { CoreClientContext } from "../contexts/CoreClientContext";
 import { GetObjectResponse } from "../lib/api/core/core.pb";
 import { Object as ResponseObject } from "../lib/api/core/types.pb";
 import {
+  Alert,
   Bucket,
   FluxObject,
   GitRepository,
@@ -33,6 +34,9 @@ export function convertResponse(kind: Kind, response?: ResponseObject) {
   }
   if (kind === Kind.Provider) {
     return new Provider(response);
+  }
+  if (kind === Kind.Alert) {
+    return new Alert(response);
   }
 
   return new FluxObject(response);

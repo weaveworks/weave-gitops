@@ -69,12 +69,6 @@ spec:
               path: /
               port: http
           env:
-            - name: WEAVE_GITOPS_AUTH_ENABLED
-              value: "true"
-          {{- if .Values.listOCIRepositories }}
-            - name: WEAVE_GITOPS_FEATURE_OCI_REPOSITORIES
-              value: "true"
-          {{- end }}
           {{- if .Values.envVars }}
           {{- with .Values.envVars }}
             {{- toYaml . | nindent 12 }}
