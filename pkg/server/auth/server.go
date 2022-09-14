@@ -15,7 +15,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -117,13 +116,13 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	if cfg.authMethods[UserAccount] {
 		var secret corev1.Secret
-		err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
 			Namespace: cfg.namespace,
 			Name:      ClusterUserAuthSecretName,
 		}, &secret)
 
 		if err != nil {
-			return nil, fmt.Errorf("Could not get secret for cluster user, %w", err)
+			return nil, fmt.Errorf("could not get secret for cluster user, %w", err)
 		} else {
 			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
 		}
@@ -146,7 +145,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	}
 
 	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
-		return nil, fmt.Errorf("Neither OIDC auth or local auth enabled, can't start")
+		return nil, fmt.Errorf("neither OIDC auth or local auth enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil
@@ -392,14 +391,14 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			ui := UserInfo{
 				Email: claims.Subject,
 			}
-			toJson(rw, ui, s.Log)
+			toJSON(rw, ui, s.Log)
 
 			return
 		}
 
 		if !s.oidcEnabled() {
 			ui := UserInfo{}
-			toJson(rw, ui, s.Log)
+			toJSON(rw, ui, s.Log)
 
 			return
 		}
@@ -425,11 +424,11 @@ func (s *AuthServer) UserInfo() http.HandlerFunc {
 			Groups: userPrincipal.Groups,
 		}
 
-		toJson(rw, ui, s.Log)
+		toJSON(rw, ui, s.Log)
 	}
 }
 
-func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
+func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		JSONError(log, rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
@@ -442,25 +441,25 @@ func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	}
 }
 
-func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
+func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	nonce, err := generateNonce()
 	if err != nil {
-		JSONError(c.Log, rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
+		JSONError(s.Log, rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	returnUrl := r.URL.Query().Get("return_url")
+	returnURL := r.URL.Query().Get("return_url")
 
-	if returnUrl == "" {
-		returnUrl = r.URL.String()
+	if returnURL == "" {
+		returnURL = r.URL.String()
 	}
 
 	b, err := json.Marshal(SessionState{
 		Nonce:     nonce,
-		ReturnURL: returnUrl,
+		ReturnURL: returnURL,
 	})
 	if err != nil {
-		JSONError(c.Log, rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
+		JSONError(s.Log, rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -469,12 +468,12 @@ func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	var scopes []string
 	// "openid", "email" and "groups" scopes added by default
 	scopes = append(scopes, scopeProfile)
-	authCodeUrl := c.oauth2Config(scopes).AuthCodeURL(state)
+	authCodeURL := s.oauth2Config(scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, c.createCookie(StateCookieName, state))
+	http.SetCookie(rw, s.createCookie(StateCookieName, state))
 
-	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
+	http.Redirect(rw, r, authCodeURL, http.StatusSeeOther)
 }
 
 func (s *AuthServer) Logout() http.HandlerFunc {
@@ -492,12 +491,12 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 	}
 }
 
-func (c *AuthServer) createCookie(name, value string) *http.Cookie {
+func (s *AuthServer) createCookie(name, value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(c.config.TokenDuration),
+		Expires:  time.Now().UTC().Add(s.config.TokenDuration),
 		HttpOnly: true,
 		Secure:   false,
 	}
@@ -505,7 +504,7 @@ func (c *AuthServer) createCookie(name, value string) *http.Cookie {
 	return cookie
 }
 
-func (c *AuthServer) clearCookie(name string) *http.Cookie {
+func (s *AuthServer) clearCookie(name string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:    name,
 		Value:   "",

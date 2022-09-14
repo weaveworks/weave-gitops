@@ -24,7 +24,7 @@ import (
 
 const (
 	OctetStreamType = "application/octet-stream"
-	JsonType        = "application/json"
+	JSONType        = "application/json"
 )
 
 type ProfilesConfig struct {
@@ -193,7 +193,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	}
 
 	return &httpbody.HttpBody{
-		ContentType: JsonType,
+		ContentType: JSONType,
 		Data:        res,
 	}, nil
 }

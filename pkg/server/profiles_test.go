@@ -136,7 +136,7 @@ var _ = Describe("ProfilesServer", func() {
 					resp, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{ProfileName: profileName,
 						ProfileVersion: profileVersion, HelmRepoName: "test-name", HelmRepoNamespace: "test-namespace"})
 					Expect(err).NotTo(HaveOccurred())
-					Expect(resp.ContentType).To(Equal(server.JsonType))
+					Expect(resp.ContentType).To(Equal(server.JSONType))
 					valuesResp := &pb.GetProfileValuesResponse{}
 					err = json.Unmarshal(resp.Data, valuesResp)
 					Expect(err).NotTo(HaveOccurred())
@@ -159,7 +159,7 @@ var _ = Describe("ProfilesServer", func() {
 							ProfileVersion: profileVersion,
 						})
 						Expect(err).NotTo(HaveOccurred())
-						Expect(resp.ContentType).To(Equal(server.JsonType))
+						Expect(resp.ContentType).To(Equal(server.JSONType))
 						valuesResp := &pb.GetProfileValuesResponse{}
 						err = json.Unmarshal(resp.Data, valuesResp)
 						Expect(err).NotTo(HaveOccurred())

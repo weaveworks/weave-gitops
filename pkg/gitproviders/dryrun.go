@@ -26,31 +26,31 @@ func NewDryRun() (GitProvider, error) {
 	}, nil
 }
 
-func (p *dryrunProvider) RepositoryExists(_ context.Context, repoUrl RepoURL) (bool, error) {
+func (p *dryrunProvider) RepositoryExists(_ context.Context, repoURL RepoURL) (bool, error) {
 	return true, nil
 }
 
-func (p *dryrunProvider) DeployKeyExists(_ context.Context, repoUrl RepoURL) (bool, error) {
+func (p *dryrunProvider) DeployKeyExists(_ context.Context, repoURL RepoURL) (bool, error) {
 	return true, nil
 }
 
-func (p *dryrunProvider) GetDefaultBranch(_ context.Context, repoUrl RepoURL) (string, error) {
+func (p *dryrunProvider) GetDefaultBranch(_ context.Context, repoURL RepoURL) (string, error) {
 	return "<default-branch>", nil
 }
 
-func (p *dryrunProvider) GetRepoVisibility(_ context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error) {
+func (p *dryrunProvider) GetRepoVisibility(_ context.Context, repoURL RepoURL) (*gitprovider.RepositoryVisibility, error) {
 	return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil
 }
 
-func (p *dryrunProvider) UploadDeployKey(_ context.Context, repoUrl RepoURL, deployKey []byte) error {
+func (p *dryrunProvider) UploadDeployKey(_ context.Context, repoURL RepoURL, deployKey []byte) error {
 	return nil
 }
 
-func (p *dryrunProvider) CreatePullRequest(_ context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
+func (p *dryrunProvider) CreatePullRequest(_ context.Context, repoURL RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	return nil, nil
 }
 
-func (p *dryrunProvider) GetCommits(_ context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func (p *dryrunProvider) GetCommits(_ context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	return []gitprovider.Commit{}, nil
 }
 
@@ -58,10 +58,10 @@ func (p *dryrunProvider) GetProviderDomain() string {
 	return p.provider.GetProviderDomain()
 }
 
-func (p *dryrunProvider) GetRepoDirFiles(_ context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+func (p *dryrunProvider) GetRepoDirFiles(_ context.Context, repoURL RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
 	return nil, nil
 }
 
-func (p *dryrunProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error {
+func (p *dryrunProvider) MergePullRequest(ctx context.Context, repoURL RepoURL, pullRequestNumber int, commitMesage string) error {
 	return nil
 }

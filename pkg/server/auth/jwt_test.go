@@ -10,7 +10,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -96,10 +95,10 @@ func makeAuthenticatedRequest(token string) *http.Request {
 }
 
 func TestMultiAuth(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	err := errors.New("oops")
-	noAuthError := errors.New("Could not find valid principal")
+	noAuthError := errors.New("could not find valid principal")
 
 	multiAuthTests := []struct {
 		name  string

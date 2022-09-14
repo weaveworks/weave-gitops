@@ -41,17 +41,17 @@ func NewFactory(fluxClient flux.Flux, log logr.Logger) Factory {
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient *kube.KubeHTTP, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
+	configNormalizedURL, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
 	}
 
-	authSvc, err := f.getAuthService(kubeClient, configNormalizedUrl, gpClient, params.DryRun)
+	authSvc, err := f.getAuthService(kubeClient, configNormalizedURL, gpClient, params.DryRun)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting auth service: %w", err)
 	}
 
-	client, err := authSvc.CreateGitClient(ctx, configNormalizedUrl, params.Namespace, params.DryRun)
+	client, err := authSvc.CreateGitClient(ctx, configNormalizedURL, params.Namespace, params.DryRun)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -59,7 +59,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient *kube.Kub
 	return client, authSvc.GetGitProvider(), nil
 }
 
-func (f *defaultFactory) getAuthService(kubeClient *kube.KubeHTTP, normalizedUrl gitproviders.RepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
+func (f *defaultFactory) getAuthService(kubeClient *kube.KubeHTTP, normalizedURL gitproviders.RepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error
@@ -70,7 +70,7 @@ func (f *defaultFactory) getAuthService(kubeClient *kube.KubeHTTP, normalizedUrl
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = gpClient.GetProvider(normalizedUrl, gitproviders.GetAccountType); err != nil {
+		if gitProvider, err = gpClient.GetProvider(normalizedURL, gitproviders.GetAccountType); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}

@@ -20,7 +20,7 @@ import (
 
 var _ = Describe("auth", func() {
 	var (
-		configRepoUrl gitproviders.RepoURL
+		configRepoURL gitproviders.RepoURL
 		namespace     *corev1.Namespace
 		ctx           context.Context
 		secretName    names.GeneratedSecretName
@@ -30,10 +30,10 @@ var _ = Describe("auth", func() {
 	)
 
 	BeforeEach(func() {
-		repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
+		repoURLString := "ssh://git@github.com/my-org/my-repo.git"
 
 		var err error
-		configRepoUrl, err = gitproviders.NewRepoURL(repoUrlString)
+		configRepoURL, err = gitproviders.NewRepoURL(repoURLString)
 		Expect(err).NotTo(HaveOccurred())
 
 		namespace = &corev1.Namespace{}
@@ -41,7 +41,7 @@ var _ = Describe("auth", func() {
 		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 
 		ctx = context.Background()
-		secretName = names.CreateRepoSecretName(configRepoUrl)
+		secretName = names.CreateRepoSecretName(configRepoURL)
 		Expect(err).NotTo(HaveOccurred())
 		gp = gitprovidersfakes.FakeGitProvider{}
 		gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil)
@@ -55,7 +55,7 @@ var _ = Describe("auth", func() {
 	})
 
 	It("create and stores a deploy key if none exists", func() {
-		_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
+		_, err := as.CreateGitClient(ctx, configRepoURL, namespace.Name, false)
 		Expect(err).NotTo(HaveOccurred())
 		sn := auth.SecretName{Name: secretName, Namespace: namespace.Name}
 		secret := &corev1.Secret{}
@@ -66,7 +66,7 @@ var _ = Describe("auth", func() {
 	})
 
 	It("doesn't create a deploy key when dry-run is true", func() {
-		_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, true)
+		_, err := as.CreateGitClient(ctx, configRepoURL, namespace.Name, true)
 		Expect(err).NotTo(HaveOccurred())
 		sn := auth.SecretName{Name: secretName, Namespace: namespace.Name}
 		secret := &corev1.Secret{}
@@ -77,7 +77,7 @@ var _ = Describe("auth", func() {
 		var original int
 
 		BeforeEach(func() {
-			_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
+			_, err := as.CreateGitClient(ctx, configRepoURL, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			original = gp.UploadDeployKeyCallCount()
@@ -89,7 +89,7 @@ var _ = Describe("auth", func() {
 
 			gp.DeployKeyExistsReturns(true, nil)
 
-			_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
+			_, err := as.CreateGitClient(ctx, configRepoURL, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			// We should NOT have uploaded anything since the key already exists
@@ -101,7 +101,7 @@ var _ = Describe("auth", func() {
 		gp.DeployKeyExistsReturns(true, nil)
 		sn := auth.SecretName{Name: secretName, Namespace: namespace.Name}
 
-		_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
+		_, err := as.CreateGitClient(ctx, configRepoURL, namespace.Name, false)
 		Expect(err).NotTo(HaveOccurred())
 
 		newSecret := &corev1.Secret{}

@@ -40,7 +40,7 @@ func TestClientConfigWithUser(t *testing.T) {
 		{
 			name:                  "No token or user Id should error",
 			principal:             &auth.UserPrincipal{},
-			expectedErr:           fmt.Errorf("No user ID or Token found in UserPrincipal."),
+			expectedErr:           fmt.Errorf("no user ID or Token found in UserPrincipal"),
 			expectedToken:         "",
 			expectedImpersonation: nil,
 		},

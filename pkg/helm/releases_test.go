@@ -13,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
-	kyaml "sigs.k8s.io/yaml"
 )
 
 var _ = Describe("MakeHelmRelease", func() {
@@ -86,7 +85,7 @@ var _ = Describe("AppendHelmReleaseToString", func() {
 
 	When("the given string is not empty", func() {
 		It("appends a HelmRelease to it", func() {
-			b, _ := kyaml.Marshal(helm.MakeHelmRelease(
+			b, _ := yaml.Marshal(helm.MakeHelmRelease(
 				"another-profile", "7.0.0", "prod", "test-namespace",
 				types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
 			))
@@ -105,13 +104,13 @@ var _ = Describe("MarshalHelmRelease", func() {
 			"random-profile", "7.0.0", "prod", "weave-system",
 			types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
 		)
-		releaseBytes1, _ := kyaml.Marshal(release1)
+		releaseBytes1, _ := yaml.Marshal(release1)
 
 		release2 := helm.MakeHelmRelease(
 			"podinfo", "6.0.0", "prod", "weave-system",
 			types.NamespacedName{Name: "helm-repo-name", Namespace: "helm-repo-namespace"},
 		)
-		releaseBytes2, _ := kyaml.Marshal(release2)
+		releaseBytes2, _ := yaml.Marshal(release2)
 
 		patchedContent, err := helm.MarshalHelmReleases([]*helmv2.HelmRelease{release1, release2})
 		Expect(err).NotTo(HaveOccurred())
@@ -130,9 +129,9 @@ var _ = Describe("SplitHelmReleaseYAML", func() {
 				"profile", "6.0.1", "prod", "test-namespace",
 				types.NamespacedName{Name: "helm-repo-name", Namespace: "test-namespace"},
 			)
-			b1, _ := kyaml.Marshal(r1)
+			b1, _ := yaml.Marshal(r1)
 			bytes := append(b1, []byte("\n---\n")...)
-			b2, _ := kyaml.Marshal(r2)
+			b2, _ := yaml.Marshal(r2)
 			list, err := helm.SplitHelmReleaseYAML(append(bytes, b2...))
 			Expect(err).NotTo(HaveOccurred())
 			Expect(list).To(ContainElements(r1, r2))
@@ -141,7 +140,7 @@ var _ = Describe("SplitHelmReleaseYAML", func() {
 
 	When("the resource contains any resource other than a HelmRelease", func() {
 		It("returns an error", func() {
-			b, _ := kyaml.Marshal("content")
+			b, _ := yaml.Marshal("content")
 			_, err := helm.SplitHelmReleaseYAML(b)
 			Expect(err).To(MatchError(ContainSubstring("error unmarshaling JSON")))
 		})

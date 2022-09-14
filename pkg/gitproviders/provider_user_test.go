@@ -24,7 +24,7 @@ var _ = Describe("User Provider", func() {
 		pullRequestsClient *fakegitprovider.PullRequestClient
 		fileClient         *fakegitprovider.FileClient
 
-		repoUrl RepoURL
+		repoURL RepoURL
 	)
 
 	var _ = BeforeEach(func() {
@@ -51,7 +51,7 @@ var _ = Describe("User Provider", func() {
 		}
 
 		var err error
-		repoUrl, err = NewRepoURL("http://github.com/owner/repo-name")
+		repoURL, err = NewRepoURL("http://github.com/owner/repo-name")
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -59,7 +59,7 @@ var _ = Describe("User Provider", func() {
 		It("returns false when repo not found", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.RepositoryExists(ctx, repoUrl)
+			res, err := userProvider.RepositoryExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
@@ -67,13 +67,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't verify", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
-			res, err := userProvider.RepositoryExists(ctx, repoUrl)
+			res, err := userProvider.RepositoryExists(ctx, repoURL)
 			Expect(err).To(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
 
 		It("returns true when repo exists", func() {
-			res, err := userProvider.RepositoryExists(ctx, repoUrl)
+			res, err := userProvider.RepositoryExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -90,7 +90,7 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.DeployKeyExists(ctx, repoUrl)
+			res, err := userProvider.DeployKeyExists(ctx, repoURL)
 			Expect(err.Error()).Should(ContainSubstring("error getting user repo reference for owner"))
 			Expect(res).To(BeFalse())
 		})
@@ -98,7 +98,7 @@ var _ = Describe("User Provider", func() {
 		It("returns false when key not found", func() {
 			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.DeployKeyExists(ctx, repoUrl)
+			res, err := userProvider.DeployKeyExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
@@ -106,13 +106,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't verify", func() {
 			deployKeyClient.GetReturns(nil, errors.New("random error"))
 
-			res, err := userProvider.DeployKeyExists(ctx, repoUrl)
+			res, err := userProvider.DeployKeyExists(ctx, repoURL)
 			Expect(err.Error()).Should(ContainSubstring("error getting deploy key"))
 			Expect(res).To(BeFalse())
 		})
 
 		It("returns true when repo exists", func() {
-			res, err := userProvider.DeployKeyExists(ctx, repoUrl)
+			res, err := userProvider.DeployKeyExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -129,14 +129,14 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			err := userProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, repoURL, []byte("my-key"))
 			Expect(err.Error()).Should(ContainSubstring("error getting user repo reference for owner"))
 		})
 
 		It("returns error when can't create the key", func() {
 			deployKeyClient.CreateReturns(nil, errors.New("random error"))
 
-			err := userProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, repoURL, []byte("my-key"))
 			Expect(err.Error()).Should(ContainSubstring("error uploading deploy key"))
 		})
 
@@ -144,7 +144,7 @@ var _ = Describe("User Provider", func() {
 			deployKeyClient.CreateReturns(nil, nil)
 			deployKeyClient.GetReturns(nil, nil)
 
-			err := userProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, repoURL, []byte("my-key"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
@@ -153,14 +153,14 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetDefaultBranch(ctx, repoUrl)
+			_, err := userProvider.GetDefaultBranch(ctx, repoURL)
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
 		It("returns repo default branch", func() {
 			userRepo.GetReturns(gitprovider.RepositoryInfo{DefaultBranch: gitprovider.StringVar("my-branch")})
 
-			branch, err := userProvider.GetDefaultBranch(ctx, repoUrl)
+			branch, err := userProvider.GetDefaultBranch(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(branch).To(Equal("my-branch"))
 		})
@@ -170,7 +170,7 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetRepoVisibility(ctx, repoUrl)
+			_, err := userProvider.GetRepoVisibility(ctx, repoURL)
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
@@ -178,7 +178,7 @@ var _ = Describe("User Provider", func() {
 			visibility := gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate)
 			userRepo.GetReturns(gitprovider.RepositoryInfo{Visibility: visibility})
 
-			vis, err := userProvider.GetRepoVisibility(ctx, repoUrl)
+			vis, err := userProvider.GetRepoVisibility(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vis).To(Equal(visibility))
 		})
@@ -208,13 +208,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't get repo", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting user repo for"))
 		})
 
 		It("sets default branch", func() {
 			prInfo.TargetBranch = ""
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, _, _, targetBranch, _ := pullRequestsClient.CreateArgsForCall(0)
@@ -224,19 +224,19 @@ var _ = Describe("User Provider", func() {
 		It("returns error when unable to list commits", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting commits"))
 		})
 
 		It("returns error if no commits listed on target repo", func() {
 			commitClient.ListPageReturns([]gitprovider.Commit{}, nil)
 
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err.Error()).To(ContainSubstring("no commits on the target branch"))
 		})
 
 		It("creates a branch", func() {
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, sha := branchesClient.CreateArgsForCall(0)
@@ -247,7 +247,7 @@ var _ = Describe("User Provider", func() {
 		It("creates a commit", func() {
 			prInfo.Files = []gitprovider.CommitFile{{}}
 
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, commitMsg, files := commitClient.CreateArgsForCall(0)
@@ -259,7 +259,7 @@ var _ = Describe("User Provider", func() {
 		It("creates a pull requests", func() {
 			prInfo.Files = []gitprovider.CommitFile{{}}
 
-			_, err := userProvider.CreatePullRequest(ctx, repoUrl, prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, repoURL, prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, prTitle, newBranch, targetBranch, prDescription := pullRequestsClient.CreateArgsForCall(0)
@@ -274,14 +274,14 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetCommits(ctx, repoUrl, "target-branch", 1, 1)
+			_, err := userProvider.GetCommits(ctx, repoURL, "target-branch", 1, 1)
 			Expect(err.Error()).Should(ContainSubstring("error getting repo"))
 		})
 
 		It("returns empty array when empty error", func() {
 			commitClient.ListPageReturns(nil, errors.New("409 Git Repository is empty"))
 
-			commits, err := userProvider.GetCommits(ctx, repoUrl, "target-branch", 1, 1)
+			commits, err := userProvider.GetCommits(ctx, repoURL, "target-branch", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commits).To(HaveLen(0))
 		})
@@ -289,7 +289,7 @@ var _ = Describe("User Provider", func() {
 		It("returns error when random error", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
-			_, err := userProvider.GetCommits(ctx, repoUrl, "target-branch", 1, 1)
+			_, err := userProvider.GetCommits(ctx, repoURL, "target-branch", 1, 1)
 			Expect(err.Error()).Should(ContainSubstring("error getting commits"))
 		})
 
@@ -299,7 +299,7 @@ var _ = Describe("User Provider", func() {
 
 			commitClient.ListPageReturns([]gitprovider.Commit{commit}, nil)
 
-			commits, err := userProvider.GetCommits(ctx, repoUrl, "target-branch", 1, 1)
+			commits, err := userProvider.GetCommits(ctx, repoURL, "target-branch", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commits[0].Get().Sha).To(Equal("commit-sha"))
 		})
@@ -317,7 +317,7 @@ var _ = Describe("User Provider", func() {
 		It("returns a list of files", func() {
 			file := &gitprovider.CommitFile{}
 			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
-			c, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
+			c, err := userProvider.GetRepoDirFiles(context.TODO(), repoURL, "path", "main")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
 			Expect(fileClient.GetCallCount()).To(Equal(1))
@@ -330,7 +330,7 @@ var _ = Describe("User Provider", func() {
 			It("returns an error", func() {
 				file := &gitprovider.CommitFile{}
 				fileClient.GetReturns([]*gitprovider.CommitFile{file}, fmt.Errorf("err"))
-				_, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
+				_, err := userProvider.GetRepoDirFiles(context.TODO(), repoURL, "path", "main")
 				Expect(err).To(MatchError("err"))
 				Expect(fileClient.GetCallCount()).To(Equal(1))
 			})
@@ -340,7 +340,7 @@ var _ = Describe("User Provider", func() {
 	Describe("MergePullRequest", func() {
 		It("merges a given pull request", func() {
 			pullRequestsClient.MergeReturns(nil)
-			err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
+			err := userProvider.MergePullRequest(context.TODO(), repoURL, 1, "message")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
 			_, prNumber, mergeMethod, message := pullRequestsClient.MergeArgsForCall(0)
@@ -352,7 +352,7 @@ var _ = Describe("User Provider", func() {
 		When("merge the PR fails", func() {
 			It("returns an error", func() {
 				pullRequestsClient.MergeReturns(fmt.Errorf("err"))
-				err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
+				err := userProvider.MergePullRequest(context.TODO(), repoURL, 1, "message")
 				Expect(err).To(MatchError("err"))
 				Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
 			})

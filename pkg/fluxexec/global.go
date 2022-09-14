@@ -9,16 +9,16 @@ import (
 type globalConfig struct {
 	as                    string
 	asGroup               []string
-	asUid                 string
+	asUID                 string
 	cacheDir              string
 	certificateAuthority  string
 	clientCertificate     string
 	clientKey             string
 	cluster               string
 	context               string
-	insecureSkipTlsVerify bool
-	kubeApiBurst          int
-	kubeApiQps            float32
+	insecureSkipTLSVerify bool
+	kubeAPIBurst          int
+	kubeAPIQPS            float32
 	kubeconfig            string
 	namespace             string
 	server                string
@@ -40,8 +40,8 @@ func defaultCacheDir() string {
 
 var defaultGlobalOptions = globalConfig{
 	cacheDir:     defaultCacheDir(),
-	kubeApiBurst: 100,
-	kubeApiQps:   50,
+	kubeAPIBurst: 100,
+	kubeAPIQPS:   50,
 	namespace:    "flux-system",
 	timeout:      "5m0s",
 }
@@ -59,8 +59,8 @@ func (opt *AsGroupOption) configureGlobal(conf *globalConfig) {
 	conf.asGroup = opt.asGroup
 }
 
-func (opt *AsUidOption) configureGlobal(conf *globalConfig) {
-	conf.asUid = opt.asUid
+func (opt *AsUIDOption) configureGlobal(conf *globalConfig) {
+	conf.asUID = opt.asUID
 }
 
 func (opt *CacheDirOption) configureGlobal(conf *globalConfig) {
@@ -87,16 +87,16 @@ func (opt *ContextOption) configureGlobal(conf *globalConfig) {
 	conf.context = opt.context
 }
 
-func (opt *InsecureSkipTlsVerifyOption) configureGlobal(conf *globalConfig) {
-	conf.insecureSkipTlsVerify = opt.insecureSkipTlsVerify
+func (opt *InsecureSkipTLSVerifyOption) configureGlobal(conf *globalConfig) {
+	conf.insecureSkipTLSVerify = opt.insecureSkipTLSVerify
 }
 
-func (opt *KubeApiBurstOption) configureGlobal(conf *globalConfig) {
-	conf.kubeApiBurst = opt.kubeApiBurst
+func (opt *KubeAPIBurstOption) configureGlobal(conf *globalConfig) {
+	conf.kubeAPIBurst = opt.kubeAPIBurst
 }
 
-func (opt *KubeApiQpsOption) configureGlobal(conf *globalConfig) {
-	conf.kubeApiQps = opt.kubeApiQps
+func (opt *KubeAPIQPSOption) configureGlobal(conf *globalConfig) {
+	conf.kubeAPIQPS = opt.kubeAPIQPS
 }
 
 func (opt *KubeconfigOption) configureGlobal(conf *globalConfig) {
@@ -163,8 +163,8 @@ func (flux *Flux) globalArgs(opts ...GlobalOption) []string {
 		}
 	}
 
-	if c.asUid != "" {
-		args = append(args, "--as-uid", c.asUid)
+	if c.asUID != "" {
+		args = append(args, "--as-uid", c.asUID)
 	}
 
 	if c.cacheDir != "" {
@@ -191,16 +191,16 @@ func (flux *Flux) globalArgs(opts ...GlobalOption) []string {
 		args = append(args, "--context", c.context)
 	}
 
-	if c.insecureSkipTlsVerify {
+	if c.insecureSkipTLSVerify {
 		args = append(args, "--insecure-skip-tls-verify")
 	}
 
-	if c.kubeApiBurst != 0 {
-		args = append(args, "--kube-api-burst", strconv.Itoa(c.kubeApiBurst))
+	if c.kubeAPIBurst != 0 {
+		args = append(args, "--kube-api-burst", strconv.Itoa(c.kubeAPIBurst))
 	}
 
-	if c.kubeApiQps != 0 {
-		args = append(args, "--kube-api-qps", strconv.FormatFloat(float64(c.kubeApiQps), 'f', -1, 32))
+	if c.kubeAPIQPS != 0 {
+		args = append(args, "--kube-api-qps", strconv.FormatFloat(float64(c.kubeAPIQPS), 'f', -1, 32))
 	}
 
 	if c.kubeconfig != "" {

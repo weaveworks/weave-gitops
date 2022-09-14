@@ -51,7 +51,7 @@ func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, up
 	return currentTime, fmt.Errorf("timeout reached %s", timeout.String())
 }
 
-func UrlToRepoName(url string) string {
+func URLToRepoName(url string) string {
 	return strings.TrimSuffix(filepath.Base(url), ".git")
 }
 

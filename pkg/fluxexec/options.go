@@ -267,31 +267,31 @@ func Group(group ...string) *GroupOption {
 	return &GroupOption{group}
 }
 
-type GpgKeyIdOption struct {
-	gpgKeyId string
+type GPGKeyIDOption struct {
+	gpgKeyID string
 }
 
-// GpgKeyId represents the --gpg-key-id flag.
-func GpgKeyId(gpgKeyId string) *GpgKeyIdOption {
-	return &GpgKeyIdOption{gpgKeyId}
+// GPGKeyID represents the --gpg-key-id flag.
+func GPGKeyID(gpgKeyID string) *GPGKeyIDOption {
+	return &GPGKeyIDOption{gpgKeyID}
 }
 
-type GpgKeyRingOption struct {
+type GPGKeyRingOption struct {
 	gpgKeyRing string
 }
 
-// GpgKeyRing represents the --gpg-key-ring flag.
-func GpgKeyRing(gpgKeyRing string) *GpgKeyRingOption {
-	return &GpgKeyRingOption{gpgKeyRing}
+// GPGKeyRing represents the --gpg-key-ring flag.
+func GPGKeyRing(gpgKeyRing string) *GPGKeyRingOption {
+	return &GPGKeyRingOption{gpgKeyRing}
 }
 
-type GpgPassphraseOption struct {
+type GPGPassphraseOption struct {
 	gpgPassphrase string
 }
 
-// GpgPassphrase represents the --gpg-passphrase flag.
-func GpgPassphrase(gpgPassphrase string) *GpgPassphraseOption {
-	return &GpgPassphraseOption{gpgPassphrase}
+// GPGPassphrase represents the --gpg-passphrase flag.
+func GPGPassphrase(gpgPassphrase string) *GPGPassphraseOption {
+	return &GPGPassphraseOption{gpgPassphrase}
 }
 
 type PrivateKeyFileOption struct {
@@ -321,40 +321,40 @@ func SecretName(secretName string) *SecretNameOption {
 	return &SecretNameOption{secretName}
 }
 
-type SshEcdsaCurveOption struct {
-	sshEcdsaCurve EcdsaCurve
+type SSHECDSACurveOption struct {
+	sshECDSACurve ECDSACurve
 }
 
-// SshEcdsaCurve represents the --ssh-ecdsa-curve flag.
-func SshEcdsaCurve(ecdsaCurve EcdsaCurve) *SshEcdsaCurveOption {
-	return &SshEcdsaCurveOption{ecdsaCurve}
+// SSHECDSACurve represents the --ssh-ecdsa-curve flag.
+func SSHECDSACurve(ecdsaCurve ECDSACurve) *SSHECDSACurveOption {
+	return &SSHECDSACurveOption{ecdsaCurve}
 }
 
-type SshHostnameOption struct {
+type SSHHostnameOption struct {
 	sshHostname string
 }
 
-// SshHostname represents the --ssh-hostname flag.
-func SshHostname(sshHostname string) *SshHostnameOption {
-	return &SshHostnameOption{sshHostname}
+// SSHHostname represents the --ssh-hostname flag.
+func SSHHostname(sshHostname string) *SSHHostnameOption {
+	return &SSHHostnameOption{sshHostname}
 }
 
-type SshKeyAlgorithmOption struct {
+type SSHKeyAlgorithmOption struct {
 	sshKeyAlgorithm KeyAlgorithm
 }
 
-// SshKeyAlgorithm represents the --ssh-key-algorithm flag.
-func SshKeyAlgorithm(sshKeyAlgorithm KeyAlgorithm) *SshKeyAlgorithmOption {
-	return &SshKeyAlgorithmOption{sshKeyAlgorithm}
+// SSHKeyAlgorithm represents the --ssh-key-algorithm flag.
+func SSHKeyAlgorithm(sshKeyAlgorithm KeyAlgorithm) *SSHKeyAlgorithmOption {
+	return &SSHKeyAlgorithmOption{sshKeyAlgorithm}
 }
 
-type SshRsaBitsOption struct {
-	sshRsaBits int
+type SSHRSABitsOption struct {
+	sshRSABits int
 }
 
-// SshRsaBits represents the --ssh-rsa-bits flag.
-func SshRsaBits(sshRsaBits int) *SshRsaBitsOption {
-	return &SshRsaBitsOption{sshRsaBits}
+// SSHRSABits represents the --ssh-rsa-bits flag.
+func SSHRSABits(sshRSABits int) *SSHRSABitsOption {
+	return &SSHRSABitsOption{sshRSABits}
 }
 
 type TokenAuthOption struct {

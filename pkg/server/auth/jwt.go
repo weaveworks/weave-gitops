@@ -158,5 +158,5 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Could not find valid principal")
+	return nil, fmt.Errorf("could not find valid principal")
 }

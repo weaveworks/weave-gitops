@@ -343,8 +343,8 @@ func (g *GoGit) Head() (string, error) {
 	return head.Hash().String(), nil
 }
 
-// GetRemoteUrl returns the url of the first listed remote server
-func (g *GoGit) GetRemoteUrl(dir string, remoteName string) (string, error) {
+// GetRemoteURL returns the url of the first listed remote server
+func (g *GoGit) GetRemoteURL(dir string, remoteName string) (string, error) {
 	repo, err := g.Open(dir)
 	if err != nil {
 		return "", fmt.Errorf("failed to open repository: %s: %w", dir, err)

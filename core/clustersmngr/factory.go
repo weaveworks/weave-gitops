@@ -521,7 +521,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal, options ...KubeConfigOption)
 		config := restConfigFromCluster(cluster)
 
 		if !user.Valid() {
-			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
+			return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
 		} else if tok := user.Token(); tok != "" {
 			config.BearerToken = tok
 		} else {

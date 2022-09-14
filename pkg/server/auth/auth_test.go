@@ -14,7 +14,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
@@ -26,7 +25,7 @@ import (
 const testNamespace = "flux-system"
 
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -84,7 +83,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	// In theory all attempts to login in this should fail as, despite
 	// the auth server having access to
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -162,7 +161,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 }
 
 func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -215,7 +214,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 }
 
 func TestIsPublicRoute(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	g.Expect(auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"})).To(BeTrue())
 	g.Expect(auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"})).To(BeFalse())
@@ -223,7 +222,7 @@ func TestIsPublicRoute(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	mux := http.NewServeMux()
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -284,7 +283,7 @@ func TestRateLimit(t *testing.T) {
 }
 
 func TestUserPrincipalValid(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tests := []struct {
 		name    string

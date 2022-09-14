@@ -24,10 +24,10 @@ type bootstrapConfig struct {
 	recurseSubmodules     bool
 	registry              string
 	secretName            string
-	sshEcdsaCurve         EcdsaCurve
+	sshECDSACurve         ECDSACurve
 	sshHostname           string
 	sshKeyAlgorithm       KeyAlgorithm
-	sshRsaBits            int
+	sshRSABits            int
 	tokenAuth             bool
 	tolerationKeys        []string
 	watchAllNamespaces    bool
@@ -44,9 +44,9 @@ var defaultBootstrapOptions = bootstrapConfig{
 	recurseSubmodules:  false,
 	registry:           "ghcr.io/fluxcd",
 	secretName:         "flux-system",
-	sshEcdsaCurve:      EcdsaCurveP384,
+	sshECDSACurve:      ECDSACurveP384,
 	sshKeyAlgorithm:    KeyAlgorithmECDSA,
-	sshRsaBits:         2048,
+	sshRSABits:         2048,
 	tokenAuth:          false,
 	tolerationKeys:     []string{},
 	watchAllNamespaces: true,
@@ -90,15 +90,15 @@ func (opt *ComponentsExtraOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.componentsExtra = opt.componentsExtra
 }
 
-func (opt *GpgKeyIdOption) configureBootstrap(conf *bootstrapConfig) {
-	conf.gpgKeyID = opt.gpgKeyId
+func (opt *GPGKeyIDOption) configureBootstrap(conf *bootstrapConfig) {
+	conf.gpgKeyID = opt.gpgKeyID
 }
 
-func (opt *GpgKeyRingOption) configureBootstrap(conf *bootstrapConfig) {
+func (opt *GPGKeyRingOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.gpgKeyRing = opt.gpgKeyRing
 }
 
-func (opt *GpgPassphraseOption) configureBootstrap(conf *bootstrapConfig) {
+func (opt *GPGPassphraseOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.gpgPassphrase = opt.gpgPassphrase
 }
 
@@ -130,20 +130,20 @@ func (opt *SecretNameOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.secretName = opt.secretName
 }
 
-func (opt *SshEcdsaCurveOption) configureBootstrap(conf *bootstrapConfig) {
-	conf.sshEcdsaCurve = opt.sshEcdsaCurve
+func (opt *SSHECDSACurveOption) configureBootstrap(conf *bootstrapConfig) {
+	conf.sshECDSACurve = opt.sshECDSACurve
 }
 
-func (opt *SshHostnameOption) configureBootstrap(conf *bootstrapConfig) {
+func (opt *SSHHostnameOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.sshHostname = opt.sshHostname
 }
 
-func (opt *SshKeyAlgorithmOption) configureBootstrap(conf *bootstrapConfig) {
+func (opt *SSHKeyAlgorithmOption) configureBootstrap(conf *bootstrapConfig) {
 	conf.sshKeyAlgorithm = opt.sshKeyAlgorithm
 }
 
-func (opt *SshRsaBitsOption) configureBootstrap(conf *bootstrapConfig) {
-	conf.sshRsaBits = opt.sshRsaBits
+func (opt *SSHRSABitsOption) configureBootstrap(conf *bootstrapConfig) {
+	conf.sshRSABits = opt.sshRSABits
 }
 
 func (opt *TokenAuthOption) configureBootstrap(conf *bootstrapConfig) {
@@ -262,8 +262,8 @@ func (flux *Flux) bootstrapArgs(opts ...BootstrapOption) []string {
 		args = append(args, "--secret-name", c.secretName)
 	}
 
-	if c.sshEcdsaCurve != "" {
-		args = append(args, "--ssh-ecdsa-curve", string(c.sshEcdsaCurve))
+	if c.sshECDSACurve != "" {
+		args = append(args, "--ssh-ecdsa-curve", string(c.sshECDSACurve))
 	}
 
 	if c.sshHostname != "" {
@@ -274,8 +274,8 @@ func (flux *Flux) bootstrapArgs(opts ...BootstrapOption) []string {
 		args = append(args, "--ssh-key-algorithm", string(c.sshKeyAlgorithm))
 	}
 
-	if c.sshRsaBits != 0 {
-		args = append(args, "--ssh-rsa-bits", strconv.Itoa(c.sshRsaBits))
+	if c.sshRSABits != 0 {
+		args = append(args, "--ssh-rsa-bits", strconv.Itoa(c.sshRSABits))
 	}
 
 	if c.tokenAuth {

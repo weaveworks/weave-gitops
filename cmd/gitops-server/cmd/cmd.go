@@ -156,7 +156,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	namespace, _, err := kubeConfig.Namespace()
 	if err != nil {
-		return fmt.Errorf("Couldn't get current namespace")
+		return fmt.Errorf("couldn't get current namespace")
 	}
 
 	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
@@ -269,12 +269,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("Server shutdown failed: %w", err)
+		return fmt.Errorf("server shutdown failed: %w", err)
 	}
 
 	if options.EnableMetrics {
 		if err := metricsServer.Shutdown(ctx); err != nil {
-			return fmt.Errorf("Metrics server shutdown failed: %w", err)
+			return fmt.Errorf("metrics server shutdown failed: %w", err)
 		}
 	}
 

@@ -42,7 +42,7 @@ func DefaultPrimaryKinds() *PrimaryKinds {
 func (pk *PrimaryKinds) Add(kind string, gvk schema.GroupVersionKind) error {
 	_, ok := pk.kinds[kind]
 	if ok {
-		return fmt.Errorf("Couldn't add kind %v - already added", kind)
+		return fmt.Errorf("couldn't add kind %v - already added", kind)
 	}
 
 	pk.kinds[kind] = gvk
@@ -55,7 +55,7 @@ func (pk *PrimaryKinds) Add(kind string, gvk schema.GroupVersionKind) error {
 func (pk *PrimaryKinds) Lookup(kind string) (*schema.GroupVersionKind, error) {
 	gvk, ok := pk.kinds[kind]
 	if !ok {
-		return nil, fmt.Errorf("Looking up objects of kind %v not supported", kind)
+		return nil, fmt.Errorf("looking up objects of kind %v not supported", kind)
 	}
 
 	return &gvk, nil

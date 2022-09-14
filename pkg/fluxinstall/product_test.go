@@ -82,10 +82,10 @@ func addToArchive(tw *tar.Writer, filename string, data []byte) error {
 	return nil
 }
 
-type MockProductHttpClient struct {
+type MockProductHTTPClient struct {
 }
 
-func (m *MockProductHttpClient) Get(url string) (resp *http.Response, err error) {
+func (m *MockProductHTTPClient) Get(url string) (resp *http.Response, err error) {
 	var archivePattern = regexp.MustCompile(`https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_(linux|darwin)_(amd64|arm64).tar.gz`)
 	if archivePattern.MatchString(url) {
 		body, err := createMockFluxArchive([]byte("flux"))
@@ -119,7 +119,7 @@ var _ = Describe("Product", func() {
 		By("creating product, and verify checksum", func() {
 			product = &Product{
 				Version: "0.32.0",
-				cli:     &MockProductHttpClient{},
+				cli:     &MockProductHTTPClient{},
 			}
 			_, err := product.Install(context.Background())
 			Expect(err).To(BeNil())

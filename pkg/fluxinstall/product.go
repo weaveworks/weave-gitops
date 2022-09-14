@@ -19,13 +19,13 @@ import (
 	isrc "github.com/weaveworks/weave-gitops/pkg/fluxinstall/internal/src"
 )
 
-type HttpGetter interface {
+type HTTPGetter interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
 type Product struct {
 	Version string
-	cli     HttpGetter
+	cli     HTTPGetter
 }
 
 func NewProduct(version string) *Product {
@@ -35,7 +35,7 @@ func NewProduct(version string) *Product {
 	}
 }
 
-func NewProductWithHttpClient(version string, cli HttpGetter) *Product {
+func NewProductWithHTTPClient(version string, cli HTTPGetter) *Product {
 	return &Product{
 		Version: version,
 		cli:     cli,
@@ -61,9 +61,9 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 
 	// TODO enable windows support
 	extension := "tar.gz"
-	binaryUrl := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_%s_%s.%s", p.Version, p.Version, runtime.GOOS, runtime.GOARCH, extension)
+	binaryURL := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_%s_%s.%s", p.Version, p.Version, runtime.GOOS, runtime.GOARCH, extension)
 	client := p.cli
-	resp, err := client.Get(binaryUrl)
+	resp, err := client.Get(binaryURL)
 
 	if err != nil {
 		return "", err
@@ -116,9 +116,9 @@ func (p *Product) Find(ctx context.Context) (string, error) {
 }
 
 func (p *Product) verifyChecksum(filename string, sum string) error {
-	checkSumUrl := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_checksums.txt", p.Version, p.Version)
+	checkSumURL := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_checksums.txt", p.Version, p.Version)
 	client := p.cli
-	resp, err := client.Get(checkSumUrl)
+	resp, err := client.Get(checkSumURL)
 
 	if err != nil {
 		return err

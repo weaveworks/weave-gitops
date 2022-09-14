@@ -27,7 +27,7 @@ import (
 
 const (
 	helmChartName     = "weave-gitops"
-	helmRepositoryUrl = "https://helm.gitops.weave.works"
+	helmRepositoryURL = "https://helm.gitops.weave.works"
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
@@ -271,7 +271,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 			},
 		},
 		Spec: sourcev1.HelmRepositorySpec{
-			URL: helmRepositoryUrl,
+			URL: helmRepositoryURL,
 			Interval: metav1.Duration{
 				Duration: time.Minute * 60,
 			},

@@ -207,7 +207,7 @@ func waitForSync(ctx context.Context, c client.Client, key client.ObjectKey, obj
 		checkResourceSync(ctx, c, key, obj, obj.GetLastHandledReconcileRequest()),
 	); err != nil {
 		if errors.Is(err, wait.ErrWaitTimeout) {
-			return errors.New("Sync request timed out. The sync operation may still be in progress.")
+			return errors.New("sync request timed out - the sync operation may still be in progress")
 		}
 
 		return fmt.Errorf("syncing resource: %w", err)

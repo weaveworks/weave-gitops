@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -21,7 +20,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 	}
 
 	if len(authMethods) == 0 {
-		return nil, fmt.Errorf("No authentication methods set")
+		return nil, fmt.Errorf("no authentication methods set")
 	}
 
 	if authMethods[OIDC] {
@@ -31,7 +30,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 
 		// If OIDC auth secret is found prefer that over CLI parameters
 		var secret corev1.Secret
-		if err := rawKubernetesClient.Get(ctx, client.ObjectKey{
+		if err := rawKubernetesClient.Get(ctx, ctrlclient.ObjectKey{
 			Namespace: namespace,
 			Name:      oidcSecret,
 		}, &secret); err == nil {

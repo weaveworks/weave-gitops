@@ -2,10 +2,11 @@ package fluxinstall
 
 import (
 	"context"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"os"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall/src"
 )
@@ -21,7 +22,7 @@ var _ = Describe("Install Flux CLI", func() {
 
 			product := &Product{
 				Version: "0.32.0",
-				cli:     &MockProductHttpClient{},
+				cli:     &MockProductHTTPClient{},
 			}
 
 			installer := NewInstaller()
@@ -35,7 +36,7 @@ var _ = Describe("Install Flux CLI", func() {
 
 			product := &Product{
 				Version: "0.32.0",
-				cli:     &MockProductHttpClient{},
+				cli:     &MockProductHTTPClient{},
 			}
 
 			installer := NewInstaller()

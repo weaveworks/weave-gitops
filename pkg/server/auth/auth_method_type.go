@@ -71,7 +71,7 @@ func (am *AuthMethod) UnmarshalText(text []byte) error {
 	case "token-passthrough":
 		*am = TokenPassthrough
 	default:
-		return fmt.Errorf("Unknown auth method '%q'", text)
+		return fmt.Errorf("unknown auth method '%q'", text)
 	}
 
 	return nil
