@@ -79,7 +79,7 @@ function AlertsTable({ className, rows = [] }: Props) {
         return (
           <ul className="event-sources">
             {a?.eventSources?.map((obj: CrossNamespaceObjectRef, index) => {
-              obj.name && obj.namespace && obj.kind ? (
+              return obj.name && obj.namespace && obj.kind ? (
                 <Link
                   className="event-sources"
                   key={index}
