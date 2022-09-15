@@ -73,6 +73,7 @@ export default styled(YamlView).attrs({
   overflow: hidden;
   pre {
     overflow-y: scroll;
+    overflow-x: hidden;
     padding: ${(props) => props.theme.spacing.small};
     white-space: pre-wrap;
   }
@@ -99,5 +100,11 @@ export default styled(YamlView).attrs({
     padding-left: auto;
     margin-right: ${(props) => props.theme.spacing.small};
     text-align: right;
+  }
+
+  &.dialog {
+    margin-bottom: 0;
+    overflow: auto;
+    overflow-x: hidden;
   }
 `;

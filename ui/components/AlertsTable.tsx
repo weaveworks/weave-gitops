@@ -1,3 +1,4 @@
+import { Dialog } from "@material-ui/core";
 import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
@@ -13,6 +14,8 @@ import DataTable, {
 import { filterSeparator } from "./FilterDialog";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
+import Text from "./Text";
+import YamlView from "./YamlView";
 type Props = {
   className?: string;
   rows?: Alert[];
@@ -46,10 +49,20 @@ function AlertsTable({ className, rows = [] }: Props) {
     };
   }
 
+  const [yamlView, setYamlView] = React.useState<Alert>(null);
+
   const alertFields: Field[] = [
     {
       label: "Name",
-      value: "name",
+      value: (a) => (
+        <Text
+          onClick={() => setYamlView(a)}
+          color="primary10"
+          className="pointer"
+        >
+          {a.name}
+        </Text>
+      ),
       textSearchable: true,
     },
     {
@@ -103,12 +116,23 @@ function AlertsTable({ className, rows = [] }: Props) {
   ];
 
   return (
-    <DataTable
-      className={className}
-      fields={alertFields}
-      rows={rows}
-      filters={initialFilterState}
-    />
+    <>
+      <DataTable
+        className={className}
+        fields={alertFields}
+        rows={rows}
+        filters={initialFilterState}
+      />
+      <Dialog open={yamlView !== null} onClose={() => setYamlView(null)}>
+        {yamlView && (
+          <YamlView
+            object={yamlView}
+            yaml={yamlView?.yaml}
+            className="dialog"
+          />
+        )}
+      </Dialog>
+    </>
   );
 }
 

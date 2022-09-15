@@ -42,6 +42,9 @@ const Text = styled.span<TextProps>`
 
   ${(props) => props.noWrap && "white-space: nowrap;"};
   ${(props) => props.titleHeight && "line-height: 1.75"};
+  .pointer {
+    cursor: pointer;
+  }
 `;
 
 Text.defaultProps = {
