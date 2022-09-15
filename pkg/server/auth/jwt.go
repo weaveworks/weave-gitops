@@ -93,13 +93,14 @@ func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDTok
 	var claims struct {
 		Email  string   `json:"email"`
 		Groups []string `json:"groups"`
+		Roles  []string `json:"roles"`
 	}
 
 	if err := token.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("failed to parse claims from the JWT token: %w", err)
 	}
 
-	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
+	return &UserPrincipal{ID: claims.Email, Groups: append(claims.Groups, claims.Roles...)}, nil
 }
 
 type JWTAdminCookiePrincipalGetter struct {

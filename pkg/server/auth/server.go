@@ -26,6 +26,7 @@ const (
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
+	FeatureFlagOIDCGroupsScope string = "WEAVE_GITOPS_FEATURE_OIDC_GROUPS_SCOPE"
 	FeatureFlagSet             string = "true"
 )
 
@@ -165,6 +166,10 @@ func (s *AuthServer) oidcPassthroughEnabled() bool {
 	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
 }
 
+func (s *AuthServer) oidcGroupsScopeEnabled() bool {
+	return featureflags.Get(FeatureFlagOIDCGroupsScope) != "false"
+}
+
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
 	return s.provider.Verifier(&oidc.Config{ClientID: s.config.ClientID})
 }
@@ -181,7 +186,7 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	// Request "groups" scope to get user's groups.
-	if !contains(scopes, scopeGroups) {
+	if s.oidcGroupsScopeEnabled() && !contains(scopes, scopeGroups) {
 		scopes = append(scopes, scopeGroups)
 	}
 
