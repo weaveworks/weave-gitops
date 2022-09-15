@@ -35,7 +35,7 @@ EventListerer -> TriggerTemplate -> PipelineRun -> Pipeline -> Task
 This will be the flow we will be creating for this demo.  More often then not we usually know what we want our pipeline to accomplish before we know how we want to trigger it.  So with that in mind we are going to start at the end with our Task definitions and work our way back to the EventListener.
 
 ## Create CI Pipeline
-### Define Tasks
+### Define CI Tasks
 To create the pipline, we want to first define our Tasks.  From the [Tekton Tasks docs](https://tekton.dev/docs/pipelines/tasks), "A Task is a collection of Steps that you define and arrange in a specific order of execution as part of your continuous integration flow."  Each Step references a container image that will to used to run the Step command.  This image needs to contain all the tools necessary for the Step to complete successfully.  Here is an example Task definition:
 
 ```yaml
@@ -96,7 +96,7 @@ This Task is used to create a new Helm Chart version and publish it to Helm Repo
 
 Tekton also provides some ready to use Tasks via the [Tekton Hub](https://hub.tekton.dev).  Before creating your own Task checkout the hub first to see if one of these Tasks will fit your needs.  Some good examples are the [git clone](https://hub.tekton.dev/tekton/task/git-clone) and [kaniko](https://hub.tekton.dev/tekton/task/kaniko) Tasks (both of which we will be using later in this example).
 
-### Define Pipeline
+### Define CI Pipeline
 Now that we have our Tasks defined it is time to group them together into a [Pipeline](https://tekton.dev/docs/pipelines/pipelines).
 
 ```yaml
@@ -194,7 +194,7 @@ spec:
           subPath: gh-pages
 ```
 
-### Create Triggers
+### Create CI Triggers
 Now that we have our Pipeline defined we want to create a [PipelineRun](https://tekton.dev/docs/pipelines/pipelineruns) to execute the Pipeline.  You can do this manually by creating a new PipelineRun resource, but that is not GitOpsy and can be prone to misconfiguration.  Instead we are going to use a combination of [TriggerTemplates](https://tekton.dev/docs/triggers/triggertemplates) and [EventListeners](https://tekton.dev/docs/triggers/eventlisteners) to kickoff the Pipeline automatically.  First lets look at TriggerTemplate.
 
 ```yaml
@@ -263,7 +263,7 @@ spec:
       value: $(body.repository.clone_url)
 ```
 
-### Create EventListener
+### Create CI EventListener
 Now we are going to create an EventListener that we'll configure to listen to Github events.  By default the EventListener is not exposed outside of the cluster.  To overcome this we will add a custom Ingress resource so that our listener is reachable from Github.
 
 > Make sure to replace all values marked `<REPLACE ME>` with your true values.  You may also need to add additional configuration to your Ingress config to fit your environment needs.
@@ -396,7 +396,7 @@ After this is created you'll need to create a webhook on your GitHub repo to cal
 At this point we have our chart being built and released to our Helm repository automatically.  Now we are going to take it a step further and deploy the new chart to our environments automatically as well.  But lets say we have 3 environments we want to deploy to.  Dev, Staging and Prod for example.  You might not want to deploy to each of those environments at the same time.  You would probably rather deploy to Dev first, verify everything is work, then deploy to Staging, and then deploy to Prod.  This is where the fun begins.  For this we are going to use the Flux [Notification Controller](https://fluxcd.io/flux/components/notification) to fire alerts based on our HelmRelease events.  With these alerts, we'll be able to automatically promote the chart to the various enviroments after it was successfully deployed to the previous one.  Lets take a look at what this will look like.
 
 ### Define CD Tasks
-For these tasks we do not need to build any new charts, images or binaries.  But we do need to move around some resource definition files so that Flux can deploy the correct files for each environment. 
+For these tasks we do not need to build any new charts, images or binaries.  But we do need to update some configurations and move around some resource definition files so that Flux can deploy the correct files for each environment.
 
 ```yaml
 apiVersion: tekton.dev/v1beta1
@@ -456,9 +456,32 @@ spec:
         git add .
         git commit -m "$(params.commit-message)"
         git push -f -u origin $(params.destination-branch)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: yq
+  namespace: default
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: args
+      description: yq command arguments
+      type: array
+  steps:
+    - name: yq
+      image: mikefarah/yq:4
+      securityContext:
+        runAsUser: 0
+      workingDir: $(workspaces.source.path)
+      command: ["yq"]
+      args: ["$(params.args[*])"]
 ```
 
 ### Create CD Pipeline
+At this point everything you need to release should have built and test in the CI pipeline.  The CD pipeline should be more about updating the configuration needed for a new release.  For this example we want to promote a successfully deployed version from one environment to the next.  To do that we need to update target environment config to at least reflect the new chart version.  But depending on the flow, you may need to update other values as well.  Here is what it might look like to have a pipeline that also needs to update the namespace as part of the deployment.
+
 ```yaml
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
@@ -525,7 +548,6 @@ spec:
     - name: set-chart-version
       taskRef:
         name: yq
-        kind: ClusterTask
       runAfter:
         - clone-source
         - clone-destination
@@ -542,7 +564,6 @@ spec:
     - name: set-chart-namespace
       taskRef:
         name: yq
-        kind: ClusterTask
       runAfter:
         - set-chart-version
       params:
@@ -558,7 +579,6 @@ spec:
     - name: set-chart-repository-namespace
       taskRef:
         name: yq
-        kind: ClusterTask
       runAfter:
         - set-chart-namespace
       params:
@@ -594,6 +614,11 @@ spec:
         - name: destination
           workspace: shared-data
           subPath: destination
+    #
+    # automatically create a pull-request for the release.
+    # if you are deploying to an environment that does not
+    # require review before deploying you can remove this step
+    #
     - name: open-pr
       taskRef:
         name: github-open-pr
@@ -615,7 +640,11 @@ spec:
           value: github-api-token
 ```
 
-### Create CD Templates
+### Create CD Triggers
+The CD triggers will be function nearly identically as the CI triggers.  The only noticiable difference is sense we are using a different event source, we need to update the TriggerBinding to parse out the correct values.  Lets use a combination of static and event payload values to properly pass the correct values to our PipelineRun.
+
+> Make sure to replace all values marked `<REPLACE ME>` with your true values.
+
 ```yaml
 apiVersion: triggers.tekton.dev/v1beta1
 kind: TriggerTemplate
@@ -673,11 +702,11 @@ metadata:
 spec:
   params:
     - name: source-git-url
-      value: https://github.com/rparmer/tekton-pipeline-environments.git
+      value: <REPLACE ME>
     - name: destination-git-url
-      value: https://github.com/rparmer/tekton-pipeline-environments.git
+      value: <REPLACE ME>
     - name: destination-git-full-name
-      value: rparmer/tekton-pipeline-environments
+      value: <REPLACE ME>
     - name: revision
       value: $(body.metadata.revision)
     - name: kind
@@ -688,7 +717,7 @@ spec:
       value: $(body.involvedObject.namespace)
 ```
 
-### Create CD Event Listener
+### Create CD EventListener
 You may notice there is no ingress configured for the Event Listener this time.  That is intentional.  When we configure the Flux notification Provider, we can leverage the internal service url instead.
 
 > If your environment restricts interal service traffic then you will need to create an ingress config similar to the one created for the CI pipeline
