@@ -24,6 +24,10 @@ exports[`Breadcrumbs snapshots renders 1`] = `
   color: #1a1a1a;
 }
 
+.c2 .pointer {
+  cursor: pointer;
+}
+
 .c1 {
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -72,6 +76,10 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   color: #1a1a1a;
 }
 
+.c3 .pointer {
+  cursor: pointer;
+}
+
 .c5 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
@@ -79,6 +87,10 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   text-transform: none;
   font-style: normal;
   color: #1a1a1a;
+}
+
+.c5 .pointer {
+  cursor: pointer;
 }
 
 .c4 svg {
@@ -177,6 +189,10 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   text-transform: none;
   font-style: normal;
   color: #1a1a1a;
+}
+
+.c2 .pointer {
+  cursor: pointer;
 }
 
 .c1 {

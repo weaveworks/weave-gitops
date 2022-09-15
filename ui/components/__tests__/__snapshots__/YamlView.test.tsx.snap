@@ -76,6 +76,7 @@ exports[`YamlView snapshots renders 1`] = `
 
 .c0 pre {
   overflow-y: scroll;
+  overflow-x: hidden;
   padding: 12px;
   white-space: pre-wrap;
 }
@@ -102,6 +103,12 @@ exports[`YamlView snapshots renders 1`] = `
   padding-left: auto;
   margin-right: 12px;
   text-align: right;
+}
+
+.c0.dialog {
+  margin-bottom: 0;
+  overflow: auto;
+  overflow-x: hidden;
 }
 
 <div

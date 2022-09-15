@@ -82,6 +82,10 @@ exports[`Page snapshots default 1`] = `
   white-space: nowrap;
 }
 
+.c7 .pointer {
+  cursor: pointer;
+}
+
 .c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -89,6 +93,10 @@ exports[`Page snapshots default 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
+}
+
+.c10 .pointer {
+  cursor: pointer;
 }
 
 .c8 {

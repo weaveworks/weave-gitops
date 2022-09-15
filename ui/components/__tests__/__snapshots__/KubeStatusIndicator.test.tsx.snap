@@ -41,6 +41,10 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   font-style: normal;
 }
 
+.c6 .pointer {
+  cursor: pointer;
+}
+
 .c4 svg {
   fill: !important;
   height: 16px;
@@ -126,6 +130,10 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+}
+
+.c6 .pointer {
+  cursor: pointer;
 }
 
 .c4 svg {
