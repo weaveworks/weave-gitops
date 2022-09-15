@@ -15,7 +15,6 @@ describe("AlertsTable", () => {
       expect(
         sourceLink.includes("type") && sourceLink.includes("GitRepository")
       ).toEqual(true);
-      console.log(sourceLink);
       expect(sourceLink.includes("*")).toEqual(false);
       const allNamespaces = {
         apiVersion: "v1",
