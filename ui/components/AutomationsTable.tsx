@@ -6,11 +6,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import {
-  removeKind,
-  statusSortHelper,
-  getSourceRefForAutomation,
-} from "../lib/utils";
+import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
@@ -31,10 +27,6 @@ type Props = {
 function AutomationsTable({ className, automations, hideSource }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-
-  automations = automations.map((a) => {
-    return { ...a, type: removeKind(a.kind) };
-  });
 
   let initialFilterState = {
     ...filterConfig(automations, "type"),
@@ -60,6 +52,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Name",
       value: (k) => {
+        console.log(k);
         const route =
           k.kind === FluxObjectKind.KindKustomization
             ? V2Routes.Kustomization

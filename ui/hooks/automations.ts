@@ -1,10 +1,8 @@
-import _ from "lodash";
 import { useContext } from "react";
 import { useMutation, useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
-  ListHelmReleasesResponse,
-  ListKustomizationsResponse,
+  ListObjectsResponse,
   SyncFluxObjectRequest,
   SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
@@ -13,6 +11,7 @@ import {
   HelmRelease,
   Kustomization,
 } from "../lib/api/core/types.pb";
+import { Kind } from "../lib/objects";
 import {
   MultiRequestError,
   NoNamespace,
@@ -21,6 +20,7 @@ import {
   Syncable,
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
+import { convertResponse } from "./objects";
 
 export type Automation = (Kustomization | HelmRelease) & {
   kind: FluxObjectKind;
@@ -29,7 +29,7 @@ export type Automation = (Kustomization | HelmRelease) & {
 type Res = { result: Automation[]; errors: MultiRequestError[] };
 
 export function useListAutomations(
-  namespace = NoNamespace,
+  namespace: string = NoNamespace,
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
@@ -38,44 +38,33 @@ export function useListAutomations(
   const { api } = useContext(CoreClientContext);
 
   return useQuery<Res, RequestError>(
-    "automations",
+    ["automations", namespace],
     () => {
-      const p = [
-        api.ListKustomizations({ namespace }),
-        api.ListHelmReleases({ namespace }),
-      ];
+      const p = [Kind.HelmRelease, Kind.Kustomization].map((kind) =>
+        api
+          .ListObjects({ namespace, kind })
+          .then((response: ListObjectsResponse) => {
+            return { kind, response };
+          })
+      );
 
-      // The typescript CLI complains about Promise.all,
-      // but VSCode does not. Supress the CLI error here.
-      // useQuery will still give us the correct types.
-      return Promise.all<any>(p).then((result) => {
-        const [kustRes, helmRes] = result;
-
-        const kustomizations = (kustRes as ListKustomizationsResponse)
-          .kustomizations;
-        const helmReleases = (helmRes as ListHelmReleasesResponse).helmReleases;
-        return {
-          result: [
-            ..._.map(kustomizations, (k) => ({
-              ...k,
-              kind: FluxObjectKind.KindKustomization,
-            })),
-            ..._.map(helmReleases, (h) => ({
-              ...h,
-              kind: FluxObjectKind.KindHelmRelease,
-            })),
-          ],
-          errors: [
-            ..._.map(kustRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindKustomization,
-            })),
-            ..._.map(helmRes.errors, (e) => ({
-              ...e,
-              kind: FluxObjectKind.KindHelmRelease,
-            })),
-          ],
-        };
+      return Promise.all(p).then((responses) => {
+        const final = { result: [], errors: [] };
+        for (const { kind, response } of responses) {
+          final.result.push(
+            ...response.objects.map(
+              (o) => convertResponse(kind, o) as Automation
+            )
+          );
+          if (response.errors.length) {
+            final.errors.push(
+              ...response.errors.map((o) => {
+                return { ...o, kind };
+              })
+            );
+          }
+        }
+        return final;
       });
     },
     opts
