@@ -7,6 +7,7 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 // Runner is an entity which can execute commands with whatever backing medium behind it.
+//
 //counterfeiter:generate . Runner
 type Runner interface {
 	// Run takes a command name and some arguments and will apply it to the current environment.

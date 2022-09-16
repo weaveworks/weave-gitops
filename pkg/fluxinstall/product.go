@@ -8,7 +8,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -70,7 +69,7 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +89,7 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 	}
 
 	binaryPath := filepath.Join(gitopsCacheFluxDir, "flux")
-	if err := ioutil.WriteFile(binaryPath, binary, 0744); err != nil {
+	if err := os.WriteFile(binaryPath, binary, 0744); err != nil {
 		return "", err
 	}
 
@@ -127,7 +126,7 @@ func (p *Product) verifyChecksum(filename string, sum string) error {
 	// read string from response body
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

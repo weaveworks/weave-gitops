@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -214,7 +214,7 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(string(b)).To(ContainSubstring("Failed to read request body."))
@@ -593,7 +593,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	g.Expect(tokenResp.StatusCode).To(Equal(http.StatusOK))
 
 	defer tokenResp.Body.Close()
-	body, err := ioutil.ReadAll(tokenResp.Body)
+	body, err := io.ReadAll(tokenResp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tokens := make(map[string]interface{})

@@ -2,7 +2,6 @@ package kube_test
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -40,7 +39,7 @@ var _ = Describe("KubeHTTP", func() {
 			origkc = os.Getenv("KUBECONFIG")
 
 			var err error
-			dir, err = ioutil.TempDir("", "kube-http-test-")
+			dir, err = os.MkdirTemp("", "kube-http-test-")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -76,7 +75,7 @@ var _ = Describe("KubeHTTP", func() {
 		})
 
 		It("errors when pointing at a missing kubeconfig file", func() {
-			t, err := ioutil.TempFile(dir, "not_a_kubeconfig")
+			t, err := os.CreateTemp(dir, "not_a_kubeconfig")
 			Expect(err).ToNot(HaveOccurred())
 
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
@@ -118,7 +117,7 @@ var _ = Describe("KubeHTTP", func() {
 })
 
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
-	f, err := ioutil.TempFile(dir, "test.kubeconfig")
+	f, err := os.CreateTemp(dir, "test.kubeconfig")
 	Expect(err).ToNot(HaveOccurred())
 
 	defer f.Close()

@@ -50,13 +50,15 @@ func (e ClusterNotFoundError) Error() string {
 	return fmt.Sprintf("cluster=%s not found", e.Cluster)
 }
 
-//ClusterFetcher fetches all leaf clusters
+// ClusterFetcher fetches all leaf clusters
+//
 //counterfeiter:generate . ClusterFetcher
 type ClusterFetcher interface {
 	Fetch(ctx context.Context) ([]Cluster, error)
 }
 
 // ClientsPool stores all clients to the leaf clusters
+//
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
 	Add(cfg ClusterClientConfigFunc, cluster Cluster) error

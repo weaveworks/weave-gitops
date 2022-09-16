@@ -1,7 +1,7 @@
 package watcher
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -45,7 +45,7 @@ type Watcher struct {
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
-	tempDir, err := ioutil.TempDir("", "profile_cache")
+	tempDir, err := os.MkdirTemp("", "profile_cache")
 	if err != nil {
 		return nil, err
 	}

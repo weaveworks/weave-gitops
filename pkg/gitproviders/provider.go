@@ -28,6 +28,7 @@ const (
 var ErrRepositoryNoPermissionsOrDoesNotExist = errors.New("no permissions to access this repository or repository doesn't exists")
 
 // GitProvider Handler
+//
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
 	RepositoryExists(ctx context.Context, repoURL RepoURL) (bool, error)

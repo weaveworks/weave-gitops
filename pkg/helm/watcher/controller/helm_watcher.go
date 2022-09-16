@@ -24,6 +24,7 @@ const (
 )
 
 // EventRecorder defines an external event recorder's function for creating events for the notification controller.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . eventRecorder
 type eventRecorder interface {
