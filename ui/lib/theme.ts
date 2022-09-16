@@ -152,5 +152,10 @@ export const muiTheme = createTheme({
         fontSize: "1rem",
       },
     },
+    MuiPaper: {
+      root: {
+        overflowX: "hidden",
+      },
+    },
   },
 });

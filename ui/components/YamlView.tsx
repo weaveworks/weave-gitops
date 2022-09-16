@@ -31,7 +31,7 @@ const CopyButton = styled(IconButton)`
   }
 `;
 
-function YamlView({ yaml, object, className }: Props) {
+function UnstyledYamlView({ yaml, object, className }: Props) {
   const [copied, setCopied] = React.useState(false);
   const headerText = `kubectl get ${fluxObjectKindToKind(
     object.kind
@@ -62,8 +62,8 @@ function YamlView({ yaml, object, className }: Props) {
   );
 }
 
-export default styled(YamlView).attrs({
-  className: YamlView.name,
+const YamlView = styled(UnstyledYamlView).attrs({
+  className: UnstyledYamlView.name,
 })`
   margin-bottom: ${(props) => props.theme.spacing.small};
   width: 100%;
@@ -73,6 +73,7 @@ export default styled(YamlView).attrs({
   overflow: hidden;
   pre {
     overflow-y: scroll;
+    overflow-x: hidden;
     padding: ${(props) => props.theme.spacing.small};
     white-space: pre-wrap;
   }
@@ -101,3 +102,11 @@ export default styled(YamlView).attrs({
     text-align: right;
   }
 `;
+
+export const DialogYamlView = styled(YamlView)`
+  margin-bottom: 0;
+  overflow: auto;
+  overflow-x: hidden;
+`;
+
+export default YamlView;

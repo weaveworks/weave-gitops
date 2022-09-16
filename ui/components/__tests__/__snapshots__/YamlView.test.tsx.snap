@@ -76,6 +76,7 @@ exports[`YamlView snapshots renders 1`] = `
 
 .c0 pre {
   overflow-y: scroll;
+  overflow-x: hidden;
   padding: 12px;
   white-space: pre-wrap;
 }
@@ -105,7 +106,7 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 <div
-  className="c0 YamlView"
+  className="c0 UnstyledYamlView"
 >
   <div
     className="c1"
