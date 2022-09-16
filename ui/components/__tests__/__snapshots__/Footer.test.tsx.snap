@@ -43,10 +43,6 @@ exports[`Footer snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c3 .pointer {
-  cursor: pointer;
-}
-
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -54,10 +50,6 @@ exports[`Footer snapshots default 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-}
-
-.c6 .pointer {
-  cursor: pointer;
 }
 
 .c8 {
@@ -69,10 +61,6 @@ exports[`Footer snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c8 .pointer {
-  cursor: pointer;
-}
-
 .c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -81,20 +69,12 @@ exports[`Footer snapshots default 1`] = `
   font-style: normal;
 }
 
-.c9 .pointer {
-  cursor: pointer;
-}
-
 .c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-}
-
-.c10 .pointer {
-  cursor: pointer;
 }
 
 .c4 {
@@ -276,10 +256,6 @@ exports[`Footer snapshots no api version 1`] = `
   white-space: nowrap;
 }
 
-.c3 .pointer {
-  cursor: pointer;
-}
-
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -287,10 +263,6 @@ exports[`Footer snapshots no api version 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-}
-
-.c6 .pointer {
-  cursor: pointer;
 }
 
 .c8 {
@@ -302,10 +274,6 @@ exports[`Footer snapshots no api version 1`] = `
   white-space: nowrap;
 }
 
-.c8 .pointer {
-  cursor: pointer;
-}
-
 .c9 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -314,20 +282,12 @@ exports[`Footer snapshots no api version 1`] = `
   font-style: normal;
 }
 
-.c9 .pointer {
-  cursor: pointer;
-}
-
 .c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-}
-
-.c10 .pointer {
-  cursor: pointer;
 }
 
 .c4 {

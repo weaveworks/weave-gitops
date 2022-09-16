@@ -24,20 +24,12 @@ exports[`Version snapshots renders a dash as plain text without version text and
   white-space: nowrap;
 }
 
-.c1 .pointer {
-  cursor: pointer;
-}
-
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-}
-
-.c3 .pointer {
-  cursor: pointer;
 }
 
 .c2 {
@@ -90,20 +82,12 @@ exports[`Version snapshots renders a dash without version text and without versi
   white-space: nowrap;
 }
 
-.c1 .pointer {
-  cursor: pointer;
-}
-
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-}
-
-.c3 .pointer {
-  cursor: pointer;
 }
 
 .c2 {
@@ -156,10 +140,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   white-space: nowrap;
 }
 
-.c1 .pointer {
-  cursor: pointer;
-}
-
 .c4 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -169,20 +149,12 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   color: #00b3ec;
 }
 
-.c4 .pointer {
-  cursor: pointer;
-}
-
 .c5 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
   font-style: normal;
-}
-
-.c5 .pointer {
-  cursor: pointer;
 }
 
 .c2 {
@@ -253,20 +225,12 @@ exports[`Version snapshots renders plain text with version text and without vers
   white-space: nowrap;
 }
 
-.c1 .pointer {
-  cursor: pointer;
-}
-
 .c3 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-}
-
-.c3 .pointer {
-  cursor: pointer;
 }
 
 .c2 {

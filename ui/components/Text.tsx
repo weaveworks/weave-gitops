@@ -13,6 +13,7 @@ export interface TextProps {
   uppercase?: boolean;
   noWrap?: boolean;
   titleHeight?: boolean;
+  pointer?: boolean;
 }
 
 function textTransform(props) {
@@ -40,11 +41,9 @@ const Text = styled.span<TextProps>`
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
   color: ${(props) => props.theme.colors[props.color as any]};
 
-  ${(props) => props.noWrap && "white-space: nowrap;"};
+  ${(props) => props.noWrap && "white-space: nowrap"};
   ${(props) => props.titleHeight && "line-height: 1.75"};
-  .pointer {
-    cursor: pointer;
-  }
+  ${(props) => props.pointer && "cursor: pointer"};
 `;
 
 Text.defaultProps = {

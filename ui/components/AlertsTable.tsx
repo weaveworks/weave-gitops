@@ -15,7 +15,7 @@ import { filterSeparator } from "./FilterDialog";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
-import YamlView from "./YamlView";
+import { DialogYamlView } from "./YamlView";
 type Props = {
   className?: string;
   rows?: Alert[];
@@ -55,11 +55,7 @@ function AlertsTable({ className, rows = [] }: Props) {
     {
       label: "Name",
       value: (a) => (
-        <Text
-          onClick={() => setYamlView(a)}
-          color="primary10"
-          className="pointer"
-        >
+        <Text onClick={() => setYamlView(a)} color="primary10" pointer>
           {a.name}
         </Text>
       ),
@@ -124,13 +120,7 @@ function AlertsTable({ className, rows = [] }: Props) {
         filters={initialFilterState}
       />
       <Dialog open={yamlView !== null} onClose={() => setYamlView(null)}>
-        {yamlView && (
-          <YamlView
-            object={yamlView}
-            yaml={yamlView?.yaml}
-            className="dialog"
-          />
-        )}
+        {yamlView && <DialogYamlView object={yamlView} yaml={yamlView?.yaml} />}
       </Dialog>
     </>
   );

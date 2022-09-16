@@ -27,10 +27,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   color: #737373;
 }
 
-.c2 .pointer {
-  cursor: pointer;
-}
-
 .c4 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -40,10 +36,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   color: #737373;
 }
 
-.c4 .pointer {
-  cursor: pointer;
-}
-
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -51,10 +43,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   text-transform: none;
   font-style: normal;
   color: #00b3ec;
-}
-
-.c6 .pointer {
-  cursor: pointer;
 }
 
 .c3 {

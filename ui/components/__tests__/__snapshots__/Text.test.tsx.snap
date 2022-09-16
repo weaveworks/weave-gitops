@@ -9,10 +9,6 @@ exports[`Text snapshots bold 1`] = `
   font-style: normal;
 }
 
-.c0 .pointer {
-  cursor: pointer;
-}
-
 <span
   className="c0"
   size="medium"
@@ -28,10 +24,6 @@ exports[`Text snapshots normal 1`] = `
   font-weight: 400;
   text-transform: none;
   font-style: normal;
-}
-
-.c0 .pointer {
-  cursor: pointer;
 }
 
 <span
@@ -50,10 +42,6 @@ exports[`Text snapshots with color 1`] = `
   text-transform: none;
   font-style: normal;
   color: #27AE60;
-}
-
-.c0 .pointer {
-  cursor: pointer;
 }
 
 <span

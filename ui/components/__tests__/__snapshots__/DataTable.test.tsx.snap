@@ -110,10 +110,6 @@ exports[`DataTable snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c11 .pointer {
-  cursor: pointer;
-}
-
 .c16 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
@@ -121,10 +117,6 @@ exports[`DataTable snapshots renders 1`] = `
   text-transform: none;
   font-style: normal;
   color: #737373;
-}
-
-.c16 .pointer {
-  cursor: pointer;
 }
 
 .c9 svg {

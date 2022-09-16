@@ -75,10 +75,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c6 .pointer {
-  cursor: pointer;
-}
-
 .c10 svg {
   fill: !important;
   height: 16px;

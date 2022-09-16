@@ -105,14 +105,8 @@ exports[`YamlView snapshots renders 1`] = `
   text-align: right;
 }
 
-.c0.dialog {
-  margin-bottom: 0;
-  overflow: auto;
-  overflow-x: hidden;
-}
-
 <div
-  className="c0 YamlView"
+  className="c0 UnstyledYamlView"
 >
   <div
     className="c1"
