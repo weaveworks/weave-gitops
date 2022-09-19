@@ -27,3 +27,6 @@ gha-creds-*.json
 
 # .vscode
 .vscode
+
+# macOS
+.DS_Store
