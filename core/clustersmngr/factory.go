@@ -254,9 +254,11 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 		// namespaced so only 1 item
 		for _, l := range lists {
 			list, ok := l.(*v1.NamespaceList)
+			cf.log.Info("DEBUG- updating namespaces", "cluster", clusterName, "isNslist", ok)
 			if !ok {
 				continue
 			}
+			cf.log.Info("DEBUG- updating namespaces  after casting", "cluster", clusterName, "nscount", len(list.Items))
 
 			cf.clustersNamespaces.Set(clusterName, list.Items)
 		}
@@ -413,7 +415,10 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 		go func(cluster Cluster) {
 			defer wg.Done()
 
-			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
+			clusterNs, err := cf.clustersNamespaces.Get(cluster.Name)
+			if err != nil {
+				cf.log.Error(err, "failed to get cluster namespaces", "cluster", cluster.Name)
+			}
 
 			cfg, err := ClientConfigWithUser(user, cf.kubeConfigOptions...)(cluster)
 			if err != nil {
@@ -426,6 +431,9 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.Name, "user", user.ID)
 				return
 			}
+			if len(filteredNs) == 0 {
+				cf.log.Error(errors.New("DEBUG- empty user namespaces"), "", "cluster", cluster.Name, "user", user.ID)
+			}
 
 			cf.usersNamespaces.Set(user, cluster.Name, filteredNs)
 		}(cluster)
@@ -435,7 +443,8 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 }
 
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
-	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
+	clusters := cf.clusters.Get()
+	return cf.usersNamespaces.GetAll(user, clusters)
 }
 
 func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
@@ -443,6 +452,8 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	if len(userNamespaces) > 0 {
 		return userNamespaces
 	}
+
+	cf.log.Info("DEBUG- user namespaces came back empty", "user", user.ID)
 
 	cf.UpdateUserNamespaces(ctx, user)
 

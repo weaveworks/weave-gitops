@@ -1,6 +1,7 @@
 package clustersmngr
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -104,11 +105,15 @@ func (cn *ClustersNamespaces) Clear() {
 	cn.namespaces = make(map[string][]v1.Namespace)
 }
 
-func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
+func (cn *ClustersNamespaces) Get(cluster string) ([]v1.Namespace, error) {
 	cn.Lock()
 	defer cn.Unlock()
 
-	return cn.namespaces[cluster]
+	clusterObj, ok := cn.namespaces[cluster]
+	if !ok {
+		return nil, errors.New("failed to get cluster from cache")
+	}
+	return clusterObj, nil
 }
 
 type UsersNamespaces struct {
