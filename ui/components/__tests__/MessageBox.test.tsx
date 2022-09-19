@@ -9,11 +9,7 @@ describe("MessageBox", () => {
     it("renders", () => {
       const tree = renderer
         .create(
-          withTheme(
-            <MessageBox column align>
-              Column and items centered.
-            </MessageBox>
-          )
+          withTheme(<MessageBox align>Column and items centered.</MessageBox>)
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
