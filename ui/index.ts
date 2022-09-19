@@ -24,6 +24,7 @@ import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
 import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
+import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
@@ -126,6 +127,7 @@ export {
   KustomizationDetail,
   Link,
   LoadingPage,
+  MessageBox,
   Metadata,
   muiTheme,
   NotificationsTable,

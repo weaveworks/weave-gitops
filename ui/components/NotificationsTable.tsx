@@ -10,8 +10,9 @@ import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./DataTable";
-import Flex, { MessageFlex } from "./Flex";
+import Flex from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
+import MessageBox from "./MessageBox";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
@@ -100,7 +101,7 @@ function NotificationsTable({ className, rows }: Props) {
     return (
       <Flex wide tall column align>
         <Spacer padding="xxl" />
-        <MessageFlex column align={false}>
+        <MessageBox>
           <Text size="large" semiBold>
             No notifications are currently configured
           </Text>
@@ -117,7 +118,7 @@ function NotificationsTable({ className, rows }: Props) {
               visit our documentation
             </Link>
           </Text>
-        </MessageFlex>
+        </MessageBox>
       </Flex>
     );
 
