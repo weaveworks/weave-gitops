@@ -1,14 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
-import { removeKind } from "../lib/utils";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { OCIRepository } from "../lib/objects";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind, OCIRepository } from "../lib/objects";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
@@ -31,10 +29,10 @@ function OCIRepositoryDetail({ className, ociRepository }: Props) {
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindOCIRepository}
+      type={Kind.OCIRepository}
       source={ociRepository}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindOCIRepository)],
+        ["Type", Kind.OCIRepository],
         ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],
         [
           "Last Updated",

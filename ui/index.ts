@@ -1,12 +1,12 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
+import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
 } from "./components/DataTable";
-import DagGraph from "./components/DagGraph";
 import DependenciesView from "./components/DependenciesView";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
@@ -45,19 +45,19 @@ import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
-import { Automation, useListAutomations } from "./hooks/automations";
+import { useListAutomations } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
+import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
-import { FluxObjectKind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
 import {
+  Automation,
   Bucket,
-  fluxObjectKindToKind,
   GitRepository,
   HelmChart,
   HelmRepository,
@@ -74,7 +74,6 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-import { useListAlerts, useListProviders } from "./hooks/notifications";
 export {
   AppContextProvider,
   applicationsClient,
@@ -98,8 +97,6 @@ export {
   filterByStatusCallback,
   filterByTypeCallback,
   filterConfig,
-  FluxObjectKind,
-  fluxObjectKindToKind,
   FluxRuntime,
   Footer,
   formatURL,

@@ -81,7 +81,7 @@ export type ListObjectsResponse = {
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.FluxObjectKind
+  automationKind?: string
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }

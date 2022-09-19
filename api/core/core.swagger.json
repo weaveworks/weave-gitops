@@ -784,7 +784,7 @@
           "type": "string"
         },
         "automationKind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
+          "type": "string"
         },
         "kinds": {
           "type": "array",

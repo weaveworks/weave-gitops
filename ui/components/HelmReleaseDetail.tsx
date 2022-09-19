@@ -1,16 +1,15 @@
 import * as React from "react";
 import styled from "styled-components";
-import { HelmRelease } from "../lib/objects";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { automationLastUpdated } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { HelmRelease, Kind } from "../lib/objects";
+import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 type Props = {
   name: string;
@@ -25,7 +24,7 @@ function helmChartLink(helmRelease: HelmRelease) {
     return (
       <SourceLink
         sourceRef={{
-          kind: FluxObjectKind.KindHelmChart,
+          kind: Kind.HelmChart,
           name: helmRelease?.helmChart.chart,
         }}
         clusterName={helmRelease?.clusterName}
@@ -40,7 +39,7 @@ function helmChartLink(helmRelease: HelmRelease) {
   return (
     <SourceLink
       sourceRef={{
-        kind: FluxObjectKind.KindHelmChart,
+        kind: Kind.HelmChart,
         name: name,
         namespace: ns,
       }}

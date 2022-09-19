@@ -1,7 +1,7 @@
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
-import { FluxObjectKind } from "../../lib/api/core/types.pb";
+import { Kind } from "../../lib/objects";
 import { withContext, withTheme } from "../../lib/test-utils";
 import YamlView from "../YamlView";
 
@@ -14,7 +14,7 @@ describe("YamlView", () => {
             withContext(
               <YamlView
                 object={{
-                  kind: FluxObjectKind.KindKustomization,
+                  kind: Kind.Kustomization,
                   name: "podinfo",
                   namespace: "flux-system",
                 }}

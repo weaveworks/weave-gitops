@@ -7,12 +7,9 @@ import {
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
-import {
-  FluxObjectKind,
-  GroupVersionKind,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
-import { getChildren, UnstructuredObjectWithChildren } from "../lib/graph";
+import { GroupVersionKind, UnstructuredObject } from "../lib/api/core/types.pb";
+import { getChildren } from "../lib/graph";
+import { Kind } from "../lib/objects";
 import {
   DefaultCluster,
   NoNamespace,
@@ -57,7 +54,7 @@ export function flattenChildren(children: UnstructuredObjectWithChildren[]) {
 export function useGetReconciledObjects(
   name: string,
   namespace: string,
-  type: FluxObjectKind,
+  type: Kind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster,
   opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {

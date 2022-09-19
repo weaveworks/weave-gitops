@@ -1,10 +1,9 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { Automation } from "../hooks/automations";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
+import { Automation, HelmRelease, Kind } from "../lib/objects";
 import { V2Routes } from "../lib/types";
 import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
 import DataTable, {
@@ -52,9 +51,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Name",
       value: (k) => {
-        console.log(k);
         const route =
-          k.kind === FluxObjectKind.KindKustomization
+          k.type === Kind.Kustomization
             ? V2Routes.Kustomization
             : V2Routes.HelmRelease;
         return (
@@ -90,18 +88,18 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Source",
       value: (a: Automation) => {
-        let sourceKind: FluxObjectKind;
+        let sourceKind: string;
         let sourceName: string;
         let sourceNamespace: string;
 
-        if (a.kind === FluxObjectKind.KindKustomization) {
+        if (a.type === Kind.Kustomization) {
           const sourceRef = getSourceRefForAutomation(a);
           sourceKind = sourceRef?.kind;
           sourceName = sourceRef?.name;
           sourceNamespace = sourceRef?.namespace;
         } else {
           const hr = a as HelmRelease;
-          sourceKind = FluxObjectKind.KindHelmChart;
+          sourceKind = Kind.HelmChart;
           sourceName = hr.helmChart.name;
           sourceNamespace = hr.helmChart.namespace;
         }

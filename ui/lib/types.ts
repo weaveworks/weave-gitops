@@ -1,6 +1,7 @@
 import { UseQueryOptions } from "react-query";
 import { ListError } from "./api/core/core.pb";
-import { Condition, FluxObjectKind, Interval } from "./api/core/types.pb";
+import { Condition, Interval } from "./api/core/types.pb";
+import { Kind } from "./objects";
 
 export enum PageRoute {
   Applications = "/applications",
@@ -44,7 +45,7 @@ export const NoNamespace = "";
 export interface Source {
   name?: string;
   namespace?: string;
-  kind?: FluxObjectKind;
+  kind?: Kind;
   conditions?: Condition[];
   interval?: Interval;
   suspended?: boolean;
@@ -54,13 +55,13 @@ export interface Source {
 
 export interface Syncable {
   name?: string;
-  kind?: FluxObjectKind;
+  kind?: Kind;
   namespace?: string;
   clusterName?: string;
 }
 
 export type MultiRequestError = ListError & {
-  kind?: FluxObjectKind;
+  kind?: Kind;
 };
 
 // Helper type to work around the weird react-query typedef/api shape

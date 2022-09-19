@@ -815,7 +815,7 @@ type GetReconciledObjectsRequest struct {
 
 	AutomationName string              `protobuf:"bytes,1,opt,name=automationName,proto3" json:"automationName,omitempty"`
 	Namespace      string              `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	AutomationKind FluxObjectKind      `protobuf:"varint,3,opt,name=automationKind,proto3,enum=gitops_core.v1.FluxObjectKind" json:"automationKind,omitempty"`
+	AutomationKind string              `protobuf:"bytes,3,opt,name=automationKind,proto3" json:"automationKind,omitempty"`
 	Kinds          []*GroupVersionKind `protobuf:"bytes,4,rep,name=kinds,proto3" json:"kinds,omitempty"`
 	ClusterName    string              `protobuf:"bytes,5,opt,name=clusterName,proto3" json:"clusterName,omitempty"`
 }
@@ -866,11 +866,11 @@ func (x *GetReconciledObjectsRequest) GetNamespace() string {
 	return ""
 }
 
-func (x *GetReconciledObjectsRequest) GetAutomationKind() FluxObjectKind {
+func (x *GetReconciledObjectsRequest) GetAutomationKind() string {
 	if x != nil {
 		return x.AutomationKind
 	}
-	return FluxObjectKind_KindGitRepository
+	return ""
 }
 
 func (x *GetReconciledObjectsRequest) GetKinds() []*GroupVersionKind {
@@ -1819,16 +1819,14 @@ var file_api_core_core_proto_rawDesc = []byte{
 	0x0a, 0x06, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19,
 	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e,
 	0x4c, 0x69, 0x73, 0x74, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x06, 0x65, 0x72, 0x72, 0x6f, 0x72,
-	0x73, 0x22, 0x85, 0x02, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x63, 0x69,
+	0x73, 0x22, 0xe5, 0x01, 0x0a, 0x1b, 0x47, 0x65, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x63, 0x69,
 	0x6c, 0x65, 0x64, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x12, 0x26, 0x0a, 0x0e, 0x61, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e,
 	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x61, 0x75, 0x74, 0x6f, 0x6d,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d,
 	0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61,
-	0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x46, 0x0a, 0x0e, 0x61, 0x75, 0x74, 0x6f, 0x6d,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32,
-	0x1e, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31,
-	0x2e, 0x46, 0x6c, 0x75, 0x78, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x4b, 0x69, 0x6e, 0x64, 0x52,
+	0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x26, 0x0a, 0x0e, 0x61, 0x75, 0x74, 0x6f, 0x6d,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x0e, 0x61, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x12,
 	0x36, 0x0a, 0x05, 0x6b, 0x69, 0x6e, 0x64, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x20,
 	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x76, 0x31, 0x2e,
@@ -2108,13 +2106,12 @@ var file_api_core_core_proto_goTypes = []interface{}{
 	(*Deployment)(nil),                     // 35: gitops_core.v1.Deployment
 	(*Crd)(nil),                            // 36: gitops_core.v1.Crd
 	(*Object)(nil),                         // 37: gitops_core.v1.Object
-	(FluxObjectKind)(0),                    // 38: gitops_core.v1.FluxObjectKind
-	(*GroupVersionKind)(nil),               // 39: gitops_core.v1.GroupVersionKind
-	(*UnstructuredObject)(nil),             // 40: gitops_core.v1.UnstructuredObject
-	(*Namespace)(nil),                      // 41: gitops_core.v1.Namespace
-	(*ObjectRef)(nil),                      // 42: gitops_core.v1.ObjectRef
-	(*Event)(nil),                          // 43: gitops_core.v1.Event
-	(*ClusteredObjRef)(nil),                // 44: gitops_core.v1.ClusteredObjRef
+	(*GroupVersionKind)(nil),               // 38: gitops_core.v1.GroupVersionKind
+	(*UnstructuredObject)(nil),             // 39: gitops_core.v1.UnstructuredObject
+	(*Namespace)(nil),                      // 40: gitops_core.v1.Namespace
+	(*ObjectRef)(nil),                      // 41: gitops_core.v1.ObjectRef
+	(*Event)(nil),                          // 42: gitops_core.v1.Event
+	(*ClusteredObjRef)(nil),                // 43: gitops_core.v1.ClusteredObjRef
 }
 var file_api_core_core_proto_depIdxs = []int32{
 	0,  // 0: gitops_core.v1.ListKustomizationsRequest.pagination:type_name -> gitops_core.v1.Pagination
@@ -2129,52 +2126,51 @@ var file_api_core_core_proto_depIdxs = []int32{
 	37, // 9: gitops_core.v1.GetObjectResponse.object:type_name -> gitops_core.v1.Object
 	37, // 10: gitops_core.v1.ListObjectsResponse.objects:type_name -> gitops_core.v1.Object
 	1,  // 11: gitops_core.v1.ListObjectsResponse.errors:type_name -> gitops_core.v1.ListError
-	38, // 12: gitops_core.v1.GetReconciledObjectsRequest.automationKind:type_name -> gitops_core.v1.FluxObjectKind
-	39, // 13: gitops_core.v1.GetReconciledObjectsRequest.kinds:type_name -> gitops_core.v1.GroupVersionKind
-	40, // 14: gitops_core.v1.GetReconciledObjectsResponse.objects:type_name -> gitops_core.v1.UnstructuredObject
-	39, // 15: gitops_core.v1.GetChildObjectsRequest.groupVersionKind:type_name -> gitops_core.v1.GroupVersionKind
-	40, // 16: gitops_core.v1.GetChildObjectsResponse.objects:type_name -> gitops_core.v1.UnstructuredObject
-	41, // 17: gitops_core.v1.ListNamespacesResponse.namespaces:type_name -> gitops_core.v1.Namespace
-	42, // 18: gitops_core.v1.ListEventsRequest.involvedObject:type_name -> gitops_core.v1.ObjectRef
-	43, // 19: gitops_core.v1.ListEventsResponse.events:type_name -> gitops_core.v1.Event
-	44, // 20: gitops_core.v1.SyncFluxObjectRequest.objects:type_name -> gitops_core.v1.ClusteredObjRef
-	32, // 21: gitops_core.v1.GetFeatureFlagsResponse.flags:type_name -> gitops_core.v1.GetFeatureFlagsResponse.FlagsEntry
-	44, // 22: gitops_core.v1.ToggleSuspendResourceRequest.objects:type_name -> gitops_core.v1.ClusteredObjRef
-	2,  // 23: gitops_core.v1.Core.ListKustomizations:input_type -> gitops_core.v1.ListKustomizationsRequest
-	4,  // 24: gitops_core.v1.Core.ListHelmReleases:input_type -> gitops_core.v1.ListHelmReleasesRequest
-	10, // 25: gitops_core.v1.Core.GetObject:input_type -> gitops_core.v1.GetObjectRequest
-	12, // 26: gitops_core.v1.Core.ListObjects:input_type -> gitops_core.v1.ListObjectsRequest
-	6,  // 27: gitops_core.v1.Core.ListFluxRuntimeObjects:input_type -> gitops_core.v1.ListFluxRuntimeObjectsRequest
-	8,  // 28: gitops_core.v1.Core.ListFluxCrds:input_type -> gitops_core.v1.ListFluxCrdsRequest
-	14, // 29: gitops_core.v1.Core.GetReconciledObjects:input_type -> gitops_core.v1.GetReconciledObjectsRequest
-	16, // 30: gitops_core.v1.Core.GetChildObjects:input_type -> gitops_core.v1.GetChildObjectsRequest
-	18, // 31: gitops_core.v1.Core.GetFluxNamespace:input_type -> gitops_core.v1.GetFluxNamespaceRequest
-	20, // 32: gitops_core.v1.Core.ListNamespaces:input_type -> gitops_core.v1.ListNamespacesRequest
-	22, // 33: gitops_core.v1.Core.ListEvents:input_type -> gitops_core.v1.ListEventsRequest
-	24, // 34: gitops_core.v1.Core.SyncFluxObject:input_type -> gitops_core.v1.SyncFluxObjectRequest
-	26, // 35: gitops_core.v1.Core.GetVersion:input_type -> gitops_core.v1.GetVersionRequest
-	28, // 36: gitops_core.v1.Core.GetFeatureFlags:input_type -> gitops_core.v1.GetFeatureFlagsRequest
-	30, // 37: gitops_core.v1.Core.ToggleSuspendResource:input_type -> gitops_core.v1.ToggleSuspendResourceRequest
-	3,  // 38: gitops_core.v1.Core.ListKustomizations:output_type -> gitops_core.v1.ListKustomizationsResponse
-	5,  // 39: gitops_core.v1.Core.ListHelmReleases:output_type -> gitops_core.v1.ListHelmReleasesResponse
-	11, // 40: gitops_core.v1.Core.GetObject:output_type -> gitops_core.v1.GetObjectResponse
-	13, // 41: gitops_core.v1.Core.ListObjects:output_type -> gitops_core.v1.ListObjectsResponse
-	7,  // 42: gitops_core.v1.Core.ListFluxRuntimeObjects:output_type -> gitops_core.v1.ListFluxRuntimeObjectsResponse
-	9,  // 43: gitops_core.v1.Core.ListFluxCrds:output_type -> gitops_core.v1.ListFluxCrdsResponse
-	15, // 44: gitops_core.v1.Core.GetReconciledObjects:output_type -> gitops_core.v1.GetReconciledObjectsResponse
-	17, // 45: gitops_core.v1.Core.GetChildObjects:output_type -> gitops_core.v1.GetChildObjectsResponse
-	19, // 46: gitops_core.v1.Core.GetFluxNamespace:output_type -> gitops_core.v1.GetFluxNamespaceResponse
-	21, // 47: gitops_core.v1.Core.ListNamespaces:output_type -> gitops_core.v1.ListNamespacesResponse
-	23, // 48: gitops_core.v1.Core.ListEvents:output_type -> gitops_core.v1.ListEventsResponse
-	25, // 49: gitops_core.v1.Core.SyncFluxObject:output_type -> gitops_core.v1.SyncFluxObjectResponse
-	27, // 50: gitops_core.v1.Core.GetVersion:output_type -> gitops_core.v1.GetVersionResponse
-	29, // 51: gitops_core.v1.Core.GetFeatureFlags:output_type -> gitops_core.v1.GetFeatureFlagsResponse
-	31, // 52: gitops_core.v1.Core.ToggleSuspendResource:output_type -> gitops_core.v1.ToggleSuspendResourceResponse
-	38, // [38:53] is the sub-list for method output_type
-	23, // [23:38] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	38, // 12: gitops_core.v1.GetReconciledObjectsRequest.kinds:type_name -> gitops_core.v1.GroupVersionKind
+	39, // 13: gitops_core.v1.GetReconciledObjectsResponse.objects:type_name -> gitops_core.v1.UnstructuredObject
+	38, // 14: gitops_core.v1.GetChildObjectsRequest.groupVersionKind:type_name -> gitops_core.v1.GroupVersionKind
+	39, // 15: gitops_core.v1.GetChildObjectsResponse.objects:type_name -> gitops_core.v1.UnstructuredObject
+	40, // 16: gitops_core.v1.ListNamespacesResponse.namespaces:type_name -> gitops_core.v1.Namespace
+	41, // 17: gitops_core.v1.ListEventsRequest.involvedObject:type_name -> gitops_core.v1.ObjectRef
+	42, // 18: gitops_core.v1.ListEventsResponse.events:type_name -> gitops_core.v1.Event
+	43, // 19: gitops_core.v1.SyncFluxObjectRequest.objects:type_name -> gitops_core.v1.ClusteredObjRef
+	32, // 20: gitops_core.v1.GetFeatureFlagsResponse.flags:type_name -> gitops_core.v1.GetFeatureFlagsResponse.FlagsEntry
+	43, // 21: gitops_core.v1.ToggleSuspendResourceRequest.objects:type_name -> gitops_core.v1.ClusteredObjRef
+	2,  // 22: gitops_core.v1.Core.ListKustomizations:input_type -> gitops_core.v1.ListKustomizationsRequest
+	4,  // 23: gitops_core.v1.Core.ListHelmReleases:input_type -> gitops_core.v1.ListHelmReleasesRequest
+	10, // 24: gitops_core.v1.Core.GetObject:input_type -> gitops_core.v1.GetObjectRequest
+	12, // 25: gitops_core.v1.Core.ListObjects:input_type -> gitops_core.v1.ListObjectsRequest
+	6,  // 26: gitops_core.v1.Core.ListFluxRuntimeObjects:input_type -> gitops_core.v1.ListFluxRuntimeObjectsRequest
+	8,  // 27: gitops_core.v1.Core.ListFluxCrds:input_type -> gitops_core.v1.ListFluxCrdsRequest
+	14, // 28: gitops_core.v1.Core.GetReconciledObjects:input_type -> gitops_core.v1.GetReconciledObjectsRequest
+	16, // 29: gitops_core.v1.Core.GetChildObjects:input_type -> gitops_core.v1.GetChildObjectsRequest
+	18, // 30: gitops_core.v1.Core.GetFluxNamespace:input_type -> gitops_core.v1.GetFluxNamespaceRequest
+	20, // 31: gitops_core.v1.Core.ListNamespaces:input_type -> gitops_core.v1.ListNamespacesRequest
+	22, // 32: gitops_core.v1.Core.ListEvents:input_type -> gitops_core.v1.ListEventsRequest
+	24, // 33: gitops_core.v1.Core.SyncFluxObject:input_type -> gitops_core.v1.SyncFluxObjectRequest
+	26, // 34: gitops_core.v1.Core.GetVersion:input_type -> gitops_core.v1.GetVersionRequest
+	28, // 35: gitops_core.v1.Core.GetFeatureFlags:input_type -> gitops_core.v1.GetFeatureFlagsRequest
+	30, // 36: gitops_core.v1.Core.ToggleSuspendResource:input_type -> gitops_core.v1.ToggleSuspendResourceRequest
+	3,  // 37: gitops_core.v1.Core.ListKustomizations:output_type -> gitops_core.v1.ListKustomizationsResponse
+	5,  // 38: gitops_core.v1.Core.ListHelmReleases:output_type -> gitops_core.v1.ListHelmReleasesResponse
+	11, // 39: gitops_core.v1.Core.GetObject:output_type -> gitops_core.v1.GetObjectResponse
+	13, // 40: gitops_core.v1.Core.ListObjects:output_type -> gitops_core.v1.ListObjectsResponse
+	7,  // 41: gitops_core.v1.Core.ListFluxRuntimeObjects:output_type -> gitops_core.v1.ListFluxRuntimeObjectsResponse
+	9,  // 42: gitops_core.v1.Core.ListFluxCrds:output_type -> gitops_core.v1.ListFluxCrdsResponse
+	15, // 43: gitops_core.v1.Core.GetReconciledObjects:output_type -> gitops_core.v1.GetReconciledObjectsResponse
+	17, // 44: gitops_core.v1.Core.GetChildObjects:output_type -> gitops_core.v1.GetChildObjectsResponse
+	19, // 45: gitops_core.v1.Core.GetFluxNamespace:output_type -> gitops_core.v1.GetFluxNamespaceResponse
+	21, // 46: gitops_core.v1.Core.ListNamespaces:output_type -> gitops_core.v1.ListNamespacesResponse
+	23, // 47: gitops_core.v1.Core.ListEvents:output_type -> gitops_core.v1.ListEventsResponse
+	25, // 48: gitops_core.v1.Core.SyncFluxObject:output_type -> gitops_core.v1.SyncFluxObjectResponse
+	27, // 49: gitops_core.v1.Core.GetVersion:output_type -> gitops_core.v1.GetVersionResponse
+	29, // 50: gitops_core.v1.Core.GetFeatureFlags:output_type -> gitops_core.v1.GetFeatureFlagsResponse
+	31, // 51: gitops_core.v1.Core.ToggleSuspendResource:output_type -> gitops_core.v1.ToggleSuspendResourceResponse
+	37, // [37:52] is the sub-list for method output_type
+	22, // [22:37] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_api_core_core_proto_init() }

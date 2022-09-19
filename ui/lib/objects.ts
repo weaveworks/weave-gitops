@@ -1,16 +1,13 @@
 import { stringify } from "yaml";
 import {
   Condition,
-  FluxObjectKind,
   FluxObjectRef,
   GitRepositoryRef,
   GroupVersionKind,
   Interval,
   NamespacedObjectReference,
   Object as ResponseObject,
-  ObjectRef,
 } from "./api/core/types.pb";
-import { addKind } from "./utils";
 
 export enum Kind {
   GitRepository = "GitRepository",
@@ -32,15 +29,10 @@ export type Source =
   | Bucket
   | OCIRepository;
 
-export function fluxObjectKindToKind(fok: FluxObjectKind): Kind {
-  return Kind[FluxObjectKind[fok].slice(4)];
-}
-
-export interface CrossNamespaceObjectRef extends ObjectRef {
+export interface CrossNamespaceObjectRef extends FluxObjectRef {
   apiVersion: string;
   matchLabels: { key: string; value: string }[];
 }
-
 export class FluxObject {
   obj: any;
   clusterName: string;
@@ -88,15 +80,6 @@ export class FluxObject {
     return Boolean(this.obj.spec?.suspend); // if this is missing, it's not suspended
   }
 
-  get kind(): FluxObjectKind | undefined {
-    if (this.obj.kind) {
-      return FluxObjectKind[addKind(this.obj.kind)];
-    }
-  }
-
-  // TODO: this actually returns the k8s kind name,
-  // while kind returns a value with a non-standard name.
-  // We shouldn't need both, and this value should be sufficient
   get type(): Kind | undefined {
     return this.obj.kind;
   }
@@ -150,7 +133,6 @@ export class HelmChart extends FluxObject {
     }
     const sourceRef = {
       ...this.obj.spec.sourceRef,
-      kind: FluxObjectKind[addKind(this.obj.spec.sourceRef.kind)],
     };
     if (!sourceRef.namespace) {
       sourceRef.namespace = this.namespace;
@@ -212,7 +194,6 @@ export class Kustomization extends FluxObject {
     }
     const source = {
       ...this.obj.spec.sourceRef,
-      kind: FluxObjectKind[addKind(this.obj.spec.sourceRef.kind)],
     };
     if (!source.namespace) {
       source.namespace = this.namespace;

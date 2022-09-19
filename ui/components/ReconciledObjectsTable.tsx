@@ -2,14 +2,11 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import {
-  FluxObjectKind,
-  GroupVersionKind,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
+import { GroupVersionKind, UnstructuredObject } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
+import { Kind } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
-import { addKind, makeImageString, statusSortHelper } from "../lib/utils";
+import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable, {
   filterByStatusCallback,
   filterByTypeCallback,
@@ -24,22 +21,19 @@ export interface ReconciledVisualizationProps {
   className?: string;
   automationName: string;
   namespace?: string;
-  automationKind: FluxObjectKind;
+  automationKind: Kind;
   kinds: GroupVersionKind[];
   clusterName: string;
 }
 
-const kindsFrom = [
-  FluxObjectKind.KindKustomization,
-  FluxObjectKind.KindHelmRelease,
-];
+const kindsFrom = [Kind.Kustomization, Kind.HelmRelease];
 
 const kindsTo = [
-  FluxObjectKind.KindKustomization,
-  FluxObjectKind.KindHelmRelease,
-  FluxObjectKind.KindGitRepository,
-  FluxObjectKind.KindHelmRepository,
-  FluxObjectKind.KindBucket,
+  Kind.Kustomization,
+  Kind.HelmRelease,
+  Kind.GitRepository,
+  Kind.HelmRepository,
+  Kind.Bucket,
 ];
 
 function ReconciledObjectsTable({
@@ -78,7 +72,7 @@ function ReconciledObjectsTable({
         fields={[
           {
             value: (u: UnstructuredObject) => {
-              const kind = FluxObjectKind[addKind(u.groupVersionKind.kind)];
+              const kind = Kind[u.groupVersionKind.kind];
 
               return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
                 <Link

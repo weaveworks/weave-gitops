@@ -2,11 +2,8 @@
 // with in the context of their parent-child relationships.
 import _ from "lodash";
 import { Core } from "./api/core/core.pb";
-import {
-  FluxObjectKind,
-  GroupVersionKind,
-  UnstructuredObject,
-} from "./api/core/types.pb";
+import { GroupVersionKind, UnstructuredObject } from "./api/core/types.pb";
+import { Kind } from "./objects";
 
 export type UnstructuredObjectWithChildren = UnstructuredObject & {
   children?: UnstructuredObjectWithChildren[];
@@ -78,7 +75,7 @@ export const getChildren = async (
   client: typeof Core,
   automationName,
   namespace,
-  automationKind: FluxObjectKind,
+  automationKind: Kind,
   kinds: GroupVersionKind[],
   clusterName
 ): Promise<UnstructuredObjectWithChildren[]> => {

@@ -3,10 +3,8 @@ import styled from "styled-components";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { Bucket } from "../lib/objects";
-import { removeKind } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Bucket, Kind } from "../lib/objects";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -31,10 +29,10 @@ function BucketDetail({ className, bucket }: Props) {
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindBucket}
+      type={Kind.Bucket}
       source={bucket}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindBucket)],
+        ["Type", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
         ["Bucket Name", bucket.name],
         ["Last Updated", <Timestamp time={bucket.lastUpdatedAt} />],

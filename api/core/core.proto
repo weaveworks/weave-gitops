@@ -239,7 +239,7 @@ message ListObjectsResponse {
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    FluxObjectKind automationKind         = 3;
+    string         automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }

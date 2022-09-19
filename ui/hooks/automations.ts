@@ -6,12 +6,7 @@ import {
   SyncFluxObjectRequest,
   SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
-import {
-  FluxObjectKind,
-  HelmRelease,
-  Kustomization,
-} from "../lib/api/core/types.pb";
-import { Kind } from "../lib/objects";
+import { Automation, Kind } from "../lib/objects";
 import {
   MultiRequestError,
   NoNamespace,
@@ -21,11 +16,6 @@ import {
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
-
-export type Automation = (Kustomization | HelmRelease) & {
-  kind: FluxObjectKind;
-};
-
 type Res = { result: Automation[]; errors: MultiRequestError[] };
 
 export function useListAutomations(

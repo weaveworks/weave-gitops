@@ -1,5 +1,5 @@
-import { FluxObjectKind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
+import { Kind } from "../objects";
 import { createCoreMockClient } from "../test-utils";
 
 describe("graph lib", () => {
@@ -7,7 +7,7 @@ describe("graph lib", () => {
     const app = {
       name: "my-app",
       namespace: "my-namespace",
-      automationKind: FluxObjectKind.KindHelmRelease,
+      automationKind: Kind.HelmRelease,
       reconciledObjectKinds: [
         { group: "apps", version: "v1", kind: "Deployment" },
       ],

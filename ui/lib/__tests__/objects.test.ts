@@ -6,6 +6,7 @@ import {
   HelmChart,
   HelmRelease,
   HelmRepository,
+  Kind,
   Kustomization,
   OCIRepository,
 } from "../objects";
@@ -74,8 +75,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindHelmRepository);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.HelmRepository);
     });
 
     it("extracts interval", () => {
@@ -117,8 +118,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindHelmChart);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.HelmChart);
     });
 
     it("extracts interval", () => {
@@ -165,8 +166,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindGitRepository);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.GitRepository);
     });
 
     it("extracts interval", () => {
@@ -230,8 +231,8 @@ describe("objects lib", () => {
       ]);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindBucket);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.Bucket);
     });
 
     it("extracts interval", () => {
@@ -431,8 +432,8 @@ describe("objects lib", () => {
       expect(obj.conditions).toEqual([]);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(undefined);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(undefined);
     });
 
     it("extracts interval", () => {
