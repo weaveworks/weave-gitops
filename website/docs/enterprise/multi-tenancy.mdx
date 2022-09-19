@@ -59,6 +59,19 @@ tenants:
           verbs:
             - 'list'
             - 'get'
+    deploymentRBAC:
+      bindRoles:
+        - name: foo-role
+          kind: Role
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
 serviceAccount:
   name: "reconcilerServiceAccount"
 ```
@@ -72,6 +85,7 @@ The file above defines two tenants: `first-tenant` and `second-tenant` as follow
 - `allowedClusters`: limits which secrets containing cluster configuraton can be used. It stops WGE `GitopsCluster` and flux `Kustomization` from being deployed if they point to a secret not in the list, essentially giving control on which cluster can be added to a multi-cluster setup. Requires `policy-agent`.
   - `kubeConfig`: name of the secret that can be used for this tenant.
 - `teamRBAC`: Generate Roles and Rolebindings for a list of `groupNames`. This allows you to easily give an OIDC group access to a tenant's resources. When the Weave Gitops Enterprise UI is configured with your OIDC provider, tenants can log in and view the status of the resources they have been granted access to.
+- `deploymentRBAC`: generate Roles and Rolebindings for a service account. Can additionally bind to an existing Roles/ClusterRoles. Would use the global service account if specified in the tenants file, otherwise it will use the created service account which takes the tenant name. if not specified a Rolebinding would be created that binds to `cluster-admin` ClusterRole.
 
 Global options:
 
@@ -80,6 +94,7 @@ Global options:
 ### Gitops create tenants command
 
 The command creates the necessary resources to apply multi tenancy on the user's cluster. To use the command to apply the resources directly the user needs to have the necessary configuration to connecto the desired cluster.
+The command considers the tenancy file as a source of truth and will change the cluster state to match what is currently described in the file.
 
 For more control on a specific tenant a tenancy file should be used, the command allows the creation of the base resources that defines a tenancy through the arguments:
 
