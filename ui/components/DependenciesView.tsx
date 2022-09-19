@@ -9,26 +9,21 @@ import {
 } from "../lib/objects";
 import { getGraphNodes } from "../lib/dependencies";
 import DagGraph from "./DagGraph";
-import Flex, { MessageFlex } from "./Flex";
+import Flex from "./Flex";
+import MessageBox from "./MessageBox";
 import RequestStateHandler from "./RequestStateHandler";
+import Spacer from "./Spacer";
 import Text from "./Text";
 
-const NoDependenciesMessage = styled(MessageFlex)`
+const NoDependenciesMessage = styled(MessageBox)`
   & {
-    margin-top: ${({ theme }) => theme.spacing.xxl};
-    margin-bottom: ${({ theme }) => theme.spacing.xxl};
-
     h2 {
       margin-top: 0;
       margin-bottom: 0;
-
-      &:not(:first-child) {
-        margin-top: ${({ theme }) => theme.spacing.medium};
-      }
     }
 
     p {
-      margin-top: ${({ theme }) => theme.spacing.medium};
+      margin-top: 0;
       margin-bottom: 0;
       font-size: 16px;
       line-height: 20px;
@@ -101,19 +96,23 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
       {shouldShowGraph ? (
         <DagGraph className={className} nodes={graphNodes} />
       ) : (
-        <Flex className={className} wide tall center>
+        <Flex className={className} wide tall column align>
+          <Spacer padding="xl" />
           <NoDependenciesMessage>
             <Heading semiBold size="large">
               No Dependencies
             </Heading>
+            <Spacer padding="xs" />
             <Paragraph>
               There are no dependencies set up for your kustomizations or helm
               releases at this time. You can set them up using the dependsOn
               field on the kustomization or helm release object.
             </Paragraph>
+            <Spacer padding="xs" />
             <Heading semiBold size="large">
               What are dependencies for?
             </Heading>
+            <Spacer padding="xs" />
             <Paragraph>
               Dependencies allow you to relate different kustomizations and helm
               releases, as well as specifying an order in which your resources
@@ -121,6 +120,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
               report as 'Ready' before attempting to deploy other services.
             </Paragraph>
           </NoDependenciesMessage>
+          <Spacer padding="xl" />
         </Flex>
       )}
     </RequestStateHandler>
