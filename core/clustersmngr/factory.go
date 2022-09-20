@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -30,10 +31,28 @@ const (
 	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
-	kubeClientTimeout       = 8 * time.Second
 	kubeClientDialTimeout   = 5 * time.Second
 	kubeClientDialKeepAlive = 30 * time.Second
 )
+
+var (
+	kubeClientTimeout = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
+)
+
+func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultDuration
+	}
+
+	d, err := time.ParseDuration(val)
+
+	// on error return the default duration
+	if err != nil {
+		return defaultDuration
+	}
+	return d
+}
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
 // the details of the cluster that caused the error.
