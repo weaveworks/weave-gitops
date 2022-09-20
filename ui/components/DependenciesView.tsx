@@ -1,8 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
-import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import { getGraphNodes } from "../lib/dependencies";
+import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";
 import MessageBox from "./MessageBox";
@@ -25,6 +25,9 @@ const NoDependenciesMessage = styled(MessageBox)`
     }
   }
 `;
+
+const Heading = Text.withComponent("h2");
+const Paragraph = Text.withComponent("p");
 
 type DependenciesViewProps = {
   className?: string;
@@ -78,9 +81,6 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
   const isLoading = isLoadingData && !graphNodes;
 
   const shouldShowGraph = !!graphNodes && graphNodes.length > 0;
-
-  const Heading = Text.withComponent("h2");
-  const Paragraph = Text.withComponent("p");
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
