@@ -2,11 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
 import { getGraphNodes } from "../lib/dependencies";
-import {
-  fluxObjectKindToKind,
-  FluxObjectNode,
-  FluxObjectNodesMap,
-} from "../lib/objects";
 import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";

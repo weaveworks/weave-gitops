@@ -4,11 +4,11 @@ import {
   FluxObjectKind,
   FluxObjectRef,
   GitRepositoryRef,
+  GroupVersionKind,
   Interval,
   NamespacedObjectReference,
   Object as ResponseObject,
   ObjectRef,
-  GroupVersionKind,
 } from "./api/core/types.pb";
 import { addKind } from "./utils";
 
