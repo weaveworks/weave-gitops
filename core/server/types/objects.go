@@ -8,6 +8,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type HelmReleaseStorage struct {
+	Name     string `json:"name,omitempty"`
+	Manifest string `json:"manifest,omitempty"`
+}
+
 func K8sObjectToProto(object client.Object, clusterName string, tenant string, inventory []*pb.GroupVersionKind) (*pb.Object, error) {
 	var buf bytes.Buffer
 

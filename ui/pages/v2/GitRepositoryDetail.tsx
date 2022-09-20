@@ -3,8 +3,8 @@ import styled from "styled-components";
 import GitRepositoryDetailComponent from "../../components/GitRepositoryDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { GitRepository, Kind } from "../../lib/objects";
-
+import { Kind } from "../../lib/api/core/types.pb";
+import { GitRepository } from "../../lib/objects";
 type Props = {
   className?: string;
   name: string;

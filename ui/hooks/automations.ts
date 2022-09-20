@@ -6,7 +6,8 @@ import {
   SyncFluxObjectRequest,
   SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
-import { Automation, Kind } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { Automation } from "../lib/objects";
 import {
   MultiRequestError,
   NoNamespace,

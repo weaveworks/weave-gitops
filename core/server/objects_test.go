@@ -199,6 +199,29 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	g.Expect(res.Object.Inventory).To(HaveLen(2))
 }
 
+func helmReleaseInventoryObjects() string {
+	return `
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test
+  namespace: default
+immutable: true
+stringData:
+  key: "private-key"
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: crossplane-provider-aws2
+spec:
+  package: crossplane/provider-aws:v0.23.0
+  controllerConfigRef:
+    name: provider-aws
+`
+}
+
 func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -338,7 +361,7 @@ func TestListObjectSingle(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      kustomizev1.KustomizationKind,
+		Kind:      pb.Kind_Kustomization,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -390,7 +413,7 @@ func TestListObjectMultiple(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      helmv2.HelmReleaseKind,
+		Kind:      pb.Kind_HelmRelease,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -431,7 +454,7 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        kustomizev1.KustomizationKind,
+		Kind:        pb.Kind_Kustomization,
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -484,7 +507,7 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        helmv2.HelmReleaseKind,
+		Kind:        pb.Kind_HelmRelease,
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -541,10 +564,53 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      helmv2.HelmReleaseKind,
+		Kind:      pb.Kind_HelmRelease,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
 	g.Expect(res.Objects[0].Inventory).To(HaveLen(2))
+}
+
+func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	ctx := context.Background()
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{},
+		Status: helmv2.HelmReleaseStatus{
+			LastReleaseRevision: 1,
+		},
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sh.helm.release.v1.first-helm-name.v1",
+			Namespace: ns.Name,
+		},
+		// No data, so that we throw an error trying to decode it
+		// This should behave the same as if we're rejected for RBAC reasons
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
+		Namespace: ns.Name,
+		Kind:      pb.Kind_HelmRelease,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Errors).To(HaveLen(1))
+	g.Expect(res.Objects).To(HaveLen(1))
 }

@@ -54,6 +54,7 @@ import { useGetObject } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
+import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
 import {
   Automation,
@@ -61,7 +62,6 @@ import {
   GitRepository,
   HelmChart,
   HelmRepository,
-  Kind,
   OCIRepository,
 } from "./lib/objects";
 import {

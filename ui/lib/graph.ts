@@ -2,8 +2,11 @@
 // with in the context of their parent-child relationships.
 import _ from "lodash";
 import { Core } from "./api/core/core.pb";
-import { GroupVersionKind, UnstructuredObject } from "./api/core/types.pb";
-import { Kind } from "./objects";
+import {
+  GroupVersionKind,
+  Kind,
+  UnstructuredObject,
+} from "./api/core/types.pb";
 
 export type UnstructuredObjectWithChildren = UnstructuredObject & {
   children?: UnstructuredObjectWithChildren[];

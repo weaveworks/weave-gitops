@@ -1,6 +1,6 @@
 import _ from "lodash";
 import qs from "query-string";
-import { Kind } from "./objects";
+import { Kind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.

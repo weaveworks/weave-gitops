@@ -117,38 +117,38 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
 }
 
-func getFluxObject(kind pb.FluxObjectKind) (fluxsync.Reconcilable, error) {
+func getFluxObject(kind pb.Kind) (fluxsync.Reconcilable, error) {
 	switch kind {
-	case pb.FluxObjectKind_KindKustomization:
+	case pb.Kind_Kustomization:
 		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
-	case pb.FluxObjectKind_KindHelmRelease:
+	case pb.Kind_HelmRelease:
 		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
 
-	case pb.FluxObjectKind_KindGitRepository:
+	case pb.Kind_GitRepository:
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case pb.FluxObjectKind_KindBucket:
+	case pb.Kind_Bucket:
 		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
-	case pb.FluxObjectKind_KindHelmRepository:
+	case pb.Kind_HelmRepository:
 		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
-	case pb.FluxObjectKind_KindOCIRepository:
+	case pb.Kind_OCIRepository:
 		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind.String())
 }
 
-func kindToSourceType(kind string) pb.FluxObjectKind {
+func kindToSourceType(kind string) pb.Kind {
 	switch kind {
 	case "GitRepository":
-		return pb.FluxObjectKind_KindGitRepository
+		return pb.Kind_GitRepository
 	case "Bucket":
-		return pb.FluxObjectKind_KindBucket
+		return pb.Kind_Bucket
 	case "HelmRepository":
-		return pb.FluxObjectKind_KindHelmRepository
+		return pb.Kind_HelmRepository
 	case "OCIRepository":
-		return pb.FluxObjectKind_KindOCIRepository
+		return pb.Kind_OCIRepository
 	case "HelmChart":
-		return pb.FluxObjectKind_KindHelmChart
+		return pb.Kind_HelmChart
 	}
 
 	return -1

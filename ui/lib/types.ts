@@ -1,7 +1,6 @@
 import { UseQueryOptions } from "react-query";
 import { ListError } from "./api/core/core.pb";
-import { Condition, Interval } from "./api/core/types.pb";
-import { Kind } from "./objects";
+import { Condition, Interval, Kind } from "./api/core/types.pb";
 
 export enum PageRoute {
   Applications = "/applications",

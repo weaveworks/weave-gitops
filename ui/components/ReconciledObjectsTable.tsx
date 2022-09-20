@@ -2,9 +2,12 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { GroupVersionKind, UnstructuredObject } from "../lib/api/core/types.pb";
+import {
+  GroupVersionKind,
+  Kind,
+  UnstructuredObject,
+} from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
-import { Kind } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable, {

@@ -1,5 +1,5 @@
+import { Kind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
-import { Kind } from "../objects";
 import { createCoreMockClient } from "../test-utils";
 
 describe("graph lib", () => {

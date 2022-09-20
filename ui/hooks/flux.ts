@@ -7,9 +7,12 @@ import {
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
-import { GroupVersionKind, UnstructuredObject } from "../lib/api/core/types.pb";
+import {
+  GroupVersionKind,
+  Kind,
+  UnstructuredObject,
+} from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
-import { Kind } from "../lib/objects";
 import {
   DefaultCluster,
   NoNamespace,

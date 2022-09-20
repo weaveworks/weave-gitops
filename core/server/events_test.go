@@ -3,15 +3,15 @@ package server_test
 import (
 	"context"
 	"fmt"
+
 	"testing"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -91,7 +91,7 @@ func TestListEvents(t *testing.T) {
 		InvolvedObject: &pb.ObjectRef{
 			Name:      kustomizationObjectName,
 			Namespace: ns.Name,
-			Kind:      kustomizev1.KustomizationKind,
+			Kind:      pb.Kind_Kustomization,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -105,7 +105,7 @@ func TestListEvents(t *testing.T) {
 		InvolvedObject: &pb.ObjectRef{
 			Name:      helmObjectName,
 			Namespace: ns.Name,
-			Kind:      helmv2.HelmReleaseKind,
+			Kind:      pb.Kind_HelmRelease,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -113,4 +113,13 @@ func TestListEvents(t *testing.T) {
 	g.Expect(res.Events).To(HaveLen(1))
 
 	g.Expect(res.Events[0].Component).To(Equal(helmEvent.Source.Component))
+}
+
+func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
+	ns := &corev1.Namespace{}
+	ns.Name = "kube-test-" + rand.String(5)
+
+	g.Expect(k.Create(ctx, ns)).To(Succeed())
+
+	return ns
 }

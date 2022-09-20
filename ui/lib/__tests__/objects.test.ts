@@ -1,4 +1,4 @@
-import { FluxObjectKind } from "../api/core/types.pb";
+import { Kind } from "../api/core/types.pb";
 import {
   Bucket,
   FluxObject,
@@ -6,7 +6,6 @@ import {
   HelmChart,
   HelmRelease,
   HelmRepository,
-  Kind,
   Kustomization,
   OCIRepository,
 } from "../objects";

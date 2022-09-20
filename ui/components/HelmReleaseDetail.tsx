@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { HelmRelease, Kind } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";

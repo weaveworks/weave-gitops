@@ -3,7 +3,8 @@ import styled from "styled-components";
 import Page from "../../components/Page";
 import ProviderDetail from "../../components/ProviderDetail";
 import { useGetObject } from "../../hooks/objects";
-import { Kind, Provider } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { Provider } from "../../lib/objects";
 
 type Props = {
   className?: string;

@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { HelmRepository, Kind } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { HelmRepository } from "../lib/objects";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";

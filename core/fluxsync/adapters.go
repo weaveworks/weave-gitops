@@ -269,27 +269,27 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileable(kind pb.FluxObjectKind) (client.ObjectList, Reconcilable, error) {
+func ToReconcileable(kind pb.Kind) (client.ObjectList, Reconcilable, error) {
 	switch kind {
-	case pb.FluxObjectKind_KindKustomization:
+	case pb.Kind_Kustomization:
 		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
 
-	case pb.FluxObjectKind_KindHelmRelease:
+	case pb.Kind_HelmRelease:
 		return &helmv2.HelmReleaseList{}, NewReconcileable(&helmv2.HelmRelease{}), nil
 
-	case pb.FluxObjectKind_KindGitRepository:
+	case pb.Kind_GitRepository:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
 
-	case pb.FluxObjectKind_KindBucket:
+	case pb.Kind_Bucket:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.Bucket{}), nil
 
-	case pb.FluxObjectKind_KindHelmRepository:
+	case pb.Kind_HelmRepository:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmRepository{}), nil
 
-	case pb.FluxObjectKind_KindHelmChart:
+	case pb.Kind_HelmChart:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmChart{}), nil
 
-	case pb.FluxObjectKind_KindOCIRepository:
+	case pb.Kind_OCIRepository:
 		return &sourcev1.OCIRepositoryList{}, NewReconcileable(&sourcev1.OCIRepository{}), nil
 	}
 

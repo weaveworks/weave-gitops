@@ -1,8 +1,8 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
-import { Condition, FluxObjectRef } from "./api/core/types.pb";
-import { Automation, HelmRelease, Kind, Kustomization } from "./objects";
+import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
+import { Automation, HelmRelease, Kustomization } from "./objects";
 import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
@@ -151,7 +151,7 @@ export const convertImage = (image: string) => {
 // depending on whether the automation is a Kustomization or a HelmRelease.
 export function getSourceRefForAutomation(
   automation?: Automation
-): FluxObjectRef | undefined {
+): ObjectRef | undefined {
   return automation?.type === Kind.Kustomization
     ? (automation as Kustomization)?.sourceRef
     : (automation as HelmRelease)?.helmChart?.sourceRef;

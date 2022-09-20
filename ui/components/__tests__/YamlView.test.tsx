@@ -1,7 +1,7 @@
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
-import { Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
 import { withContext, withTheme } from "../../lib/test-utils";
 import YamlView from "../YamlView";
 

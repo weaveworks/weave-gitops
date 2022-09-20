@@ -1,26 +1,14 @@
 import { stringify } from "yaml";
 import {
   Condition,
-  FluxObjectRef,
   GitRepositoryRef,
   GroupVersionKind,
   Interval,
+  Kind,
   NamespacedObjectReference,
   Object as ResponseObject,
+  ObjectRef,
 } from "./api/core/types.pb";
-
-export enum Kind {
-  GitRepository = "GitRepository",
-  Bucket = "Bucket",
-  HelmRepository = "HelmRepository",
-  HelmChart = "HelmChart",
-  Kustomization = "Kustomization",
-  HelmRelease = "HelmRelease",
-  OCIRepository = "OCIRepository",
-  Provider = "Provider",
-  Alert = "Alert",
-}
-
 export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
@@ -29,7 +17,7 @@ export type Source =
   | Bucket
   | OCIRepository;
 
-export interface CrossNamespaceObjectRef extends FluxObjectRef {
+export interface CrossNamespaceObjectRef extends ObjectRef {
   apiVersion: string;
   matchLabels: { key: string; value: string }[];
 }
@@ -127,7 +115,7 @@ export class HelmRepository extends FluxObject {
 }
 
 export class HelmChart extends FluxObject {
-  get sourceRef(): FluxObjectRef | undefined {
+  get sourceRef(): ObjectRef | undefined {
     if (!this.obj.spec?.sourceRef) {
       return;
     }
@@ -188,7 +176,7 @@ export class Kustomization extends FluxObject {
     return this.obj.spec?.dependsOn || [];
   }
 
-  get sourceRef(): FluxObjectRef | undefined {
+  get sourceRef(): ObjectRef | undefined {
     if (!this.obj.spec?.sourceRef) {
       return undefined;
     }
@@ -260,7 +248,7 @@ export class HelmRelease extends FluxObject {
     });
   }
 
-  get sourceRef(): FluxObjectRef | undefined {
+  get sourceRef(): ObjectRef | undefined {
     return this.helmChart?.sourceRef;
   }
 }

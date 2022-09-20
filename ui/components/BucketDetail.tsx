@@ -4,7 +4,8 @@ import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { Bucket, Kind } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { Bucket } from "../lib/objects";
 import { InfoField } from "./InfoList";
 
 type Props = {

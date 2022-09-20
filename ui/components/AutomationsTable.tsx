@@ -2,8 +2,9 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
-import { Automation, HelmRelease, Kind } from "../lib/objects";
+import { Automation, HelmRelease } from "../lib/objects";
 import { V2Routes } from "../lib/types";
 import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
 import DataTable, {
@@ -108,7 +109,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           <SourceLink
             short
             sourceRef={{
-              kind: sourceKind,
+              kind: Kind[sourceKind],
               name: sourceName,
               namespace: sourceNamespace,
             }}

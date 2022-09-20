@@ -39,13 +39,13 @@ func TestSync(t *testing.T) {
 	name := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	gitRepo := makeGitRepo(name, ns)
+	gitRepo := makeGitRepo(name, *ns)
 
-	kust := makeKustomization(name, ns, gitRepo)
+	kust := makeKustomization(name, *ns, gitRepo)
 
-	chart := makeHelmChart(name, ns)
-	helmRepo := makeHelmRepo(name, ns)
-	hr := makeHelmRelease(name, ns, helmRepo, chart)
+	chart := makeHelmChart(name, *ns)
+	helmRepo := makeHelmRepo(name, *ns)
+	hr := makeHelmRelease(name, *ns, helmRepo, chart)
 
 	g.Expect(k.Create(ctx, gitRepo)).Should(Succeed())
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
@@ -62,7 +62,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindKustomization}},
+				Kind: pb.Kind_Kustomization}},
 			WithSource: false,
 		},
 		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
@@ -70,7 +70,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindKustomization}},
+				Kind: pb.Kind_Kustomization}},
 			WithSource: true,
 		},
 		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
@@ -79,7 +79,7 @@ func TestSync(t *testing.T) {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindHelmRelease}},
+				Kind: pb.Kind_HelmRelease}},
 			WithSource: false,
 		},
 		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -87,7 +87,7 @@ func TestSync(t *testing.T) {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindHelmRelease}},
+				Kind: pb.Kind_HelmRelease}},
 			WithSource: true,
 		},
 		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -97,8 +97,8 @@ func TestSync(t *testing.T) {
 			name: "multiple objects",
 			msg: &pb.SyncFluxObjectRequest{
 				Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-					Kind: pb.FluxObjectKind_KindHelmRelease}, {ClusterName: "Default",
-					Kind: pb.FluxObjectKind_KindHelmRelease}},
+					Kind: pb.Kind_HelmRelease}, {ClusterName: "Default",
+					Kind: pb.Kind_HelmRelease}},
 				WithSource: true,
 			},
 			automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},

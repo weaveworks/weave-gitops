@@ -32,28 +32,28 @@ func TestSuspend_Suspend(t *testing.T) {
 	ns := newNamespace(ctx, k, g)
 
 	tests := []struct {
-		kind api.FluxObjectKind
+		kind api.Kind
 		obj  client.Object
 	}{
 		{
-			kind: api.FluxObjectKind_KindGitRepository,
-			obj:  makeGitRepo("git-repo-1", ns),
+			kind: api.Kind_GitRepository,
+			obj:  makeGitRepo("git-repo-1", *ns),
 		},
 		{
-			kind: api.FluxObjectKind_KindHelmRepository,
-			obj:  makeHelmRepo("repo-1", ns),
+			kind: api.Kind_HelmRepository,
+			obj:  makeHelmRepo("repo-1", *ns),
 		},
 		{
-			kind: api.FluxObjectKind_KindBucket,
-			obj:  makeBucket("bucket-1", ns),
+			kind: api.Kind_Bucket,
+			obj:  makeBucket("bucket-1", *ns),
 		},
 		{
-			kind: api.FluxObjectKind_KindKustomization,
-			obj:  makeKustomization("kust-1", ns, makeGitRepo("somerepo", ns)),
+			kind: api.Kind_Kustomization,
+			obj:  makeKustomization("kust-1", *ns, makeGitRepo("somerepo", *ns)),
 		},
 		{
-			kind: api.FluxObjectKind_KindHelmRelease,
-			obj:  makeHelmRelease("hr-1", ns, makeHelmRepo("somerepo", ns), makeHelmChart("somechart", ns)),
+			kind: api.Kind_HelmRelease,
+			obj:  makeHelmRelease("hr-1", *ns, makeHelmRepo("somerepo", *ns), makeHelmChart("somechart", *ns)),
 		},
 	}
 
@@ -101,11 +101,11 @@ func TestSuspend_Suspend(t *testing.T) {
 		_, err = c.ToggleSuspendResource(ctx, &api.ToggleSuspendResourceRequest{
 
 			Objects: []*api.ClusteredObjRef{{
-				Kind:        api.FluxObjectKind_KindGitRepository,
+				Kind:        api.Kind_GitRepository,
 				Name:        "fakeName",
 				Namespace:   "fakeNamespace",
 				ClusterName: "Default",
-			}, {Kind: api.FluxObjectKind_KindGitRepository,
+			}, {Kind: api.Kind_GitRepository,
 				Name:        "fakeName2",
 				Namespace:   "fakeNamespace2",
 				ClusterName: "Default2"}},

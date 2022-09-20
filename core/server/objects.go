@@ -36,7 +36,7 @@ func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.U
 func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
 
-	gvk, err := cs.primaryKinds.Lookup(msg.Kind)
+	gvk, err := cs.primaryKinds.Lookup(msg.Kind.String())
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +95,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 				if gvk.Kind == v2beta1.HelmReleaseKind {
 					inventory, err = getUnstructuredHelmReleaseInventory(ctx, object, clustersClient, n)
 					if err != nil {
+
 						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: err.Error()})
 						inventory = nil // We can still display most things without inventory
 

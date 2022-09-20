@@ -1,12 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import {
   Bucket,
   GitRepository,
   HelmRepository,
-  Kind,
   OCIRepository,
   Source,
 } from "../lib/objects";
