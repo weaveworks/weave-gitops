@@ -58,6 +58,7 @@ export interface Props {
   filters?: FilterConfig;
   dialogOpen?: boolean;
   hasCheckboxes?: boolean;
+  hideSearchAndFilters?: boolean;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -329,6 +330,7 @@ function UnstyledDataTable({
   filters,
   hasCheckboxes: checkboxes,
   dialogOpen,
+  hideSearchAndFilters,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -483,7 +485,7 @@ function UnstyledDataTable({
         start={filters ? false : true}
       >
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
-        {filters && (
+        {filters && !hideSearchAndFilters && (
           <Flex wide align end>
             <ChipGroup
               chips={chips}
