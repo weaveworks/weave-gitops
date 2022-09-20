@@ -75,11 +75,14 @@ func TestClustersNamespaces(t *testing.T) {
 
 	cs.Set(clusterName, []v1.Namespace{ns})
 
-	g.Expect(cs.Get(clusterName)).To(Equal([]v1.Namespace{ns}))
+	got, found := cs.Get(clusterName)
+	g.Expect(found).To(BeTrue())
+	g.Expect(got).To(Equal([]v1.Namespace{ns}))
 
 	cs.Clear()
 
-	g.Expect(cs.Get(clusterName)).To(HaveLen(0))
+	_, found = cs.Get(clusterName)
+	g.Expect(found).To(BeFalse())
 }
 
 func TestClusterSet_Set(t *testing.T) {
