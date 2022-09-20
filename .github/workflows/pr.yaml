@@ -109,7 +109,7 @@ jobs:
           snyk test --org=product-engineering-ly9 --json --file=website/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.repository_owner == 'weaveworks'
       - name: Monitor dependencies & license problems with Snyk
         # Throw an error if the error is "snyk couldn't run".
         # Don't throw an error on "there are vulnerabilities", those
