@@ -51,6 +51,7 @@ func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
 	if err != nil {
 		return defaultDuration
 	}
+
 	return d
 }
 
