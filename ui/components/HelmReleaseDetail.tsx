@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
+import { HelmRelease } from "../lib/objects";
+import { FluxObjectKind } from "../lib/api/core/types.pb";
 import { automationLastUpdated } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
 import Alert from "./Alert";
@@ -64,7 +65,7 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
   return (
     <AutomationDetail
       className={className}
-      automation={{ ...helmRelease, kind: FluxObjectKind.KindHelmRelease }}
+      automation={helmRelease}
       customTabs={customTabs}
       info={[
         ["Source", helmChartLink(helmRelease)],

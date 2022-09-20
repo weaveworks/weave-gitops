@@ -20,12 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 type CoreClient interface {
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
-	// GetKustomization gets data about a single Kustomization from a cluster.
-	GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error)
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
-	// GetHelmRelease gets data about a single HelmRelease from the cluster.
-	GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error)
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
 	// ListObjects gets data about a primary objects.
@@ -72,27 +68,9 @@ func (c *coreClient) ListKustomizations(ctx context.Context, in *ListKustomizati
 	return out, nil
 }
 
-func (c *coreClient) GetKustomization(ctx context.Context, in *GetKustomizationRequest, opts ...grpc.CallOption) (*GetKustomizationResponse, error) {
-	out := new(GetKustomizationResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetKustomization", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *coreClient) ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error) {
 	out := new(ListHelmReleasesResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListHelmReleases", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) GetHelmRelease(ctx context.Context, in *GetHelmReleaseRequest, opts ...grpc.CallOption) (*GetHelmReleaseResponse, error) {
-	out := new(GetHelmReleaseResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetHelmRelease", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -222,12 +200,8 @@ func (c *coreClient) ToggleSuspendResource(ctx context.Context, in *ToggleSuspen
 type CoreServer interface {
 	// ListKustomization lists Kustomizations from a cluster via GitOps.
 	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
-	// GetKustomization gets data about a single Kustomization from a cluster.
-	GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error)
 	// ListHelmReleases lists helm releases from a cluster.
 	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
-	// GetHelmRelease gets data about a single HelmRelease from the cluster.
-	GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error)
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
 	// ListObjects gets data about a primary objects.
@@ -265,14 +239,8 @@ type UnimplementedCoreServer struct {
 func (UnimplementedCoreServer) ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListKustomizations not implemented")
 }
-func (UnimplementedCoreServer) GetKustomization(context.Context, *GetKustomizationRequest) (*GetKustomizationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetKustomization not implemented")
-}
 func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
-}
-func (UnimplementedCoreServer) GetHelmRelease(context.Context, *GetHelmReleaseRequest) (*GetHelmReleaseResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetHelmRelease not implemented")
 }
 func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
@@ -344,24 +312,6 @@ func _Core_ListKustomizations_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Core_GetKustomization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetKustomizationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).GetKustomization(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/GetKustomization",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).GetKustomization(ctx, req.(*GetKustomizationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Core_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListHelmReleasesRequest)
 	if err := dec(in); err != nil {
@@ -376,24 +326,6 @@ func _Core_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListHelmReleases(ctx, req.(*ListHelmReleasesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_GetHelmRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetHelmReleaseRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).GetHelmRelease(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/GetHelmRelease",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).GetHelmRelease(ctx, req.(*GetHelmReleaseRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -644,16 +576,8 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Core_ListKustomizations_Handler,
 		},
 		{
-			MethodName: "GetKustomization",
-			Handler:    _Core_GetKustomization_Handler,
-		},
-		{
 			MethodName: "ListHelmReleases",
 			Handler:    _Core_ListHelmReleases_Handler,
-		},
-		{
-			MethodName: "GetHelmRelease",
-			Handler:    _Core_GetHelmRelease_Handler,
 		},
 		{
 			MethodName: "GetObject",

@@ -5,14 +5,33 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.Unstructured, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
+	var release v2beta1.HelmRelease
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &release)
+	if err != nil {
+		return nil, fmt.Errorf("converting unstructured to helmrelease: %w", err)
+	}
+
+	inventory, err := getHelmReleaseInventory(ctx, release, c, cluster)
+	if err != nil {
+		return nil, fmt.Errorf("get helmrelease inventory: %w", err)
+	}
+
+	return inventory, nil
+}
 
 func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
@@ -71,9 +90,22 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 			for _, object := range list.Items {
 				tenant := GetTenant(object.GetNamespace(), n, clusterUserNamespaces)
 
-				o, err := types.K8sObjectToProto(&object, n, tenant)
+				var inventory []*pb.GroupVersionKind = nil
+
+				if gvk.Kind == v2beta1.HelmReleaseKind {
+					inventory, err = getUnstructuredHelmReleaseInventory(ctx, object, clustersClient, n)
+					if err != nil {
+						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: err.Error()})
+						inventory = nil // We can still display most things without inventory
+
+						cs.logger.V(logger.LogLevelDebug).Info("Couldn't grab inventory for helm release", "error", err)
+					}
+				}
+
+				o, err := types.K8sObjectToProto(&object, n, tenant, inventory)
 				if err != nil {
-					return nil, fmt.Errorf("converting items: %w", err)
+					respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: "converting items: " + err.Error()})
+					continue
 				}
 
 				results = append(results, o)
@@ -110,11 +142,22 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, err
 	}
 
+	var inventory []*pb.GroupVersionKind = nil
+
+	if gvk.Kind == v2beta1.HelmReleaseKind {
+		inventory, err = getUnstructuredHelmReleaseInventory(ctx, obj, clustersClient, msg.ClusterName)
+		if err != nil {
+			inventory = nil // We can still display most things without inventory
+
+			cs.logger.V(logger.LogLevelDebug).Info("Couldn't grab inventory for helm release", "error", err)
+		}
+	}
+
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
 	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
-	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant)
+	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant, inventory)
 
 	if err != nil {
 		return nil, fmt.Errorf("converting object to proto: %w", err)

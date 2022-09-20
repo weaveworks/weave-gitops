@@ -8,6 +8,7 @@ import {
   NamespacedObjectReference,
   Object as ResponseObject,
   ObjectRef,
+  GroupVersionKind,
 } from "./api/core/types.pb";
 import { addKind } from "./utils";
 
@@ -23,6 +24,7 @@ export enum Kind {
   Alert = "Alert",
 }
 
+export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
   | HelmChart
@@ -203,11 +205,82 @@ export class Kustomization extends FluxObject {
   get dependsOn(): NamespacedObjectReference[] {
     return this.obj.spec?.dependsOn || [];
   }
+
+  get sourceRef(): FluxObjectRef | undefined {
+    if (!this.obj.spec?.sourceRef) {
+      return undefined;
+    }
+    const source = {
+      ...this.obj.spec.sourceRef,
+      kind: FluxObjectKind[addKind(this.obj.spec.sourceRef.kind)],
+    };
+    if (!source.namespace) {
+      source.namespace = this.namespace;
+    }
+    return source;
+  }
+
+  get path(): string {
+    return this.obj.spec?.path || "";
+  }
+
+  get lastAppliedRevision(): string {
+    return this.obj.status?.lastAppliedRevision || "";
+  }
+
+  get inventory(): GroupVersionKind[] {
+    const entries = this.obj.status?.inventory?.entries || [];
+    return Array.from(
+      new Set(
+        entries.map((entry) => {
+          // entry is namespace_name_group_kind, but name can contain '_' itself
+          const parts = entry.id.split("_");
+          const kind = parts[parts.length - 1];
+          const group = parts[parts.length - 2];
+          return { group, version: entry.v, kind };
+        })
+      )
+    );
+  }
 }
 
 export class HelmRelease extends FluxObject {
+  inventory: GroupVersionKind[];
+
+  constructor(response: ResponseObject) {
+    super(response);
+    try {
+      this.inventory = response.inventory || [];
+    } catch (error) {
+      this.inventory = [];
+    }
+  }
+
   get dependsOn(): NamespacedObjectReference[] {
     return this.obj.spec?.dependsOn || [];
+  }
+
+  get helmChartName(): string {
+    return this.obj.status?.helmChart || "";
+  }
+
+  get helmChart(): HelmChart {
+    // This isn't a "real" helmchart object - it has much fewer fields,
+    // and requires some data mangling to work at all
+    let chart = this.obj.spec?.chart;
+    chart = { ...chart };
+    chart.metadata = {
+      name: this.namespace + "-" + this.name,
+      namespace: chart.spec?.sourceRef?.namespace || this.namespace,
+    };
+    return new HelmChart({
+      payload: JSON.stringify(chart),
+      clusterName: this.clusterName,
+    });
+  }
+
+  get sourceRef(): FluxObjectRef | undefined {
+    return this.helmChart?.sourceRef;
   }
 }
 

@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Automation } from "../hooks/automations";
 import { useListObjects } from "../hooks/objects";
 import { getGraphNodes } from "../lib/dependencies";
 import {
@@ -8,6 +7,7 @@ import {
   FluxObjectNode,
   FluxObjectNodesMap,
 } from "../lib/objects";
+import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";
 import MessageBox from "./MessageBox";
@@ -46,18 +46,14 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     null
   );
 
-  const automationKind = automation?.kind;
+  const automationKind = automation?.type;
 
   const {
     data,
     isLoading: isLoadingData,
     error,
   } = automation
-    ? useListObjects(
-        "",
-        fluxObjectKindToKind(automationKind),
-        automation?.clusterName
-      )
+    ? useListObjects("", automationKind, automation?.clusterName)
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
   React.useEffect(() => {

@@ -32,30 +32,11 @@ service Core {
     }
 
     /*
-    * GetKustomization gets data about a single Kustomization from a cluster.
-    */
-    rpc GetKustomization(GetKustomizationRequest) returns (GetKustomizationResponse) {
-        option (google.api.http) = {
-            get : "/v1/kustomizations/{name}"
-        };
-    }
-
-    /*
      * ListHelmReleases lists helm releases from a cluster.
      */
     rpc ListHelmReleases(ListHelmReleasesRequest) returns (ListHelmReleasesResponse) {
         option (google.api.http) = {
           get : "/v1/helmreleases"
-        };
-    }
-
-
-    /*
-     * GetHelmRelease gets data about a single HelmRelease from the cluster.
-     */
-    rpc GetHelmRelease(GetHelmReleaseRequest) returns (GetHelmReleaseResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmrelease/{name}"
         };
     }
 
@@ -214,16 +195,6 @@ message ListHelmReleasesResponse {
     repeated ListError errors = 2;
 }
 
-message GetHelmReleaseRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string clusterName = 3;
-}
-
-message GetHelmReleaseResponse {
-    HelmRelease helmRelease = 1;
-}
-
 message ListFluxRuntimeObjectsRequest {
     string namespace   = 1;
     string clusterName = 2;
@@ -241,16 +212,6 @@ message ListFluxCrdsRequest {
 message ListFluxCrdsResponse {
     repeated Crd crds = 1;
     repeated ListError errors = 2;
-}
-
-message GetKustomizationRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string clusterName = 3;
-}
-
-message GetKustomizationResponse {
-    Kustomization kustomization = 1;
 }
 
 message GetObjectRequest {
