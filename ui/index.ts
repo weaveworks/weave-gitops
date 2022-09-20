@@ -45,12 +45,7 @@ import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
-import {
-  Automation,
-  useGetHelmRelease,
-  useGetKustomization,
-  useListAutomations,
-} from "./hooks/automations";
+import { Automation, useListAutomations } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
@@ -149,8 +144,6 @@ export {
   Timestamp,
   UnAuthorizedInterceptor,
   useFeatureFlags,
-  useGetHelmRelease,
-  useGetKustomization,
   useGetObject,
   useIsAuthenticated,
   useListAutomations,

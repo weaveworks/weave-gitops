@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectKind, Kustomization } from "../lib/api/core/types.pb";
+import { Kustomization } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
 import Alert from "./Alert";
@@ -41,10 +41,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
     <AutomationDetail
       className={className}
       customTabs={customTabs}
-      automation={{
-        ...kustomization,
-        kind: FluxObjectKind.KindKustomization,
-      }}
+      automation={kustomization}
       info={[
         [
           "Source",

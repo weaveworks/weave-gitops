@@ -1,9 +1,11 @@
 import {
   Bucket,
-  GitRepository,
   FluxObject,
-  HelmRepository,
+  GitRepository,
   HelmChart,
+  HelmRelease,
+  HelmRepository,
+  Kustomization,
   OCIRepository,
 } from "../objects";
 import { FluxObjectKind } from "../api/core/types.pb";
@@ -274,6 +276,139 @@ describe("objects lib", () => {
     it("handles empty metadata", () => {
       expect(obj.source).toEqual("");
       expect(obj.revision).toEqual("");
+    });
+  });
+
+  describe("supports basic helmrelease object", () => {
+    const response = {
+      object: {
+        payload:
+          '{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","kind":"HelmRelease","metadata":{"annotations":{"reconcile.fluxcd.io/requestedAt":"2022-09-14T14:16:56.304148696Z"},"creationTimestamp":"2022-09-14T14:14:46Z","finalizers":["finalizers.fluxcd.io"],"generation":3,"managedFields":[{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:spec":{".":{},"f:chart":{".":{},"f:spec":{".":{},"f:chart":{},"f:reconcileStrategy":{},"f:sourceRef":{".":{},"f:kind":{},"f:name":{}},"f:version":{}}},"f:interval":{},"f:targetNamespace":{}}},"manager":"flux","operation":"Update","time":"2022-09-14T14:14:46Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:finalizers":{".":{},"v:\\"finalizers.fluxcd.io\\"":{}}}},"manager":"helm-controller","operation":"Update","time":"2022-09-14T14:14:46Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:annotations":{".":{},"f:reconcile.fluxcd.io/requestedAt":{}}}},"manager":"gitops-server","operation":"Update","time":"2022-09-14T14:17:13Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:status":{"f:conditions":{},"f:helmChart":{},"f:lastAttemptedRevision":{},"f:lastAttemptedValuesChecksum":{},"f:lastHandledReconcileAt":{},"f:lastReleaseRevision":{},"f:observedGeneration":{}}},"manager":"helm-controller","operation":"Update","subresource":"status","time":"2022-09-14T14:17:20Z"}],"name":"ww-gitops","namespace":"flux-system","resourceVersion":"17512","uid":"2dd24865-4ae4-4a0e-9c78-3204a470be9f"},"spec":{"chart":{"spec":{"chart":"weave-gitops","reconcileStrategy":"ChartVersion","sourceRef":{"kind":"HelmRepository","name":"ww-gitops"},"version":"*"}},"interval":"1m0s","targetNamespace":"weave-gitops"},"status":{"conditions":[{"lastTransitionTime":"2022-09-14T14:17:20Z","message":"Reconciliation in progress","reason":"Progressing","status":"Unknown","type":"Ready"}],"helmChart":"flux-system/flux-system-ww-gitops","lastAttemptedRevision":"4.0.0","lastAttemptedValuesChecksum":"da39a3ee5e6b4b0d3255bfef95601890afd80709","lastHandledReconcileAt":"2022-09-14T14:16:56.304148696Z","lastReleaseRevision":1,"observedGeneration":3}}\n',
+        clusterName: "Default",
+        tenant: "",
+        uid: "2dd24865-4ae4-4a0e-9c78-3204a470be9f",
+        inventory: [
+          {
+            group: "",
+            kind: "ServiceAccount",
+            version: "v1",
+          },
+          {
+            group: "rbac.authorization.k8s.io",
+            kind: "ClusterRole",
+            version: "v1",
+          },
+          {
+            group: "rbac.authorization.k8s.io",
+            kind: "ClusterRoleBinding",
+            version: "v1",
+          },
+          {
+            group: "",
+            kind: "Service",
+            version: "v1",
+          },
+          {
+            group: "apps",
+            kind: "Deployment",
+            version: "v1",
+          },
+        ],
+      },
+    };
+
+    const obj = new HelmRelease(response.object);
+
+    it("extracts helm chart name", () => {
+      expect(obj.helmChartName).toEqual("flux-system/flux-system-ww-gitops");
+    });
+
+    it("extracts a helm chart object", () => {
+      expect(obj.helmChart.chart).toEqual("weave-gitops");
+      expect(obj.helmChart.name).toEqual("flux-system-ww-gitops");
+      expect(obj.helmChart.namespace).toEqual("flux-system");
+      expect(obj.helmChart.sourceRef).toEqual({
+        kind: "KindHelmRepository",
+        name: "ww-gitops",
+        namespace: "flux-system",
+      });
+    });
+
+    it("handles helmrelease inventory", () => {
+      expect(obj.inventory).toEqual(response.object.inventory);
+    });
+    it("finds the source ref for the helm repository", () => {
+      expect(obj.sourceRef).toEqual({
+        kind: "KindHelmRepository",
+        name: "ww-gitops",
+        namespace: "flux-system",
+      });
+    });
+  });
+
+  describe("supports helmrelease object without inventory", () => {
+    const response = {
+      object: {
+        payload:
+          '{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","kind":"HelmRelease","metadata":{"annotations":{"reconcile.fluxcd.io/requestedAt":"2022-09-14T14:16:56.304148696Z"},"creationTimestamp":"2022-09-14T14:14:46Z","finalizers":["finalizers.fluxcd.io"],"generation":3,"managedFields":[{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:spec":{".":{},"f:chart":{".":{},"f:spec":{".":{},"f:chart":{},"f:reconcileStrategy":{},"f:sourceRef":{".":{},"f:kind":{},"f:name":{}},"f:version":{}}},"f:interval":{},"f:targetNamespace":{}}},"manager":"flux","operation":"Update","time":"2022-09-14T14:14:46Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:finalizers":{".":{},"v:\\"finalizers.fluxcd.io\\"":{}}}},"manager":"helm-controller","operation":"Update","time":"2022-09-14T14:14:46Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:metadata":{"f:annotations":{".":{},"f:reconcile.fluxcd.io/requestedAt":{}}}},"manager":"gitops-server","operation":"Update","time":"2022-09-14T14:17:13Z"},{"apiVersion":"helm.toolkit.fluxcd.io/v2beta1","fieldsType":"FieldsV1","fieldsV1":{"f:status":{"f:conditions":{},"f:helmChart":{},"f:lastAttemptedRevision":{},"f:lastAttemptedValuesChecksum":{},"f:lastHandledReconcileAt":{},"f:lastReleaseRevision":{},"f:observedGeneration":{}}},"manager":"helm-controller","operation":"Update","subresource":"status","time":"2022-09-14T14:17:20Z"}],"name":"ww-gitops","namespace":"flux-system","resourceVersion":"17512","uid":"2dd24865-4ae4-4a0e-9c78-3204a470be9f"},"spec":{"chart":{"spec":{"chart":"weave-gitops","reconcileStrategy":"ChartVersion","sourceRef":{"kind":"HelmRepository","name":"ww-gitops"},"version":"*"}},"interval":"1m0s","targetNamespace":"weave-gitops"},"status":{"conditions":[{"lastTransitionTime":"2022-09-14T14:17:20Z","message":"Reconciliation in progress","reason":"Progressing","status":"Unknown","type":"Ready"}],"helmChart":"flux-system/flux-system-ww-gitops","lastAttemptedRevision":"4.0.0","lastAttemptedValuesChecksum":"da39a3ee5e6b4b0d3255bfef95601890afd80709","lastHandledReconcileAt":"2022-09-14T14:16:56.304148696Z","lastReleaseRevision":1,"observedGeneration":3}}\n',
+        clusterName: "Default",
+        tenant: "",
+        uid: "2dd24865-4ae4-4a0e-9c78-3204a470be9f",
+      },
+    };
+    const obj = new HelmRelease(response.object);
+    expect(obj.inventory).toEqual([]);
+  });
+
+  describe("supports basic kustomization object", () => {
+    const response = {
+      object: {
+        payload:
+          '{"apiVersion":"kustomize.toolkit.fluxcd.io/v1beta2","kind":"Kustomization","metadata":{"creationTimestamp":"2022-09-14T16:49:20Z","finalizers":["finalizers.fluxcd.io"],"generation":1,"labels":{"kustomize.toolkit.fluxcd.io/name":"kustomization-testdata","kustomize.toolkit.fluxcd.io/namespace":"flux-system"},"name":"backend","namespace":"default","resourceVersion":"293089","uid":"907093ec-5471-46f9-9953-b5b36f9f7859"},"spec":{"dependsOn":[{"name":"common"}],"force":false,"healthChecks":[{"kind":"Deployment","name":"backend","namespace":"webapp"}],"interval":"5m","path":"./deploy/webapp/backend/","prune":true,"sourceRef":{"kind":"GitRepository","name":"webapp"},"timeout":"2m","validation":"server"},"status":{"conditions":[{"lastTransitionTime":"2022-09-15T12:40:22Z","message":"Applied revision: 6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7","reason":"ReconciliationSucceeded","status":"True","type":"Ready"},{"lastTransitionTime":"2022-09-15T12:40:22Z","message":"ReconciliationSucceeded","reason":"ReconciliationSucceeded","status":"True","type":"Healthy"}],"inventory":{"entries":[{"id":"webapp_backend__Service","v":"v1"},{"id":"webapp_backend_apps_Deployment","v":"v1"},{"id":"webapp_backend_autoscaling_HorizontalPodAutoscaler","v":"v2beta2"}]},"lastAppliedRevision":"6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7","lastAttemptedRevision":"6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7","observedGeneration":1}}\n',
+        clusterName: "Default",
+        tenant: "",
+        uid: "907093ec-5471-46f9-9953-b5b36f9f7859",
+        inventory: [],
+      },
+    };
+
+    const obj = new Kustomization(response.object);
+    it("extracts inventory", () => {
+      expect(obj.inventory).toEqual([
+        {
+          group: "",
+          kind: "Service",
+          version: "v1",
+        },
+        {
+          group: "apps",
+          kind: "Deployment",
+          version: "v1",
+        },
+        {
+          group: "autoscaling",
+          kind: "HorizontalPodAutoscaler",
+          version: "v2beta2",
+        },
+      ]);
+    });
+    it("extracts path", () => {
+      expect(obj.path).toEqual("./deploy/webapp/backend/");
+    });
+    it("extracts sourceRef", () => {
+      expect(obj.sourceRef).toEqual({
+        kind: "KindGitRepository",
+        name: "webapp",
+        namespace: "default",
+      });
+    });
+    it("extracts dependsOn", () => {
+      expect(obj.dependsOn).toEqual([{ name: "common" }]);
+    });
+    it("extracts last revision", () => {
+      expect(obj.lastAppliedRevision).toEqual(
+        "6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7"
+      );
     });
   });
 

@@ -131,6 +131,7 @@ export type Object = {
   clusterName?: string
   tenant?: string
   uid?: string
+  inventory?: GroupVersionKind[]
 }
 
 export type Deployment = {

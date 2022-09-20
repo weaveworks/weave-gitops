@@ -183,49 +183,6 @@
         ]
       }
     },
-    "/v1/helmrelease/{name}": {
-      "get": {
-        "summary": "GetHelmRelease gets data about a single HelmRelease from the cluster.",
-        "operationId": "Core_GetHelmRelease",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetHelmReleaseResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
     "/v1/helmreleases": {
       "get": {
         "summary": "ListHelmReleases lists helm releases from a cluster.",
@@ -291,49 +248,6 @@
           },
           {
             "name": "pagination.pageToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/kustomizations/{name}": {
-      "get": {
-        "summary": "GetKustomization gets data about a single Kustomization from a cluster.",
-        "operationId": "Core_GetKustomization",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetKustomizationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -852,22 +766,6 @@
         }
       }
     },
-    "v1GetHelmReleaseResponse": {
-      "type": "object",
-      "properties": {
-        "helmRelease": {
-          "$ref": "#/definitions/v1HelmRelease"
-        }
-      }
-    },
-    "v1GetKustomizationResponse": {
-      "type": "object",
-      "properties": {
-        "kustomization": {
-          "$ref": "#/definitions/v1Kustomization"
-        }
-      }
-    },
     "v1GetObjectResponse": {
       "type": "object",
       "properties": {
@@ -1308,6 +1206,12 @@
         },
         "uid": {
           "type": "string"
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
+          }
         }
       }
     },
