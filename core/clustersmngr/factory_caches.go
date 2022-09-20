@@ -104,11 +104,16 @@ func (cn *ClustersNamespaces) Clear() {
 	cn.namespaces = make(map[string][]v1.Namespace)
 }
 
-func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
+func (cn *ClustersNamespaces) Get(cluster string) ([]v1.Namespace, bool) {
 	cn.Lock()
 	defer cn.Unlock()
 
-	return cn.namespaces[cluster]
+	clusterObj, ok := cn.namespaces[cluster]
+	if !ok {
+		return nil, false
+	}
+
+	return clusterObj, true
 }
 
 type UsersNamespaces struct {
