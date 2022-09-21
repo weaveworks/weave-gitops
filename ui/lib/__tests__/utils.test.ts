@@ -306,7 +306,7 @@ describe("utils lib", () => {
 
       const kustomization = new Kustomization(response);
 
-      expect(getSourceRefForAutomation(kustomization)).toBe(
+      expect(getSourceRefForAutomation(kustomization)).toEqual(
         kustomization.sourceRef
       );
     });
@@ -321,7 +321,7 @@ describe("utils lib", () => {
 
       const helmRelease = new HelmRelease(object);
 
-      expect(getSourceRefForAutomation(helmRelease)).toBe(
+      expect(getSourceRefForAutomation(helmRelease)).toEqual(
         helmRelease.helmChart.sourceRef
       );
     });

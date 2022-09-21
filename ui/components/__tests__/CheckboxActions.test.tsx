@@ -1,4 +1,5 @@
 import "jest-styled-components";
+import { Kind } from "../../lib/api/core/types.pb";
 import { makeObjects } from "../CheckboxActions";
 
 describe("CheckboxActions", () => {
@@ -7,14 +8,14 @@ describe("CheckboxActions", () => {
     const rows = [
       {
         name: "name",
-        kind: "kind",
+        kind: Kind.GitRepository,
         namespace: "namespace",
         clusterName: "clusterName",
         uid: "123",
       },
       {
         name: "name",
-        kind: "kind",
+        kind: Kind.HelmRelease,
         namespace: "namespace",
         clusterName: "clusterName",
         uid: "321",
@@ -23,7 +24,7 @@ describe("CheckboxActions", () => {
     expect(makeObjects(checked, rows)).toEqual([
       {
         name: "name",
-        kind: "kind",
+        kind: Kind.GitRepository,
         namespace: "namespace",
         clusterName: "clusterName",
       },

@@ -131,7 +131,7 @@ describe("objects lib", () => {
 
     it("extracts source ref", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "helmrepository",
         namespace: "metadata",
       });
@@ -328,7 +328,7 @@ describe("objects lib", () => {
       expect(obj.helmChart.name).toEqual("flux-system-ww-gitops");
       expect(obj.helmChart.namespace).toEqual("flux-system");
       expect(obj.helmChart.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "ww-gitops",
         namespace: "flux-system",
       });
@@ -339,7 +339,7 @@ describe("objects lib", () => {
     });
     it("finds the source ref for the helm repository", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "ww-gitops",
         namespace: "flux-system",
       });
@@ -397,7 +397,7 @@ describe("objects lib", () => {
     });
     it("extracts sourceRef", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindGitRepository",
+        kind: Kind.GitRepository,
         name: "webapp",
         namespace: "default",
       });

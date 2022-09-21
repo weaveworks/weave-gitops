@@ -12,7 +12,7 @@ import {
   Kind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
-import { getChildren } from "../lib/graph";
+import { getChildren, UnstructuredObjectWithChildren } from "../lib/graph";
 import {
   DefaultCluster,
   NoNamespace,
@@ -20,7 +20,6 @@ import {
   RequestError,
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
-
 export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
   namespace = NoNamespace,

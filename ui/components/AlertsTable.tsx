@@ -3,7 +3,8 @@ import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { Alert, CrossNamespaceObjectRef, Kind } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { Alert, CrossNamespaceObjectRef } from "../lib/objects";
 import { V2Routes } from "../lib/types";
 import { statusSortHelper } from "../lib/utils";
 import DataTable, {
@@ -20,7 +21,6 @@ type Props = {
   className?: string;
   rows?: Alert[];
 };
-
 export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
   const url =
     obj.kind === Kind.Kustomization || obj.kind === Kind.HelmRelease

@@ -576,6 +576,7 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	scheme, err := kube.CreateScheme()
+	g.Expect(err).NotTo(HaveOccurred())
 	ctx := context.Background()
 
 	ns := &corev1.Namespace{
