@@ -8,14 +8,14 @@ describe("CheckboxActions", () => {
     const rows = [
       {
         name: "name",
-        kind: Kind.GitRepository,
+        type: Kind.GitRepository,
         namespace: "namespace",
         clusterName: "clusterName",
         uid: "123",
       },
       {
         name: "name",
-        kind: Kind.HelmRelease,
+        type: Kind.HelmRelease,
         namespace: "namespace",
         clusterName: "clusterName",
         uid: "321",
