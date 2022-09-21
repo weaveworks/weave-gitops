@@ -4,7 +4,7 @@ import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { Kind } from '../lib/api/core/types.pb';
+import { Kind } from "../lib/api/core/types.pb";
 import { GitRepository } from "../lib/objects";
 import { convertGitURLToGitProvider } from "../lib/utils";
 import { InfoField } from "./InfoList";
