@@ -1,5 +1,9 @@
-import { Automation } from "../lib/objects";
-import { FluxObjectNode, FluxObjectNodesMap, makeObjectId } from "./objects";
+import {
+  Automation,
+  FluxObjectNode,
+  FluxObjectNodesMap,
+  makeObjectId,
+} from "./objects";
 
 // getNeighborNodes returns nodes which depend on the current node
 // or are dependencies of the current node.
