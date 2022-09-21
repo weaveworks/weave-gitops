@@ -12,7 +12,7 @@ import {
   GroupVersionKind,
   UnstructuredObject,
 } from "../lib/api/core/types.pb";
-import { getChildren } from "../lib/graph";
+import { getChildren, UnstructuredObjectWithChildren } from "../lib/graph";
 import {
   DefaultCluster,
   NoNamespace,
@@ -48,6 +48,12 @@ export function useListFluxCrds(clusterName = DefaultCluster) {
   );
 }
 
+export function flattenChildren(children: UnstructuredObjectWithChildren[]) {
+  return children.flatMap((child) =>
+    [child].concat(flattenChildren(child.children))
+  );
+}
+
 export function useGetReconciledObjects(
   name: string,
   namespace: string,
@@ -63,7 +69,17 @@ export function useGetReconciledObjects(
 
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
-    () => getChildren(api, name, namespace, type, kinds, clusterName),
+    async () => {
+      const childrenTrees = await getChildren(
+        api,
+        name,
+        namespace,
+        type,
+        kinds,
+        clusterName
+      );
+      return flattenChildren(childrenTrees);
+    },
     opts
   );
 }
