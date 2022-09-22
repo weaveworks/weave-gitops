@@ -2,27 +2,17 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/weave-gitops/core/server/internal"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-var k8sPollInterval = 2 * time.Second
-var k8sTimeout = 1 * time.Minute
 
 func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
 	principal := auth.Principal(ctx)
@@ -57,11 +47,11 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			continue
 		}
 
-		automation, isAutomation := obj.(internal.Automation)
+		automation, isAutomation := obj.(fluxsync.Automation)
 		if msg.WithSource && isAutomation {
 			sourceRef := automation.SourceRef()
 
-			_, sourceObj, err := internal.ToReconcileable(kindToSourceType(sourceRef.Kind()))
+			_, sourceObj, err := fluxsync.ToReconcileable(kindToSourceType(sourceRef.Kind()))
 
 			if err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
@@ -93,12 +83,12 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			)
 			log.Info("Syncing resource")
 
-			if err := requestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
+			if err := fluxsync.RequestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("requesting source reconciliation: %w", err), respErrors.Errors...)
 				continue
 			}
 
-			if err := waitForSync(ctx, c, sourceKey, sourceObj); err != nil {
+			if err := fluxsync.WaitForSync(ctx, c, sourceKey, sourceObj); err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("syncing source: %w", err), respErrors.Errors...)
 				continue
 			}
@@ -113,12 +103,12 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		log.Info("Syncing resource")
 
 		gvk := obj.GroupVersionKind()
-		if err := requestReconciliation(ctx, c, key, gvk); err != nil {
+		if err := fluxsync.RequestReconciliation(ctx, c, key, gvk); err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("requesting reconciliation: %w", err), respErrors.Errors...)
 			continue
 		}
 
-		if err := waitForSync(ctx, c, key, obj); err != nil {
+		if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("syncing automation: %w", err), respErrors.Errors...)
 			continue
 		}
@@ -127,21 +117,21 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
 }
 
-func getFluxObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {
+func getFluxObject(kind pb.FluxObjectKind) (fluxsync.Reconcilable, error) {
 	switch kind {
 	case pb.FluxObjectKind_KindKustomization:
-		return &internal.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
+		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
 	case pb.FluxObjectKind_KindHelmRelease:
-		return &internal.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
+		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
 
 	case pb.FluxObjectKind_KindGitRepository:
-		return &internal.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
+		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
 	case pb.FluxObjectKind_KindBucket:
-		return &internal.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
+		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
 	case pb.FluxObjectKind_KindHelmRepository:
-		return &internal.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
+		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
 	case pb.FluxObjectKind_KindOCIRepository:
-		return &internal.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
+		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind.String())
@@ -162,56 +152,4 @@ func kindToSourceType(kind string) pb.FluxObjectKind {
 	}
 
 	return -1
-}
-
-// requestReconciliation sets the annotations of an object so that the flux controller(s) will force a reconciliation.
-// Take straight from the flux CLI source:
-// https://github.com/fluxcd/flux2/blob/cb53243fc11de81de3a34616d14322d66573aa65/cmd/flux/reconcile.go#L155
-func requestReconciliation(ctx context.Context, k client.Client, name client.ObjectKey, gvk schema.GroupVersionKind) error {
-	return retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
-		object := &metav1.PartialObjectMetadata{}
-		object.SetGroupVersionKind(gvk)
-		object.SetName(name.Name)
-		object.SetNamespace(name.Namespace)
-		if err := k.Get(ctx, name, object); err != nil {
-			return err
-		}
-		patch := client.MergeFrom(object.DeepCopy())
-		if ann := object.GetAnnotations(); ann == nil {
-			object.SetAnnotations(map[string]string{
-				meta.ReconcileRequestAnnotation: time.Now().Format(time.RFC3339Nano),
-			})
-		} else {
-			ann[meta.ReconcileRequestAnnotation] = time.Now().Format(time.RFC3339Nano)
-			object.SetAnnotations(ann)
-		}
-		return k.Patch(ctx, object, patch)
-	})
-}
-
-func checkResourceSync(ctx context.Context, c client.Client, name client.ObjectKey, obj internal.Reconcilable, lastReconcile string) func() (bool, error) {
-	return func() (bool, error) {
-		err := c.Get(ctx, name, obj.AsClientObject())
-		if err != nil {
-			return false, err
-		}
-
-		return obj.GetLastHandledReconcileRequest() != lastReconcile, nil
-	}
-}
-
-func waitForSync(ctx context.Context, c client.Client, key client.ObjectKey, obj internal.Reconcilable) error {
-	if err := wait.PollImmediate(
-		k8sPollInterval,
-		k8sTimeout,
-		checkResourceSync(ctx, c, key, obj, obj.GetLastHandledReconcileRequest()),
-	); err != nil {
-		if errors.Is(err, wait.ErrWaitTimeout) {
-			return errors.New("sync request timed out - the sync operation may still be in progress")
-		}
-
-		return fmt.Errorf("syncing resource: %w", err)
-	}
-
-	return nil
 }

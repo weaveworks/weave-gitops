@@ -15,7 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/weaveworks/weave-gitops/core/server/internal"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -56,8 +56,8 @@ func TestSync(t *testing.T) {
 	tests := []struct {
 		name       string
 		msg        *pb.SyncFluxObjectRequest
-		automation internal.Automation
-		source     internal.Reconcilable
+		automation fluxsync.Automation
+		source     fluxsync.Reconcilable
 	}{{
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -65,7 +65,7 @@ func TestSync(t *testing.T) {
 				Kind: pb.FluxObjectKind_KindKustomization}},
 			WithSource: false,
 		},
-		automation: internal.KustomizationAdapter{Kustomization: kust},
+		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -73,8 +73,8 @@ func TestSync(t *testing.T) {
 				Kind: pb.FluxObjectKind_KindKustomization}},
 			WithSource: true,
 		},
-		automation: internal.KustomizationAdapter{Kustomization: kust},
-		source:     internal.NewReconcileable(gitRepo),
+		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
+		source:     fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -82,7 +82,7 @@ func TestSync(t *testing.T) {
 				Kind: pb.FluxObjectKind_KindHelmRelease}},
 			WithSource: false,
 		},
-		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
+		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -90,8 +90,8 @@ func TestSync(t *testing.T) {
 				Kind: pb.FluxObjectKind_KindHelmRelease}},
 			WithSource: true,
 		},
-		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
-		source:     internal.NewReconcileable(helmRepo),
+		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:     fluxsync.NewReconcileable(helmRepo),
 	},
 		{
 			name: "multiple objects",
@@ -101,8 +101,8 @@ func TestSync(t *testing.T) {
 					Kind: pb.FluxObjectKind_KindHelmRelease}},
 				WithSource: true,
 			},
-			automation: internal.HelmReleaseAdapter{HelmRelease: hr},
-			source:     internal.NewReconcileable(helmRepo),
+			automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+			source:     fluxsync.NewReconcileable(helmRepo),
 		}}
 
 	for _, tt := range tests {
