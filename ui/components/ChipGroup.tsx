@@ -22,7 +22,7 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
           //javascript search finds first occurance of substring, returning index
           chip.search(filterSeparator) ===
           //if first occurance of filterSeparator is the end of the chip string, it's an undefined value
-          chip.length - 1 - filterSeparator.length;
+          chip.length - filterSeparator.length;
         return (
           <Flex key={index}>
             <Chip
