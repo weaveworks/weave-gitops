@@ -164,12 +164,12 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	var opts client.MatchingLabels
 
 	switch msg.AutomationKind {
-	case "Kustomization":
+	case kustomizev1.KustomizationKind:
 		opts = client.MatchingLabels{
 			KustomizeNameKey:      msg.AutomationName,
 			KustomizeNamespaceKey: msg.Namespace,
 		}
-	case "HelmRelease":
+	case helmv2.HelmReleaseKind:
 		opts = client.MatchingLabels{
 			HelmNameKey:      msg.AutomationName,
 			HelmNamespaceKey: msg.Namespace,

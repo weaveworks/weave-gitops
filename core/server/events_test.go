@@ -6,6 +6,8 @@ import (
 
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -41,7 +43,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "Kustomization",
+			Kind:      kustomizev1.KustomizationKind,
 			Namespace: ns.Name,
 			Name:      kustomizationObjectName,
 		},
@@ -57,7 +59,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "HelmRelease",
+			Kind:      helmv2.HelmReleaseKind,
 			Namespace: ns.Name,
 			Name:      helmObjectName,
 		},
@@ -73,7 +75,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "Kustomization",
+			Kind:      kustomizev1.KustomizationKind,
 			Namespace: ns.Name,
 			Name:      "someotherobject",
 		},
@@ -91,7 +93,7 @@ func TestListEvents(t *testing.T) {
 		InvolvedObject: &pb.ObjectRef{
 			Name:      kustomizationObjectName,
 			Namespace: ns.Name,
-			Kind:      pb.Kind_Kustomization,
+			Kind:      kustomizev1.KustomizationKind,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -105,7 +107,7 @@ func TestListEvents(t *testing.T) {
 		InvolvedObject: &pb.ObjectRef{
 			Name:      helmObjectName,
 			Namespace: ns.Name,
-			Kind:      pb.Kind_HelmRelease,
+			Kind:      helmv2.HelmReleaseKind,
 		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())

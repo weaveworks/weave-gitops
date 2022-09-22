@@ -29,13 +29,13 @@ export type Interval = {
 }
 
 export type ObjectRef = {
-  kind?: Kind
+  kind?: string
   name?: string
   namespace?: string
 }
 
 export type ClusteredObjRef = {
-  kind?: Kind
+  kind?: string
   name?: string
   namespace?: string
   clusterName?: string

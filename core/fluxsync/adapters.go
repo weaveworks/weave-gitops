@@ -7,7 +7,6 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -269,27 +268,27 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileable(kind pb.Kind) (client.ObjectList, Reconcilable, error) {
+func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 	switch kind {
-	case pb.Kind_Kustomization:
+	case kustomizev1.KustomizationKind:
 		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
 
-	case pb.Kind_HelmRelease:
+	case helmv2.HelmReleaseKind:
 		return &helmv2.HelmReleaseList{}, NewReconcileable(&helmv2.HelmRelease{}), nil
 
-	case pb.Kind_GitRepository:
+	case sourcev1.GitRepositoryKind:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
 
-	case pb.Kind_Bucket:
+	case sourcev1.BucketKind:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.Bucket{}), nil
 
-	case pb.Kind_HelmRepository:
+	case sourcev1.HelmRepositoryKind:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmRepository{}), nil
 
-	case pb.Kind_HelmChart:
+	case sourcev1.HelmChartKind:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmChart{}), nil
 
-	case pb.Kind_OCIRepository:
+	case sourcev1.OCIRepositoryKind:
 		return &sourcev1.OCIRepositoryList{}, NewReconcileable(&sourcev1.OCIRepository{}), nil
 	}
 

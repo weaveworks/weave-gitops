@@ -10,6 +10,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -42,7 +43,7 @@ func TestGetObject(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -361,7 +362,7 @@ func TestListObjectSingle(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      "Kustomization",
+		Kind:      kustomizev1.KustomizationKind,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -413,7 +414,7 @@ func TestListObjectMultiple(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      "HelmRelease",
+		Kind:      helmv2.HelmReleaseKind,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -454,7 +455,7 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        "Kustomization",
+		Kind:        kustomizev1.KustomizationKind,
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -507,7 +508,7 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        "HelmRelease",
+		Kind:        helmv2.HelmReleaseKind,
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -564,7 +565,7 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      "HelmRelease",
+		Kind:      helmv2.HelmReleaseKind,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -610,7 +611,7 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      "HelmRelease",
+		Kind:      helmv2.HelmReleaseKind,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(HaveLen(1))

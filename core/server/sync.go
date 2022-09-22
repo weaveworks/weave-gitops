@@ -51,7 +51,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		if msg.WithSource && isAutomation {
 			sourceRef := automation.SourceRef()
 
-			_, sourceObj, err := fluxsync.ToReconcileable(kindToSourceType(sourceRef.Kind()))
+			_, sourceObj, err := fluxsync.ToReconcileable(sourceRef.Kind())
 
 			if err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
@@ -117,39 +117,22 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
 }
 
-func getFluxObject(kind pb.Kind) (fluxsync.Reconcilable, error) {
+func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 	switch kind {
-	case pb.Kind_Kustomization:
+	case kustomizev1.KustomizationKind:
 		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
-	case pb.Kind_HelmRelease:
+	case helmv2.HelmReleaseKind:
 		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
 
-	case pb.Kind_GitRepository:
+	case sourcev1.GitRepositoryKind:
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case pb.Kind_Bucket:
+	case sourcev1.BucketKind:
 		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
-	case pb.Kind_HelmRepository:
+	case sourcev1.HelmRepositoryKind:
 		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
-	case pb.Kind_OCIRepository:
+	case sourcev1.OCIRepositoryKind:
 		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
 	}
 
-	return nil, fmt.Errorf("not supported kind: %s", kind.String())
-}
-
-func kindToSourceType(kind string) pb.Kind {
-	switch kind {
-	case "GitRepository":
-		return pb.Kind_GitRepository
-	case "Bucket":
-		return pb.Kind_Bucket
-	case "HelmRepository":
-		return pb.Kind_HelmRepository
-	case "OCIRepository":
-		return pb.Kind_OCIRepository
-	case "HelmChart":
-		return pb.Kind_HelmChart
-	}
-
-	return -1
+	return nil, fmt.Errorf("not supported kind: %s", kind)
 }

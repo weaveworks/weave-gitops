@@ -47,7 +47,7 @@ func TestClientGet(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -83,7 +83,7 @@ func TestClientClusteredList(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -144,7 +144,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 			},
 			Spec: kustomizev1.KustomizationSpec{
 				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Kind: "GitRepository",
+					Kind: sourcev1.GitRepositoryKind,
 				},
 			},
 		}
@@ -294,7 +294,7 @@ func TestClientList(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -331,7 +331,7 @@ func TestClientCreate(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -366,7 +366,7 @@ func TestClientDelete(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -400,7 +400,7 @@ func TestClientUpdate(t *testing.T) {
 		Spec: kustomizev1.KustomizationSpec{
 			Path: "/foo",
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -442,7 +442,7 @@ func TestClientPatch(t *testing.T) {
 		Spec: kustomizev1.KustomizationSpec{
 			Path: "/foo",
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}

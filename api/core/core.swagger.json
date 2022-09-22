@@ -73,20 +73,7 @@
             "name": "involvedObject.kind",
             "in": "query",
             "required": false,
-            "type": "string",
-            "enum": [
-              "GitRepository",
-              "Bucket",
-              "HelmRepository",
-              "HelmChart",
-              "Kustomization",
-              "HelmRelease",
-              "Cluster",
-              "OCIRepository",
-              "Provider",
-              "Alert"
-            ],
-            "default": "GitRepository"
+            "type": "string"
           },
           {
             "name": "involvedObject.name",
@@ -510,7 +497,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "$ref": "#/definitions/v1Kind"
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -754,22 +741,6 @@
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
-    "v1Kind": {
-      "type": "string",
-      "enum": [
-        "GitRepository",
-        "Bucket",
-        "HelmRepository",
-        "HelmChart",
-        "Kustomization",
-        "HelmRelease",
-        "Cluster",
-        "OCIRepository",
-        "Provider",
-        "Alert"
-      ],
-      "default": "GitRepository"
-    },
     "v1ListError": {
       "type": "object",
       "properties": {
@@ -910,7 +881,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "$ref": "#/definitions/v1Kind"
+          "type": "string"
         },
         "name": {
           "type": "string"

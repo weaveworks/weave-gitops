@@ -31,7 +31,7 @@ func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest)
 
 	kind := msg.InvolvedObject.Kind
 
-	gvk, err := cs.primaryKinds.Lookup(kind.String())
+	gvk, err := cs.primaryKinds.Lookup(kind)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "bad request: not a recognized object kind")
 	}
