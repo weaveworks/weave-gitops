@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
@@ -32,27 +33,27 @@ func TestSuspend_Suspend(t *testing.T) {
 	ns := newNamespace(ctx, k, g)
 
 	tests := []struct {
-		kind api.Kind
+		kind string
 		obj  client.Object
 	}{
 		{
-			kind: api.Kind_GitRepository,
+			kind: sourcev1.GitRepositoryKind,
 			obj:  makeGitRepo("git-repo-1", *ns),
 		},
 		{
-			kind: api.Kind_HelmRepository,
+			kind: sourcev1.HelmRepositoryKind,
 			obj:  makeHelmRepo("repo-1", *ns),
 		},
 		{
-			kind: api.Kind_Bucket,
+			kind: sourcev1.BucketKind,
 			obj:  makeBucket("bucket-1", *ns),
 		},
 		{
-			kind: api.Kind_Kustomization,
+			kind: kustomizev1.KustomizationKind,
 			obj:  makeKustomization("kust-1", *ns, makeGitRepo("somerepo", *ns)),
 		},
 		{
-			kind: api.Kind_HelmRelease,
+			kind: helmv2.HelmReleaseKind,
 			obj:  makeHelmRelease("hr-1", *ns, makeHelmRepo("somerepo", *ns), makeHelmChart("somechart", *ns)),
 		},
 	}
@@ -60,11 +61,11 @@ func TestSuspend_Suspend(t *testing.T) {
 	requestObjects := []*api.ClusteredObjRef{}
 
 	for _, tt := range tests {
-		t.Run(tt.kind.String(), func(t *testing.T) {
+		t.Run(tt.kind, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			g.Expect(k.Create(ctx, tt.obj)).Should(Succeed())
 			object := &api.ClusteredObjRef{
-				Kind:        tt.kind.String(),
+				Kind:        tt.kind,
 				Name:        tt.obj.GetName(),
 				Namespace:   tt.obj.GetNamespace(),
 				ClusterName: "Default",
