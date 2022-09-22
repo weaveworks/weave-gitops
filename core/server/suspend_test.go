@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -132,7 +131,7 @@ func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj cli
 
 		return v.Spec.Suspend
 
-	case *v2beta1.HelmRelease:
+	case *helmv2.HelmRelease:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
