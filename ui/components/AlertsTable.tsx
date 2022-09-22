@@ -120,7 +120,16 @@ function AlertsTable({ className, rows = [] }: Props) {
         filters={initialFilterState}
       />
       <Dialog open={yamlView !== null} onClose={() => setYamlView(null)}>
-        {yamlView && <DialogYamlView object={yamlView} yaml={yamlView?.yaml} />}
+        {yamlView && (
+          <DialogYamlView
+            object={{
+              name: yamlView.name,
+              namespace: yamlView.namespace,
+              kind: yamlView.type,
+            }}
+            yaml={yamlView.yaml}
+          />
+        )}
       </Dialog>
     </>
   );
