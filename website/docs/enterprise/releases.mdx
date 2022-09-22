@@ -13,12 +13,12 @@ import TierLabel from "../_components/TierLabel";
 - **Tenancy**
   - `gitops create tenant` now supports `--prune` to remove old resources from the cluster if you're not using `--export` with gitops.
   - `deploymentRBAC` section in `tenancy.yaml` allows you to specify the permissions given to the flux `Kustomizations` that will apply the resources from git to your tenants' namespaces in the cluster.
-  - Support for `OCIRepository` sources when restricting/allowing the sources that can applied into tenants' namespaces.
+  - Support for `OCIRepository` sources when restricting/allowing the sources that can be applied into tenants' namespaces.
 - **Pipelines**
   - A new Pipeline details page is available in the UI to quickly inspect the configuration and status of your pipelines.
 - **Templates**
   - Templates now support helm functions for simple transformations of values: `{{ .params.CLUSTER_NAME | upper }}`
-  - Templates has moved to its own page in the UI, this is the first step in moving towards embracing them as a more generic feature, not just for clusters creation.
+  - Templates has moved to its own page in the UI, this is the first step in moving towards embracing them as a more generic feature, not just for cluster creation.
   - If a version is not specified in a **template profile annotation** it can be selected by the user.
   - A `namespace` can be specified in the **template profile annotation** that will be provided as the `HelmRelease`'s `targetNamespace` by default.
 - **Bootstrapping**
@@ -33,7 +33,7 @@ import TierLabel from "../_components/TierLabel";
 
 ### Known issues
 
-- [UI] Notifications page shows a 404 instead of notifications #1575
+- [UI] Notifications page shows a 404 instead of the notification-controller's configuration.
 
 ### ⚠️ Breaking changes from v0.9.4
 
