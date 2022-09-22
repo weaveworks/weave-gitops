@@ -186,7 +186,7 @@ message GetObjectResponse {
 
 message ListObjectsRequest {
     string namespace   = 1;
-    Kind   kind        = 2;
+    string kind        = 2;
     string clusterName = 3;
 }
 
@@ -198,7 +198,7 @@ message ListObjectsResponse {
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    Kind           automationKind         = 3;
+    string         automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }

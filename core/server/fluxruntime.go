@@ -164,18 +164,18 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	var opts client.MatchingLabels
 
 	switch msg.AutomationKind {
-	case pb.Kind_Kustomization:
+	case "Kustomization":
 		opts = client.MatchingLabels{
 			KustomizeNameKey:      msg.AutomationName,
 			KustomizeNamespaceKey: msg.Namespace,
 		}
-	case pb.Kind_HelmRelease:
+	case "HelmRelease":
 		opts = client.MatchingLabels{
 			HelmNameKey:      msg.AutomationName,
 			HelmNamespaceKey: msg.Namespace,
 		}
 	default:
-		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
+		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind)
 	}
 
 	result := []unstructured.Unstructured{}

@@ -49,7 +49,7 @@ export type GetObjectResponse = {
 
 export type ListObjectsRequest = {
   namespace?: string
-  kind?: Gitops_coreV1Types.Kind
+  kind?: string
   clusterName?: string
 }
 
@@ -61,7 +61,7 @@ export type ListObjectsResponse = {
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.Kind
+  automationKind?: string
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }

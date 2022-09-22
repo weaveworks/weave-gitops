@@ -330,20 +330,7 @@
             "name": "kind",
             "in": "query",
             "required": false,
-            "type": "string",
-            "enum": [
-              "GitRepository",
-              "Bucket",
-              "HelmRepository",
-              "HelmChart",
-              "Kustomization",
-              "HelmRelease",
-              "Cluster",
-              "OCIRepository",
-              "Provider",
-              "Alert"
-            ],
-            "default": "GitRepository"
+            "type": "string"
           },
           {
             "name": "clusterName",
@@ -705,7 +692,7 @@
           "type": "string"
         },
         "automationKind": {
-          "$ref": "#/definitions/v1Kind"
+          "type": "string"
         },
         "kinds": {
           "type": "array",

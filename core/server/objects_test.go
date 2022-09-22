@@ -361,7 +361,7 @@ func TestListObjectSingle(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      pb.Kind_Kustomization,
+		Kind:      "Kustomization",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -413,7 +413,7 @@ func TestListObjectMultiple(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      pb.Kind_HelmRelease,
+		Kind:      "HelmRelease",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(BeEmpty())
@@ -454,7 +454,7 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        pb.Kind_Kustomization,
+		Kind:        "Kustomization",
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -507,7 +507,7 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
-		Kind:        pb.Kind_HelmRelease,
+		Kind:        "HelmRelease",
 		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -564,7 +564,7 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      pb.Kind_HelmRelease,
+		Kind:      "HelmRelease",
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -610,7 +610,7 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
-		Kind:      pb.Kind_HelmRelease,
+		Kind:      "HelmRelease",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(HaveLen(1))

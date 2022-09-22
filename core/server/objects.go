@@ -36,7 +36,7 @@ func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.U
 func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
 
-	gvk, err := cs.primaryKinds.Lookup(msg.Kind.String())
+	gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 	if err != nil {
 		return nil, err
 	}
