@@ -338,7 +338,11 @@ jobs:
           go mod tidy
           cd ui-cra
           yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@${{ needs.ci-publish-js-lib.outputs.js-version }}
-          yarn test -u
+          # This is a convience to help auto-update snapshots if core components have changed.
+          # However it can still fail if larger changes have been made, breaking the PR creation.
+          # In this case we still want to continue w/ PR creation and fixes can be made in the EE PR manually.
+          # So we do a `|| true` to continue this workflow even on failure.
+          yarn test -u || true
         env:
           GITHUB_TOKEN: ${{ secrets.WGE_BUILD_BOT_PR_TOKEN}}
       - name: Build Changelog
