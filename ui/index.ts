@@ -147,6 +147,7 @@ export {
   useFeatureFlags,
   useGetObject,
   useIsAuthenticated,
+  useListAlerts,
   useListAutomations,
   useListFluxRuntimeObjects,
   useListProviders,
