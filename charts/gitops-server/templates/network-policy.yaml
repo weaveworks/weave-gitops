@@ -1,0 +1,34 @@
+{{- if .Values.networkPolicy.create -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dashboard-ingress
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  ingress:
+  - ports:
+    - port: 9001
+      protocol: TCP
+  {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.service.port }}
+      protocol: TCP
+  {{- end }}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dashboard-egress
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  egress:
+    - {}
+  policyTypes:
+  - Egress
+{{- end -}}
