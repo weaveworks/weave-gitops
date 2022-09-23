@@ -95,12 +95,12 @@ type clustersManager struct {
 	clustersNamespaces *ClustersNamespaces
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
+	usersClients    *UsersClients
 
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
 	kubeConfigOptions   []KubeConfigOption
-
 	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
 }
@@ -135,6 +135,7 @@ func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logg
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
 		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
+		usersClients:        &UsersClients{Cache: ttlcache.New(userNamespaceResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
@@ -285,6 +286,11 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		return nil, errors.New("no user supplied")
 	}
 
+	if client, found := cf.usersClients.Get(user); found {
+		cf.log.Info("returning cached client for", "user1", user.ID)
+		return client, nil
+	}
+
 	pool := cf.newClustersPool(cf.scheme)
 	errChan := make(chan error, len(cf.clusters.Get()))
 
@@ -311,7 +317,10 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		result = multierror.Append(result, err)
 	}
 
-	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
+	client := NewClient(pool, cf.userNsList(ctx, user))
+	cf.usersClients.Set(user, client)
+
+	return client, result.ErrorOrNil()
 }
 
 func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {

@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/cheshir/ttlcache"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -147,4 +148,28 @@ func (un *UsersNamespaces) Clear() {
 
 func (un UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
 	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
+}
+
+type UsersClients struct {
+	Cache *ttlcache.Cache
+}
+
+func (uc *UsersClients) cacheKey(user *auth.UserPrincipal) uint64 {
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, strings.Join(user.Groups, "/")))
+}
+
+func (uc *UsersClients) Set(user *auth.UserPrincipal, client Client) {
+	uc.Cache.Set(uc.cacheKey(user), client, 5*time.Minute)
+}
+
+func (uc *UsersClients) Get(user *auth.UserPrincipal) (Client, bool) {
+	if val, found := uc.Cache.Get(uc.cacheKey(user)); found {
+		return val.(Client), true
+	}
+
+	return nil, false
+}
+
+func (uc *UsersClients) Clear() {
+	uc.Cache.Clear()
 }

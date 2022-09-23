@@ -43,12 +43,11 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 
 	var clustersClient clustersmngr.Client
 
-	if msg.ClusterName != "" {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
-	} else {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	}
-
+	// if msg.ClusterName != "" {
+	// 	clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
+	// } else {
+	clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	// }
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
@@ -59,28 +58,45 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		}
 	}
 
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		list := unstructured.UnstructuredList{}
+	var objsLists map[string][]client.ObjectList
+
+	if msg.ClusterName != "" {
+		list := &unstructured.UnstructuredList{}
 		list.SetGroupVersionKind(*gvk)
-		return &list
-	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, true, client.InNamespace(msg.Namespace)); err != nil {
-		var errs clustersmngr.ClusteredListError
-		if !errors.As(err, &errs) {
-			return nil, err
+		if err := clustersClient.List(ctx, msg.ClusterName, list, client.InNamespace(msg.Namespace)); err != nil {
+			respErrors = append(respErrors, &pb.ListError{ClusterName: msg.ClusterName, Namespace: msg.Namespace, Message: err.Error()})
 		}
 
-		for _, e := range errs.Errors {
-			respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Namespace: e.Namespace, Message: e.Err.Error()})
+		objsLists = map[string][]client.ObjectList{
+			msg.ClusterName: {list},
 		}
+	} else {
+		clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+			list := unstructured.UnstructuredList{}
+			list.SetGroupVersionKind(*gvk)
+			return &list
+		})
+
+		if err := clustersClient.ClusteredList(ctx, clist, true, client.InNamespace(msg.Namespace)); err != nil {
+			var errs clustersmngr.ClusteredListError
+			if !errors.As(err, &errs) {
+				return nil, err
+			}
+
+			for _, e := range errs.Errors {
+				respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Namespace: e.Namespace, Message: e.Err.Error()})
+			}
+		}
+
+		objsLists = clist.Lists()
 	}
 
 	var results []*pb.Object
 
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
-	for n, lists := range clist.Lists() {
+	for n, lists := range objsLists {
 		for _, l := range lists {
 			list, ok := l.(*unstructured.UnstructuredList)
 			if !ok {
@@ -120,7 +136,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 }
 
 func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
