@@ -7,6 +7,7 @@ import (
 
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -97,9 +98,29 @@ func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) err
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}
 
+	cache, err := cache.New(config, cache.Options{Scheme: cp.scheme})
+	if err != nil {
+		return err
+	}
+
+	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader: cache,
+		Client:      leafClient,
+	})
+	if err != nil {
+		return fmt.Errorf("failed creating DelegatingClient: %w", err)
+	}
+
 	cp.mutex.Lock()
-	cp.clients[cluster.Name] = leafClient
+	cp.clients[cluster.Name] = delegatingClient
 	cp.mutex.Unlock()
+
+	// TODO: verify if this can come from the `Add` caller, since it will be injected
+	// into a long running gorotine.
+	ctx := context.Background()
+
+	go cache.Start(ctx)
+	cache.WaitForCacheSync(ctx)
 
 	return nil
 }
