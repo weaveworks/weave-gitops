@@ -535,3 +535,7 @@ func ClientConfigWithUser(user *auth.UserPrincipal, options ...KubeConfigOption)
 		return ApplyKubeConfigOptions(config, options...)
 	}
 }
+
+func timeIt(label string, start time.Time) {
+	fmt.Printf("%v: %v\n", label, time.Now().Sub(start))
+}

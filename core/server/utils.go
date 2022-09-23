@@ -1,6 +1,9 @@
 package server
 
 import (
+	"fmt"
+	"time"
+
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -17,4 +20,8 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 	}
 
 	return ""
+}
+
+func timeIt(label string, start time.Time) {
+	fmt.Printf("%v: %v\n", label, time.Now().Sub(start))
 }
