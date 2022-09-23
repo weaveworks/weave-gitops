@@ -176,3 +176,62 @@ jobs:
             --data '{
                 "merge_method": "merge"
               }'
+
+  enterprise-pr:
+    name: Make enterprise PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs:
+      - merge-pr
+      - tag-release
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.WGE_BUILD_BOT_PR_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Check out enterprise
+        uses: actions/checkout@v3
+        with:
+          repository: 'weaveworks/weave-gitops-enterprise'
+          token: ${{ secrets.WKS_CI_TEST_BOT_PR_TOKEN }}
+          ref: main
+          fetch-depth: 0
+      - name: Fetch unmerged changes
+        run: |
+          git config user.name wks-ci-test-bot
+          git config user.email wks-ci-test-bot@weave.works
+          git fetch origin
+          if git rev-parse -q --verify origin/track-latest-oss; then
+              git merge origin/track-latest-oss
+          fi
+      - name: Upgrade main version
+        run: |
+          go get -u github.com/weaveworks/weave-gitops@${{ needs.tag-release.outputs.version }}
+          go mod tidy
+          cd ui-cra
+          yarn add @weaveworks/weave-gitops@${{ needs.tag-release.outputs.version }}
+          yarn test -u
+        env:
+          GITHUB_TOKEN: ${{ secrets.WGE_BUILD_BOT_PR_TOKEN}}
+      - name: Create Pull Request
+        id: create-pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          author: wks-ci-test-bot <wks-ci-test-bot@weave.works>
+          signoff: true
+          committer: wks-ci-test-bot <wks-ci-test-bot@weave.works>
+          branch: track-released-oss
+          base: main
+          title: "Bump weave-gitops to released version ${{ needs.tag-release.outputs.version }}"
+          body: |
+            Update weave-gitops to release ${{ needs.tag-release.outputs.version }}
+# Uncomment this when you want to involve the author:
+#
+#            cc @${{ github.event.sender.login }}
+          token: ${{ secrets.WKS_CI_TEST_BOT_PR_TOKEN }}
+          delete-branch: true

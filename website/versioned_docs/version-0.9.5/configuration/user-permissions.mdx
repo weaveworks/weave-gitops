@@ -29,6 +29,9 @@ rules:
 - apiGroups: ["source.toolkit.fluxcd.io"]
   resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
   verbs: [ "get", "list", "patch" ]
+- apiGroups: [ "notification.toolkit.fluxcd.io" ]
+  resources: [ "providers", "alerts" ]
+  verbs: [ "get", "list" ]
 - apiGroups: ["infra.contrib.fluxcd.io"]
   resources: ["terraforms"]
   verbs: [ "get", "list", "patch" ]
@@ -62,20 +65,23 @@ rules:
 
 The resources that Flux works with directly, including the one from TF-controller.
 
-| Api Group                   | Resources                                                               | Permissions      |
-| --------------------------- | ----------------------------------------------------------------------- | ---------------- |
-| kustomize.toolkit.fluxcd.io | kustomizations                                                          | get, list, patch |
-| helm.toolkit.fluxcd.io      | helmreleases                                                            | get, list, patch |
-| source.toolkit.fluxcd.io    | buckets, helmcharts, gitrepositories, helmrepositories, ocirepositories | get, list, patch |
-| infra.contrib.fluxcd.io     | terraforms                                                              | get, list, patch |
+| Api Group                      | Resources                                                               | Permissions      |
+| ------------------------------ | ----------------------------------------------------------------------- | ---------------- |
+| kustomize.toolkit.fluxcd.io    | kustomizations                                                          | get, list, patch |
+| helm.toolkit.fluxcd.io         | helmreleases                                                            | get, list, patch |
+| source.toolkit.fluxcd.io       | buckets, helmcharts, gitrepositories, helmrepositories, ocirepositories | get, list, patch |
+| notification.toolkit.fluxcd.io | providers, alerts                                                       | get, list        |
+| infra.contrib.fluxcd.io        | terraforms                                                              | get, list, patch |
 
 In order for Weave GitOps to be able to accurately display the state of Flux it
 needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses. This is done using the
 `get` and `list` permissions
 
-The `patch` permissions are used to enable the 'sync' functionality which forces
-reconciliation of a resource. This is done Weave GitOps modifying the annotations
-of the resource in the same way `flux reconcile` does on the CLI.
+The `patch` permissions are used for 2 features: to suspend and resume
+reconciliation of a resource by modifying the 'spec' of a resource,
+and to force reconciliation of a resource by modifying the annotations
+of the resource. These features work the same way `flux suspend`,
+`flux resume` and `flux reconcile` does on the CLI.
 
 ### Resources managed via Flux
 

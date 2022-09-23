@@ -37,14 +37,24 @@ resources: # specifies the path to each required policy
 
 The profile then needs to be configured with the necessary config to be able to reach the repository that is acting as a policy library.
 
-```
+```yaml
 policySource:
+  enabled: true
   url: URL of the repo where your policies exist
   tag: tag name on the policies repo
   path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
   secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
 ```
 
+There is the option of referencing an existing policy library source instead of creating a new one.
+```yaml
+policySource:
+  enabled: true
+  sourceRef:
+    kind: Kind of the existing source
+    name: Name of the policy library source
+    namespace: Namespace where the source exists
+```
 ---
 ## Admission Controller Setup
 
@@ -91,9 +101,10 @@ policy-agent:
   config:
     audit:
       enabled: true
+      interval: 24 # configuring the frequent of audit operations running in hours (default is 24 hour)
 ```
 
-Audit will be performed when the agent starts and then at an interval of 23 hours. The results from that sink would be published by the registered sinks.
+Audit will be performed when the agent starts and then at an interval of your choice in hours (default is 24 hour). The results from that sink would be published by the registered sinks.
 
 ---
 ## Policy Sets
