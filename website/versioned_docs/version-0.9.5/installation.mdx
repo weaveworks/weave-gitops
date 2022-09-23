@@ -350,8 +350,8 @@ When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namesp
 [Policy agent](./policy/intro.mdx) comes packaged with the WGE chart. To install it you need to set the following values:
 
 - `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.accountId`: organization name, used as identifier
-- `values.policy-agent.clusterId`: unique identifier for the cluster
+- `values.policy-agent.config.accountId`: organization name, used as identifier
+- `values.policy-agent.config.clusterId`: unique identifier for the cluster
 
 Commit and push all the files
 
