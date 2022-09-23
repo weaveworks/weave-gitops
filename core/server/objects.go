@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/hashicorp/go-multierror"
@@ -36,10 +37,14 @@ func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.U
 func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsRequest) (*pb.ListObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
 
+	start := time.Now()
+
 	gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 	if err != nil {
 		return nil, err
 	}
+
+	timeIt("primaryKinds.Lookup", start)
 
 	var clustersClient clustersmngr.Client
 
@@ -48,6 +53,8 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	} else {
 		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	}
+
+	timeIt("GetImpersonatedClientForCluster", start)
 
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
@@ -65,6 +72,8 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		return &list
 	})
 
+	timeIt("NewClusteredList", start)
+
 	if err := clustersClient.ClusteredList(ctx, clist, true, client.InNamespace(msg.Namespace)); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
@@ -75,6 +84,8 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 			respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Namespace: e.Namespace, Message: e.Err.Error()})
 		}
 	}
+
+	timeIt("ClusteredList", start)
 
 	var results []*pb.Object
 
@@ -112,6 +123,8 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 			}
 		}
 	}
+
+	timeIt("total", start)
 
 	return &pb.ListObjectsResponse{
 		Objects: results,
