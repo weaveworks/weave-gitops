@@ -62,8 +62,6 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       ? [["Cluster", helmRelease?.clusterName]]
       : [];
 
-  console.log(helmRelease);
-
   return (
     <AutomationDetail
       className={className}
