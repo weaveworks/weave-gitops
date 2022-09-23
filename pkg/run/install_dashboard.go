@@ -168,7 +168,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
 		Version: "v1beta2",
-		Kind:    "HelmChart",
+		Kind:    sourcev1.HelmChartKind,
 	}
 
 	var sourceRequestedAt string
@@ -301,7 +301,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: helmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: "HelmRepository",
+						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
 					},
 				},

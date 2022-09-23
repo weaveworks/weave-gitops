@@ -10,29 +10,23 @@ message Interval {
     int64 seconds = 3;
 }
 
-enum FluxObjectKind {
-    KindGitRepository  = 0;
-    KindBucket         = 1;
-    KindHelmRepository = 2;
-    KindHelmChart      = 3;
-    KindKustomization  = 4;
-    KindHelmRelease    = 5;
-    KindCluster        = 6;
-    KindOCIRepository  = 7;
-    KindProvider       = 8;
-    KindAlert          = 9;
+enum Kind {
+    GitRepository  = 0;
+    Bucket         = 1;
+    HelmRepository = 2;
+    HelmChart      = 3;
+    Kustomization  = 4;
+    HelmRelease    = 5;
+    Cluster        = 6;
+    OCIRepository  = 7;
+    Provider       = 8;
+    Alert          = 9;
 };
 
 enum HelmRepositoryType {
     Default = 0;
     OCI     = 1;
 };
-
-message FluxObjectRef {
-    FluxObjectKind kind      = 1;
-    string         name      = 2;
-    string         namespace = 3;
-}
 
 message ObjectRef {
     string         kind      = 1;
@@ -41,7 +35,7 @@ message ObjectRef {
 }
 
 message ClusteredObjRef {
-    FluxObjectKind kind        = 1;
+    string         kind        = 1;
     string         name        = 2;
     string         namespace   = 3;
     string         clusterName = 4;
@@ -72,59 +66,6 @@ message GroupVersionKind {
 message NamespacedObjectReference {
     string name      = 1;
     string namespace = 2;
-}
-
-message Kustomization {
-    string        namespace                           = 1;
-    string        name                                = 2;
-    string        path                                = 3;
-    FluxObjectRef sourceRef                           = 4;
-    Interval      interval                            = 5;
-    repeated      Condition conditions                = 6;
-    string        lastAppliedRevision                 = 7;
-    string        lastAttemptedRevision               = 8;
-    repeated      GroupVersionKind inventory          = 9;
-    bool          suspended                           = 10;
-    string        clusterName                         = 11;
-    string        apiVersion                          = 12;
-    string        tenant                              = 17;
-    string        uid                                 = 18;
-    repeated      NamespacedObjectReference dependsOn = 19;
-}
-
-message HelmChart {
-    string        namespace            = 1;
-    string        name                 = 2;
-    FluxObjectRef sourceRef            = 3;
-    string        chart                = 4;
-    string        version              = 5;
-    Interval      interval             = 6;
-    repeated      Condition conditions = 7;
-    bool          suspended            = 8;
-    string        lastUpdatedAt        = 9;
-    string        clusterName          = 10;
-    string        apiVersion           = 11;
-    string        tenant               = 12;
-    string        uid                  = 13;
-}
-
-message HelmRelease {
-    string    releaseName                         = 1;
-    string    namespace                           = 2;
-    string    name                                = 3;
-    Interval  interval                            = 4;
-    HelmChart helmChart                           = 5;
-    repeated  Condition conditions                = 6;
-    repeated  GroupVersionKind inventory          = 10;
-    bool      suspended                           = 11;
-    string    clusterName                         = 12;
-    string    helmChartName                       = 13;
-    string    lastAppliedRevision                 = 14;
-    string    lastAttemptedRevision               = 15;
-    string    apiVersion                          = 16;
-    string    tenant                              = 17;
-    string    uid                                 = 18;
-    repeated  NamespacedObjectReference dependsOn = 19;
 }
 
 message Object {

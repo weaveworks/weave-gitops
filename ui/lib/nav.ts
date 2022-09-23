@@ -1,6 +1,6 @@
 import _ from "lodash";
 import qs from "query-string";
-import { FluxObjectKind } from "./api/core/types.pb";
+import { Kind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
@@ -53,35 +53,39 @@ export const formatURL = (page: string, query: any = {}) => {
 };
 
 export const formatSourceURL = (
-  kind: FluxObjectKind,
+  kind: string,
   name: string,
   namespace: string = NoNamespace,
   clusterName: string
 ) => {
-  return formatURL(objectTypeToRoute(kind), { name, namespace, clusterName });
+  return formatURL(objectTypeToRoute(Kind[kind]), {
+    name,
+    namespace,
+    clusterName,
+  });
 };
 
-export function objectTypeToRoute(t: FluxObjectKind): V2Routes {
+export function objectTypeToRoute(t: Kind): V2Routes {
   switch (t) {
-    case FluxObjectKind.KindGitRepository:
+    case Kind.GitRepository:
       return V2Routes.GitRepo;
 
-    case FluxObjectKind.KindBucket:
+    case Kind.Bucket:
       return V2Routes.Bucket;
 
-    case FluxObjectKind.KindHelmRepository:
+    case Kind.HelmRepository:
       return V2Routes.HelmRepo;
 
-    case FluxObjectKind.KindHelmChart:
+    case Kind.HelmChart:
       return V2Routes.HelmChart;
 
-    case FluxObjectKind.KindKustomization:
+    case Kind.Kustomization:
       return V2Routes.Kustomization;
 
-    case FluxObjectKind.KindHelmRelease:
+    case Kind.HelmRelease:
       return V2Routes.HelmRelease;
 
-    case FluxObjectKind.KindOCIRepository:
+    case Kind.OCIRepository:
       return V2Routes.OCIRepository;
 
     default:

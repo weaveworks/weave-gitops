@@ -68,7 +68,7 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "Bucket",
+				Kind: sourcev1.BucketKind,
 				Name: devBucket,
 			},
 			Timeout: &metav1.Duration{Duration: timeout},
@@ -432,7 +432,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 		}, schema.GroupVersionKind{
 			Group:   "source.toolkit.fluxcd.io",
 			Version: "v1beta2",
-			Kind:    "Bucket",
+			Kind:    sourcev1.BucketKind,
 		})
 	if err != nil {
 		return err
@@ -475,7 +475,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 		}, schema.GroupVersionKind{
 			Group:   "kustomize.toolkit.fluxcd.io",
 			Version: "v1beta2",
-			Kind:    "Kustomization",
+			Kind:    kustomizev1.KustomizationKind,
 		})
 	if err != nil {
 		return err

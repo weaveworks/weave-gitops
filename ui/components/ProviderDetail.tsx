@@ -2,6 +2,7 @@ import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAlerts } from "../hooks/notifications";
+import { Kind } from "../lib/api/core/types.pb";
 import { Provider } from "../lib/objects";
 import Alert from "./Alert";
 import AlertsTable from "./AlertsTable";
@@ -28,7 +29,14 @@ function ProviderDetail({ className, provider }: Props) {
           )}
         </RouterTab>
         <RouterTab name="Yaml" path={`${path}/yaml`}>
-          <YamlView object={provider} yaml={provider.yaml} />
+          <YamlView
+            object={{
+              name: provider.name,
+              namespace: provider.namespace,
+              kind: Kind.Provider,
+            }}
+            yaml={provider.yaml}
+          />
         </RouterTab>
       </SubRouterTabs>
     </Flex>

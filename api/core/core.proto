@@ -20,27 +20,6 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service Core {
-    // Automations
-
-    /*
-     * ListKustomization lists Kustomizations from a cluster via GitOps.
-     */
-    rpc ListKustomizations(ListKustomizationsRequest) returns (ListKustomizationsResponse) {
-        option (google.api.http) = {
-            get : "/v1/kustomizations"
-        };
-    }
-
-    /*
-     * ListHelmReleases lists helm releases from a cluster.
-     */
-    rpc ListHelmReleases(ListHelmReleasesRequest) returns (ListHelmReleasesResponse) {
-        option (google.api.http) = {
-          get : "/v1/helmreleases"
-        };
-    }
-
-
     /*
     * GetObject gets data about a single primary object from a cluster.
     */
@@ -52,7 +31,7 @@ service Core {
 
 
     /*
-    * ListObjects gets data about a primary objects.
+    * ListObjects gets data about primary objects.
     */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
@@ -175,26 +154,6 @@ message ListError {
     string message = 3;
 }
 
-message ListKustomizationsRequest {
-    string namespace = 1;
-    Pagination pagination = 2;
-}
-
-message ListKustomizationsResponse {
-    repeated Kustomization kustomizations = 1;
-    string nextPageToken = 2;
-    repeated ListError errors = 3;
-}
-
-message ListHelmReleasesRequest {
-    string namespace = 1;
-}
-
-message ListHelmReleasesResponse {
-    repeated HelmRelease helmReleases = 1;
-    repeated ListError errors = 2;
-}
-
 message ListFluxRuntimeObjectsRequest {
     string namespace   = 1;
     string clusterName = 2;
@@ -239,7 +198,7 @@ message ListObjectsResponse {
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    FluxObjectKind automationKind         = 3;
+    string         automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }

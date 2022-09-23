@@ -3,10 +3,10 @@ import styled from "styled-components";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { convertGitURLToGitProvider, removeKind } from "../lib/utils";
-import { GitRepository } from "../lib/objects";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { GitRepository } from "../lib/objects";
+import { convertGitURLToGitProvider } from "../lib/utils";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -30,10 +30,10 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindGitRepository}
+      type={Kind.GitRepository}
       source={gitRepository}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindGitRepository)],
+        ["Type", Kind.GitRepository],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(gitRepository.url)}>

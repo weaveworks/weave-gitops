@@ -1,13 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectRef } from "../lib/api/core/types.pb";
-import { removeKind } from "../lib/utils";
+import { ObjectRef } from "../lib/api/core/types.pb";
 import { formatSourceURL } from "../lib/nav";
 import Link from "./Link";
-
 type Props = {
   className?: string;
-  sourceRef?: FluxObjectRef;
+  sourceRef?: ObjectRef;
   clusterName: string;
   short?: boolean;
 };
@@ -26,7 +24,7 @@ function SourceLink({ className, sourceRef, clusterName, short }: Props) {
         clusterName
       )}
     >
-      {!short && removeKind(sourceRef.kind) + "/"}
+      {!short && sourceRef.kind + "/"}
       {sourceRef.name}
     </Link>
   );

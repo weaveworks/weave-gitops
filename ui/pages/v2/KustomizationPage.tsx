@@ -3,7 +3,8 @@ import styled from "styled-components";
 import KustomizationDetail from "../../components/KustomizationDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { Kustomization, Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { Kustomization } from "../../lib/objects";
 
 type Props = {
   name: string;

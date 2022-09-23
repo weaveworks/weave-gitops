@@ -1,14 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { removeKind } from "../lib/utils";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { HelmRepository } from "../lib/objects";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { HelmRepository } from "../lib/objects";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
@@ -31,10 +30,10 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindHelmRepository}
+      type={Kind.HelmRepository}
       source={helmRepository}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
+        ["Type", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],
         ["URL", <Link href={helmRepository.url}>{helmRepository.url}</Link>],
         [

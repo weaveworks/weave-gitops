@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import {
   Bucket,
@@ -56,7 +56,7 @@ function SourcesTable({ className, sources }: Props) {
       label: "Name",
       value: (s: Source) => (
         <Link
-          to={formatURL(objectTypeToRoute(s.kind), {
+          to={formatURL(objectTypeToRoute(s.type), {
             name: s?.name,
             namespace: s?.namespace,
             clusterName: s?.clusterName,
@@ -100,19 +100,19 @@ function SourcesTable({ className, sources }: Props) {
         let text;
         let url;
         let link = false;
-        switch (s.kind) {
-          case FluxObjectKind.KindGitRepository:
+        switch (s.type) {
+          case Kind.GitRepository:
             text = (s as GitRepository).url;
             url = convertGitURLToGitProvider((s as GitRepository).url);
             link = true;
             break;
-          case FluxObjectKind.KindBucket:
+          case Kind.Bucket:
             text = (s as Bucket).endpoint;
             break;
-          case FluxObjectKind.KindOCIRepository:
+          case Kind.OCIRepository:
             text = (s as OCIRepository).url;
             break;
-          case FluxObjectKind.KindHelmRepository:
+          case Kind.HelmRepository:
             text = (s as HelmRepository).url;
             url = text;
             link = true;
@@ -134,7 +134,7 @@ function SourcesTable({ className, sources }: Props) {
     {
       label: "Reference",
       value: (s: Source) => {
-        if (s.kind === FluxObjectKind.KindGitRepository) {
+        if (s.type === Kind.GitRepository) {
           const repo = s as GitRepository;
           const ref =
             repo?.reference?.branch ||

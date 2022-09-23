@@ -2,7 +2,8 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListError } from "../lib/api/core/core.pb";
-import { Alert, Kind, Provider } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { Alert, Provider } from "../lib/objects";
 import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
 import { convertResponse } from "./objects";
 

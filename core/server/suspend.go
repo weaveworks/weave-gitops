@@ -69,7 +69,7 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
 }
 
-func getReconcilableObject(kind pb.FluxObjectKind) (fluxsync.Reconcilable, error) {
+func getReconcilableObject(kind string) (fluxsync.Reconcilable, error) {
 	_, s, err := fluxsync.ToReconcileable(kind)
 
 	return s, err
