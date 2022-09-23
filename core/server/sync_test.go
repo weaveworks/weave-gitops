@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -39,13 +39,13 @@ func TestSync(t *testing.T) {
 	name := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	gitRepo := makeGitRepo(name, ns)
+	gitRepo := makeGitRepo(name, *ns)
 
-	kust := makeKustomization(name, ns, gitRepo)
+	kust := makeKustomization(name, *ns, gitRepo)
 
-	chart := makeHelmChart(name, ns)
-	helmRepo := makeHelmRepo(name, ns)
-	hr := makeHelmRelease(name, ns, helmRepo, chart)
+	chart := makeHelmChart(name, *ns)
+	helmRepo := makeHelmRepo(name, *ns)
+	hr := makeHelmRelease(name, *ns, helmRepo, chart)
 
 	g.Expect(k.Create(ctx, gitRepo)).Should(Succeed())
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
@@ -62,7 +62,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindKustomization}},
+				Kind: kustomizev1.KustomizationKind}},
 			WithSource: false,
 		},
 		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
@@ -70,7 +70,7 @@ func TestSync(t *testing.T) {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindKustomization}},
+				Kind: kustomizev1.KustomizationKind}},
 			WithSource: true,
 		},
 		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
@@ -79,7 +79,7 @@ func TestSync(t *testing.T) {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindHelmRelease}},
+				Kind: helmv2.HelmReleaseKind}},
 			WithSource: false,
 		},
 		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -87,7 +87,7 @@ func TestSync(t *testing.T) {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-				Kind: pb.FluxObjectKind_KindHelmRelease}},
+				Kind: helmv2.HelmReleaseKind}},
 			WithSource: true,
 		},
 		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -97,8 +97,8 @@ func TestSync(t *testing.T) {
 			name: "multiple objects",
 			msg: &pb.SyncFluxObjectRequest{
 				Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
-					Kind: pb.FluxObjectKind_KindHelmRelease}, {ClusterName: "Default",
-					Kind: pb.FluxObjectKind_KindHelmRelease}},
+					Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
+					Kind: helmv2.HelmReleaseKind}},
 				WithSource: true,
 			},
 			automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -179,7 +179,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *v2beta1.HelmRelease:
+	case *helmv2.HelmRelease:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -234,7 +234,7 @@ func makeKustomization(name string, ns corev1.Namespace, source *sourcev1.GitRep
 
 	if source != nil {
 		k.Spec.SourceRef = kustomizev1.CrossNamespaceSourceReference{
-			Kind:      "GitRepository",
+			Kind:      sourcev1.GitRepositoryKind,
 			Name:      source.GetName(),
 			Namespace: source.GetNamespace(),
 		}
@@ -297,18 +297,18 @@ func makeHelmRepo(name string, ns corev1.Namespace) *sourcev1.HelmRepository {
 	}
 }
 
-func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmRepository, chart *sourcev1.HelmChart) *v2beta1.HelmRelease {
-	return &v2beta1.HelmRelease{
+func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmRepository, chart *sourcev1.HelmChart) *helmv2.HelmRelease {
+	return &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: v2beta1.HelmReleaseSpec{
-			Chart: v2beta1.HelmChartTemplate{
-				Spec: v2beta1.HelmChartTemplateSpec{
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   chart.Spec.Chart,
 					Version: chart.Spec.Version,
-					SourceRef: v2beta1.CrossNamespaceObjectReference{
+					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      repo.GetName(),
 						Namespace: repo.GetNamespace(),
 						Kind:      sourcev1.HelmRepositoryKind,
@@ -316,7 +316,7 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmReposi
 				},
 			},
 		},
-		Status: v2beta1.HelmReleaseStatus{
+		Status: helmv2.HelmReleaseStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

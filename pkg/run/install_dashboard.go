@@ -27,7 +27,7 @@ import (
 
 const (
 	helmChartName     = "weave-gitops"
-	helmRepositoryURL = "https://helm.gitops.weave.works"
+	helmRepositoryURL = "oci://ghcr.io/weaveworks/charts"
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
@@ -168,7 +168,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
 		Version: "v1beta2",
-		Kind:    "HelmChart",
+		Kind:    sourcev1.HelmChartKind,
 	}
 
 	var sourceRequestedAt string
@@ -271,7 +271,8 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 			},
 		},
 		Spec: sourcev1.HelmRepositorySpec{
-			URL: helmRepositoryURL,
+			URL:  helmRepositoryURL,
+			Type: "oci",
 			Interval: metav1.Duration{
 				Duration: time.Minute * 60,
 			},
@@ -300,7 +301,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: helmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: "HelmRepository",
+						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
 					},
 				},

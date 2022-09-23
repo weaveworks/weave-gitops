@@ -1,13 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectRef } from "../lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "../lib/objects";
+import { ObjectRef } from "../lib/api/core/types.pb";
 import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
 type Props = {
   className?: string;
   yaml: string;
-  object?: FluxObjectRef;
+  object?: ObjectRef;
 };
 const YamlHeader = styled.div`
   background: ${(props) => props.theme.colors.neutral10};
@@ -33,9 +32,9 @@ const CopyButton = styled(IconButton)`
 
 function UnstyledYamlView({ yaml, object, className }: Props) {
   const [copied, setCopied] = React.useState(false);
-  const headerText = `kubectl get ${fluxObjectKindToKind(
-    object.kind
-  ).toLowerCase()} ${object.name} -n ${object.namespace} -o yaml `;
+  const headerText = `kubectl get ${object.kind.toLowerCase()} ${
+    object.name
+  } -n ${object.namespace} -o yaml `;
 
   return (
     <div className={className}>

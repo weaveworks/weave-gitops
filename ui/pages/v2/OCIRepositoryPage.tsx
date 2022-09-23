@@ -3,7 +3,8 @@ import styled from "styled-components";
 import OCIRepositoryDetail from "../../components/OCIRepositoryDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { Kind, OCIRepository } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { OCIRepository } from "../../lib/objects";
 
 type Props = {
   className?: string;

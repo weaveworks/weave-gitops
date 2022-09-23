@@ -3,8 +3,8 @@
 import _ from "lodash";
 import { Core } from "./api/core/core.pb";
 import {
-  FluxObjectKind,
   GroupVersionKind,
+  Kind,
   UnstructuredObject,
 } from "./api/core/types.pb";
 
@@ -78,7 +78,7 @@ export const getChildren = async (
   client: typeof Core,
   automationName,
   namespace,
-  automationKind: FluxObjectKind,
+  automationKind: Kind,
   kinds: GroupVersionKind[],
   clusterName
 ): Promise<UnstructuredObjectWithChildren[]> => {

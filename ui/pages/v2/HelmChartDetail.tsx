@@ -3,7 +3,8 @@ import styled from "styled-components";
 import HelmChartDetailComponent from "../../components/HelmChartDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { HelmChart, Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { HelmChart } from "../../lib/objects";
 
 type Props = {
   className?: string;

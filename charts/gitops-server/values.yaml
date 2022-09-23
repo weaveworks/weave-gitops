@@ -127,6 +127,10 @@ resources: {}
 #   cpu: 100m
 #   memory: 128Mi
 
+networkPolicy:
+  # -- Specifies whether default network policies should be created.
+  create: true
+
 nodeSelector: {}
 tolerations: []
 affinity: {}

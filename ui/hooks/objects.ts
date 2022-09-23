@@ -2,18 +2,17 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { GetObjectResponse, ListError } from "../lib/api/core/core.pb";
-import { Object as ResponseObject } from "../lib/api/core/types.pb";
+import { Kind, Object as ResponseObject } from "../lib/api/core/types.pb";
 import {
   Alert,
   Bucket,
   FluxObject,
   GitRepository,
   HelmChart,
-  HelmRepository,
-  OCIRepository,
-  Kustomization,
   HelmRelease,
-  Kind,
+  HelmRepository,
+  Kustomization,
+  OCIRepository,
   Provider,
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";

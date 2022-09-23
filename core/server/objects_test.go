@@ -10,6 +10,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -42,7 +43,7 @@ func TestGetObject(t *testing.T) {
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
+				Kind: sourcev1.GitRepositoryKind,
 			},
 		},
 	}
@@ -143,7 +144,6 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	g.Expect(res.Object.ClusterName).To(Equal("Default"))
 	g.Expect(res.Object.Payload).NotTo(BeEmpty())
 }
-
 func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -198,6 +198,29 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Object.Inventory).To(HaveLen(2))
+}
+
+func helmReleaseInventoryObjects() string {
+	return `
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test
+  namespace: default
+immutable: true
+stringData:
+  key: "private-key"
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: crossplane-provider-aws2
+spec:
+  package: crossplane/provider-aws:v0.23.0
+  controllerConfigRef:
+    name: provider-aws
+`
 }
 
 func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
@@ -495,7 +518,6 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 	g.Expect(res.Objects[0].Payload).To(ContainSubstring("helm-name"))
 	g.Expect(res.Objects[1].Payload).To(ContainSubstring("helm-name"))
 }
-
 func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 

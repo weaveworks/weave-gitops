@@ -1,3 +1,4 @@
+import { Kind } from "../api/core/types.pb";
 import {
   Bucket,
   FluxObject,
@@ -8,7 +9,6 @@ import {
   Kustomization,
   OCIRepository,
 } from "../objects";
-import { FluxObjectKind } from "../api/core/types.pb";
 
 describe("objects lib", () => {
   it("extracts annotations", () => {
@@ -74,8 +74,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindHelmRepository);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.HelmRepository);
     });
 
     it("extracts interval", () => {
@@ -117,8 +117,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindHelmChart);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.HelmChart);
     });
 
     it("extracts interval", () => {
@@ -131,7 +131,7 @@ describe("objects lib", () => {
 
     it("extracts source ref", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "helmrepository",
         namespace: "metadata",
       });
@@ -165,8 +165,8 @@ describe("objects lib", () => {
       expect(obj.suspended).toEqual(false);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindGitRepository);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.GitRepository);
     });
 
     it("extracts interval", () => {
@@ -230,8 +230,8 @@ describe("objects lib", () => {
       ]);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(FluxObjectKind.KindBucket);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(Kind.Bucket);
     });
 
     it("extracts interval", () => {
@@ -328,7 +328,7 @@ describe("objects lib", () => {
       expect(obj.helmChart.name).toEqual("flux-system-ww-gitops");
       expect(obj.helmChart.namespace).toEqual("flux-system");
       expect(obj.helmChart.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "ww-gitops",
         namespace: "flux-system",
       });
@@ -339,7 +339,7 @@ describe("objects lib", () => {
     });
     it("finds the source ref for the helm repository", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindHelmRepository",
+        kind: Kind.HelmRepository,
         name: "ww-gitops",
         namespace: "flux-system",
       });
@@ -397,7 +397,7 @@ describe("objects lib", () => {
     });
     it("extracts sourceRef", () => {
       expect(obj.sourceRef).toEqual({
-        kind: "KindGitRepository",
+        kind: Kind.GitRepository,
         name: "webapp",
         namespace: "default",
       });
@@ -431,8 +431,8 @@ describe("objects lib", () => {
       expect(obj.conditions).toEqual([]);
     });
 
-    it("extracts kind", () => {
-      expect(obj.kind).toEqual(undefined);
+    it("extracts type", () => {
+      expect(obj.type).toEqual(undefined);
     });
 
     it("extracts interval", () => {

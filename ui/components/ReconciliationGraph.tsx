@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import { FluxObjectRef } from "../lib/api/core/types.pb";
+import { ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
@@ -13,7 +13,7 @@ import Spacer from "./Spacer";
 
 export type Props = ReconciledVisualizationProps & {
   parentObject: Automation;
-  source: FluxObjectRef;
+  source: ObjectRef;
 };
 
 const SliderFlex = styled(Flex)`

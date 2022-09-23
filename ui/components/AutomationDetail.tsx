@@ -3,7 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
+import { Kind } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
 import DependenciesView from "./DependenciesView";
@@ -36,7 +36,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       name: automation.name,
       namespace: automation.namespace,
       clusterName: automation.clusterName,
-      kind: automation.kind,
+      kind: automation.type,
     },
   ]);
 
@@ -47,14 +47,12 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
           name: automation.name,
           namespace: automation.namespace,
           clusterName: automation.clusterName,
-          kind: automation.kind,
+          kind: automation.type,
         },
       ],
       suspend: !automation.suspended,
     },
-    automation.kind === FluxObjectKind.KindHelmRelease
-      ? "helmrelease"
-      : "kustomizations"
+    automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
   // default routes
@@ -68,7 +66,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
             <InfoList items={info} />
             <Metadata metadata={automation.metadata} />
             <ReconciledObjectsTable
-              automationKind={automation.kind}
+              automationKind={automation.type}
               automationName={automation.name}
               namespace={automation.namespace}
               kinds={automation.inventory}
@@ -87,7 +85,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
           <EventsTable
             namespace={automation.namespace}
             involvedObject={{
-              kind: automation.kind,
+              kind: automation.type,
               name: automation.name,
               namespace: automation.namespace,
             }}
@@ -102,7 +100,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       component: () => {
         return (
           <ReconciliationGraph
-            automationKind={automation.kind}
+            automationKind={automation.type}
             automationName={automation.name}
             kinds={automation.inventory}
             parentObject={automation}
@@ -127,7 +125,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
           <YamlView
             yaml={automation.yaml}
             object={{
-              kind: automation.kind,
+              kind: automation.type,
               name: automation.name,
               namespace: automation.namespace,
             }}

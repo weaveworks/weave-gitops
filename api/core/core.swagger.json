@@ -183,81 +183,6 @@
         ]
       }
     },
-    "/v1/helmreleases": {
-      "get": {
-        "summary": "ListHelmReleases lists helm releases from a cluster.",
-        "operationId": "Core_ListHelmReleases",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListHelmReleasesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/kustomizations": {
-      "get": {
-        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
-        "operationId": "Core_ListKustomizations",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListKustomizationsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "pagination.pageSize",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "pagination.pageToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
     "/v1/namespace/flux": {
       "post": {
         "summary": "GetFluxNamespace returns with a namespace with a specific label.",
@@ -365,7 +290,7 @@
     },
     "/v1/objects": {
       "get": {
-        "summary": "ListObjects gets data about a primary objects.",
+        "summary": "ListObjects gets data about primary objects.",
         "operationId": "Core_ListObjects",
         "responses": {
           "200": {
@@ -572,7 +497,7 @@
       "type": "object",
       "properties": {
         "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -686,36 +611,6 @@
         }
       }
     },
-    "v1FluxObjectKind": {
-      "type": "string",
-      "enum": [
-        "KindGitRepository",
-        "KindBucket",
-        "KindHelmRepository",
-        "KindHelmChart",
-        "KindKustomization",
-        "KindHelmRelease",
-        "KindCluster",
-        "KindOCIRepository",
-        "KindProvider",
-        "KindAlert"
-      ],
-      "default": "KindGitRepository"
-    },
-    "v1FluxObjectRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        }
-      }
-    },
     "v1GetChildObjectsRequest": {
       "type": "object",
       "properties": {
@@ -784,7 +679,7 @@
           "type": "string"
         },
         "automationKind": {
-          "$ref": "#/definitions/v1FluxObjectKind"
+          "type": "string"
         },
         "kinds": {
           "type": "array",
@@ -846,191 +741,6 @@
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
-    "v1HelmChart": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "sourceRef": {
-          "$ref": "#/definitions/v1FluxObjectRef"
-        },
-        "chart": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "lastUpdatedAt": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        }
-      }
-    },
-    "v1HelmRelease": {
-      "type": "object",
-      "properties": {
-        "releaseName": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "helmChart": {
-          "$ref": "#/definitions/v1HelmChart"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "inventory": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1GroupVersionKind"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "helmChartName": {
-          "type": "string"
-        },
-        "lastAppliedRevision": {
-          "type": "string"
-        },
-        "lastAttemptedRevision": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "dependsOn": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1NamespacedObjectReference"
-          }
-        }
-      }
-    },
-    "v1Interval": {
-      "type": "object",
-      "properties": {
-        "hours": {
-          "type": "string",
-          "format": "int64"
-        },
-        "minutes": {
-          "type": "string",
-          "format": "int64"
-        },
-        "seconds": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "v1Kustomization": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "sourceRef": {
-          "$ref": "#/definitions/v1FluxObjectRef"
-        },
-        "interval": {
-          "$ref": "#/definitions/v1Interval"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "lastAppliedRevision": {
-          "type": "string"
-        },
-        "lastAttemptedRevision": {
-          "type": "string"
-        },
-        "inventory": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1GroupVersionKind"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "apiVersion": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "dependsOn": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1NamespacedObjectReference"
-          }
-        }
-      }
-    },
     "v1ListError": {
       "type": "object",
       "properties": {
@@ -1081,43 +791,6 @@
           "items": {
             "$ref": "#/definitions/v1Deployment"
           }
-        },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
-        }
-      }
-    },
-    "v1ListHelmReleasesResponse": {
-      "type": "object",
-      "properties": {
-        "helmReleases": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1HelmRelease"
-          }
-        },
-        "errors": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ListError"
-          }
-        }
-      }
-    },
-    "v1ListKustomizationsResponse": {
-      "type": "object",
-      "properties": {
-        "kustomizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Kustomization"
-          }
-        },
-        "nextPageToken": {
-          "type": "string"
         },
         "errors": {
           "type": "array",
@@ -1181,17 +854,6 @@
         }
       }
     },
-    "v1NamespacedObjectReference": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        }
-      }
-    },
     "v1Object": {
       "type": "object",
       "properties": {
@@ -1225,18 +887,6 @@
           "type": "string"
         },
         "namespace": {
-          "type": "string"
-        }
-      }
-    },
-    "v1Pagination": {
-      "type": "object",
-      "properties": {
-        "pageSize": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "pageToken": {
           "type": "string"
         }
       }

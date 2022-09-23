@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server"
@@ -71,7 +72,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	res, err := c.GetReconciledObjects(ctx, &pb.GetReconciledObjectsRequest{
 		AutomationName: automationName,
 		Namespace:      ns.Name,
-		AutomationKind: pb.FluxObjectKind_KindKustomization,
+		AutomationKind: kustomizev1.KustomizationKind,
 		Kinds:          []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
 		ClusterName:    clustersmngr.DefaultCluster,
 	})

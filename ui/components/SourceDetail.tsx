@@ -4,8 +4,8 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
-import { Source } from "../lib/objects";
+import { Kind } from "../lib/api/core/types.pb";
+import { HelmRelease, Source } from "../lib/objects";
 import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
@@ -23,7 +23,7 @@ import YamlView from "./YamlView";
 
 type Props = {
   className?: string;
-  type: FluxObjectKind;
+  type: Kind;
   children?: JSX.Element;
   source: Source;
   info: InfoField[];
@@ -67,7 +67,7 @@ function SourceDetail({ className, source, info, type }: Props) {
   };
 
   const isRelevant = (expectedType, expectedName) => {
-    return expectedType == source.kind && isNameRelevant(expectedName);
+    return expectedType == source.type && isNameRelevant(expectedName);
   };
 
   const relevantAutomations = _.filter(automations?.result, (a) => {
@@ -78,7 +78,7 @@ function SourceDetail({ className, source, info, type }: Props) {
       return false;
     }
 
-    if (type == FluxObjectKind.KindHelmChart) {
+    if (type === Kind.HelmChart) {
       return isNameRelevant((a as HelmRelease)?.helmChart?.name);
     }
 
@@ -121,7 +121,7 @@ function SourceDetail({ className, source, info, type }: Props) {
           <EventsTable
             namespace={source.namespace}
             involvedObject={{
-              kind: source.kind,
+              kind: source.type,
               name: source.name,
               namespace: source.namespace,
             }}
@@ -131,7 +131,7 @@ function SourceDetail({ className, source, info, type }: Props) {
           <YamlView
             yaml={source.yaml}
             object={{
-              kind: source.kind,
+              kind: source.type,
               name: source.name,
               namespace: source.namespace,
             }}

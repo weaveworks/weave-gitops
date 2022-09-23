@@ -3,7 +3,8 @@ import styled from "styled-components";
 import HelmReleaseDetail from "../../components/HelmReleaseDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { HelmRelease, Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { HelmRelease } from "../../lib/objects";
 
 type Props = {
   name: string;
