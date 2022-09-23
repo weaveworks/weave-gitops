@@ -321,7 +321,7 @@ var _ = Describe("User Provider", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
 			Expect(fileClient.GetCallCount()).To(Equal(1))
-			_, dirPath, targetBranch := fileClient.GetArgsForCall(0)
+			_, dirPath, targetBranch, _ := fileClient.GetArgsForCall(0)
 			Expect(dirPath).To(Equal("path"))
 			Expect(targetBranch).To(Equal("main"))
 		})

@@ -134,6 +134,16 @@ type OrgRepository struct {
 	teamAccessReturnsOnCall map[int]struct {
 		result1 gitprovider.TeamAccessClient
 	}
+	TreesStub        func() gitprovider.TreeClient
+	treesMutex       sync.RWMutex
+	treesArgsForCall []struct {
+	}
+	treesReturns struct {
+		result1 gitprovider.TreeClient
+	}
+	treesReturnsOnCall map[int]struct {
+		result1 gitprovider.TreeClient
+	}
 	UpdateStub        func(context.Context) error
 	updateMutex       sync.RWMutex
 	updateArgsForCall []struct {
@@ -812,6 +822,59 @@ func (fake *OrgRepository) TeamAccessReturnsOnCall(i int, result1 gitprovider.Te
 	}{result1}
 }
 
+func (fake *OrgRepository) Trees() gitprovider.TreeClient {
+	fake.treesMutex.Lock()
+	ret, specificReturn := fake.treesReturnsOnCall[len(fake.treesArgsForCall)]
+	fake.treesArgsForCall = append(fake.treesArgsForCall, struct {
+	}{})
+	stub := fake.TreesStub
+	fakeReturns := fake.treesReturns
+	fake.recordInvocation("Trees", []interface{}{})
+	fake.treesMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *OrgRepository) TreesCallCount() int {
+	fake.treesMutex.RLock()
+	defer fake.treesMutex.RUnlock()
+	return len(fake.treesArgsForCall)
+}
+
+func (fake *OrgRepository) TreesCalls(stub func() gitprovider.TreeClient) {
+	fake.treesMutex.Lock()
+	defer fake.treesMutex.Unlock()
+	fake.TreesStub = stub
+}
+
+func (fake *OrgRepository) TreesReturns(result1 gitprovider.TreeClient) {
+	fake.treesMutex.Lock()
+	defer fake.treesMutex.Unlock()
+	fake.TreesStub = nil
+	fake.treesReturns = struct {
+		result1 gitprovider.TreeClient
+	}{result1}
+}
+
+func (fake *OrgRepository) TreesReturnsOnCall(i int, result1 gitprovider.TreeClient) {
+	fake.treesMutex.Lock()
+	defer fake.treesMutex.Unlock()
+	fake.TreesStub = nil
+	if fake.treesReturnsOnCall == nil {
+		fake.treesReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.TreeClient
+		})
+	}
+	fake.treesReturnsOnCall[i] = struct {
+		result1 gitprovider.TreeClient
+	}{result1}
+}
+
 func (fake *OrgRepository) Update(arg1 context.Context) error {
 	fake.updateMutex.Lock()
 	ret, specificReturn := fake.updateReturnsOnCall[len(fake.updateArgsForCall)]
@@ -900,6 +963,8 @@ func (fake *OrgRepository) Invocations() map[string][][]interface{} {
 	defer fake.setMutex.RUnlock()
 	fake.teamAccessMutex.RLock()
 	defer fake.teamAccessMutex.RUnlock()
+	fake.treesMutex.RLock()
+	defer fake.treesMutex.RUnlock()
 	fake.updateMutex.RLock()
 	defer fake.updateMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -9,12 +9,13 @@ import (
 )
 
 type FileClient struct {
-	GetStub        func(context.Context, string, string) ([]*gitprovider.CommitFile, error)
+	GetStub        func(context.Context, string, string, ...gitprovider.FilesGetOption) ([]*gitprovider.CommitFile, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
+		arg4 []gitprovider.FilesGetOption
 	}
 	getReturns struct {
 		result1 []*gitprovider.CommitFile
@@ -28,20 +29,21 @@ type FileClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FileClient) Get(arg1 context.Context, arg2 string, arg3 string) ([]*gitprovider.CommitFile, error) {
+func (fake *FileClient) Get(arg1 context.Context, arg2 string, arg3 string, arg4 ...gitprovider.FilesGetOption) ([]*gitprovider.CommitFile, error) {
 	fake.getMutex.Lock()
 	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
-	}{arg1, arg2, arg3})
+		arg4 []gitprovider.FilesGetOption
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.GetStub
 	fakeReturns := fake.getReturns
-	fake.recordInvocation("Get", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("Get", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -55,17 +57,17 @@ func (fake *FileClient) GetCallCount() int {
 	return len(fake.getArgsForCall)
 }
 
-func (fake *FileClient) GetCalls(stub func(context.Context, string, string) ([]*gitprovider.CommitFile, error)) {
+func (fake *FileClient) GetCalls(stub func(context.Context, string, string, ...gitprovider.FilesGetOption) ([]*gitprovider.CommitFile, error)) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = stub
 }
 
-func (fake *FileClient) GetArgsForCall(i int) (context.Context, string, string) {
+func (fake *FileClient) GetArgsForCall(i int) (context.Context, string, string, []gitprovider.FilesGetOption) {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	argsForCall := fake.getArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FileClient) GetReturns(result1 []*gitprovider.CommitFile, result2 error) {
