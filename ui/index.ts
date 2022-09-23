@@ -74,6 +74,7 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import { useListProviders } from "./hooks/notifications";
 export {
   AppContextProvider,
   applicationsClient,
@@ -148,6 +149,7 @@ export {
   useIsAuthenticated,
   useListAutomations,
   useListFluxRuntimeObjects,
+  useListProviders,
   useListSources,
   UserSettings,
   V2Routes,
