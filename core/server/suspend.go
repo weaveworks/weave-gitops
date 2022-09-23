@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/weave-gitops/core/server/internal"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -69,8 +69,8 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
 }
 
-func getReconcilableObject(kind pb.FluxObjectKind) (internal.Reconcilable, error) {
-	_, s, err := internal.ToReconcileable(kind)
+func getReconcilableObject(kind pb.FluxObjectKind) (fluxsync.Reconcilable, error) {
+	_, s, err := fluxsync.ToReconcileable(kind)
 
 	return s, err
 }
