@@ -2,7 +2,9 @@ package fluxexec
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
@@ -103,43 +105,43 @@ func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHu
 	args = append(args, bootstrapArgs...)
 
 	// Then follow with the bootstrap github args.
-	if c.hostname != "" {
+	if c.hostname != "" && !reflect.DeepEqual(c.hostname, defaultBootstrapGitHubOptions.hostname) {
 		args = append(args, "--hostname", c.hostname)
 	}
 
-	if c.interval != "" {
+	if c.interval != "" && !reflect.DeepEqual(c.interval, defaultBootstrapGitHubOptions.interval) {
 		args = append(args, "--interval", c.interval)
 	}
 
-	if c.owner != "" {
+	if c.owner != "" && !reflect.DeepEqual(c.owner, defaultBootstrapGitHubOptions.owner) {
 		args = append(args, "--owner", c.owner)
 	}
 
-	if c.path != "" {
+	if c.path != "" && !reflect.DeepEqual(c.path, defaultBootstrapGitHubOptions.path) {
 		args = append(args, "--path", c.path)
 	}
 
-	if c.personal {
+	if c.personal && !reflect.DeepEqual(c.personal, defaultBootstrapGitHubOptions.personal) {
 		args = append(args, "--personal")
 	}
 
-	if c.private {
-		args = append(args, "--private")
+	if !reflect.DeepEqual(c.private, defaultBootstrapGitHubOptions.private) {
+		args = append(args, "--private", fmt.Sprintf("%v", c.private))
 	}
 
-	if c.readWriteKey {
+	if c.readWriteKey && !reflect.DeepEqual(c.readWriteKey, defaultBootstrapGitHubOptions.readWriteKey) {
 		args = append(args, "--read-write-key")
 	}
 
-	if c.reconcile {
+	if c.reconcile && !reflect.DeepEqual(c.reconcile, defaultBootstrapGitHubOptions.reconcile) {
 		args = append(args, "--reconcile")
 	}
 
-	if c.repository != "" {
+	if c.repository != "" && !reflect.DeepEqual(c.repository, defaultBootstrapGitHubOptions.repository) {
 		args = append(args, "--repository", c.repository)
 	}
 
-	if len(c.team) > 0 {
+	if len(c.team) > 0 && !reflect.DeepEqual(c.team, defaultBootstrapGitHubOptions.team) {
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 

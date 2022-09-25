@@ -3,6 +3,7 @@ package fluxexec
 import (
 	"context"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
@@ -89,43 +90,43 @@ func (flux *Flux) bootstrapGitLabCmd(ctx context.Context, opts ...BootstrapGitLa
 	bootstrapArgs := flux.bootstrapArgs(c.bootstrapOptions...)
 	args = append(args, bootstrapArgs...)
 
-	if c.hostname != "" {
+	if c.hostname != "" && !reflect.DeepEqual(c.hostname, defaultBootstrapGitLabOptions.hostname) {
 		args = append(args, "--hostname", c.hostname)
 	}
 
-	if c.interval != "" {
+	if c.interval != "" && !reflect.DeepEqual(c.interval, defaultBootstrapGitLabOptions.interval) {
 		args = append(args, "--interval", c.interval)
 	}
 
-	if c.owner != "" {
+	if c.owner != "" && !reflect.DeepEqual(c.owner, defaultBootstrapGitLabOptions.owner) {
 		args = append(args, "--owner", c.owner)
 	}
 
-	if c.path != "" {
+	if c.path != "" && !reflect.DeepEqual(c.path, defaultBootstrapGitLabOptions.path) {
 		args = append(args, "--path", c.path)
 	}
 
-	if c.personal {
+	if c.personal && !reflect.DeepEqual(c.personal, defaultBootstrapGitLabOptions.personal) {
 		args = append(args, "--personal")
 	}
 
-	if c.private {
+	if c.private && !reflect.DeepEqual(c.private, defaultBootstrapGitLabOptions.private) {
 		args = append(args, "--private")
 	}
 
-	if c.readWriteKey {
+	if c.readWriteKey && !reflect.DeepEqual(c.readWriteKey, defaultBootstrapGitLabOptions.readWriteKey) {
 		args = append(args, "--read-write-key")
 	}
 
-	if c.reconcile {
+	if c.reconcile && !reflect.DeepEqual(c.reconcile, defaultBootstrapGitLabOptions.reconcile) {
 		args = append(args, "--reconcile")
 	}
 
-	if c.repository != "" {
+	if c.repository != "" && !reflect.DeepEqual(c.repository, defaultBootstrapGitLabOptions.repository) {
 		args = append(args, "--repository", c.repository)
 	}
 
-	if len(c.team) > 0 {
+	if len(c.team) > 0 && !reflect.DeepEqual(c.team, defaultBootstrapGitLabOptions.team) {
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
