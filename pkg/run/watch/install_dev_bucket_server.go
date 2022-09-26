@@ -1,4 +1,4 @@
-package run
+package watch
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -184,7 +185,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}

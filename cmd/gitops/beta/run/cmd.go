@@ -13,6 +13,9 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
+	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
+	"github.com/weaveworks/weave-gitops/pkg/run/install"
+	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -139,7 +142,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		gitRepoRoot, err := run.FindGitRepoDir()
+		gitRepoRoot, err := install.FindGitRepoDir()
 		if err != nil {
 			return err
 		}
@@ -170,7 +173,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		relativePathForKs, err := run.GetRelativePathToRootDir(rootDir, targetPath)
+		relativePath, err := install.GetRelativePathToRootDir(rootDir, targetPath)
 		if err != nil { // if there is no git repo, we return an error
 			return err
 		}
@@ -226,7 +229,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		fluxVersion := ""
 
-		if fluxVersion, err = run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
 			product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -280,7 +283,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-		dashboardInstalled := run.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+		dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
 
 		if dashboardInstalled {
 			log.Successf("GitOps Dashboard is found")
@@ -293,28 +296,28 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 			result, err := prompt.Run()
 			if err == nil && strings.ToUpper(result) == "Y" {
-				password, err := run.ReadPassword(log)
+				password, err := install.ReadPassword(log)
 				if err != nil {
 					return err
 				}
 
-				secret, err := run.GenerateSecret(log, password)
+				secret, err := install.GenerateSecret(log, password)
 				if err != nil {
 					return err
 				}
 
-				man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+				man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
 				if err != nil {
 					log.Failuref("Error creating resource manager")
 					return err
 				}
 
-				manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
+				manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
 				if err != nil {
 					return fmt.Errorf("error creating dashboard objects: %w", err)
 				}
 
-				err = run.InstallDashboard(log, ctx, man, manifests)
+				err = install.InstallDashboard(log, ctx, man, manifests)
 				if err != nil {
 					return fmt.Errorf("gitops dashboard installation failed: %w", err)
 				} else {
@@ -328,14 +331,14 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if dashboardInstalled {
 			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-			if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+			if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 			} else {
 				log.Successf("Dashboard reconciliation is done.")
 			}
 		}
 
-		cancelDevBucketPortForwarding, err := run.InstallDevBucketServer(log, kubeClient, cfg)
+		cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(log, kubeClient, cfg)
 		if err != nil {
 			return err
 		}
@@ -343,21 +346,21 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		var cancelDashboardPortForwarding func() = nil
 
 		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = run.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+			cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 			if err != nil {
 				return err
 			}
 		}
 
-		if err := run.InitializeTargetDir(targetPath); err != nil {
+		if err := watch.InitializeTargetDir(targetPath); err != nil {
 			return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
 		}
 
-		if err := run.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePathForKs, flags.Timeout); err != nil {
+		if err := watch.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
 			return err
 		}
 
-		ignorer := run.CreateIgnorer(rootDir)
+		ignorer := watch.CreateIgnorer(rootDir)
 
 		minioClient, err := minio.New(
 			"localhost:9000",
@@ -377,7 +380,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher, ignorer))
+		err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 		if err != nil {
 			return err
 		}
@@ -429,7 +432,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 						// reset counter
 						atomic.StoreUint64(&counter, 0)
 
-						if err := run.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
+						if err := watch.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
 							log.Failuref("Error syncing dir: %v", err)
 						}
 
@@ -444,7 +447,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 								log.Failuref("Error creating new watcher: %v", err)
 							}
 
-							err = filepath.Walk(rootDir, run.WatchDirsForFileWalker(watcher, ignorer))
+							err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 							if err != nil {
 								log.Failuref("Error re-walking dir: %v", err)
 							}
@@ -454,14 +457,14 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
 
-						if err := run.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+						if err := watch.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
 							log.Failuref("Error requesting reconciliation: %v", err)
 						}
 
 						log.Successf("Reconciliation is done.")
 
 						if flags.PortForward != "" {
-							specMap, err := run.ParsePortForwardSpec(flags.PortForward)
+							specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
 							if err != nil {
 								log.Failuref("Error parsing port forward spec: %v", err)
 							}
@@ -486,7 +489,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 								log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 								// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-								if err := run.ForwardPort(pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+								if err := watch.ForwardPort(pod, cfg, specMap, waitFwd, readyChannel); err != nil {
 									log.Failuref("Error forwarding port: %v", err)
 								}
 
@@ -519,12 +522,12 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		ticker.Stop()
 
-		if err := run.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
+		if err := watch.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
 			return err
 		}
 
 		// uninstall dev-bucket server
-		if err := run.UninstallDevBucketServer(log, kubeClient); err != nil {
+		if err := watch.UninstallDevBucketServer(log, kubeClient); err != nil {
 			return err
 		}
 
@@ -537,7 +540,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		signal.Reset(sig)
 
 		// parse remote
-		repo, err := run.ParseGitRemote(log, rootDir)
+		repo, err := bootstrap.ParseGitRemote(log, rootDir)
 		if err != nil {
 			log.Failuref("Error parsing Git remote: %v", err.Error())
 		}
@@ -547,42 +550,37 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
 
-		remoteURL, err := run.ParseRemoteURL(repo)
+		remoteURL, err := bootstrap.ParseRemoteURL(repo)
 		if err != nil {
 			log.Failuref("Error parsing remote URL: %v", err.Error())
 		}
 
-		var gitProvider run.GitProvider
+		var gitProvider bootstrap.GitProvider
 
 		if remoteURL == "" {
-			gitProvider, err = run.SelectGitProvider(log)
+			gitProvider, err = bootstrap.SelectGitProvider(log)
 			if err != nil {
 				log.Failuref("Error selecting git provider: %v", err.Error())
 			}
 		} else {
-			urlParts := run.GetURLParts(remoteURL)
+			urlParts := bootstrap.GetURLParts(remoteURL)
 
 			if len(urlParts) > 0 {
-				gitProvider = run.ParseGitProvider(urlParts[0])
+				gitProvider = bootstrap.ParseGitProvider(urlParts[0])
 			}
 		}
 
-		if gitProvider == run.GitProviderUnknown {
-			gitProvider, err = run.SelectGitProvider(log)
+		if gitProvider == bootstrap.GitProviderUnknown {
+			gitProvider, err = bootstrap.SelectGitProvider(log)
 			if err != nil {
 				log.Failuref("Error selecting git provider: %v", err.Error())
 			}
 		}
 
-		relativePathForBootstrapWizard, err := run.GetRelativePathToRootDir(rootDir, targetPath)
-		if err != nil { // if there is no git repo, we return an error
-			return err
-		}
-
-		path := filepath.Join(relativePathForBootstrapWizard, "clusters", "my-cluster")
+		path := filepath.Join(relativePath, "clusters", "my-cluster")
 		path = "./" + path
 
-		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
+		wizard, err := bootstrap.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
 		if err != nil {
 			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
 		}

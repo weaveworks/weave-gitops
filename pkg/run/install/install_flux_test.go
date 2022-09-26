@@ -1,4 +1,4 @@
-package run
+package install
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/run"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -24,11 +25,11 @@ var _ = Describe("GetFluxVersion", func() {
 	})
 
 	It("gets flux version", func() {
-		kubeClientOpts := GetKubeClientOptions()
+		kubeClientOpts := run.GetKubeClientOptions()
 
 		contextName := "test-context"
 
-		kubeClient, err := GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
+		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
 		Expect(err).NotTo(HaveOccurred())
 
 		ctx := context.Background()
