@@ -287,10 +287,11 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 	}
 
 	if client, found := cf.usersClients.Get(user); found {
-		cf.log.Info("returning cached client for", "user1", user.ID)
+		cf.log.Info("returning cached client for", "user", user.ID)
 		return client, nil
 	}
 
+	cf.log.Info("creating new clients for", "user", user.ID)
 	pool := cf.newClustersPool(cf.scheme)
 	errChan := make(chan error, len(cf.clusters.Get()))
 
