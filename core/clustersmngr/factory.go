@@ -12,6 +12,7 @@ import (
 	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-multierror"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
@@ -57,6 +58,77 @@ func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
 	}
 
 	return d
+}
+
+var (
+	opsUpdateClusters = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "update_clusters_total",
+			Help:      "The number of times clusters have been refreshed",
+		})
+	opsClustersCount = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "clusters_total",
+			Help:      "The number of clusters currently being tracked",
+		})
+	opsUpdateNamespaces = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "update_namespaces_total",
+			Help:      "The number of times namespaces have been refreshed",
+		})
+	opsNamespacesCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "namespaces_count",
+			Help:      "The number of namespaces currently being tracked",
+		},
+		[]string{
+			// Which cluster has these namespaces
+			"cluster",
+		},
+	)
+	opsCreateServerClient = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "create_server_client_total",
+			Help:      "The number of times a server client has been created",
+		},
+		[]string{
+			// Which cluster created the client
+			"cluster",
+		},
+	)
+	opsCreateUserClient = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "create_user_client_total",
+			Help:      "The number of times a server client has been created",
+		},
+		[]string{
+			// Which cluster created the client
+			"cluster",
+		},
+	)
+
+	Registry = prometheus.NewRegistry()
+)
+
+func registerMetrics() {
+	_ = Registry.Register(opsUpdateClusters)
+	_ = Registry.Register(opsClustersCount)
+	_ = Registry.Register(opsUpdateNamespaces)
+	_ = Registry.Register(opsNamespacesCount)
+	_ = Registry.Register(opsCreateServerClient)
+	_ = Registry.Register(opsCreateUserClient)
 }
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
@@ -157,6 +229,8 @@ func (cw *ClustersWatcher) Unsubscribe() {
 }
 
 func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clientFactory ClientFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
+	registerMetrics()
+
 	return &clustersManager{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -230,6 +304,9 @@ func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
 
 	addedClusters, removedClusters := cf.clusters.Set(clusters)
 
+	opsUpdateClusters.Inc()
+	opsClustersCount.Set(float64(len(clusters)))
+
 	if len(addedClusters) > 0 || len(removedClusters) > 0 {
 		// notify watchers of the changes
 		for _, w := range cf.watchers {
@@ -293,8 +370,11 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 			}
 
 			cf.clustersNamespaces.Set(clusterName, list.Items)
+			opsNamespacesCount.WithLabelValues(clusterName).Set(float64(len(list.Items)))
 		}
 	}
+
+	opsUpdateNamespaces.Inc()
 
 	return result.ErrorOrNil()
 }
@@ -657,6 +737,8 @@ func ClientConfigAsServer(options ...KubeConfigOption) ClusterClientConfigFunc {
 
 		config.BearerToken = cluster.BearerToken
 
+		opsCreateServerClient.WithLabelValues(cluster.Name).Inc()
+
 		return ApplyKubeConfigOptions(config, options...)
 	}
 }
@@ -678,6 +760,8 @@ func ClientConfigWithUser(user *auth.UserPrincipal, options ...KubeConfigOption)
 				Groups:   user.Groups,
 			}
 		}
+
+		opsCreateUserClient.WithLabelValues(cluster.Name).Inc()
 
 		return ApplyKubeConfigOptions(config, options...)
 	}

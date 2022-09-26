@@ -253,6 +253,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		gatherers := prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 			k8sMetrics.Registry,
+			clustersmngr.Registry,
 		}
 		metricsMux.Handle("/metrics", promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{}))
 
