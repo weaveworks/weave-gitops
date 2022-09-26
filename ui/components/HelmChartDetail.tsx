@@ -35,7 +35,7 @@ function HelmChartDetail({ className, helmChart }: Props) {
         ["Type", Kind.HelmChart],
         ["Chart", helmChart.chart],
         ["Version", helmChart.version],
-        ["Revision", helmChart.revision],
+        ["Current Revision", helmChart.revision],
         ["Ref", helmChart.sourceRef?.name],
         ["Last Updated", <Timestamp time={helmChart.lastUpdatedAt} />],
         ["Interval", <Interval interval={helmChart.interval} />],
