@@ -3,8 +3,6 @@ package run
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
-	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -12,6 +10,9 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
+	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -527,8 +528,8 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return err
 		}
 
-		// run bootstrap wizard only if Flux was not installed
-		if fluxVersion != "" {
+		// run bootstrap wizard only if Flux is not installed and env var is set
+		if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
 			return nil
 		}
 
