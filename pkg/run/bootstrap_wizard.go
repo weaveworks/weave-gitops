@@ -366,7 +366,7 @@ func parseRepo(log logger.Logger, remoteURL string) string {
 
 // NewBootstrapWizard creates a wizard to gather
 // all bootstrap config options before running flux bootstrap.
-func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProvider) (*BootstrapWizard, error) {
+func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProvider, path string) (*BootstrapWizard, error) {
 	if gitProvider == GitProviderUnknown {
 		return nil, fmt.Errorf("unknown git provider: %d", gitProvider)
 	}
@@ -384,25 +384,29 @@ func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProv
 
 	log.Actionf("Parsing values ...")
 
+	owner := ""
+	repo := ""
+
 	if remoteURL != "" {
 		// if possible, parse owner and repository from the remote URL
-		owner := ""
-		repo := ""
-
 		if gitProvider == GitProviderGitHub {
 			owner = parseOwner(log, remoteURL)
 		}
 
 		repo = parseRepo(log, remoteURL)
+	}
 
-		for _, task := range wizard.tasks {
-			if task.flagName == "owner" {
-				task.flagValue = owner
-			}
+	for _, task := range wizard.tasks {
+		if task.flagName == "owner" {
+			task.flagValue = owner
+		}
 
-			if task.flagName == "repository" {
-				task.flagValue = repo
-			}
+		if task.flagName == "repository" {
+			task.flagValue = repo
+		}
+
+		if task.flagName == "path" {
+			task.flagValue = path
 		}
 	}
 

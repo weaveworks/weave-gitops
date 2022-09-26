@@ -536,7 +536,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		signal.Reset(sig)
 
 		// parse remote
-		repo, err := run.ParseGitRemote(log, ".")
+		repo, err := run.ParseGitRemote(log, rootDir)
 		if err != nil {
 			log.Failuref("Error parsing Git remote: %v", err.Error())
 		}
@@ -572,7 +572,15 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		}
 
-		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider)
+		relativePathForBootstrapWizard, err := run.GetRelativePathToRootDir(rootDir, targetPath)
+		if err != nil { // if there is no git repo, we return an error
+			return err
+		}
+
+		path := filepath.Join(relativePathForBootstrapWizard, "clusters", "my-cluster")
+		path = "./" + path
+
+		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider, path)
 		if err != nil {
 			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
 		}
