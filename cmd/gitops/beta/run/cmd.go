@@ -223,7 +223,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if Flux is already installed ...")
 
-		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		fluxVersion := ""
+
+		if fluxVersion, err = run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
 			product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -500,7 +502,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-		<-sigs
+		sig := <-sigs
 
 		if err := watcher.Close(); err != nil {
 			log.Warningf("Error closing watcher: %v", err.Error())
@@ -524,6 +526,64 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if err := run.UninstallDevBucketServer(log, kubeClient); err != nil {
 			return err
 		}
+
+		// run bootstrap wizard only if Flux was not installed
+		if fluxVersion != "" {
+			return nil
+		}
+
+		// re-enable listening for ctrl+C
+		signal.Reset(sig)
+
+		// parse remote
+		repo, err := run.ParseGitRemote(log, ".")
+		if err != nil {
+			log.Failuref("Error parsing Git remote: %v", err.Error())
+		}
+
+		// run the bootstrap wizard
+		log.Actionf("Starting bootstrap wizard ...")
+
+		log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
+
+		remoteURLs, err := run.ParseRemoteURLs(log, repo)
+		if err != nil {
+			log.Failuref("Error parsing remote URLs: %v", err.Error())
+		}
+
+		var gitProvider run.GitProvider
+
+		remoteURL := ""
+
+		if len(remoteURLs) == 1 {
+			remoteURL = remoteURLs[0]
+			gitProvider = run.ParseGitProvider(log, remoteURL)
+		} else {
+			gitProvider, err = run.SelectGitProvider(log)
+			if err != nil {
+				log.Failuref("Error selecting git provider: %v", err.Error())
+			}
+		}
+
+		if gitProvider == run.GitProviderUnknown {
+			gitProvider, err = run.SelectGitProvider(log)
+			if err != nil {
+				log.Failuref("Error selecting git provider: %v", err.Error())
+			}
+		}
+
+		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider)
+		if err != nil {
+			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
+		}
+
+		if err = wizard.Run(log); err != nil {
+			return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
+		}
+
+		fluxBootstrapCmd := wizard.BuildCommand(log)
+
+		log.Successf("Flux bootstrap cmd:\n%s", fluxBootstrapCmd)
 
 		return nil
 	}
