@@ -3,6 +3,7 @@ package fluxexec
 import (
 	"context"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
@@ -107,47 +108,47 @@ func (flux *Flux) bootstrapBitbucketServerCmd(ctx context.Context, opts ...Boots
 	bootstrapArgs := flux.bootstrapArgs(c.bootstrapOptions...)
 	args = append(args, bootstrapArgs...)
 
-	if len(c.group) > 0 {
+	if len(c.group) > 0 && !reflect.DeepEqual(c.group, defaultBootstrapBitbucketServerOptions.group) {
 		args = append(args, "--group", strings.Join(c.group, ","))
 	}
 
-	if c.hostname != "" {
+	if c.hostname != "" && !reflect.DeepEqual(c.hostname, defaultBootstrapBitbucketServerOptions.hostname) {
 		args = append(args, "--hostname", c.hostname)
 	}
 
-	if c.interval != "" {
+	if c.interval != "" && !reflect.DeepEqual(c.interval, defaultBootstrapBitbucketServerOptions.interval) {
 		args = append(args, "--interval", c.interval)
 	}
 
-	if c.owner != "" {
+	if c.owner != "" && !reflect.DeepEqual(c.owner, defaultBootstrapBitbucketServerOptions.owner) {
 		args = append(args, "--owner", c.owner)
 	}
 
-	if c.path != "" {
+	if c.path != "" && !reflect.DeepEqual(c.path, defaultBootstrapBitbucketServerOptions.path) {
 		args = append(args, "--path", c.path)
 	}
 
-	if c.personal {
+	if c.personal && !reflect.DeepEqual(c.personal, defaultBootstrapBitbucketServerOptions.personal) {
 		args = append(args, "--personal")
 	}
 
-	if c.private {
+	if c.private && !reflect.DeepEqual(c.private, defaultBootstrapBitbucketServerOptions.private) {
 		args = append(args, "--private")
 	}
 
-	if c.readWriteKey {
+	if c.readWriteKey && !reflect.DeepEqual(c.readWriteKey, defaultBootstrapBitbucketServerOptions.readWriteKey) {
 		args = append(args, "--read-write-key")
 	}
 
-	if c.reconcile {
+	if c.reconcile && !reflect.DeepEqual(c.reconcile, defaultBootstrapBitbucketServerOptions.reconcile) {
 		args = append(args, "--reconcile")
 	}
 
-	if c.repository != "" {
+	if c.repository != "" && !reflect.DeepEqual(c.repository, defaultBootstrapBitbucketServerOptions.repository) {
 		args = append(args, "--repository", c.repository)
 	}
 
-	if c.username != "" {
+	if c.username != "" && !reflect.DeepEqual(c.username, defaultBootstrapBitbucketServerOptions.username) {
 		args = append(args, "--username", c.username)
 	}
 

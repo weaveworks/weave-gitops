@@ -3,14 +3,16 @@ package run
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
+	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
 
-	"github.com/fluxcd/flux2/pkg/manifestgen/install"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
@@ -90,7 +92,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the KubeConfig context to explicitly allow.")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
 	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
-	cmdFlags.DurationVar(&flags.Timeout, "timeout", 30*time.Second, "The timeout for operations during GitOps Run.")
+	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Minute, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
@@ -224,40 +226,50 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
-			components := flags.Components
-			components = append(components, flags.ComponentsExtra...)
+			product := fluxinstall.NewProduct(flags.FluxVersion)
 
-			if err := run.ValidateComponents(components); err != nil {
-				return fmt.Errorf("can't install flux: %w", err)
+			installer := fluxinstall.NewInstaller()
+
+			execPath, err := installer.Ensure(ctx, product)
+			if err != nil {
+				execPath, err = installer.Install(ctx, product)
+				if err != nil {
+					return err
+				}
 			}
 
-			installOpts := install.MakeDefaultOptions()
-			installOpts.Version = flags.FluxVersion
-			installOpts.Namespace = flags.Namespace
-			installOpts.Components = components
-			installOpts.ManifestFile = "flux-system.yaml"
-			installOpts.Timeout = flags.Timeout
-
-			man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			wd, err := os.Getwd()
 			if err != nil {
-				log.Failuref("Error creating resource manager")
 				return err
 			}
 
-			if err := run.InstallFlux(log, ctx, installOpts, man); err != nil {
-				return fmt.Errorf("flux installation failed: %w", err)
-			} else {
-				log.Successf("Flux has been installed")
+			flux, err := fluxexec.NewFlux(wd, execPath)
+			if err != nil {
+				return err
 			}
 
-			for _, controllerName := range components {
-				log.Actionf("Waiting for %s/%s to be ready ...", flags.Namespace, controllerName)
+			flux.SetStdout(os.Stdout)
+			flux.SetStderr(os.Stderr)
 
-				if err := run.WaitForDeploymentToBeReady(log, kubeClient, controllerName, flags.Namespace); err != nil {
-					return err
-				}
+			var components []fluxexec.Component
+			for _, component := range flags.Components {
+				components = append(components, fluxexec.Component(component))
+			}
 
-				log.Successf("%s/%s is now ready ...", flags.Namespace, controllerName)
+			var componentsExtra []fluxexec.ComponentExtra
+			for _, component := range flags.ComponentsExtra {
+				componentsExtra = append(componentsExtra, fluxexec.ComponentExtra(component))
+			}
+
+			if err := flux.Install(ctx,
+				fluxexec.Components(components...),
+				fluxexec.ComponentsExtra(componentsExtra...),
+				fluxexec.WithGlobalOptions(
+					fluxexec.Namespace(flags.Namespace),
+					fluxexec.Timeout(flags.Timeout),
+				),
+			); err != nil {
+				return err
 			}
 		} else {
 			log.Successf("Flux version %s is found", fluxVersion)
@@ -275,8 +287,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 				IsConfirm: true,
 				Default:   "Y",
 			}
-			_, err = prompt.Run()
-			if err == nil {
+
+			result, err := prompt.Run()
+			if err == nil && strings.ToUpper(result) == "Y" {
 				password, err := run.ReadPassword(log)
 				if err != nil {
 					return err

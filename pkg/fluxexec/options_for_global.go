@@ -1,5 +1,7 @@
 package fluxexec
 
+import "time"
+
 type AsOption struct {
 	as string
 }
@@ -136,11 +138,11 @@ func Server(server string) *ServerOption {
 }
 
 type TimeoutOption struct {
-	timeout string
+	timeout time.Duration
 }
 
 // Timeout represents the --timeout flag.
-func Timeout(timeout string) *TimeoutOption {
+func Timeout(timeout time.Duration) *TimeoutOption {
 	return &TimeoutOption{timeout}
 }
 
@@ -178,4 +180,13 @@ type VerboseOption struct {
 // Verbose represents the --verbose flag.
 func Verbose(verbose bool) *VerboseOption {
 	return &VerboseOption{verbose}
+}
+
+type VersionOption struct {
+	version string
+}
+
+// Version represents the --version flag.
+func Version(version string) *VersionOption {
+	return &VersionOption{version}
 }

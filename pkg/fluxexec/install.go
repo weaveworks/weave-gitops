@@ -2,11 +2,15 @@ package fluxexec
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
 type installConfig struct {
+	globalOptions []GlobalOption
+
 	clusterDomain      string
 	components         []Component
 	componentsExtra    []ComponentExtra
@@ -97,39 +101,43 @@ func (flux *Flux) installCmd(ctx context.Context, opts ...InstallOption) (*exec.
 
 	args := []string{"install"}
 
-	if c.watchAllNamespaces {
-		args = append(args, "--watch-all-namespaces")
+	// Add the global args first.
+	globalArgs := flux.globalArgs(c.globalOptions...)
+	args = append(args, globalArgs...)
+
+	if !c.watchAllNamespaces && !reflect.DeepEqual(c.watchAllNamespaces, defaultInstallOptions.watchAllNamespaces) {
+		args = append(args, "--watch-all-namespaces", fmt.Sprintf("%v", c.watchAllNamespaces))
 	}
 
-	if c.clusterDomain != "" {
+	if c.clusterDomain != "" && !reflect.DeepEqual(c.clusterDomain, defaultInstallOptions.clusterDomain) {
 		args = append(args, "--cluster-domain", c.clusterDomain)
 	}
 
-	if c.export {
+	if c.export && !reflect.DeepEqual(c.export, defaultInstallOptions.export) {
 		args = append(args, "--export")
 	}
 
-	if c.imagePullSecret != "" {
+	if c.imagePullSecret != "" && !reflect.DeepEqual(c.imagePullSecret, defaultInstallOptions.imagePullSecret) {
 		args = append(args, "--image-pull-secret", c.imagePullSecret)
 	}
 
-	if c.logLevel != "" {
+	if c.logLevel != "" && !reflect.DeepEqual(c.logLevel, defaultInstallOptions.logLevel) {
 		args = append(args, "--log-level", c.logLevel)
 	}
 
-	if c.networkPolicy {
-		args = append(args, "--network-policy")
+	if !reflect.DeepEqual(c.networkPolicy, defaultInstallOptions.networkPolicy) {
+		args = append(args, "--network-policy", fmt.Sprintf("%v", c.networkPolicy))
 	}
 
-	if c.registry != "" {
+	if c.registry != "" && !reflect.DeepEqual(c.registry, defaultInstallOptions.registry) {
 		args = append(args, "--registry", c.registry)
 	}
 
-	if len(c.tolerationKeys) > 0 {
+	if len(c.tolerationKeys) > 0 && !reflect.DeepEqual(c.tolerationKeys, defaultInstallOptions.tolerationKeys) {
 		args = append(args, "--toleration-keys", strings.Join(c.tolerationKeys, ","))
 	}
 
-	if len(c.components) > 0 {
+	if len(c.components) > 0 && !reflect.DeepEqual(c.components, defaultInstallOptions.components) {
 		var comps []string
 		for _, c := range c.components {
 			comps = append(comps, string(c))
@@ -138,7 +146,7 @@ func (flux *Flux) installCmd(ctx context.Context, opts ...InstallOption) (*exec.
 		args = append(args, "--components", strings.Join(comps, ","))
 	}
 
-	if len(c.componentsExtra) > 0 {
+	if len(c.componentsExtra) > 0 && !reflect.DeepEqual(c.componentsExtra, defaultInstallOptions.componentsExtra) {
 		var extras []string
 		for _, e := range c.componentsExtra {
 			extras = append(extras, string(e))
