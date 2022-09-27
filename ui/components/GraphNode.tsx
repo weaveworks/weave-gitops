@@ -107,7 +107,7 @@ function GraphNode({ className, object }: Props) {
             </Link>
           ) : (
             <Tooltip
-              title={object.name.length > 1 ? object.name : ""}
+              title={object.name.length > 23 ? object.name : ""}
               placement="top"
             >
               <Text
