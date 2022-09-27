@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 4.0.2 which installs weave gitops v0.9.5.
+This reference was generated for the chart version 4.0.3 which installs weave gitops v0.9.5.
 
 ## Values
 
@@ -17,6 +17,7 @@ This reference was generated for the chart version 4.0.2 which installs weave gi
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
 | adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
 | affinity | object | `{}` |  |
+| annotations | object | `{}` | Annotations to add to the deployment |
 | envVars[0].name | string | `"WEAVE_GITOPS_FEATURE_TENANCY"` |  |
 | envVars[0].value | string | `"true"` |  |
 | envVars[1].name | string | `"WEAVE_GITOPS_FEATURE_CLUSTER"` |  |
@@ -36,6 +37,7 @@ This reference was generated for the chart version 4.0.2 which installs weave gi
 | metrics.service.annotations | object | `{"prometheus.io/path":"/metrics","prometheus.io/port":"{{ .Values.metrics.service.port }}","prometheus.io/scrape":"true"}` | Annotations to set on the service |
 | metrics.service.port | int | `2112` | Port to start the metrics exporter on |
 | nameOverride | string | `""` |  |
+| networkPolicy.create | bool | `true` | Specifies whether default network policies should be created. |
 | nodeSelector | object | `{}` |  |
 | oidcSecret.create | bool | `false` |  |
 | podAnnotations | object | `{}` |  |
@@ -47,7 +49,12 @@ This reference was generated for the chart version 4.0.2 which installs weave gi
 | rbac.viewSecretsResourceNames | list | `["cluster-user-auth","oidc-auth"]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
-| securityContext | object | `{}` |  |
+| securityContext.allowPrivilegeEscalation | bool | `false` |  |
+| securityContext.capabilities.drop[0] | string | `"ALL"` |  |
+| securityContext.readOnlyRootFilesystem | bool | `true` |  |
+| securityContext.runAsNonRoot | bool | `true` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| securityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
 | serverTLS.enable | bool | `false` | Enable TLS termination in gitops itself. If you enable this, you need to create a secret, and specify the secretName. Another option is to create an ingress. |
 | serverTLS.secretName | string | `"my-secret-tls"` | Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets for more details and examples |
 | service.annotations | object | `{}` |  |
