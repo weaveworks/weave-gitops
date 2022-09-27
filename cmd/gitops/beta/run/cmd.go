@@ -3,8 +3,6 @@ package run
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
-	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -12,6 +10,9 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
+	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -223,7 +224,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Actionf("Checking if Flux is already installed ...")
 
-		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		fluxVersion := ""
+
+		if fluxVersion, err = run.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Warningf("Flux is not found: %v", err.Error())
 
 			product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -500,7 +503,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-		<-sigs
+		sig := <-sigs
 
 		if err := watcher.Close(); err != nil {
 			log.Warningf("Error closing watcher: %v", err.Error())
@@ -524,6 +527,73 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		if err := run.UninstallDevBucketServer(log, kubeClient); err != nil {
 			return err
 		}
+
+		// run bootstrap wizard only if Flux is not installed and env var is set
+		if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
+			return nil
+		}
+
+		// re-enable listening for ctrl+C
+		signal.Reset(sig)
+
+		// parse remote
+		repo, err := run.ParseGitRemote(log, rootDir)
+		if err != nil {
+			log.Failuref("Error parsing Git remote: %v", err.Error())
+		}
+
+		// run the bootstrap wizard
+		log.Actionf("Starting bootstrap wizard ...")
+
+		log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
+
+		remoteURL, err := run.ParseRemoteURL(repo)
+		if err != nil {
+			log.Failuref("Error parsing remote URL: %v", err.Error())
+		}
+
+		var gitProvider run.GitProvider
+
+		if remoteURL == "" {
+			gitProvider, err = run.SelectGitProvider(log)
+			if err != nil {
+				log.Failuref("Error selecting git provider: %v", err.Error())
+			}
+		} else {
+			urlParts := run.GetURLParts(remoteURL)
+
+			if len(urlParts) > 0 {
+				gitProvider = run.ParseGitProvider(urlParts[0])
+			}
+		}
+
+		if gitProvider == run.GitProviderUnknown {
+			gitProvider, err = run.SelectGitProvider(log)
+			if err != nil {
+				log.Failuref("Error selecting git provider: %v", err.Error())
+			}
+		}
+
+		relativePathForBootstrapWizard, err := run.GetRelativePathToRootDir(rootDir, targetPath)
+		if err != nil { // if there is no git repo, we return an error
+			return err
+		}
+
+		path := filepath.Join(relativePathForBootstrapWizard, "clusters", "my-cluster")
+		path = "./" + path
+
+		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
+		if err != nil {
+			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
+		}
+
+		if err = wizard.Run(log); err != nil {
+			return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
+		}
+
+		fluxBootstrapCmd := wizard.BuildCommand(log)
+
+		log.Successf("Flux bootstrap cmd:\n%s", fluxBootstrapCmd)
 
 		return nil
 	}
