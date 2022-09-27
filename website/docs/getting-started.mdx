@@ -33,12 +33,6 @@ To follow along, you will need the following:
 
    For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
 
-1. Make sure that the CLI version is at least 0.32.0
-
-   ```
-   flux -v
-   ```
-
 1. Export your credentials
 
    ```
@@ -85,7 +79,7 @@ For this guide we will use the cluster user, for complete documentation includin
 
 1. Install the Weave GitOps CLI
    ```
-   brew install weaveworks/tap/weave-gitops 
+   brew install weaveworks/tap/weave-gitops
    ```
 
    For other installation methods, see our [installation doc](./installation.mdx).
@@ -186,7 +180,11 @@ The table view again shows summary status information so you can see whether Flu
 
 ### The Flux Runtime view
 
-Clicking on `Flux Runtime` provides status on the GitOps engine continuously reconciling your desired and live state. It shows your installed GitOps Toolkit Controllers and their version.
+Clicking on `Flux Runtime` provides two different tabs: controllers, and CRDs.
+
+#### Controllers
+
+The controllers tab shows your installed GitOps Toolkit Controllers which are working to and their version.
 
 ![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime.png)
 
@@ -198,9 +196,13 @@ By default `flux bootstrap` will install the following controllers:
 
 For a full description of the controllers, see [GitOps ToolKit components](https://fluxcd.io/docs/components/) in the Flux documentation.
 
-Weave GitOps is an extension to Flux and the pod serving this web application is also viewable as `ww-gitops-weave-gitops`.
-
 From this view you can see whether the controllers are healthy and which version of a given component is currently deployed.
+
+#### CRDs
+
+The CRD tab lists the custom resources that the GitOps Toolkit Controllers use. This helps you see what resources you will be able to create.
+
+![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime-crd.png)
 
 ### Exploring the flux-system deployment
 
@@ -215,6 +217,7 @@ Underneath the summary information are four tabs:
 - Details (default) is a table view which shows all the Kubernetes objects (including flux objects, deployments, pods, services, etc) managed and deployed through this `kustomization`.
 - Events (shown below) shows any related Kubernetes events to help you diagnose issues and understand health over time.
 - Reconciliation Graph (shown below) provides a directional graph alternative to the Details view to help you understand how the various objects relate to each other.
+- Dependencies provides a directional graph that helps you understand dependencies between objects, if there are any. This helps you make sure that your automations are set up in the correct order.
 - Yaml (shown below) provides a raw dump on the current object as it currently exists inside your cluster. Note that this will be different from what's in your gitops repository, since this yaml view will contain the current status of the object.
 
 **Events tab**
@@ -289,9 +292,9 @@ Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back 
 
 ![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
 
-Click on podinfo and you will see details about the deployment, including that there are 2 replicas available.
+Click on podinfo and you will see details about the deployment, including that there is 1 pod available.
 
-![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
+![Applications details view for podinfo showing 1 pods](/img/dashboard-podinfo-details.png)
 
 ### Customize podinfo
 
@@ -336,7 +339,7 @@ To customize a deployment from a repository you don’t control, you can use Flu
    git push
    ```
 
-3. Navigate back to the dashboard and you will now see increased replica count and the newly created 3rd pod
+3. Navigate back to the dashboard and you will now see 2 newly created pods
 
    ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
 
