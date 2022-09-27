@@ -32,12 +32,6 @@ export type ObjectRef = {
   kind?: string
   name?: string
   namespace?: string
-}
-
-export type ClusteredObjRef = {
-  kind?: string
-  name?: string
-  namespace?: string
   clusterName?: string
 }
 

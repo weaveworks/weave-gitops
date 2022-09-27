@@ -102,6 +102,21 @@ func TestListEvents(t *testing.T) {
 
 	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
 
+	// Get kustomization events, explicit cluster
+	res, err = c.ListEvents(ctx, &pb.ListEventsRequest{
+		InvolvedObject: &pb.ObjectRef{
+			Name:        kustomizationObjectName,
+			Namespace:   ns.Name,
+			Kind:        kustomizev1.KustomizationKind,
+			ClusterName: "Default",
+		},
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Events).To(HaveLen(1))
+
+	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
+
 	// Get helmrelease events
 	res, err = c.ListEvents(ctx, &pb.ListEventsRequest{
 		InvolvedObject: &pb.ObjectRef{
