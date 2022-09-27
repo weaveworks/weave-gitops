@@ -1,6 +1,8 @@
+import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
@@ -19,7 +21,7 @@ import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
-import YamlView from "./YamlView";
+import YamlView, { DialogYamlView } from "./YamlView";
 
 type Props = {
   automation: Automation;
@@ -30,13 +32,14 @@ type Props = {
 
 function AutomationDetail({ automation, className, info, customTabs }: Props) {
   const { path } = useRouteMatch();
-
+  const { setNodeYaml, appState } = React.useContext(AppContext);
+  const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
     {
       name: automation.name,
       namespace: automation.namespace,
       clusterName: automation.clusterName,
-      kind: automation.type,
+      kind: Kind[automation.type],
     },
   ]);
 
@@ -65,13 +68,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
           <>
             <InfoList items={info} />
             <Metadata metadata={automation.metadata} />
-            <ReconciledObjectsTable
-              automationKind={automation.type}
-              automationName={automation.name}
-              namespace={automation.namespace}
-              kinds={automation.inventory}
-              clusterName={automation.clusterName}
-            />
+            <ReconciledObjectsTable automation={automation} />
           </>
         );
       },
@@ -101,11 +98,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       component: () => {
         return (
           <ReconciliationGraph
-            automationKind={automation.type}
-            automationName={automation.name}
-            kinds={automation.inventory}
             parentObject={automation}
-            clusterName={automation.clusterName}
             source={automation.sourceRef}
           />
         );
@@ -183,6 +176,18 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
             )
         )}
       </SubRouterTabs>
+      {nodeYaml && (
+        <Dialog open={!!nodeYaml} onClose={() => setNodeYaml(null)}>
+          <DialogYamlView
+            object={{
+              name: nodeYaml.name,
+              namespace: nodeYaml.namespace,
+              kind: nodeYaml.type,
+            }}
+            yaml={nodeYaml.yaml}
+          />
+        </Dialog>
+      )}
     </Flex>
   );
 }

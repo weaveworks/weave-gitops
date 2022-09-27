@@ -81,8 +81,8 @@ func TestGetReconciledObjects(t *testing.T) {
 	g.Expect(res.Objects).To(HaveLen(1))
 
 	first := res.Objects[0]
-	g.Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
-	g.Expect(first.Name).To(Equal(reconciledObj.Name))
+	g.Expect(first.Payload).To(ContainSubstring("Deployment"))
+	g.Expect(first.Payload).To(ContainSubstring(reconciledObj.Name))
 }
 
 func TestGetChildObjects(t *testing.T) {
@@ -167,8 +167,8 @@ func TestGetChildObjects(t *testing.T) {
 	g.Expect(res.Objects).To(HaveLen(1))
 
 	first := res.Objects[0]
-	g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-	g.Expect(first.Name).To(Equal(rs.Name))
+	g.Expect(first.Payload).To(ContainSubstring("ReplicaSet"))
+	g.Expect(first.Payload).To(ContainSubstring(rs.Name))
 }
 
 func TestListFluxRuntimeObjects(t *testing.T) {

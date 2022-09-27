@@ -1,13 +1,11 @@
+import { Dialog } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledObjects } from "../hooks/flux";
-import {
-  GroupVersionKind,
-  Kind,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
+import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
+import { Automation, FluxObject } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable, {
@@ -19,44 +17,27 @@ import ImageLink from "./ImageLink";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
-
-export interface ReconciledVisualizationProps {
+import Text from "./Text";
+import { DialogYamlView } from "./YamlView";
+interface ReconciledVisualizationProps {
   className?: string;
-  automationName: string;
-  namespace?: string;
-  automationKind: Kind;
-  kinds: GroupVersionKind[];
-  clusterName: string;
+  automation?: Automation;
 }
-
-const kindsFrom = [Kind.Kustomization, Kind.HelmRelease];
-
-const kindsTo = [
-  Kind.Kustomization,
-  Kind.HelmRelease,
-  Kind.GitRepository,
-  Kind.HelmRepository,
-  Kind.Bucket,
-];
 
 function ReconciledObjectsTable({
   className,
-  automationName,
-  namespace = NoNamespace,
-  automationKind,
-  kinds,
-  clusterName,
+  automation,
 }: ReconciledVisualizationProps) {
   const {
     data: objs,
     error,
     isLoading,
   } = useGetReconciledObjects(
-    automationName,
-    namespace,
-    automationKind,
-    kinds,
-    clusterName
+    automation.name,
+    automation.namespace || NoNamespace,
+    Kind[automation.type],
+    automation.inventory,
+    automation.clusterName
   );
 
   const initialFilterState = {
@@ -65,8 +46,7 @@ function ReconciledObjectsTable({
     ...filterConfig(objs, "status", filterByStatusCallback),
   };
 
-  const shouldDisplayLinks = kindsFrom.includes(automationKind);
-
+  const [yamlView, setYamlView] = React.useState(null);
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
@@ -74,10 +54,9 @@ function ReconciledObjectsTable({
         className={className}
         fields={[
           {
-            value: (u: UnstructuredObject) => {
-              const kind = Kind[u.groupVersionKind.kind];
-
-              return shouldDisplayLinks && kind && kindsTo.includes(kind) ? (
+            value: (u: FluxObject) => {
+              const kind = Kind[u.type];
+              return kind ? (
                 <Link
                   to={formatURL(objectTypeToRoute(kind), {
                     name: u.name,
@@ -88,18 +67,20 @@ function ReconciledObjectsTable({
                   {u.name}
                 </Link>
               ) : (
-                u.name
+                <Text onClick={() => setYamlView(u)} color="primary10" pointer>
+                  {u.name}
+                </Text>
               );
             },
             label: "Name",
-            sortValue: (u: UnstructuredObject) => u.name || "",
+            sortValue: (u: FluxObject) => u.name || "",
             textSearchable: true,
             maxWidth: 600,
           },
           {
             label: "Type",
-            value: (u: UnstructuredObject) => u.groupVersionKind.kind,
-            sortValue: (u: UnstructuredObject) => u.groupVersionKind.kind,
+            value: (u: FluxObject) => u.type,
+            sortValue: (u: FluxObject) => u.type,
           },
           {
             label: "Namespace",
@@ -108,7 +89,7 @@ function ReconciledObjectsTable({
           },
           {
             label: "Status",
-            value: (u: UnstructuredObject) =>
+            value: (u: FluxObject) =>
               u.conditions.length > 0 ? (
                 <KubeStatusIndicator
                   conditions={u.conditions}
@@ -120,24 +101,35 @@ function ReconciledObjectsTable({
           },
           {
             label: "Message",
-            value: (u: UnstructuredObject) => _.first(u.conditions)?.message,
+            value: (u: FluxObject) => _.first(u.conditions)?.message,
             sortValue: ({ conditions }) => computeMessage(conditions),
             maxWidth: 600,
           },
           {
             label: "Images",
-            value: (u: UnstructuredObject) => (
+            value: (u: FluxObject) => (
               <ImageLink image={makeImageString(u.images)} />
             ),
-            sortValue: (u: UnstructuredObject) => makeImageString(u.images),
+            sortValue: (u: FluxObject) => makeImageString(u.images),
           },
         ]}
         rows={objs}
       />
+      <Dialog open={yamlView !== null} onClose={() => setYamlView(null)}>
+        {yamlView && (
+          <DialogYamlView
+            object={{
+              name: yamlView.name,
+              namespace: yamlView.namespace,
+              kind: yamlView.type,
+            }}
+            yaml={yamlView.yaml}
+          />
+        )}
+      </Dialog>
     </RequestStateHandler>
   );
 }
-
 export default styled(ReconciledObjectsTable).attrs({
   className: ReconciledObjectsTable.name,
 })`

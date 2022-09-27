@@ -1,12 +1,14 @@
 // A collection of helper functions to render a graph of kubernetes objects
 // with in the context of their parent-child relationships.
 import _ from "lodash";
+import { convertResponse } from "../hooks/objects";
 import { Core } from "./api/core/core.pb";
 import {
   GroupVersionKind,
   Kind,
   UnstructuredObject,
 } from "./api/core/types.pb";
+import { FluxObject } from "./objects";
 
 export type UnstructuredObjectWithChildren = UnstructuredObject & {
   children?: UnstructuredObjectWithChildren[];
@@ -41,13 +43,13 @@ export const getChildrenRecursive = async (
   client: typeof Core,
   namespace: string,
 
-  object: UnstructuredObjectWithChildren,
+  object: FluxObject,
   clusterName: string,
   lookup: any
 ) => {
   const children = [];
 
-  const k = lookup[object.groupVersionKind.kind];
+  const k = lookup[object.type];
 
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {
@@ -61,7 +63,7 @@ export const getChildrenRecursive = async (
       });
 
       for (let q = 0; q < res.objects.length; q++) {
-        const c = res.objects[q];
+        const c = convertResponse(null, res.objects[q]);
         // Dive down one level and update the lookup accordingly.
         await getChildrenRecursive(client, namespace, c, clusterName, {
           [child.kind]: child,
@@ -81,7 +83,7 @@ export const getChildren = async (
   automationKind: Kind,
   kinds: GroupVersionKind[],
   clusterName
-): Promise<UnstructuredObjectWithChildren[]> => {
+): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     automationName,
     namespace,
@@ -92,8 +94,7 @@ export const getChildren = async (
 
   const result = [];
   for (let o = 0; o < objects.length; o++) {
-    const obj = objects[o];
-
+    const obj = convertResponse(null, objects[o]);
     await getChildrenRecursive(
       client,
       namespace,

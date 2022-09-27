@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/kustomize/kstatus/status"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -156,6 +155,7 @@ func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
 }
 
 func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
+	respErrors := multierror.Error{}
 	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -191,6 +191,8 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			Version: gvk.Version,
 		})
 
+		//listResult.setUnstructuredContent ???
+
 		if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 			if k8serrors.IsForbidden(err) {
 				// Our service account (or impersonated user) may not have the ability to see the resource in question,
@@ -211,42 +213,26 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			}
 		}
 	}
-
-	objects := []*pb.UnstructuredObject{}
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	objects := []*pb.Object{}
 
 	for _, obj := range result {
-		res, err := status.Compute(&obj)
+
+		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+		o, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
 		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
+			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+			continue
 		}
-
-		var images []string
-
-		switch obj.GetKind() {
-		case "Deployment":
-			images = getDeploymentPodContainerImages(obj.Object)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:        obj.GetName(),
-			Namespace:   obj.GetNamespace(),
-			Images:      images,
-			Status:      res.Status.String(),
-			Uid:         string(obj.GetUID()),
-			Conditions:  mapUnstructuredConditions(res),
-			ClusterName: msg.GetClusterName(),
-		})
+		objects = append(objects, o)
 	}
 
-	return &pb.GetReconciledObjectsResponse{Objects: objects}, nil
+	return &pb.GetReconciledObjectsResponse{Objects: objects}, respErrors.ErrorOrNil()
 }
 
 func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
+	respErrors := multierror.Error{}
 	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -263,8 +249,8 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 	if err := clustersClient.List(ctx, msg.ClusterName, &listResult); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
-
-	objects := []*pb.UnstructuredObject{}
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	objects := []*pb.Object{}
 
 ItemsLoop:
 	for _, obj := range listResult.Items {
@@ -284,92 +270,58 @@ ItemsLoop:
 			}
 		}
 
-		statusResult, err := status.Compute(&obj)
+		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+
 		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
+			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+			continue
 		}
-
-		var images []string
-
-		switch obj.GetKind() {
-		case "Pod":
-			images = getPodContainerImages(obj.Object)
-		case "ReplicaSet":
-			replicasFound := status.GetIntField(obj.UnstructuredContent(), ".status.replicas", 0)
-
-			if replicasFound == 0 {
-				continue ItemsLoop
-			}
-			images = getReplicaSetPodContainerImages(obj.Object)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Images:      images,
-			Name:        obj.GetName(),
-			Namespace:   obj.GetNamespace(),
-			Status:      statusResult.Status.String(),
-			Uid:         string(obj.GetUID()),
-			Conditions:  mapUnstructuredConditions(statusResult),
-			ClusterName: msg.GetClusterName(),
-		})
+		objects = append(objects, obj)
 	}
 
 	return &pb.GetChildObjectsResponse{Objects: objects}, nil
 }
 
-func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
-	conds := []*pb.Condition{}
+// func getContainerImages(containers []interface{}) []string {
+// 	images := []string{}
 
-	if result.Status == status.CurrentStatus {
-		conds = append(conds, &pb.Condition{Type: "Ready", Status: "True", Message: result.Message})
-	}
+// 	for _, item := range containers {
+// 		container, ok := item.(map[string]interface{})
+// 		if !ok {
+// 			continue
+// 		}
 
-	return conds
-}
+// 		image, ok, _ := unstructured.NestedString(container, "image")
+// 		if ok {
+// 			images = append(images, image)
+// 		}
+// 	}
 
-func getContainerImages(containers []interface{}) []string {
-	images := []string{}
+// 	return images
+// }
 
-	for _, item := range containers {
-		container, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
+// func getPodContainerImages(obj map[string]interface{}) []string {
+// 	containers, _, _ := unstructured.NestedSlice(obj, "spec", "containers")
 
-		image, ok, _ := unstructured.NestedString(container, "image")
-		if ok {
-			images = append(images, image)
-		}
-	}
+// 	return getContainerImages(containers)
+// }
 
-	return images
-}
+// func getReplicaSetPodContainerImages(obj map[string]interface{}) []string {
+// 	containers, _, _ := unstructured.NestedSlice(
+// 		obj,
+// 		"spec", "template", "spec", "containers",
+// 	)
 
-func getPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(obj, "spec", "containers")
+// 	return getContainerImages(containers)
+// }
 
-	return getContainerImages(containers)
-}
+// func getDeploymentPodContainerImages(obj map[string]interface{}) []string {
+// 	containers, _, _ := unstructured.NestedSlice(
+// 		obj,
+// 		"spec", "template", "spec", "containers",
+// 	)
 
-func getReplicaSetPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(
-		obj,
-		"spec", "template", "spec", "containers",
-	)
-
-	return getContainerImages(containers)
-}
-
-func getDeploymentPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(
-		obj,
-		"spec", "template", "spec", "containers",
-	)
-
-	return getContainerImages(containers)
-}
+// 	return getContainerImages(containers)
+// }
