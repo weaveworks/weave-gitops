@@ -26,6 +26,7 @@ export const theme: DefaultTheme = {
     primaryLight: "#98E0F7",
     primary10: "#009CCC",
     primary20: "#006B8E",
+    primary05: "#E5F7FD",
     success: "#27AE60",
     alert: "#BC381D",
     suspended: "#f2994a",
