@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -14,7 +13,7 @@ import (
 type BootstrapWizardTask struct {
 	flagName         string
 	flagValue        string
-	defaultFlagValue string
+	defaultFlagValue DefaultValueGetter
 	flagDescription  string
 	isRequired       bool
 	isBoolean        bool
@@ -32,43 +31,82 @@ type BootstrapWizard struct {
 	results     []*BootstrapWizardResult
 }
 
-// UI styling
-var (
-	// table
-	baseTableStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240"))
+type DefaultValueGetter func(*gogit.Repository) string
 
-	// text inputs style
-	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+func constantDefault(value string) DefaultValueGetter {
+	return func(_ *gogit.Repository) string {
+		return value
+	}
+}
 
-	cursorStyle         = focusedStyle.Copy()
-	noStyle             = lipgloss.NewStyle()
-	helpStyle           = blurredStyle.Copy()
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+func ownerGetter(repo *gogit.Repository) string {
+	remoteURL, err := ParseRemoteURL(repo)
+	if err != nil || remoteURL == "" {
+		return ""
+	}
 
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-)
+	urlParts := GetURLParts(remoteURL)
+
+	numParts := len(urlParts)
+
+	if numParts > 2 {
+		return urlParts[numParts-2]
+	}
+
+	return ""
+}
+
+func repositoryGetter(repo *gogit.Repository) string {
+	remoteURL, err := ParseRemoteURL(repo)
+	if err != nil || remoteURL == "" {
+		return ""
+	}
+
+	urlParts := GetURLParts(remoteURL)
+
+	numParts := len(urlParts)
+
+	if numParts > 2 {
+		return urlParts[numParts-1]
+	}
+
+	return ""
+}
+
+func branchGetter(repo *gogit.Repository) string {
+	head, err := repo.Head()
+	if err != nil {
+		return ""
+	}
+
+	branch := head.Name().String()
+
+	if !strings.Contains(branch, branchPrefix) {
+		return ""
+	}
+
+	return strings.Replace(branch, branchPrefix, "", 1)
+}
 
 var boostrapGitHubTasks = []*BootstrapWizardTask{
 	{
-		flagName:        "owner",
-		flagValue:       "",
-		flagDescription: "GitHub user or organization name",
-		isRequired:      true,
+		flagName:         "owner",
+		flagValue:        "",
+		defaultFlagValue: ownerGetter,
+		flagDescription:  "GitHub user or organization name",
+		isRequired:       true,
 	},
 	{
-		flagName:        "repository",
-		flagValue:       "",
-		flagDescription: "GitHub repository name",
-		isRequired:      true,
+		flagName:         "repository",
+		flagValue:        "",
+		defaultFlagValue: repositoryGetter,
+		flagDescription:  "GitHub repository name",
+		isRequired:       true,
 	},
 	{
 		flagName:         "branch",
 		flagValue:        "",
-		defaultFlagValue: "main",
+		defaultFlagValue: branchGetter,
 		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
@@ -86,7 +124,7 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 	{
 		flagName:         "private",
 		flagValue:        "",
-		defaultFlagValue: "true",
+		defaultFlagValue: constantDefault("true"),
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
 		isRequired:       true,
 		isBoolean:        true,
@@ -94,12 +132,12 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 	{
 		flagName:        "team",
 		flagValue:       "",
-		flagDescription: "GitHub team and the access to be given to it(team:maintain)",
+		flagDescription: "GitHub team and the access to be given to it (team:maintain)",
 	},
 	{
 		flagName:         "hostname",
 		flagValue:        "",
-		defaultFlagValue: "github.com",
+		defaultFlagValue: constantDefault("github.com"),
 		flagDescription:  "GitHub hostname (default \"github.com\")",
 	},
 	{
@@ -117,21 +155,24 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 
 var boostrapGitLabTasks = []*BootstrapWizardTask{
 	{
-		flagName:        "owner",
-		flagValue:       "",
-		flagDescription: "GitLab user or group name",
-		isRequired:      true,
+		flagName:         "owner",
+		flagValue:        "",
+		defaultFlagValue: ownerGetter,
+		flagDescription:  "GitLab user or group name",
+		isRequired:       true,
 	},
 	{
-		flagName:        "repository",
-		flagValue:       "",
-		flagDescription: "GitLab repository name",
-		isRequired:      true,
+		flagName:         "repository",
+		flagValue:        "",
+		defaultFlagValue: repositoryGetter,
+		flagDescription:  "GitLab repository name",
+		isRequired:       true,
 	},
 	{
-		flagName:        "branch",
-		flagValue:       "",
-		flagDescription: "Git branch (default \"main\")",
+		flagName:         "branch",
+		flagValue:        "",
+		defaultFlagValue: branchGetter,
+		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
 		flagName:        "path",
@@ -148,7 +189,7 @@ var boostrapGitLabTasks = []*BootstrapWizardTask{
 	{
 		flagName:         "private",
 		flagValue:        "",
-		defaultFlagValue: "true",
+		defaultFlagValue: constantDefault("true"),
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
 		isRequired:       true,
 		isBoolean:        true,
@@ -166,7 +207,7 @@ var boostrapGitLabTasks = []*BootstrapWizardTask{
 	{
 		flagName:         "token-auth",
 		flagValue:        "",
-		defaultFlagValue: "false",
+		defaultFlagValue: constantDefault("false"),
 		flagDescription:  "when enabled, the personal access token will be used instead of SSH deploy key",
 		isRequired:       false,
 		isBoolean:        true,
@@ -194,22 +235,24 @@ var boostrapGitTasks = []*BootstrapWizardTask{
 
 var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 	{
-		flagName:        "owner",
-		flagValue:       "",
-		flagDescription: "Bitbucket Server user or project name",
-		isRequired:      true,
+		flagName:         "owner",
+		flagValue:        "",
+		defaultFlagValue: ownerGetter,
+		flagDescription:  "Bitbucket Server user or project name",
+		isRequired:       true,
 	},
 	{
 		flagName:         "username",
 		flagValue:        "",
-		defaultFlagValue: "git",
+		defaultFlagValue: constantDefault("git"),
 		flagDescription:  "authentication username (default \"git\")",
 	},
 	{
-		flagName:        "repository",
-		flagValue:       "",
-		flagDescription: "Bitbucket Server repository name",
-		isRequired:      true,
+		flagName:         "repository",
+		flagValue:        "",
+		defaultFlagValue: repositoryGetter,
+		flagDescription:  "Bitbucket Server repository name",
+		isRequired:       true,
 	},
 	{
 		flagName:        "hostname",
@@ -220,7 +263,7 @@ var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 	{
 		flagName:         "branch",
 		flagValue:        "",
-		defaultFlagValue: "main",
+		defaultFlagValue: branchGetter,
 		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
@@ -239,7 +282,7 @@ var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 		flagName:         "private",
 		flagValue:        "",
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
-		defaultFlagValue: "true",
+		defaultFlagValue: constantDefault("true"),
 		isRequired:       true,
 		isBoolean:        true,
 	},
@@ -254,7 +297,7 @@ var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 const (
 	providerGitHub = "github.com"
 	providerGitLab = "gitlab.com"
-	gitSuffix      = ".git"
+	branchPrefix   = "refs/heads/"
 )
 
 type (
@@ -298,8 +341,8 @@ var gitProvidersWithTasks = map[GitProvider][]*BootstrapWizardTask{
 	GitProviderBitbucketServer: boostrapBitbucketServerTasks,
 }
 
-// ParseRemoteURLs extracts remote URLs from the repository
-func ParseRemoteURLs(log logger.Logger, repo *gogit.Repository) ([]string, error) {
+// ParseRemoteURL extracts remote URL from the repository
+func ParseRemoteURL(repo *gogit.Repository) (string, error) {
 	remoteURLs := []string{}
 
 	if repo != nil {
@@ -310,63 +353,47 @@ func ParseRemoteURLs(log logger.Logger, repo *gogit.Repository) ([]string, error
 		}
 	}
 
-	return remoteURLs, nil
+	if len(remoteURLs) == 1 {
+		return remoteURLs[0], nil
+	}
+
+	return "", fmt.Errorf("multiple remotes detected")
 }
 
 // ParseGitProvider extracts git provider from the remote URL, if possible
-func ParseGitProvider(log logger.Logger, remoteURL string) GitProvider {
+func ParseGitProvider(hostname string) GitProvider {
 	provider := GitProviderUnknown
 
-	if remoteURL == "" {
+	if hostname == "" {
 		return provider
 	}
 
-	if strings.Contains(remoteURL, providerGitHub) {
+	if hostname == providerGitHub {
 		return GitProviderGitHub
 	}
 
-	if strings.Contains(remoteURL, providerGitLab) {
+	if hostname == providerGitLab {
 		return GitProviderGitLab
 	}
 
 	return provider
 }
 
-// parseOwner extracts owner from the remote URL
-func parseOwner(log logger.Logger, remoteURL string) string {
-	start := strings.Index(remoteURL, providerGitHub+":") + 1
-	if start == -1 {
-		start = strings.Index(remoteURL, providerGitHub+"/")
-	}
+// GetURLParts splits URL to URL parts.
+func GetURLParts(remoteURL string) []string {
+	replacer := strings.NewReplacer("git@", "", "https://", "", ".git", "")
 
-	if start != -1 {
-		start += len(providerGitHub)
-	}
+	sanitizedURL := replacer.Replace(remoteURL)
+	sanitizedURL = strings.Replace(sanitizedURL, ":", "/", 1)
 
-	end := strings.Index(remoteURL, "/")
+	urlParts := strings.Split(sanitizedURL, "/")
 
-	if start == -1 || end == -1 {
-		return ""
-	}
-
-	return remoteURL[start:end]
-}
-
-// parseRepo extracts repository from the remote URL
-func parseRepo(log logger.Logger, remoteURL string) string {
-	start := strings.LastIndex(remoteURL, "/") + 1
-	end := strings.Index(remoteURL, gitSuffix)
-
-	if start == -1 || end == -1 {
-		return ""
-	}
-
-	return remoteURL[start:end]
+	return urlParts
 }
 
 // NewBootstrapWizard creates a wizard to gather
 // all bootstrap config options before running flux bootstrap.
-func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProvider, path string) (*BootstrapWizard, error) {
+func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProvider, repo *gogit.Repository, path string) (*BootstrapWizard, error) {
 	if gitProvider == GitProviderUnknown {
 		return nil, fmt.Errorf("unknown git provider: %d", gitProvider)
 	}
@@ -384,25 +411,14 @@ func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProv
 
 	log.Actionf("Parsing values ...")
 
-	owner := ""
-	repo := ""
-
-	if remoteURL != "" {
-		// if possible, parse owner and repository from the remote URL
-		if gitProvider == GitProviderGitHub {
-			owner = parseOwner(log, remoteURL)
-		}
-
-		repo = parseRepo(log, remoteURL)
+	if repo == nil {
+		return wizard, nil
 	}
 
 	for _, task := range wizard.tasks {
-		if task.flagName == "owner" {
-			task.flagValue = owner
-		}
-
-		if task.flagName == "repository" {
-			task.flagValue = repo
+		if task.flagValue == "" && task.defaultFlagValue != nil {
+			task.flagValue = task.defaultFlagValue(repo)
+			continue
 		}
 
 		if task.flagName == "path" {

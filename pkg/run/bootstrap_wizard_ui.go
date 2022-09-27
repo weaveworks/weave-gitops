@@ -17,6 +17,26 @@ type preWizardModel struct {
 	err       error
 }
 
+// UI styling
+var (
+	// table
+	baseTableStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("240"))
+
+	// text inputs style
+	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	cursorStyle         = focusedStyle.Copy()
+	noStyle             = lipgloss.NewStyle()
+	helpStyle           = blurredStyle.Copy()
+	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+
+	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+)
+
 func initialPreWizardModel(msgChan chan GitProvider) preWizardModel {
 	columns := []table.Column{
 		{Title: "Index", Width: 6},
@@ -164,10 +184,6 @@ func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan 
 		task := tasks[i]
 
 		value := task.flagValue
-
-		if task.flagValue == "" && task.defaultFlagValue != "" {
-			value = task.defaultFlagValue
-		}
 
 		ti := makeTextInput(value, task.flagName)
 

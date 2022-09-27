@@ -547,22 +547,23 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 
 		log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
 
-		remoteURLs, err := run.ParseRemoteURLs(log, repo)
+		remoteURL, err := run.ParseRemoteURL(repo)
 		if err != nil {
-			log.Failuref("Error parsing remote URLs: %v", err.Error())
+			log.Failuref("Error parsing remote URL: %v", err.Error())
 		}
 
 		var gitProvider run.GitProvider
 
-		remoteURL := ""
-
-		if len(remoteURLs) == 1 {
-			remoteURL = remoteURLs[0]
-			gitProvider = run.ParseGitProvider(log, remoteURL)
-		} else {
+		if remoteURL == "" {
 			gitProvider, err = run.SelectGitProvider(log)
 			if err != nil {
 				log.Failuref("Error selecting git provider: %v", err.Error())
+			}
+		} else {
+			urlParts := run.GetURLParts(remoteURL)
+
+			if len(urlParts) > 0 {
+				gitProvider = run.ParseGitProvider(urlParts[0])
 			}
 		}
 
@@ -581,7 +582,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 		path := filepath.Join(relativePathForBootstrapWizard, "clusters", "my-cluster")
 		path = "./" + path
 
-		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider, path)
+		wizard, err := run.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
 		if err != nil {
 			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
 		}
