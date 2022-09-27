@@ -104,7 +104,7 @@ export type ListEventsResponse = {
 }
 
 export type SyncFluxObjectRequest = {
-  objects?: Gitops_coreV1Types.ClusteredObjRef[]
+  objects?: Gitops_coreV1Types.ObjectRef[]
   withSource?: boolean
 }
 
@@ -131,7 +131,7 @@ export type GetFeatureFlagsResponse = {
 }
 
 export type ToggleSuspendResourceRequest = {
-  objects?: Gitops_coreV1Types.ClusteredObjRef[]
+  objects?: Gitops_coreV1Types.ObjectRef[]
   suspend?: boolean
 }
 

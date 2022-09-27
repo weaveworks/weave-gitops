@@ -32,12 +32,6 @@ message ObjectRef {
     string         kind      = 1;
     string         name      = 2;
     string         namespace = 3;
-}
-
-message ClusteredObjRef {
-    string         kind        = 1;
-    string         name        = 2;
-    string         namespace   = 3;
     string         clusterName = 4;
 }
 

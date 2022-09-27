@@ -86,6 +86,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "involvedObject.clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -493,23 +499,6 @@
         }
       }
     },
-    "v1ClusteredObjRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        }
-      }
-    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -888,6 +877,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -897,7 +889,7 @@
         "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1ClusteredObjRef"
+            "$ref": "#/definitions/v1ObjectRef"
           }
         },
         "withSource": {
@@ -914,7 +906,7 @@
         "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1ClusteredObjRef"
+            "$ref": "#/definitions/v1ObjectRef"
           }
         },
         "suspend": {
