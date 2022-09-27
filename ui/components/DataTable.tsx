@@ -563,9 +563,9 @@ function UnstyledDataTable({
                         size="base"
                       />
                       <Spacer padding="xxs" />
-                      <Text color="neutral30">
-                        {emptyMessagePlaceholder || "No data"}
-                      </Text>
+                      {emptyMessagePlaceholder || (
+                        <Text color="neutral30">No data</Text>
+                      )}
                     </Flex>
                   </TableCell>
                 </EmptyRow>
