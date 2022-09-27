@@ -3,16 +3,8 @@
 import _ from "lodash";
 import { convertResponse } from "../hooks/objects";
 import { Core } from "./api/core/core.pb";
-import {
-  GroupVersionKind,
-  Kind,
-  UnstructuredObject,
-} from "./api/core/types.pb";
+import { GroupVersionKind, Kind } from "./api/core/types.pb";
 import { FluxObject } from "./objects";
-
-export type UnstructuredObjectWithChildren = UnstructuredObject & {
-  children?: UnstructuredObjectWithChildren[];
-};
 
 // Kubernetes does not allow us to query children by parents.
 // We keep a list of common parent-child relationships
