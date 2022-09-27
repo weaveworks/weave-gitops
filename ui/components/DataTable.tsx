@@ -59,7 +59,7 @@ export interface Props {
   dialogOpen?: boolean;
   hasCheckboxes?: boolean;
   hideSearchAndFilters?: boolean;
-  emptyMessagePlaceholder?: string | React.ReactNode;
+  emptyMessagePlaceholder?: React.ReactNode;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
