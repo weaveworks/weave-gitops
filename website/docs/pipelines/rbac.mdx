@@ -11,9 +11,45 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # RBAC Configuration for  Pipelines<TierLabel tiers="enterprise" />
 
-- define the resources involved
-- define the expected journeys
-- define for each of the journey, thet required permissions
+This section provides a recommended way to configure RBAC for pipelines usage. It is oriented to the journey
+that you expect your users to have.
+
+## View pipelines
+
+In order to view your pipelines, users would need to have read access to the underlying resources.
+
+An example configuration to achieve this purpose could be seen below with `pipeline-reader` role and `search-pipeline-reader`
+rolebinding to allow a group `search-developer` to access pipeline resources within `search` namespace.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipelines-reader
+rules:
+  - apiGroups: [ "pipelines.weave.works" ]
+    resources: [ "pipelines" ]
+    verbs: [ "get", "list", "watch"]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: search-pipeline-reader
+  namespace: search
+subjects:
+  - kind: Group
+    name: search-developer
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: pipelines-reader
+  apiGroup: rbac.authorization.k8s.io
+```
+
+
 - present a summary of the permissions
 
 
