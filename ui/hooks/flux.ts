@@ -64,21 +64,36 @@ export function useGetReconciledObjects(
     refetchInterval: 5000,
   }
 ) {
+  const result = useGetReconciledTree(
+    name,
+    namespace,
+    type,
+    kinds,
+    clusterName,
+    opts
+  );
+  if (result.data) {
+    result.data = flattenChildren(result.data);
+  }
+  return result;
+}
+
+export function useGetReconciledTree(
+  name: string,
+  namespace: string,
+  type: Kind,
+  kinds: GroupVersionKind[],
+  clusterName = DefaultCluster,
+  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<UnstructuredObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
-    async () => {
-      const childrenTrees = await getChildren(
-        api,
-        name,
-        namespace,
-        type,
-        kinds,
-        clusterName
-      );
-      return flattenChildren(childrenTrees);
-    },
+    () => getChildren(api, name, namespace, type, kinds, clusterName),
     opts
   );
 }
