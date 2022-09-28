@@ -1,4 +1,4 @@
-package run
+package watch
 
 import (
 	"context"
@@ -191,7 +191,7 @@ var _ = Describe("InitializeTargetDir", func() {
 
 var _ = Describe("CreateIgnorer", func() {
 	It("finds and parses existing gitignore", func() {
-		str, err := filepath.Abs("../..")
+		str, err := filepath.Abs("../../..")
 		Expect(err).ToNot(HaveOccurred())
 		ignorer := CreateIgnorer(str)
 		Expect(ignorer.MatchesPath("pkg/server")).To(Equal(false))
