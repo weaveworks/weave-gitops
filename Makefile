@@ -212,6 +212,9 @@ echo-ldflags:
 echo-flux-version:
 	@echo $(FLUX_VERSION)
 
+echo-dev-bucket-container:
+	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
+
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
 help:  ## Display this help.
