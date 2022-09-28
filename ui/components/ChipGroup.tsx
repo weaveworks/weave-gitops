@@ -33,13 +33,7 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
           </Flex>
         );
       })}
-      {chips.length > 0 && (
-        <Chip
-          className="filter-clearAll-Chip"
-          label="Clear All"
-          onDelete={onClearAll}
-        />
-      )}
+      {chips.length > 0 && <Chip label="Clear All" onDelete={onClearAll} />}
     </Flex>
   );
 }
