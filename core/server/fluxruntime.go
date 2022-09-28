@@ -156,6 +156,7 @@ func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
 
 func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
 	respErrors := multierror.Error{}
+
 	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -211,11 +212,11 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			}
 		}
 	}
+
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 	objects := []*pb.Object{}
 
 	for _, obj := range result {
-
 		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 		o, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
@@ -223,6 +224,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
 			continue
 		}
+
 		objects = append(objects, o)
 	}
 
@@ -231,6 +233,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
 	respErrors := multierror.Error{}
+
 	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -247,6 +250,7 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 	if err := clustersClient.List(ctx, msg.ClusterName, &listResult); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
+
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 	objects := []*pb.Object{}
 
