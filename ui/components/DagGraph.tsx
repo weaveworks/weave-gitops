@@ -1,8 +1,8 @@
+import { Slider } from "@material-ui/core";
+import * as d3d from "d3-dag";
 import _ from "lodash";
 import * as React from "react";
-import * as d3d from "d3-dag";
 import styled from "styled-components";
-import { Slider } from "@material-ui/core";
 import { FluxObjectNode } from "../lib/objects";
 import Flex from "./Flex";
 import GraphNode from "./GraphNode";

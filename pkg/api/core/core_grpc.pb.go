@@ -18,13 +18,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
-	// ListKustomization lists Kustomizations from a cluster via GitOps.
-	ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error)
-	// ListHelmReleases lists helm releases from a cluster.
-	ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error)
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
-	// ListObjects gets data about a primary objects.
+	// ListObjects gets data about primary objects.
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
@@ -57,24 +53,6 @@ type coreClient struct {
 
 func NewCoreClient(cc grpc.ClientConnInterface) CoreClient {
 	return &coreClient{cc}
-}
-
-func (c *coreClient) ListKustomizations(ctx context.Context, in *ListKustomizationsRequest, opts ...grpc.CallOption) (*ListKustomizationsResponse, error) {
-	out := new(ListKustomizationsResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListKustomizations", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListHelmReleases(ctx context.Context, in *ListHelmReleasesRequest, opts ...grpc.CallOption) (*ListHelmReleasesResponse, error) {
-	out := new(ListHelmReleasesResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListHelmReleases", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *coreClient) GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error) {
@@ -198,13 +176,9 @@ func (c *coreClient) ToggleSuspendResource(ctx context.Context, in *ToggleSuspen
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
 type CoreServer interface {
-	// ListKustomization lists Kustomizations from a cluster via GitOps.
-	ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error)
-	// ListHelmReleases lists helm releases from a cluster.
-	ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error)
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
-	// ListObjects gets data about a primary objects.
+	// ListObjects gets data about primary objects.
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
@@ -236,12 +210,6 @@ type CoreServer interface {
 type UnimplementedCoreServer struct {
 }
 
-func (UnimplementedCoreServer) ListKustomizations(context.Context, *ListKustomizationsRequest) (*ListKustomizationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListKustomizations not implemented")
-}
-func (UnimplementedCoreServer) ListHelmReleases(context.Context, *ListHelmReleasesRequest) (*ListHelmReleasesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
-}
 func (UnimplementedCoreServer) GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetObject not implemented")
 }
@@ -292,42 +260,6 @@ type UnsafeCoreServer interface {
 
 func RegisterCoreServer(s grpc.ServiceRegistrar, srv CoreServer) {
 	s.RegisterService(&Core_ServiceDesc, srv)
-}
-
-func _Core_ListKustomizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListKustomizationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListKustomizations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListKustomizations",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListKustomizations(ctx, req.(*ListKustomizationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListHelmReleasesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListHelmReleases(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListHelmReleases",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListHelmReleases(ctx, req.(*ListHelmReleasesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Core_GetObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -571,14 +503,6 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gitops_core.v1.Core",
 	HandlerType: (*CoreServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "ListKustomizations",
-			Handler:    _Core_ListKustomizations_Handler,
-		},
-		{
-			MethodName: "ListHelmReleases",
-			Handler:    _Core_ListHelmReleases_Handler,
-		},
 		{
 			MethodName: "GetObject",
 			Handler:    _Core_GetObject_Handler,

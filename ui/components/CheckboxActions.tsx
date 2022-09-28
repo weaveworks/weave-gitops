@@ -18,7 +18,7 @@ export const makeObjects = (checked: string[], rows: any[]) => {
     });
     if (row)
       return objects.push({
-        kind: row.kind,
+        kind: row.type,
         name: row.name,
         namespace: row.namespace,
         clusterName: row.clusterName,

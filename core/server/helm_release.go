@@ -12,67 +12,12 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/ssa"
-	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	respErrors := []*pb.ListError{}
-
-	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
-			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
-					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
-				}
-			}
-		}
-	}
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &helmv2.HelmReleaseList{}
-	})
-
-	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
-		return nil, err
-	}
-
-	var results []*pb.HelmRelease
-
-	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
-
-	for clusterName, lists := range clist.Lists() {
-		for _, l := range lists {
-			list, ok := l.(*helmv2.HelmReleaseList)
-			if !ok {
-				continue
-			}
-
-			for _, helmrelease := range list.Items {
-				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
-				if err != nil {
-					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: err.Error()})
-					continue
-				}
-
-				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
-
-				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
-			}
-		}
-	}
-
-	return &pb.ListHelmReleasesResponse{
-		HelmReleases: results,
-		Errors:       respErrors,
-	}, nil
-}
 
 func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
 	storageNamespace := helmRelease.GetStorageNamespace()

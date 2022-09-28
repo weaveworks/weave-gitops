@@ -3,6 +3,7 @@ package fluxexec
 import (
 	"context"
 	"os/exec"
+	"reflect"
 )
 
 type bootstrapGitConfig struct {
@@ -85,31 +86,31 @@ func (flux *Flux) bootstrapGitCmd(ctx context.Context, opts ...BootstrapGitOptio
 	bootstrapArgs := flux.bootstrapArgs(c.bootstrapOptions...)
 	args = append(args, bootstrapArgs...)
 
-	if c.allowInsecureHTTP {
+	if c.allowInsecureHTTP && !reflect.DeepEqual(c.allowInsecureHTTP, defaultBootstrapGitOptions.allowInsecureHTTP) {
 		args = append(args, "--allow-insecure-http")
 	}
 
-	if c.interval != "" {
+	if c.interval != "" && !reflect.DeepEqual(c.interval, defaultBootstrapGitOptions.interval) {
 		args = append(args, "--interval", c.interval)
 	}
 
-	if c.password != "" {
+	if c.password != "" && !reflect.DeepEqual(c.password, defaultBootstrapGitOptions.password) {
 		args = append(args, "--password", c.password)
 	}
 
-	if c.path != "" {
+	if c.path != "" && !reflect.DeepEqual(c.path, defaultBootstrapGitOptions.path) {
 		args = append(args, "--path", c.path)
 	}
 
-	if c.silent {
+	if c.silent && !reflect.DeepEqual(c.silent, defaultBootstrapGitOptions.silent) {
 		args = append(args, "--silent")
 	}
 
-	if c.url != "" {
+	if c.url != "" && !reflect.DeepEqual(c.url, defaultBootstrapGitOptions.url) {
 		args = append(args, "--url", c.url)
 	}
 
-	if c.username != "" {
+	if c.username != "" && !reflect.DeepEqual(c.username, defaultBootstrapGitOptions.username) {
 		args = append(args, "--username", c.username)
 	}
 

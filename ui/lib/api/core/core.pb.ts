@@ -17,26 +17,6 @@ export type ListError = {
   message?: string
 }
 
-export type ListKustomizationsRequest = {
-  namespace?: string
-  pagination?: Pagination
-}
-
-export type ListKustomizationsResponse = {
-  kustomizations?: Gitops_coreV1Types.Kustomization[]
-  nextPageToken?: string
-  errors?: ListError[]
-}
-
-export type ListHelmReleasesRequest = {
-  namespace?: string
-}
-
-export type ListHelmReleasesResponse = {
-  helmReleases?: Gitops_coreV1Types.HelmRelease[]
-  errors?: ListError[]
-}
-
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
@@ -81,7 +61,7 @@ export type ListObjectsResponse = {
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.FluxObjectKind
+  automationKind?: string
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }
@@ -124,7 +104,7 @@ export type ListEventsResponse = {
 }
 
 export type SyncFluxObjectRequest = {
-  objects?: Gitops_coreV1Types.ClusteredObjRef[]
+  objects?: Gitops_coreV1Types.ObjectRef[]
   withSource?: boolean
 }
 
@@ -151,7 +131,7 @@ export type GetFeatureFlagsResponse = {
 }
 
 export type ToggleSuspendResourceRequest = {
-  objects?: Gitops_coreV1Types.ClusteredObjRef[]
+  objects?: Gitops_coreV1Types.ObjectRef[]
   suspend?: boolean
 }
 
@@ -159,12 +139,6 @@ export type ToggleSuspendResourceResponse = {
 }
 
 export class Core {
-  static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
-    return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListHelmReleases(req: ListHelmReleasesRequest, initReq?: fm.InitReq): Promise<ListHelmReleasesResponse> {
-    return fm.fetchReq<ListHelmReleasesRequest, ListHelmReleasesResponse>(`/v1/helmreleases?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }

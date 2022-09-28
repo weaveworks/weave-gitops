@@ -1,3 +1,4 @@
+import { Kind } from "../../lib/api/core/types.pb";
 import { makeEventSourceLink } from "../AlertsTable";
 
 describe("AlertsTable", () => {
@@ -7,7 +8,7 @@ describe("AlertsTable", () => {
         apiVersion: "v1",
         name: "*",
         namespace: "space",
-        kind: "GitRepository",
+        kind: Kind.GitRepository,
         matchLabels: [],
       };
       const sourceLink = makeEventSourceLink(allNames);
@@ -20,7 +21,7 @@ describe("AlertsTable", () => {
         apiVersion: "v1",
         name: "goose",
         namespace: "*",
-        kind: "HelmRelease",
+        kind: Kind.HelmRelease,
         matchLabels: [],
       };
       const automationLink = makeEventSourceLink(allNamespaces);

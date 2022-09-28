@@ -19,7 +19,7 @@ func NewInstaller() *Installer {
 	return &Installer{}
 }
 
-func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, error) {
+func (i *Installer) Ensure(ctx context.Context, sources ...src.Source) (string, error) {
 	var errs *multierror.Error
 
 	i.removableSources = make([]src.Removable, 0)
@@ -62,7 +62,7 @@ func (i *Installer) Ensure(ctx context.Context, sources []src.Source) (string, e
 	return "", fmt.Errorf("unable to find, or install from %d sources: %s", len(sources), errs.ErrorOrNil())
 }
 
-func (i *Installer) Install(ctx context.Context, sources []src.Installable) (string, error) {
+func (i *Installer) Install(ctx context.Context, sources ...src.Installable) (string, error) {
 	var errs *multierror.Error
 
 	i.removableSources = make([]src.Removable, 0)

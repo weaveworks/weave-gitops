@@ -51,7 +51,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		if msg.WithSource && isAutomation {
 			sourceRef := automation.SourceRef()
 
-			_, sourceObj, err := fluxsync.ToReconcileable(kindToSourceType(sourceRef.Kind()))
+			_, sourceObj, err := fluxsync.ToReconcileable(sourceRef.Kind())
 
 			if err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
@@ -117,39 +117,22 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
 }
 
-func getFluxObject(kind pb.FluxObjectKind) (fluxsync.Reconcilable, error) {
+func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 	switch kind {
-	case pb.FluxObjectKind_KindKustomization:
+	case kustomizev1.KustomizationKind:
 		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
-	case pb.FluxObjectKind_KindHelmRelease:
+	case helmv2.HelmReleaseKind:
 		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
 
-	case pb.FluxObjectKind_KindGitRepository:
+	case sourcev1.GitRepositoryKind:
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case pb.FluxObjectKind_KindBucket:
+	case sourcev1.BucketKind:
 		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
-	case pb.FluxObjectKind_KindHelmRepository:
+	case sourcev1.HelmRepositoryKind:
 		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
-	case pb.FluxObjectKind_KindOCIRepository:
+	case sourcev1.OCIRepositoryKind:
 		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
 	}
 
-	return nil, fmt.Errorf("not supported kind: %s", kind.String())
-}
-
-func kindToSourceType(kind string) pb.FluxObjectKind {
-	switch kind {
-	case "GitRepository":
-		return pb.FluxObjectKind_KindGitRepository
-	case "Bucket":
-		return pb.FluxObjectKind_KindBucket
-	case "HelmRepository":
-		return pb.FluxObjectKind_KindHelmRepository
-	case "OCIRepository":
-		return pb.FluxObjectKind_KindOCIRepository
-	case "HelmChart":
-		return pb.FluxObjectKind_KindHelmChart
-	}
-
-	return -1
+	return nil, fmt.Errorf("not supported kind: %s", kind)
 }

@@ -3,7 +3,9 @@ package fluxexec
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
+	"time"
 )
 
 type globalConfig struct {
@@ -22,11 +24,12 @@ type globalConfig struct {
 	kubeconfig            string
 	namespace             string
 	server                string
-	timeout               string
+	timeout               time.Duration
 	tlsServerName         string
 	token                 string
 	user                  string
 	verbose               bool
+	version               string
 }
 
 func defaultCacheDir() string {
@@ -43,7 +46,7 @@ var defaultGlobalOptions = globalConfig{
 	kubeAPIBurst: 100,
 	kubeAPIQPS:   50,
 	namespace:    "flux-system",
-	timeout:      "5m0s",
+	timeout:      5 * time.Minute,
 }
 
 // GlobalOption represents options used in the Global* methods.
@@ -131,12 +134,32 @@ func (opt *VerboseOption) configureGlobal(conf *globalConfig) {
 	conf.verbose = opt.verbose
 }
 
+func (opt *VersionOption) configureGlobal(conf *globalConfig) {
+	conf.version = opt.version
+}
+
 // GlobalOptions is a special set of options for the (parent) global command.
 type GlobalOptions struct {
 	globalOptions []GlobalOption
 }
 
 func (opt *GlobalOptions) configureBootstrapGitHub(conf *bootstrapGitHubConfig) {
+	conf.globalOptions = opt.globalOptions
+}
+
+func (opt *GlobalOptions) configureBootstrapGitLab(conf *bootstrapGitLabConfig) {
+	conf.globalOptions = opt.globalOptions
+}
+
+func (opt *GlobalOptions) configureBootstrapBitbucketServer(conf *bootstrapBitbucketServerConfig) {
+	conf.globalOptions = opt.globalOptions
+}
+
+func (opt *GlobalOptions) configureBootstrapGit(conf *bootstrapGitConfig) {
+	conf.globalOptions = opt.globalOptions
+}
+
+func (opt *GlobalOptions) configureInstall(conf *installConfig) {
 	conf.globalOptions = opt.globalOptions
 }
 
@@ -152,87 +175,91 @@ func (flux *Flux) globalArgs(opts ...GlobalOption) []string {
 
 	args := []string{}
 
-	if c.as != "" {
+	if c.as != "" && !reflect.DeepEqual(c.as, defaultGlobalOptions.as) {
 		args = append(args, "--as", c.as)
 	}
 
-	if len(c.asGroup) > 0 {
+	if len(c.asGroup) > 0 && !reflect.DeepEqual(c.asGroup, defaultGlobalOptions.asGroup) {
 		// this flag can be repeated to add multiple groups
 		for _, g := range c.asGroup {
 			args = append(args, "--as-group", g)
 		}
 	}
 
-	if c.asUID != "" {
+	if c.asUID != "" && !reflect.DeepEqual(c.asUID, defaultGlobalOptions.asUID) {
 		args = append(args, "--as-uid", c.asUID)
 	}
 
-	if c.cacheDir != "" {
+	if c.cacheDir != "" && !reflect.DeepEqual(c.cacheDir, defaultGlobalOptions.cacheDir) {
 		args = append(args, "--cache-dir", c.cacheDir)
 	}
 
-	if c.certificateAuthority != "" {
+	if c.certificateAuthority != "" && !reflect.DeepEqual(c.certificateAuthority, defaultGlobalOptions.certificateAuthority) {
 		args = append(args, "--certificate-authority", c.certificateAuthority)
 	}
 
-	if c.clientCertificate != "" {
+	if c.clientCertificate != "" && !reflect.DeepEqual(c.clientCertificate, defaultGlobalOptions.clientCertificate) {
 		args = append(args, "--client-certificate", c.clientCertificate)
 	}
 
-	if c.clientKey != "" {
+	if c.clientKey != "" && !reflect.DeepEqual(c.clientKey, defaultGlobalOptions.clientKey) {
 		args = append(args, "--client-key", c.clientKey)
 	}
 
-	if c.cluster != "" {
+	if c.cluster != "" && !reflect.DeepEqual(c.cluster, defaultGlobalOptions.cluster) {
 		args = append(args, "--cluster", c.cluster)
 	}
 
-	if c.context != "" {
+	if c.context != "" && !reflect.DeepEqual(c.context, defaultGlobalOptions.context) {
 		args = append(args, "--context", c.context)
 	}
 
-	if c.insecureSkipTLSVerify {
+	if c.insecureSkipTLSVerify && !reflect.DeepEqual(c.insecureSkipTLSVerify, defaultGlobalOptions.insecureSkipTLSVerify) {
 		args = append(args, "--insecure-skip-tls-verify")
 	}
 
-	if c.kubeAPIBurst != 0 {
+	if c.kubeAPIBurst != 0 && !reflect.DeepEqual(c.kubeAPIBurst, defaultGlobalOptions.kubeAPIBurst) {
 		args = append(args, "--kube-api-burst", strconv.Itoa(c.kubeAPIBurst))
 	}
 
-	if c.kubeAPIQPS != 0 {
+	if c.kubeAPIQPS != 0 && !reflect.DeepEqual(c.kubeAPIQPS, defaultGlobalOptions.kubeAPIQPS) {
 		args = append(args, "--kube-api-qps", strconv.FormatFloat(float64(c.kubeAPIQPS), 'f', -1, 32))
 	}
 
-	if c.kubeconfig != "" {
+	if c.kubeconfig != "" && !reflect.DeepEqual(c.kubeconfig, defaultGlobalOptions.kubeconfig) {
 		args = append(args, "--kubeconfig", c.kubeconfig)
 	}
 
-	if c.namespace != "" {
+	if c.namespace != "" && !reflect.DeepEqual(c.namespace, defaultGlobalOptions.namespace) {
 		args = append(args, "--namespace", c.namespace)
 	}
 
-	if c.server != "" {
+	if c.server != "" && !reflect.DeepEqual(c.server, defaultGlobalOptions.server) {
 		args = append(args, "--server", c.server)
 	}
 
-	if c.timeout != "" {
-		args = append(args, "--timeout", c.timeout)
+	if c.timeout.Nanoseconds() != 0 && !reflect.DeepEqual(c.timeout, defaultGlobalOptions.timeout) {
+		args = append(args, "--timeout", c.timeout.String())
 	}
 
-	if c.tlsServerName != "" {
+	if c.tlsServerName != "" && !reflect.DeepEqual(c.tlsServerName, defaultGlobalOptions.tlsServerName) {
 		args = append(args, "--tls-server-name", c.tlsServerName)
 	}
 
-	if c.token != "" {
+	if c.token != "" && !reflect.DeepEqual(c.token, defaultGlobalOptions.token) {
 		args = append(args, "--token", c.token)
 	}
 
-	if c.user != "" {
+	if c.user != "" && !reflect.DeepEqual(c.user, defaultGlobalOptions.user) {
 		args = append(args, "--user", c.user)
 	}
 
-	if c.verbose {
+	if c.verbose && !reflect.DeepEqual(c.verbose, defaultGlobalOptions.verbose) {
 		args = append(args, "--verbose")
+	}
+
+	if c.version != "" && !reflect.DeepEqual(c.version, defaultGlobalOptions.version) {
+		args = append(args, "--version", c.version)
 	}
 
 	return args
