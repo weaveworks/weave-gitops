@@ -2,7 +2,7 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { useGetReconciledObjects } from "../hooks/flux";
+import { useGetReconciledTree } from "../hooks/flux";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import DirectedGraph from "./DirectedGraph";
@@ -49,7 +49,7 @@ function ReconciliationGraph({
     error,
     isLoading,
   } = parentObject
-    ? useGetReconciledObjects(
+    ? useGetReconciledTree(
         parentObject?.name,
         parentObject?.namespace,
         automationKind,
