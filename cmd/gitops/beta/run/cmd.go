@@ -591,9 +591,9 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
 		}
 
-		fluxBootstrapCmd := wizard.BuildCommand(log)
+		_ = wizard.BuildCmd(log)
 
-		log.Successf("Flux bootstrap cmd:\n%s", fluxBootstrapCmd)
+		log.Successf("Flux bootstrap command successfully built.")
 
 		return nil
 	}
