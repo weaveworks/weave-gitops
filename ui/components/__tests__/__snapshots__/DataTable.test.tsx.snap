@@ -266,7 +266,7 @@ exports[`DataTable snapshots renders 1`] = `
   text-overflow: ellipsis;
 }
 
-.c1 .filterOptionsChip {
+.c1 .filter-options-chip {
   background-color: #E5F7FD;
 }
 

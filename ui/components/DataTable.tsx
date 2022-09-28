@@ -616,7 +616,7 @@ export const DataTable = styled(UnstyledDataTable)`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .filterOptionsChip {
+  .filter-options-chip {
     background-color: ${(props) => props.theme.colors.primary05};
   }
 `;
