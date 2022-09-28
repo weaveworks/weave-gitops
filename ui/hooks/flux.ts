@@ -81,7 +81,7 @@ export function useGetReconciledTree(
   type: Kind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster,
-  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+  opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
