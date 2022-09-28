@@ -105,11 +105,11 @@ export class FluxObject {
   }
 
   get images(): string[] {
-    if (this.obj.spec.template)
-      return this.obj.spec.template?.spec.containers.map((x) => x.image);
-    if (this.obj.spec.containers)
-      return this.obj.spec.containers?.map((x) => x.image);
-    return [];
+    const spec = this.obj.spec;
+    if (!spec) return [];
+    if (spec.template)
+      return spec.template?.spec.containers.map((x) => x.image);
+    if (spec.containers) return spec.containers?.map((x) => x.image);
   }
 }
 

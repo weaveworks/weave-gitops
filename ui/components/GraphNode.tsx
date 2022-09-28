@@ -94,22 +94,24 @@ function GraphNode({ className, object }: Props) {
         <Flex start wide align>
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
-          {Kind[object.type] ? (
-            <Link
-              to={formatURL(objectTypeToRoute(Kind[object.type]), {
-                name: object.name,
-                namespace: object.namespace,
-                clusterName: object.clusterName,
-              })}
-              textProps={{ size: "huge", semiBold: object.isCurrentNode }}
-            >
-              {object.name}
-            </Link>
-          ) : (
-            <Tooltip
-              title={object.name.length > 23 ? object.name : ""}
-              placement="top"
-            >
+          <Tooltip
+            title={object.name.length > 23 ? object.name : ""}
+            placement="top"
+          >
+            {Kind[object.type] ? (
+              <div>
+                <Link
+                  to={formatURL(objectTypeToRoute(Kind[object.type]), {
+                    name: object.name,
+                    namespace: object.namespace,
+                    clusterName: object.clusterName,
+                  })}
+                  textProps={{ size: "huge", semiBold: object.isCurrentNode }}
+                >
+                  {object.name}
+                </Link>
+              </div>
+            ) : (
               <Text
                 size="huge"
                 onClick={() => (secret ? null : setNodeYaml(object))}
@@ -119,8 +121,8 @@ function GraphNode({ className, object }: Props) {
               >
                 {object.name}
               </Text>
-            </Tooltip>
-          )}
+            )}
+          </Tooltip>
         </Flex>
         <Kinds start wide align>
           {object.type || ""}
