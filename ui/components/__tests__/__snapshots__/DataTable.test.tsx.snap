@@ -266,6 +266,10 @@ exports[`DataTable snapshots renders 1`] = `
   text-overflow: ellipsis;
 }
 
+.c1 .filterOptionsChip {
+  background-color: #E5F7FD;
+}
+
 <div
   className="c0 c1"
 >
