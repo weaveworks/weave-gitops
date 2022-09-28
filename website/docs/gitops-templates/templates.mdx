@@ -1,12 +1,21 @@
 ---
-title: CAPI Templates
+title: Using templates
 sidebar_position: 3
 hide_title: true
 ---
 
 import TierLabel from "../_components/TierLabel";
 
-# CAPI Templates <TierLabel tiers="enterprise" />
+# Using templates <TierLabel tiers="enterprise" />
+
+## Orgnizing Templates
+
+Declare the type of a template by using the `weave.works/template-type` annotation. The value of the annotation is the name of the template type. The template type is used to group templates in the UI.
+
+Recommended template types:
+- `application` - for application templates
+- `cluster` - for cluster templates
+- `terraform` - for Terraform templates
 
 ## How to: Add a CAPI Template
 
@@ -17,6 +26,8 @@ apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
   name: cluster-template-development
+  labels:
+    weave.works/template-type: cluster
 spec:
   description: This is the std. CAPD template
   params:
@@ -47,10 +58,10 @@ Weave GitOps will search for templates in the `default` namespace. This can be c
 
 ## Full CAPD docker template example
 
-This example works with the CAPD provider, see [Cluster API Providers](cluster-api-providers.mdx).
+This example works with the CAPD provider, see [Cluster API Providers](../cluster-management/cluster-api-providers.mdx).
 
 import CodeBlock from "@theme/CodeBlock";
-import CapdTemplate from "!!raw-loader!./assets/templates/capd-template.yaml";
+import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 
 <CodeBlock
   title="clusters/management/capi/templates/capd-template.yaml"

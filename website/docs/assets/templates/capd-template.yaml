@@ -3,6 +3,8 @@ kind: CAPITemplate
 metadata:
   name: cluster-template-development
   namespace: default
+  labels:
+    weave.works/template-type: cluster
 spec:
   description: A simple CAPD template
   params:

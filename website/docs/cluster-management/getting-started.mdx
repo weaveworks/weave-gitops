@@ -85,7 +85,7 @@ import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
 
 See [CAPI Templates](templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
 
-import CapdTemplate from "!!raw-loader!./assets/templates/capd-template.yaml";
+import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 
 Download the template below to your config repository path, then commit and push to your git origin.
 
@@ -94,7 +94,7 @@ Download the template below to your config repository path, then commit and push
     <CodeBlock className="language-bash">
       curl -o clusters/management/capi/templates/capd-template.yaml{" "}
       {window.location.protocol}//{window.location.host}
-      {require("./assets/templates/capd-template.yaml").default}
+      {require("../assets/templates/capd-template.yaml").default}
     </CodeBlock>
   )}
 </BrowserOnly>
