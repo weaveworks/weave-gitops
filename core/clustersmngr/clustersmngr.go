@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	corev1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -104,8 +105,9 @@ func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) err
 	}
 
 	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader: cache,
-		Client:      leafClient,
+		CacheReader:     cache,
+		Client:          leafClient,
+		UncachedObjects: []client.Object{&corev1.Event{}},
 	})
 	if err != nil {
 		return fmt.Errorf("failed creating DelegatingClient: %w", err)
