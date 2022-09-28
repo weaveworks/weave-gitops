@@ -1,4 +1,4 @@
-package run
+package bootstrap
 
 import (
 	"fmt"
@@ -16,6 +16,8 @@ type preWizardModel struct {
 	msgChan   chan GitProvider
 	err       error
 }
+
+const flagSeparator = " - "
 
 // UI styling
 var (
@@ -157,25 +159,29 @@ func (m preWizardModel) View() string {
 type wizardModel struct {
 	textInputs []textinput.Model
 	prompts    []string
-	msgChan    chan []*BootstrapWizardResult
+	msgChan    chan []*BootstrapCmdOption
 	cursorMode textinput.CursorMode
 	focusIndex int
 }
 
-func makeTextInput(value string, placeholder string) textinput.Model {
+func makeTextInput(value string, placeholder string, isFocused bool) textinput.Model {
 	ti := textinput.New()
 	ti.CursorStyle = cursorStyle
 	ti.CharLimit = 100
 
 	ti.SetValue(value)
 	ti.Placeholder = placeholder
-	ti.PromptStyle = focusedStyle
-	ti.TextStyle = focusedStyle
+
+	if isFocused {
+		ti.Focus()
+		ti.PromptStyle = focusedStyle
+		ti.TextStyle = focusedStyle
+	}
 
 	return ti
 }
 
-func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan chan []*BootstrapWizardResult) wizardModel {
+func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan chan []*BootstrapCmdOption) wizardModel {
 	numInputs := len(tasks)
 
 	inputs := make([]textinput.Model, numInputs)
@@ -185,11 +191,7 @@ func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan 
 
 		value := task.flagValue
 
-		ti := makeTextInput(value, task.flagName)
-
-		if i == 0 {
-			ti.Focus()
-		}
+		ti := makeTextInput(value, task.flagName, i == 0)
 
 		inputs[i] = ti
 	}
@@ -197,7 +199,7 @@ func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan 
 	prompts := []string{}
 
 	for _, task := range tasks {
-		prompts = append(prompts, task.flagName+" - "+task.flagDescription)
+		prompts = append(prompts, task.flagName+flagSeparator+task.flagDescription)
 	}
 
 	return wizardModel{
@@ -240,7 +242,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if t == tea.KeyEnter && m.focusIndex == len(m.textInputs) {
-				results := []*BootstrapWizardResult{}
+				options := []*BootstrapCmdOption{}
 
 				for i, input := range m.textInputs {
 					prompt := m.prompts[i]
@@ -251,15 +253,15 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						continue
 					}
 
-					result := BootstrapWizardResult{
-						flagName:  prompt[:strings.Index(prompt, " - ")],
-						flagValue: value,
+					option := BootstrapCmdOption{
+						FlagName:  prompt[:strings.Index(prompt, flagSeparator)],
+						FlagValue: value,
 					}
 
-					results = append(results, &result)
+					options = append(options, &option)
 				}
 
-				go func() { m.msgChan <- results }()
+				go func() { m.msgChan <- options }()
 
 				return m, tea.Quit
 			}

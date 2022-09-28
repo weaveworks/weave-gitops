@@ -1,4 +1,4 @@
-package run
+package watch
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -119,36 +120,6 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 	log.Successf("Setup Bucket Source and Kustomization successfully")
 
 	return nil
-}
-
-// FindGitRepoDir finds git repo root directory
-func FindGitRepoDir() (string, error) {
-	gitDir := "."
-
-	for {
-		if _, err := os.Stat(filepath.Join(gitDir, ".git")); err == nil {
-			break
-		}
-
-		gitDir = filepath.Join(gitDir, "..")
-
-		if gitDir == "/" {
-			return "", errors.New("not in a git repo")
-		}
-	}
-
-	return filepath.Abs(gitDir)
-}
-
-// GetRelativePathToRootDir gets relative path to a directory from the git root. It returns an error if there's no git repo.
-func GetRelativePathToRootDir(rootDir string, path string) (string, error) {
-	absGitDir, err := filepath.Abs(rootDir)
-
-	if err != nil { // not in a git repo
-		return "", err
-	}
-
-	return filepath.Rel(absGitDir, path)
 }
 
 // SyncDir recursively uploads all files in a directory to an S3 bucket with minio library
@@ -425,7 +396,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	const interval = 3 * time.Second / 2
 
 	// reconcile dev-bucket
-	sourceRequestedAt, err := requestReconciliation(context.Background(), kubeClient,
+	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
 		types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-bucket",
@@ -468,7 +439,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	}
 
 	// reconcile dev-ks
-	ksRequestedAt, err := requestReconciliation(context.Background(), kubeClient,
+	ksRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
 		types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-ks",

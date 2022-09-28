@@ -1,4 +1,4 @@
-package run
+package bootstrap
 
 import (
 	"fmt"
@@ -19,17 +19,39 @@ type BootstrapWizardTask struct {
 	isBoolean        bool
 }
 
-type BootstrapWizardResult struct {
-	flagName  string
-	flagValue string
+type BootstrapCmdOption struct {
+	FlagName  string
+	FlagValue string
+}
+
+type BootstrapWizardCmd struct {
+	Provider GitProvider
+	Options  []*BootstrapCmdOption
 }
 
 type BootstrapWizard struct {
 	remoteURL   string
 	gitProvider GitProvider
 	tasks       []*BootstrapWizardTask
-	results     []*BootstrapWizardResult
+	cmdOptions  []*BootstrapCmdOption
 }
+
+const (
+	BranchOptionKey         = "branch"
+	HostnameOptionKey       = "hostname"
+	OwnerOptionKey          = "owner"
+	PasswordOptionKey       = "password"
+	PathOptionKey           = "path"
+	PersonalOptionKey       = "personal"
+	PrivateKeyFileOptionKey = "private-key-file"
+	PrivateOptionKey        = "private"
+	RepositoryOptionKey     = "repository"
+	SSHHostnameOptionKey    = "ssh-hostname"
+	TeamOptionKey           = "team"
+	TokenAuthOptionKey      = "token-auth"
+	URLOptionKey            = "url"
+	UsernameOptionKey       = "username"
+)
 
 type DefaultValueGetter func(*gogit.Repository) string
 
@@ -90,39 +112,39 @@ func branchGetter(repo *gogit.Repository) string {
 
 var boostrapGitHubTasks = []*BootstrapWizardTask{
 	{
-		flagName:         "owner",
+		flagName:         OwnerOptionKey,
 		flagValue:        "",
 		defaultFlagValue: ownerGetter,
 		flagDescription:  "GitHub user or organization name",
 		isRequired:       true,
 	},
 	{
-		flagName:         "repository",
+		flagName:         RepositoryOptionKey,
 		flagValue:        "",
 		defaultFlagValue: repositoryGetter,
 		flagDescription:  "GitHub repository name",
 		isRequired:       true,
 	},
 	{
-		flagName:         "branch",
+		flagName:         BranchOptionKey,
 		flagValue:        "",
 		defaultFlagValue: branchGetter,
 		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
-		flagName:        "path",
+		flagName:        PathOptionKey,
 		flagValue:       "",
 		flagDescription: "path relative to the repository root, when specified the cluster sync will be scoped to this path",
 	},
 	{
-		flagName:        "personal",
+		flagName:        PersonalOptionKey,
 		flagValue:       "",
 		flagDescription: "if true, the owner is assumed to be a GitHub user; otherwise an org",
 		isRequired:      true,
 		isBoolean:       true,
 	},
 	{
-		flagName:         "private",
+		flagName:         PrivateOptionKey,
 		flagValue:        "",
 		defaultFlagValue: constantDefault("true"),
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
@@ -130,23 +152,23 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 		isBoolean:        true,
 	},
 	{
-		flagName:        "team",
+		flagName:        TeamOptionKey,
 		flagValue:       "",
 		flagDescription: "GitHub team and the access to be given to it (team:maintain)",
 	},
 	{
-		flagName:         "hostname",
+		flagName:         HostnameOptionKey,
 		flagValue:        "",
 		defaultFlagValue: constantDefault("github.com"),
 		flagDescription:  "GitHub hostname (default \"github.com\")",
 	},
 	{
-		flagName:        "ssh-hostname",
+		flagName:        SSHHostnameOptionKey,
 		flagValue:       "",
 		flagDescription: "SSH hostname, to be used when the SSH host differs from the HTTPS one",
 	},
 	{
-		flagName:        "token-auth",
+		flagName:        TokenAuthOptionKey,
 		flagValue:       "",
 		flagDescription: "when enabled, the personal access token will be used instead of SSH deploy key",
 		isBoolean:       true,
@@ -155,39 +177,39 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 
 var boostrapGitLabTasks = []*BootstrapWizardTask{
 	{
-		flagName:         "owner",
+		flagName:         OwnerOptionKey,
 		flagValue:        "",
 		defaultFlagValue: ownerGetter,
 		flagDescription:  "GitLab user or group name",
 		isRequired:       true,
 	},
 	{
-		flagName:         "repository",
+		flagName:         RepositoryOptionKey,
 		flagValue:        "",
 		defaultFlagValue: repositoryGetter,
 		flagDescription:  "GitLab repository name",
 		isRequired:       true,
 	},
 	{
-		flagName:         "branch",
+		flagName:         BranchOptionKey,
 		flagValue:        "",
 		defaultFlagValue: branchGetter,
 		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
-		flagName:        "path",
+		flagName:        PathOptionKey,
 		flagValue:       "",
 		flagDescription: "path relative to the repository root, when specified the cluster sync will be scoped to this path",
 	},
 	{
-		flagName:        "personal",
+		flagName:        PersonalOptionKey,
 		flagValue:       "",
 		flagDescription: "if true, the owner is assumed to be a GitLab user; otherwise a group",
 		isRequired:      true,
 		isBoolean:       true,
 	},
 	{
-		flagName:         "private",
+		flagName:         PrivateOptionKey,
 		flagValue:        "",
 		defaultFlagValue: constantDefault("true"),
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
@@ -195,17 +217,17 @@ var boostrapGitLabTasks = []*BootstrapWizardTask{
 		isBoolean:        true,
 	},
 	{
-		flagName:        "team",
+		flagName:        TeamOptionKey,
 		flagValue:       "",
 		flagDescription: "GitLab teams to be given maintainer access (also accepts comma-separated values)",
 	},
 	{
-		flagName:        "hostname",
+		flagName:        HostnameOptionKey,
 		flagValue:       "",
 		flagDescription: "GitLab hostname (default \"gitlab.com\")",
 	},
 	{
-		flagName:         "token-auth",
+		flagName:         TokenAuthOptionKey,
 		flagValue:        "",
 		defaultFlagValue: constantDefault("false"),
 		flagDescription:  "when enabled, the personal access token will be used instead of SSH deploy key",
@@ -216,18 +238,18 @@ var boostrapGitLabTasks = []*BootstrapWizardTask{
 
 var boostrapGitTasks = []*BootstrapWizardTask{
 	{
-		flagName:        "url",
+		flagName:        URLOptionKey,
 		flagValue:       "",
 		flagDescription: "Git repository URL",
 		isRequired:      true,
 	},
 	{
-		flagName:        "password",
+		flagName:        PasswordOptionKey,
 		flagValue:       "",
 		flagDescription: "basic authentication password",
 	},
 	{
-		flagName:        "private-key-file",
+		flagName:        PrivateKeyFileOptionKey,
 		flagValue:       "",
 		flagDescription: "path to a private key file used for authenticating to the Git SSH server",
 	},
@@ -235,51 +257,51 @@ var boostrapGitTasks = []*BootstrapWizardTask{
 
 var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 	{
-		flagName:         "owner",
+		flagName:         OwnerOptionKey,
 		flagValue:        "",
 		defaultFlagValue: ownerGetter,
 		flagDescription:  "Bitbucket Server user or project name",
 		isRequired:       true,
 	},
 	{
-		flagName:         "username",
+		flagName:         UsernameOptionKey,
 		flagValue:        "",
 		defaultFlagValue: constantDefault("git"),
 		flagDescription:  "authentication username (default \"git\")",
 	},
 	{
-		flagName:         "repository",
+		flagName:         RepositoryOptionKey,
 		flagValue:        "",
 		defaultFlagValue: repositoryGetter,
 		flagDescription:  "Bitbucket Server repository name",
 		isRequired:       true,
 	},
 	{
-		flagName:        "hostname",
+		flagName:        HostnameOptionKey,
 		flagValue:       "",
 		flagDescription: "Bitbucket Server hostname",
 		isRequired:      true,
 	},
 	{
-		flagName:         "branch",
+		flagName:         BranchOptionKey,
 		flagValue:        "",
 		defaultFlagValue: branchGetter,
 		flagDescription:  "Git branch (default \"main\")",
 	},
 	{
-		flagName:        "path",
+		flagName:        PathOptionKey,
 		flagValue:       "",
 		flagDescription: "path relative to the repository root, when specified the cluster sync will be scoped to this path",
 	},
 	{
-		flagName:        "personal",
+		flagName:        PersonalOptionKey,
 		flagValue:       "",
 		flagDescription: "if true, the owner is assumed to be a Bitbucket Server user; otherwise a group",
 		isRequired:      true,
 		isBoolean:       true,
 	},
 	{
-		flagName:         "private",
+		flagName:         PrivateOptionKey,
 		flagValue:        "",
 		flagDescription:  "if true, the repository is setup or configured as private (default true)",
 		defaultFlagValue: constantDefault("true"),
@@ -287,7 +309,7 @@ var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 		isBoolean:        true,
 	},
 	{
-		flagName:        "token-auth",
+		flagName:        TokenAuthOptionKey,
 		flagValue:       "",
 		flagDescription: "when enabled, the personal access token will be used instead of SSH deploy key",
 		isBoolean:       true,
@@ -421,7 +443,7 @@ func NewBootstrapWizard(log logger.Logger, remoteURL string, gitProvider GitProv
 			continue
 		}
 
-		if task.flagName == "path" {
+		if task.flagName == PathOptionKey {
 			task.flagValue = path
 		}
 	}
@@ -470,44 +492,24 @@ func SelectGitProvider(log logger.Logger) (GitProvider, error) {
 func (wizard *BootstrapWizard) Run(log logger.Logger) error {
 	log.Actionf("Please enter or edit command values...")
 
-	m := initialWizardModel(wizard.tasks, wizard.remoteURL, make(chan []*BootstrapWizardResult))
+	m := initialWizardModel(wizard.tasks, wizard.remoteURL, make(chan []*BootstrapCmdOption))
 
 	err := tea.NewProgram(m).Start()
 	if err != nil {
 		return fmt.Errorf("could not start tea program: %v", err.Error())
 	}
 
-	wizard.results = <-m.msgChan
+	wizard.cmdOptions = <-m.msgChan
 
 	return nil
 }
 
-// BuildCommand builds flux bootstrap command as a text string.
-func (wizard *BootstrapWizard) BuildCommand(log logger.Logger) string {
-	log.Actionf("Building flux bootstrap command...")
+// BuildCmd builds flux bootstrap command options as key/values pairs.
+func (wizard *BootstrapWizard) BuildCmd(log logger.Logger) BootstrapWizardCmd {
+	log.Actionf("Building flux bootstrap command options...")
 
-	cmd := "flux bootstrap "
-
-	switch wizard.gitProvider {
-	case GitProviderGitHub:
-		cmd += "github"
-	case GitProviderGitLab:
-		cmd += "gitlab"
-	case GitProviderGit:
-		cmd += "git"
-	case GitProviderBitbucketServer:
-		cmd += "bitbucket-server"
+	return BootstrapWizardCmd{
+		Provider: wizard.gitProvider,
+		Options:  wizard.cmdOptions,
 	}
-
-	cmd += " \\\n"
-
-	for i, result := range wizard.results {
-		cmd += "  --" + result.flagName + "=" + result.flagValue
-
-		if i < len(wizard.results)-1 {
-			cmd += " \\\n"
-		}
-	}
-
-	return cmd
 }
