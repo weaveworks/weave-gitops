@@ -12,6 +12,7 @@ import qs from "query-string";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import theme from "../lib/theme";
 import Button, { IconButton } from "./Button";
 import CheckboxActions from "./CheckboxActions";
 import ChipGroup from "./ChipGroup";
@@ -615,6 +616,9 @@ export const DataTable = styled(UnstyledDataTable)`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .filterOptionsChip {
+    background-color: ${theme.colors.primary05};
   }
 `;
 

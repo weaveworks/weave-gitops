@@ -1,18 +1,9 @@
-import { Chip, createStyles, makeStyles } from "@material-ui/core";
+import { Chip } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import theme from "../lib/theme";
 import { filterSeparator } from "./FilterDialog";
 import Flex from "./Flex";
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    filterOptionsChip: {
-      backgroundColor: `${theme.colors.primary05}`,
-    },
-  })
-);
 
 export interface Props {
   className?: string;
@@ -24,8 +15,6 @@ export interface Props {
 }
 
 function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
-  const classes = useStyles();
-
   return (
     <Flex className={className} wide align start>
       {_.map(chips, (chip, index) => {
@@ -39,12 +28,18 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
             <Chip
               label={isUndefined ? chip + "null" : chip}
               onDelete={() => onChipRemove([chip])}
-              className={classes.filterOptionsChip}
+              className="filterOptionsChip"
             />
           </Flex>
         );
       })}
-      {chips.length > 0 && <Chip label="Clear All" onDelete={onClearAll} />}
+      {chips.length > 0 && (
+        <Chip
+          className="filterClearAllChip"
+          label="Clear All"
+          onDelete={onClearAll}
+        />
+      )}
     </Flex>
   );
 }

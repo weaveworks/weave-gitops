@@ -17,7 +17,7 @@ export type PageProps = {
 };
 
 export const Content = styled(Flex)`
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(255, 255, 255, 1);
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
