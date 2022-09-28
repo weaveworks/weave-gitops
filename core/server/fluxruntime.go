@@ -191,8 +191,6 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			Version: gvk.Version,
 		})
 
-		//listResult.setUnstructuredContent ???
-
 		if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 			if k8serrors.IsForbidden(err) {
 				// Our service account (or impersonated user) may not have the ability to see the resource in question,
