@@ -124,6 +124,7 @@ function SourceDetail({ className, source, info, type }: Props) {
               kind: source.type,
               name: source.name,
               namespace: source.namespace,
+              clusterName: source.clusterName,
             }}
           />
         </RouterTab>

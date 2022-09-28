@@ -111,7 +111,12 @@ func (p *Product) Find(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(dir, "flux"), nil
+	fluxPath := filepath.Join(dir, "flux")
+	if _, err := os.Stat(fluxPath); os.IsNotExist(err) {
+		return "", err
+	}
+
+	return fluxPath, nil
 }
 
 func (p *Product) verifyChecksum(filename string, sum string) error {

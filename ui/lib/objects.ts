@@ -131,6 +131,14 @@ export class HelmChart extends FluxObject {
   get chart(): string {
     return this.obj.spec?.chart || "";
   }
+
+  get version(): string {
+    return this.obj.spec?.version || "";
+  }
+
+  get revision(): string {
+    return this.obj.status.artifact.revision;
+  }
 }
 
 export class Bucket extends FluxObject {
@@ -250,6 +258,14 @@ export class HelmRelease extends FluxObject {
 
   get sourceRef(): ObjectRef | undefined {
     return this.helmChart?.sourceRef;
+  }
+
+  get lastAppliedRevision(): string {
+    return this.obj.status.lastAppliedRevision || "";
+  }
+
+  get lastAttemptedRevision(): string {
+    return this.obj.status.lastAttemptedRevision || "";
   }
 }
 

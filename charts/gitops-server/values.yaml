@@ -24,6 +24,8 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
+# -- Annotations to add to the deployment
+annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed
 # explanation of these attributes please see our documentation:
 # https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/#login-via-an-oidc-provider
@@ -85,13 +87,16 @@ podAnnotations: {}
 podSecurityContext: {}
 # fsGroup: 2000
 
-securityContext: {}
-# capabilities:
-#   drop:
-#   - ALL
-# readOnlyRootFilesystem: true
-# runAsNonRoot: true
-# runAsUser: 1000
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  seccompProfile:
+    type: RuntimeDefault
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
 
 service:
   create: true

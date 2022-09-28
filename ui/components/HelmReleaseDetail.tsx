@@ -70,6 +70,9 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
+        ["Chart Version", helmRelease.helmChart.version],
+        ["Last Applied Revision", helmRelease.lastAppliedRevision],
+        ["Last Attempted Revision", helmRelease.lastAttemptedRevision],
         ...clusterInfo,
         ...tenancyInfo,
         ["Interval", <Interval interval={helmRelease?.interval} />],

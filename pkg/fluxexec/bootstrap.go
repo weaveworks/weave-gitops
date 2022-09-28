@@ -1,6 +1,8 @@
 package fluxexec
 
 import (
+	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -168,6 +170,18 @@ func (opt *BootstrapOptions) configureBootstrapGitHub(conf *bootstrapGitHubConfi
 	conf.bootstrapOptions = opt.bootstrapOptions
 }
 
+func (opt *BootstrapOptions) configureBootstrapGitLab(conf *bootstrapGitLabConfig) {
+	conf.bootstrapOptions = opt.bootstrapOptions
+}
+
+func (opt *BootstrapOptions) configureBootstrapBitbucketServer(conf *bootstrapBitbucketServerConfig) {
+	conf.bootstrapOptions = opt.bootstrapOptions
+}
+
+func (opt *BootstrapOptions) configureBootstrapGit(conf *bootstrapGitConfig) {
+	conf.bootstrapOptions = opt.bootstrapOptions
+}
+
 func WithBootstrapOptions(opts ...BootstrapOption) *BootstrapOptions {
 	return &BootstrapOptions{opts}
 }
@@ -180,31 +194,31 @@ func (flux *Flux) bootstrapArgs(opts ...BootstrapOption) []string {
 
 	args := []string{}
 
-	if c.authorEmail != "" {
+	if c.authorEmail != "" && !reflect.DeepEqual(c.authorEmail, defaultBootstrapOptions.authorEmail) {
 		args = append(args, "--author-email", c.authorEmail)
 	}
 
-	if c.authorName != "" {
+	if c.authorName != "" && !reflect.DeepEqual(c.authorName, defaultBootstrapOptions.authorName) {
 		args = append(args, "--author-name", c.authorName)
 	}
 
-	if c.branch != "" {
+	if c.branch != "" && !reflect.DeepEqual(c.branch, defaultBootstrapOptions.branch) {
 		args = append(args, "--branch", c.branch)
 	}
 
-	if c.caFile != "" {
+	if c.caFile != "" && !reflect.DeepEqual(c.caFile, defaultBootstrapOptions.caFile) {
 		args = append(args, "--ca-file", c.caFile)
 	}
 
-	if c.clusterDomain != "" {
+	if c.clusterDomain != "" && !reflect.DeepEqual(c.clusterDomain, defaultBootstrapOptions.clusterDomain) {
 		args = append(args, "--cluster-domain", c.clusterDomain)
 	}
 
-	if c.commitMessageAppendix != "" {
+	if c.commitMessageAppendix != "" && !reflect.DeepEqual(c.commitMessageAppendix, defaultBootstrapOptions.commitMessageAppendix) {
 		args = append(args, "--commit-message-appendix", c.commitMessageAppendix)
 	}
 
-	if c.components != nil {
+	if len(c.components) > 0 && !reflect.DeepEqual(c.components, defaultBootstrapOptions.components) {
 		var comps []string
 		for _, c := range c.components {
 			comps = append(comps, string(c))
@@ -213,7 +227,7 @@ func (flux *Flux) bootstrapArgs(opts ...BootstrapOption) []string {
 		args = append(args, "--components", strings.Join(comps, ","))
 	}
 
-	if len(c.componentsExtra) > 0 {
+	if len(c.componentsExtra) > 0 && !reflect.DeepEqual(c.componentsExtra, defaultBootstrapOptions.componentsExtra) {
 		var extras []string
 		for _, c := range c.componentsExtra {
 			extras = append(extras, string(c))
@@ -222,71 +236,71 @@ func (flux *Flux) bootstrapArgs(opts ...BootstrapOption) []string {
 		args = append(args, "--components-extra", strings.Join(extras, ","))
 	}
 
-	if c.gpgKeyID != "" {
+	if c.gpgKeyID != "" && !reflect.DeepEqual(c.gpgKeyID, defaultBootstrapOptions.gpgKeyID) {
 		args = append(args, "--gpg-key-id", c.gpgKeyID)
 	}
 
-	if c.gpgKeyRing != "" {
+	if c.gpgKeyRing != "" && !reflect.DeepEqual(c.gpgKeyRing, defaultBootstrapOptions.gpgKeyRing) {
 		args = append(args, "--gpg-key-ring", c.gpgKeyRing)
 	}
 
-	if c.gpgPassphrase != "" {
+	if c.gpgPassphrase != "" && !reflect.DeepEqual(c.gpgPassphrase, defaultBootstrapOptions.gpgPassphrase) {
 		args = append(args, "--gpg-passphrase", c.gpgPassphrase)
 	}
 
-	if c.imagePullSecret != "" {
+	if c.imagePullSecret != "" && !reflect.DeepEqual(c.imagePullSecret, defaultBootstrapOptions.imagePullSecret) {
 		args = append(args, "--image-pull-secret", c.imagePullSecret)
 	}
 
-	if c.logLevel != "" {
+	if c.logLevel != "" && !reflect.DeepEqual(c.logLevel, defaultBootstrapOptions.logLevel) {
 		args = append(args, "--log-level", c.logLevel)
 	}
 
-	if c.networkPolicy {
-		args = append(args, "--network-policy")
+	if !reflect.DeepEqual(c.networkPolicy, defaultBootstrapOptions.networkPolicy) {
+		args = append(args, "--network-policy", fmt.Sprintf("%v", c.networkPolicy))
 	}
 
-	if c.privateKeyFile != "" {
+	if c.privateKeyFile != "" && !reflect.DeepEqual(c.privateKeyFile, defaultBootstrapOptions.privateKeyFile) {
 		args = append(args, "--private-key-file", c.privateKeyFile)
 	}
 
-	if c.recurseSubmodules {
+	if c.recurseSubmodules && !reflect.DeepEqual(c.recurseSubmodules, defaultBootstrapOptions.recurseSubmodules) {
 		args = append(args, "--recurse-submodules")
 	}
 
-	if c.registry != "" {
+	if c.registry != "" && !reflect.DeepEqual(c.registry, defaultBootstrapOptions.registry) {
 		args = append(args, "--registry", c.registry)
 	}
 
-	if c.secretName != "" {
+	if c.secretName != "" && !reflect.DeepEqual(c.secretName, defaultBootstrapOptions.secretName) {
 		args = append(args, "--secret-name", c.secretName)
 	}
 
-	if c.sshECDSACurve != "" {
+	if c.sshECDSACurve != "" && !reflect.DeepEqual(c.sshECDSACurve, defaultBootstrapOptions.sshECDSACurve) {
 		args = append(args, "--ssh-ecdsa-curve", string(c.sshECDSACurve))
 	}
 
-	if c.sshHostname != "" {
+	if c.sshHostname != "" && !reflect.DeepEqual(c.sshHostname, defaultBootstrapOptions.sshHostname) {
 		args = append(args, "--ssh-hostname", c.sshHostname)
 	}
 
-	if c.sshKeyAlgorithm != "" {
+	if c.sshKeyAlgorithm != "" && !reflect.DeepEqual(c.sshKeyAlgorithm, defaultBootstrapOptions.sshKeyAlgorithm) {
 		args = append(args, "--ssh-key-algorithm", string(c.sshKeyAlgorithm))
 	}
 
-	if c.sshRSABits != 0 {
+	if c.sshRSABits != 0 && !reflect.DeepEqual(c.sshRSABits, defaultBootstrapOptions.sshRSABits) {
 		args = append(args, "--ssh-rsa-bits", strconv.Itoa(c.sshRSABits))
 	}
 
-	if c.tokenAuth {
+	if c.tokenAuth && !reflect.DeepEqual(c.tokenAuth, defaultBootstrapOptions.tokenAuth) {
 		args = append(args, "--token-auth")
 	}
 
-	if len(c.tolerationKeys) > 0 {
+	if len(c.tolerationKeys) > 0 && !reflect.DeepEqual(c.tolerationKeys, defaultBootstrapOptions.tolerationKeys) {
 		args = append(args, "--toleration-keys", strings.Join(c.tolerationKeys, ","))
 	}
 
-	if c.watchAllNamespaces {
+	if c.watchAllNamespaces && !reflect.DeepEqual(c.watchAllNamespaces, defaultBootstrapOptions.watchAllNamespaces) {
 		args = append(args, "--watch-all-namespaces")
 	}
 

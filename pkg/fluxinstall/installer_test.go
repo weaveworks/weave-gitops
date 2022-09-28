@@ -7,8 +7,6 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/weaveworks/weave-gitops/pkg/fluxinstall/src"
 )
 
 var _ = Describe("Install Flux CLI", func() {
@@ -26,7 +24,7 @@ var _ = Describe("Install Flux CLI", func() {
 			}
 
 			installer := NewInstaller()
-			execPath, err := installer.Install(ctx, []src.Installable{product})
+			execPath, err := installer.Install(ctx, product)
 			Expect(err).To(BeNil())
 			Expect(execPath).To(Equal(filepath.Join(gitopsCacheFluxDir, "flux")))
 		})
@@ -40,7 +38,7 @@ var _ = Describe("Install Flux CLI", func() {
 			}
 
 			installer := NewInstaller()
-			execPath, err := installer.Ensure(ctx, []src.Source{product})
+			execPath, err := installer.Ensure(ctx, product)
 			Expect(err).To(BeNil())
 			Expect(execPath).To(Equal(filepath.Join(gitopsCacheFluxDir, "flux")))
 
