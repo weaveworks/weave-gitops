@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,6 +45,10 @@ type Client interface {
 	// Scoped returns a client that is scoped to a single cluster
 	Scoped(cluster string) (client.Client, error)
 }
+
+const (
+	clientTimeout = 500 * time.Millisecond
+)
 
 type clustersClient struct {
 	pool       ClientsPool
@@ -94,6 +99,9 @@ func (c *clustersClient) Get(ctx context.Context, cluster string, key client.Obj
 		return err
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
+	defer cancel()
+
 	return client.Get(ctx, key, obj)
 }
 
@@ -102,6 +110,14 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 	if err != nil {
 		return err
 	}
+
+	// Due to how DelegatingClients work, calls that fails never returns,
+	// because it waits the cache to sync before returning it https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/cache/internal/informers_map.go#L206
+	// so we are forced to use a timeout so the execution can proceed.
+	// This is very far from ideal, so, I'm open to suggestions on how to avoid this, but I couldn't think in any other solution.
+	// TODO: What should be the timeout here?
+	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
+	defer cancel()
 
 	return client.List(ctx, list, opts...)
 }
@@ -145,6 +161,9 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 				defer wg.Done()
 
 				list := clist.NewList()
+
+				ctx, cancel := context.WithTimeout(ctx, clientTimeout)
+				defer cancel()
 
 				if err := c.List(ctx, list, optsWithNamespace...); err != nil {
 					errs.Add(ListError{Cluster: clusterName, Namespace: nsName, Err: err})

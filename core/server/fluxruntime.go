@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -205,14 +204,6 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 				Version: gvk.Version,
 			})
 
-			// Due to how DelegatingClients work, calls that fails never returns,
-			// because it waits the cache to sync before returning it https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/cache/internal/informers_map.go#L206
-			// so we are forced to use a timeout so the execution can proceed.
-			// This is very far from ideal, so, I'm open to suggestions on how to avoid this, but I couldn't think in any other solution.
-			// TODO: What should be the timeout here?
-			ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
-			defer cancel()
-
 			if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 				if k8serrors.IsForbidden(err) {
 					// Our service account (or impersonated user) may not have the ability to see the resource in question,
@@ -221,7 +212,6 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 					return
 				}
 
-				// TODO: move this to the check before, it's here now just to give some visibility during development.
 				if k8serrors.IsTimeout(err) {
 					cs.logger.Error(err, "List timedout", "gvk", gvk.String())
 
