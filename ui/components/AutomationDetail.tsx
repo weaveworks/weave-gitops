@@ -177,7 +177,12 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         )}
       </SubRouterTabs>
       {nodeYaml && (
-        <Dialog open={!!nodeYaml} onClose={() => setNodeYaml(null)}>
+        <Dialog
+          open={!!nodeYaml}
+          onClose={() => setNodeYaml(null)}
+          maxWidth="md"
+          fullWidth
+        >
           <DialogYamlView
             object={{
               name: nodeYaml.name,
