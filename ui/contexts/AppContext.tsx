@@ -2,7 +2,7 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
-import { FluxObjectNode } from "../lib/objects";
+import { FluxObject, FluxObjectNode } from "../lib/objects";
 import {
   clearCallbackState,
   getCallbackState,
@@ -33,7 +33,7 @@ export type AppContextType = {
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
-  setNodeYaml: (obj: FluxObjectNode) => void;
+  setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
   linkResolver: LinkResolver;
@@ -92,7 +92,7 @@ export default function AppContextProvider({
     });
   };
 
-  const setNodeYaml = (obj: FluxObjectNode) => {
+  const setNodeYaml = (obj: FluxObject | FluxObjectNode) => {
     if (obj) setAppState({ ...appState, nodeYaml: obj });
     else setAppState({ ...appState, nodeYaml: null });
   };

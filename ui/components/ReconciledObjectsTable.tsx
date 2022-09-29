@@ -1,7 +1,7 @@
-import { Dialog } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
@@ -18,7 +18,6 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
 import Text from "./Text";
-import { DialogYamlView } from "./YamlView";
 interface ReconciledVisualizationProps {
   className?: string;
   automation?: Automation;
@@ -46,7 +45,7 @@ function ReconciledObjectsTable({
     ...filterConfig(objs, "status", filterByStatusCallback),
   };
 
-  const [yamlView, setYamlView] = React.useState(null);
+  const { setNodeYaml } = React.useContext(AppContext);
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
@@ -67,7 +66,7 @@ function ReconciledObjectsTable({
                   {u.name}
                 </Link>
               ) : (
-                <Text onClick={() => setYamlView(u)} color="primary10" pointer>
+                <Text onClick={() => setNodeYaml(u)} color="primary10" pointer>
                   {u.name}
                 </Text>
               );
@@ -115,18 +114,6 @@ function ReconciledObjectsTable({
         ]}
         rows={objs}
       />
-      <Dialog open={yamlView !== null} onClose={() => setYamlView(null)}>
-        {yamlView && (
-          <DialogYamlView
-            object={{
-              name: yamlView.name,
-              namespace: yamlView.namespace,
-              kind: yamlView.type,
-            }}
-            yaml={yamlView.yaml}
-          />
-        )}
-      </Dialog>
     </RequestStateHandler>
   );
 }
