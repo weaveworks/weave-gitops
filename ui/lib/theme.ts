@@ -23,6 +23,7 @@ export const theme: DefaultTheme = {
     black: "#1a1a1a",
     white: "#fff",
     primary: "#00b3ec",
+    primary05: "#E5F7FD",
     primaryLight: "#98E0F7",
     primary10: "#009CCC",
     primary20: "#006B8E",
