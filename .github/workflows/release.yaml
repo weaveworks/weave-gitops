@@ -181,7 +181,6 @@ jobs:
   enterprise-pr:
     name: Make enterprise PR
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     needs:
       - merge-pr
       - tag-release
