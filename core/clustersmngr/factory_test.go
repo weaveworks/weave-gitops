@@ -170,6 +170,7 @@ func TestUpdateUsers(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
 		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.UpdateNamespaces(ctx))
 		clustersManager.UpdateUserNamespaces(ctx, u1)
 
 		contents := clustersManager.GetUserNamespaces(u1)

@@ -98,6 +98,11 @@ func (p *UserPrincipal) String() string {
 	return fmt.Sprintf("id=%q groups=%v", p.ID, p.Groups)
 }
 
+// Hash returns a unique string using user id,token and groups.
+func (p *UserPrincipal) Hash() string {
+	return fmt.Sprintf("%s/%s/%v", p.ID, p.Token(), p.Groups)
+}
+
 func (p *UserPrincipal) Valid() bool {
 	if p.ID == "" && p.Token() == "" {
 		return false
