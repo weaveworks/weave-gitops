@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -178,39 +180,73 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind)
 	}
 
-	result := []unstructured.Unstructured{}
+	var (
+		result   = []unstructured.Unstructured{}
+		checkDup = map[types.UID]bool{}
+		resultMu = sync.Mutex{}
 
-	checkDup := map[types.UID]bool{}
+		errs   = &multierror.Error{}
+		errsMu = sync.Mutex{}
+
+		wg = sync.WaitGroup{}
+	)
 
 	for _, gvk := range msg.Kinds {
-		listResult := unstructured.UnstructuredList{}
+		wg.Add(1)
 
-		listResult.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   gvk.Group,
-			Kind:    gvk.Kind,
-			Version: gvk.Version,
-		})
+		go func(clusterName string, gvk *pb.GroupVersionKind) {
+			defer wg.Done()
 
-		if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
-			if k8serrors.IsForbidden(err) {
-				// Our service account (or impersonated user) may not have the ability to see the resource in question,
-				// in the given namespace. We pretend it doesn't exist and keep looping.
-				// We need logging to make this error more visible.
-				continue
+			listResult := unstructured.UnstructuredList{}
+
+			listResult.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   gvk.Group,
+				Kind:    gvk.Kind,
+				Version: gvk.Version,
+			})
+
+			// Due to how DelegatingClients work, calls that fails never returns,
+			// because it waits the cache to sync before returning it https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/cache/internal/informers_map.go#L206
+			// so we are forced to use a timeout so the execution can proceed.
+			// This is very far from ideal, so, I'm open to suggestions on how to avoid this, but I couldn't think in any other solution.
+			// TODO: What should be the timeout here?
+			ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+			defer cancel()
+
+			if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
+				if k8serrors.IsForbidden(err) {
+					// Our service account (or impersonated user) may not have the ability to see the resource in question,
+					// in the given namespace. We pretend it doesn't exist and keep looping.
+					// We need logging to make this error more visible.
+					return
+				}
+
+				// TODO: move this to the check before, it's here now just to give some visibility during development.
+				if k8serrors.IsTimeout(err) {
+					cs.logger.Error(err, "List timedout", "gvk", gvk.String())
+
+					return
+				}
+
+				errsMu.Lock()
+				errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
+				errsMu.Unlock()
 			}
 
-			return nil, fmt.Errorf("listing unstructured object: %w", err)
-		}
+			resultMu.Lock()
+			for _, u := range listResult.Items {
+				uid := u.GetUID()
 
-		for _, u := range listResult.Items {
-			uid := u.GetUID()
-
-			if !checkDup[uid] {
-				result = append(result, u)
-				checkDup[uid] = true
+				if !checkDup[uid] {
+					result = append(result, u)
+					checkDup[uid] = true
+				}
 			}
-		}
+			resultMu.Unlock()
+		}(msg.ClusterName, gvk)
 	}
+
+	wg.Wait()
 
 	objects := []*pb.UnstructuredObject{}
 

@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -92,22 +93,35 @@ func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) err
 		return fmt.Errorf("error building cluster client config: %w", err)
 	}
 
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	if err != nil {
+		return fmt.Errorf("could not create RESTMapper from config: %w", err)
+	}
+
 	leafClient, err := client.New(config, client.Options{
 		Scheme: cp.scheme,
+		Mapper: mapper,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create leaf client: %w", err)
 	}
 
-	cache, err := cache.New(config, cache.Options{Scheme: cp.scheme})
+	cache, err := cache.New(config, cache.Options{
+		Scheme: cp.scheme,
+		Mapper: mapper,
+	})
 	if err != nil {
 		return err
 	}
 
 	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader:     cache,
-		Client:          leafClient,
-		UncachedObjects: []client.Object{&corev1.Event{}},
+		CacheReader: cache,
+		Client:      leafClient,
+		// Non-exact field matches are not supported by the cache.
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
+		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
+		UncachedObjects:   []client.Object{&corev1.Event{}},
+		CacheUnstructured: true,
 	})
 	if err != nil {
 		return fmt.Errorf("failed creating DelegatingClient: %w", err)
