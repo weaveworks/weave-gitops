@@ -30,6 +30,18 @@ This version of Weave GitOps is tested against the following Flux releases:
 * 0.33
 * 0.34
 
+#### Install CLI
+Install the Weave GitOps Enterprise CLI tool. 
+You can use brew or curl 
+
+```
+brew install weaveworks/tap/gitops-ee
+```
+
+```
+curl -O https://artifacts.wge.dev.weave.works/releases/bin/0.9.5/gitops-linux-x86_64.tar.gz
+```
+
 ### Install the Helm Chart
 
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
