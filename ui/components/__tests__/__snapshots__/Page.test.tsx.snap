@@ -109,7 +109,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c1 {
-  background-color: rgba(255,255,255,1);
+  background-color: #fff;
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
