@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.9.5"
+  tag: "v0.9.6"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -92,12 +92,11 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
   seccompProfile:
     type: RuntimeDefault
   runAsUser: 1000
   readOnlyRootFilesystem: true
-
 service:
   create: true
   type: ClusterIP
@@ -135,7 +134,6 @@ resources: {}
 networkPolicy:
   # -- Specifies whether default network policies should be created.
   create: true
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
