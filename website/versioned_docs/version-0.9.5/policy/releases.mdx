@@ -1,0 +1,46 @@
+---
+title: Profile Releases
+sidebar_position: 4
+hide_title: true
+---
+import TierLabel from "../_components/TierLabel";
+
+# Profile Releases <TierLabel tiers="enterprise" />
+
+## v0.6.1
+
+### Highlights
+- **Agent**
+  - Make the audit interval configurable through `config.audit.interval`. It defaults to 24 hours.
+  - Add support for targeting certain flux resources (kustomizations, helmreleases and ocirepositories) in the admission mode.
+- **Profile**
+  - Add the ability to use an existing GitSource instead of creating a new one.
+
+
+### Dependency Versions
+
+- policy-agent 1.1.0
+
+### Policy Library Compatibility
+
+- v0.4.0
+- v1.0.0
+
+## v0.6.0
+
+### Highlights
+- **Agent**
+  - Configure the agent through a configuration file instead of arguments.
+  - Allow defining different validation sinks for audit and admission modes.
+  - Add the PolicySet CRD to the hem chart.
+- **Profile**
+  - Disable the default policy source.
+
+### Dependency Versions
+
+- policy-agent 1.0.0
+
+### Policy Library Compatibility
+
+- v0.4.0
+- v1.0.0
