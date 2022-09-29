@@ -485,8 +485,8 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 	wg.Wait()
 }
 
-func (cf *clustersManager) UserLock(userID string) *sync.Mutex {
-	actual, _ := cf.usersLock.LoadOrStore(userID, &sync.Mutex{})
+func (cf *clustersManager) LockUser(user *auth.UserPrincipal) *sync.Mutex {
+	actual, _ := cf.usersLock.LoadOrStore(user.Hash(), &sync.Mutex{})
 	lock := actual.(*sync.Mutex)
 	lock.Lock()
 	return lock
@@ -497,7 +497,7 @@ func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[strin
 }
 
 func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
-	userLock := cf.UserLock(user.ID)
+	userLock := cf.LockUser(user)
 	defer userLock.Unlock()
 
 	userNamespaces := cf.GetUserNamespaces(user)
