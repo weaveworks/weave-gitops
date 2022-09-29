@@ -331,7 +331,19 @@ func TestUserPrincipal_String(t *testing.T) {
 	// principal is logged out.
 	p := auth.NewUserPrincipal(auth.ID("testing"), auth.Groups([]string{"group1", "group2"}), auth.Token("test-token"))
 
-	if s := p.String(); s != `id="testing" groups=[group1 group2]` {
-		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
+	want := `id="testing" groups=[group1 group2]`
+	if s := p.String(); s != want {
+		t.Fatalf("principal.String() got %s, want %s", s, want)
+	}
+}
+
+func TestUserPrincipal_Hash(t *testing.T) {
+	// This is primarily to guard against leaking the auth token if the
+	// principal is logged out.
+	p := auth.NewUserPrincipal(auth.ID("testing"), auth.Groups([]string{"group1", "group2"}), auth.Token("test-token"))
+
+	want := "testing/test-token/[group1 group2]"
+	if s := p.Hash(); s != want {
+		t.Fatalf("principal.String() got %s, want %s", s, want)
 	}
 }
