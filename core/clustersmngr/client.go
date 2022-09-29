@@ -47,7 +47,7 @@ type Client interface {
 }
 
 const (
-	clientTimeout = 500 * time.Millisecond
+	clientTimeout = 2 * time.Second
 )
 
 type clustersClient struct {
