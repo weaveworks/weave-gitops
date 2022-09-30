@@ -46,6 +46,7 @@ function ReconciledObjectsTable({
   };
 
   const { setNodeYaml } = React.useContext(AppContext);
+
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
@@ -55,6 +56,7 @@ function ReconciledObjectsTable({
           {
             value: (u: FluxObject) => {
               const kind = Kind[u.type];
+              const secret = u.type === "Secret";
               return kind ? (
                 <Link
                   to={formatURL(objectTypeToRoute(kind), {
@@ -66,7 +68,11 @@ function ReconciledObjectsTable({
                   {u.name}
                 </Link>
               ) : (
-                <Text onClick={() => setNodeYaml(u)} color="primary10" pointer>
+                <Text
+                  onClick={() => (secret ? null : setNodeYaml(u))}
+                  color={secret ? "neutral40" : "primary10"}
+                  pointer={!secret}
+                >
                   {u.name}
                 </Text>
               );
