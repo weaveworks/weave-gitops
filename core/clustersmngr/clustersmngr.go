@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	corev1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -64,7 +61,7 @@ type ClusterFetcher interface {
 //
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
-	Add(cfg ClusterClientConfigFunc, cluster Cluster) error
+	Add(c client.Client, cluster Cluster) error
 	Clients() map[string]client.Client
 	Client(cluster string) (client.Client, error)
 }
@@ -87,56 +84,10 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 }
 
 // Add adds a cluster client to the clients pool with the given user impersonation
-func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) error {
-	config, err := cfgFunc(cluster)
-	if err != nil {
-		return fmt.Errorf("error building cluster client config: %w", err)
-	}
-
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
-	if err != nil {
-		return fmt.Errorf("could not create RESTMapper from config: %w", err)
-	}
-
-	leafClient, err := client.New(config, client.Options{
-		Scheme: cp.scheme,
-		Mapper: mapper,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create leaf client: %w", err)
-	}
-
-	cache, err := cache.New(config, cache.Options{
-		Scheme: cp.scheme,
-		Mapper: mapper,
-	})
-	if err != nil {
-		return err
-	}
-
-	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader: cache,
-		Client:      leafClient,
-		// Non-exact field matches are not supported by the cache.
-		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
-		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
-		UncachedObjects:   []client.Object{&corev1.Event{}},
-		CacheUnstructured: true,
-	})
-	if err != nil {
-		return fmt.Errorf("failed creating DelegatingClient: %w", err)
-	}
-
+func (cp *clientsPool) Add(client client.Client, cluster Cluster) error {
 	cp.mutex.Lock()
-	cp.clients[cluster.Name] = delegatingClient
+	cp.clients[cluster.Name] = client
 	cp.mutex.Unlock()
-
-	// TODO: verify if this can come from the `Add` caller, since it will be injected
-	// into a long running gorotine.
-	ctx := context.Background()
-
-	go cache.Start(ctx)
-	cache.WaitForCacheSync(ctx)
 
 	return nil
 }

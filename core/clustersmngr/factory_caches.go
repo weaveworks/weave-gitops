@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Clusters struct {
@@ -159,17 +160,17 @@ type UsersClients struct {
 	Cache *ttlcache.Cache
 }
 
-func (uc *UsersClients) cacheKey(user *auth.UserPrincipal) uint64 {
-	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, strings.Join(user.Groups, "/")))
+func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) uint64 {
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s-%s", user.ID, strings.Join(user.Groups, "/"), clusterName))
 }
 
-func (uc *UsersClients) Set(user *auth.UserPrincipal, client Client) {
-	uc.Cache.Set(uc.cacheKey(user), client, 5*time.Minute)
+func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
+	uc.Cache.Set(uc.cacheKey(user, clusterName), client, 5*time.Minute)
 }
 
-func (uc *UsersClients) Get(user *auth.UserPrincipal) (Client, bool) {
-	if val, found := uc.Cache.Get(uc.cacheKey(user)); found {
-		return val.(Client), true
+func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {
+	if val, found := uc.Cache.Get(uc.cacheKey(user, clusterName)); found {
+		return val.(client.Client), true
 	}
 
 	return nil, false

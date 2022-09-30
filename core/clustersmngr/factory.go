@@ -14,13 +14,16 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -308,11 +311,6 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		return nil, errors.New("no user supplied")
 	}
 
-	if client, found := cf.usersClients.Get(user); found {
-		cf.log.Info("returning cached client for", "user", user.ID)
-		return client, nil
-	}
-
 	cf.log.Info("creating new clients for", "user", user.ID)
 	pool := cf.newClustersPool(cf.scheme)
 	errChan := make(chan error, len(cf.clusters.Get()))
@@ -325,7 +323,13 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster); err != nil {
+			client, err := cf.getOrCreateUserClient(user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating user client to pool: %w", err)}
+				return
+			}
+
+			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -341,7 +345,6 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 	}
 
 	client := NewClient(pool, cf.userNsList(ctx, user))
-	cf.usersClients.Set(user, client)
 
 	return client, result.ErrorOrNil()
 }
@@ -367,7 +370,12 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cl); err != nil {
+	client, err := cf.getOrCreateUserClient(user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cl)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating cluster client to pool: %w", err)
+	}
+
+	if err := pool.Add(client, cl); err != nil {
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
@@ -418,7 +426,12 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigAsServer(cf.kubeConfigOptions...), cluster); err != nil {
+			client, err := cf.getOrCreateUserClient(nil, ClientConfigAsServer(cf.kubeConfigOptions...), cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating server client to pool: %w", err)}
+			}
+
+			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -493,6 +506,70 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	cf.UpdateUserNamespaces(ctx, user)
 
 	return cf.GetUserNamespaces(user)
+}
+
+func (cf *clustersManager) getOrCreateUserClient(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster) (client.Client, error) {
+	if user == nil {
+		user = &auth.UserPrincipal{
+			ID: "weave-gitops-server",
+		}
+	}
+
+	if client, found := cf.usersClients.Get(user, cluster.Name); found {
+		cf.log.Info("returning cached client for", "user", user.ID, "cluster", cluster.Name)
+		return client, nil
+	}
+
+	config, err := cfgFunc(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("error building cluster client config: %w", err)
+	}
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	if err != nil {
+		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
+	}
+
+	leafClient, err := client.New(config, client.Options{
+		Scheme: cf.scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create leaf client: %w", err)
+	}
+
+	cache, err := cache.New(config, cache.Options{
+		Scheme: cf.scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating client cache: %w", err)
+	}
+
+	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader: cache,
+		Client:      leafClient,
+		// Non-exact field matches are not supported by the cache.
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
+		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
+		UncachedObjects:   []client.Object{&corev1.Event{}},
+		CacheUnstructured: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating DelegatingClient: %w", err)
+	}
+
+	ctx := context.Background()
+
+	go cache.Start(ctx)
+
+	if ok := cache.WaitForCacheSync(ctx); !ok {
+		return nil, errors.New("failed syncing client cache")
+	}
+
+	cf.usersClients.Set(user, cluster.Name, delegatingClient)
+
+	return delegatingClient, nil
 }
 
 func ApplyKubeConfigOptions(config *rest.Config, options ...KubeConfigOption) (*rest.Config, error) {
