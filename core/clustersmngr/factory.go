@@ -344,9 +344,7 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		result = multierror.Append(result, err)
 	}
 
-	client := NewClient(pool, cf.userNsList(ctx, user))
-
-	return client, result.ErrorOrNil()
+	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
 }
 
 func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
