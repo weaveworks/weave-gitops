@@ -9,12 +9,12 @@ import TierLabel from "../_components/TierLabel";
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-# Getting started <TierLabel tiers="enterprise" />
+# Getting started with pipelines <TierLabel tiers="enterprise" />
 
 ## Requirements
-- Weave Gitops Enterprise RBAC configuration for pipelines exists
+- You have configured Weave Gitops Enterprise [RBAC for pipelines](./rbac.mdx)
 
-## Define a delivery pipeline
+## Define a pipeline
 
 A delivery pipeline allows you to define the route your application is taking in order to make it to production.
 There are three main concepts playing in a delivery pipeline:
@@ -60,15 +60,21 @@ spec:
             namespace: flux-system
 ```
 
-search-svc gets delivered to the traditional delivery pipeline composed by `dev`, `test` and `production` environments, where
-each of the environments are backed by a GitopsCluster deployment target.
+`search-svc` gets delivered to the traditional delivery pipeline composed by `dev`, `test` and `production` environments, where
+each of the environments are backed by a `GitopsCluster` deployment target.
 
 For more details about the spec of a pipeline CRD [see here](./pipeline-crd.mdx)
 
+## View the pipeline list
 
+Once flux has created your pipeline you could navigate to the pipelines view to see it.
 
+![view pipelines](img/view-pipelines.png)
 
+## View a pipeline details
 
-## View a delivery pipline pipeline
+Once you have selected a pipeline for the pipeline list you will navigate to pipeline details view.
+In pipeline details view you could view the current status of your application by environment and deployment
+target.
 
-
+![view pipeline details](img/view-pipeline-details.png)
