@@ -23,45 +23,50 @@ There are three main concepts playing in a delivery pipeline:
 - the `deployment targets` that each environment has
 
 In weave gitops you could define a delivery pipeline using a `Pipeline` Custom Resource Definitions.
-An example of how it looks for an application `search-svc` is shown below.
+An example of how it looks for an application `podinfo` is shown below.
 
 ```yaml
 apiVersion: pipelines.weave.works/v1alpha1
 kind: Pipeline
 metadata:
-  name: search-svc
-  namespace: search
+  name: podinfo-02
+  namespace: default
 spec:
   appRef:
-    kind: HelmRelease
-    name: search-svc
     apiVersion: helm.toolkit.fluxcd.io/v2beta1
+    kind: HelmRelease
+    name: podinfo
   environments:
     - name: dev
       targets:
-        - namespace: search
+        - namespace: podinfo-02-dev
           clusterRef:
             kind: GitopsCluster
             name: dev
             namespace: flux-system
     - name: test
       targets:
-        - namespace: search
+        - namespace: podinfo-02-qa
           clusterRef:
             kind: GitopsCluster
-            name: test
+            name: dev
+            namespace: flux-system
+        - namespace: podinfo-02-perf
+          clusterRef:
+            kind: GitopsCluster
+            name: dev
             namespace: flux-system
     - name: prod
       targets:
-        - namespace: search
+        - namespace: podinfo-02-prod
           clusterRef:
             kind: GitopsCluster
             name: prod
             namespace: flux-system
 ```
 
-`search-svc` gets delivered to the traditional delivery pipeline composed by `dev`, `test` and `production` environments, where
-each of the environments are backed by a `GitopsCluster` deployment target.
+`podinfo` gets delivered to a traditional delivery pipeline composed by `dev`, `qa`, (`perf`) and `production` environments,
+where each of the environments are backed by a `GitopsCluster` deployment target.
 
 For more details about the spec of a pipeline CRD [see here](./pipeline-crd.mdx)
 
@@ -71,6 +76,9 @@ Once flux has created your pipeline you could navigate to the pipelines view to 
 
 ![view pipelines](img/view-pipelines.png)
 
+Pipeline list view show the list of pipeline you have access to, with a simplified experience to understand
+the application type and environments that
+
 ## View a pipeline details
 
 Once you have selected a pipeline for the pipeline list you will navigate to pipeline details view.
@@ -78,3 +86,4 @@ In pipeline details view you could view the current status of your application b
 target.
 
 ![view pipeline details](img/view-pipeline-details.png)
+
