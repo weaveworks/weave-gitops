@@ -14,11 +14,61 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 ## Requirements
 - Weave Gitops Enterprise RBAC configuration for pipelines exists
 
-## Define your delivery pipeline
+## Define a delivery pipeline
 
-//HOWTO create a pipeline crd for podinfo application
-//Explanation of pipeline crd field
+A delivery pipeline allows you to define the route your application is taking in order to make it to production.
+There are three main concepts playing in a delivery pipeline:
+- the `application` to deliver
+- the `environments` your delivery pipeline has and
+- the `deployment targets` that each environment has
 
-## View your delivery pipeline
+In weave gitops you could define a delivery pipeline using a `Pipeline` Custom Resource Definitions.
+An example of how it looks for an application `search-svc` is shown below.
 
-//HOWTO view withing weave gitops enterprrise
+```yaml
+apiVersion: pipelines.weave.works/v1alpha1
+kind: Pipeline
+metadata:
+  name: search-svc
+  namespace: search
+spec:
+  appRef:
+    kind: HelmRelease
+    name: search-svc
+    apiVersion: helm.toolkit.fluxcd.io/v2beta1
+  environments:
+    - name: dev
+      targets:
+        - namespace: search
+          clusterRef:
+            kind: GitopsCluster
+            name: dev
+            namespace: flux-system
+    - name: test
+      targets:
+        - namespace: search
+          clusterRef:
+            kind: GitopsCluster
+            name: test
+            namespace: flux-system
+    - name: prod
+      targets:
+        - namespace: search
+          clusterRef:
+            kind: GitopsCluster
+            name: prod
+            namespace: flux-system
+```
+
+search-svc gets delivered to the traditional delivery pipeline composed by `dev`, `test` and `production` environments, where
+each of the environments are backed by a GitopsCluster deployment target.
+
+For more details about the spec of a pipeline CRD [see here](./pipeline-crd.mdx)
+
+
+
+
+
+## View a delivery pipline pipeline
+
+
