@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -218,8 +219,17 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 	for _, obj := range result {
 		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
-
-		o, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+		var o *pb.Object
+		if obj.GetKind() == "Secret" {
+			cleanSecret, err := sanitizeSecret(&obj)
+			if err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("error sanitizing secrets: %w", err), respErrors.Errors...)
+				continue
+			}
+			o, err = coretypes.K8sObjectToProto(cleanSecret, msg.ClusterName, tenant, nil)
+		} else {
+			o, err = coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+		}
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
 			continue
@@ -284,4 +294,21 @@ ItemsLoop:
 	}
 
 	return &pb.GetChildObjectsResponse{Objects: objects}, nil
+}
+
+func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
+	bytes, err := obj.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("marshaling secret: %v", err)
+	}
+
+	s := &v1.Secret{}
+
+	if err := json.Unmarshal(bytes, s); err != nil {
+		return nil, fmt.Errorf("unmarshaling secret: %v", err)
+	}
+
+	s.Data = nil
+
+	return s, nil
 }
