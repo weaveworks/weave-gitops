@@ -61,7 +61,7 @@ func TestSync(t *testing.T) {
 	}{{
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: kustomizev1.KustomizationKind}},
 			WithSource: false,
 		},
@@ -69,7 +69,7 @@ func TestSync(t *testing.T) {
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: kustomizev1.KustomizationKind}},
 			WithSource: true,
 		},
@@ -78,7 +78,7 @@ func TestSync(t *testing.T) {
 	}, {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: false,
 		},
@@ -86,7 +86,7 @@ func TestSync(t *testing.T) {
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: true,
 		},
@@ -96,7 +96,7 @@ func TestSync(t *testing.T) {
 		{
 			name: "multiple objects",
 			msg: &pb.SyncFluxObjectRequest{
-				Objects: []*pb.ClusteredObjRef{{ClusterName: "Default",
+				Objects: []*pb.ObjectRef{{ClusterName: "Default",
 					Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
 					Kind: helmv2.HelmReleaseKind}},
 				WithSource: true,

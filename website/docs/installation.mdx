@@ -29,6 +29,30 @@ This version of Weave GitOps is tested against the following Flux releases:
 * 0.32
 * 0.33
 * 0.34
+* 0.35
+
+### gitops CLI
+
+Weave GitOps includes a command-line interface to help users create and manage resources.
+
+The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
+
+Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+
+To install:
+
+```console
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.9.6/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+Alternatively, users can use Homebrew:
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/gitops
+```
 
 ### Install the Helm Chart
 
@@ -420,7 +444,19 @@ helm upgrade -i tf-controller tf-controller/tf-controller \
     --namespace flux-system
 ```
 
-Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-controller/getting_started/) documentation for more details on which parameters are configurable and how to install a specific version. 
+Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-controller/getting_started/) documentation for more details on which parameters are configurable and how to install a specific version.
+
+### Install CLI
+Install the Weave GitOps Enterprise CLI tool.
+You can use brew or curl
+
+```
+brew install weaveworks/tap/gitops-ee
+```
+
+```
+curl -O https://artifacts.wge.dev.weave.works/releases/bin/0.9.5/gitops-linux-x86_64.tar.gz
+```
 
 ## AWS Marketplace
 Weave GitOps is also available via the AWS Marketplace.
@@ -600,26 +636,3 @@ The quickest way to access your dashboard is by setting up a port forward:
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
 Then, [open the dashboard](http://localhost:9001/).
-
-## gitops CLI
-
-Weave GitOps includes a command-line interface to help users create and manage resources.
-
-The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
-
-Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
-
-To install:
-
-```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.9.5/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/gitops /usr/local/bin
-gitops version
-```
-
-Alternatively, users can use Homebrew:
-
-```console
-brew tap weaveworks/tap
-brew install weaveworks/tap/gitops
-```

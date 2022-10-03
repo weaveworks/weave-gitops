@@ -27,7 +27,7 @@ function Footer({ className }: Props) {
 
   const shouldDisplayApiVersion =
     !isLoading &&
-    versionData.semver !== p.version &&
+    (versionData.semver || "").replace(/^v+/, "") !== p.version &&
     versionData.branch &&
     versionData.commit;
 
