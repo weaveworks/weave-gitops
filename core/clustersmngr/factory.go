@@ -311,7 +311,6 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		return nil, errors.New("no user supplied")
 	}
 
-	cf.log.Info("creating new clients for", "user", user.ID)
 	pool := cf.newClustersPool(cf.scheme)
 	errChan := make(chan error, len(cf.clusters.Get()))
 
@@ -544,8 +543,10 @@ func (cf *clustersManager) getOrCreateUserClient(user *auth.UserPrincipal, cfgFu
 		return nil, fmt.Errorf("failed creating client cache: %w", err)
 	}
 
+	delegatingCache := NewDelegatingCache(leafClient, cache, cf.scheme)
+
 	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader: cache,
+		CacheReader: delegatingCache,
 		Client:      leafClient,
 		// Non-exact field matches are not supported by the cache.
 		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
@@ -559,9 +560,9 @@ func (cf *clustersManager) getOrCreateUserClient(user *auth.UserPrincipal, cfgFu
 
 	ctx := context.Background()
 
-	go cache.Start(ctx)
+	go delegatingCache.Start(ctx)
 
-	if ok := cache.WaitForCacheSync(ctx); !ok {
+	if ok := delegatingCache.WaitForCacheSync(ctx); !ok {
 		return nil, errors.New("failed syncing client cache")
 	}
 
