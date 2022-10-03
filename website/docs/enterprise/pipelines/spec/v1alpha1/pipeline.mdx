@@ -1,5 +1,5 @@
 ---
-title: Pipeline Specification
+title: Pipeline
 sidebar_position: 1
 hide_title: true
 ---
@@ -53,8 +53,10 @@ spec:
 
 The documentation for version `v1alpha1`  of a `Pipeline` resource is found next.
 
-```go
+### Pipeline
 
+
+```go
 // Pipeline is the Schema for the pipelines API
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -97,7 +99,7 @@ type Target struct {
 
 ```
 
-### Reference types
+### References
 
 ```go
 // LocalAppReference is used together with a Target to find a single instance of an application on a certain cluster.
@@ -136,7 +138,7 @@ type CrossNamespaceClusterReference struct {
 }
 ```
 
-### Status Specification
+### Status
 
 ```go
 type PipelineStatus struct {
