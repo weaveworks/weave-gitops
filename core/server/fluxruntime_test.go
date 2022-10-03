@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -14,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -169,6 +171,77 @@ func TestGetChildObjects(t *testing.T) {
 	first := res.Objects[0]
 	g.Expect(first.Payload).To(ContainSubstring("ReplicaSet"))
 	g.Expect(first.Payload).To(ContainSubstring(rs.Name))
+}
+
+func TestGetChildObjectsWithSecrets(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	automationName := "my-automation"
+
+	ns := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+
+	helmRelease := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-helm-release",
+			Namespace: ns.Name,
+			UID:       "this-is-not-an-uid",
+		},
+
+		Spec: helmv2.HelmReleaseSpec{
+			ValuesFrom: []helmv2.ValuesReference{{Kind: "Secret", Name: "my-secret"}},
+		},
+	}
+
+	secret := &v1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "my-secret",
+			Namespace:       ns.Name,
+			UID:             "this-is-not-an-uid",
+			Labels:          map[string]string{"app": automationName},
+			OwnerReferences: []metav1.OwnerReference{{APIVersion: "v1", Kind: helmv2.HelmReleaseKind, Name: helmRelease.Name, UID: helmRelease.UID}},
+		},
+		TypeMeta: metav1.TypeMeta{Kind: "Secret", APIVersion: "v1"},
+
+		Data: map[string][]byte{"username": []byte("username"), "password": []byte("password")},
+	}
+
+	secret.SetOwnerReferences([]metav1.OwnerReference{{
+		UID:        helmRelease.UID,
+		APIVersion: appsv1.SchemeGroupVersion.String(),
+		Kind:       helmv2.HelmReleaseKind,
+		Name:       helmRelease.Name,
+	}})
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, helmRelease, secret).Build()
+	cfg := makeServerConfig(client, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
+		ParentUid: string(helmRelease.UID),
+		Namespace: ns.Name,
+		GroupVersionKind: &pb.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "Secret",
+		},
+		ClusterName: clustersmngr.DefaultCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Objects).To(HaveLen(1))
+
+	first := res.Objects[0]
+	g.Expect(first.Payload).NotTo(ContainSubstring("Data"))
+	g.Expect(first.Payload).NotTo(ContainSubstring("username"))
 }
 
 func TestListFluxRuntimeObjects(t *testing.T) {
