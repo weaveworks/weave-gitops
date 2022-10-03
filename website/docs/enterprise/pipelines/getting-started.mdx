@@ -12,15 +12,15 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 # Getting started with pipelines <TierLabel tiers="enterprise" />
 
 ## Requirements
-- You have configured Weave Gitops Enterprise [RBAC for pipelines](./rbac.mdx)
+- You have configured Weave Gitops Enterprise [RBAC for pipelines](./authorization)
 
 ## Define a pipeline
 
-A delivery pipeline allows you to define the route your application is taking in order to make it to production.
-There are three main concepts playing in a delivery pipeline:
+A pipeline allows you to define the route your application is taking in order to make it to production.
+There are three main concepts playing in a pipeline:
 - the `application` to deliver
-- the `environments` your delivery pipeline has and
-- the `deployment targets` that each environment has
+- the `environments` that your app will go through in its way to production (general)
+- the `deployment targets` or the clusters that each environment has
 
 In weave gitops you could define a delivery pipeline using a `Pipeline` Custom Resource Definitions.
 An example of how it looks for an application `podinfo` is shown below.
@@ -65,10 +65,10 @@ spec:
             namespace: flux-system
 ```
 
-`podinfo` gets delivered to a traditional delivery pipeline composed by `dev`, `qa`, (`perf`) and `production` environments,
-where each of the environments are backed by a `GitopsCluster` deployment target.
+In the previous example, `podinfo` application is delivered to a traditional pipeline composed by `dev`, `qa`, (`perf`) and `production` environments.
+Each environment is backed by a `GitopsCluster` [deployment target](../../../cluster-management/managing-existing-clusters/).
 
-For more details about the spec of a pipeline CRD [see here](./pipeline-crd.mdx)
+For more details about the spec of a pipeline [see here](spec/v1alpha1/pipeline.mdx)
 
 ## View pipeline list
 
@@ -76,12 +76,12 @@ Once flux has created your pipeline you could navigate to the pipelines view to 
 
 ![view pipelines](img/view-pipelines.png)
 
-Pipeline list view show the list of pipeline you have access to, with a simplified experience to understand
-the application type and environments that
+Pipeline list view show the list of pipeline you have access to. For each pipeline, a simplified view of the pipeline
+is shown with the application `Type` and `Environments` it goes through.
 
 ## View a pipeline details
 
-Once you have selected a pipeline for the pipeline list you will navigate to pipeline details view.
+Once you have selected a pipeline from the list, you will navigate to its details view.
 In pipeline details view you could view the current status of your application by environment and deployment
 target.
 
