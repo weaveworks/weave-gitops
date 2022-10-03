@@ -88,6 +88,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
               kind: automation.type,
               name: automation.name,
               namespace: automation.namespace,
+              clusterName: automation.clusterName,
             }}
           />
         );

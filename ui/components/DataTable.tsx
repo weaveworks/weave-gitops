@@ -59,6 +59,7 @@ export interface Props {
   dialogOpen?: boolean;
   hasCheckboxes?: boolean;
   hideSearchAndFilters?: boolean;
+  emptyMessagePlaceholder?: React.ReactNode;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -331,6 +332,7 @@ function UnstyledDataTable({
   hasCheckboxes: checkboxes,
   dialogOpen,
   hideSearchAndFilters,
+  emptyMessagePlaceholder,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -561,7 +563,9 @@ function UnstyledDataTable({
                         size="base"
                       />
                       <Spacer padding="xxs" />
-                      <Text color="neutral30">No data</Text>
+                      {emptyMessagePlaceholder || (
+                        <Text color="neutral30">No data</Text>
+                      )}
                     </Flex>
                   </TableCell>
                 </EmptyRow>
@@ -611,6 +615,9 @@ export const DataTable = styled(UnstyledDataTable)`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .filter-options-chip {
+    background-color: ${(props) => props.theme.colors.primary05};
   }
 `;
 

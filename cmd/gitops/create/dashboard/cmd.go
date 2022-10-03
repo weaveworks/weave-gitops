@@ -15,6 +15,7 @@ import (
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -133,7 +134,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		var secret string
 
 		if flags.Password != "" {
-			secret, err = run.GenerateSecret(log, flags.Password)
+			secret, err = install.GenerateSecret(log, flags.Password)
 			if err != nil {
 				return err
 			}
@@ -147,7 +148,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := run.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, "")
+		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}
@@ -202,7 +203,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
 		defer cancel()
 
-		if fluxVersion, err := run.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		if fluxVersion, err := install.GetFluxVersion(log, ctx, kubeClient); err != nil {
 			log.Failuref("Flux is not found")
 			return err
 		} else {
@@ -211,13 +212,13 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Actionf("Applying GitOps Dashboard manifests")
 
-		man, err := run.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+		man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
 		if err != nil {
 			log.Failuref("Error creating resource manager")
 			return err
 		}
 
-		err = run.InstallDashboard(log, ctx, man, manifests)
+		err = install.InstallDashboard(log, ctx, man, manifests)
 		if err != nil {
 			return fmt.Errorf("gitops dashboard installation failed: %w", err)
 		} else {
@@ -230,7 +231,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		dashboardPodName := dashboardName + "-" + helmChartName
 
-		if err := run.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("GitOps Dashboard %s is ready", dashboardName)
