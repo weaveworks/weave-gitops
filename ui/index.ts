@@ -47,7 +47,7 @@ import CoreClientContextProvider, {
 } from "./contexts/CoreClientContext";
 import { useListAutomations } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
-import { useListFluxRuntimeObjects } from "./hooks/flux";
+import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject } from "./hooks/objects";
@@ -146,6 +146,7 @@ export {
   useIsAuthenticated,
   useListAlerts,
   useListAutomations,
+  useListFluxCrds,
   useListFluxRuntimeObjects,
   useListProviders,
   useListSources,
