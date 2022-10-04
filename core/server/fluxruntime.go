@@ -308,7 +308,7 @@ func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
 		return nil, fmt.Errorf("unmarshaling secret: %v", err)
 	}
 
-	s.Data = nil
+	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
 	return s, nil
 }
