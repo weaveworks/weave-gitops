@@ -157,7 +157,8 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 				r := &pb.Crd{
 					Name: &pb.Crd_Name{
 						Plural: d.Spec.Names.Plural,
-						Group:  d.Spec.Group},
+						Group:  d.Spec.Group,
+					},
 					Version:     version,
 					Kind:        d.Spec.Names.Kind,
 					ClusterName: clusterName,
