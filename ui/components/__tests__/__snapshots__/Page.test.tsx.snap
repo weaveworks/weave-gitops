@@ -106,6 +106,7 @@ exports[`Page snapshots default 1`] = `
 
 .c5 {
   color: #737373;
+  padding-top: 12px;
 }
 
 .c1 {

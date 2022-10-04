@@ -88,6 +88,9 @@ export function objectTypeToRoute(t: Kind): V2Routes {
     case Kind.OCIRepository:
       return V2Routes.OCIRepository;
 
+    case Kind.Provider:
+      return V2Routes.Provider;
+
     default:
       break;
   }

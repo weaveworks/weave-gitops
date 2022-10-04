@@ -204,7 +204,7 @@ message GetReconciledObjectsRequest {
 }
 
 message GetReconciledObjectsResponse {
-    repeated UnstructuredObject objects = 1;
+    repeated Object objects = 1;
 }
 
 message GetChildObjectsRequest {
@@ -215,7 +215,7 @@ message GetChildObjectsRequest {
 }
 
 message GetChildObjectsResponse {
-    repeated UnstructuredObject objects = 1;
+    repeated Object objects = 1;
 }
 
 message GetFluxNamespaceRequest {}

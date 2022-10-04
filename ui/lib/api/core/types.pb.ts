@@ -92,18 +92,6 @@ export type Crd = {
   uid?: string
 }
 
-export type UnstructuredObject = {
-  groupVersionKind?: GroupVersionKind
-  name?: string
-  namespace?: string
-  uid?: string
-  status?: string
-  conditions?: Condition[]
-  suspended?: boolean
-  clusterName?: string
-  images?: string[]
-}
-
 export type Namespace = {
   name?: string
   status?: string

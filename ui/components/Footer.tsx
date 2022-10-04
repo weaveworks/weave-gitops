@@ -82,4 +82,5 @@ function Footer({ className }: Props) {
 
 export default styled(Footer).attrs({ className: Footer.name })`
   color: ${(props) => props.theme.colors.neutral30};
+  padding-top: ${(props) => props.theme.spacing.small};
 `;

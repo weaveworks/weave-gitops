@@ -1,3 +1,4 @@
+import { FluxObject } from "../../lib/objects";
 import { flattenChildren } from "../flux";
 
 describe("flattenChildren", () => {
@@ -13,7 +14,7 @@ describe("flattenChildren", () => {
         children: [{ name: "2", children: [{ name: "3", children: [] }] }],
       },
     ];
-    const flattened = flattenChildren(nested);
+    const flattened = flattenChildren(nested as FluxObject[]);
     expect(flattened[0]).toMatchObject({ name: "1" });
     expect(flattened[1]).toMatchObject({ name: "2" });
     expect(flattened[2]).toMatchObject({ name: "3" });
@@ -30,7 +31,7 @@ describe("flattenChildren", () => {
         ],
       },
     ];
-    const flattened = flattenChildren(multiple);
+    const flattened = flattenChildren(multiple as FluxObject[]);
     expect(flattened[0]).toMatchObject({ name: "1" });
     expect(flattened[1]).toMatchObject({ name: "2" });
     expect(flattened[2]).toMatchObject({ name: "3" });
@@ -40,6 +41,6 @@ describe("flattenChildren", () => {
   it("breaks if the format changes", () => {
     // No children property suggests API has changed
     const invalid = [{ name: "1" }];
-    expect(() => flattenChildren(invalid)).toThrow(TypeError);
+    expect(() => flattenChildren(invalid as FluxObject[])).toThrow(TypeError);
   });
 });

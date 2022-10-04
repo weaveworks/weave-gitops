@@ -2,6 +2,7 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
+import { FluxObject, FluxObjectNode } from "../lib/objects";
 import {
   clearCallbackState,
   getCallbackState,
@@ -14,6 +15,7 @@ import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
+  nodeYaml: FluxObjectNode | null;
 };
 
 type AppSettings = {
@@ -31,6 +33,7 @@ export type AppContextType = {
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
+  setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
   linkResolver: LinkResolver;
@@ -66,6 +69,7 @@ export default function AppContextProvider({
   const history = useHistory();
   const [appState, setAppState] = React.useState({
     error: null,
+    nodeYaml: null,
   });
 
   const clearAsyncError = () => {
@@ -88,11 +92,17 @@ export default function AppContextProvider({
     });
   };
 
+  const setNodeYaml = (obj: FluxObject | FluxObjectNode) => {
+    if (obj) setAppState({ ...appState, nodeYaml: obj });
+    else setAppState({ ...appState, nodeYaml: null });
+  };
+
   const value: AppContextType = {
     applicationsClient,
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
+    setNodeYaml,
     appState,
     linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
