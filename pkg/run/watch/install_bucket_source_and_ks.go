@@ -184,7 +184,7 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client,
 		return nil
 	})
 
-	fmt.Println()
+	// fmt.Println()
 	log.Actionf("Uploaded %d files", uploadCount)
 
 	if err != nil {

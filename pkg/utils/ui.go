@@ -36,7 +36,7 @@ func ReadPasswordFromStdin(log logger.Logger, prompt string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println()
+	// fmt.Println()
 
 	return strings.TrimRight(out, "\r\n"), nil
 }
