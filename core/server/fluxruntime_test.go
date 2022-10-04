@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -104,7 +103,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 	automationName := "my-automation"
 	ns := newNamespace(ctx, k, g)
 
-	reconciledObj := v1.Secret{
+	reconciledObj := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: ns.Name,
