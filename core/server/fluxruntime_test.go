@@ -81,8 +81,57 @@ func TestGetReconciledObjects(t *testing.T) {
 	g.Expect(res.Objects).To(HaveLen(1))
 
 	first := res.Objects[0]
-	g.Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
-	g.Expect(first.Name).To(Equal(reconciledObj.Name))
+	g.Expect(first.Payload).To(ContainSubstring("Deployment"))
+	g.Expect(first.Payload).To(ContainSubstring(reconciledObj.Name))
+}
+
+func TestGetReconciledObjectsWithSecret(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	k, err := client.New(k8sEnv.Rest, client.Options{
+		Scheme: scheme,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	automationName := "my-automation"
+	ns := newNamespace(ctx, k, g)
+
+	reconciledObj := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-secret",
+			Namespace: ns.Name,
+			UID:       "this-is-not-an-uid",
+			Labels: map[string]string{
+				server.KustomizeNameKey:      automationName,
+				server.KustomizeNamespaceKey: ns.Name,
+			},
+		},
+		TypeMeta: metav1.TypeMeta{Kind: "Secret", APIVersion: "v1"},
+		Data:     map[string][]byte{"username": []byte("username"), "password": []byte("password")},
+	}
+
+	g.Expect(k.Create(ctx, &reconciledObj)).Should(Succeed())
+
+	res, err := c.GetReconciledObjects(ctx, &pb.GetReconciledObjectsRequest{
+		AutomationName: automationName,
+		Namespace:      ns.Name,
+		AutomationKind: kustomizev1.KustomizationKind,
+		Kinds:          []*pb.GroupVersionKind{{Group: "", Version: "v1", Kind: "Secret"}},
+		ClusterName:    clustersmngr.DefaultCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Objects).To(HaveLen(1))
+
+	first := res.Objects[0]
+	g.Expect(first.Payload).To(ContainSubstring("redacted"))
 }
 
 func TestGetChildObjects(t *testing.T) {
@@ -167,8 +216,8 @@ func TestGetChildObjects(t *testing.T) {
 	g.Expect(res.Objects).To(HaveLen(1))
 
 	first := res.Objects[0]
-	g.Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
-	g.Expect(first.Name).To(Equal(rs.Name))
+	g.Expect(first.Payload).To(ContainSubstring("ReplicaSet"))
+	g.Expect(first.Payload).To(ContainSubstring(rs.Name))
 }
 
 func TestListFluxRuntimeObjects(t *testing.T) {

@@ -26,6 +26,7 @@ export class FluxObject {
   clusterName: string;
   tenant: string;
   uid: string;
+  children: FluxObject[];
 
   constructor(response: ResponseObject) {
     try {
@@ -68,8 +69,8 @@ export class FluxObject {
     return Boolean(this.obj.spec?.suspend); // if this is missing, it's not suspended
   }
 
-  get type(): Kind | undefined {
-    return this.obj.kind;
+  get type(): Kind | string | undefined {
+    return this.obj.kind || this.obj.groupVersionKind?.kind;
   }
 
   get conditions(): Condition[] {
@@ -101,6 +102,14 @@ export class FluxObject {
 
   get lastUpdatedAt(): string {
     return this.obj.status?.artifact?.lastUpdateTime || "";
+  }
+
+  get images(): string[] {
+    const spec = this.obj.spec;
+    if (!spec) return [];
+    if (spec.template) return spec.template.spec.containers.map((x) => x.image);
+    if (spec.containers) return spec.containers.map((x) => x.image);
+    return [];
   }
 }
 
@@ -299,27 +308,31 @@ export type FluxObjectNodesMap = { [key: string]: FluxObjectNode };
 export class FluxObjectNode {
   obj: any;
   uid: string;
-  displayKind?: string;
+  type?: string;
   name: string;
   namespace: string;
+  clusterName: string;
   suspended: boolean;
   conditions: Condition[];
   dependsOn: NamespacedObjectReference[];
   isCurrentNode?: boolean;
+  yaml: string;
   id: string;
   parentIds: string[];
 
   constructor(fluxObject: FluxObject, isCurrentNode?: boolean) {
     this.obj = fluxObject.obj;
     this.uid = fluxObject.uid;
-    this.displayKind = fluxObject.type;
+    this.type = fluxObject.type;
     this.name = fluxObject.name;
     this.namespace = fluxObject.namespace;
+    this.clusterName = fluxObject.clusterName;
     this.suspended = fluxObject.suspended;
     this.conditions = fluxObject.conditions;
     this.dependsOn =
       (fluxObject as Kustomization | HelmRelease).dependsOn || [];
     this.isCurrentNode = isCurrentNode;
+    this.yaml = fluxObject.yaml;
     this.id = makeObjectId(this.namespace, this.name);
     this.parentIds = this.dependsOn.map((dependency) => {
       const namespace = dependency.namespace || this.namespace;
