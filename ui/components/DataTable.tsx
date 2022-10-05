@@ -85,6 +85,11 @@ const TableButton = styled(Button)`
   }
 `;
 
+const TopBar = styled(Flex)`
+  max-width: 100%;
+  overflow: hidden;
+`;
+
 const IconFlex = styled(Flex)`
   position: relative;
   padding: 0 ${(props) => props.theme.spacing.small};
@@ -383,10 +388,11 @@ function UnstyledDataTable({
   };
 
   const handleTextSearchSubmit = (val: string) => {
-    setFilterState({
-      ...filterState,
-      textFilters: _.uniq(_.concat(filterState.textFilters, val)),
-    });
+    if (val)
+      setFilterState({
+        ...filterState,
+        textFilters: _.uniq(_.concat(filterState.textFilters, val)),
+      });
   };
 
   const handleClearAll = () => {
@@ -480,15 +486,10 @@ function UnstyledDataTable({
   });
   return (
     <Flex wide tall column className={className}>
-      <Flex
-        wide
-        align
-        between={filters ? true : false}
-        start={filters ? false : true}
-      >
+      <TopBar wide align end>
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
-          <Flex wide align end>
+          <>
             <ChipGroup
               chips={chips}
               onChipRemove={handleChipRemove}
@@ -498,7 +499,6 @@ function UnstyledDataTable({
               <SearchField onSubmit={handleTextSearchSubmit} />
               <IconButton
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}
-                className={className}
                 variant={filterDialogOpen ? "contained" : "text"}
                 color="inherit"
               >
@@ -509,9 +509,9 @@ function UnstyledDataTable({
                 />
               </IconButton>
             </IconFlex>
-          </Flex>
+          </>
         )}
-      </Flex>
+      </TopBar>
       <Flex wide tall>
         <TableContainer>
           <Table aria-label="simple table">
