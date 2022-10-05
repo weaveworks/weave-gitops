@@ -243,7 +243,6 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c3 {
   max-width: 100%;
-  overflow: hidden;
 }
 
 .c1 {
