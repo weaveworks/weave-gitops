@@ -67,7 +67,7 @@ export type GetReconciledObjectsRequest = {
 }
 
 export type GetReconciledObjectsResponse = {
-  objects?: Gitops_coreV1Types.UnstructuredObject[]
+  objects?: Gitops_coreV1Types.Object[]
 }
 
 export type GetChildObjectsRequest = {
@@ -78,7 +78,7 @@ export type GetChildObjectsRequest = {
 }
 
 export type GetChildObjectsResponse = {
-  objects?: Gitops_coreV1Types.UnstructuredObject[]
+  objects?: Gitops_coreV1Types.Object[]
 }
 
 export type GetFluxNamespaceRequest = {
