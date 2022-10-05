@@ -87,7 +87,6 @@ const TableButton = styled(Button)`
 
 const TopBar = styled(Flex)`
   max-width: 100%;
-  overflow: hidden;
 `;
 
 const IconFlex = styled(Flex)`
