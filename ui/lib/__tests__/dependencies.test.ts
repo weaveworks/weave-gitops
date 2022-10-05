@@ -1,4 +1,4 @@
-import { getNeighborNodes, getGraphNodes } from "../dependencies";
+import { getGraphNodes, getNeighborNodes } from "../dependencies";
 import {
   FluxObjectNode,
   FluxObjectNodesMap,
@@ -29,6 +29,8 @@ describe("dependencies", () => {
       },
     ],
     isCurrentNode: false,
+    clusterName: "cluster",
+    yaml: "yaml",
   };
 
   const nodes: FluxObjectNode[] = [

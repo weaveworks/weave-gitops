@@ -1,19 +1,19 @@
 import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import { UnstructuredObjectWithChildren } from "../lib/graph";
+import { AppContext } from "../contexts/AppContext";
+import { Kind } from "../lib/api/core/types.pb";
 import images from "../lib/images";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObjectNode } from "../lib/objects";
 import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
-
-type DirectedGraphNode = UnstructuredObjectWithChildren & { kind: string } & {
-  isCurrentNode?: boolean;
-};
+import Link from "./Link";
+import Text from "./Text";
 
 type Props = {
   className?: string;
-  object?: FluxObjectNode | DirectedGraphNode;
+  object?: FluxObjectNode;
 };
 
 const nodeBorderRadius = 30;
@@ -38,10 +38,6 @@ const NodeText = styled(Flex)`
   width: 90%;
   align-items: flex-start;
   justify-content: space-evenly;
-`;
-
-const Title = styled(Flex)`
-  font-size: ${titleFontSize};
 `;
 
 const Kinds = styled(Flex)`
@@ -87,36 +83,49 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
   }
 }
 
-const StyledObjectName = styled.span<{ isCurrentNode: boolean }>`
-  font-weight: ${(p) => p.isCurrentNode && "600"};
-`;
-
 function GraphNode({ className, object }: Props) {
+  const { setNodeYaml } = React.useContext(AppContext);
   const status = computeReady(object.conditions);
-
-  const directedGraphNode = object as DirectedGraphNode;
-
+  const secret = object.type === "Secret";
   return (
     <Node wide tall between className={className}>
       <StatusLine suspended={object.suspended} status={status} />
       <NodeText tall column>
-        <Title start wide align>
+        <Flex start wide align>
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
           <Tooltip
-            placement="top"
             title={object.name.length > 23 ? object.name : ""}
+            placement="top"
           >
-            <StyledObjectName isCurrentNode={object.isCurrentNode}>
-              {object.name}
-            </StyledObjectName>
+            {Kind[object.type] ? (
+              <div>
+                <Link
+                  to={formatURL(objectTypeToRoute(Kind[object.type]), {
+                    name: object.name,
+                    namespace: object.namespace,
+                    clusterName: object.clusterName,
+                  })}
+                  textProps={{ size: "huge", semiBold: object.isCurrentNode }}
+                >
+                  {object.name}
+                </Link>
+              </div>
+            ) : (
+              <Text
+                size="huge"
+                onClick={() => (secret ? null : setNodeYaml(object))}
+                color={secret ? "neutral40" : "primary10"}
+                pointer={!secret}
+                semiBold={object.isCurrentNode}
+              >
+                {object.name}
+              </Text>
+            )}
           </Tooltip>
-        </Title>
+        </Flex>
         <Kinds start wide align>
-          {(object as FluxObjectNode).displayKind ||
-            directedGraphNode.kind ||
-            directedGraphNode.groupVersionKind.kind ||
-            ""}
+          {object.type || ""}
         </Kinds>
         <Kinds start wide align>
           <span>{object.namespace}</span>
@@ -127,7 +136,8 @@ function GraphNode({ className, object }: Props) {
 }
 
 export default styled(GraphNode).attrs({ className: GraphNode.name })`
-  span {
+  span,
+  a {
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;

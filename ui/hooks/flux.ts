@@ -7,12 +7,9 @@ import {
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
-import {
-  GroupVersionKind,
-  Kind,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
-import { getChildren, UnstructuredObjectWithChildren } from "../lib/graph";
+import { GroupVersionKind, Kind } from "../lib/api/core/types.pb";
+import { getChildren } from "../lib/graph";
+import { FluxObject } from "../lib/objects";
 import {
   DefaultCluster,
   NoNamespace,
@@ -47,7 +44,7 @@ export function useListFluxCrds(clusterName = DefaultCluster) {
   );
 }
 
-export function flattenChildren(children: UnstructuredObjectWithChildren[]) {
+export function flattenChildren(children: FluxObject[]) {
   return children.flatMap((child) =>
     [child].concat(flattenChildren(child.children))
   );
@@ -59,7 +56,7 @@ export function useGetReconciledObjects(
   type: Kind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster,
-  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+  opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
@@ -84,14 +81,14 @@ export function useGetReconciledTree(
   type: Kind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster,
-  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+  opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<UnstructuredObject[], RequestError>(
+  return useQuery<FluxObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
     () => getChildren(api, name, namespace, type, kinds, clusterName),
     opts

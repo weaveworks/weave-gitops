@@ -3,15 +3,15 @@ import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledTree } from "../hooks/flux";
-import { ObjectRef } from "../lib/api/core/types.pb";
+import { Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
-import { ReconciledVisualizationProps } from "./ReconciledObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
-export type Props = ReconciledVisualizationProps & {
+export type Props = {
+  className?: string;
   parentObject: Automation;
   source: ObjectRef;
 };
@@ -35,14 +35,7 @@ const GraphDiv = styled.div`
   height: 100%;
 `;
 
-function ReconciliationGraph({
-  className,
-  parentObject,
-  automationKind,
-  kinds,
-  clusterName,
-  source,
-}: Props) {
+function ReconciliationGraph({ className, parentObject, source }: Props) {
   //grab data
   const {
     data: objects,
@@ -50,11 +43,11 @@ function ReconciliationGraph({
     isLoading,
   } = parentObject
     ? useGetReconciledTree(
-        parentObject?.name,
-        parentObject?.namespace,
-        automationKind,
-        kinds,
-        clusterName
+        parentObject.name,
+        parentObject.namespace,
+        Kind[parentObject.type],
+        parentObject.inventory,
+        parentObject.clusterName
       )
     : { data: [], error: null, isLoading: false };
   //add extra nodes
@@ -63,13 +56,16 @@ function ReconciliationGraph({
     namespace: parentObject.namespace,
     suspended: parentObject.suspended,
     conditions: parentObject.conditions,
-    kind: parentObject.type,
+    type: parentObject.type,
+    clusterName: parentObject.clusterName,
     children: objects,
     isCurrentNode: true,
   };
+
   const rootNode = {
     ...source,
-    kind: source.kind,
+    type: source.kind,
+    clusterName: parentObject.clusterName,
     children: [secondNode],
   };
   //graph numbers

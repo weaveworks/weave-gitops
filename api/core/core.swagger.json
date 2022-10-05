@@ -623,7 +623,7 @@
         "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
+            "$ref": "#/definitions/v1Object"
           }
         }
       }
@@ -687,7 +687,7 @@
         "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1UnstructuredObject"
+            "$ref": "#/definitions/v1Object"
           }
         }
       }
@@ -916,45 +916,6 @@
     },
     "v1ToggleSuspendResourceResponse": {
       "type": "object"
-    },
-    "v1UnstructuredObject": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Condition"
-          }
-        },
-        "suspended": {
-          "type": "boolean"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "images": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "title": "UnstructuredObject is a Kubernetes object of an unknown type"
     }
   }
 }
