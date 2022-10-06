@@ -155,7 +155,7 @@ func (cw *ClustersWatcher) Unsubscribe() {
 	close(cw.Updates)
 }
 
-func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, clientFactory ClientFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
+func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clientFactory ClientFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
 	return &clustersManager{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -166,7 +166,7 @@ func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logg
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
-		newClustersPool:     clusterPoolFactory,
+		newClustersPool:     NewClustersClientsPool,
 		createClient:        clientFactory,
 		kubeConfigOptions:   []KubeConfigOption{},
 		watchers:            []*ClustersWatcher{},
