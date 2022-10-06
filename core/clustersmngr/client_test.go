@@ -19,7 +19,6 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/fields"
 )
@@ -476,7 +475,8 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 
 	err = clientsPool.Add(
 		// Put the user in the `system:masters` group to avoid auth errors
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}),
+		// clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}),
+		k8sEnv.Client,
 		clustersmngr.Cluster{
 			Name:      clusterName,
 			Server:    k8sEnv.Rest.Host,
