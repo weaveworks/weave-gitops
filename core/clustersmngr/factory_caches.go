@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/cheshir/ttlcache"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -165,7 +164,7 @@ func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) u
 }
 
 func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
-	uc.Cache.Set(uc.cacheKey(user, clusterName), client, 5*time.Minute)
+	uc.Cache.Set(uc.cacheKey(user, clusterName), client, usersClientsTTL)
 }
 
 func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {

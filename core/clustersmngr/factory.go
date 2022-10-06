@@ -35,6 +35,8 @@ const (
 	watchNamespaceFrequency = 30 * time.Second
 	kubeClientDialTimeout   = 5 * time.Second
 	kubeClientDialKeepAlive = 30 * time.Second
+	usersClientResolution   = 30 * time.Second
+	usersClientsTTL         = 30 * time.Minute
 )
 
 var (
@@ -161,7 +163,7 @@ func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logg
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
 		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
-		usersClients:        &UsersClients{Cache: ttlcache.New(userNamespaceResolution)},
+		usersClients:        &UsersClients{Cache: ttlcache.New(usersClientResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
