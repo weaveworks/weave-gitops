@@ -33,7 +33,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -75,7 +75,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -100,7 +100,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -162,7 +162,7 @@ func TestUpdateUsers(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -212,7 +212,7 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 
@@ -250,7 +250,7 @@ func TestUpdateClusters(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 

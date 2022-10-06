@@ -104,6 +104,7 @@ var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
+type ClientFactoryFn func(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
 
 type clustersManager struct {
 	clustersFetcher ClusterFetcher
@@ -123,6 +124,7 @@ type clustersManager struct {
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
+	createClient        ClientFactoryFn
 	kubeConfigOptions   []KubeConfigOption
 	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
@@ -153,7 +155,7 @@ func (cw *ClustersWatcher) Unsubscribe() {
 	close(cw.Updates)
 }
 
-func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
+func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, clientFactory ClientFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
 	return &clustersManager{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
@@ -165,6 +167,7 @@ func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logg
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
 		newClustersPool:     clusterPoolFactory,
+		createClient:        clientFactory,
 		kubeConfigOptions:   []KubeConfigOption{},
 		watchers:            []*ClustersWatcher{},
 	}
@@ -514,10 +517,42 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	}
 
 	if client, found := cf.usersClients.Get(user, cluster.Name); found {
-		cf.log.Info("returning cached client for", "user", user.ID, "cluster", cluster.Name)
 		return client, nil
 	}
 
+	client, err := cf.createClient(ctx, user, cfgFunc, cluster, cf.scheme)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating client for cluster=%s: %w", cluster.Name, err)
+	}
+
+	cf.usersClients.Set(user, cluster.Name, client)
+
+	return client, nil
+}
+
+func ClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+	config, err := cfgFunc(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("error building cluster client config: %w", err)
+	}
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	if err != nil {
+		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
+	}
+
+	client, err := client.New(config, client.Options{
+		Scheme: scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create leaf client: %w", err)
+	}
+
+	return client, nil
+}
+
+func CachedClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 	config, err := cfgFunc(cluster)
 	if err != nil {
 		return nil, fmt.Errorf("error building cluster client config: %w", err)
@@ -529,7 +564,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	}
 
 	leafClient, err := client.New(config, client.Options{
-		Scheme: cf.scheme,
+		Scheme: scheme,
 		Mapper: mapper,
 	})
 	if err != nil {
@@ -537,14 +572,14 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	}
 
 	cache, err := cache.New(config, cache.Options{
-		Scheme: cf.scheme,
+		Scheme: scheme,
 		Mapper: mapper,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed creating client cache: %w", err)
 	}
 
-	delegatingCache := NewDelegatingCache(leafClient, cache, cf.scheme)
+	delegatingCache := NewDelegatingCache(leafClient, cache, scheme)
 
 	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
 		CacheReader: delegatingCache,
@@ -559,13 +594,13 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 		return nil, fmt.Errorf("failed creating DelegatingClient: %w", err)
 	}
 
+	ctx = context.Background()
+
 	go delegatingCache.Start(ctx)
 
 	if ok := delegatingCache.WaitForCacheSync(ctx); !ok {
 		return nil, errors.New("failed syncing client cache")
 	}
-
-	cf.usersClients.Set(user, cluster.Name, delegatingClient)
 
 	return delegatingClient, nil
 }
