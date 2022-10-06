@@ -19,7 +19,7 @@ export enum ReadyType {
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
-  if (!conditions || !conditions[0]) return undefined;
+  if (!conditions?.length) return undefined;
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
@@ -39,7 +39,7 @@ export function computeReady(conditions: Condition[]): ReadyType {
 }
 
 export function computeMessage(conditions: Condition[]) {
-  if (!conditions || !conditions[0]) return undefined;
+  if (!conditions?.length) return undefined;
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
