@@ -111,6 +111,50 @@ describe("KubeStatusIndicator", () => {
     const msg = screen.getByText("Suspended");
     expect(msg).toBeTruthy();
   });
+  it("handles conditions without type: Ready and status: False", () => {
+    const notReady = [
+      {
+        type: "test-condition",
+        status: "True",
+        reason: "ReconciliationSucceeded",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+      {
+        type: "other-test-condition",
+        status: "False",
+        reason: "ReconciliationFailed",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+    ];
+    render(withTheme(<KubeStatusIndicator conditions={notReady} />));
+    expect(screen.getByText(notReady[1].message)).toBeTruthy();
+  });
+  it("handles conditions without type: Ready and status: True", () => {
+    const notReady = [
+      {
+        type: "test-condition",
+        status: "True",
+        reason: "ReconciliationSucceeded",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+      {
+        type: "other-test-condition",
+        status: "True",
+        reason: "ReconciliationDidItBigTime",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+    ];
+    render(withTheme(<KubeStatusIndicator conditions={notReady} />));
+    expect(screen.getByText(notReady[0].message)).toBeTruthy();
+  });
   describe("snapshots", () => {
     it("renders success", () => {
       const conditions = [
