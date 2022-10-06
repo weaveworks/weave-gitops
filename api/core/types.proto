@@ -92,19 +92,6 @@ message Crd {
     string   uid                  = 5;
 }
 
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind     = 1;
-    string           name                 = 2;
-    string           namespace            = 3;
-    string           uid                  = 4;
-    string           status               = 5;
-    repeated         Condition conditions = 6;
-    bool             suspended            = 7;
-    string           clusterName          = 8;
-    repeated         string images        = 9;
-}
-
 message Namespace {
   string name = 1;
   string status = 2;

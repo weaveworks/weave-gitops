@@ -67,7 +67,7 @@ var _ = Describe("InstallDashboard", func() {
 	})
 })
 
-func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client.ObjectKey, obj client.Object) error {
+func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	switch man.state {
 	case stateGetDashboardHelmChartGetReturnErr:
 		return errors.New(getDashboardErrorMsg)

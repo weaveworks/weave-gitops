@@ -34,7 +34,7 @@ func NewDelegatingCache(cr client.Reader, cache cache.Cache, scheme *runtime.Sch
 	return dc
 }
 
-func (dc delegatingCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (dc delegatingCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	gvk, err := apiutil.GVKForObject(obj, dc.scheme)
 	if err != nil {
 		return err

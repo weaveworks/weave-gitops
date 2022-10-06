@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -15,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/kustomize/kstatus/status"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -238,38 +238,39 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 	wg.Wait()
 
-	objects := []*pb.UnstructuredObject{}
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	objects := []*pb.Object{}
+	respErrors := multierror.Error{}
 
 	for _, obj := range result {
-		res, err := status.Compute(&obj)
-		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
+		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+		var o *pb.Object
+
+		if obj.GetKind() == "Secret" {
+			cleanSecret, err := sanitizeSecret(&obj)
+			if err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("error sanitizing secrets: %w", err), respErrors.Errors...)
+				continue
+			}
+
+			o, err = coretypes.K8sObjectToProto(cleanSecret, msg.ClusterName, tenant, nil)
+			if err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+				continue
+			}
+		} else {
+			o, err = coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+			if err != nil {
+				respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+				continue
+			}
 		}
 
-		var images []string
-
-		switch obj.GetKind() {
-		case "Deployment":
-			images = getDeploymentPodContainerImages(obj.Object)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Name:        obj.GetName(),
-			Namespace:   obj.GetNamespace(),
-			Images:      images,
-			Status:      res.Status.String(),
-			Uid:         string(obj.GetUID()),
-			Conditions:  mapUnstructuredConditions(res),
-			ClusterName: msg.GetClusterName(),
-		})
+		objects = append(objects, o)
 	}
 
-	return &pb.GetReconciledObjectsResponse{Objects: objects}, nil
+	return &pb.GetReconciledObjectsResponse{Objects: objects}, respErrors.ErrorOrNil()
 }
 
 func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
@@ -290,7 +291,9 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
-	objects := []*pb.UnstructuredObject{}
+	respErrors := multierror.Error{}
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	objects := []*pb.Object{}
 
 ItemsLoop:
 	for _, obj := range listResult.Items {
@@ -310,92 +313,33 @@ ItemsLoop:
 			}
 		}
 
-		statusResult, err := status.Compute(&obj)
+		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+
+		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+
 		if err != nil {
-			return nil, fmt.Errorf("could not get status for %s: %w", obj.GetName(), err)
+			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+			continue
 		}
-
-		var images []string
-
-		switch obj.GetKind() {
-		case "Pod":
-			images = getPodContainerImages(obj.Object)
-		case "ReplicaSet":
-			replicasFound := status.GetIntField(obj.UnstructuredContent(), ".status.replicas", 0)
-
-			if replicasFound == 0 {
-				continue ItemsLoop
-			}
-			images = getReplicaSetPodContainerImages(obj.Object)
-		}
-
-		objects = append(objects, &pb.UnstructuredObject{
-			GroupVersionKind: &pb.GroupVersionKind{
-				Group:   obj.GetObjectKind().GroupVersionKind().Group,
-				Version: obj.GetObjectKind().GroupVersionKind().GroupVersion().Version,
-				Kind:    obj.GetKind(),
-			},
-			Images:      images,
-			Name:        obj.GetName(),
-			Namespace:   obj.GetNamespace(),
-			Status:      statusResult.Status.String(),
-			Uid:         string(obj.GetUID()),
-			Conditions:  mapUnstructuredConditions(statusResult),
-			ClusterName: msg.GetClusterName(),
-		})
+		objects = append(objects, obj)
 	}
 
 	return &pb.GetChildObjectsResponse{Objects: objects}, nil
 }
 
-func mapUnstructuredConditions(result *status.Result) []*pb.Condition {
-	conds := []*pb.Condition{}
-
-	if result.Status == status.CurrentStatus {
-		conds = append(conds, &pb.Condition{Type: "Ready", Status: "True", Message: result.Message})
+func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
+	bytes, err := obj.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("marshaling secret: %v", err)
 	}
 
-	return conds
-}
+	s := &v1.Secret{}
 
-func getContainerImages(containers []interface{}) []string {
-	images := []string{}
-
-	for _, item := range containers {
-		container, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		image, ok, _ := unstructured.NestedString(container, "image")
-		if ok {
-			images = append(images, image)
-		}
+	if err := json.Unmarshal(bytes, s); err != nil {
+		return nil, fmt.Errorf("unmarshaling secret: %v", err)
 	}
 
-	return images
-}
+	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
-func getPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(obj, "spec", "containers")
-
-	return getContainerImages(containers)
-}
-
-func getReplicaSetPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(
-		obj,
-		"spec", "template", "spec", "containers",
-	)
-
-	return getContainerImages(containers)
-}
-
-func getDeploymentPodContainerImages(obj map[string]interface{}) []string {
-	containers, _, _ := unstructured.NestedSlice(
-		obj,
-		"spec", "template", "spec", "containers",
-	)
-
-	return getContainerImages(containers)
+	return s, nil
 }

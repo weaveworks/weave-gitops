@@ -92,6 +92,7 @@ exports[`Footer snapshots default 1`] = `
 
 .c1 {
   color: #737373;
+  padding-top: 12px;
 }
 
 <footer
@@ -305,6 +306,7 @@ exports[`Footer snapshots no api version 1`] = `
 
 .c1 {
   color: #737373;
+  padding-top: 12px;
 }
 
 <footer

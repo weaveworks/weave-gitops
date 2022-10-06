@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
+import { Kind } from "../lib/api/core/types.pb";
 import { getGraphNodes } from "../lib/dependencies";
 import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
@@ -41,7 +42,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     null
   );
 
-  const automationKind = automation?.type;
+  const automationKind = Kind[automation?.type];
 
   const {
     data,

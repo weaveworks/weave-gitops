@@ -56,7 +56,7 @@ function SourcesTable({ className, sources }: Props) {
       label: "Name",
       value: (s: Source) => (
         <Link
-          to={formatURL(objectTypeToRoute(s.type), {
+          to={formatURL(objectTypeToRoute(Kind[s.type]), {
             name: s?.name,
             namespace: s?.namespace,
             clusterName: s?.clusterName,
