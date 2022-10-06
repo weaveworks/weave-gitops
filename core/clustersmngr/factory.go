@@ -322,7 +322,7 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			client, err := cf.getOrCreateClient(user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster)
+			client, err := cf.getOrCreateClient(ctx, user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster)
 			if err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating user client to pool: %w", err)}
 				return
@@ -367,7 +367,7 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	client, err := cf.getOrCreateClient(user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cl)
+	client, err := cf.getOrCreateClient(ctx, user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cl)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating cluster client to pool: %w", err)
 	}
@@ -423,7 +423,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			client, err := cf.getOrCreateClient(nil, ClientConfigAsServer(cf.kubeConfigOptions...), cluster)
+			client, err := cf.getOrCreateClient(ctx, nil, ClientConfigAsServer(cf.kubeConfigOptions...), cluster)
 			if err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating server client to pool: %w", err)}
 				return
@@ -506,7 +506,7 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	return cf.GetUserNamespaces(user)
 }
 
-func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster) (client.Client, error) {
+func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster) (client.Client, error) {
 	if user == nil {
 		user = &auth.UserPrincipal{
 			ID: "weave-gitops-server",
@@ -558,8 +558,6 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cfgFunc C
 	if err != nil {
 		return nil, fmt.Errorf("failed creating DelegatingClient: %w", err)
 	}
-
-	ctx := context.Background()
 
 	go delegatingCache.Start(ctx)
 

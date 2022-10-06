@@ -19,7 +19,8 @@ import (
 func TestGetImpersonatedClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
@@ -60,7 +61,9 @@ func TestGetImpersonatedClient(t *testing.T) {
 func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ns1 := createNamespace(g)
 
@@ -89,7 +92,8 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 func TestUpdateNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
@@ -136,8 +140,7 @@ func TestUpdateNamespaces(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2, c3}, nil)
 
 		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed adding cluster client to pool.*cluster: %s.*", clusterName3)))
-
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed creating server client to pool.*cluster: %s.*", clusterName3)))
 		contents := clustersManager.GetClustersNamespaces()
 
 		g.Expect(contents).To(HaveLen(2))
@@ -149,7 +152,10 @@ func TestUpdateNamespaces(t *testing.T) {
 func TestUpdateUsers(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
@@ -196,7 +202,10 @@ func TestUpdateUsers(t *testing.T) {
 func TestUpdateUsersFailsToConnect(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
@@ -230,7 +239,9 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 func TestUpdateClusters(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 
