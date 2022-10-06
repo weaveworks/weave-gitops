@@ -105,16 +105,11 @@ func (cn *ClustersNamespaces) Clear() {
 	cn.namespaces = make(map[string][]v1.Namespace)
 }
 
-func (cn *ClustersNamespaces) Get(cluster string) ([]v1.Namespace, bool) {
+func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
 	cn.Lock()
 	defer cn.Unlock()
 
-	clusterObj, ok := cn.namespaces[cluster]
-	if !ok {
-		return nil, false
-	}
-
-	return clusterObj, true
+	return cn.namespaces[cluster]
 }
 
 type UsersNamespaces struct {
@@ -152,7 +147,7 @@ func (un *UsersNamespaces) Clear() {
 }
 
 func (un UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
-	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.Hash(), cluster))
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
 }
 
 type UsersClients struct {
