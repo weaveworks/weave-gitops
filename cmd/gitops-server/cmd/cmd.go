@@ -174,7 +174,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.CachedClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	clustersManager.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clustersManager)

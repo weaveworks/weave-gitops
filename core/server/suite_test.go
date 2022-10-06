@@ -151,7 +151,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 		t.Fatal(err)
 	}
 
-	clientFn := func(ctx context.Context, user *auth.UserPrincipal, cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+	clientFn := func(user *auth.UserPrincipal, cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 		return fakeClient, nil
 	}
 

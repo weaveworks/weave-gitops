@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -104,7 +103,7 @@ var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
-type ClientFactoryFn func(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
+type ClientFactoryFn func(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
 
 type clustersManager struct {
 	clustersFetcher ClusterFetcher
@@ -520,7 +519,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 		return client, nil
 	}
 
-	client, err := cf.createClient(ctx, user, cfgFunc, cluster, cf.scheme)
+	client, err := cf.createClient(user, cfgFunc, cluster, cf.scheme)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating client for cluster=%s: %w", cluster.Name, err)
 	}
@@ -530,7 +529,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	return client, nil
 }
 
-func ClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+func ClientFactory(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 	config, err := cfgFunc(cluster)
 	if err != nil {
 		return nil, fmt.Errorf("error building cluster client config: %w", err)
@@ -552,7 +551,7 @@ func ClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc Cluste
 	return client, nil
 }
 
-func CachedClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+func CachedClientFactory(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 	config, err := cfgFunc(cluster)
 	if err != nil {
 		return nil, fmt.Errorf("error building cluster client config: %w", err)
@@ -587,16 +586,16 @@ func CachedClientFactory(ctx context.Context, user *auth.UserPrincipal, cfgFunc 
 		// Non-exact field matches are not supported by the cache.
 		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
 		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
-		UncachedObjects:   []client.Object{&corev1.Event{}},
+		UncachedObjects:   []client.Object{&v1.Event{}},
 		CacheUnstructured: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed creating DelegatingClient: %w", err)
 	}
 
-	ctx = context.Background()
+	ctx := context.Background()
 
-	go delegatingCache.Start(ctx)
+	go delegatingCache.Start(ctx) //nolint:errcheck
 
 	if ok := delegatingCache.WaitForCacheSync(ctx); !ok {
 		return nil, errors.New("failed syncing client cache")

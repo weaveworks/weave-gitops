@@ -19,6 +19,7 @@ import (
 func TestGetImpersonatedClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -92,8 +93,10 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 func TestUpdateNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
