@@ -69,6 +69,8 @@ type Options struct {
 	// Metrics
 	EnableMetrics  bool
 	MetricsAddress string
+
+	UseK8sCachedClients bool
 }
 
 var options Options
@@ -88,6 +90,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
+	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", true, "Enables the use of cached clients")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
@@ -174,7 +177,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(rest)
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.CachedClientFactory, clustersmngr.DefaultKubeConfigOptions)
+	clientsFactory := clustersmngr.CachedClientFactory
+	if !options.UseK8sCachedClients {
+		clientsFactory = clustersmngr.ClientFactory
+	}
+
+	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clientsFactory, clustersmngr.DefaultKubeConfigOptions)
 	clustersManager.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clustersManager)
