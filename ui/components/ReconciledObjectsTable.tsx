@@ -2,11 +2,12 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { Automation, FluxObject } from "../lib/objects";
-import { NoNamespace } from "../lib/types";
+import { NoNamespace, V2Routes } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable, {
   filterByStatusCallback,
@@ -27,6 +28,8 @@ function ReconciledObjectsTable({
   className,
   automation,
 }: ReconciledVisualizationProps) {
+  const linkResolver = useLinkResolver();
+
   const {
     data: objs,
     error,
@@ -57,16 +60,24 @@ function ReconciledObjectsTable({
             value: (u: FluxObject) => {
               const kind = Kind[u.type];
               const secret = u.type === "Secret";
-              return kind ? (
-                <Link
-                  to={formatURL(objectTypeToRoute(kind), {
-                    name: u.name,
-                    namespace: u.namespace,
-                    clusterName: u.clusterName,
-                  })}
-                >
-                  {u.name}
-                </Link>
+              const route = objectTypeToRoute(kind);
+              const params = {
+                name: u.name,
+                namespace: u.namespace,
+                clusterName: u.clusterName,
+              };
+
+              let uri;
+
+              if (route) {
+                uri = formatURL(route, params);
+              } else {
+                uri =
+                  linkResolver && (linkResolver(u.type, params) as V2Routes);
+              }
+
+              return uri ? (
+                <Link to={uri}>{u.name}</Link>
               ) : (
                 <Text
                   onClick={() => (secret ? null : setNodeYaml(u))}

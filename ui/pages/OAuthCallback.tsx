@@ -6,6 +6,7 @@ import Alert from "../components/Alert";
 import Flex from "../components/Flex";
 import Page from "../components/Page";
 import { AppContext } from "../contexts/AppContext";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { useRequestState } from "../hooks/common";
 import {
   AuthorizeGitlabResponse,
@@ -21,13 +22,10 @@ type Props = {
 
 function OAuthCallback({ className, code, provider }: Props) {
   const history = useHistory();
-  const {
-    applicationsClient,
-    storeProviderToken,
-    getCallbackState,
-    linkResolver,
-  } = React.useContext(AppContext);
+  const { applicationsClient, storeProviderToken, getCallbackState } =
+    React.useContext(AppContext);
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
+  const linkResolver = useLinkResolver();
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {

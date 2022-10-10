@@ -3,6 +3,7 @@ package run
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -10,12 +11,6 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
-	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
-	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
-	"github.com/weaveworks/weave-gitops/pkg/run/install"
-	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -25,8 +20,12 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
+	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
+	"github.com/weaveworks/weave-gitops/pkg/run/install"
+	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -49,9 +48,16 @@ type RunCommandFlags struct {
 	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
 	DashboardPort   string
 	RootDir         string
+
+	// Session
+	SessionName      string
+	SessionNamespace string
+	DisableSession   bool
+
 	// Global flags.
 	Namespace  string
 	KubeConfig string
+
 	// Flags, created by genericclioptions.
 	Context string
 }
@@ -100,12 +106,38 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
+	cmdFlags.StringVar(&flags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
+	cmdFlags.StringVar(&flags.SessionNamespace, "session-namespace", "", "Specify the namespace of the session.")
+	cmdFlags.BoolVar(&flags.DisableSession, "disable-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
 	kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
+}
+
+func getSessionNameFromGit() string {
+	branch, err := run.GetBranchName()
+	if err != nil {
+		return ""
+	}
+
+	commit, err := run.GetCommitID()
+	if err != nil {
+		return ""
+	}
+
+	isDirty, err := run.IsDirty()
+	if err != nil {
+		return ""
+	}
+
+	if isDirty {
+		return fmt.Sprintf("%s-%s-dirty", branch, commit)
+	}
+
+	return fmt.Sprintf("%s-%s", branch, commit)
 }
 
 func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) error {
@@ -124,475 +156,497 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
+func runCommandWithSession(cmd *cobra.Command, args []string) error {
+	// create session
+	session, err := run.NewSession(flags.SessionName)
+	if err != nil {
+		return err
+	}
+
+	if err := session.Connect(flags.SessionNamespace); err != nil {
+		return err
+	}
+
+	return err
+}
+
+func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+	var err error
+
+	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
+		return err
+	}
+
+	kubeConfigArgs.Namespace = &flags.Namespace
+
+	if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
+		return err
+	}
+
+	if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
+		return err
+	}
+
+	gitRepoRoot, err := install.FindGitRepoDir()
+	if err != nil {
+		return err
+	}
+
+	rootDir := flags.RootDir
+	if rootDir == "" {
+		rootDir = gitRepoRoot
+	}
+
+	// check if rootDir is valid
+	if _, err := os.Stat(rootDir); err != nil {
+		return fmt.Errorf("root directory %s does not exist", rootDir)
+	}
+
+	// find absolute path of the root Dir
+	rootDir, err = filepath.Abs(rootDir)
+	if err != nil {
+		return err
+	}
+
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	targetPath, err := filepath.Abs(filepath.Join(currentDir, args[0]))
+	if err != nil {
+		return err
+	}
+
+	relativePath, err := install.GetRelativePathToRootDir(rootDir, targetPath)
+	if err != nil { // if there is no git repo, we return an error
+		return err
+	}
+
+	log := clilogger.NewCLILogger(os.Stdout)
+
+	if flags.KubeConfig != "" {
+		kubeConfigArgs.KubeConfig = &flags.KubeConfig
+
+		if flags.Context == "" {
+			log.Failuref("A context should be provided if a kubeconfig is provided")
+			return cmderrors.ErrNoContextForKubeConfig
+		}
+	}
+
+	log.Actionf("Checking for a cluster in the kube config ...")
+
+	var contextName string
+
+	if flags.Context != "" {
+		contextName = flags.Context
+	} else {
+		_, contextName, err = kube.RestConfig()
+		if err != nil {
+			log.Failuref("Error getting a restconfig: %v", err.Error())
+			return cmderrors.ErrNoCluster
+		}
+	}
+
+	cfg, err := kubeConfigArgs.ToRESTConfig()
+	if err != nil {
+		return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
+	}
+
+	kubeClientOpts := run.GetKubeClientOptions()
+	kubeClientOpts.BindFlags(cmd.Flags())
+
+	kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
+	if err != nil {
+		return cmderrors.ErrGetKubeClient
+	}
+
+	contextName = kubeClient.ClusterName
+	if flags.AllowK8sContext == contextName {
+		log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
+	} else if !run.IsLocalCluster(kubeClient) {
+		return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
+	}
+
+	ctx := context.Background()
+
+	log.Actionf("Checking if Flux is already installed ...")
+
+	fluxVersion := ""
+
+	if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		log.Warningf("Flux is not found: %v", err.Error())
+
+		product := fluxinstall.NewProduct(flags.FluxVersion)
+
+		installer := fluxinstall.NewInstaller()
+
+		execPath, err := installer.Ensure(ctx, product)
+		if err != nil {
+			execPath, err = installer.Install(ctx, product)
+			if err != nil {
+				return err
+			}
+		}
+
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		flux, err := fluxexec.NewFlux(wd, execPath)
+		if err != nil {
+			return err
+		}
+
+		flux.SetStdout(os.Stdout)
+		flux.SetStderr(os.Stderr)
+
+		var components []fluxexec.Component
+		for _, component := range flags.Components {
+			components = append(components, fluxexec.Component(component))
+		}
+
+		var componentsExtra []fluxexec.ComponentExtra
+		for _, component := range flags.ComponentsExtra {
+			componentsExtra = append(componentsExtra, fluxexec.ComponentExtra(component))
+		}
+
+		if err := flux.Install(ctx,
+			fluxexec.Components(components...),
+			fluxexec.ComponentsExtra(componentsExtra...),
+			fluxexec.WithGlobalOptions(
+				fluxexec.Namespace(flags.Namespace),
+				fluxexec.Timeout(flags.Timeout),
+			),
+		); err != nil {
+			return err
+		}
+	} else {
+		log.Successf("Flux version %s is found", fluxVersion)
+	}
+
+	log.Actionf("Checking if GitOps Dashboard is already installed ...")
+
+	dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+
+	if dashboardInstalled {
+		log.Successf("GitOps Dashboard is found")
+	} else {
+		prompt := promptui.Prompt{
+			Label:     "Would you like to install the GitOps Dashboard",
+			IsConfirm: true,
+			Default:   "Y",
+		}
+
+		result, err := prompt.Run()
+		if err == nil && strings.ToUpper(result) == "Y" {
+			password, err := install.ReadPassword(log)
+			if err != nil {
+				return err
+			}
+
+			secret, err := install.GenerateSecret(log, password)
+			if err != nil {
+				return err
+			}
+
+			man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			if err != nil {
+				log.Failuref("Error creating resource manager")
+				return err
+			}
+
+			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
+			if err != nil {
+				return fmt.Errorf("error creating dashboard objects: %w", err)
+			}
+
+			err = install.InstallDashboard(log, ctx, man, manifests)
+			if err != nil {
+				return fmt.Errorf("gitops dashboard installation failed: %w", err)
+			} else {
+				dashboardInstalled = true
+
+				log.Successf("GitOps Dashboard has been installed")
+			}
+		}
+	}
+
+	if dashboardInstalled {
+		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
+
+		if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
+		} else {
+			log.Successf("Dashboard reconciliation is done.")
+		}
+	}
+
+	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(log, kubeClient, cfg)
+	if err != nil {
+		return err
+	}
+
+	var cancelDashboardPortForwarding func() = nil
+
+	if dashboardInstalled {
+		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := watch.InitializeTargetDir(targetPath); err != nil {
+		return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
+	}
+
+	if err := watch.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
+		return err
+	}
+
+	ignorer := watch.CreateIgnorer(rootDir)
+
+	minioClient, err := minio.New(
+		"localhost:9000",
+		&minio.Options{
+			Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
+			Secure:       false,
+			BucketLookup: minio.BucketLookupPath,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	// watch for file changes in dir gitRepoRoot
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+
+	err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
+	if err != nil {
+		return err
+	}
+
+	// cancel function to stop forwarding port
+	var (
+		cancelPortFwd func()
+		counter       uint64 = 1
+		needToRescan  bool   = false
+	)
+	// atomic counter for the number of file change events that have changed
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Create == fsnotify.Create ||
+					event.Op&fsnotify.Remove == fsnotify.Remove ||
+					event.Op&fsnotify.Rename == fsnotify.Rename {
+					// if it's a dir, we need to watch it
+					if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+						needToRescan = true
+					}
+				}
+
+				if cancelPortFwd != nil {
+					cancelPortFwd()
+				}
+
+				atomic.AddUint64(&counter, 1)
+			case err := <-watcher.Errors:
+				if err != nil {
+					log.Failuref("Error: %v", err)
+				}
+			}
+		}
+	}()
+
+	// event aggregation loop
+	ticker := time.NewTicker(680 * time.Millisecond)
+
+	go func() {
+		for { // nolint:gosimple
+			select {
+			case <-ticker.C:
+				if counter > 0 {
+					log.Actionf("%d change events detected", counter)
+
+					// reset counter
+					atomic.StoreUint64(&counter, 0)
+
+					if err := watch.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
+						log.Failuref("Error syncing dir: %v", err)
+					}
+
+					if needToRescan {
+						// close the old watcher
+						if err := watcher.Close(); err != nil {
+							log.Warningf("Error closing the old watcher: %v", err)
+						}
+						// create a new watcher
+						watcher, err = fsnotify.NewWatcher()
+						if err != nil {
+							log.Failuref("Error creating new watcher: %v", err)
+						}
+
+						err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
+						if err != nil {
+							log.Failuref("Error re-walking dir: %v", err)
+						}
+
+						needToRescan = false
+					}
+
+					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
+
+					if err := watch.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+						log.Failuref("Error requesting reconciliation: %v", err)
+					}
+
+					log.Successf("Reconciliation is done.")
+
+					if flags.PortForward != "" {
+						specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
+						if err != nil {
+							log.Failuref("Error parsing port forward spec: %v", err)
+						}
+
+						// get pod from specMap
+						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
+
+						pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
+						if err != nil {
+							log.Failuref("Error getting pod from specMap: %v", err)
+						}
+
+						if pod != nil {
+							waitFwd := make(chan struct{}, 1)
+							readyChannel := make(chan struct{})
+							cancelPortFwd = func() {
+								close(waitFwd)
+
+								cancelPortFwd = nil
+							}
+
+							log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
+
+							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
+							if err := watch.ForwardPort(pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+								log.Failuref("Error forwarding port: %v", err)
+							}
+
+							log.Successf("Port forwarding is stopped.")
+						}
+					}
+				}
+			}
+		}
+	}()
+
+	// wait for interrupt or ctrl+C
+	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	sig := <-sigs
+
+	if err := watcher.Close(); err != nil {
+		log.Warningf("Error closing watcher: %v", err.Error())
+	}
+
+	// print a blank line to make it easier to read the logs
+	fmt.Println()
+	cancelDevBucketPortForwarding()
+
+	if cancelDashboardPortForwarding != nil {
+		cancelDashboardPortForwarding()
+	}
+
+	ticker.Stop()
+
+	if err := watch.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
+		return err
+	}
+
+	// uninstall dev-bucket server
+	if err := watch.UninstallDevBucketServer(log, kubeClient); err != nil {
+		return err
+	}
+
+	// run bootstrap wizard only if Flux is not installed and env var is set
+	if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
+		return nil
+	}
+
+	// re-enable listening for ctrl+C
+	signal.Reset(sig)
+
+	// parse remote
+	repo, err := bootstrap.ParseGitRemote(log, rootDir)
+	if err != nil {
+		log.Failuref("Error parsing Git remote: %v", err.Error())
+	}
+
+	// run the bootstrap wizard
+	log.Actionf("Starting bootstrap wizard ...")
+
+	log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
+
+	remoteURL, err := bootstrap.ParseRemoteURL(repo)
+	if err != nil {
+		log.Failuref("Error parsing remote URL: %v", err.Error())
+	}
+
+	var gitProvider bootstrap.GitProvider
+
+	if remoteURL == "" {
+		gitProvider, err = bootstrap.SelectGitProvider(log)
+		if err != nil {
+			log.Failuref("Error selecting git provider: %v", err.Error())
+		}
+	} else {
+		urlParts := bootstrap.GetURLParts(remoteURL)
+
+		if len(urlParts) > 0 {
+			gitProvider = bootstrap.ParseGitProvider(urlParts[0])
+		}
+	}
+
+	if gitProvider == bootstrap.GitProviderUnknown {
+		gitProvider, err = bootstrap.SelectGitProvider(log)
+		if err != nil {
+			log.Failuref("Error selecting git provider: %v", err.Error())
+		}
+	}
+
+	path := filepath.Join(relativePath, "clusters", "my-cluster")
+	path = "./" + path
+
+	wizard, err := bootstrap.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
+	if err != nil {
+		return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
+	}
+
+	if err = wizard.Run(log); err != nil {
+		return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
+	}
+
+	_ = wizard.BuildCmd(log)
+
+	log.Successf("Flux bootstrap command successfully built.")
+
+	return nil
+}
+
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var err error
-
-		if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
-			return err
-		}
-
-		kubeConfigArgs.Namespace = &flags.Namespace
-
-		if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
-			return err
-		}
-
-		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
-			return err
-		}
-
-		gitRepoRoot, err := install.FindGitRepoDir()
-		if err != nil {
-			return err
-		}
-
-		rootDir := flags.RootDir
-		if rootDir == "" {
-			rootDir = gitRepoRoot
-		}
-
-		// check if rootDir is valid
-		if _, err := os.Stat(rootDir); err != nil {
-			return fmt.Errorf("root directory %s does not exist", rootDir)
-		}
-
-		// find absolute path of the root Dir
-		rootDir, err = filepath.Abs(rootDir)
-		if err != nil {
-			return err
-		}
-
-		currentDir, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		targetPath, err := filepath.Abs(filepath.Join(currentDir, args[0]))
-		if err != nil {
-			return err
-		}
-
-		relativePath, err := install.GetRelativePathToRootDir(rootDir, targetPath)
-		if err != nil { // if there is no git repo, we return an error
-			return err
-		}
-
-		log := clilogger.NewCLILogger(os.Stdout)
-
-		if flags.KubeConfig != "" {
-			kubeConfigArgs.KubeConfig = &flags.KubeConfig
-
-			if flags.Context == "" {
-				log.Failuref("A context should be provided if a kubeconfig is provided")
-				return cmderrors.ErrNoContextForKubeConfig
-			}
-		}
-
-		log.Actionf("Checking for a cluster in the kube config ...")
-
-		var contextName string
-
-		if flags.Context != "" {
-			contextName = flags.Context
+		if flags.DisableSession {
+			return runCommandWithoutSession(cmd, args)
 		} else {
-			_, contextName, err = kube.RestConfig()
-			if err != nil {
-				log.Failuref("Error getting a restconfig: %v", err.Error())
-				return cmderrors.ErrNoCluster
-			}
+			return runCommandWithSession(cmd, args)
 		}
-
-		cfg, err := kubeConfigArgs.ToRESTConfig()
-		if err != nil {
-			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
-		}
-
-		kubeClientOpts := run.GetKubeClientOptions()
-		kubeClientOpts.BindFlags(cmd.Flags())
-
-		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
-		if err != nil {
-			return cmderrors.ErrGetKubeClient
-		}
-
-		contextName = kubeClient.ClusterName
-		if flags.AllowK8sContext == contextName {
-			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
-		} else if !run.IsLocalCluster(kubeClient) {
-			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
-		}
-
-		ctx := context.Background()
-
-		log.Actionf("Checking if Flux is already installed ...")
-
-		fluxVersion := ""
-
-		if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
-			log.Warningf("Flux is not found: %v", err.Error())
-
-			product := fluxinstall.NewProduct(flags.FluxVersion)
-
-			installer := fluxinstall.NewInstaller()
-
-			execPath, err := installer.Ensure(ctx, product)
-			if err != nil {
-				execPath, err = installer.Install(ctx, product)
-				if err != nil {
-					return err
-				}
-			}
-
-			wd, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-
-			flux, err := fluxexec.NewFlux(wd, execPath)
-			if err != nil {
-				return err
-			}
-
-			flux.SetStdout(os.Stdout)
-			flux.SetStderr(os.Stderr)
-
-			var components []fluxexec.Component
-			for _, component := range flags.Components {
-				components = append(components, fluxexec.Component(component))
-			}
-
-			var componentsExtra []fluxexec.ComponentExtra
-			for _, component := range flags.ComponentsExtra {
-				componentsExtra = append(componentsExtra, fluxexec.ComponentExtra(component))
-			}
-
-			if err := flux.Install(ctx,
-				fluxexec.Components(components...),
-				fluxexec.ComponentsExtra(componentsExtra...),
-				fluxexec.WithGlobalOptions(
-					fluxexec.Namespace(flags.Namespace),
-					fluxexec.Timeout(flags.Timeout),
-				),
-			); err != nil {
-				return err
-			}
-		} else {
-			log.Successf("Flux version %s is found", fluxVersion)
-		}
-
-		log.Actionf("Checking if GitOps Dashboard is already installed ...")
-
-		dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
-
-		if dashboardInstalled {
-			log.Successf("GitOps Dashboard is found")
-		} else {
-			prompt := promptui.Prompt{
-				Label:     "Would you like to install the GitOps Dashboard",
-				IsConfirm: true,
-				Default:   "Y",
-			}
-
-			result, err := prompt.Run()
-			if err == nil && strings.ToUpper(result) == "Y" {
-				password, err := install.ReadPassword(log)
-				if err != nil {
-					return err
-				}
-
-				secret, err := install.GenerateSecret(log, password)
-				if err != nil {
-					return err
-				}
-
-				man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
-				if err != nil {
-					log.Failuref("Error creating resource manager")
-					return err
-				}
-
-				manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
-				if err != nil {
-					return fmt.Errorf("error creating dashboard objects: %w", err)
-				}
-
-				err = install.InstallDashboard(log, ctx, man, manifests)
-				if err != nil {
-					return fmt.Errorf("gitops dashboard installation failed: %w", err)
-				} else {
-					dashboardInstalled = true
-
-					log.Successf("GitOps Dashboard has been installed")
-				}
-			}
-		}
-
-		if dashboardInstalled {
-			log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
-
-			if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
-				log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
-			} else {
-				log.Successf("Dashboard reconciliation is done.")
-			}
-		}
-
-		cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(log, kubeClient, cfg)
-		if err != nil {
-			return err
-		}
-
-		var cancelDashboardPortForwarding func() = nil
-
-		if dashboardInstalled {
-			cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
-			if err != nil {
-				return err
-			}
-		}
-
-		if err := watch.InitializeTargetDir(targetPath); err != nil {
-			return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
-		}
-
-		if err := watch.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
-			return err
-		}
-
-		ignorer := watch.CreateIgnorer(rootDir)
-
-		minioClient, err := minio.New(
-			"localhost:9000",
-			&minio.Options{
-				Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
-				Secure:       false,
-				BucketLookup: minio.BucketLookupPath,
-			},
-		)
-		if err != nil {
-			return err
-		}
-
-		// watch for file changes in dir gitRepoRoot
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			return err
-		}
-
-		err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
-		if err != nil {
-			return err
-		}
-
-		// cancel function to stop forwarding port
-		var (
-			cancelPortFwd func()
-			counter       uint64 = 1
-			needToRescan  bool   = false
-		)
-		// atomic counter for the number of file change events that have changed
-
-		go func() {
-			for {
-				select {
-				case event := <-watcher.Events:
-					if event.Op&fsnotify.Create == fsnotify.Create ||
-						event.Op&fsnotify.Remove == fsnotify.Remove ||
-						event.Op&fsnotify.Rename == fsnotify.Rename {
-						// if it's a dir, we need to watch it
-						if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
-							needToRescan = true
-						}
-					}
-
-					if cancelPortFwd != nil {
-						cancelPortFwd()
-					}
-
-					atomic.AddUint64(&counter, 1)
-				case err := <-watcher.Errors:
-					if err != nil {
-						log.Failuref("Error: %v", err)
-					}
-				}
-			}
-		}()
-
-		// event aggregation loop
-		ticker := time.NewTicker(680 * time.Millisecond)
-
-		go func() {
-			for { // nolint:gosimple
-				select {
-				case <-ticker.C:
-					if counter > 0 {
-						log.Actionf("%d change events detected", counter)
-
-						// reset counter
-						atomic.StoreUint64(&counter, 0)
-
-						if err := watch.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
-							log.Failuref("Error syncing dir: %v", err)
-						}
-
-						if needToRescan {
-							// close the old watcher
-							if err := watcher.Close(); err != nil {
-								log.Warningf("Error closing the old watcher: %v", err)
-							}
-							// create a new watcher
-							watcher, err = fsnotify.NewWatcher()
-							if err != nil {
-								log.Failuref("Error creating new watcher: %v", err)
-							}
-
-							err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
-							if err != nil {
-								log.Failuref("Error re-walking dir: %v", err)
-							}
-
-							needToRescan = false
-						}
-
-						log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
-
-						if err := watch.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
-							log.Failuref("Error requesting reconciliation: %v", err)
-						}
-
-						log.Successf("Reconciliation is done.")
-
-						if flags.PortForward != "" {
-							specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
-							if err != nil {
-								log.Failuref("Error parsing port forward spec: %v", err)
-							}
-
-							// get pod from specMap
-							namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
-
-							pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
-							if err != nil {
-								log.Failuref("Error getting pod from specMap: %v", err)
-							}
-
-							if pod != nil {
-								waitFwd := make(chan struct{}, 1)
-								readyChannel := make(chan struct{})
-								cancelPortFwd = func() {
-									close(waitFwd)
-
-									cancelPortFwd = nil
-								}
-
-								log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
-
-								// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-								if err := watch.ForwardPort(pod, cfg, specMap, waitFwd, readyChannel); err != nil {
-									log.Failuref("Error forwarding port: %v", err)
-								}
-
-								log.Successf("Port forwarding is stopped.")
-							}
-						}
-					}
-				}
-			}
-		}()
-
-		// wait for interrupt or ctrl+C
-		log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
-
-		sigs := make(chan os.Signal, 1)
-		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-		sig := <-sigs
-
-		if err := watcher.Close(); err != nil {
-			log.Warningf("Error closing watcher: %v", err.Error())
-		}
-
-		// print a blank line to make it easier to read the logs
-		fmt.Println()
-		cancelDevBucketPortForwarding()
-
-		if cancelDashboardPortForwarding != nil {
-			cancelDashboardPortForwarding()
-		}
-
-		ticker.Stop()
-
-		if err := watch.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
-			return err
-		}
-
-		// uninstall dev-bucket server
-		if err := watch.UninstallDevBucketServer(log, kubeClient); err != nil {
-			return err
-		}
-
-		// run bootstrap wizard only if Flux is not installed and env var is set
-		if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
-			return nil
-		}
-
-		// re-enable listening for ctrl+C
-		signal.Reset(sig)
-
-		// parse remote
-		repo, err := bootstrap.ParseGitRemote(log, rootDir)
-		if err != nil {
-			log.Failuref("Error parsing Git remote: %v", err.Error())
-		}
-
-		// run the bootstrap wizard
-		log.Actionf("Starting bootstrap wizard ...")
-
-		log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
-
-		remoteURL, err := bootstrap.ParseRemoteURL(repo)
-		if err != nil {
-			log.Failuref("Error parsing remote URL: %v", err.Error())
-		}
-
-		var gitProvider bootstrap.GitProvider
-
-		if remoteURL == "" {
-			gitProvider, err = bootstrap.SelectGitProvider(log)
-			if err != nil {
-				log.Failuref("Error selecting git provider: %v", err.Error())
-			}
-		} else {
-			urlParts := bootstrap.GetURLParts(remoteURL)
-
-			if len(urlParts) > 0 {
-				gitProvider = bootstrap.ParseGitProvider(urlParts[0])
-			}
-		}
-
-		if gitProvider == bootstrap.GitProviderUnknown {
-			gitProvider, err = bootstrap.SelectGitProvider(log)
-			if err != nil {
-				log.Failuref("Error selecting git provider: %v", err.Error())
-			}
-		}
-
-		path := filepath.Join(relativePath, "clusters", "my-cluster")
-		path = "./" + path
-
-		wizard, err := bootstrap.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
-		if err != nil {
-			return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
-		}
-
-		if err = wizard.Run(log); err != nil {
-			return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
-		}
-
-		_ = wizard.BuildCmd(log)
-
-		log.Successf("Flux bootstrap command successfully built.")
-
-		return nil
 	}
 }
