@@ -3,9 +3,11 @@ package run
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -21,6 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
@@ -28,6 +31,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -40,7 +44,7 @@ var HelmChartVersion = "3.0.0"
 
 type RunCommandFlags struct {
 	FluxVersion     string
-	AllowK8sContext string
+	AllowK8sContext []string
 	Components      []string
 	ComponentsExtra []string
 	Timeout         time.Duration
@@ -49,9 +53,10 @@ type RunCommandFlags struct {
 	RootDir         string
 
 	// Session
-	SessionName      string
-	SessionNamespace string
-	DisableSession   bool
+	SessionName         string
+	SessionNamespace    string
+	NoSession           bool
+	SkipResourceCleanup bool
 
 	// Global flags.
 	Namespace  string
@@ -98,7 +103,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags := cmd.Flags()
 
 	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
-	cmdFlags.StringVar(&flags.AllowK8sContext, "allow-k8s-context", "", "The name of the KubeConfig context to explicitly allow.")
+	cmdFlags.StringSliceVar(&flags.AllowK8sContext, "allow-k8s-context", []string{}, "The name of the KubeConfig context to explicitly allow.")
 	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
 	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Minute, "The timeout for operations during GitOps Run.")
@@ -106,8 +111,9 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
 	cmdFlags.StringVar(&flags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
-	cmdFlags.StringVar(&flags.SessionNamespace, "session-namespace", "", "Specify the namespace of the session.")
-	cmdFlags.BoolVar(&flags.DisableSession, "disable-session", false, "Disable session management. If not specified, the session will be enabled by default.")
+	cmdFlags.StringVar(&flags.SessionNamespace, "session-namespace", "default", "Specify the namespace of the session.")
+	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
+	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -117,6 +123,8 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 }
 
 func getSessionNameFromGit() string {
+	const prefix = "run"
+
 	branch, err := run.GetBranchName()
 	if err != nil {
 		return ""
@@ -132,11 +140,14 @@ func getSessionNameFromGit() string {
 		return ""
 	}
 
+	sessionName := fmt.Sprintf("%s-%s-%s", prefix, branch, commit)
 	if isDirty {
-		return fmt.Sprintf("%s-%s-dirty", branch, commit)
+		sessionName = fmt.Sprintf("%s-%s-%s-dirty", prefix, branch, commit)
 	}
 
-	return fmt.Sprintf("%s-%s", branch, commit)
+	sessionName = strings.ReplaceAll(sessionName, "/", "-")
+
+	return sessionName
 }
 
 func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) error {
@@ -155,42 +166,23 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func runCommandWithSession(cmd *cobra.Command, args []string) error {
-	// create session
-	session, err := run.NewSession(flags.SessionName)
-	if err != nil {
-		return err
-	}
-
-	if err := session.Connect(flags.SessionNamespace); err != nil {
-		return err
-	}
-
-	return err
-}
-
-func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
+	log := clilogger.NewCLILogger(os.Stdout)
+
 	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	kubeConfigArgs.Namespace = &flags.Namespace
 
 	if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
-		return err
-	}
-
-	log := clilogger.NewCLILogger(os.Stdout)
-
-	paths, err := run.NewPaths(args[0], flags.RootDir)
-	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	if flags.KubeConfig != "" {
@@ -198,7 +190,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 		if flags.Context == "" {
 			log.Failuref("A context should be provided if a kubeconfig is provided")
-			return cmderrors.ErrNoContextForKubeConfig
+			return nil, nil, cmderrors.ErrNoContextForKubeConfig
 		}
 	}
 
@@ -212,13 +204,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		_, contextName, err = kube.RestConfig()
 		if err != nil {
 			log.Failuref("Error getting a restconfig: %v", err.Error())
-			return cmderrors.ErrNoCluster
+			return nil, nil, cmderrors.ErrNoCluster
 		}
 	}
 
 	cfg, err := kubeConfigArgs.ToRESTConfig()
 	if err != nil {
-		return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
+		return nil, nil, fmt.Errorf("error getting a restconfig from kube config args: %w", err)
 	}
 
 	kubeClientOpts := run.GetKubeClientOptions()
@@ -226,23 +218,16 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
 	if err != nil {
-		return cmderrors.ErrGetKubeClient
+		return nil, nil, cmderrors.ErrGetKubeClient
 	}
 
-	contextName = kubeClient.ClusterName
-	if flags.AllowK8sContext == contextName {
-		log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
-	} else if !run.IsLocalCluster(kubeClient) {
-		return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
-	}
+	return kubeClient, cfg, nil
+}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+func installFlux(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string, err error) {
+	ctx := context.Background()
 
 	log.Actionf("Checking if Flux is already installed ...")
-
-	fluxVersion := ""
 
 	if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
@@ -255,21 +240,18 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			execPath, err = installer.Install(ctx, product)
 			if err != nil {
-				cancel()
-				return err
+				return fluxVersion, err
 			}
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
-			cancel()
-			return err
+			return fluxVersion, err
 		}
 
 		flux, err := fluxexec.NewFlux(wd, execPath)
 		if err != nil {
-			cancel()
-			return err
+			return fluxVersion, err
 		}
 
 		flux.SetStdout(os.Stdout)
@@ -293,11 +275,122 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				fluxexec.Timeout(flags.Timeout),
 			),
 		); err != nil {
-			cancel()
-			return err
+			return fluxVersion, err
 		}
+
+		fluxVersion = flags.FluxVersion
 	} else {
 		log.Successf("Flux version %s is found", fluxVersion)
+	}
+
+	return fluxVersion, nil
+}
+
+func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
+	kubeClient, _, err := getKubeClient(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	// create session
+	sessionLog := clilogger.NewCLILogger(os.Stdout)
+	sessionLog.Actionf("Preparing the cluster for GitOps Run session ...\n")
+
+	sessionLog.Println("You can run `gitops beta run --no-session` to disable session management.\n")
+
+	sessionLog.Println("If you are running GitOps Run for the first time, it may take a few minutes to download the required images.")
+	sessionLog.Println("GitOps Run session is also required to install Flux components, if it is not installed yet.")
+	sessionLog.Println("You may see Flux installation logs in the next step.\n")
+
+	// showing Flux installation twice is confusing
+	log := clilogger.NewCLILogger(io.Discard)
+	if fluxVersion, err := installFlux(log, kubeClient); err != nil {
+		return err
+	} else if fluxVersion == "" {
+		return fmt.Errorf("failed to install Flux on the host cluster")
+	}
+
+	sessionLog.Actionf("Creating GitOps Run session %s in namespace %s ...", flags.SessionName, flags.SessionNamespace)
+
+	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
+
+	session, err := install.NewSession(sessionLog, kubeClient, flags.SessionName, flags.SessionNamespace)
+
+	if err != nil {
+		return err
+	}
+
+	sessionLog.Actionf("Waiting for GitOps Run session %s to be ready ...", flags.SessionName)
+
+	if err := session.Start(); err != nil {
+		return err
+	}
+
+	sessionLog.Successf("Session %s is ready", flags.SessionName)
+
+	defer func(session *install.Session) {
+		sessionLog.Println("")
+		sessionLog.Actionf("Deleting GitOps Run session %s ...", flags.SessionName)
+
+		err := session.Close()
+
+		if err != nil {
+			sessionLog.Failuref("Failed to delete session %s: %v", flags.SessionName, err)
+			retErr = err
+		} else {
+			sessionLog.Successf("Session %s is deleted successfully", flags.SessionName)
+		}
+	}(session)
+
+	sessionLog.Actionf("Connecting to GitOps Run session %s ...", flags.SessionName)
+
+	if err := session.Connect(); err != nil {
+		return err
+	}
+
+	return err
+}
+
+func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+	log := clilogger.NewCLILogger(os.Stdout)
+
+	paths, err := run.NewPaths(args[0], flags.RootDir)
+	if err != nil {
+		return err
+	}
+
+	kubeClient, cfg, err := getKubeClient(cmd, args)
+	if err != nil {
+		return err
+	}
+
+	contextName := kubeClient.ClusterName
+	validAllowedContext := false
+
+	for _, allowContext := range flags.AllowK8sContext {
+		if allowContext == contextName {
+			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
+
+			validAllowedContext = true
+
+			break
+		}
+	}
+
+	if !validAllowedContext {
+		if !run.IsLocalCluster(kubeClient) {
+			return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
+		}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+
+	fluxVersion, err := installFlux(log, kubeClient)
+	if err != nil {
+		cancel()
+		return err
 	}
 
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
@@ -560,13 +653,16 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	ticker.Stop()
 
-	if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
-		return err
-	}
+	// this is the default behaviour
+	if !flags.SkipResourceCleanup {
+		if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
+			return err
+		}
 
-	// uninstall dev-bucket server
-	if err := watch.UninstallDevBucketServer(ctx, log, kubeClient); err != nil {
-		return err
+		// uninstall dev-bucket server
+		if err := watch.UninstallDevBucketServer(ctx, log, kubeClient); err != nil {
+			return err
+		}
 	}
 
 	// run bootstrap wizard only if Flux is not installed and env var is set
@@ -614,7 +710,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if flags.DisableSession {
+		if flags.NoSession {
 			return runCommandWithoutSession(cmd, args)
 		} else {
 			return runCommandWithSession(cmd, args)
