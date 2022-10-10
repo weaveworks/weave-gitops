@@ -12,11 +12,13 @@ import {
 } from "../lib/objects";
 import { showInterval } from "../lib/time";
 import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
+import Button from "./Button";
 import DataTable, {
   Field,
   filterByStatusCallback,
   filterConfig,
 } from "./DataTable";
+import Icon, { IconType } from "./Icon";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
@@ -30,6 +32,16 @@ type Props = {
 function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
+
+  const hasTemplateAnnotations =
+    sources?.map(
+      (source) =>
+        source.obj.metadata.annotations?.[
+          "templates.weave.works/create-request"
+        ]
+    ).length > 0;
+
+  console.log(sources, hasTemplateAnnotations);
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),
@@ -155,6 +167,19 @@ function SourcesTable({ className, sources }: Props) {
       value: (s: Source) =>
         s.lastUpdatedAt ? <Timestamp time={s.lastUpdatedAt} /> : "-",
       sortValue: (s: Source) => s.lastUpdatedAt || "",
+    },
+    hasTemplateAnnotations && {
+      label: "",
+      value: (s: Source) => (
+        <Link to={`/resources/${s.name}/edit`}>
+          <Button
+            id="edit-resource"
+            startIcon={<Icon type={IconType.EditIcon} size="small" />}
+          >
+            EDIT SOURCE
+          </Button>
+        </Link>
+      ),
     },
   ];
 
