@@ -346,7 +346,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			secret, err := install.GenerateSecret(log, password)
+			passwordHash, err := install.GeneratePasswordHash(log, password)
 			if err != nil {
 				return err
 			}
@@ -357,7 +357,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
+			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
 			if err != nil {
 				return fmt.Errorf("error creating dashboard objects: %w", err)
 			}
