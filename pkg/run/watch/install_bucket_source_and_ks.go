@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration) error {
+func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration) error {
 	const devBucketCredentials = "dev-bucket-credentials"
 
 	secret := corev1.Secret{
@@ -81,8 +81,8 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 	// create secret
 	log.Actionf("Checking secret %s ...", secret.Name)
 
-	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&secret), &secret); err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &secret); err != nil {
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil && apierrors.IsNotFound(err) {
+		if err := kubeClient.Create(ctx, &secret); err != nil {
 			return fmt.Errorf("couldn't create secret %s: %v", secret.Name, err.Error())
 		} else {
 			log.Successf("Created secret %s", secret.Name)
@@ -94,8 +94,8 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 	// create source
 	log.Actionf("Checking bucket source %s ...", source.Name)
 
-	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&source), &source); err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &source); err != nil {
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&source), &source); err != nil && apierrors.IsNotFound(err) {
+		if err := kubeClient.Create(ctx, &source); err != nil {
 			return fmt.Errorf("couldn't create source %s: %v", source.Name, err.Error())
 		} else {
 			log.Successf("Created source %s", source.Name)
@@ -107,8 +107,8 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 	// create ks
 	log.Actionf("Checking Kustomization %s ...", ks.Name)
 
-	if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(&ks), &ks); err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &ks); err != nil {
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&ks), &ks); err != nil && apierrors.IsNotFound(err) {
+		if err := kubeClient.Create(ctx, &ks); err != nil {
 			return fmt.Errorf("couldn't create kustomization %s: %v", ks.Name, err.Error())
 		} else {
 			log.Successf("Created ks %s", ks.Name)
@@ -123,10 +123,10 @@ func SetupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespa
 }
 
 // SyncDir recursively uploads all files in a directory to an S3 bucket with minio library
-func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
+func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
 	log.Actionf("Refreshing bucket %s ...", bucket)
 
-	if err := client.RemoveBucketWithOptions(context.Background(), bucket, minio.RemoveBucketOptions{
+	if err := client.RemoveBucketWithOptions(ctx, bucket, minio.RemoveBucketOptions{
 		ForceDelete: true,
 	}); err != nil {
 		// if error is not bucket not found, return error
@@ -135,7 +135,7 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client,
 		}
 	}
 
-	if err := client.MakeBucket(context.Background(), bucket, minio.MakeBucketOptions{}); err != nil {
+	if err := client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
 		return err
 	}
 
@@ -164,9 +164,12 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client,
 			return nil
 		}
 		// upload the file
-		_, err = client.FPutObject(context.Background(), bucket, objectName, path, minio.PutObjectOptions{})
+		_, err = client.FPutObject(ctx, bucket, objectName, path, minio.PutObjectOptions{})
 
 		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return err
+			}
 			errResp, ok := err.(minio.ErrorResponse)
 			if ok && errResp.Code == "MissingContentLength" {
 				// This happens when the file was empty - this is OK
@@ -187,7 +190,7 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client,
 	fmt.Println()
 	log.Actionf("Uploaded %d files", uploadCount)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, context.Canceled) {
 		log.Failuref("Error syncing directory: %v", err)
 		return err
 	}
@@ -196,7 +199,7 @@ func SyncDir(log logger.Logger, dir string, bucket string, client *minio.Client,
 }
 
 // CleanupBucketSourceAndKS removes the bucket source and ks
-func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string) error {
+func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string) error {
 	const (
 		devBucketCredentials = "dev-bucket-credentials"
 		devBucket            = "dev-bucket"
@@ -213,7 +216,7 @@ func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, names
 
 	log.Actionf("Deleting secret %s ...", secret.Name)
 
-	if err := kubeClient.Delete(context.Background(), &secret); err != nil {
+	if err := kubeClient.Delete(ctx, &secret); err != nil {
 		log.Failuref("Error deleting secret %s: %v", secret.Name, err.Error())
 	} else {
 		log.Successf("Deleted secret %s", secret.Name)
@@ -229,7 +232,7 @@ func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, names
 
 	log.Actionf("Deleting source %s ...", source.Name)
 
-	if err := kubeClient.Delete(context.Background(), &source); err != nil {
+	if err := kubeClient.Delete(ctx, &source); err != nil {
 		log.Failuref("Error deleting source %s: %v", source.Name, err.Error())
 	} else {
 		log.Successf("Deleted source %s", source.Name)
@@ -245,7 +248,7 @@ func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, names
 
 	log.Actionf("Deleting ks %s ...", ks.Name)
 
-	if err := kubeClient.Delete(context.Background(), &ks); err != nil {
+	if err := kubeClient.Delete(ctx, &ks); err != nil {
 		log.Failuref("Error deleting ks %s: %v", ks.Name, err.Error())
 	} else {
 		log.Successf("Deleted ks %s", ks.Name)
@@ -257,7 +260,7 @@ func CleanupBucketSourceAndKS(log logger.Logger, kubeClient client.Client, names
 }
 
 // findConditionMessages finds the messages in the condition of objects in the inventory.
-func findConditionMessages(kubeClient client.Client, ks *kustomizev1.Kustomization) ([]string, error) {
+func findConditionMessages(ctx context.Context, kubeClient client.Client, ks *kustomizev1.Kustomization) ([]string, error) {
 	if ks.Status.Inventory == nil {
 		return nil, fmt.Errorf("inventory is nil")
 	}
@@ -287,7 +290,7 @@ func findConditionMessages(kubeClient client.Client, ks *kustomizev1.Kustomizati
 		unstructuredList := &unstructured.UnstructuredList{}
 		unstructuredList.SetGroupVersionKind(gvk)
 
-		if err := kubeClient.List(context.Background(), unstructuredList,
+		if err := kubeClient.List(ctx, unstructuredList,
 			client.MatchingLabelsSelector{
 				Selector: labels.Set(
 					map[string]string{
@@ -392,11 +395,11 @@ resources: [] # 👋 Start adding the resources you want to sync here
 }
 
 // ReconcileDevBucketSourceAndKS reconciles the dev-bucket and dev-ks asynchronously.
-func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
+func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
 	// reconcile dev-bucket
-	sourceRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
+	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-bucket",
@@ -412,7 +415,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	// wait for the reconciliation of dev-bucket to be done
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-bucket",
 		}, devBucket); err != nil {
@@ -427,7 +430,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	// wait for devBucket to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-bucket",
 		}, devBucket); err != nil {
@@ -439,7 +442,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	}
 
 	// reconcile dev-ks
-	ksRequestedAt, err := run.RequestReconciliation(context.Background(), kubeClient,
+	ksRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-ks",
@@ -454,7 +457,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-ks",
 		}, devKs); err != nil {
@@ -468,7 +471,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 
 	devKs := &kustomizev1.Kustomization{}
 	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      "dev-ks",
 		}, devKs); err != nil {
@@ -484,7 +487,7 @@ func ReconcileDevBucketSourceAndKS(log logger.Logger, kubeClient client.Client, 
 	})
 
 	if devKsErr != nil {
-		messages, err := findConditionMessages(kubeClient, devKs)
+		messages, err := findConditionMessages(ctx, kubeClient, devKs)
 		if err != nil {
 			return err
 		}

@@ -111,7 +111,7 @@ func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient cl
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
+func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
 	helmChartName := namespace + "-" + name
@@ -131,7 +131,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		var err error
-		sourceRequestedAt, err = run.RequestReconciliation(context.Background(), kubeClient,
+		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
 			namespacedName, gvk)
 
 		return err == nil, nil
@@ -142,7 +142,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	// wait for the reconciliation of dashboard to be done
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		dashboard := &sourcev1.HelmChart{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      helmChartName,
 		}, dashboard); err != nil {
@@ -158,7 +158,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
-		dashboard, _ := run.GetPodFromResourceDescription(namespacedName, "deployment", kubeClient)
+		dashboard, _ := run.GetPodFromResourceDescription(ctx, namespacedName, "deployment", kubeClient)
 		if dashboard == nil {
 			return false, nil
 		}
