@@ -270,6 +270,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
 	log.Actionf("Checking if Flux is already installed ...")
 
@@ -566,13 +568,14 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	// wait for interrupt or ctrl+C
 	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	sig := <-sigs
 
 	cancel()
 	// create new context that isn't cancelled, for bootstrapping
 	ctx = context.Background()
+
+	// re-enable listening for ctrl+C
+	signal.Reset(sig)
 
 	if err := watcher.Close(); err != nil {
 		log.Warningf("Error closing watcher: %v", err.Error())
@@ -601,9 +604,6 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
 		return nil
 	}
-
-	// re-enable listening for ctrl+C
-	signal.Reset(sig)
 
 	// parse remote
 	repo, err := bootstrap.ParseGitRemote(log, rootDir)
