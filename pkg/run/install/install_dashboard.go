@@ -30,7 +30,7 @@ const (
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
-	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
+	password, err := utils.ReadPasswordFromStdin(log, "Please enter a password for logging into the dashboard: ")
 	if err != nil {
 		log.Failuref("Could not read password")
 		return "", err
@@ -39,24 +39,22 @@ func ReadPassword(log logger.Logger) (string, error) {
 	return password, nil
 }
 
-func GenerateSecret(log logger.Logger, password string) (string, error) {
-	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Failuref("Error generating secret from password")
+		log.Failuref("Error generating hash from password")
 		return "", err
 	}
 
-	log.Successf("Secret has been generated:")
-
-	return string(secret), nil
+	return string(passwordHash), nil
 }
 
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) ([]byte, error) {
+func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) ([]byte, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
-	helmRelease, err := makeHelmRelease(log, name, namespace, username, secret, chartVersion)
+	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -241,7 +239,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -271,10 +269,10 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	if username != "" && secret != "" {
-		values, err := makeValues(username, secret)
+	if username != "" && passwordHash != "" {
+		values, err := makeValues(username, passwordHash)
 		if err != nil {
-			log.Failuref("Error generating values from secret")
+			log.Failuref("Error generating values from passwordHash")
 			return nil, err
 		}
 
@@ -285,12 +283,12 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(username string, secret string) ([]byte, error) {
+func makeValues(username string, passwordHash string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,
 			"username":     username,
-			"passwordHash": secret,
+			"passwordHash": passwordHash,
 		},
 	}
 
