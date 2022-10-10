@@ -14,6 +14,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetImpersonatedClient(t *testing.T) {
@@ -355,4 +358,49 @@ func TestUpdateClusters(t *testing.T) {
 		g.Expect(ok2).To(BeFalse())
 		g.Expect(updates2.Added).To(BeNil())
 	})
+}
+
+func TestClientCaching(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ns1 := createNamespace(g)
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns1}, nil)
+
+	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	userID := "user-id"
+
+	fakeClientFnCalls := 0
+
+	fakeClientFn := func(user *auth.UserPrincipal, cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *runtime.Scheme) (client.Client, error) {
+		if user.ID == userID {
+			fakeClientFnCalls++
+		}
+
+		return fake.NewClientBuilder().WithScheme(scheme).Build(), nil
+	}
+
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, fakeClientFn, clustersmngr.DefaultKubeConfigOptions)
+	err = clustersManager.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	err = clustersManager.UpdateNamespaces(ctx)
+	g.Expect(err).To(BeNil())
+
+	_, err = clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: userID})
+	g.Expect(err).To(BeNil())
+
+	_, err = clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: userID})
+	g.Expect(err).To(BeNil())
+
+	g.Expect(fakeClientFnCalls).To(Equal(1))
 }
