@@ -583,27 +583,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	// run the bootstrap wizard
 	log.Actionf("Starting bootstrap wizard ...")
 
+	host := bootstrap.GetHost(repo)
+	gitProvider := bootstrap.ParseGitProvider(host)
+
 	log.Waitingf("Press Ctrl+C to stop bootstrap wizard ...")
-
-	remoteURL, err := bootstrap.ParseRemoteURL(repo)
-	if err != nil {
-		log.Failuref("Error parsing remote URL: %v", err.Error())
-	}
-
-	var gitProvider bootstrap.GitProvider
-
-	if remoteURL == "" {
-		gitProvider, err = bootstrap.SelectGitProvider(log)
-		if err != nil {
-			log.Failuref("Error selecting git provider: %v", err.Error())
-		}
-	} else {
-		urlParts := bootstrap.GetURLParts(remoteURL)
-
-		if len(urlParts) > 0 {
-			gitProvider = bootstrap.ParseGitProvider(urlParts[0])
-		}
-	}
 
 	if gitProvider == bootstrap.GitProviderUnknown {
 		gitProvider, err = bootstrap.SelectGitProvider(log)
@@ -612,10 +595,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	path := filepath.Join(paths.TargetDir, "clusters", "my-cluster")
-	path = "./" + path
+	wizard, err := bootstrap.NewBootstrapWizard(log, gitProvider, repo)
 
-	wizard, err := bootstrap.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
 	if err != nil {
 		return fmt.Errorf("error creating bootstrap wizard: %v", err.Error())
 	}
