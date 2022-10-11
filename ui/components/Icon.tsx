@@ -5,7 +5,6 @@ import DocsIcon from "@material-ui/icons/AssignmentOutlined";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
 import ErrorIcon from "@material-ui/icons/Error";
 import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
@@ -63,7 +62,6 @@ export enum IconType {
   ApplicationsIcon,
   PlayIcon,
   PauseIcon,
-  EditIcon,
 }
 
 type Props = {
@@ -168,9 +166,6 @@ function getIcon(i: IconType) {
 
     case IconType.PauseIcon:
       return PauseIcon;
-
-    case IconType.EditIcon:
-      return EditIcon;
 
     default:
       break;

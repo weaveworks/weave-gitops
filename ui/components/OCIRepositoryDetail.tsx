@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { OCIRepository } from "../lib/objects";
-import EditButton from "./EditButton";
+import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";

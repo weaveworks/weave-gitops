@@ -9,7 +9,7 @@ import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
 import { InfoField } from "./InfoList";
-import EditButton from "./EditButton";
+import EditButton from "./CustomActions";
 
 export interface routeTab {
   name: string;

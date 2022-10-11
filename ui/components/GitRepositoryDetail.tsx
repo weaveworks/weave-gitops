@@ -7,7 +7,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { GitRepository } from "../lib/objects";
 import { convertGitURLToGitProvider } from "../lib/utils";
-import EditButton from "./EditButton";
+import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 
 type Props = {

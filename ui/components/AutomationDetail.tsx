@@ -8,6 +8,7 @@ import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
+import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -159,12 +160,7 @@ function AutomationDetail({
         >
           {automation.suspended ? "Resume" : "Suspend"}
         </Button>
-        {customActions?.map((action) => (
-          <>
-            <Spacer padding="xs" />
-            {action}
-          </>
-        ))}
+        <CustomActions actions={customActions} />
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>

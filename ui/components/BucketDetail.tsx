@@ -6,7 +6,7 @@ import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { Bucket } from "../lib/objects";
-import EditButton from "./EditButton";
+import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 
 type Props = {

@@ -6,7 +6,7 @@ import { HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
-import EditButton from "./EditButton";
+import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
