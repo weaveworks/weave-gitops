@@ -1,6 +1,8 @@
 package watch
 
 import (
+	"context"
+
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -10,7 +12,7 @@ import (
 )
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
@@ -21,7 +23,7 @@ func EnablePortForwardingForDashboard(log logger.Logger, kubeClient client.Clien
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
