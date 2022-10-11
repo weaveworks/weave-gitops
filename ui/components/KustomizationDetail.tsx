@@ -15,13 +15,13 @@ export interface routeTab {
   path: string;
   visible?: boolean;
   component: (param?: any) => any;
-  customActions?: any[];
 }
 
 type Props = {
   kustomization?: Kustomization;
   className?: string;
   customTabs?: Array<routeTab>;
+  customActions?: any[];
 };
 
 function KustomizationDetail({
@@ -48,6 +48,7 @@ function KustomizationDetail({
       className={className}
       customTabs={customTabs}
       automation={kustomization}
+      customActions={customActions}
       info={[
         [
           "Source",
