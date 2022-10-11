@@ -30,7 +30,7 @@ var (
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config *rest.Config) (func(), error) {
+func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config) (func(), error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -47,12 +47,12 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 
 	log.Actionf("Checking namespace %s ...", devBucket)
 
-	err = kubeClient.Get(context.Background(),
+	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketNamespace),
 		&devBucketNamespace)
 
 	if err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &devBucketNamespace); err != nil {
+		if err := kubeClient.Create(ctx, &devBucketNamespace); err != nil {
 			log.Failuref("Error creating namespace %s: %v", devBucket, err.Error())
 			return nil, err
 		} else {
@@ -80,12 +80,12 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 
 	log.Actionf("Checking service %s/%s ...", devBucket, devBucket)
 
-	err = kubeClient.Get(context.Background(),
+	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketService),
 		&devBucketService)
 
 	if err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &devBucketService); err != nil {
+		if err := kubeClient.Create(ctx, &devBucketService); err != nil {
 			log.Failuref("Error creating service %s/%s: %v", devBucket, devBucket, err.Error())
 			return nil, err
 		} else {
@@ -134,12 +134,12 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 
 	log.Actionf("Checking deployment %s/%s ...", devBucket, devBucket)
 
-	err = kubeClient.Get(context.Background(),
+	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketDeployment),
 		&devBucketDeployment)
 
 	if err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(context.Background(), &devBucketDeployment); err != nil {
+		if err := kubeClient.Create(ctx, &devBucketDeployment); err != nil {
 			log.Failuref("Error creating deployment %s/%s: %v", devBucket, devBucket, err.Error())
 			return nil, err
 		} else {
@@ -158,7 +158,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 		Steps:    10,
 	}, func() (done bool, err error) {
 		d := devBucketDeployment.DeepCopy()
-		if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(d), d); err != nil {
+		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(d), d); err != nil {
 			return false, err
 		}
 		// Confirm the state we are observing is for the current generation
@@ -185,7 +185,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -215,7 +215,7 @@ func InstallDevBucketServer(log logger.Logger, kubeClient client.Client, config 
 }
 
 // UninstallDevBucketServer deletes the dev-bucket namespace.
-func UninstallDevBucketServer(log logger.Logger, kubeClient client.Client) error {
+func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client) error {
 	// create namespace
 	devBucketNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -225,7 +225,7 @@ func UninstallDevBucketServer(log logger.Logger, kubeClient client.Client) error
 
 	log.Actionf("Removing namespace %s ...", devBucket)
 
-	if err := kubeClient.Delete(context.Background(), &devBucketNamespace); err != nil {
+	if err := kubeClient.Delete(ctx, &devBucketNamespace); err != nil {
 		log.Failuref("Cannot remove namespace %s", devBucket)
 		return err
 	}
@@ -239,7 +239,7 @@ func UninstallDevBucketServer(log logger.Logger, kubeClient client.Client) error
 		Steps:    10,
 	}, func() (done bool, err error) {
 		ns := devBucketNamespace.DeepCopy()
-		if err := kubeClient.Get(context.Background(), client.ObjectKeyFromObject(ns), ns); err != nil {
+		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(ns), ns); err != nil {
 			if apierrors.IsNotFound(err) {
 				return true, nil
 			} else {
