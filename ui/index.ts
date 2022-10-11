@@ -45,7 +45,6 @@ import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
-import { LinkResolverProvider } from "./contexts/LinkResolverContext";
 import { useListAutomations } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
@@ -75,7 +74,6 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-
 export {
   AppContextProvider,
   applicationsClient,
@@ -121,7 +119,6 @@ export {
   KubeStatusIndicator,
   KustomizationDetail,
   Link,
-  LinkResolverProvider,
   LoadingPage,
   MessageBox,
   Metadata,
