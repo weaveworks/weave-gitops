@@ -15,6 +15,7 @@ export interface routeTab {
   path: string;
   visible?: boolean;
   component: (param?: any) => any;
+  customActions?: any[];
 }
 
 type Props = {
@@ -23,7 +24,12 @@ type Props = {
   customTabs?: Array<routeTab>;
 };
 
-function KustomizationDetail({ kustomization, className, customTabs }: Props) {
+function KustomizationDetail({
+  kustomization,
+  className,
+  customTabs,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 

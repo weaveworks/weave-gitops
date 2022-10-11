@@ -12,9 +12,14 @@ import Timestamp from "./Timestamp";
 type Props = {
   className?: string;
   helmRepository: HelmRepository;
+  customActions?: any[];
 };
 
-function HelmRepositoryDetail({ className, helmRepository }: Props) {
+function HelmRepositoryDetail({
+  className,
+  helmRepository,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -32,6 +37,7 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
       className={className}
       type={Kind.HelmRepository}
       source={helmRepository}
+      customActions={customActions}
       info={[
         ["Type", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],

@@ -12,9 +12,14 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   gitRepository: GitRepository;
+  customActions?: any[];
 };
 
-function GitRepositoryDetail({ className, gitRepository }: Props) {
+function GitRepositoryDetail({
+  className,
+  gitRepository,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -32,6 +37,7 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
       className={className}
       type={Kind.GitRepository}
       source={gitRepository}
+      customActions={customActions}
       info={[
         ["Type", Kind.GitRepository],
         [
