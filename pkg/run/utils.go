@@ -68,24 +68,24 @@ func IsLocalCluster(kubeClient *kube.KubeHTTP) bool {
 	}
 }
 
-func GetPodFromResourceDescription(namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
+func GetPodFromResourceDescription(ctx context.Context, namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
 	switch kind {
 	case "pod":
 		pod := &corev1.Pod{}
-		if err := kubeClient.Get(context.Background(), namespacedName, pod); err != nil {
+		if err := kubeClient.Get(ctx, namespacedName, pod); err != nil {
 			return nil, err
 		}
 
 		return pod, nil
 	case "service":
 		svc := &corev1.Service{}
-		if err := kubeClient.Get(context.Background(), namespacedName, svc); err != nil {
+		if err := kubeClient.Get(ctx, namespacedName, svc); err != nil {
 			return nil, fmt.Errorf("error getting service: %s, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the service "svc" by selector in a specific namespace using the controller-runtime client
 		podList := &corev1.PodList{}
-		if err := kubeClient.List(context.Background(), podList,
+		if err := kubeClient.List(ctx, podList,
 			client.MatchingLabelsSelector{
 				Selector: labels.Set(svc.Spec.Selector).AsSelector(),
 			},
@@ -107,13 +107,13 @@ func GetPodFromResourceDescription(namespacedName types.NamespacedName, kind str
 		return nil, ErrNoRunningPodsForService
 	case "deployment":
 		deployment := &appsv1.Deployment{}
-		if err := kubeClient.Get(context.Background(), namespacedName, deployment); err != nil {
+		if err := kubeClient.Get(ctx, namespacedName, deployment); err != nil {
 			return nil, fmt.Errorf("error getting deployment: %s, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the deployment "deployment" by selector in a specific namespace using the controller-runtime client
 		podList := &corev1.PodList{}
-		if err := kubeClient.List(context.Background(), podList,
+		if err := kubeClient.List(ctx, podList,
 			client.MatchingLabelsSelector{
 				Selector: labels.Set(deployment.Spec.Selector.MatchLabels).AsSelector(),
 			},
