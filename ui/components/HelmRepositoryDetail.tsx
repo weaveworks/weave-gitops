@@ -4,6 +4,7 @@ import { Button } from "..";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRepository } from "../lib/objects";
+import EditButton from "./EditButton";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";
@@ -28,23 +29,12 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
       ? [["Cluster", helmRepository.clusterName]]
       : [];
 
-  const hasCreateRequestAnnotation =
-    helmRepository.obj.metadata.annotations?.[
-      "templates.weave.works/create-request"
-    ];
-
   return (
     <SourceDetail
       className={className}
       type={Kind.HelmRepository}
       source={helmRepository}
-      customActions={
-        hasCreateRequestAnnotation && [
-          <Link to={`/resources/${helmRepository.name}/edit`}>
-            <Button id="edit-resource">Edit</Button>
-          </Link>,
-        ]
-      }
+      customActions={[<EditButton resource={helmRepository} />]}
       info={[
         ["Type", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],

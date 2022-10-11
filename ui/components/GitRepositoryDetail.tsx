@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Button } from "..";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
@@ -8,6 +7,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { GitRepository } from "../lib/objects";
 import { convertGitURLToGitProvider } from "../lib/utils";
+import EditButton from "./EditButton";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -28,23 +28,12 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
       ? [["Cluster", gitRepository.clusterName]]
       : [];
 
-  const hasCreateRequestAnnotation =
-    gitRepository.obj.metadata.annotations?.[
-      "templates.weave.works/create-request"
-    ];
-
   return (
     <SourceDetail
       className={className}
       type={Kind.GitRepository}
       source={gitRepository}
-      customActions={
-        hasCreateRequestAnnotation && [
-          <Link to={`/resources/${gitRepository.name}/edit`}>
-            <Button id="edit-resource">Edit</Button>
-          </Link>,
-        ]
-      }
+      customActions={[<EditButton resource={gitRepository} />]}
       info={[
         ["Type", Kind.GitRepository],
         [

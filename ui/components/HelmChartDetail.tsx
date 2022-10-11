@@ -1,14 +1,13 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Button } from "..";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmChart } from "../lib/objects";
+import EditButton from "./EditButton";
 import { InfoField } from "./InfoList";
-import Link from "./Link";
 
 type Props = {
   className?: string;
@@ -28,23 +27,12 @@ function HelmChartDetail({ className, helmChart }: Props) {
       ? [["Cluster", helmChart.clusterName]]
       : [];
 
-  const hasCreateRequestAnnotation =
-    helmChart.obj.metadata.annotations?.[
-      "templates.weave.works/create-request"
-    ];
-
   return (
     <SourceDetail
       type={Kind.HelmChart}
       className={className}
       source={helmChart}
-      customActions={
-        hasCreateRequestAnnotation && [
-          <Link to={`/resources/${helmChart.name}/edit`}>
-            <Button id="edit-resource">Edit</Button>
-          </Link>,
-        ]
-      }
+      customActions={[<EditButton resource={helmChart} />]}
       info={[
         ["Type", Kind.HelmChart],
         ["Chart", helmChart.chart],

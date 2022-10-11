@@ -1,6 +1,8 @@
 import _ from "lodash";
+import { FC } from "react";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
+import Link from "../components/Link";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
 import { PageRoute } from "./types";
