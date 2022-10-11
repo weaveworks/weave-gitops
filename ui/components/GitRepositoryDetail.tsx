@@ -7,7 +7,6 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { GitRepository } from "../lib/objects";
 import { convertGitURLToGitProvider } from "../lib/utils";
-import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -33,7 +32,6 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
       className={className}
       type={Kind.GitRepository}
       source={gitRepository}
-      customActions={[<EditButton resource={gitRepository} />]}
       info={[
         ["Type", Kind.GitRepository],
         [

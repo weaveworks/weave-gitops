@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Link } from "..";
-import Button from "./Button";
-import Spacer from "./Spacer";
 import {
   Bucket,
   Kustomization,
@@ -11,6 +9,8 @@ import {
   OCIRepository,
   HelmChart,
 } from "../lib/objects";
+import Button from "./Button";
+import Spacer from "./Spacer";
 
 type Props = {
   resource:

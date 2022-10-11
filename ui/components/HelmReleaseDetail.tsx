@@ -6,7 +6,6 @@ import { HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
-import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
@@ -68,7 +67,6 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       className={className}
       automation={helmRelease}
       customTabs={customTabs}
-      customActions={[<EditButton resource={helmRelease} />]}
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],

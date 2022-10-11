@@ -9,7 +9,6 @@ import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
 import { InfoField } from "./InfoList";
-import EditButton from "./CustomActions";
 
 export interface routeTab {
   name: string;
@@ -43,7 +42,6 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
       className={className}
       customTabs={customTabs}
       automation={kustomization}
-      customActions={[<EditButton resource={kustomization} />]}
       info={[
         [
           "Source",
