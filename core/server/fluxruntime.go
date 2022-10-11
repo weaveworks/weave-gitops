@@ -115,7 +115,11 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 
 	respErrors := []*pb.ListError{}
 
-	if err := clustersClient.ClusteredList(ctx, clist, false); err != nil {
+	opts := client.MatchingLabels{
+		coretypes.PartOfLabel: FluxNamespacePartOf,
+	}
+
+	if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
 		var errs clustersmngr.ClusteredListError
 
 		if !errors.As(err, &errs) {
@@ -132,19 +136,11 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 
 	results := []*pb.Crd{}
 
-	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: FluxNamespacePartOf,
-	}
-
 	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*apiextensions.CustomResourceDefinitionList)
 			if !ok {
 				continue
-			}
-
-			if err := clustersClient.List(ctx, clusterName, list, opts); err != nil {
-				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: fmt.Sprintf("%s, %s", errors.New("could not list CRDs"), err)})
 			}
 
 			for _, d := range list.Items {
