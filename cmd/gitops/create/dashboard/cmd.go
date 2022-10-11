@@ -231,7 +231,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		dashboardPodName := dashboardName + "-" + helmChartName
 
-		if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("GitOps Dashboard %s is ready", dashboardName)
