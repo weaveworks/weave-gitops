@@ -27,22 +27,22 @@ export const EditButton = ({ resource }: Props) => {
   const hasCreateRequestAnnotation =
     resource.obj.metadata.annotations?.["templates.weave.works/create-request"];
 
-  return (
-    hasCreateRequestAnnotation && (
-      <Link to={`/resources/${resource.name}/edit`}>
-        <Button>Edit</Button>
-      </Link>
-    )
-  );
+  return hasCreateRequestAnnotation ? (
+    <Link to={`/resources/${resource.name}/edit`}>
+      <Button>Edit</Button>
+    </Link>
+  ) : null;
 };
 
-function CustomActions(actions: any) {
-  return actions?.map((action) => (
-    <>
-      <Spacer padding="xs" />
-      {action}
-    </>
-  ));
-}
+const CustomActions = ({ actions }) => {
+  return actions?.length > 0
+    ? actions?.map((action, index) => (
+        <React.Fragment key={index}>
+          <Spacer padding="xs" />
+          {action}
+        </React.Fragment>
+      ))
+    : null;
+};
 
 export default CustomActions;

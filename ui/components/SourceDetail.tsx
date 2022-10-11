@@ -28,7 +28,7 @@ type Props = {
   children?: JSX.Element;
   source: Source;
   info: InfoField[];
-  customActions?: JSX.Element[];
+  customActions?: any[];
 };
 
 function SourceDetail({ className, source, info, type, customActions }: Props) {
