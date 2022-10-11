@@ -19,7 +19,7 @@ export enum ReadyType {
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
-  if (!conditions) return undefined;
+  if (!conditions?.length) return undefined;
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
@@ -30,16 +30,24 @@ export function computeReady(conditions: Condition[]): ReadyType {
       readyCondition.reason === "Progressing"
     )
       return ReadyType.Reconciling;
+    return ReadyType.NotReady;
   }
-  return ReadyType.NotReady;
+
+  if (_.find(conditions, (c) => c.status === "False"))
+    return ReadyType.NotReady;
+  return ReadyType.Ready;
 }
 
 export function computeMessage(conditions: Condition[]) {
+  if (!conditions?.length) return undefined;
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
+  if (readyCondition) return readyCondition.message;
 
-  return readyCondition ? readyCondition.message : "unknown error";
+  const falseCondition = _.find(conditions, (c) => c.status === "False");
+  if (falseCondition) return falseCondition.message;
+  return conditions[0].message;
 }
 
 function KubeStatusIndicator({
