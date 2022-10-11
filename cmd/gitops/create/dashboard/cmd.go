@@ -131,10 +131,10 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Generatef("Generating GitOps Dashboard manifests ...")
 
-		var secret string
+		var passwordHash string
 
 		if flags.Password != "" {
-			secret, err = install.GenerateSecret(log, flags.Password)
+			passwordHash, err = install.GeneratePasswordHash(log, flags.Password)
 			if err != nil {
 				return err
 			}
@@ -148,7 +148,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, "")
+		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}
