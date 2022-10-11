@@ -339,8 +339,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 			Default:   "Y",
 		}
 
-		result, err := prompt.Run()
-		if err == nil && strings.ToUpper(result) == "Y" {
+		// Answering "n" causes err to not be nil. Hitting enter without typping
+		// does not return the default.
+		_, err := prompt.Run()
+		if err == nil {
 			password, err := install.ReadPassword(log)
 			if err != nil {
 				return err
