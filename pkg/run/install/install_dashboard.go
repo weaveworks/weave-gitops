@@ -30,7 +30,7 @@ const (
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
-	password, err := utils.ReadPasswordFromStdin(log, "Please enter your password to generate the secret: ")
+	password, err := utils.ReadPasswordFromStdin(log, "Please enter a password for logging into the dashboard: ")
 	if err != nil {
 		log.Failuref("Could not read password")
 		return "", err
@@ -39,24 +39,22 @@ func ReadPassword(log logger.Logger) (string, error) {
 	return password, nil
 }
 
-func GenerateSecret(log logger.Logger, password string) (string, error) {
-	secret, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Failuref("Error generating secret from password")
+		log.Failuref("Error generating hash from password")
 		return "", err
 	}
 
-	log.Successf("Secret has been generated:")
-
-	return string(secret), nil
+	return string(passwordHash), nil
 }
 
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) ([]byte, error) {
+func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) ([]byte, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
-	helmRelease, err := makeHelmRelease(log, name, namespace, username, secret, chartVersion)
+	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -113,7 +111,7 @@ func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient cl
 }
 
 // ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
+func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
 	helmChartName := namespace + "-" + name
@@ -133,7 +131,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		var err error
-		sourceRequestedAt, err = run.RequestReconciliation(context.Background(), kubeClient,
+		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
 			namespacedName, gvk)
 
 		return err == nil, nil
@@ -144,7 +142,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	// wait for the reconciliation of dashboard to be done
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		dashboard := &sourcev1.HelmChart{}
-		if err := kubeClient.Get(context.Background(), types.NamespacedName{
+		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      helmChartName,
 		}, dashboard); err != nil {
@@ -160,7 +158,7 @@ func ReconcileDashboard(kubeClient client.Client, name string, namespace string,
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
-		dashboard, _ := run.GetPodFromResourceDescription(namespacedName, "deployment", kubeClient)
+		dashboard, _ := run.GetPodFromResourceDescription(ctx, namespacedName, "deployment", kubeClient)
 		if dashboard == nil {
 			return false, nil
 		}
@@ -241,7 +239,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, name string, namespace string, username string, secret string, chartVersion string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -271,10 +269,10 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	if username != "" && secret != "" {
-		values, err := makeValues(username, secret)
+	if username != "" && passwordHash != "" {
+		values, err := makeValues(username, passwordHash)
 		if err != nil {
-			log.Failuref("Error generating values from secret")
+			log.Failuref("Error generating values from passwordHash")
 			return nil, err
 		}
 
@@ -285,12 +283,12 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(username string, secret string) ([]byte, error) {
+func makeValues(username string, passwordHash string) ([]byte, error) {
 	valuesMap := map[string]interface{}{
 		"adminUser": map[string]interface{}{
 			"create":       true,
 			"username":     username,
-			"passwordHash": secret,
+			"passwordHash": passwordHash,
 		},
 	}
 

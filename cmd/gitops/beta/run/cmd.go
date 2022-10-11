@@ -3,7 +3,6 @@ package run
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -11,6 +10,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -268,7 +269,9 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("to run against a remote cluster, use --allow-k8s-context=%s", contextName)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
 	log.Actionf("Checking if Flux is already installed ...")
 
@@ -285,17 +288,20 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			execPath, err = installer.Install(ctx, product)
 			if err != nil {
+				cancel()
 				return err
 			}
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
+			cancel()
 			return err
 		}
 
 		flux, err := fluxexec.NewFlux(wd, execPath)
 		if err != nil {
+			cancel()
 			return err
 		}
 
@@ -320,6 +326,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				fluxexec.Timeout(flags.Timeout),
 			),
 		); err != nil {
+			cancel()
 			return err
 		}
 	} else {
@@ -343,27 +350,32 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		if err == nil && strings.ToUpper(result) == "Y" {
 			password, err := install.ReadPassword(log)
 			if err != nil {
+				cancel()
 				return err
 			}
 
-			secret, err := install.GenerateSecret(log, password)
+			passwordHash, err := install.GeneratePasswordHash(log, password)
 			if err != nil {
+				cancel()
 				return err
 			}
 
 			man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
 			if err != nil {
 				log.Failuref("Error creating resource manager")
+				cancel()
 				return err
 			}
 
-			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, secret, HelmChartVersion)
+			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
 			if err != nil {
+				cancel()
 				return fmt.Errorf("error creating dashboard objects: %w", err)
 			}
 
 			err = install.InstallDashboard(log, ctx, man, manifests)
 			if err != nil {
+				cancel()
 				return fmt.Errorf("gitops dashboard installation failed: %w", err)
 			} else {
 				dashboardInstalled = true
@@ -376,32 +388,36 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	if dashboardInstalled {
 		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
-		if err := install.ReconcileDashboard(kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("Dashboard reconciliation is done.")
 		}
 	}
 
-	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(log, kubeClient, cfg)
+	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log, kubeClient, cfg)
 	if err != nil {
+		cancel()
 		return err
 	}
 
 	var cancelDashboardPortForwarding func() = nil
 
 	if dashboardInstalled {
-		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 		if err != nil {
+			cancel()
 			return err
 		}
 	}
 
 	if err := watch.InitializeTargetDir(targetPath); err != nil {
+		cancel()
 		return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
 	}
 
-	if err := watch.SetupBucketSourceAndKS(log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
+	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
+		cancel()
 		return err
 	}
 
@@ -416,17 +432,20 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		},
 	)
 	if err != nil {
+		cancel()
 		return err
 	}
 
 	// watch for file changes in dir gitRepoRoot
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
+		cancel()
 		return err
 	}
 
 	err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -477,7 +496,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// reset counter
 					atomic.StoreUint64(&counter, 0)
 
-					if err := watch.SyncDir(log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
+					if err := watch.SyncDir(ctx, log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
 						log.Failuref("Error syncing dir: %v", err)
 					}
 
@@ -502,7 +521,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
 
-					if err := watch.ReconcileDevBucketSourceAndKS(log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+					if err := watch.ReconcileDevBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
 						log.Failuref("Error requesting reconciliation: %v", err)
 					}
 
@@ -517,7 +536,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// get pod from specMap
 						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-						pod, err := run.GetPodFromResourceDescription(namespacedName, specMap.Kind, kubeClient)
+						pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
 						if err != nil {
 							log.Failuref("Error getting pod from specMap: %v", err)
 						}
@@ -549,9 +568,14 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	// wait for interrupt or ctrl+C
 	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	sig := <-sigs
+
+	cancel()
+	// create new context that isn't cancelled, for bootstrapping
+	ctx = context.Background()
+
+	// re-enable listening for ctrl+C
+	signal.Reset(sig)
 
 	if err := watcher.Close(); err != nil {
 		log.Warningf("Error closing watcher: %v", err.Error())
@@ -567,12 +591,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	ticker.Stop()
 
-	if err := watch.CleanupBucketSourceAndKS(log, kubeClient, flags.Namespace); err != nil {
+	if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
 		return err
 	}
 
 	// uninstall dev-bucket server
-	if err := watch.UninstallDevBucketServer(log, kubeClient); err != nil {
+	if err := watch.UninstallDevBucketServer(ctx, log, kubeClient); err != nil {
 		return err
 	}
 
@@ -580,9 +604,6 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
 		return nil
 	}
-
-	// re-enable listening for ctrl+C
-	signal.Reset(sig)
 
 	// parse remote
 	repo, err := bootstrap.ParseGitRemote(log, rootDir)

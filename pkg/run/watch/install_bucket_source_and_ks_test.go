@@ -122,7 +122,7 @@ var _ = Describe("findConditionMessages", func() {
 				},
 			},
 		}
-		messages, err := findConditionMessages(client, ks)
+		messages, err := findConditionMessages(context.Background(), client, ks)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(messages).To(Equal([]string{
 			"Deployment default/deployment: This is message",

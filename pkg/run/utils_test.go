@@ -224,7 +224,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the pod spec is not correct", func() {
 		namespacedName := types.NamespacedName{Namespace: "", Name: ""}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "something", &mockClientForGetPodFromResourceDescription{})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "something", &mockClientForGetPodFromResourceDescription{})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("unsupported spec kind"))
@@ -233,7 +233,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the client returns an error", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "pod", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "pod", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake error"))
@@ -242,7 +242,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the pod spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "pod", &mockClientForGetPodFromResourceDescription{})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "pod", &mockClientForGetPodFromResourceDescription{})
 
 		Expect(err).To(BeNil())
 		Expect(pod.Name).To(Equal("name"))
@@ -254,7 +254,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the client returns an error", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("error getting service: fake error, namespaced Name: ns/name"))
@@ -263,7 +263,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the client returns an error", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListReturnErr})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListReturnErr})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake error"))
@@ -272,7 +272,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the service spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListHasPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListHasPod})
 
 		Expect(err).To(BeNil())
 		Expect(pod.Name).To(Equal("pod-1"))
@@ -282,7 +282,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the service spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListZeroPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListZeroPod})
 
 		Expect(err).To(HaveOccurred())
 		Expect(pod).To(BeNil())
@@ -292,7 +292,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the service spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListNoRunningPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "service", &mockClientForGetPodFromResourceDescription{state: stateListNoRunningPod})
 
 		Expect(err).To(HaveOccurred())
 		Expect(pod).To(BeNil())
@@ -304,7 +304,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the client returns an error", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateGetReturnErr})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("error getting deployment: fake error, namespaced Name: ns/name"))
@@ -313,7 +313,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("should return an error if the client returns an error", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		_, err := GetPodFromResourceDescription(namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListReturnErr})
+		_, err := GetPodFromResourceDescription(context.Background(), namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListReturnErr})
 
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("fake error"))
@@ -322,7 +322,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the deployment spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListHasPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListHasPod})
 
 		Expect(err).To(BeNil())
 		Expect(pod.Name).To(Equal("pod-1"))
@@ -332,7 +332,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 	It("returns a pod according to the deployment spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
 
-		pod, err := GetPodFromResourceDescription(namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListZeroPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListZeroPod})
 
 		Expect(err).To(HaveOccurred())
 		Expect(pod).To(BeNil())
@@ -341,7 +341,7 @@ var _ = Describe("GetPodFromResourceDescription", func() {
 
 	It("returns a pod according to the deployment spec", func() {
 		namespacedName := types.NamespacedName{Namespace: "ns", Name: "name"}
-		pod, err := GetPodFromResourceDescription(namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListNoRunningPod})
+		pod, err := GetPodFromResourceDescription(context.Background(), namespacedName, "deployment", &mockClientForGetPodFromResourceDescription{state: stateListNoRunningPod})
 
 		Expect(err).To(HaveOccurred())
 		Expect(pod).To(BeNil())
