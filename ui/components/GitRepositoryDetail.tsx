@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Button } from "..";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
@@ -27,11 +28,23 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
       ? [["Cluster", gitRepository.clusterName]]
       : [];
 
+  const hasCreateRequestAnnotation =
+    gitRepository.obj.metadata.annotations?.[
+      "templates.weave.works/create-request"
+    ];
+
   return (
     <SourceDetail
       className={className}
       type={Kind.GitRepository}
       source={gitRepository}
+      customActions={
+        hasCreateRequestAnnotation && [
+          <Link to={`/resources/${gitRepository.name}/edit`}>
+            <Button id="edit-resource">Edit</Button>
+          </Link>,
+        ]
+      }
       info={[
         ["Type", Kind.GitRepository],
         [

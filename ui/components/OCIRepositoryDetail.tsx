@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Button } from "..";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { OCIRepository } from "../lib/objects";
@@ -8,6 +9,7 @@ import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
+
 type Props = {
   className?: string;
   ociRepository: OCIRepository;
@@ -26,11 +28,23 @@ function OCIRepositoryDetail({ className, ociRepository }: Props) {
       ? [["Cluster", ociRepository.clusterName]]
       : [];
 
+  const hasCreateRequestAnnotation =
+    ociRepository.obj.metadata.annotations?.[
+      "templates.weave.works/create-request"
+    ];
+
   return (
     <SourceDetail
       className={className}
       type={Kind.OCIRepository}
       source={ociRepository}
+      customActions={
+        hasCreateRequestAnnotation && [
+          <Link to={`/resources/${ociRepository.name}/edit`}>
+            <Button id="edit-resource">Edit</Button>
+          </Link>,
+        ]
+      }
       info={[
         ["Type", Kind.OCIRepository],
         ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],

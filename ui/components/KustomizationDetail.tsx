@@ -9,6 +9,7 @@ import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
 import { InfoField } from "./InfoList";
+import { Button, Link } from "..";
 
 export interface routeTab {
   name: string;
@@ -37,11 +38,23 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
       ? [["Cluster", kustomization?.clusterName]]
       : [];
 
+  const hasCreateRequestAnnotation =
+    kustomization.obj.metadata.annotations?.[
+      "templates.weave.works/create-request"
+    ];
+
   return (
     <AutomationDetail
       className={className}
       customTabs={customTabs}
       automation={kustomization}
+      customActions={
+        hasCreateRequestAnnotation && [
+          <Link to={`/resources/${kustomization.name}/edit`}>
+            <Button id="edit-resource">Edit</Button>
+          </Link>,
+        ]
+      }
       info={[
         [
           "Source",

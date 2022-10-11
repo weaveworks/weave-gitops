@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Button, Link } from "..";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
@@ -27,11 +28,21 @@ function BucketDetail({ className, bucket }: Props) {
       ? [["Cluster", bucket.clusterName]]
       : [];
 
+  const hasCreateRequestAnnotation =
+    bucket.obj.metadata.annotations?.["templates.weave.works/create-request"];
+
   return (
     <SourceDetail
       className={className}
       type={Kind.Bucket}
       source={bucket}
+      customActions={
+        hasCreateRequestAnnotation && [
+          <Link to={`/resources/${bucket.name}/edit`}>
+            <Button id="edit-resource">Edit</Button>
+          </Link>,
+        ]
+      }
       info={[
         ["Type", Kind.Bucket],
         ["Endpoint", bucket.endpoint],

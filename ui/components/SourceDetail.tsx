@@ -27,9 +27,10 @@ type Props = {
   children?: JSX.Element;
   source: Source;
   info: InfoField[];
+  customActions?: any[];
 };
 
-function SourceDetail({ className, source, info, type }: Props) {
+function SourceDetail({ className, source, info, type, customActions }: Props) {
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
@@ -107,6 +108,12 @@ function SourceDetail({ className, source, info, type }: Props) {
         >
           {source?.suspended ? "Resume" : "Suspend"}
         </Button>
+        {customActions?.map((action) => (
+          <>
+            <Spacer padding="xs" />
+            {action}
+          </>
+        ))}
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>

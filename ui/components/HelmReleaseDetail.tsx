@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Button, Link } from "..";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRelease } from "../lib/objects";
@@ -62,11 +63,23 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       ? [["Cluster", helmRelease?.clusterName]]
       : [];
 
+  const hasCreateRequestAnnotation =
+    helmRelease.obj.metadata.annotations?.[
+      "templates.weave.works/create-request"
+    ];
+
   return (
     <AutomationDetail
       className={className}
       automation={helmRelease}
       customTabs={customTabs}
+      customActions={
+        hasCreateRequestAnnotation && [
+          <Link to={`/resources/${helmRelease.name}/edit`}>
+            <Button id="edit-resource">Edit</Button>
+          </Link>,
+        ]
+      }
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],

@@ -28,9 +28,16 @@ type Props = {
   className?: string;
   info: InfoField[];
   customTabs?: Array<routeTab>;
+  customActions?: any[];
 };
 
-function AutomationDetail({ automation, className, info, customTabs }: Props) {
+function AutomationDetail({
+  automation,
+  className,
+  info,
+  customTabs,
+  customActions,
+}: Props) {
   const { path } = useRouteMatch();
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
@@ -152,6 +159,12 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         >
           {automation.suspended ? "Resume" : "Suspend"}
         </Button>
+        {customActions?.map((action) => (
+          <>
+            <Spacer padding="xs" />
+            {action}
+          </>
+        ))}
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
