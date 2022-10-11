@@ -6,12 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -23,6 +20,7 @@ import (
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
@@ -346,8 +344,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 			Default:   "Y",
 		}
 
-		result, err := prompt.Run()
-		if err == nil && strings.ToUpper(result) == "Y" {
+		// Answering "n" causes err to not be nil. Hitting enter without typing
+		// does not return the default.
+		_, err := prompt.Run()
+		if err == nil {
 			password, err := install.ReadPassword(log)
 			if err != nil {
 				cancel()
