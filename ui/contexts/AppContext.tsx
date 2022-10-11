@@ -22,6 +22,12 @@ type AppSettings = {
   renderFooter: boolean;
 };
 
+export type LinkResolver = (incoming: string) => string;
+
+export function defaultLinkResolver(incoming: string): string {
+  return incoming;
+}
+
 export type AppContextType = {
   applicationsClient: typeof Applications;
   userConfigRepoName: string;
@@ -30,6 +36,7 @@ export type AppContextType = {
   setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
+  linkResolver: LinkResolver;
   getProviderToken: typeof getProviderToken;
   storeProviderToken: typeof storeProviderToken;
   getCallbackState: typeof getCallbackState;
@@ -49,6 +56,7 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   applicationsClient?: typeof Applications;
+  linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
   notifySuccess?: typeof notifySuccess;
@@ -96,6 +104,7 @@ export default function AppContextProvider({
     clearAsyncError,
     setNodeYaml,
     appState,
+    linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
     storeProviderToken,
     storeCallbackState,
