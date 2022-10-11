@@ -6,7 +6,6 @@ import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { Bucket } from "../lib/objects";
-import EditButton from "./CustomActions";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -33,7 +32,6 @@ function BucketDetail({ className, bucket }: Props) {
       className={className}
       type={Kind.Bucket}
       source={bucket}
-      customActions={[<EditButton resource={bucket} />]}
       info={[
         ["Type", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
