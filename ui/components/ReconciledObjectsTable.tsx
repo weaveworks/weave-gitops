@@ -71,9 +71,8 @@ function ReconciledObjectsTable({
 
               if (route) {
                 uri = formatURL(route, params);
-              } else {
-                uri =
-                  linkResolver && (linkResolver(u.type, params) as V2Routes);
+              } else if (linkResolver) {
+                uri = linkResolver(u.type, params) as V2Routes;
               }
 
               return uri ? (
