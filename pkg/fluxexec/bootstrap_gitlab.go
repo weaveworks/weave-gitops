@@ -130,7 +130,7 @@ func (flux *Flux) bootstrapGitLabCmd(ctx context.Context, opts ...BootstrapGitLa
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
-	return flux.buildFluxCmd(ctx, nil, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...), nil
 }
 
 func (flux *Flux) BootstrapGitlab(ctx context.Context, opts ...BootstrapGitLabOption) error {
