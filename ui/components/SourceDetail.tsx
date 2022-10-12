@@ -9,6 +9,7 @@ import { HelmRelease, Source } from "../lib/objects";
 import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
+import CustomActions from "./CustomActions";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -27,9 +28,10 @@ type Props = {
   children?: JSX.Element;
   source: Source;
   info: InfoField[];
+  customActions?: JSX.Element[];
 };
 
-function SourceDetail({ className, source, info, type }: Props) {
+function SourceDetail({ className, source, info, type, customActions }: Props) {
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
@@ -107,6 +109,7 @@ function SourceDetail({ className, source, info, type }: Props) {
         >
           {source?.suspended ? "Resume" : "Suspend"}
         </Button>
+        <CustomActions actions={customActions} />
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
