@@ -159,9 +159,10 @@ func (m preWizardModel) View() string {
 type wizardModel struct {
 	textInputs []textinput.Model
 	prompts    []string
-	msgChan    chan []*BootstrapCmdOption
+	msgChan    chan BootstrapCmdOptions
 	cursorMode textinput.CursorMode
 	focusIndex int
+	errorMsg   string
 }
 
 func makeTextInput(value string, placeholder string, isFocused bool) textinput.Model {
@@ -181,7 +182,7 @@ func makeTextInput(value string, placeholder string, isFocused bool) textinput.M
 	return ti
 }
 
-func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan []*BootstrapCmdOption) wizardModel {
+func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdOptions) wizardModel {
 	numInputs := len(tasks)
 
 	inputs := make([]textinput.Model, numInputs)
@@ -204,6 +205,7 @@ func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan []*BootstrapC
 
 	return wizardModel{
 		textInputs: inputs,
+		errorMsg:   "",
 		prompts:    prompts,
 		msgChan:    msgChan,
 	}
@@ -242,7 +244,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if t == tea.KeyEnter && m.focusIndex == len(m.textInputs) {
-				options := []*BootstrapCmdOption{}
+				options := make(BootstrapCmdOptions)
 
 				for i, input := range m.textInputs {
 					prompt := m.prompts[i]
@@ -250,15 +252,11 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					value := strings.TrimSpace(input.Value())
 
 					if value == "" {
-						continue
+						m.errorMsg = "Missing value in " + input.Placeholder
+						return m, nil
 					}
 
-					option := BootstrapCmdOption{
-						FlagName:  prompt[:strings.Index(prompt, flagSeparator)],
-						FlagValue: value,
-					}
-
-					options = append(options, &option)
+					options[prompt[:strings.Index(prompt, flagSeparator)]] = value
 				}
 
 				go func() { m.msgChan <- options }()
@@ -323,7 +321,7 @@ func (m wizardModel) View() string {
 
 	b.WriteString("Please enter the following values" + "\n" +
 		"(Tab and Shift+Tab to move input selection," + "\n" +
-		"Enter to move tpo the next input or submit the form, " + "\n" +
+		"Enter to move to the next input or submit the form, " + "\n" +
 		"Ctrl + C twice to quit)" + "\n\n\n")
 
 	for i := range m.textInputs {
@@ -341,7 +339,7 @@ func (m wizardModel) View() string {
 		button = &focusedButton
 	}
 
-	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+	fmt.Fprintf(&b, "\n\n%s  %s\n\n", *button, m.errorMsg)
 
 	b.WriteString(helpStyle.Render("cursor mode is "))
 	b.WriteString(cursorModeHelpStyle.Render(m.cursorMode.String()))
