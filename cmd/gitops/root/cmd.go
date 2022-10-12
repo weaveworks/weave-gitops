@@ -6,17 +6,20 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -24,7 +27,7 @@ import (
 
 const defaultNamespace = "flux-system"
 
-var options = &config.Options{}
+var options = &cfg.Options{}
 
 // Only want AutomaticEnv to be called once!
 func init() {
@@ -85,6 +88,31 @@ func RootCmd() *cobra.Command {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
+			}
+
+			_, err = config.GetConfig(false)
+			if err != nil {
+
+				prompt := promptui.Prompt{
+					Label:     "Creating config file...would you like to turn on analytics to help us improve our product",
+					IsConfirm: true,
+					Default:   "Y",
+				}
+
+				// Answering "n" causes err to not be nil. Hitting enter without typing
+				// does not return the default.
+				_, err := prompt.Run()
+				gitopsConfig := &config.GitopsCLIConfig{}
+				seed := time.Now().UnixNano()
+				gitopsConfig.UserID = config.GenerateUserID(10, seed)
+				gitopsConfig.Analytics = false
+				if err == nil {
+					gitopsConfig.Analytics = true
+				}
+				if err = config.SaveConfig(gitopsConfig); err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(1)
+				}
 			}
 		},
 	}

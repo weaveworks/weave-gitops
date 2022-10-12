@@ -33,8 +33,9 @@ func getConfigCommandRunE(opts *config.Options) func(*cobra.Command, []string) e
 
 		log := logger.NewCLILogger(os.Stdout)
 
-		cfg, err := gitopsConfig.GetConfig(log, false)
+		cfg, err := gitopsConfig.GetConfig(false)
 		if err != nil {
+			log.Warningf(gitopsConfig.WrongConfigFormatMsg)
 			return err
 		}
 

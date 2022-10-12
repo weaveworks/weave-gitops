@@ -9,8 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const (
@@ -40,9 +38,7 @@ func (config *GitopsCLIConfig) String() (string, error) {
 }
 
 // GetConfig reads the CLI configuration for Weave GitOps from the config file
-func GetConfig(log logger.Logger, shouldCreate bool) (*GitopsCLIConfig, error) {
-	log.Actionf("Reading GitOps CLI config ...")
-
+func GetConfig(shouldCreate bool) (*GitopsCLIConfig, error) {
 	configPath, err := getConfigPath(ConfigFileName)
 	if err != nil {
 		return nil, err
@@ -50,10 +46,7 @@ func GetConfig(log logger.Logger, shouldCreate bool) (*GitopsCLIConfig, error) {
 
 	configFile, err := openConfigFile(configPath, shouldCreate)
 	if err != nil {
-		log.Failuref("Error opening config file at path: %s", configPath)
-		log.Warningf(WrongConfigFormatMsg)
-
-		return nil, err
+		return nil, fmt.Errorf("error opening config file: %w", err)
 	}
 
 	defer configFile.Close()
@@ -62,26 +55,20 @@ func GetConfig(log logger.Logger, shouldCreate bool) (*GitopsCLIConfig, error) {
 
 	data, err := readData(configFile)
 	if err != nil && !shouldCreate {
-		log.Failuref("Error reading config data from file at path: %s", configPath)
-		log.Warningf(WrongConfigFormatMsg)
-
-		return nil, err
+		return nil, fmt.Errorf("error reading config data: %w", err)
 	}
 
 	if len(data) == 0 {
 		if !shouldCreate {
-			log.Warningf(WrongConfigFormatMsg)
 			return nil, fmt.Errorf("empty config file detected at path: %s", configPath)
 		}
 	} else if err = parseConfig(data, config); err != nil {
-		log.Failuref("Error reading GitOps CLI config from file")
-
 		if shouldCreate {
 			// just replace invalid config with default config
-			log.Actionf("Replacing invalid config ...")
+
 		} else {
-			log.Warningf(WrongConfigFormatMsg)
-			return nil, err
+
+			return nil, fmt.Errorf("error reading config from file: %w", err)
 		}
 	}
 
@@ -89,9 +76,7 @@ func GetConfig(log logger.Logger, shouldCreate bool) (*GitopsCLIConfig, error) {
 }
 
 // SaveConfig saves the CLI configuration for Weave GitOps to the config file
-func SaveConfig(log logger.Logger, config *GitopsCLIConfig) error {
-	log.Actionf("Saving GitOps CLI config ...")
-
+func SaveConfig(config *GitopsCLIConfig) error {
 	configPath, err := getConfigPath(ConfigFileName)
 	if err != nil {
 		return err
