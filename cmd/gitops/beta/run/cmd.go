@@ -6,12 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
@@ -23,6 +20,7 @@ import (
 	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
@@ -188,43 +186,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	gitRepoRoot, err := install.FindGitRepoDir()
-	if err != nil {
-		return err
-	}
-
-	rootDir := flags.RootDir
-	if rootDir == "" {
-		rootDir = gitRepoRoot
-	}
-
-	// check if rootDir is valid
-	if _, err := os.Stat(rootDir); err != nil {
-		return fmt.Errorf("root directory %s does not exist", rootDir)
-	}
-
-	// find absolute path of the root Dir
-	rootDir, err = filepath.Abs(rootDir)
-	if err != nil {
-		return err
-	}
-
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	targetPath, err := filepath.Abs(filepath.Join(currentDir, args[0]))
-	if err != nil {
-		return err
-	}
-
-	relativePath, err := install.GetRelativePathToRootDir(rootDir, targetPath)
-	if err != nil { // if there is no git repo, we return an error
-		return err
-	}
-
 	log := clilogger.NewCLILogger(os.Stdout)
+
+	paths, err := run.NewPaths(args[0], flags.RootDir)
+	if err != nil {
+		return err
+	}
 
 	if flags.KubeConfig != "" {
 		kubeConfigArgs.KubeConfig = &flags.KubeConfig
@@ -346,8 +313,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 			Default:   "Y",
 		}
 
-		result, err := prompt.Run()
-		if err == nil && strings.ToUpper(result) == "Y" {
+		// Answering "n" causes err to not be nil. Hitting enter without typing
+		// does not return the default.
+		_, err := prompt.Run()
+		if err == nil {
 			password, err := install.ReadPassword(log)
 			if err != nil {
 				cancel()
@@ -411,17 +380,17 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := watch.InitializeTargetDir(targetPath); err != nil {
+	if err := watch.InitializeTargetDir(paths.GetAbsoluteTargetDir()); err != nil {
 		cancel()
-		return fmt.Errorf("couldn't set up against target %s: %w", targetPath, err)
+		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
 
-	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, relativePath, flags.Timeout); err != nil {
+	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, paths.TargetDir, flags.Timeout); err != nil {
 		cancel()
 		return err
 	}
 
-	ignorer := watch.CreateIgnorer(rootDir)
+	ignorer := watch.CreateIgnorer(paths.RootDir)
 
 	minioClient, err := minio.New(
 		"localhost:9000",
@@ -443,7 +412,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
+	err = filepath.Walk(paths.RootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 	if err != nil {
 		cancel()
 		return err
@@ -496,7 +465,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// reset counter
 					atomic.StoreUint64(&counter, 0)
 
-					if err := watch.SyncDir(ctx, log, rootDir, "dev-bucket", minioClient, ignorer); err != nil {
+					if err := watch.SyncDir(ctx, log, paths.RootDir, "dev-bucket", minioClient, ignorer); err != nil {
 						log.Failuref("Error syncing dir: %v", err)
 					}
 
@@ -511,7 +480,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 							log.Failuref("Error creating new watcher: %v", err)
 						}
 
-						err = filepath.Walk(rootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
+						err = filepath.Walk(paths.RootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 						if err != nil {
 							log.Failuref("Error re-walking dir: %v", err)
 						}
@@ -606,7 +575,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	// parse remote
-	repo, err := bootstrap.ParseGitRemote(log, rootDir)
+	repo, err := bootstrap.ParseGitRemote(log, paths.RootDir)
 	if err != nil {
 		log.Failuref("Error parsing Git remote: %v", err.Error())
 	}
@@ -643,7 +612,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	path := filepath.Join(relativePath, "clusters", "my-cluster")
+	path := filepath.Join(paths.TargetDir, "clusters", "my-cluster")
 	path = "./" + path
 
 	wizard, err := bootstrap.NewBootstrapWizard(log, remoteURL, gitProvider, repo, path)
