@@ -110,7 +110,9 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	var results []*pb.Crd
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &apiextensions.CustomResourceDefinitionList{}
+	})
 
 	respErrors := []*pb.ListError{}
 
@@ -118,29 +120,50 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 		coretypes.PartOfLabel: FluxNamespacePartOf,
 	}
 
-	list := &apiextensions.CustomResourceDefinitionList{}
+	if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
+		var errs clustersmngr.ClusteredListError
 
-	if err := clustersClient.List(ctx, msg.ClusterName, list, opts); err != nil {
-		respErrors = append(respErrors, &pb.ListError{ClusterName: msg.ClusterName, Message: fmt.Sprintf("%s, %s", errors.New("could not list CRDs"), err)})
+		if !errors.As(err, &errs) {
+			return nil, fmt.Errorf("CRDs clustered list: %w", errs)
+		}
+
+		for _, e := range errs.Errors {
+			respErrors = append(respErrors, &pb.ListError{
+				ClusterName: e.Cluster,
+				Message:     e.Err.Error(),
+			})
+		}
 	}
 
-	for _, d := range list.Items {
-		version := ""
+	results := []*pb.Crd{}
 
-		if len(d.Spec.Versions) > 0 {
-			version = d.Spec.Versions[0].Name
-		}
+	for clusterName, lists := range clist.Lists() {
+		for _, l := range lists {
+			list, ok := l.(*apiextensions.CustomResourceDefinitionList)
+			if !ok {
+				continue
+			}
 
-		r := &pb.Crd{
-			Name: &pb.Crd_Name{
-				Plural: d.Spec.Names.Plural,
-				Group:  d.Spec.Group},
-			Version:     version,
-			Kind:        d.Spec.Names.Kind,
-			ClusterName: msg.ClusterName,
-			Uid:         string(d.GetUID()),
+			for _, d := range list.Items {
+				version := ""
+
+				if len(d.Spec.Versions) > 0 {
+					version = d.Spec.Versions[0].Name
+				}
+
+				r := &pb.Crd{
+					Name: &pb.Crd_Name{
+						Plural: d.Spec.Names.Plural,
+						Group:  d.Spec.Group,
+					},
+					Version:     version,
+					Kind:        d.Spec.Names.Kind,
+					ClusterName: clusterName,
+					Uid:         string(d.GetUID()),
+				}
+				results = append(results, r)
+			}
 		}
-		results = append(results, r)
 	}
 
 	return &pb.ListFluxCrdsResponse{Crds: results, Errors: respErrors}, nil
