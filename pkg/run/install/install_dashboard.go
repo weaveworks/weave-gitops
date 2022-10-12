@@ -185,13 +185,13 @@ func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.H
 		return nil, err
 	}
 
-	sanitizedHelmRepositoryData, err := sanitizeResourceData(log, helmRepositoryData)
+	sanitizedHelmRepositoryData, err := SanitizeResourceData(log, helmRepositoryData)
 	if err != nil {
 		log.Failuref("Error sanitizing HelmRepository data")
 		return nil, err
 	}
 
-	sanitizedHelmReleaseData, err := sanitizeResourceData(log, helmReleaseData)
+	sanitizedHelmReleaseData, err := SanitizeResourceData(log, helmReleaseData)
 	if err != nil {
 		log.Failuref("Error sanitizing HelmRelease data")
 		return nil, err
@@ -300,7 +300,7 @@ func makeValues(username string, passwordHash string) ([]byte, error) {
 	return jsonRaw, nil
 }
 
-func sanitizeResourceData(log logger.Logger, resourceData []byte) ([]byte, error) {
+func SanitizeResourceData(log logger.Logger, resourceData []byte) ([]byte, error) {
 	// remove status
 	resNode, err := kyaml.Parse(string(resourceData))
 	if err != nil {
