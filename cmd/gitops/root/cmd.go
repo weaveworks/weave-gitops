@@ -92,9 +92,8 @@ func RootCmd() *cobra.Command {
 
 			_, err = config.GetConfig(false)
 			if err != nil {
-
 				prompt := promptui.Prompt{
-					Label:     "Creating config file...would you like to turn on analytics to help us improve our product",
+					Label:     "Creating config file... Would you like to turn on analytics to help us improve our product",
 					IsConfirm: true,
 					Default:   "Y",
 				}

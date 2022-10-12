@@ -65,9 +65,7 @@ func GetConfig(shouldCreate bool) (*GitopsCLIConfig, error) {
 	} else if err = parseConfig(data, config); err != nil {
 		if shouldCreate {
 			// just replace invalid config with default config
-
 		} else {
-
 			return nil, fmt.Errorf("error reading config from file: %w", err)
 		}
 	}
