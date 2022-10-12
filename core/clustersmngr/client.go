@@ -111,7 +111,7 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 		return err
 	}
 
-	// Due to how DelegatingClients work, calls that fails never returns,
+	// Due to how DelegatingClients work, calls that fail never return,
 	// because it waits the cache to sync before returning it https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/cache/internal/informers_map.go#L206
 	// so we are forced to use a timeout so it doesn't keep the informer up.
 	// TODO: What should be the timeout here?
