@@ -145,5 +145,5 @@ func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHu
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
-	return flux.buildFluxCmd(ctx, nil, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...), nil
 }

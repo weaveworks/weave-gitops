@@ -152,5 +152,5 @@ func (flux *Flux) bootstrapBitbucketServerCmd(ctx context.Context, opts ...Boots
 		args = append(args, "--username", c.username)
 	}
 
-	return flux.buildFluxCmd(ctx, nil, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...), nil
 }
