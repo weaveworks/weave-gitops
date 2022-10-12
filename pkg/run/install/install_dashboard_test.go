@@ -239,7 +239,7 @@ var _ = Describe("makeValues", func() {
 	})
 })
 
-var _ = Describe("sanitizeResourceData", func() {
+var _ = Describe("SanitizeResourceData", func() {
 	var fakeLogger *loggerfakes.FakeLogger
 
 	BeforeEach(func() {
@@ -256,7 +256,7 @@ var _ = Describe("sanitizeResourceData", func() {
 		Expect(strings.Contains(resStr, "status")).To(BeTrue())
 		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
 
-		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		sanitizedResData, err := SanitizeResourceData(fakeLogger, resData)
 		Expect(err).NotTo(HaveOccurred())
 
 		sanitizedResStr := string(sanitizedResData)
@@ -276,7 +276,7 @@ var _ = Describe("sanitizeResourceData", func() {
 		Expect(strings.Contains(resStr, "status")).To(BeTrue())
 		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
 
-		sanitizedResData, err := sanitizeResourceData(fakeLogger, resData)
+		sanitizedResData, err := SanitizeResourceData(fakeLogger, resData)
 		Expect(err).NotTo(HaveOccurred())
 
 		sanitizedResStr := string(sanitizedResData)

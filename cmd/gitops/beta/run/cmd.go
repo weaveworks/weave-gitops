@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -12,6 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
 	"github.com/minio/minio-go/v7"
@@ -29,9 +33,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -57,6 +63,7 @@ type RunCommandFlags struct {
 	SessionNamespace    string
 	NoSession           bool
 	SkipResourceCleanup bool
+	NoBootstrap         bool
 
 	// Global flags.
 	Namespace  string
@@ -113,6 +120,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.StringVar(&flags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
 	cmdFlags.StringVar(&flags.SessionNamespace, "session-namespace", "default", "Specify the namespace of the session.")
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
+	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
@@ -387,7 +395,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
-	fluxVersion, err := installFlux(log, kubeClient)
+	_, err = installFlux(log, kubeClient)
 	if err != nil {
 		cancel()
 		return err
@@ -396,6 +404,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
 	dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+
+	var manifests []byte
 
 	if dashboardInstalled {
 		log.Successf("GitOps Dashboard is found")
@@ -429,7 +439,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				return err
 			}
 
-			manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
+			manifests, err = install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
 			if err != nil {
 				cancel()
 				return fmt.Errorf("error creating dashboard objects: %w", err)
@@ -665,11 +675,44 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// run bootstrap wizard only if Flux is not installed and env var is set
-	if fluxVersion != "" || os.Getenv("GITOPS_RUN_BOOTSTRAP") == "" {
-		return nil
+	// run bootstrap wizard only if Flux was not installed
+	if !flags.NoBootstrap {
+		prompt := promptui.Prompt{
+			Label:     "Would you like to bootstrap your cluster into GitOps mode?",
+			IsConfirm: true,
+			Default:   "Y",
+		}
+
+		_, err = prompt.Run()
+		if err != nil {
+			return nil
+		}
+
+		for {
+			err := runBootstrap(ctx, log, paths, manifests)
+			if err == nil {
+				break
+			}
+
+			log.Warningf("Error bootstrapping: %v", err)
+
+			prompt := promptui.Prompt{
+				Label:     "Couldn't bootstrap - would you like to try again?",
+				IsConfirm: true,
+				Default:   "Y",
+			}
+
+			_, err = prompt.Run()
+			if err != nil {
+				return nil
+			}
+		}
 	}
 
+	return nil
+}
+
+func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, manifests []byte) (err error) {
 	// parse remote
 	repo, err := bootstrap.ParseGitRemote(log, paths.RootDir)
 	if err != nil {
@@ -701,9 +744,129 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error running bootstrap wizard: %v", err.Error())
 	}
 
-	_ = wizard.BuildCmd(log)
+	params := wizard.BuildCmd(log)
 
-	log.Successf("Flux bootstrap command successfully built.")
+	product := fluxinstall.NewProduct(flags.FluxVersion)
+
+	installer := fluxinstall.NewInstaller()
+
+	execPath, err := installer.Ensure(ctx, product)
+	if err != nil {
+		execPath, err = installer.Install(ctx, product)
+		if err != nil {
+			return err
+		}
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	flux, err := fluxexec.NewFlux(wd, execPath)
+	if err != nil {
+		return err
+	}
+
+	flux.SetStdout(os.Stdout)
+	flux.SetStderr(os.Stderr)
+
+	slugifiedWorkloadPath := strings.ReplaceAll(paths.TargetDir, "/", "-")
+
+	workloadKustomizationPath := strings.Join([]string{paths.ClusterDir, slugifiedWorkloadPath, slugifiedWorkloadPath + "-kustomization.yaml"}, "/")
+	workloadKustomization := kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      slugifiedWorkloadPath,
+			Namespace: flags.Namespace,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			Interval: metav1.Duration{Duration: 1 * time.Hour},
+			Prune:    true, // GC the kustomization
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      sourcev1.GitRepositoryKind,
+				Name:      "flux-system",
+				Namespace: "flux-system",
+			},
+			Timeout: &metav1.Duration{Duration: 5 * time.Minute},
+			Path:    "./" + paths.TargetDir,
+			Wait:    true,
+		},
+	}
+
+	workloadKustomizationContent, err := yaml.Marshal(workloadKustomization)
+	if err != nil {
+		return err
+	}
+
+	workloadKustomizationContent, err = install.SanitizeResourceData(log, workloadKustomizationContent)
+	if err != nil {
+		return err
+	}
+
+	workloadKustomizationContentStr := string(workloadKustomizationContent)
+
+	commitFiles := []gitprovider.CommitFile{
+		gitprovider.CommitFile{
+			Path:    &workloadKustomizationPath,
+			Content: &workloadKustomizationContentStr,
+		},
+	}
+
+	if len(manifests) > 0 {
+		strManifests := string(manifests)
+		dashboardPath := strings.Join([]string{paths.ClusterDir, "weave-gitops", "dashboard.yaml"}, "/")
+
+		commitFiles = append(commitFiles, gitprovider.CommitFile{
+			Path:    &dashboardPath,
+			Content: &strManifests,
+		})
+	}
+
+	err = filepath.WalkDir(paths.GetAbsoluteTargetDir(), func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			log.Warningf("Error: %v", err.Error())
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		strContent := string(content)
+		if err != nil {
+			log.Warningf("Error: %v", err.Error())
+			return err
+		}
+		relativePath, err := run.GetRelativePathToRootDir(paths.RootDir, path)
+		if err != nil {
+			log.Warningf("Error: %v", err.Error())
+			return err
+		}
+		commitFiles = append(commitFiles, gitprovider.CommitFile{
+			Path:    &relativePath,
+			Content: &strContent,
+		})
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	bs := bootstrap.NewBootstrap(paths.ClusterDir, params.Options, params.Provider)
+
+	err = bs.RunBootstrapCmd(ctx, flux)
+	if err != nil {
+		return err
+	}
+
+	err = bs.SyncResources(ctx, log, commitFiles)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

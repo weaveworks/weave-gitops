@@ -319,7 +319,7 @@ var allGitProviderNames = []string{
 	gitProviderGitHubName,
 	gitProviderGitLabName,
 	gitProviderGitName,
-	gitProviderBitbucketServerName,
+	//gitProviderBitbucketServerName,
 }
 
 var allGitProviders = map[string]GitProvider{
