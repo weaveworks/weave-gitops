@@ -28,8 +28,11 @@ func TestDelegatingCacheGet(t *testing.T) {
 		},
 	}
 
-	delegatingCache.Get(context.Background(), client.ObjectKeyFromObject(ns), ns)
-	delegatingCache.Get(context.Background(), client.ObjectKeyFromObject(ns), ns)
+	err = delegatingCache.Get(context.Background(), client.ObjectKeyFromObject(ns), ns)
+	g.Expect(err).To(BeNil())
+
+	err = delegatingCache.Get(context.Background(), client.ObjectKeyFromObject(ns), ns)
+	g.Expect(err).To(BeNil())
 
 	g.Expect(fakeReader.Called).To(Equal(1))
 }
@@ -45,8 +48,11 @@ func TestDelegatingCacheList(t *testing.T) {
 
 	nsList := &corev1.NamespaceList{}
 
-	delegatingCache.List(context.Background(), nsList)
-	delegatingCache.List(context.Background(), nsList)
+	err = delegatingCache.List(context.Background(), nsList)
+	g.Expect(err).To(BeNil())
+
+	err = delegatingCache.List(context.Background(), nsList)
+	g.Expect(err).To(BeNil())
 
 	g.Expect(fakeReader.Called).To(Equal(1))
 }
