@@ -40,7 +40,7 @@ func NewFlux(workingDir string, execPath string) (*Flux, error) {
 	flux := Flux{
 		execPath:   execPath,
 		workingDir: workingDir,
-		env:        nil, // explicit nil means copy os.Environ
+		env:        make(map[string]string),
 		logger:     nil,
 	}
 
@@ -76,4 +76,8 @@ func (flux *Flux) SetStdout(w io.Writer) {
 // flow. Any parsing necessary should be added as functionality to this package.
 func (flux *Flux) SetStderr(w io.Writer) {
 	flux.stderr = w
+}
+
+func (flux *Flux) SetEnvVar(key, value string) {
+	flux.env[key] = value
 }
