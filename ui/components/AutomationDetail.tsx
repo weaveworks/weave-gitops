@@ -6,7 +6,7 @@ import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
-import { Automation, Source } from "../lib/objects";
+import { Automation } from "../lib/objects";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
