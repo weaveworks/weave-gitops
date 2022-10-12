@@ -1,0 +1,38 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  creationTimestamp: null
+  name: weave-gitops
+  namespace: wego-system
+spec:
+  ignore: |-
+    .weave-gitops/
+    .git/
+    .gitignore
+    .gitmodules
+    .gitattributes
+    *.jpg
+    *.jpeg
+    *.gif
+    *.png
+    *.wmv
+    *.flv
+    *.tar.gz
+    *.zip
+    .github/
+    .circleci/
+    .travis.yml
+    .gitlab-ci.yml
+    appveyor.yml
+    .drone.yml
+    cloudbuild.yaml
+    codeship-services.yml
+    codeship-steps.yml
+    **/.goreleaser.yml
+    **/.sops.yaml
+    **/.flux.yaml
+  interval: 30s
+  ref:
+    branch: main
+  url: https://github.com/weaveworks/weave-gitops.git
+status: {}
