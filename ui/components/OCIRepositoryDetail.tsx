@@ -12,7 +12,7 @@ import Timestamp from "./Timestamp";
 type Props = {
   className?: string;
   ociRepository: OCIRepository;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function OCIRepositoryDetail({

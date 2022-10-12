@@ -12,7 +12,7 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   gitRepository: GitRepository;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function GitRepositoryDetail({

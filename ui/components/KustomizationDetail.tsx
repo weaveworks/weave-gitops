@@ -21,7 +21,7 @@ type Props = {
   kustomization?: Kustomization;
   className?: string;
   customTabs?: Array<routeTab>;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function KustomizationDetail({

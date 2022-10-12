@@ -18,7 +18,7 @@ type Props = {
   helmRelease?: HelmRelease;
   className?: string;
   customTabs?: Array<routeTab>;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function helmChartLink(helmRelease: HelmRelease) {

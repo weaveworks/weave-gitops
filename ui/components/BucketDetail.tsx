@@ -11,7 +11,7 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   bucket: Bucket;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function BucketDetail({ className, bucket, customActions }: Props) {

@@ -11,7 +11,7 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   helmChart: HelmChart;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function HelmChartDetail({ className, helmChart, customActions }: Props) {

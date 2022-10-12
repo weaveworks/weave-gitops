@@ -12,7 +12,7 @@ import Timestamp from "./Timestamp";
 type Props = {
   className?: string;
   helmRepository: HelmRepository;
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function HelmRepositoryDetail({
