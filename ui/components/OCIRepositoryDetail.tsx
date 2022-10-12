@@ -8,12 +8,18 @@ import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
+
 type Props = {
   className?: string;
   ociRepository: OCIRepository;
+  customActions?: JSX.Element[];
 };
 
-function OCIRepositoryDetail({ className, ociRepository }: Props) {
+function OCIRepositoryDetail({
+  className,
+  ociRepository,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -31,6 +37,7 @@ function OCIRepositoryDetail({ className, ociRepository }: Props) {
       className={className}
       type={Kind.OCIRepository}
       source={ociRepository}
+      customActions={customActions}
       info={[
         ["Type", Kind.OCIRepository],
         ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],

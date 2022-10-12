@@ -21,9 +21,15 @@ type Props = {
   kustomization?: Kustomization;
   className?: string;
   customTabs?: Array<routeTab>;
+  customActions?: JSX.Element[];
 };
 
-function KustomizationDetail({ kustomization, className, customTabs }: Props) {
+function KustomizationDetail({
+  kustomization,
+  className,
+  customTabs,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -42,6 +48,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
       className={className}
       customTabs={customTabs}
       automation={kustomization}
+      customActions={customActions}
       info={[
         [
           "Source",
