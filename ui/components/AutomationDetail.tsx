@@ -8,6 +8,7 @@ import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
+import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -28,9 +29,16 @@ type Props = {
   className?: string;
   info: InfoField[];
   customTabs?: Array<routeTab>;
+  customActions?: JSX.Element[];
 };
 
-function AutomationDetail({ automation, className, info, customTabs }: Props) {
+function AutomationDetail({
+  automation,
+  className,
+  info,
+  customTabs,
+  customActions,
+}: Props) {
   const { path } = useRouteMatch();
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
@@ -152,6 +160,7 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         >
           {automation.suspended ? "Resume" : "Suspend"}
         </Button>
+        <CustomActions actions={customActions} />
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
