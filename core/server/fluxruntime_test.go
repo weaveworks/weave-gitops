@@ -324,9 +324,7 @@ func TestListFluxCrds(t *testing.T) {
 	cfg := makeServerConfig(client, t)
 	c := makeServer(cfg, t)
 
-	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{
-		ClusterName: clustersmngr.DefaultCluster,
-	})
+	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Crds).To(HaveLen(2))
