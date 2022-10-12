@@ -135,5 +135,6 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
   }
   .MuiTabs-indicator {
     height: 3px;
+    background-color: ${(props) => props.theme.colors.primary};
   }
 `;
