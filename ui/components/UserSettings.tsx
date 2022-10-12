@@ -32,10 +32,8 @@ const PersonButton = styled(IconButton)<{ open: boolean }>`
   height: 40px;
   width: 40px;
   &.MuiIconButton-root {
-    background-color: ${(props) => props.theme.colors.white};
-    ${(props) =>
-      props.open &&
-      `color: ${props.theme.colors.primary10}; background-color: rgba(0, 179, 236, .1);`}
+    background-color: ${(props) => props.theme.colors.neutralGray};
+    color: ${(props) => props.theme.colors.neutral30};
     :hover {
       background-color: ${(props) => props.theme.colors.white};
       color: ${(props) => props.theme.colors.primary10};
@@ -75,7 +73,7 @@ function UserSettings({ className }: { className?: string }) {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
-        transformOrigin={{ horizontal: 150, vertical: "top" }}
+        transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
         <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
         <MenuItem onClick={() => history.push(V2Routes.Notifications)}>

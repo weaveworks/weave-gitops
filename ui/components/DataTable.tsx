@@ -455,7 +455,7 @@ function UnstyledDataTable({
     return (
       <TableRow key={r.uid || i}>
         {checkboxes && (
-          <TableCell style={{ padding: "8px" }}>
+          <TableCell style={{ padding: "0px" }}>
             <Checkbox
               checked={_.includes(checked, r.uid)}
               onChange={(e) => {
@@ -588,11 +588,13 @@ export const DataTable = styled(UnstyledDataTable)`
   overflow-x: hidden;
   h2 {
     padding: ${(props) => props.theme.spacing.xs};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
   .MuiTableRow-root {
     transition: background 0.5s ease-in-out;
@@ -605,12 +607,14 @@ export const DataTable = styled(UnstyledDataTable)`
     margin-top: ${(props) => props.theme.spacing.small};
   }
   th {
-    padding: ${(props) => props.theme.spacing.xs};
+    padding: 0;
     background: ${(props) => props.theme.colors.neutralGray};
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
   }
   td {
     //24px matches th + button + h2 padding
-    padding-left: ${(props) => props.theme.spacing.medium};
+    padding-left: ${(props) => props.theme.spacing.base};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

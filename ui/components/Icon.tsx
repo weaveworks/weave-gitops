@@ -135,7 +135,7 @@ function getIcon(i: IconType) {
       return () => <img src={images.successSrc} />;
 
     case IconType.FailedIcon:
-      return () => <img src={images.failedSrc} />;
+      return ErrorIcon;
 
     case IconType.SuspendedIcon:
       return () => <img src={images.suspendedSrc} />;

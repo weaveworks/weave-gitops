@@ -58,6 +58,7 @@ function KubeStatusIndicator({
 }: Props) {
   let readyText;
   let icon;
+  let iconColor;
   if (suspended) {
     readyText = "Suspended";
     icon = IconType.SuspendedIcon;
@@ -66,12 +67,15 @@ function KubeStatusIndicator({
     if (ready === ReadyType.Reconciling) {
       readyText = ReadyType.Reconciling;
       icon = IconType.ReconcileIcon;
+      iconColor = "primary";
     } else if (ready === ReadyType.Ready) {
       readyText = ReadyType.Ready;
-      icon = IconType.SuccessIcon;
+      icon = IconType.CheckCircleIcon;
+      iconColor = "success";
     } else {
       readyText = ReadyType.NotReady;
       icon = IconType.FailedIcon;
+      iconColor = "alert";
     }
   }
 
@@ -80,7 +84,7 @@ function KubeStatusIndicator({
 
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} text={text} />
+      <Icon size="base" type={icon} color={iconColor} text={text} />
     </Flex>
   );
 }
