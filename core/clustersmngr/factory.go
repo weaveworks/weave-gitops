@@ -105,7 +105,7 @@ var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
-type ClientFactoryFn func(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
+type ClientFactoryFn func(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
 
 type clustersManager struct {
 	clustersFetcher ClusterFetcher
@@ -505,7 +505,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 		return client, nil
 	}
 
-	client, err := cf.createClient(user, cfgFunc, cluster, cf.scheme)
+	client, err := cf.createClient(cfgFunc, cluster, cf.scheme)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating client for cluster=%s: %w", cluster.Name, err)
 	}
@@ -515,7 +515,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	return client, nil
 }
 
-func ClientFactory(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+func ClientFactory(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 	config, err := cfgFunc(cluster)
 	if err != nil {
 		return nil, fmt.Errorf("error building cluster client config: %w", err)
@@ -537,7 +537,7 @@ func ClientFactory(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cl
 	return client, nil
 }
 
-func CachedClientFactory(user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+func CachedClientFactory(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
 	config, err := cfgFunc(cluster)
 	if err != nil {
 		return nil, fmt.Errorf("error building cluster client config: %w", err)

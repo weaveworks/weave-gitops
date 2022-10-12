@@ -381,8 +381,11 @@ func TestClientCaching(t *testing.T) {
 
 	fakeClientFnCalls := 0
 
-	fakeClientFn := func(user *auth.UserPrincipal, cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *runtime.Scheme) (client.Client, error) {
-		if user.ID == userID {
+	fakeClientFn := func(cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *runtime.Scheme) (client.Client, error) {
+		restConfig, err := cfgFunc(cluster)
+		g.Expect(err).To(BeNil())
+
+		if restConfig.Impersonate.UserName == userID {
 			fakeClientFnCalls++
 		}
 
