@@ -25,7 +25,7 @@ func TestDelegatingCacheGet(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	go cache.Start(ctx)
+	go cache.Start(ctx) //nolint:errcheck
 
 	if ok := cache.WaitForCacheSync(ctx); !ok {
 		g.Fail("failed syncing client cache")
@@ -60,7 +60,7 @@ func TestDelegatingCacheList(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	go cache.Start(ctx)
+	go cache.Start(ctx) //nolint:errcheck
 
 	if ok := cache.WaitForCacheSync(ctx); !ok {
 		g.Fail("failed syncing client cache")
