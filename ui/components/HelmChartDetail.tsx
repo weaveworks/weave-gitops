@@ -11,9 +11,10 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   helmChart: HelmChart;
+  customActions?: JSX.Element[];
 };
 
-function HelmChartDetail({ className, helmChart }: Props) {
+function HelmChartDetail({ className, helmChart, customActions }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -31,6 +32,7 @@ function HelmChartDetail({ className, helmChart }: Props) {
       type={Kind.HelmChart}
       className={className}
       source={helmChart}
+      customActions={customActions}
       info={[
         ["Type", Kind.HelmChart],
         ["Chart", helmChart.chart],

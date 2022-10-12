@@ -18,6 +18,7 @@ type Props = {
   helmRelease?: HelmRelease;
   className?: string;
   customTabs?: Array<routeTab>;
+  customActions?: JSX.Element[];
 };
 
 function helmChartLink(helmRelease: HelmRelease) {
@@ -49,7 +50,12 @@ function helmChartLink(helmRelease: HelmRelease) {
   );
 }
 
-function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
+function HelmReleaseDetail({
+  helmRelease,
+  className,
+  customTabs,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -67,6 +73,7 @@ function HelmReleaseDetail({ helmRelease, className, customTabs }: Props) {
       className={className}
       automation={helmRelease}
       customTabs={customTabs}
+      customActions={customActions}
       info={[
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
