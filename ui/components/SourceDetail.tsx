@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
-import { HelmRelease, Source } from "../lib/objects";
+import { HelmRelease, Source, Automation } from "../lib/objects";
 import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import Button from "./Button";
@@ -28,7 +28,7 @@ type Props = {
   children?: JSX.Element;
   source: Source;
   info: InfoField[];
-  customActions?: any[];
+  customActions?: JSX.Element[];
 };
 
 function SourceDetail({ className, source, info, type, customActions }: Props) {

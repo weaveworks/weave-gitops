@@ -1,7 +1,6 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
-import { EditButton } from "./components/CustomActions";
 import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
@@ -93,7 +92,6 @@ export {
   DataTable,
   DagGraph,
   DependenciesView,
-  EditButton,
   EventsTable,
   Flex,
   filterByStatusCallback,
