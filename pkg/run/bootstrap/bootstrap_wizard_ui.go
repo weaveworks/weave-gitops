@@ -181,7 +181,7 @@ func makeTextInput(value string, placeholder string, isFocused bool) textinput.M
 	return ti
 }
 
-func initialWizardModel(tasks []*BootstrapWizardTask, remoteURL string, msgChan chan []*BootstrapCmdOption) wizardModel {
+func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan []*BootstrapCmdOption) wizardModel {
 	numInputs := len(tasks)
 
 	inputs := make([]textinput.Model, numInputs)
