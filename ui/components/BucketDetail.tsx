@@ -11,9 +11,10 @@ import { InfoField } from "./InfoList";
 type Props = {
   className?: string;
   bucket: Bucket;
+  customActions?: JSX.Element[];
 };
 
-function BucketDetail({ className, bucket }: Props) {
+function BucketDetail({ className, bucket, customActions }: Props) {
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
 
@@ -32,6 +33,7 @@ function BucketDetail({ className, bucket }: Props) {
       className={className}
       type={Kind.Bucket}
       source={bucket}
+      customActions={customActions}
       info={[
         ["Type", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
