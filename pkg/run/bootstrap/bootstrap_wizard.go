@@ -18,20 +18,17 @@ type BootstrapWizardTask struct {
 	isBoolean        bool
 }
 
-type BootstrapCmdOption struct {
-	FlagName  string
-	FlagValue string
-}
+type BootstrapCmdOptions map[string]string
 
 type BootstrapWizardCmd struct {
 	Provider GitProvider
-	Options  []*BootstrapCmdOption
+	Options  BootstrapCmdOptions
 }
 
 type BootstrapWizard struct {
 	gitProvider GitProvider
 	tasks       []*BootstrapWizardTask
-	cmdOptions  []*BootstrapCmdOption
+	cmdOptions  BootstrapCmdOptions
 }
 
 const (
@@ -488,7 +485,7 @@ func SelectGitProvider(log logger.Logger) (GitProvider, error) {
 func (wizard *BootstrapWizard) Run(log logger.Logger) error {
 	log.Actionf("Please enter or edit command values...")
 
-	m := initialWizardModel(wizard.tasks, make(chan []*BootstrapCmdOption))
+	m := initialWizardModel(wizard.tasks, make(chan BootstrapCmdOptions))
 
 	err := tea.NewProgram(m).Start()
 	if err != nil {

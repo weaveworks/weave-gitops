@@ -159,7 +159,7 @@ func (m preWizardModel) View() string {
 type wizardModel struct {
 	textInputs []textinput.Model
 	prompts    []string
-	msgChan    chan []*BootstrapCmdOption
+	msgChan    chan BootstrapCmdOptions
 	cursorMode textinput.CursorMode
 	focusIndex int
 	errorMsg   string
@@ -182,7 +182,7 @@ func makeTextInput(value string, placeholder string, isFocused bool) textinput.M
 	return ti
 }
 
-func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan []*BootstrapCmdOption) wizardModel {
+func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdOptions) wizardModel {
 	numInputs := len(tasks)
 
 	inputs := make([]textinput.Model, numInputs)
@@ -244,7 +244,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if t == tea.KeyEnter && m.focusIndex == len(m.textInputs) {
-				options := []*BootstrapCmdOption{}
+				options := make(BootstrapCmdOptions)
 
 				for i, input := range m.textInputs {
 					prompt := m.prompts[i]
@@ -256,12 +256,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, nil
 					}
 
-					option := BootstrapCmdOption{
-						FlagName:  prompt[:strings.Index(prompt, flagSeparator)],
-						FlagValue: value,
-					}
-
-					options = append(options, &option)
+					options[prompt[:strings.Index(prompt, flagSeparator)]] = value
 				}
 
 				go func() { m.msgChan <- options }()
