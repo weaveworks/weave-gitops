@@ -3,6 +3,7 @@ package watch
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -19,18 +20,17 @@ import (
 
 const (
 	devBucket = "dev-bucket"
-	port      = 9000
 )
 
 var (
 	// The variables below are to be set by flags passed to `go build`.
 	// Examples: -X run.DevBucketContainerImage=xxxxx
 
-	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290"
+	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server@sha256:8fbb7534e772e14ea598d287a4b54a3f556416cac6621095ce45f78346fda78a"
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config) (func(), error) {
+func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, devBucketPort int32) (func(), error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -72,7 +72,10 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
-				{Name: devBucket, Port: port},
+				{
+					Name: devBucket,
+					Port: devBucketPort,
+				},
 			},
 			Selector: devBucketAppLabels,
 		},
@@ -122,8 +125,12 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
 							},
 							Ports: []corev1.ContainerPort{
-								{HostPort: port, ContainerPort: port},
+								{
+									ContainerPort: devBucketPort,
+									HostPort:      devBucketPort,
+								},
 							},
+							Args: []string{strconv.Itoa(int(devBucketPort))},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyAlways,
@@ -179,8 +186,8 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		Namespace:     devBucket,
 		Name:          devBucket,
 		Kind:          "service",
-		HostPort:      "9000",
-		ContainerPort: "9000",
+		HostPort:      strconv.Itoa(int(devBucketPort)),
+		ContainerPort: strconv.Itoa(int(devBucketPort)),
 	}
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
