@@ -165,13 +165,17 @@ type wizardModel struct {
 	errorMsg   string
 }
 
-func makeTextInput(value string, placeholder string, isFocused bool) textinput.Model {
+func makeTextInput(task *BootstrapWizardTask, isFocused bool) textinput.Model {
 	ti := textinput.New()
 	ti.CursorStyle = cursorStyle
 	ti.CharLimit = 100
 
-	ti.SetValue(value)
-	ti.Placeholder = placeholder
+	ti.SetValue(task.flagValue)
+	ti.Placeholder = task.flagDescription
+
+	if task.isPassword {
+		ti.EchoMode = textinput.EchoPassword
+	}
 
 	if isFocused {
 		ti.Focus()
@@ -190,9 +194,7 @@ func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdO
 	for i := range inputs {
 		task := tasks[i]
 
-		value := task.flagValue
-
-		ti := makeTextInput(value, task.flagName, i == 0)
+		ti := makeTextInput(task, i == 0)
 
 		inputs[i] = ti
 	}
