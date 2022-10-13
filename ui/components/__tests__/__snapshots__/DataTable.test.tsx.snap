@@ -255,11 +255,16 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c1 h2 {
   padding: 8px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   color: #737373;
   margin: 0px;
   white-space: nowrap;
+  text-transform: uppercase;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
 }
 
 .c1 .MuiTableRow-root {
@@ -278,12 +283,18 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c1 th {
-  padding: 8px;
+  padding: 0;
   background: #F6F7F9;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.c1 th .MuiCheckbox-root {
+  padding: 4px 9px;
 }
 
 .c1 td {
-  padding-left: 24px;
+  padding-left: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
