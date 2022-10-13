@@ -9,6 +9,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	loglevels "github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -271,13 +272,13 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	if username != "" && passwordHash != "" {
-		values, err := makeValues(username, passwordHash)
-		if err != nil {
-			log.Failuref("Error generating values from passwordHash")
-			return nil, err
-		}
+	values, err := makeValues(username, passwordHash)
+	if err != nil {
+		log.Failuref("Error generating chart values")
+		return nil, err
+	}
 
+	if values != nil {
 		helmRelease.Spec.Values = &apiextensionsv1.JSON{Raw: values}
 	}
 
@@ -286,20 +287,31 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 
 // makeValues creates a values object for installing the GitOps Dashboard.
 func makeValues(username string, passwordHash string) ([]byte, error) {
-	valuesMap := map[string]interface{}{
-		"adminUser": map[string]interface{}{
-			"create":       true,
-			"username":     username,
-			"passwordHash": passwordHash,
-		},
+	valuesMap := make(map[string]interface{})
+	if username != "" && passwordHash != "" {
+		valuesMap["adminUser"] =
+			map[string]interface{}{
+				"create":       true,
+				"username":     username,
+				"passwordHash": passwordHash,
+			}
 	}
 
-	jsonRaw, err := json.Marshal(valuesMap)
-	if err != nil {
-		return nil, fmt.Errorf("encoding values failed: %w", err)
+	analytics, _ := config.GetConfig(nil, false)
+	if analytics.Analytics {
+		valuesMap["WEAVE_GITOPS_FEATURE_TELEMETRY"] = "true"
 	}
 
-	return jsonRaw, nil
+	if len(valuesMap) > 0 {
+		jsonRaw, err := json.Marshal(valuesMap)
+		if err != nil {
+			return nil, fmt.Errorf("encoding values failed: %w", err)
+		}
+
+		return jsonRaw, nil
+	}
+
+	return nil, nil
 }
 
 func SanitizeResourceData(log logger.Logger, resourceData []byte) ([]byte, error) {
