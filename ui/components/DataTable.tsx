@@ -611,6 +611,9 @@ export const DataTable = styled(UnstyledDataTable)`
     background: ${(props) => props.theme.colors.neutralGray};
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
+    .MuiCheckbox-root {
+      padding: 4px 9px;
+    }
   }
   td {
     //24px matches th + button + h2 padding
