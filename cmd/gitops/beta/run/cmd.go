@@ -467,15 +467,14 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	// run bootstrap wizard only if Flux was not installed
 	if okToDoFluxBootstrap {
 		prompt := promptui.Prompt{
-			Label:     "Would you like to bootstrap your cluster into GitOps mode?",
+			Label:     "Would you like to bootstrap your cluster into GitOps mode",
 			IsConfirm: true,
 			Default:   "Y",
 		}
 
 		_, err = prompt.Run()
 		if err != nil {
-			retErr = err
-			return
+			return nil
 		}
 
 		for {
@@ -487,14 +486,14 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 			log.Warningf("Error bootstrapping: %v", err)
 
 			prompt := promptui.Prompt{
-				Label:     "Couldn't bootstrap - would you like to try again?",
+				Label:     "Couldn't bootstrap - would you like to try again",
 				IsConfirm: true,
 				Default:   "Y",
 			}
 
 			_, err = prompt.Run()
 			if err != nil {
-				return err
+				return nil
 			}
 		}
 	}
@@ -777,7 +776,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	// run bootstrap wizard only if Flux was not installed
 	if okToDoFluxBootstrap {
 		prompt := promptui.Prompt{
-			Label:     "Would you like to bootstrap your cluster into GitOps mode?",
+			Label:     "Would you like to bootstrap your cluster into GitOps mode",
 			IsConfirm: true,
 			Default:   "Y",
 		}
@@ -796,7 +795,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 			log.Warningf("Error bootstrapping: %v", err)
 
 			prompt := promptui.Prompt{
-				Label:     "Couldn't bootstrap - would you like to try again?",
+				Label:     "Couldn't bootstrap - would you like to try again",
 				IsConfirm: true,
 				Default:   "Y",
 			}
