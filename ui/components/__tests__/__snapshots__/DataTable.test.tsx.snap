@@ -289,6 +289,10 @@ exports[`DataTable snapshots renders 1`] = `
   border-top-right-radius: 4px;
 }
 
+.c1 th .MuiCheckbox-root {
+  padding: 4px 9px;
+}
+
 .c1 td {
   padding-left: 16px;
   white-space: nowrap;
