@@ -192,6 +192,10 @@ func (cf *clustersManager) RemoveWatcher(cw *ClustersWatcher) {
 	cf.watchers = watchers
 }
 
+func (cf *clustersManager) GetClusters() []Cluster {
+	return cf.clusters.Get()
+}
+
 func (cf *clustersManager) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
