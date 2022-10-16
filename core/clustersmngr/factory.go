@@ -99,6 +99,8 @@ type ClustersManager interface {
 	Subscribe() *ClustersWatcher
 	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
 	RemoveWatcher(cw *ClustersWatcher)
+	// GetClusters returns all the currently known clusters
+	GetClusters() []Cluster
 }
 
 var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
