@@ -61,7 +61,7 @@ type ClusterFetcher interface {
 //
 //counterfeiter:generate . ClientsPool
 type ClientsPool interface {
-	Add(cfg ClusterClientConfigFunc, cluster Cluster) error
+	Add(c client.Client, cluster Cluster) error
 	Clients() map[string]client.Client
 	Client(cluster string) (client.Client, error)
 }
@@ -84,21 +84,9 @@ func NewClustersClientsPool(scheme *apiruntime.Scheme) ClientsPool {
 }
 
 // Add adds a cluster client to the clients pool with the given user impersonation
-func (cp *clientsPool) Add(cfgFunc ClusterClientConfigFunc, cluster Cluster) error {
-	config, err := cfgFunc(cluster)
-	if err != nil {
-		return fmt.Errorf("error building cluster client config: %w", err)
-	}
-
-	leafClient, err := client.New(config, client.Options{
-		Scheme: cp.scheme,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create leaf client: %w", err)
-	}
-
+func (cp *clientsPool) Add(client client.Client, cluster Cluster) error {
 	cp.mutex.Lock()
-	cp.clients[cluster.Name] = leafClient
+	cp.clients[cluster.Name] = client
 	cp.mutex.Unlock()
 
 	return nil

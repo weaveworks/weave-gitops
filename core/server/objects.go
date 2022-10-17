@@ -120,7 +120,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 }
 
 func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}

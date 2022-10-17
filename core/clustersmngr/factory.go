@@ -20,7 +20,9 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -33,6 +35,8 @@ const (
 	watchNamespaceFrequency = 30 * time.Second
 	kubeClientDialTimeout   = 5 * time.Second
 	kubeClientDialKeepAlive = 30 * time.Second
+	usersClientResolution   = 30 * time.Second
+	usersClientsTTL         = 30 * time.Minute
 )
 
 var (
@@ -101,6 +105,7 @@ var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
 
 type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
+type ClientFactoryFn func(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error)
 
 type clustersManager struct {
 	clustersFetcher ClusterFetcher
@@ -115,12 +120,13 @@ type clustersManager struct {
 	clustersNamespaces *ClustersNamespaces
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
+	usersClients    *UsersClients
 
 	initialClustersLoad chan bool
 	scheme              *apiruntime.Scheme
 	newClustersPool     ClusterPoolFactoryFn
+	createClient        ClientFactoryFn
 	kubeConfigOptions   []KubeConfigOption
-
 	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
 }
@@ -148,17 +154,19 @@ func (cw *ClustersWatcher) Unsubscribe() {
 	close(cw.Updates)
 }
 
-func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
+func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clientFactory ClientFactoryFn, kubeConfigOptions []KubeConfigOption) ClustersManager {
 	return &clustersManager{
 		clustersFetcher:     fetcher,
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
 		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
+		usersClients:        &UsersClients{Cache: ttlcache.New(usersClientResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
 		scheme:              scheme,
-		newClustersPool:     clusterPoolFactory,
+		newClustersPool:     NewClustersClientsPool,
+		createClient:        clientFactory,
 		kubeConfigOptions:   []KubeConfigOption{},
 		watchers:            []*ClustersWatcher{},
 	}
@@ -316,7 +324,13 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster); err != nil {
+			client, err := cf.getOrCreateClient(ctx, user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating user client to pool: %w", err)}
+				return
+			}
+
+			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -355,7 +369,12 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	if err := pool.Add(ClientConfigWithUser(user, cf.kubeConfigOptions...), cl); err != nil {
+	client, err := cf.getOrCreateClient(ctx, user, ClientConfigWithUser(user, cf.kubeConfigOptions...), cl)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating cluster client to pool: %w", err)
+	}
+
+	if err := pool.Add(client, cl); err != nil {
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
@@ -406,7 +425,13 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigAsServer(cf.kubeConfigOptions...), cluster); err != nil {
+			client, err := cf.getOrCreateClient(ctx, nil, ClientConfigAsServer(cf.kubeConfigOptions...), cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed creating server client to pool: %w", err)}
+				return
+			}
+
+			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cluster, pool, errChan)
@@ -467,6 +492,102 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	cf.UpdateUserNamespaces(ctx, user)
 
 	return cf.GetUserNamespaces(user)
+}
+
+func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.UserPrincipal, cfgFunc ClusterClientConfigFunc, cluster Cluster) (client.Client, error) {
+	if user == nil {
+		user = &auth.UserPrincipal{
+			ID: "weave-gitops-server",
+		}
+	}
+
+	if client, found := cf.usersClients.Get(user, cluster.Name); found {
+		return client, nil
+	}
+
+	client, err := cf.createClient(cfgFunc, cluster, cf.scheme)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating client for cluster=%s: %w", cluster.Name, err)
+	}
+
+	cf.usersClients.Set(user, cluster.Name, client)
+
+	return client, nil
+}
+
+func ClientFactory(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+	config, err := cfgFunc(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("error building cluster client config: %w", err)
+	}
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	if err != nil {
+		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
+	}
+
+	client, err := client.New(config, client.Options{
+		Scheme: scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create leaf client: %w", err)
+	}
+
+	return client, nil
+}
+
+func CachedClientFactory(cfgFunc ClusterClientConfigFunc, cluster Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+	config, err := cfgFunc(cluster)
+	if err != nil {
+		return nil, fmt.Errorf("error building cluster client config: %w", err)
+	}
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	if err != nil {
+		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
+	}
+
+	leafClient, err := client.New(config, client.Options{
+		Scheme: scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create leaf client: %w", err)
+	}
+
+	cache, err := cache.New(config, cache.Options{
+		Scheme: scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating client cache: %w", err)
+	}
+
+	delegatingCache := NewDelegatingCache(leafClient, cache, scheme)
+
+	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader: delegatingCache,
+		Client:      leafClient,
+		// Non-exact field matches are not supported by the cache.
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
+		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
+		UncachedObjects:   []client.Object{&v1.Event{}},
+		CacheUnstructured: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed creating DelegatingClient: %w", err)
+	}
+
+	ctx := context.Background()
+
+	go delegatingCache.Start(ctx) //nolint:errcheck
+
+	if ok := delegatingCache.WaitForCacheSync(ctx); !ok {
+		return nil, errors.New("failed syncing client cache")
+	}
+
+	return delegatingClient, nil
 }
 
 func ApplyKubeConfigOptions(config *rest.Config, options ...KubeConfigOption) (*rest.Config, error) {

@@ -14,12 +14,17 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetImpersonatedClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
@@ -32,7 +37,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -60,7 +65,9 @@ func TestGetImpersonatedClient(t *testing.T) {
 func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ns1 := createNamespace(g)
 
@@ -72,7 +79,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -89,14 +96,17 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 func TestUpdateNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -136,8 +146,7 @@ func TestUpdateNamespaces(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2, c3}, nil)
 
 		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
-		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed adding cluster client to pool.*cluster: %s.*", clusterName3)))
-
+		g.Expect(clustersManager.UpdateNamespaces(ctx)).To(MatchError(MatchRegexp("failed creating server client to pool.*cluster: %s.*", clusterName3)))
 		contents := clustersManager.GetClustersNamespaces()
 
 		g.Expect(contents).To(HaveLen(2))
@@ -149,14 +158,17 @@ func TestUpdateNamespaces(t *testing.T) {
 func TestUpdateUsers(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -195,14 +207,17 @@ func TestUpdateUsers(t *testing.T) {
 func TestUpdateUsersFailsToConnect(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	clusterName1 := "foo"
 
@@ -229,7 +244,9 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 func TestUpdateClusters(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
-	ctx := context.Background()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 
@@ -238,7 +255,7 @@ func TestUpdateClusters(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -341,4 +358,52 @@ func TestUpdateClusters(t *testing.T) {
 		g.Expect(ok2).To(BeFalse())
 		g.Expect(updates2.Added).To(BeNil())
 	})
+}
+
+func TestClientCaching(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ns1 := createNamespace(g)
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns1}, nil)
+
+	clustersFetcher := fetcher.NewSingleClusterFetcher(k8sEnv.Rest)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	userID := "user-id"
+
+	fakeClientFnCalls := 0
+
+	fakeClientFn := func(cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *runtime.Scheme) (client.Client, error) {
+		restConfig, err := cfgFunc(cluster)
+		g.Expect(err).To(BeNil())
+
+		if restConfig.Impersonate.UserName == userID {
+			fakeClientFnCalls++
+		}
+
+		return fake.NewClientBuilder().WithScheme(scheme).Build(), nil
+	}
+
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, fakeClientFn, clustersmngr.DefaultKubeConfigOptions)
+	err = clustersManager.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	err = clustersManager.UpdateNamespaces(ctx)
+	g.Expect(err).To(BeNil())
+
+	_, err = clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: userID})
+	g.Expect(err).To(BeNil())
+
+	_, err = clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: userID})
+	g.Expect(err).To(BeNil())
+
+	g.Expect(fakeClientFnCalls).To(Equal(1))
 }
