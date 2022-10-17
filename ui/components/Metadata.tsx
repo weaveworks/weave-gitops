@@ -4,6 +4,7 @@ import { formatMetadataKey, isHTTP } from "../lib/utils";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
 import Link from "./Link";
+import Spacer from "./Spacer";
 import Text from "./Text";
 
 type Props = {
@@ -13,15 +14,20 @@ type Props = {
 };
 
 const Label = styled(Text)`
-  border-radius: 10px;
-  background-color: ${(props) => props.theme.colors.neutral30};
+  padding: ${(props) => props.theme.spacing.xs}
+    ${(props) => props.theme.spacing.small};
+  margin-right: ${(props) => props.theme.spacing.xxs};
+  border-radius: 15px;
+  white-space: nowrap;
+  background-color: ${(props) => props.theme.colors.neutral20};
 `;
 
-function Metadata({ metadata, labels, className }: Props) {
-  if (!metadata?.length) {
-    return <></>;
-  }
+const LabelFlex = styled(Flex)`
+  padding: ${(props) => props.theme.spacing.xxs} 0;
+  overflow-x: scroll;
+`;
 
+function Metadata({ metadata = [], labels = [], className }: Props) {
   const metadataCopy = [];
 
   for (let i = 0; i < metadata.length; i++) {
@@ -44,20 +50,32 @@ function Metadata({ metadata, labels, className }: Props) {
 
   return (
     <Flex wide column className={className}>
-      <Text size="large" color="neutral30">
-        Metadata
-      </Text>
-      <InfoList items={metadataCopy} />
-      <Text size="large" color="neutral30">
-        Labels
-      </Text>
-      <Flex>
-        {labels.map((label) => {
-          <Label>
-            {label[0]}: {label[1]}
-          </Label>;
-        })}
-      </Flex>
+      {metadataCopy.length > 0 && (
+        <>
+          <Text size="large" color="neutral30">
+            Metadata
+          </Text>
+          <InfoList items={metadataCopy} />
+          <Spacer padding="small" />
+        </>
+      )}
+      {labels.length > 0 && (
+        <>
+          <Text size="large" color="neutral30">
+            Labels
+          </Text>
+          <LabelFlex wide start>
+            {labels.map((label, index) => {
+              return (
+                <Label key={index}>
+                  {label[0]}: {label[1]}
+                </Label>
+              );
+            })}
+          </LabelFlex>
+          <Spacer padding="small" />
+        </>
+      )}
     </Flex>
   );
 }
