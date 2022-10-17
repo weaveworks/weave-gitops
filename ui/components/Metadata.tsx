@@ -9,9 +9,15 @@ import Text from "./Text";
 type Props = {
   className?: string;
   metadata?: [string, string][];
+  labels?: [string, string][];
 };
 
-function Metadata({ metadata, className }: Props) {
+const Label = styled(Text)`
+  border-radius: 10px;
+  background-color: ${(props) => props.theme.colors.neutral30};
+`;
+
+function Metadata({ metadata, labels, className }: Props) {
   if (!metadata?.length) {
     return <></>;
   }
@@ -42,6 +48,16 @@ function Metadata({ metadata, className }: Props) {
         Metadata
       </Text>
       <InfoList items={metadataCopy} />
+      <Text size="large" color="neutral30">
+        Labels
+      </Text>
+      <Flex>
+        {labels.map((label) => {
+          <Label>
+            {label[0]}: {label[1]}
+          </Label>;
+        })}
+      </Flex>
     </Flex>
   );
 }
