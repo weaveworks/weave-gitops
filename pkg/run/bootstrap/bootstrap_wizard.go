@@ -16,6 +16,7 @@ type BootstrapWizardTask struct {
 	defaultFlagValue DefaultValueGetter
 	flagDescription  string
 	isBoolean        bool
+	isPassword       bool
 }
 
 type BootstrapCmdOptions map[string]string
@@ -168,6 +169,7 @@ var boostrapGitHubTasks = []*BootstrapWizardTask{
 		flagValue:        "",
 		defaultFlagValue: envGetter("GITHUB_TOKEN"),
 		flagDescription:  "GitHub Personal Access Token",
+		isPassword:       true,
 	},
 }
 
@@ -215,6 +217,7 @@ var boostrapGitLabTasks = []*BootstrapWizardTask{
 		flagValue:        "",
 		defaultFlagValue: envGetter("GITLAB_TOKEN"),
 		flagDescription:  "GitLab Personal Access Token",
+		isPassword:       true,
 	},
 }
 
@@ -228,6 +231,7 @@ var boostrapGitTasks = []*BootstrapWizardTask{
 		flagName:        PasswordOptionKey,
 		flagValue:       "",
 		flagDescription: "basic authentication password",
+		isPassword:      true,
 	},
 	{
 		flagName:        PrivateKeyFileOptionKey,
@@ -286,6 +290,7 @@ var boostrapBitbucketServerTasks = []*BootstrapWizardTask{
 		flagValue:        "",
 		defaultFlagValue: envGetter("BITBUCKET_TOKEN"),
 		flagDescription:  "BitBucket Personal Access Token",
+		isPassword:       true,
 	},
 }
 
@@ -319,7 +324,7 @@ var allGitProviderNames = []string{
 	gitProviderGitHubName,
 	gitProviderGitLabName,
 	gitProviderGitName,
-	gitProviderBitbucketServerName,
+	//gitProviderBitbucketServerName,
 }
 
 var allGitProviders = map[string]GitProvider{
