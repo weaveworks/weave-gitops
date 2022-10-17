@@ -156,7 +156,7 @@ func getSessionNameFromGit() string {
 		sessionName = fmt.Sprintf("%s-%s-%s-dirty", prefix, branch, commit)
 	}
 
-	sessionName = strings.ReplaceAll(sessionName, "/", "-")
+	sessionName = strings.ToLower(strings.ReplaceAll(sessionName, "/", "-"))
 
 	return sessionName
 }
