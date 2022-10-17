@@ -1,7 +1,13 @@
+---
+title: Get Started
+sidebar_position: 2
+hide_title: true
+---
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Gitops run
+# Get Started with GitOps Run
 
 Gitops Run supports two different modes of operation - directly on a
 cluster, or as sandboxed sessions. The sandboxed sessions are intended
@@ -11,19 +17,19 @@ sessions, whereas the direct mode is intended for a local cluster.
 ## Direct mode
 
 ### Prerequisites
+#### Required
+- Install the gitops CLI. See [the installation](../installation.mdx#gitops-cli)
+
+#### Optional 
 - This guide uses [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) for demonstrations, but it is not required to use gitops run
 - The [flux CLI](https://fluxcd.io/flux/installation/) is the quickest way to generate resource definitions, but the files can also be created manually
-
-### gitops CLI
-
-First, you'll need to install the gitops CLI. See [the installation](./installation.mdx#gitops-cli)
 
 ### Kubernetes cluster
 To get started with gitops run, you need a kubernetes cluster. There
 are many tools to set up a local cluster for test and development
 purposes.
 
-Note: this tutorial assumes you have full control of your cluster - we
+**Note:** this tutorial assumes you have full control of your cluster - we
 recommend a local cluster, but you can also use a remote cluster where
 you have full `cluster-admin` privileges.
 
@@ -100,7 +106,7 @@ gitops beta run ./podinfo --no-session --port-forward namespace=dev,resource=svc
 ```
 
 You will now be asked if you want to install flux and the gitops
-[dashboard](./getting-started.mdx). Answer yes and set a password, and
+[dashboard](../getting-started.mdx). Answer yes and set a password, and
 shortly after you should be able to [open the dashboard](http://localhost:9001)
 to see what's in your cluster - including the resources that gitops
 run is operating.
@@ -204,7 +210,7 @@ reconciled, and when they're Ready you will be able to see podinfo
 [here](http://localhost:9898).
 
 
-### Start modifying
+### Update your app
 
 Now that gitops run is continuously watching and reconciling your
 local files onto your cluster, we can start modifying the resources.
