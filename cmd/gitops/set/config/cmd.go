@@ -69,22 +69,22 @@ func setConfigCommandRunE(opts *cfg.Options) func(*cobra.Command, []string) erro
 			log.Warningf("This will only turn off analytics for the GitOps CLI. Please refer to the documentation to turn off the analytics in the GitOps Dashboard.")
 		}
 
-		cfg, err := config.GetConfig(true)
+		gitopsConfig, err := config.GetConfig(true)
 		if err != nil {
 			return err
 		}
 
-		cfg.Analytics = analyticsValue
+		gitopsConfig.Analytics = analyticsValue
 
-		if cfg.UserID == "" {
+		if gitopsConfig.UserID == "" {
 			seed := time.Now().UnixNano()
 
-			cfg.UserID = config.GenerateUserID(10, seed)
+			gitopsConfig.UserID = config.GenerateUserID(10, seed)
 		}
 
 		log.Actionf("Saving GitOps CLI config ...")
 
-		if err = config.SaveConfig(cfg); err != nil {
+		if err = config.SaveConfig(gitopsConfig); err != nil {
 			log.Failuref("Error saving GitOps CLI config")
 			return err
 		}
