@@ -3,12 +3,13 @@ package install
 import (
 	"context"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	v1 "k8s.io/api/core/v1"
 )
@@ -18,10 +19,10 @@ const (
 )
 
 var _ = Describe("GetFluxVersion", func() {
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 	})
 
 	It("gets flux version", func() {

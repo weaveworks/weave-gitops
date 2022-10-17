@@ -1,33 +1,77 @@
-/*
-Copyright 2020 The Flux authors
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package logger
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+import (
+	"fmt"
+	"io"
+	"os"
 
-//counterfeiter:generate . Logger
-type Logger interface {
-	Println(format string, a ...interface{})
-	Printf(format string, a ...interface{})
-	Infow(msg string, kv ...interface{})
-	Actionf(format string, a ...interface{})
-	Generatef(format string, a ...interface{})
-	Waitingf(format string, a ...interface{})
-	Successf(format string, a ...interface{})
-	Warningf(format string, a ...interface{})
-	Failuref(format string, a ...interface{})
-	Write(p []byte) (n int, err error) // added to satisfy io.Writer interface
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
+
+type Logger struct {
+	logr.Logger
+}
+
+// NewCLILogger returns a wrapped logr that logs to the specified writer
+// Note: unless you're doing CLI work, you should use core/logger.New instead
+func NewCLILogger(writer io.Writer) Logger {
+	return Logger{defaultLogr()}
+}
+
+// From wraps a logr instance with the extra emoji generating helpers
+func From(logger logr.Logger) Logger {
+	return Logger{Logger: logger}
+}
+
+func (l Logger) Println(format string, a ...interface{}) {
+	l.Info(fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Actionf(format string, a ...interface{}) {
+	l.Info("► " + fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Failuref(format string, a ...interface{}) {
+	l.Info("✗ " + fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Generatef(format string, a ...interface{}) {
+	l.Info("✚ " + fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Successf(format string, a ...interface{}) {
+	l.Info("✔ " + fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Waitingf(format string, a ...interface{}) {
+	l.Info("◎ " + fmt.Sprintf(format, a...))
+}
+
+func (l Logger) Warningf(format string, a ...interface{}) {
+	l.Info("⚠️ " + fmt.Sprintf(format, a...))
+}
+
+func defaultLogr() logr.Logger {
+	//jsonEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
+	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+		MessageKey: "msg",
+	})
+	consoleOut := zapcore.Lock(os.Stdout)
+
+	// Should point into the cluster
+	//clusterOut := zapcore.Lock(os.Stderr)
+
+	level := zap.NewAtomicLevelAt(zapcore.InfoLevel)
+
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, consoleOut, level),
+		//zapcore.NewCore(jsonEncoder, clusterOut, level),
+	)
+
+	logger := zap.New(core)
+
+	return zapr.NewLogger(logger)
 }

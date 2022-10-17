@@ -4,9 +4,14 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"strings"
+
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 func envSlice(environ map[string]string) []string {
@@ -35,34 +40,12 @@ func (flux *Flux) buildFluxCmd(ctx context.Context, mergeEnv map[string]string, 
 
 	cmd.Dir = flux.workingDir
 
-	if flux.logger != nil {
-		flux.logger.Printf("[INFO] running Flux command: %s", cmd.String())
-	}
+	flux.logger.V(logger.LogLevelInfo).Info(fmt.Sprintf("Running Flux command: %s", cmd.String()))
 
 	return cmd
 }
 
-func mergeWriters(writers ...io.Writer) io.Writer {
-	compact := []io.Writer{}
-
-	for _, w := range writers {
-		if w != nil {
-			compact = append(compact, w)
-		}
-	}
-
-	if len(compact) == 0 {
-		return io.Discard
-	}
-
-	if len(compact) == 1 {
-		return compact[0]
-	}
-
-	return io.MultiWriter(compact...)
-}
-
-func writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
+func writeOutput(ctx context.Context, r io.ReadCloser, log logr.Logger) error {
 	// ReadBytes will block until bytes are read, which can cause a delay in
 	// returning even if the command's context has been canceled. Use a separate
 	// goroutine to prompt ReadBytes to return on cancel
@@ -83,9 +66,7 @@ func writeOutput(ctx context.Context, r io.ReadCloser, w io.Writer) error {
 	for {
 		line, err := buf.ReadBytes('\n')
 		if len(line) > 0 {
-			if _, err := w.Write(line); err != nil {
-				return err
-			}
+			log.Info(strings.TrimSuffix(string(line), "\n"))
 		}
 
 		if err != nil {
