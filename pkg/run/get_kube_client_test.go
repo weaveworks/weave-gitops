@@ -1,17 +1,13 @@
 package run
 
 import (
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 var _ = Describe("GetKubeClient", func() {
-	var fakeLogger *loggerfakes.FakeLogger
-
-	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
-	})
 
 	It("returns kube client", func() {
 		kubeConfigArgs := GetKubeConfigArgs()
@@ -27,7 +23,7 @@ var _ = Describe("GetKubeClient", func() {
 
 		contextName := "test-context"
 
-		kubeClient, err := GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
+		kubeClient, err := GetKubeClient(logger.From(logr.Discard()), contextName, k8sEnv.Rest, kubeClientOpts)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(kubeClient).ToNot(BeNil())

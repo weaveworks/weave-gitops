@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 
 	gitopsConfig "github.com/weaveworks/weave-gitops/pkg/config"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 func ConfigCommand(opts *config.Options) *cobra.Command {
@@ -31,7 +31,7 @@ func getConfigCommandRunE(opts *config.Options) func(*cobra.Command, []string) e
 	return func(cmd *cobra.Command, args []string) error {
 		var err error
 
-		log := clilogger.NewCLILogger(os.Stdout)
+		log := logger.NewCLILogger(os.Stdout)
 
 		cfg, err := gitopsConfig.GetConfig(log, false)
 		if err != nil {

@@ -11,8 +11,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	gitopsConfig "github.com/weaveworks/weave-gitops/pkg/config"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const (
@@ -63,7 +63,7 @@ func setConfigCommandRunE(opts *config.Options) func(*cobra.Command, []string) e
 	return func(cmd *cobra.Command, args []string) error {
 		var err error
 
-		log := clilogger.NewCLILogger(os.Stdout)
+		log := logger.NewCLILogger(os.Stdout)
 
 		if !analyticsValue {
 			log.Warningf("This will only turn off analytics for the GitOps CLI. Please refer to the documentation to turn off the analytics in the GitOps Dashboard.")

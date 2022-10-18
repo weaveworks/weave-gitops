@@ -8,6 +8,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	loglevels "github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -82,9 +83,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 		return err
 	}
 
-	log.Successf("GitOps Dashboard has been installed")
-
-	fmt.Println(applyOutput)
+	log.Logger.V(loglevels.LogLevelInfo).Info(applyOutput)
 
 	return nil
 }

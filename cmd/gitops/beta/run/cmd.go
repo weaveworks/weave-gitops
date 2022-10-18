@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/fluxexec"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -181,7 +180,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
-	log := clilogger.NewCLILogger(os.Stdout)
+	log := logger.NewCLILogger(os.Stdout)
 
 	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
 		return nil, nil, err
@@ -266,8 +265,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 			return "", false, err
 		}
 
-		flux.SetStdout(os.Stdout)
-		flux.SetStderr(os.Stderr)
+		flux.SetLogger(log.Logger)
 
 		var components []fluxexec.Component
 		for _, component := range flags.Components {
@@ -397,7 +395,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	// create session
-	sessionLog := clilogger.NewCLILogger(os.Stdout)
+	sessionLog := logger.NewCLILogger(os.Stdout)
 	sessionLog.Actionf("Preparing the cluster for GitOps Run session ...\n")
 
 	sessionLog.Println("You can run `gitops beta run --no-session` to disable session management.\n")
@@ -407,7 +405,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	sessionLog.Println("You may see Flux installation logs in the next step.\n")
 
 	// showing Flux installation twice is confusing
-	log := clilogger.NewCLILogger(io.Discard)
+	log := logger.NewCLILogger(io.Discard)
 
 	var fluxJustInstalled bool
 
@@ -502,7 +500,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 }
 
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
-	log := clilogger.NewCLILogger(os.Stdout)
+	log := logger.NewCLILogger(os.Stdout)
 
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
@@ -714,7 +712,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 							log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-							if err := watch.ForwardPort(pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+							if err := watch.ForwardPort(log.Logger, pod, cfg, specMap, waitFwd, readyChannel); err != nil {
 								log.Failuref("Error forwarding port: %v", err)
 							}
 
@@ -866,8 +864,7 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 		return err
 	}
 
-	flux.SetStdout(os.Stdout)
-	flux.SetStderr(os.Stderr)
+	flux.SetLogger(log.Logger)
 
 	slugifiedWorkloadPath := strings.ReplaceAll(paths.TargetDir, "/", "-")
 

@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 func (flux *Flux) runFluxCmd(ctx context.Context, cmd *exec.Cmd) error {
@@ -16,12 +18,6 @@ func (flux *Flux) runFluxCmd(ctx context.Context, cmd *exec.Cmd) error {
 		return ctx.Err()
 	default:
 	}
-
-	// Read stdout / stderr logs from pipe instead of setting cmd.Stdout and
-	// cmd.Stderr because it can cause hanging when killing the command
-	// https://github.com/golang/go/issues/23019
-	stdoutWriter := mergeWriters(cmd.Stdout, flux.stdout)
-	stderrWriter := mergeWriters(flux.stderr, &errBuf)
 
 	cmd.Stderr = nil
 	cmd.Stdout = nil
@@ -55,7 +51,7 @@ func (flux *Flux) runFluxCmd(ctx context.Context, cmd *exec.Cmd) error {
 	go func() {
 		defer wg.Done()
 
-		errStdout = writeOutput(ctx, stdoutPipe, stdoutWriter)
+		errStdout = writeOutput(ctx, stdoutPipe, flux.logger.V(logger.LogLevelInfo))
 	}()
 
 	wg.Add(1)
@@ -63,7 +59,7 @@ func (flux *Flux) runFluxCmd(ctx context.Context, cmd *exec.Cmd) error {
 	go func() {
 		defer wg.Done()
 
-		errStderr = writeOutput(ctx, stderrPipe, stderrWriter)
+		errStderr = writeOutput(ctx, stderrPipe, flux.logger.V(logger.LogLevelError))
 	}()
 
 	// Reads from pipes must be completed before calling cmd.Wait(). Otherwise

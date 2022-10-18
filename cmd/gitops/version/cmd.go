@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/weaveworks/go-checkpoint"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -38,7 +38,7 @@ func CheckVersion(p *checkpoint.CheckParams) {
 	checkResponse, err := checkpoint.Check(p)
 
 	if err == nil && checkResponse.Outdated {
-		log.Printf("gitops version %s is available; please update at %s\n",
+		log.Println("gitops version %s is available; please update at %s",
 			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
 	}
 }
