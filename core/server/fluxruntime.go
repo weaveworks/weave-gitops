@@ -81,6 +81,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 				Conditions:  []*pb.Condition{},
 				ClusterName: clusterName,
 				Uid:         string(d.GetUID()),
+				Labels:      d.Labels,
 			}
 
 			for _, cond := range d.Status.Conditions {

@@ -78,6 +78,7 @@ message Deployment {
     bool     suspended            = 5;
     string   clusterName          = 6;
     string   uid                  = 7;
+    map<string, string> labels    = 8;
 }
 
 message Crd {
