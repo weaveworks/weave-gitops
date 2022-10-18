@@ -7,29 +7,29 @@ hide_title: true
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Gitops Run Overview
+# GitOps Run Overview
 
 ## Introduction
 
-GitOps is a powerful mechanism for creating consistent environments and having 
-multiple clusters stay in sync. If you build out your infrastructure correctly 
-you get predictable behaviours for your teams and you can have new environments 
-up and running quickly. However, GitOps can be challenging for the everyday developer 
-to work with and it can create some friction, especially for developers who are 
-less familiar with Kubernetes or Flux. 
+GitOps is a powerful mechanism for creating consistent environments and having
+multiple clusters stay in sync. If you build out your infrastructure correctly
+you get predictable behaviours for your teams and you can have new environments
+up and running quickly. However, GitOps can be challenging for the everyday developer
+to work with and it can create some friction, especially for developers who are
+less familiar with Kubernetes or Flux.
 
-The purpose of GitOps run is to remove the complexity for developers so that 
-platform operators can create developer environments easily, and application developers 
-can benefit from GitOps and focus on writing code. 
+The purpose of GitOps Run is to remove the complexity for developers so that
+platform operators can create developer environments easily, and application developers
+can benefit from GitOps and focus on writing code.
 
-Watch this video to learn more about how GitOps run can help your team 
+Watch this video to learn more about how GitOps Run can help your team
 get started with GitOps:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/2TJz7RhDtAc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ### Additional Benefits
-* No need to run `kubectl`, `helm`, `kustomize`, of `flux` CLI commands.  Just create the manifests and we'll put them on the cluster for you.
-* Reduces the cycle time when configuring your cluster.  With normal gitops there is a lot of commit/push/reconcile workflows that can be frustrated.  This skips that and you can test your changes directly before commiting and pushing code to git.
+* No need to run `kubectl`, `helm`, `kustomize`, or `flux` CLI commands.  Just create the manifests and we'll put them on the cluster for you.
+* Reduces the cycle time when configuring your cluster.  With normal GitOps there is a lot of commit/push/reconcile workflows that can be frustrating.  This skips that and you can test your changes directly before commiting and pushing code to yor Git repository.
 * Multiple options for debugging Flux such as using the Dashboard that comes with Weave GitOps or getting live feedback by leveraging the [GitOps Tools for Flux](https://marketplace.visualstudio.com/items?itemName=Weaveworks.vscode-gitops-tools) VSCode extension.
 
 ## Terminology
@@ -37,36 +37,35 @@ get started with GitOps:
 ### Modes
 
 #### GitOps:
-This is the default mode we are always aiming for when using Weave GitOps. Whenever gitops run 
-is not active we want users to be in this mode. This means that the cluster is being driven by 
-some mechanism reading from git, ideally flux, and that system is applying those changes 
+This is the default mode we are always aiming for when using Weave GitOps. Whenever GitOps Run
+is not active we want users to be in this mode. This means that the cluster is being driven by
+some mechanism reading from Git, ideally Flux, and that system is applying those changes
 to the cluster.
 
-#### Run: 
-This is when the cluster has gitops run running on the cluster. There is a live reload session 
-that is occuring and the cluster is no longer in a pure GitOps or Snowflake mode. Ideally, when 
-gitops run stops running that the cluster enters into the GitOps mode that is defined above.
+#### Run:
+This is when the cluster has GitOps Run running on the cluster. There is a live reload session
+that is occuring and the cluster is no longer in a pure GitOps or Snowflake mode. Ideally, when
+GitOps Run stops running that the cluster enters into the GitOps mode that is defined above.
 
 #### Snowflake:
-We are referring to a cluster that is driven by some other mechanism outside of GitOps or Run. 
-For example, a platform operator could have ran various kubectl apply commands and installed 
-a couple helm charts using helm. The only way for this cluster to reach this state again is to 
+We are referring to a cluster that is driven by some other mechanism outside of GitOps or Run.
+For example, a platform operator could have run various kubectl apply commands and installed
+a couple helm charts using helm. The only way for this cluster to reach this state again is to
 rerun those commands or to transition to GitOps mode.
 
 ### Sessions
 
-Weave GitOps Run can has two different ways of interacting with your cluster.  
+Weave GitOps Run can has two different ways of interacting with your cluster.
 
 #### Sandboxed
 
 First, is choosing a session.
 This means we spin up a virtual cluster on your cluster creating a sandbox environment for your applications.
 What this means is that you are running this application in an isolated environment and it will not impact the
-rest of your cluster.  When you are done and turn off gitops run we will then clean up the virtual cluster and
-everything that was installed on it.  You can push your changes to git and then our system will take care of
+rest of your cluster.  When you are done and turn off GitOps Run we will then clean up the virtual cluster and
+everything that was installed on it.  You can push your changes to Git and then our system will take care of
 pulling those changes onto the cluster.
 
 #### Cluster
-When you pass the `--no-session` flag when starting up gitops run this means we do not put those payloads in
-there own sandboxed environment.  We will load them up directly into the cluster just as you would any other app.
-
+When you pass the `--no-session` flag when starting up GitOps Run this means we do not put those payloads in
+their own sandboxed environment.  We will load them up directly into the cluster just as you would any other app.
