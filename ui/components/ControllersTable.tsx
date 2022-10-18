@@ -8,7 +8,7 @@ import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
-const fluxVersionLabel =  "app.kubernetes.io/version";
+const fluxVersionLabel = "app.kubernetes.io/version";
 
 type Props = {
   className?: string;
