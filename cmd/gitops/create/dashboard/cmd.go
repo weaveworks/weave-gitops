@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	clilogger "github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -127,7 +127,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			output = os.Stdout
 		}
 
-		log := clilogger.NewCLILogger(output)
+		log := logger.NewCLILogger(output)
 
 		log.Generatef("Generating GitOps Dashboard manifests ...")
 

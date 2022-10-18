@@ -27,7 +27,7 @@ const (
 )
 
 func (cs *coreServer) getScopedClient(ctx context.Context) (client.Client, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}

@@ -61,7 +61,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
@@ -151,14 +151,13 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 		t.Fatal(err)
 	}
 
+	clientFn := func(cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
+		return fakeClient, nil
+	}
+
 	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
 	// and the default options include the Flowcontrol setup which is not mocked out
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, func(scheme *apiruntime.Scheme) clustersmngr.ClientsPool {
-		f := &clustersmngrfakes.FakeClientsPool{}
-		f.ClientStub = func(clusterName string) (client.Client, error) { return fakeClient, nil }
-		f.ClientsStub = func() map[string]client.Client { return map[string]client.Client{"Default": fakeClient} }
-		return f
-	}, nil)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clientFn, nil)
 
 	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker

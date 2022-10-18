@@ -1,12 +1,14 @@
 package watch
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
@@ -76,7 +78,7 @@ func generalizeKind(kind string) string {
 	}
 }
 
-func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd chan struct{}, readyChannel chan struct{}) error {
+func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd chan struct{}, readyChannel chan struct{}) error {
 	reqURL, err := url.Parse(
 		fmt.Sprintf("%s/api/v1/namespaces/%s/pods/%s/portforward",
 			cfg.Host,
@@ -94,15 +96,29 @@ func ForwardPort(pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, wa
 	}
 
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, "POST", reqURL)
+
+	outStd := bytes.Buffer{}
+	outErr := bytes.Buffer{}
+
 	fw, err2 := portforward.NewOnAddresses(
 		dialer,
 		[]string{"localhost"},
 		[]string{fmt.Sprintf("%s:%s", specMap.HostPort, specMap.ContainerPort)},
 		waitFwd,
 		readyChannel,
-		os.Stdout,
-		os.Stderr,
+		&outStd,
+		&outErr,
 	)
+
+	// TODO: these should probably use a separate goroutine and fluxexec.writeOutput,
+	// but they won't log much information so this is enough
+	if outStd.Len() > 0 {
+		log.V(logger.LogLevelInfo).Info(outStd.String())
+	}
+
+	if outErr.Len() > 0 {
+		log.V(logger.LogLevelError).Info(outErr.String())
+	}
 
 	if err2 != nil {
 		return err2

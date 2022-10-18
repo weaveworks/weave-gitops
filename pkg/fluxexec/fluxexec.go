@@ -4,10 +4,9 @@ package fluxexec
 
 import (
 	"fmt"
-	"io"
 	"os"
 
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/go-logr/logr"
 )
 
 type Flux struct {
@@ -15,9 +14,7 @@ type Flux struct {
 	workingDir string
 	env        map[string]string
 
-	stdout io.Writer
-	stderr io.Writer
-	logger logger.Logger
+	logger logr.Logger
 }
 
 func NewFlux(workingDir string, execPath string) (*Flux, error) {
@@ -41,7 +38,7 @@ func NewFlux(workingDir string, execPath string) (*Flux, error) {
 		execPath:   execPath,
 		workingDir: workingDir,
 		env:        make(map[string]string),
-		logger:     nil,
+		logger:     logr.Discard(),
 	}
 
 	return &flux, nil
@@ -58,24 +55,8 @@ func (flux *Flux) ExecPath() string {
 }
 
 // SetLogger specifies a logger for tfexec to use.
-func (flux *Flux) SetLogger(logger logger.Logger) {
+func (flux *Flux) SetLogger(logger logr.Logger) {
 	flux.logger = logger
-}
-
-// SetStdout specifies a writer to stream stdout to for every command.
-//
-// This should be used for information or logging purposes only, not control
-// flow. Any parsing necessary should be added as functionality to this package.
-func (flux *Flux) SetStdout(w io.Writer) {
-	flux.stdout = w
-}
-
-// SetStderr specifies a writer to stream stderr to for every command.
-//
-// This should be used for information or logging purposes only, not control
-// flow. Any parsing necessary should be added as functionality to this package.
-func (flux *Flux) SetStderr(w io.Writer) {
-	flux.stderr = w
 }
 
 func (flux *Flux) SetEnvVar(key, value string) {

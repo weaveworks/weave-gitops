@@ -85,14 +85,14 @@ of the resource. These features work the same way `flux suspend`,
 
 ### Resources managed via Flux
 
-| Api Group                 | Resources                                                                      | Permissions |
-|---------------------------|--------------------------------------------------------------------------------|-------------|
-| ""                        | configmaps, secrets, pods, services, persistentvolumes, persistentvolumeclaims | get, list   |
-| apps                      | deployments, replicasets, statefulsets                                         | get, list   |
-| batch                     | jobs, cronjobs                                                                 | get, list   |
-| autoscaling               | horizontalpodautoscalers                                                       | get, list   |
-| rbac.authorization.k8s.io | roles, clusterroles, rolebindings, clusterrolebindings                         | get, list   |
-| networking.k8s.io         | ingresses                                                                      | get, list   |
+| Api Group                 | Resources                                                                      | Permissions      |
+|---------------------------|--------------------------------------------------------------------------------|------------------|
+| ""                        | configmaps, secrets, pods, services, persistentvolumes, persistentvolumeclaims | get, list, watch |
+| apps                      | deployments, replicasets, statefulsets                                         | get, list, watch |
+| batch                     | jobs, cronjobs                                                                 | get, list, watch |
+| autoscaling               | horizontalpodautoscalers                                                       | get, list, watch |
+| rbac.authorization.k8s.io | roles, clusterroles, rolebindings, clusterrolebindings                         | get, list, watch |
+| networking.k8s.io         | ingresses                                                                      | get, list, watch |
 
 Weave GitOps reads basic resources so that it can monitor the effect that Flux has
 on what's running.

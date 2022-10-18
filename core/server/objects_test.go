@@ -48,8 +48,9 @@ func TestGetObject(t *testing.T) {
 		},
 	}
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
-	cfg := makeServerConfig(client, t)
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
+
+	cfg := makeServerConfig(fakeClient, t)
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
