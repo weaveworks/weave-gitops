@@ -116,7 +116,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         <RouterTab name="Details" path={`${path}/details`}>
           <>
             <InfoList items={info} />
-            <Metadata metadata={source.metadata} />
+            <Metadata metadata={source.metadata} labels={source.labels} />
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>

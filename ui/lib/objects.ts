@@ -65,6 +65,13 @@ export class FluxObject {
     });
   }
 
+  get labels(): [string, string][] {
+    const labels = this.obj.metadata?.labels || {};
+    return Object.keys(labels).flatMap((key) => {
+      return [[key, labels[key] as string]];
+    });
+  }
+
   get suspended(): boolean {
     return Boolean(this.obj.spec?.suspend); // if this is missing, it's not suspended
   }
