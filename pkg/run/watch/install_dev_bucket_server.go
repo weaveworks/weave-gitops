@@ -200,7 +200,7 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 		go func() {
-			if err := ForwardPort(pod, config, specMap, waitFwd, readyChannel); err != nil {
+			if err := ForwardPort(log.Logger, pod, config, specMap, waitFwd, readyChannel); err != nil {
 				log.Failuref("Error forwarding port: %v", err)
 			}
 		}()

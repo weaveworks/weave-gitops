@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -12,16 +13,16 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/rest"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/fields"
 )
 
 func TestClientGet(t *testing.T) {
@@ -216,6 +217,9 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 	clusterRole := rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: appName,
+			Labels: map[string]string{
+				"name": appName,
+			},
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -225,7 +229,15 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 			},
 		},
 	}
-	opts := []client.ListOption{&client.ListOptions{FieldSelector: fields.OneTermEqualSelector("metadata.name", appName)}}
+	opts := []client.ListOption{
+		client.MatchingLabelsSelector{
+			Selector: labels.Set(
+				map[string]string{
+					"name": appName,
+				},
+			).AsSelector(),
+		},
+	}
 
 	ctx := context.Background()
 	g.Expect(k8sEnv.Client.Create(ctx, &clusterRole)).To(Succeed())
@@ -474,9 +486,20 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 
 	clientsPool := clustersmngr.NewClustersClientsPool(scheme)
 
-	err = clientsPool.Add(
+	config := *k8sEnv.Rest
+	config.Timeout = 1 * time.Second
+	config.Impersonate = rest.ImpersonationConfig{
+		UserName: "anne",
 		// Put the user in the `system:masters` group to avoid auth errors
-		clustersmngr.ClientConfigWithUser(&auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}),
+		Groups: []string{"system:masters"},
+	}
+	client, err := client.New(&config, client.Options{
+		Scheme: k8sEnv.Client.Scheme(),
+	})
+	g.Expect(err).To(BeNil())
+
+	err = clientsPool.Add(
+		client,
 		clustersmngr.Cluster{
 			Name:      clusterName,
 			Server:    k8sEnv.Rest.Host,

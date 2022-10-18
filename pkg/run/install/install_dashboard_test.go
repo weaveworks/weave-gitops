@@ -9,9 +9,10 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -37,12 +38,12 @@ const (
 )
 
 var _ = Describe("InstallDashboard", func() {
-	var fakeLogger *loggerfakes.FakeLogger
 	var fakeContext context.Context
+	var fakeLogger logger.Logger
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
 		fakeContext = context.Background()
+		fakeLogger = logger.From(logr.Discard())
 	})
 
 	It("should install dashboard successfully", func() {
@@ -89,11 +90,11 @@ func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client
 }
 
 var _ = Describe("getDashboardHelmChart", func() {
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 	var fakeContext context.Context
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 		fakeContext = context.Background()
 	})
 
@@ -111,10 +112,10 @@ var _ = Describe("getDashboardHelmChart", func() {
 })
 
 var _ = Describe("generateManifestsForDashboard", func() {
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 	})
 
 	It("generates manifests successfully", func() {
@@ -153,10 +154,10 @@ var _ = Describe("generateManifestsForDashboard", func() {
 })
 
 var _ = Describe("makeHelmRelease", func() {
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 	})
 
 	It("creates helmrelease with chart version and values successfully", func() {
@@ -240,10 +241,10 @@ var _ = Describe("makeValues", func() {
 })
 
 var _ = Describe("SanitizeResourceData", func() {
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 
 	BeforeEach(func() {
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 	})
 
 	It("sanitizes helmrepository data", func() {
