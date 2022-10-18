@@ -611,10 +611,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	// cancel function to stop forwarding port
 	var (
 		cancelPortFwd func()
-		counter       uint64 = 1
-		needToRescan  bool   = false
+		// atomic counter for the number of file change events that have changed
+		counter      uint64 = 1
+		needToRescan bool   = false
 	)
-	// atomic counter for the number of file change events that have changed
+
+	watcherCtx, watcherCancel := context.WithCancel(ctx)
+	lastReconcile := time.Now()
 
 	go func() {
 		for {
@@ -631,6 +634,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 				if cancelPortFwd != nil {
 					cancelPortFwd()
+				}
+
+				// If there are still changes and it's been a few seconds,
+				// cancel the old context and start over.
+				if time.Since(lastReconcile) > (10 * time.Second) {
+					watcherCancel()
+					watcherCtx, watcherCancel = context.WithCancel(ctx)
 				}
 
 				atomic.AddUint64(&counter, 1)
@@ -655,6 +665,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// reset counter
 					atomic.StoreUint64(&counter, 0)
 
+					// use ctx, not thisCtx - incomplete uploads will never make anybody happy
 					if err := watch.SyncDir(ctx, log, paths.RootDir, "dev-bucket", minioClient, ignorer); err != nil {
 						log.Failuref("Error syncing dir: %v", err)
 					}
@@ -680,11 +691,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
 
-					if err := watch.ReconcileDevBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
-						log.Failuref("Error requesting reconciliation: %v", err)
-					}
+					lastReconcile = time.Now()
+					// context that cancels when files change
+					thisCtx := watcherCtx
 
-					log.Successf("Reconciliation is done.")
+					if err := watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+						log.Failuref("Error requesting reconciliation: %v", err)
+					} else {
+						log.Successf("Reconciliation is done.")
+					}
 
 					if flags.PortForward != "" {
 						specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
@@ -695,7 +710,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// get pod from specMap
 						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-						pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
+						pod, err := run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
 						if err != nil {
 							log.Failuref("Error getting pod from specMap: %v", err)
 						}
