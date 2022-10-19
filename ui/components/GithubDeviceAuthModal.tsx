@@ -26,11 +26,23 @@ type Props = {
 const Pad = styled(Flex)`
   padding: 8px 0;
 `;
-
+const PointerIcon = styled(Icon)`
+  cursor: pointer;
+`;
 const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
   // Move this to a component so that we get the cancel logic when the modal closes.
   const { getGithubAuthStatus } = useAuth();
   const [loading, setLoading] = React.useState(true);
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = React.useCallback(() => {
+    navigator.clipboard.writeText(codeRes.userCode).then(() => {
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 3000);
+    });
+  }, []);
 
   React.useEffect(() => {
     if (!codeRes) {
@@ -54,7 +66,20 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
   return (
     <div className={className}>
       <Pad wide center>
-        <Text size="extraLarge">{codeRes.userCode}</Text>
+        <Text
+          size="extraLarge"
+          onClick={handleCopy}
+          style={{
+            display: "inline-flex",
+          }}
+        >
+          {codeRes.userCode}
+          <PointerIcon
+            type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
+            color={copied ? "primary20" : "black"}
+            size="medium"
+          />
+        </Text>
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI}>
