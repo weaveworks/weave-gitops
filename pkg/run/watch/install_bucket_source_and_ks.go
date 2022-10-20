@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration) error {
+func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration, devBucketPort int32) error {
 	const devBucketCredentials = "dev-bucket-credentials"
 
 	secret := corev1.Secret{
@@ -54,7 +54,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 			Interval:   metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Provider:   "generic",
 			BucketName: devBucket,
-			Endpoint:   "dev-bucket.dev-bucket.svc.cluster.local:9000",
+			Endpoint:   "dev-bucket.dev-bucket.svc.cluster.local:" + fmt.Sprint(devBucketPort),
 			Insecure:   true,
 			Timeout:    &metav1.Duration{Duration: timeout},
 			SecretRef:  &meta.LocalObjectReference{Name: devBucketCredentials},

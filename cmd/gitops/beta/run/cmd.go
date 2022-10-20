@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -554,7 +555,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log, kubeClient, cfg)
+	unusedPorts, err := run.GetUnusedPorts(1)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	devBucketPort := unusedPorts[0]
+	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log, kubeClient, cfg, devBucketPort)
+
 	if err != nil {
 		cancel()
 		return err
@@ -575,21 +584,21 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
 
-	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, paths.TargetDir, flags.Timeout); err != nil {
+	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, paths.TargetDir, flags.Timeout, devBucketPort); err != nil {
 		cancel()
 		return err
 	}
 
 	ignorer := watch.CreateIgnorer(paths.RootDir)
-
 	minioClient, err := minio.New(
-		"localhost:9000",
+		"localhost:"+strconv.Itoa(int(devBucketPort)),
 		&minio.Options{
 			Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
 			Secure:       false,
 			BucketLookup: minio.BucketLookupPath,
 		},
 	)
+
 	if err != nil {
 		cancel()
 		return err
