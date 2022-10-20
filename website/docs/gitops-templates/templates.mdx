@@ -10,12 +10,37 @@ import TierLabel from "../_components/TierLabel";
 
 ## Orgnizing Templates
 
-Declare the type of a template by using the `weave.works/template-type` annotation. The value of the annotation is the name of the template type. The template type is used to group templates in the UI.
+Declare the type of a template by using the `weave.works/template-type` label. The value of the label is the name of the template type. The template type is used to group templates in the UI.
 
 Recommended template types:
 - `application` - for application templates
 - `cluster` - for cluster templates
 - `terraform` - for Terraform templates
+
+## Rendering Templates
+
+Declare the render type indicating the templating language to be used to render the template by using the `renderType` spec.
+
+Supported templating languages:
+- `envsubst` - uses [envsubst](https://github.com/a8m/envsubst) for rendering 
+- `templating` - uses text/templating for rendering supporting the following [functions](http://masterminds.github.io/sprig/):
+  - String Functions: *trim*, *wrap*, *randAlpha*, *plural*
+    - String List Functions: *splitList*, *sortAlpha*
+  - Integer Math Functions: *add*, *max*, *mul*
+    - Integer Slice Functions: *until*, untilStep
+  - Float Math Functions: *addf*, *maxf*, *mulf*
+  - Date Functions: *now*, *date*
+  - Defaults Functions: *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
+  - Encoding Functions: *b64enc*, *b64dec*
+  - Lists and List Functions: *list*, *first*, *uniq*
+  - Dictionaries and Dict Functions: *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
+  - Type Conversion Functions: *atoi*, *int64*, *toString*
+  - Flow Control Functions: *fail*
+  - Advanced Functions
+    - UUID Functions: *uuidv4*
+    - Version Comparison Functions: *semver*, semverCompare
+    - Reflection: *typeOf*, *kindIs*, *typeIsLike*
+
 
 ## How to: Add a CAPI Template
 
@@ -30,6 +55,7 @@ metadata:
     weave.works/template-type: cluster
 spec:
   description: This is the std. CAPD template
+  renderType: templating
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
@@ -48,6 +74,23 @@ You can provide additional metadata about the parameters to the templates in the
 - `name`: The variable name within the resource templates
 - `descripton`: Description of the parameter. This will be rendered in the UI and CLI
 - `options`: The list of possible values this parameter can be set to.
+- `required` -  Whether the paramter must contain a non-empty value
+- `default` - Default value of the parameter 
+
+Sample:
+```
+spec:
+  params:
+    - name: PARAM_NAME_1
+      description: DESC_1
+      options: [OPTION_1,OPTION_2]
+      default: OPTION_1
+    - name: PARAM_NAME_2
+      description: DESC_1
+      required: true
+      default: DEFAULT_2
+```
+
 
 ### Loading the template into the cluster
 
