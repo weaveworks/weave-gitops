@@ -17,6 +17,23 @@ Recommended template types:
 - `cluster` - for cluster templates
 - `terraform` - for Terraform templates
 
+## Enabling/Disabling Template Components
+
+Enable or disable rendering of certain component sections in a template with the use of annotations. This can be done by using the `templates.weave.works/COMPONENT-enabled` annotation with a boolean value.
+
+Supported components:
+- `profiles`
+- `kustomizations`
+- `credentials`
+
+Example:
+```
+annotations:
+  templates.weave.works/profiles-enabled: true
+  templates.weave.works/kustomizations-enabled: true
+  templates.weave.works/credentials-enabled: true
+```
+
 ## Rendering Templates
 
 Declare the render type indicating the templating language to be used to render the template by using the `renderType` spec.
@@ -94,7 +111,7 @@ spec:
 
 ### Loading the template into the cluster
 
-Load templates into the cluster by adding them to your flux managed git repository or by apply directly with
+Load templates into the cluster by adding them to your flux managed git repository or by using apply directly with
 `kubectl apply -f capi-template.yaml`
 
 Weave GitOps will search for templates in the `default` namespace. This can be changed by configuring the `config.capi.namespace` value in the helm chart.
