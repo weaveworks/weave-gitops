@@ -59,13 +59,13 @@ Supported templating languages:
     - Reflection: *typeOf*, *kindIs*, *typeIsLike*
 
 
-## How to: Add a CAPI Template
+## How to: Add a GitOps Template to create a cluster
 
-CAPI Templates objects need to be wrapped with the `CAPITemplate` custom resource and then loaded into the management cluster.
+GitOps Templates objects need to be wrapped with the `GitOpsTemplate` custom resource and then loaded into the management cluster.
 
 ```yaml
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitOpsTemplate
 metadata:
   name: cluster-template-development
   labels:
