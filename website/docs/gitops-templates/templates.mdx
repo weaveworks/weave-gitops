@@ -34,6 +34,33 @@ annotations:
   templates.weave.works/credentials-enabled: true
 ```
 
+## Pull requests details
+
+The `templates.weave.works/create-request` annotation includes the pull request details of the template as a json string.
+
+Example:
+```
+{
+  "repository_url":"https://github.com/org/repo.git",
+  "head_branch":"feature-01",
+  "base_branch":"main",
+  "title":"New Cluster",
+  "description":"Creates a cluster through a CAPI template",
+  "template_name":"cluster-template-1",
+  "parameter_values":{
+      "CLUSTER_NAME":"dev",
+      "NAMESPACE":"clusters-namespace"
+    },
+  "commit_message":"Add cluster manifest",
+  "values":[
+      {"name":"demo-profile",
+      "version":"0.0.1",
+      "namespace":"test-system"
+      }
+    ]
+  }
+```
+
 ## Rendering Templates
 
 Declare the render type indicating the templating language to be used to render the template by using the `renderType` spec.
@@ -93,6 +120,7 @@ You can provide additional metadata about the parameters to the templates in the
 - `options`: The list of possible values this parameter can be set to.
 - `required` -  Whether the paramter must contain a non-empty value
 - `default` - Default value of the parameter 
+- `editable` - whether the parameter value can be edited after creation or not
 
 Sample:
 ```
