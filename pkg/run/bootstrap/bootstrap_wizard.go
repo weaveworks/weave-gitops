@@ -476,7 +476,7 @@ func SelectGitProvider(log logger.Logger) (GitProvider, error) {
 
 	m := initialPreWizardModel(make(chan GitProvider))
 
-	err := tea.NewProgram(m).Start()
+	err := tea.NewProgram(m, tea.WithAltScreen(), tea.WithMouseCellMotion()).Start()
 	if err != nil {
 		return provider, fmt.Errorf("could not start tea program: %v", err.Error())
 	}
@@ -492,7 +492,7 @@ func (wizard *BootstrapWizard) Run(log logger.Logger) error {
 
 	m := initialWizardModel(wizard.tasks, make(chan BootstrapCmdOptions))
 
-	err := tea.NewProgram(m).Start()
+	err := tea.NewProgram(m, tea.WithAltScreen(), tea.WithMouseCellMotion()).Start()
 	if err != nil {
 		return fmt.Errorf("could not start tea program: %v", err.Error())
 	}
