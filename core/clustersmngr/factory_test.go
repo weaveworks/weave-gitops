@@ -241,6 +241,45 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 	})
 }
 
+func TestGetClusters(t *testing.T) {
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	nsChecker := nsaccess.NewChecker(nil)
+	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
+
+	c1 := makeLeafCluster(t, "foo")
+	c2 := makeLeafCluster(t, "foo")
+
+	t.Run("GetClusters returns clusters that were fetched", func(t *testing.T) {
+		g.Expect(clustersManager.GetClusters()).To(BeEmpty())
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(Equal([]clustersmngr.Cluster{c1}))
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(Equal([]clustersmngr.Cluster{c1, c2}))
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(Equal([]clustersmngr.Cluster{c2}))
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(BeEmpty())
+	})
+}
+
 func TestUpdateClusters(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
