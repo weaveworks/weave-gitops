@@ -269,6 +269,14 @@ func TestGetClusters(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
 		g.Expect(clustersManager.GetClusters()).To(Equal([]clustersmngr.Cluster{c1, c2}))
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(Equal([]clustersmngr.Cluster{c2}))
+
+		clustersFetcher.FetchReturns([]clustersmngr.Cluster{}, nil)
+		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
+		g.Expect(clustersManager.GetClusters()).To(BeEmpty())
 	})
 }
 
