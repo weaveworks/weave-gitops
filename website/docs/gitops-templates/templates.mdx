@@ -34,32 +34,20 @@ annotations:
   templates.weave.works/credentials-enabled: true
 ```
 
-## Pull requests details
+## Default profile values
 
-The `templates.weave.works/create-request` annotation includes the pull request details of the template as a json string.
+Default and required profiles can be added via the template annotation `capi.weave.works/profile-INDEX` so that if the profiles section has been enabled on a template you can choose those profiles for the template.
 
-Example:
+The annotation is added as the following:
 ```
-{
-  "repository_url":"https://github.com/org/repo.git",
-  "head_branch":"feature-01",
-  "base_branch":"main",
-  "title":"New Cluster",
-  "description":"Creates a cluster through a CAPI template",
-  "template_name":"cluster-template-1",
-  "parameter_values":{
-      "CLUSTER_NAME":"dev",
-      "NAMESPACE":"clusters-namespace"
-    },
-  "commit_message":"Add cluster manifest",
-  "values":[
-      {"name":"demo-profile",
-      "version":"0.0.1",
-      "namespace":"test-system"
-      }
-    ]
-  }
+annotations:
+    capi.weave.works/profile-0: '{"name": "NAME", "version": "VERSION", "editable": EDITABLE, "namespace": "NAMESPACE"}'
 ```
+Where
+  - `name` -  is the name of the profile in the default profiles repository
+  - `version` -  (optional) will choose the default version
+  - `namespace` -  (optional) is the default target namespace for the profile
+  - `editable` -  (optional, default=false), allow the user to de-select this profile, making it a default instead of a requirement.
 
 ## Rendering Templates
 
@@ -84,6 +72,48 @@ Supported templating languages:
     - UUID Functions: *uuidv4*
     - Version Comparison Functions: *semver*, semverCompare
     - Reflection: *typeOf*, *kindIs*, *typeIsLike*
+
+
+### Pull requests details
+
+When rendering a template, a `templates.weave.works/create-request` annotation is added by default to the first resource in the `resourcetemplates`. It can be added to any other resource by simply adding the annotation in empty form. This annotation  holds information about which template generated the resource and the parameter values used as a json string.
+
+
+If the resource type is one of the following and has this annotation, an `Edit resource` button will appear in the UI that allows the editing of the resource and re-rendering it:
+- Applications:
+  - HelmRelease
+  - Kustomization
+- Sources:
+  - HelmRepository
+  - GitRepository
+- Clusters:
+  - GitopsCluster
+
+
+
+
+Example:
+```
+{
+  "repository_url":"https://github.com/org/repo.git",
+  "head_branch":"feature-01",
+  "base_branch":"main",
+  "title":"New Cluster",
+  "description":"Creates a cluster through a CAPI template",
+  "template_name":"cluster-template-1",
+  "parameter_values":{
+      "CLUSTER_NAME":"dev",
+      "NAMESPACE":"clusters-namespace"
+    },
+  "commit_message":"Add cluster manifest",
+  "values":[
+      {"name":"demo-profile",
+      "version":"0.0.1",
+      "namespace":"test-system"
+      }
+    ]
+  }
+```
 
 
 ## How to: Add a GitOps Template to create a cluster
@@ -120,7 +150,6 @@ You can provide additional metadata about the parameters to the templates in the
 - `options`: The list of possible values this parameter can be set to.
 - `required` -  Whether the paramter must contain a non-empty value
 - `default` - Default value of the parameter 
-- `editable` - whether the parameter value can be edited after creation or not
 
 Sample:
 ```
