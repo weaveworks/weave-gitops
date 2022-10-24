@@ -6,15 +6,18 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type preWizardModel struct {
-	table     table.Model
-	textInput textinput.Model
-	msgChan   chan GitProvider
-	err       error
+	windowIsReady bool
+	viewport      viewport.Model
+	table         table.Model
+	textInput     textinput.Model
+	msgChan       chan GitProvider
+	err           error
 }
 
 const flagSeparator = " - "
@@ -26,7 +29,7 @@ var (
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240"))
 
-	// text inputs style
+	// text inputs
 	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 
@@ -38,6 +41,14 @@ var (
 	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
+
+func makeViewport(width int, height int, content string) viewport.Model {
+	vp := viewport.New(width, height)
+	vp.YPosition = 0
+	vp.SetContent(content)
+
+	return vp
+}
 
 func initialPreWizardModel(msgChan chan GitProvider) preWizardModel {
 	columns := []table.Column{
@@ -65,10 +76,7 @@ func initialPreWizardModel(msgChan chan GitProvider) preWizardModel {
 		BorderForeground(lipgloss.Color("240")).
 		BorderBottom(true).
 		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
+	s.Selected = s.Selected.Bold(false).Foreground(lipgloss.NoColor{})
 	t.SetStyles(s)
 
 	ti := textinput.New()
@@ -94,30 +102,17 @@ func (m preWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
-		case tea.KeyEscape, tea.KeyTab:
-			if m.table.Focused() {
-				m.table.Blur()
-				m.textInput.Focus()
-			} else {
-				m.table.Focus()
-				m.textInput.Blur()
-			}
 		case tea.KeyEnter:
 			provider := GitProviderUnknown
 
-			if m.table.Focused() {
-				name := m.table.SelectedRow()[1]
-				provider = allGitProviders[name]
-			} else {
-				indexOrName := strings.ToLower(strings.TrimSpace(m.textInput.Value()))
+			indexOrName := strings.ToLower(strings.TrimSpace(m.textInput.Value()))
 
-				for key, value := range allGitProviders {
-					strValue := fmt.Sprint(value)
+			for key, value := range allGitProviders {
+				strValue := fmt.Sprint(value)
 
-					if indexOrName == strings.ToLower(strValue) || indexOrName == strings.ToLower(key) {
-						provider = allGitProviders[key]
-						break
-					}
+				if indexOrName == strings.ToLower(strValue) || indexOrName == strings.ToLower(key) {
+					provider = allGitProviders[key]
+					break
 				}
 			}
 
@@ -127,12 +122,22 @@ func (m preWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 		}
+	case tea.WindowSizeMsg:
+		if !m.windowIsReady {
+			m.viewport = makeViewport(msg.Width, msg.Height, m.getContent())
+
+			m.windowIsReady = true
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height
+		}
 	case errMsg:
 		m.err = msg
 		return m, nil
 	}
 
 	var (
+		cmdViewport  tea.Cmd
 		cmdTable     tea.Cmd
 		cmdTextInput tea.Cmd
 	)
@@ -140,29 +145,36 @@ func (m preWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.table, cmdTable = m.table.Update(msg)
 	m.textInput, cmdTextInput = m.textInput.Update(msg)
 
-	return m, tea.Batch([]tea.Cmd{cmdTable, cmdTextInput}...)
+	m.viewport.SetContent(m.getContent())
+
+	m.viewport, cmdViewport = m.viewport.Update(msg)
+	cmds := []tea.Cmd{cmdViewport, cmdTable, cmdTextInput}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m preWizardModel) View() string {
+	return m.viewport.View()
+}
+
+func (m preWizardModel) getContent() string {
 	return fmt.Sprintf(
-		"Please select or enter your Git provider"+"\n"+
-			"(up and down arrows to move table selection, Enter to select git provider, "+"\n"+
-			"Esc to switch between table and text input, Ctrl + C twice to quit)"+"\n"+
-			"\n%s",
+		"Please enter Git provider index or name and press Enter"+"\n"+
+			"(up and down arrows to scroll the view,"+"\n"+
+			"Ctrl+C twice to quit):"+"\n%s",
 		baseTableStyle.Render(m.table.View())+"\n",
-	) + fmt.Sprintf(
-		"Please enter Git provider index or name and press Enter\n%s",
-		m.textInput.View(),
-	)
+	) + m.textInput.View()
 }
 
 type wizardModel struct {
-	textInputs []textinput.Model
-	prompts    []string
-	msgChan    chan BootstrapCmdOptions
-	cursorMode textinput.CursorMode
-	focusIndex int
-	errorMsg   string
+	windowIsReady bool
+	viewport      viewport.Model
+	textInputs    []textinput.Model
+	prompts       []string
+	msgChan       chan BootstrapCmdOptions
+	cursorMode    textinput.CursorMode
+	focusIndex    int
+	errorMsg      string
 }
 
 func makeTextInput(task *BootstrapWizardTask, isFocused bool) textinput.Model {
@@ -218,6 +230,8 @@ func (m wizardModel) Init() tea.Cmd {
 }
 
 func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -231,20 +245,16 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursorMode = textinput.CursorBlink
 			}
 
-			cmds := make([]tea.Cmd, len(m.textInputs))
+			cmdsTextInputs := make([]tea.Cmd, len(m.textInputs))
 
 			for i := range m.textInputs {
-				cmds[i] = m.textInputs[i].SetCursorMode(m.cursorMode)
+				cmdsTextInputs[i] = m.textInputs[i].SetCursorMode(m.cursorMode)
 			}
 
-			return m, tea.Batch(cmds...)
-
-		// Set focus to next input
-		case tea.KeyTab, tea.KeyShiftTab, tea.KeyEnter, tea.KeyUp, tea.KeyDown:
+			cmds = append(cmds, cmdsTextInputs...)
+		case tea.KeyTab, tea.KeyShiftTab, tea.KeyEnter:
 			t := msg.Type
 
-			// Did the user press enter while the submit button was focused?
-			// If so, exit.
 			if t == tea.KeyEnter && m.focusIndex == len(m.textInputs) {
 				options := make(BootstrapCmdOptions)
 
@@ -266,8 +276,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 
-			// Cycle indexes
-			if t == tea.KeyUp || t == tea.KeyShiftTab {
+			if t == tea.KeyShiftTab {
 				m.focusIndex--
 			} else {
 				m.focusIndex++
@@ -279,31 +288,50 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex = len(m.textInputs)
 			}
 
-			cmds := make([]tea.Cmd, len(m.textInputs))
+			cmdsTextInputs := make([]tea.Cmd, len(m.textInputs))
 
 			for i := 0; i <= len(m.textInputs)-1; i++ {
 				if i == m.focusIndex {
-					// Set focused state
-					cmds[i] = m.textInputs[i].Focus()
+					cmdsTextInputs[i] = m.textInputs[i].Focus()
 					m.textInputs[i].PromptStyle = focusedStyle
 					m.textInputs[i].TextStyle = focusedStyle
 
 					continue
 				}
-				// Remove focused state
+
 				m.textInputs[i].Blur()
 				m.textInputs[i].PromptStyle = noStyle
 				m.textInputs[i].TextStyle = noStyle
 			}
 
-			return m, tea.Batch(cmds...)
+			cmds = append(cmds, cmdsTextInputs...)
+		}
+	case tea.WindowSizeMsg:
+		if !m.windowIsReady {
+			m.viewport = makeViewport(msg.Width, msg.Height, m.getContent())
+
+			m.windowIsReady = true
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height
 		}
 	}
 
-	// Handle character input and blinking
-	cmd := m.updateInputs(msg)
+	cmdsTextInputs := m.updateInputs(msg)
 
-	return m, cmd
+	m.viewport.SetContent(m.getContent())
+
+	var cmdViewport tea.Cmd
+
+	m.viewport, cmdViewport = m.viewport.Update(msg)
+
+	cmds = append(cmds, cmdsTextInputs, cmdViewport)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m wizardModel) View() string {
+	return m.viewport.View()
 }
 
 func (m *wizardModel) updateInputs(msg tea.Msg) tea.Cmd {
@@ -318,13 +346,13 @@ func (m *wizardModel) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m wizardModel) View() string {
+func (m wizardModel) getContent() string {
 	var b strings.Builder
 
 	b.WriteString("Please enter the following values" + "\n" +
 		"(Tab and Shift+Tab to move input selection," + "\n" +
 		"Enter to move to the next input or submit the form, " + "\n" +
-		"Ctrl + C twice to quit)" + "\n\n\n")
+		"up and down arrows to scroll the view, Ctrl+C twice to quit):" + "\n\n\n")
 
 	for i := range m.textInputs {
 		b.WriteString(m.prompts[i])
