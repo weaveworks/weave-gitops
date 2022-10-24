@@ -302,7 +302,6 @@ const (
 
 type (
 	GitProvider int32
-	errMsg      error
 )
 
 const (
