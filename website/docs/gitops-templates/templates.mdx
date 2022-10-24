@@ -121,7 +121,7 @@ Example:
 GitOps Templates objects need to be wrapped with the `GitOpsTemplate` custom resource and then loaded into the management cluster.
 
 ```yaml
-apiVersion: clustertemplates.weave.works/v1alpha1
+apiVersion: clustertemplates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: cluster-template-development
@@ -134,11 +134,12 @@ spec:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
   resourcetemplates:
-    # Template objects go here
-    - apiVersion: cluster.x-k8s.io/v1alpha3
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
+    - path: clusters/custom-path.yaml
+      content: # Template objects go here
+      - apiVersion: cluster.x-k8s.io/v1alpha3
+        kind: Cluster
+        metadata:
+          name: "${CLUSTER_NAME}"
 ```
 
 ### Parameter metadata - `spec.params`
@@ -186,3 +187,12 @@ import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 >
   {CapdTemplate}
 </CodeBlock>
+
+## Updating from v1alpha1 to v1alpha2
+
+`resourcetemplates` values was changed in `v1alpha2`. Instead of directly holding a list of Kubernetes resources manifests it is now a list of a new object that has two keys:
+
+- content: This now holds the resource manifests.
+- path: This allows you to specify which path to render the templates into in the repo instead of rendering them to the default path.
+
+If the user does not wish to specify where to render the templates but still update and keep the old behavior then he will have to move the resource templates list under the content section.
