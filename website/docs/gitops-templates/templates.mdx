@@ -85,24 +85,27 @@ Supported templating languages:
   - **templating**
 
     templating uses text/templating for rendering, using go-templating style syntax `{{ .params.CLUSTER_NAME }}` where params are provided by the `.params` variable. 
-    Template functions can also be used where the following [functions](http://masterminds.github.io/sprig/) are supported:
-      - String Functions: *trim*, *wrap*, *randAlpha*, *plural*
-        - String List Functions: *splitList*, *sortAlpha*
-      - Integer Math Functions: *add*, *max*, *mul*
-        - Integer Slice Functions: *until*, untilStep
-      - Float Math Functions: *addf*, *maxf*, *mulf*
-      - Date Functions: *now*, *date*
-      - Defaults Functions: *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
-      - Encoding Functions: *b64enc*, *b64dec*
-      - Lists and List Functions: *list*, *first*, *uniq*
-      - Dictionaries and Dict Functions: *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
-      - Type Conversion Functions: *atoi*, *int64*, *toString*
-      - Flow Control Functions: *fail*
-      - Advanced Functions
-        - UUID Functions: *uuidv4*
-        - Version Comparison Functions: *semver*, semverCompare
-        - Reflection: *typeOf*, *kindIs*, *typeIsLike*
+    Template functions can also be used with the syntax `{{ .params.CLUSTER_NAME | FUNCTION }}`. 
+    
+    #### Supported functions [(from Sprig libray)](http://masterminds.github.io/sprig/)
 
+    | __Function Type__                   | __Functions__                                                     |
+    | -----------------                   | --------------                                                  |
+    | String Functions                    | *trim*, *wrap*, *randAlpha*, *plural*
+    | String List Functions               | *splitList*, *sortAlpha*
+    | Integer Math Functions              | *add*, *max*, *mul*
+    | Integer Slice Functions             | *until*, untilStep
+    | Float Math Functions                | *addf*, *maxf*, *mulf*
+    | Date Functions                      | *now*, *date*
+    | Defaults Functions                  | *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
+    | Encoding Functions                  | *b64enc*, *b64dec*
+    | Lists and List Functions            | *list*, *first*, *uniq*
+    | Dictionaries and Dict Functions     | *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
+    | Type Conversion Functions           | *atoi*, *int64*, *toString*
+    | Flow Control Functions              | *fail*
+    | UUID Functions                      | *uuidv4*
+    | Version Comparison Functions        | *semver*, semverCompare
+    | Reflection                          | *typeOf*, *kindIs*, *typeIsLike*
 
 ### Pull requests details
 
