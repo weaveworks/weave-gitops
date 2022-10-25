@@ -131,6 +131,8 @@ type clustersManager struct {
 	kubeConfigOptions   []KubeConfigOption
 	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
+
+	usersLock sync.Map
 }
 
 // ClusterListUpdate records the changes to the cluster state managed by the factory.
@@ -464,7 +466,11 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 		go func(cluster Cluster) {
 			defer wg.Done()
 
-			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
+			clusterNs, found := cf.clustersNamespaces.Get(cluster.Name)
+			if !found {
+				cf.log.Error(nil, "failed to get cluster namespaces", "cluster", cluster.Name)
+				return
+			}
 
 			cfg, err := ClientConfigWithUser(user, cf.kubeConfigOptions...)(cluster)
 			if err != nil {
@@ -485,11 +491,21 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 	wg.Wait()
 }
 
+func (cf *clustersManager) LockUser(user *auth.UserPrincipal) *sync.Mutex {
+	actual, _ := cf.usersLock.LoadOrStore(user.Hash(), &sync.Mutex{})
+	lock := actual.(*sync.Mutex)
+	lock.Lock()
+	return lock
+}
+
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
 
 func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
+	userLock := cf.LockUser(user)
+	defer userLock.Unlock()
+
 	userNamespaces := cf.GetUserNamespaces(user)
 	if len(userNamespaces) > 0 {
 		return userNamespaces
