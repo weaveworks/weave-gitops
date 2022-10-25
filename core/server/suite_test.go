@@ -8,9 +8,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters/clustersfakes"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -61,16 +60,13 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	cluster, err := clusters.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fetch, err := fetcher.NewSingleClusterFetcher(cluster)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clusters := clustersmngr.NewStaticClusterCollection(cluster)
 
-	clustersManager := clustersmngr.NewClustersManager(fetch, &nsChecker, log, scheme)
+	clustersManager := clustersmngr.NewClustersManager(clusters, &nsChecker, log)
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
@@ -144,25 +140,17 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	}
 	clientset := fake.NewSimpleClientset()
 
-	cluster := clustersfakes.FakeCluster{}
+	cluster := clusterfakes.FakeCluster{}
 	cluster.GetNameReturns("Default")
 	cluster.GetUserClientReturns(fakeClient, nil)
 	cluster.GetServerClientReturns(fakeClient, nil)
 	cluster.GetServerClientsetReturns(clientset, nil)
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(&cluster)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	scheme, err := kube.CreateScheme()
-	if err != nil {
-		t.Fatal(err)
-	}
+	clusters := clustersmngr.NewStaticClusterCollection(&cluster)
 
 	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
 	// and the default options include the Flowcontrol setup which is not mocked out
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme)
+	clustersManager := clustersmngr.NewClustersManager(clusters, &nsChecker, log)
 
 	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker

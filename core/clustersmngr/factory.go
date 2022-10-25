@@ -10,11 +10,10 @@ import (
 	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
-	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -71,18 +70,17 @@ type ClustersManager interface {
 	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
 	RemoveWatcher(cw *ClustersWatcher)
 	// GetClusters returns all the currently known clusters
-	GetClusters() []clusters.Cluster
+	GetClusters() []cluster.Cluster
 }
 
-type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
+type ClusterPoolFactoryFn func() ClientsPool
 
 type clustersManager struct {
-	clustersFetcher ClusterFetcher
-	nsChecker       nsaccess.Checker
-	log             logr.Logger
+	nsChecker nsaccess.Checker
+	log       logr.Logger
 
-	// list of clusters returned by the clusters fetcher
-	clusters *Clusters
+	// a collection of the clusters we manage
+	clusters ClusterCollection
 	// string containing ordered list of cluster names, used to refresh dependent caches
 	clustersHash string
 	// the lists of all namespaces of each cluster
@@ -90,17 +88,15 @@ type clustersManager struct {
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
 
-	initialClustersLoad chan bool
-	scheme              *apiruntime.Scheme
-	newClustersPool     ClusterPoolFactoryFn
+	newClustersPool ClusterPoolFactoryFn
 	// list of watchers to notify of clusters updates
 	watchers []*ClustersWatcher
 }
 
 // ClusterListUpdate records the changes to the cluster state managed by the factory.
 type ClusterListUpdate struct {
-	Added   []clusters.Cluster
-	Removed []clusters.Cluster
+	Added   []cluster.Cluster
+	Removed []cluster.Cluster
 }
 
 // ClustersWatcher watches for cluster list updates and notifies the registered clients.
@@ -110,7 +106,7 @@ type ClustersWatcher struct {
 }
 
 // Notify publishes cluster updates to the current watcher.
-func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []clusters.Cluster) {
+func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []cluster.Cluster) {
 	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: removedClusters}
 }
 
@@ -120,18 +116,15 @@ func (cw *ClustersWatcher) Unsubscribe() {
 	close(cw.Updates)
 }
 
-func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme) ClustersManager {
+func NewClustersManager(clusters ClusterCollection, nsChecker nsaccess.Checker, logger logr.Logger) ClustersManager {
 	return &clustersManager{
-		clustersFetcher:     fetcher,
-		nsChecker:           nsChecker,
-		clusters:            &Clusters{},
-		clustersNamespaces:  &ClustersNamespaces{},
-		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
-		log:                 logger,
-		initialClustersLoad: make(chan bool),
-		scheme:              scheme,
-		newClustersPool:     NewClustersClientsPool,
-		watchers:            []*ClustersWatcher{},
+		nsChecker:          nsChecker,
+		clusters:           clusters,
+		clustersNamespaces: &ClustersNamespaces{},
+		usersNamespaces:    &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
+		log:                logger,
+		newClustersPool:    NewClustersClientsPool,
+		watchers:           []*ClustersWatcher{},
 	}
 }
 
@@ -155,8 +148,8 @@ func (cf *clustersManager) RemoveWatcher(cw *ClustersWatcher) {
 	cf.watchers = watchers
 }
 
-func (cf *clustersManager) GetClusters() []clusters.Cluster {
-	return cf.clusters.Get()
+func (cf *clustersManager) GetClusters() []cluster.Cluster {
+	return cf.clusters.GetAll()
 }
 
 func (cf *clustersManager) Start(ctx context.Context) {
@@ -165,12 +158,6 @@ func (cf *clustersManager) Start(ctx context.Context) {
 }
 
 func (cf *clustersManager) watchClusters(ctx context.Context) {
-	if err := cf.UpdateClusters(ctx); err != nil {
-		cf.log.Error(err, "failed updating clusters")
-	}
-
-	cf.initialClustersLoad <- true
-
 	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			cf.log.Error(err, "Failed to update clusters")
@@ -184,12 +171,10 @@ func (cf *clustersManager) watchClusters(ctx context.Context) {
 
 // UpdateClusters updates the clusters list and notifies the registered watchers.
 func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
-	clusters, err := cf.clustersFetcher.Fetch(ctx)
+	addedClusters, removedClusters, err := cf.clusters.Update(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to fetch clusters: %w", err)
+		return fmt.Errorf("failed to update clusters: %w", err)
 	}
-
-	addedClusters, removedClusters := cf.clusters.Set(clusters)
 
 	if len(addedClusters) > 0 || len(removedClusters) > 0 {
 		// notify watchers of the changes
@@ -202,9 +187,6 @@ func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
 }
 
 func (cf *clustersManager) watchNamespaces(ctx context.Context) {
-	// waits the first load of cluster to start watching namespaces
-	<-cf.initialClustersLoad
-
 	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
 			if merr, ok := err.(*multierror.Error); ok {
@@ -245,6 +227,8 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 	}
 
 	for clusterName, lists := range nsList.Lists() {
+		fmt.Printf("Ugh, %+v\n", clusterName)
+		fmt.Printf("Ugh2 %+v\n", cf.clusters)
 		// This is the "namespace loop", but namespaces aren't
 		// namespaced so only 1 item
 		for _, l := range lists {
@@ -280,15 +264,15 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 		return nil, errors.New("no user supplied")
 	}
 
-	pool := cf.newClustersPool(cf.scheme)
-	errChan := make(chan error, len(cf.clusters.Get()))
+	pool := cf.newClustersPool()
+	errChan := make(chan error, len(cf.clusters.GetAll()))
 
 	var wg sync.WaitGroup
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.GetAll() {
 		wg.Add(1)
 
-		go func(cluster clusters.Cluster, pool ClientsPool, errChan chan error) {
+		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
 			client, err := cluster.GetUserClient(user)
@@ -300,7 +284,7 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
-		}(cluster, pool, errChan)
+		}(cl, pool, errChan)
 	}
 
 	wg.Wait()
@@ -320,10 +304,10 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, errors.New("no user supplied")
 	}
 
-	var cl clusters.Cluster
+	var cl cluster.Cluster
 
-	pool := cf.newClustersPool(cf.scheme)
-	clusters := cf.clusters.Get()
+	pool := cf.newClustersPool()
+	clusters := cf.clusters.GetAll()
 
 	for _, c := range clusters {
 		if c.GetName() == clusterName {
@@ -353,7 +337,7 @@ func (cf *clustersManager) GetImpersonatedDiscoveryClient(ctx context.Context, u
 		return nil, errors.New("no user supplied")
 	}
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cluster := range cf.clusters.GetAll() {
 		if cluster.GetName() == clusterName {
 			var err error
 
@@ -369,15 +353,15 @@ func (cf *clustersManager) GetImpersonatedDiscoveryClient(ctx context.Context, u
 }
 
 func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) {
-	pool := cf.newClustersPool(cf.scheme)
-	errChan := make(chan error, len(cf.clusters.Get()))
+	pool := cf.newClustersPool()
+	errChan := make(chan error, len(cf.clusters.GetAll()))
 
 	var wg sync.WaitGroup
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.GetAll() {
 		wg.Add(1)
 
-		go func(cluster clusters.Cluster, pool ClientsPool, errChan chan error) {
+		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
 			client, err := cluster.GetServerClient()
@@ -389,7 +373,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 			if err := pool.Add(client, cluster); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
-		}(cluster, pool, errChan)
+		}(cl, pool, errChan)
 	}
 
 	wg.Wait()
@@ -407,10 +391,10 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
 	wg := sync.WaitGroup{}
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.GetAll() {
 		wg.Add(1)
 
-		go func(cluster clusters.Cluster) {
+		go func(cluster cluster.Cluster) {
 			defer wg.Done()
 
 			clusterNs := cf.clustersNamespaces.Get(cluster.GetName())
@@ -428,14 +412,14 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 			}
 
 			cf.usersNamespaces.Set(user, cluster.GetName(), filteredNs)
-		}(cluster)
+		}(cl)
 	}
 
 	wg.Wait()
 }
 
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
-	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
+	return cf.usersNamespaces.GetAll(user, cf.clusters.GetAll())
 }
 
 func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {

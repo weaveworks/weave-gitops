@@ -6,22 +6,22 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
 )
 
 type FakeClustersManager struct {
-	GetClustersStub        func() []clusters.Cluster
+	GetClustersStub        func() []cluster.Cluster
 	getClustersMutex       sync.RWMutex
 	getClustersArgsForCall []struct {
 	}
 	getClustersReturns struct {
-		result1 []clusters.Cluster
+		result1 []cluster.Cluster
 	}
 	getClustersReturnsOnCall map[int]struct {
-		result1 []clusters.Cluster
+		result1 []cluster.Cluster
 	}
 	GetClustersNamespacesStub        func() map[string][]v1.Namespace
 	getClustersNamespacesMutex       sync.RWMutex
@@ -153,7 +153,7 @@ type FakeClustersManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClustersManager) GetClusters() []clusters.Cluster {
+func (fake *FakeClustersManager) GetClusters() []cluster.Cluster {
 	fake.getClustersMutex.Lock()
 	ret, specificReturn := fake.getClustersReturnsOnCall[len(fake.getClustersArgsForCall)]
 	fake.getClustersArgsForCall = append(fake.getClustersArgsForCall, struct {
@@ -177,32 +177,32 @@ func (fake *FakeClustersManager) GetClustersCallCount() int {
 	return len(fake.getClustersArgsForCall)
 }
 
-func (fake *FakeClustersManager) GetClustersCalls(stub func() []clusters.Cluster) {
+func (fake *FakeClustersManager) GetClustersCalls(stub func() []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = stub
 }
 
-func (fake *FakeClustersManager) GetClustersReturns(result1 []clusters.Cluster) {
+func (fake *FakeClustersManager) GetClustersReturns(result1 []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = nil
 	fake.getClustersReturns = struct {
-		result1 []clusters.Cluster
+		result1 []cluster.Cluster
 	}{result1}
 }
 
-func (fake *FakeClustersManager) GetClustersReturnsOnCall(i int, result1 []clusters.Cluster) {
+func (fake *FakeClustersManager) GetClustersReturnsOnCall(i int, result1 []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = nil
 	if fake.getClustersReturnsOnCall == nil {
 		fake.getClustersReturnsOnCall = make(map[int]struct {
-			result1 []clusters.Cluster
+			result1 []cluster.Cluster
 		})
 	}
 	fake.getClustersReturnsOnCall[i] = struct {
-		result1 []clusters.Cluster
+		result1 []cluster.Cluster
 	}{result1}
 }
 

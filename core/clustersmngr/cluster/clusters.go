@@ -1,4 +1,4 @@
-package clusters
+package cluster
 
 import (
 	"context"
@@ -53,6 +53,7 @@ type Cluster interface {
 	GetUserClientset(*auth.UserPrincipal) (kubernetes.Interface, error)
 	// GetUserDiscoveryClient gets an appropriately impersonated discovery client for the user on this cluster
 	GetServerClientset() (kubernetes.Interface, error)
+	SetConfig(*rest.Config) error
 }
 
 func WithFlowControl(config *rest.Config) (*rest.Config, error) {

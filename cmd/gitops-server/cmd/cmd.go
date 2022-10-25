@@ -25,8 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
@@ -176,23 +175,23 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	cluster, err := clusters.NewSingleCluster(clustersmngr.DefaultCluster, rest, scheme, clustersmngr.DefaultKubeConfigOptions...)
+	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster client; %w", err)
 	}
 
-	cluster = clusters.NewTTLCacheFetcher(cluster)
+	cl = cluster.NewTTLCacheCluster(cl)
 
 	if options.UseK8sCachedClients {
-		cluster = clusters.NewDelegatingCacheFetcher(cluster, rest, scheme)
+		cl = cluster.NewDelegatingCacheCluster(cl, rest, scheme)
 	}
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(cluster)
+	clusters := clustersmngr.NewStaticClusterCollection(cl)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster fetcher; %w", err)
 	}
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme)
+	clustersManager := clustersmngr.NewClustersManager(clusters, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clustersManager.Start(ctx)
 
 	coreConfig := core.NewCoreConfig(log, rest, clusterName, clustersManager)

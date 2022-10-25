@@ -21,7 +21,7 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -485,7 +485,7 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	clientsPool := clustersmngr.NewClustersClientsPool(scheme)
+	clientsPool := clustersmngr.NewClustersClientsPool()
 
 	config := *k8sEnv.Rest
 	config.Timeout = 1 * time.Second
@@ -499,7 +499,7 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	})
 	g.Expect(err).To(BeNil())
 
-	cluster, err := clusters.NewSingleCluster(clusterName, k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster(clusterName, k8sEnv.Rest, scheme)
 	g.Expect(err).To(BeNil())
 	err = clientsPool.Add(
 		client,

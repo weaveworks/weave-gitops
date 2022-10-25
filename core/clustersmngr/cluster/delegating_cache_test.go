@@ -1,4 +1,4 @@
-package clusters
+package cluster
 
 import (
 	"context"

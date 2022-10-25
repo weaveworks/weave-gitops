@@ -1,4 +1,4 @@
-package clusters
+package cluster
 
 import (
 	"fmt"
@@ -13,13 +13,14 @@ import (
 )
 
 type singleCluster struct {
-	name       string
-	restConfig *rest.Config
-	scheme     *apiruntime.Scheme
+	name              string
+	restConfig        *rest.Config
+	scheme            *apiruntime.Scheme
+	kubeConfigOptions []KubeConfigOption
 }
 
-func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, kubeConfigOptions ...KubeConfigOption) (Cluster, error) {
-	// TODO: why does the cluster care about options?
+// TODO: This doesn't fit here, but to move it elsewhere requires deciding where it goes instead
+func updateConfig(config *rest.Config, kubeConfigOptions ...KubeConfigOption) error {
 	config.Timeout = DefaultKubeClientTimeout
 	config.Dial = (&net.Dialer{
 		Timeout: kubeClientDialTimeout,
@@ -32,13 +33,23 @@ func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Schem
 	for _, opt := range kubeConfigOptions {
 		config, err = opt(config)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
+
+	return nil
+}
+
+func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, kubeConfigOptions ...KubeConfigOption) (Cluster, error) {
+	err := updateConfig(config, kubeConfigOptions...)
+	if err != nil {
+		return nil, err
+	}
 	return &singleCluster{
-		name:       name,
-		restConfig: config,
-		scheme:     scheme,
+		name:              name,
+		restConfig:        config,
+		scheme:            scheme,
+		kubeConfigOptions: kubeConfigOptions,
 	}, nil
 }
 
@@ -120,4 +131,14 @@ func (c *singleCluster) GetServerClientset() (kubernetes.Interface, error) {
 		return nil, fmt.Errorf("making cientset: %w", err)
 	}
 	return cs, nil
+}
+
+func (c *singleCluster) SetConfig(cfg *rest.Config) error {
+	cfg = rest.CopyConfig(cfg)
+	err := updateConfig(cfg, c.kubeConfigOptions...)
+	if err != nil {
+		return err
+	}
+	c.restConfig = cfg
+	return nil
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
@@ -338,7 +338,7 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 	adminClient, err := client.New(testCfg, client.Options{
 		Scheme: scheme,
 	})
-	cluster, err := clusters.NewSingleCluster("test", testCfg, scheme)
+	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme)
 	if err != nil {
 		t.Fatal(err)
 	}

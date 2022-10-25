@@ -1,4 +1,4 @@
-package clusters
+package cluster
 
 import (
 	"context"
@@ -103,6 +103,10 @@ func (c *delegatingCacheCluster) GetUserClientset(user *auth.UserPrincipal) (kub
 
 func (c *delegatingCacheCluster) GetServerClientset() (kubernetes.Interface, error) {
 	return c.cluster.GetServerClientset()
+}
+
+func (c *delegatingCacheCluster) SetConfig(cfg *rest.Config) error {
+	return c.cluster.SetConfig(cfg)
 }
 
 type delegatingCache struct {

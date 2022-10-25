@@ -1,4 +1,4 @@
-package clusters
+package cluster
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"github.com/cheshir/ttlcache"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -16,7 +17,7 @@ type ttlCache struct {
 	serverClients *usersClients
 }
 
-func NewTTLCacheFetcher(cluster Cluster) Cluster {
+func NewTTLCacheCluster(cluster Cluster) Cluster {
 	return &ttlCache{
 		cluster:       cluster,
 		usersClients:  &usersClients{Cache: ttlcache.New(usersClientResolution)},
@@ -67,6 +68,10 @@ func (c *ttlCache) GetUserClientset(user *auth.UserPrincipal) (kubernetes.Interf
 
 func (c *ttlCache) GetServerClientset() (kubernetes.Interface, error) {
 	return c.cluster.GetServerClientset()
+}
+
+func (c *ttlCache) SetConfig(cfg *rest.Config) error {
+	return c.cluster.SetConfig(cfg)
 }
 
 type usersClients struct {
