@@ -99,6 +99,8 @@ type ClustersManager interface {
 	Subscribe() *ClustersWatcher
 	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
 	RemoveWatcher(cw *ClustersWatcher)
+	// GetClusters returns all the currently known clusters
+	GetClusters() []Cluster
 }
 
 var DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
@@ -190,6 +192,10 @@ func (cf *clustersManager) RemoveWatcher(cw *ClustersWatcher) {
 	}
 
 	cf.watchers = watchers
+}
+
+func (cf *clustersManager) GetClusters() []Cluster {
+	return cf.clusters.Get()
 }
 
 func (cf *clustersManager) Start(ctx context.Context) {

@@ -61,7 +61,8 @@ func (s *Session) Connect() error {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		<-c
+		sig := <-c
+		signal.Reset(sig)
 
 		thisProc := os.Getpid()
 		allProcesses, err := ps.Processes()

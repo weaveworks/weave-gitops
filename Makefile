@@ -9,7 +9,7 @@ GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=0.35.0
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
-DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290
+DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:8fbb7534e772e14ea598d287a4b54a3f556416cac6621095ce45f78346fda78a
 
 # Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
@@ -19,7 +19,7 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
-				 -X github.com/weaveworks/weave-gitops/pkg/run.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
+				 -X github.com/weaveworks/weave-gitops/pkg/run/watch.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/core/server.GitCommit=$(GIT_COMMIT) \

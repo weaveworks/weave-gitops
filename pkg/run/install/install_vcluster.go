@@ -171,7 +171,11 @@ func uninstallVcluster(kubeClient client.Client, name string, namespace string) 
 	}
 
 	if err := kubeClient.Delete(context.Background(), helmRepo); err != nil {
-		return err
+		if apierrors.IsNotFound(err) {
+			// Do nothing because the helmRepo can be deleted by other GitOps Run instances
+		} else {
+			return err
+		}
 	}
 
 	return nil

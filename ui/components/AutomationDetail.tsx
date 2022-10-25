@@ -75,7 +75,10 @@ function AutomationDetail({
         return (
           <>
             <InfoList items={info} />
-            <Metadata metadata={automation.metadata} />
+            <Metadata
+              metadata={automation.metadata}
+              labels={automation.labels}
+            />
             <ReconciledObjectsTable automation={automation} />
           </>
         );
