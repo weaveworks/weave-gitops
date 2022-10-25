@@ -8,6 +8,8 @@ import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
+const fluxVersionLabel = "app.kubernetes.io/version";
+
 type Props = {
   className?: string;
   controllers?: Deployment[];
@@ -55,6 +57,10 @@ function ControllersTable({ className, controllers = [] }: Props) {
         ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
           ? [{ label: "Cluster", value: "clusterName" }]
           : []),
+        {
+          label: "Flux Version",
+          value: (d: Deployment) => d.labels[fluxVersionLabel],
+        },
         {
           value: (d: Deployment) => (
             <>

@@ -77,6 +77,7 @@ export type Deployment = {
   suspended?: boolean
   clusterName?: string
   uid?: string
+  labels?: {[key: string]: string}
 }
 
 export type CrdName = {
