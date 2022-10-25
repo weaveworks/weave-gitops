@@ -90,7 +90,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
-	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
