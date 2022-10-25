@@ -1,4 +1,4 @@
-package clustersmngr_test
+package clusters
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -31,7 +30,7 @@ func TestDelegatingCacheGet(t *testing.T) {
 		g.Fail("failed syncing client cache")
 	}
 
-	delegatingCache := clustersmngr.NewDelegatingCache(fakeReader, cache, scheme.Scheme)
+	delegatingCache := newDelegatingCache(fakeReader, cache, scheme.Scheme)
 
 	ns := &corev1.Namespace{
 		ObjectMeta: v1.ObjectMeta{
@@ -74,7 +73,7 @@ func TestDelegatingCacheList(t *testing.T) {
 
 	g.Expect(k8sEnv.Client.Create(ctx, ns)).To(Succeed())
 
-	delegatingCache := clustersmngr.NewDelegatingCache(fakeReader, cache, scheme.Scheme)
+	delegatingCache := newDelegatingCache(fakeReader, cache, scheme.Scheme)
 
 	nsList := &corev1.NamespaceList{}
 

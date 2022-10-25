@@ -8,7 +8,9 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clusters/clustersfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -19,7 +21,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	v1 "k8s.io/api/core/v1"
-	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
+	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -48,20 +51,26 @@ func TestMain(m *testing.M) {
 func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreServerConfig) {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
-	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
+	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
 		return n, nil
 	}
-
-	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
+	cluster, err := clusters.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fetch, err := fetcher.NewSingleClusterFetcher(cluster)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clustersManager := clustersmngr.NewClustersManager(fetch, &nsChecker, log, scheme)
 
 	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
@@ -126,38 +135,34 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, us
 	})
 }
 
-func restConfigToCluster(cfg *rest.Config) clustersmngr.Cluster {
-	return clustersmngr.Cluster{
-		Name:        "Default",
-		Server:      cfg.Host,
-		BearerToken: cfg.BearerToken,
-		TLSConfig:   cfg.TLSClientConfig,
-	}
-}
-
 func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerConfig {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
-	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
+	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
 		return n, nil
 	}
+	clientset := fake.NewSimpleClientset()
 
-	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{{Name: "Default"}}, nil)
+	cluster := clustersfakes.FakeCluster{}
+	cluster.GetNameReturns("Default")
+	cluster.GetUserClientReturns(fakeClient, nil)
+	cluster.GetServerClientReturns(fakeClient, nil)
+	cluster.GetServerClientsetReturns(clientset, nil)
+
+	fetcher, err := fetcher.NewSingleClusterFetcher(&cluster)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientFn := func(cfgFunc clustersmngr.ClusterClientConfigFunc, cluster clustersmngr.Cluster, scheme *apiruntime.Scheme) (client.Client, error) {
-		return fakeClient, nil
-	}
-
 	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
 	// and the default options include the Flowcontrol setup which is not mocked out
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clientFn, nil)
+	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme)
 
 	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
 	coreCfg.NSAccess = &nsChecker
