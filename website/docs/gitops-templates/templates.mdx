@@ -51,27 +51,57 @@ Where
 
 ## Rendering Templates
 
-Declare the render type indicating the templating language to be used to render the template by using the `renderType` spec.
+Declare the render type indicating the templating language to be used to render the template by setting `spec.renderType`.
 
 Supported templating languages:
-- `envsubst` - uses [envsubst](https://github.com/a8m/envsubst) for rendering 
-- `templating` - uses text/templating for rendering supporting the following [functions](http://masterminds.github.io/sprig/):
-  - String Functions: *trim*, *wrap*, *randAlpha*, *plural*
-    - String List Functions: *splitList*, *sortAlpha*
-  - Integer Math Functions: *add*, *max*, *mul*
-    - Integer Slice Functions: *until*, untilStep
-  - Float Math Functions: *addf*, *maxf*, *mulf*
-  - Date Functions: *now*, *date*
-  - Defaults Functions: *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
-  - Encoding Functions: *b64enc*, *b64dec*
-  - Lists and List Functions: *list*, *first*, *uniq*
-  - Dictionaries and Dict Functions: *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
-  - Type Conversion Functions: *atoi*, *int64*, *toString*
-  - Flow Control Functions: *fail*
-  - Advanced Functions
-    - UUID Functions: *uuidv4*
-    - Version Comparison Functions: *semver*, semverCompare
-    - Reflection: *typeOf*, *kindIs*, *typeIsLike*
+  - **envsubst (default)**
+    envsubst which is short for environment substitution uses [envsubst](https://github.com/a8m/envsubst) for rendering, where `${CLUSTER_NAME}` style syntax can be used. It is the same templating format that is used by [clusterctl](https://cluster-api.sigs.k8s.io/clusterctl/overview.html).
+
+    #### Supported Functions
+
+    | __Expression__                | __Meaning__                                                     |
+    | -----------------             | --------------                                                  |
+    | `${var}`                      | Value of `$var`
+    | `${#var}`                     | String length of `$var`
+    | `${var^}`                     | Uppercase first character of `$var`
+    | `${var^^}`                    | Uppercase all characters in `$var`
+    | `${var,}`                     | Lowercase first character of `$var`
+    | `${var,,}`                    | Lowercase all characters in `$var`
+    | `${var:n}`                    | Offset `$var` `n` characters from start
+    | `${var:n:len}`                | Offset `$var` `n` characters with max length of `len`
+    | `${var#pattern}`              | Strip shortest `pattern` match from start
+    | `${var##pattern}`             | Strip longest `pattern` match from start
+    | `${var%pattern}`              | Strip shortest `pattern` match from end
+    | `${var%%pattern}`             | Strip longest `pattern` match from end
+    | `${var-default`               | If `$var` is not set, evaluate expression as `$default`
+    | `${var:-default`              | If `$var` is not set or is empty, evaluate expression as `$default`
+    | `${var=default`               | If `$var` is not set, evaluate expression as `$default`
+    | `${var:=default`              | If `$var` is not set or is empty, evaluate expression as `$default`
+    | `${var/pattern/replacement}`  | Replace as few `pattern` matches as possible with `replacement`
+    | `${var//pattern/replacement}` | Replace as many `pattern` matches as possible with `replacement`
+    | `${var/#pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` start
+    | `${var/%pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` end
+
+  - **templating**
+
+    templating uses text/templating for rendering, using go-templating style syntax `{{ .params.CLUSTER_NAME }}` where params are provided by the `.params` variable. 
+    Template functions can also be used where the following [functions](http://masterminds.github.io/sprig/) are supported:
+      - String Functions: *trim*, *wrap*, *randAlpha*, *plural*
+        - String List Functions: *splitList*, *sortAlpha*
+      - Integer Math Functions: *add*, *max*, *mul*
+        - Integer Slice Functions: *until*, untilStep
+      - Float Math Functions: *addf*, *maxf*, *mulf*
+      - Date Functions: *now*, *date*
+      - Defaults Functions: *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
+      - Encoding Functions: *b64enc*, *b64dec*
+      - Lists and List Functions: *list*, *first*, *uniq*
+      - Dictionaries and Dict Functions: *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
+      - Type Conversion Functions: *atoi*, *int64*, *toString*
+      - Flow Control Functions: *fail*
+      - Advanced Functions
+        - UUID Functions: *uuidv4*
+        - Version Comparison Functions: *semver*, semverCompare
+        - Reflection: *typeOf*, *kindIs*, *typeIsLike*
 
 
 ### Pull requests details
