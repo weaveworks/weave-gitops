@@ -4,20 +4,22 @@ import (
 	"context"
 	"log"
 	"net"
-	"net/http/httptest"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
+	"net/http/httptest"
 )
 
 func main() {
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
-		os.Interrupt,
-		syscall.SIGTERM, os.Kill)
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGKILL)
 	defer cancel()
 
 	logger := log.New(os.Stdout, "", 0)
@@ -26,8 +28,19 @@ func main() {
 		gofakes3.WithAutoBucket(true),
 		gofakes3.WithLogger(gofakes3.StdLog(logger, gofakes3.LogErr, gofakes3.LogWarn, gofakes3.LogInfo)))
 
+	port := "9000"
+	// check args
+	if len(os.Args) > 1 {
+		port = os.Args[1]
+		// part string to integer
+		_, err := strconv.Atoi(port)
+		if err != nil {
+			log.Fatalf("Invalid port number: %s", port)
+		}
+	}
+
 	// create a listener with the desired port.
-	listener, err := net.Listen("tcp", ":9000")
+	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatal(err)
 	}

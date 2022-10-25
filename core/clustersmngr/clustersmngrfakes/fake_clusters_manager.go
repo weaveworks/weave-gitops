@@ -12,6 +12,16 @@ import (
 )
 
 type FakeClustersManager struct {
+	GetClustersStub        func() []clustersmngr.Cluster
+	getClustersMutex       sync.RWMutex
+	getClustersArgsForCall []struct {
+	}
+	getClustersReturns struct {
+		result1 []clustersmngr.Cluster
+	}
+	getClustersReturnsOnCall map[int]struct {
+		result1 []clustersmngr.Cluster
+	}
 	GetClustersNamespacesStub        func() map[string][]v1.Namespace
 	getClustersNamespacesMutex       sync.RWMutex
 	getClustersNamespacesArgsForCall []struct {
@@ -140,6 +150,59 @@ type FakeClustersManager struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeClustersManager) GetClusters() []clustersmngr.Cluster {
+	fake.getClustersMutex.Lock()
+	ret, specificReturn := fake.getClustersReturnsOnCall[len(fake.getClustersArgsForCall)]
+	fake.getClustersArgsForCall = append(fake.getClustersArgsForCall, struct {
+	}{})
+	stub := fake.GetClustersStub
+	fakeReturns := fake.getClustersReturns
+	fake.recordInvocation("GetClusters", []interface{}{})
+	fake.getClustersMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClustersManager) GetClustersCallCount() int {
+	fake.getClustersMutex.RLock()
+	defer fake.getClustersMutex.RUnlock()
+	return len(fake.getClustersArgsForCall)
+}
+
+func (fake *FakeClustersManager) GetClustersCalls(stub func() []clustersmngr.Cluster) {
+	fake.getClustersMutex.Lock()
+	defer fake.getClustersMutex.Unlock()
+	fake.GetClustersStub = stub
+}
+
+func (fake *FakeClustersManager) GetClustersReturns(result1 []clustersmngr.Cluster) {
+	fake.getClustersMutex.Lock()
+	defer fake.getClustersMutex.Unlock()
+	fake.GetClustersStub = nil
+	fake.getClustersReturns = struct {
+		result1 []clustersmngr.Cluster
+	}{result1}
+}
+
+func (fake *FakeClustersManager) GetClustersReturnsOnCall(i int, result1 []clustersmngr.Cluster) {
+	fake.getClustersMutex.Lock()
+	defer fake.getClustersMutex.Unlock()
+	fake.GetClustersStub = nil
+	if fake.getClustersReturnsOnCall == nil {
+		fake.getClustersReturnsOnCall = make(map[int]struct {
+			result1 []clustersmngr.Cluster
+		})
+	}
+	fake.getClustersReturnsOnCall[i] = struct {
+		result1 []clustersmngr.Cluster
+	}{result1}
 }
 
 func (fake *FakeClustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
@@ -792,6 +855,8 @@ func (fake *FakeClustersManager) UpdateUserNamespacesArgsForCall(i int) (context
 func (fake *FakeClustersManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getClustersMutex.RLock()
+	defer fake.getClustersMutex.RUnlock()
 	fake.getClustersNamespacesMutex.RLock()
 	defer fake.getClustersNamespacesMutex.RUnlock()
 	fake.getImpersonatedClientMutex.RLock()
