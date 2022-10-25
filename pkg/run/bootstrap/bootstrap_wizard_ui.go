@@ -17,7 +17,6 @@ type preWizardModel struct {
 	table         table.Model
 	textInput     textinput.Model
 	msgChan       chan GitProvider
-	err           error
 }
 
 const flagSeparator = " - "
@@ -131,9 +130,6 @@ func (m preWizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.Width = msg.Width
 			m.viewport.Height = msg.Height
 		}
-	case errMsg:
-		m.err = msg
-		return m, nil
 	}
 
 	var (
@@ -265,7 +261,14 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					if value == "" {
 						m.errorMsg = "Missing value in " + input.Placeholder
-						return m, nil
+
+						m.viewport.SetContent(m.getContent())
+
+						var cmdViewport tea.Cmd
+
+						m.viewport, cmdViewport = m.viewport.Update(msg)
+
+						return m, cmdViewport
 					}
 
 					options[prompt[:strings.Index(prompt, flagSeparator)]] = value
