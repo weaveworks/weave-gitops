@@ -29,10 +29,10 @@ describe("Automations", () => {
   };
 
   const client = createCoreMockClient({
-    ListObjects: (req) => {
+    ListObjects: () => {
       return response;
     },
-    GetVersion: (req) => {
+    GetVersion: () => {
       return {
         semver: "",
         commit: "",
@@ -56,10 +56,10 @@ describe("Automations", () => {
     );
   });
   const client2 = createCoreMockClient({
-    ListObjects: (req) => {
+    ListObjects: () => {
       return { objects: undefined, errors: undefined };
     },
-    GetVersion: (req) => {
+    GetVersion: () => {
       return {
         semver: "",
         commit: "",
