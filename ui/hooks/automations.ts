@@ -35,25 +35,24 @@ export function useListAutomations(
         api
           .ListObjects({ namespace, kind })
           .then((response: ListObjectsResponse) => {
+            if (!response.objects) response.objects = [];
+            if (!response.errors) response.errors = [];
             return { kind, response };
           })
       );
-
       return Promise.all(p).then((responses) => {
         const final = { result: [], errors: [] };
         for (const { kind, response } of responses) {
           final.result.push(
-            ...response.objects?.map(
+            ...response.objects.map(
               (o) => convertResponse(kind, o) as Automation
             )
           );
-          if (response.errors?.length) {
-            final.errors.push(
-              ...response.errors.map((o) => {
-                return { ...o, kind };
-              })
-            );
-          }
+          final.errors.push(
+            ...response.errors.map((o) => {
+              return { ...o, kind };
+            })
+          );
         }
         return final;
       });

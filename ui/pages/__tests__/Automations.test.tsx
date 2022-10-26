@@ -28,23 +28,22 @@ describe("Automations", () => {
     errors: [],
   };
 
-  const client = createCoreMockClient({
-    ListObjects: () => {
-      return response;
-    },
-    GetVersion: () => {
-      return {
-        semver: "",
-        commit: "",
-        branch: "",
-        buildTime: "",
-        fluxVersion: "",
-        kubeVersion: "",
-      };
-    },
-  });
-
   it("should list automations", async () => {
+    const client = createCoreMockClient({
+      ListObjects: () => {
+        return response;
+      },
+      GetVersion: () => {
+        return {
+          semver: "",
+          commit: "",
+          branch: "",
+          buildTime: "",
+          fluxVersion: "",
+          kubeVersion: "",
+        };
+      },
+    });
     render(
       withTheme(withContext(<Automations />, "/automations", { api: client }))
     );
@@ -55,22 +54,22 @@ describe("Automations", () => {
       expect(screen.getAllByText("HelmRelease").length).toBeTruthy()
     );
   });
-  const client2 = createCoreMockClient({
-    ListObjects: () => {
-      return { objects: undefined, errors: undefined };
-    },
-    GetVersion: () => {
-      return {
-        semver: "",
-        commit: "",
-        branch: "",
-        buildTime: "",
-        fluxVersion: "",
-        kubeVersion: "",
-      };
-    },
-  });
   it("should handle undefined response", async () => {
+    const client2 = createCoreMockClient({
+      ListObjects: () => {
+        return { objects: undefined, errors: undefined };
+      },
+      GetVersion: () => {
+        return {
+          semver: "",
+          commit: "",
+          branch: "",
+          buildTime: "",
+          fluxVersion: "",
+          kubeVersion: "",
+        };
+      },
+    });
     render(
       withTheme(withContext(<Automations />, "/automations", { api: client2 }))
     );
