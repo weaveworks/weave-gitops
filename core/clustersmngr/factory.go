@@ -36,11 +36,11 @@ const (
 	kubeClientDialTimeout   = 5 * time.Second
 	kubeClientDialKeepAlive = 30 * time.Second
 	usersClientResolution   = 30 * time.Second
-	usersClientsTTL         = 30 * time.Minute
 )
 
 var (
 	kubeClientTimeout = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
+	usersClientsTTL   = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 30*time.Minute)
 )
 
 func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
