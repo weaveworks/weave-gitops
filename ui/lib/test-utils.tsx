@@ -26,6 +26,8 @@ import {
   GetReconciledObjectsResponse,
   GetVersionRequest,
   GetVersionResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
@@ -36,6 +38,7 @@ export type CoreOverrides = {
     req: GetReconciledObjectsRequest
   ) => GetReconciledObjectsResponse;
   GetVersion?: (req: GetVersionRequest) => GetVersionResponse;
+  ListObjects?: (req: ListObjectsRequest) => ListObjectsResponse;
 };
 
 export const createCoreMockClient = (
@@ -113,7 +116,9 @@ export function withContext(
 ) {
   const history = createMemoryHistory();
   history.push(url);
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
