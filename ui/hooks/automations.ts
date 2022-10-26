@@ -44,7 +44,7 @@ export function useListAutomations(
         const final = { result: [], errors: [] };
         for (const { kind, response } of responses) {
           final.result.push(
-            ...response.objects.map(
+            ...response.objects?.map(
               (o) => convertResponse(kind, o) as Automation
             )
           );
