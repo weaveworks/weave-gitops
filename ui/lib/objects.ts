@@ -153,7 +153,7 @@ export class HelmChart extends FluxObject {
   }
 
   get revision(): string {
-    return this.obj.status.artifact.revision;
+    return this.obj.status?.artifact?.revision || "";
   }
 }
 
@@ -277,32 +277,32 @@ export class HelmRelease extends FluxObject {
   }
 
   get lastAppliedRevision(): string {
-    return this.obj.status.lastAppliedRevision || "";
+    return this.obj.status?.lastAppliedRevision || "";
   }
 
   get lastAttemptedRevision(): string {
-    return this.obj.status.lastAttemptedRevision || "";
+    return this.obj.status?.lastAttemptedRevision || "";
   }
 }
 
 export class Provider extends FluxObject {
   get provider(): string {
-    return this.obj.spec.type || "";
+    return this.obj.spec?.type || "";
   }
   get channel(): string {
-    return this.obj.spec.channel || "";
+    return this.obj.spec?.channel || "";
   }
 }
 
 export class Alert extends FluxObject {
   get providerRef(): string {
-    return this.obj.spec.providerRef.name || "";
+    return this.obj.spec?.providerRef.name || "";
   }
   get severity(): string {
-    return this.obj.spec.eventSeverity || "";
+    return this.obj.spec?.eventSeverity || "";
   }
   get eventSources(): CrossNamespaceObjectRef[] {
-    return this.obj.spec.eventSources || [];
+    return this.obj.spec?.eventSources || [];
   }
 }
 
