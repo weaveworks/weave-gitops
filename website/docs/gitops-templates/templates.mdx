@@ -30,11 +30,10 @@ We have added some metadata markup, which helps us to render the template nicely
 
 The template consumer will be only provided with the required Parameters/Inputs and the guardrails, the template gets rendered and we create a PR. Merging the PR will create all the templated resources.
 
-**Why do I care about GitOps templates?**
+**How can I use GitOps templates?**
 
-Originally introduced enabling helping us in the cluster creation flow, enabling platform operators to create clusters that have guardrails and are repeatable we started to leverage templates as well for Terraform controller. 
-
-We learned that we can literally template anything. Imagine a template that provides a running Developer Environment, consisting in a EKS cluster, a RDS Database, and a branch + revision of the current application through a single template. 
+GitOps Templates were originally introduced enabling self-service in the cluster creation flow.  We quickly extended that to terraform, crossplane and Kubernetes resources like RBAC (Roles + Rolebindings).
+You can have for example a template that provides a running Developer Environment, consisting in a EKS cluster, a RDS Database, and a branch + revision of the current application through a single template. 
 
 ## Organizing Templates
 
