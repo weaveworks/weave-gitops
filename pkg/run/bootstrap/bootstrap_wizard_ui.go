@@ -366,7 +366,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmdsTextInputs := []tea.Cmd{}
 
-			for i, input := range m.inputs[:len(m.inputs)-1] {
+			for i, input := range m.inputs[:len(m.inputs)] {
 				if input.inputType == bootstrapWizardInputTypeCheckbox {
 					continue
 				}
@@ -386,9 +386,13 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmds = append(cmds, cmdsTextInputs...)
 		case tea.KeySpace:
+			if m.focusIndex == len(m.inputs) {
+				return m, nil
+			}
+
 			input := m.inputs[m.focusIndex]
 
-			if m.focusIndex == len(m.inputs) || input.inputType != bootstrapWizardInputTypeCheckbox {
+			if input.inputType != bootstrapWizardInputTypeCheckbox {
 				break
 			}
 
