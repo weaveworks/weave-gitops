@@ -38,7 +38,7 @@ describe("Automations", () => {
 
   it("should list automations", async () => {
     const client = createCoreMockClient({
-      ListObjects: ({ namespace, kind }) => {
+      ListObjects: ({ kind }) => {
         const fullResponse = { objects: [], errors: [] };
         if (kind === Kind.Kustomization) fullResponse.objects = [responses[0]];
         else fullResponse.objects = [responses[1]];
