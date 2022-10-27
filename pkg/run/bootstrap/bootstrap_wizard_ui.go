@@ -306,8 +306,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmdsTextInputs := make([]tea.Cmd, len(m.inputs))
 
-			for i := range m.inputs {
-				input := m.inputs[i]
+			for i, input := range m.inputs {
 				if input.inputType == bootstrapWizardInputTypeTextInput {
 					cmdsTextInputs[i] = input.textInput.SetCursorMode(m.cursorMode)
 				}
@@ -365,9 +364,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmdsTextInputs := []tea.Cmd{}
 
-			for i := 0; i <= len(m.inputs)-1; i++ {
-				input := m.inputs[i]
-
+			for i, input := range m.inputs[:len(m.inputs)-1] {
 				if input.inputType == bootstrapWizardInputTypeCheckbox {
 					continue
 				}
@@ -428,9 +425,7 @@ func (m *wizardModel) updateInputs(msg tea.Msg) tea.Cmd {
 
 	// Only text inputs with Focus() set will respond, so it's safe to simply
 	// update all of them here without any further logic.
-	for i := range m.inputs {
-		input := m.inputs[i]
-
+	for i, input := range m.inputs {
 		if input.inputType == bootstrapWizardInputTypeCheckbox {
 			continue
 		}
@@ -450,9 +445,7 @@ func (m wizardModel) getContent() string {
 		"Enter to move to the next input or submit the form, " + "\n" +
 		"up and down arrows to scroll the view, Ctrl+C twice to quit):" + "\n\n\n")
 
-	for i := range m.inputs {
-		input := m.inputs[i]
-
+	for i, input := range m.inputs {
 		b.WriteString(input.prompt)
 		b.WriteRune('\n')
 		b.WriteString(input.getView(i == m.focusIndex))
