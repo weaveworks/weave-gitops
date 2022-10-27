@@ -300,9 +300,7 @@ const (
 	branchPrefix   = "refs/heads/"
 )
 
-type (
-	GitProvider int32
-)
+type GitProvider int32
 
 const (
 	GitProviderUnknown         GitProvider = 0
