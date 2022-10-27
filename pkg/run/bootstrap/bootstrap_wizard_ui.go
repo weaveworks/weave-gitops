@@ -43,6 +43,7 @@ const (
 
 type bootstrapWizardInput struct {
 	inputType     bootstrapWizardInputType
+	flagName      string
 	prompt        string
 	textInput     textinput.Model
 	checkboxInput *checkbox
@@ -203,6 +204,8 @@ func makeInput(task *BootstrapWizardTask, isFocused bool) *bootstrapWizardInput 
 		inputType = bootstrapWizardInputTypeTextInput
 	}
 
+	flagName := task.flagName
+
 	prompt := task.flagName + flagSeparator + task.flagDescription
 
 	ti := textinput.Model{}
@@ -234,6 +237,7 @@ func makeInput(task *BootstrapWizardTask, isFocused bool) *bootstrapWizardInput 
 
 	return &bootstrapWizardInput{
 		inputType:     inputType,
+		flagName:      flagName,
 		prompt:        prompt,
 		textInput:     ti,
 		checkboxInput: cb,
@@ -265,7 +269,7 @@ func (input *bootstrapWizardInput) getView(isFocused bool) string {
 		close = focusedStyle.Render(close)
 	}
 
-	return fmt.Sprintf("%s%s%s", open, checkmark, close)
+	return fmt.Sprintf("%s%s%s %s", open, checkmark, close, input.flagName)
 }
 
 func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdOptions) wizardModel {
@@ -320,8 +324,6 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				options := make(BootstrapCmdOptions)
 
 				for _, input := range m.inputs {
-					prompt := input.prompt
-
 					var value string
 
 					if input.inputType == bootstrapWizardInputTypeTextInput {
@@ -342,7 +344,7 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						value = strconv.FormatBool(input.checkboxInput.checked)
 					}
 
-					options[prompt[:strings.Index(prompt, flagSeparator)]] = value
+					options[input.flagName] = value
 				}
 
 				go func() { m.msgChan <- options }()
