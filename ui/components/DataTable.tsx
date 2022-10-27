@@ -452,7 +452,7 @@ function UnstyledDataTable({
 
   const r = _.map(sorted, (r, i) => {
     return (
-      <TableRow key={i}>
+      <TableRow key={r.uid || i}>
         {checkboxes && (
           <TableCell style={{ padding: "0px" }}>
             <Checkbox
