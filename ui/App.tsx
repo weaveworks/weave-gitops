@@ -31,6 +31,7 @@ import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
+import RunSessions from "./pages/v2/RunSessions";
 import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
@@ -88,6 +89,10 @@ const App = () => (
         <Route
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
+        />
+        <Route
+          path={V2Routes.Session}
+          component={withSearchParams(RunSessions)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />
