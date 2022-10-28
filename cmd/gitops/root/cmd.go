@@ -2,6 +2,7 @@ package root
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
 	"log"
 	"os"
 	"strings"
@@ -106,6 +107,7 @@ func RootCmd() *cobra.Command {
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
 	rootCmd.AddCommand(create.GetCommand(options))
+	rootCmd.AddCommand(remove.GetCommand(options))
 
 	return rootCmd
 }
