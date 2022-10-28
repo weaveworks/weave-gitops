@@ -101,8 +101,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
         } else {
           const hr = a as HelmRelease;
           sourceKind = Kind.HelmChart;
-          sourceName = hr.helmChart.name;
-          sourceNamespace = hr.helmChart.namespace;
+          sourceName = hr.helmChart?.name;
+          sourceNamespace = hr.helmChart?.namespace;
         }
 
         return (
