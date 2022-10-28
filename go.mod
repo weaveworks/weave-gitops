@@ -242,5 +242,7 @@ require (
 // Fix for CVE-2022-1996
 replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
 
+replace github.com/fluxcd/go-git-providers => /Users/enekofb/projects/github.com/enekofb/go-git-providers
+
 // Use patched version that fixed recursive gets, and force delete for buckets
 replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b

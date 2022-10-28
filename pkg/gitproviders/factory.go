@@ -14,6 +14,7 @@ type GitProviderName string
 const (
 	GitProviderGitHub GitProviderName = "github"
 	GitProviderGitLab GitProviderName = "gitlab"
+	GitProviderAzure  GitProviderName = "azure"
 	tokenTypeOauth    string          = "oauth2"
 )
 

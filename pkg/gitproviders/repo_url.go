@@ -2,6 +2,7 @@ package gitproviders
 
 import (
 	"fmt"
+	"github.com/fluxcd/go-git-providers/azure"
 	"net/url"
 	"strings"
 
@@ -117,6 +118,7 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 	// defaults for github and gitlab
 	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
 	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
+	gitHostTypes[azure.DefaultDomain] = string(GitProviderAzure)
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
