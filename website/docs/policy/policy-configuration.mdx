@@ -8,13 +8,12 @@ sidebar_position: 4
 
 ## Goal
 
-Using the same policy with more than one configurations (Parameters, Targets, .etc)
-So new CRD is introduced That will target specific resources/apps in the same or different namespaces, contains the custom configuration for policies.
+Users sometimes need to enforce the same policy(s) with different configurations (parameters) for different targets (applications, resources, or namespaces).
 
 ## Schema
 
-Policy Config CRD Schema as the following
-
+A new `PolicyConfig` CRD allows using policies with multiple configurations by configuring policy parameters based on a certain match on applications or resources with Schema as the following
+ 
 ```yaml
 apiVersion: pac.weave.works/v2beta2 
 kind: PolicyConfig    # policy config resource kind 
@@ -43,8 +42,14 @@ config:        # config for policies [one or more]
 ## Priority of enforcing multiple configs for the same target [from low to high]
 
 - Policy configs which targets the namespace.
-- Policy config which targets the applications.
-- Policy config which targets the kubernetes resource.
+- Policy config which targets an application in all namespaces.
+- Policy config which targets an application in a certain namespace.
+- Policy config which targets a kubernetes resource in all namespaces.
+- Policy config which targets a kubernetes resource in a specific namespace.
+
+**Note**: 
+- All configs are applied from low priority to high priority as well as common parameters between configs.
+- Each config only affectes the parameters defined in it.
 
 ### Example
 
@@ -56,14 +61,13 @@ metadata:
 spec:
   match:
     namespaces:
-    - default
+    - flux-system
   config:
     weave.policies.containers-minimum-replica-count:
       parameters:
         replica_count: 2
-        owner: test
+        owner: owner-1
 ---
-
 apiVersion: pac.weave.works/v2beta2
 kind: PolicyConfig
 metadata:
@@ -77,9 +81,7 @@ spec:
     weave.policies.containers-minimum-replica-count:
       parameters:
         replica_count: 3
-
 ---
-
 apiVersion: pac.weave.works/v2beta2
 kind: PolicyConfig
 metadata:
@@ -94,24 +96,7 @@ spec:
     weave.policies.containers-minimum-replica-count:
       parameters:
         replica_count: 4
-        owner: test2
-```
-
-- In the previous example when you apply the 3 configurations
-app-a will be affected by only `my-config-3` as it matches the kind, name and namespace all together.
-
-- If `my-config-3` is not existed, so will be affected my `my-config-2` as it's matched by kind and name
-
-- If `my-config-2` is not existed `my-config-1` will take over then
-
-## Priority of enforcing multiple configs for the same application/resource with/without namespace [from low to high]
-
-- Policy configs without the namespace
-- Policy configs with the namespace
-
-### Example
-
-```yaml
+---
 apiVersion: pac.weave.works/v2beta2
 kind: PolicyConfig
 metadata:
@@ -125,7 +110,7 @@ spec:
     weave.policies.containers-minimum-replica-count:
       parameters:
         replica_count: 5
-
+        owner: owner-4
 ---
 
 apiVersion: pac.weave.works/v2beta2
@@ -137,17 +122,40 @@ spec:
     resources:
     - kind: Deployment
       name: deployment-1
-      namespace: default
+      namespace: flux-system
   config:
     weave.policies.containers-minimum-replica-count:
       parameters:
         replica_count: 6
 ```
 
-- In the previous example when you apply the 2 configurations
-app-a will be affected by only `my-config-5` as it matches the name and namespace all together. 
+**In the previous example when you apply the 5 configurations**
 
-- If not existed `my-config-4` will take over
+- `app-a` will be affected by `my-config-5`. It will be applied on the policies defined in it, which will affect deployment `deployment-1` in namespace `flux-system` as it matches the kind, name and namespace.
+
+  - <em>Deployment `deployment-1` in namespace `flux-system` replica_count must be `>= 6`</em>
+  - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
+
+- If `my-config-5` did not exist, `my-config-4` will be applied on the policies defined in it. which will affect deployment `deployment-1` in all namespaces as it matches the kind and name only.
+
+  - <em>Deployment `deployment-1` in all namespaces replica_count must be `>= 5`</em>
+  - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
+
+- If `my-config-5` and `my-config-4` did not exist `my-config-3` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in namespace `flux-system` as it matches the kind, name and namespace.
+
+  - <em>Application `app-a` and all the resources in it in namespaces `flux-system` replica_count must be `>= 4`</em>
+  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+
+- If `my-config-5`, `my-config-4`, `my-config-3` did not exist `my-config-2` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in all namespaces as it matches the kind and name only.
+
+  - <em>Application `app-a` and all the resources in it in all namespaces replica_count must be `>= 3`</em>
+  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+
+- If `my-config-5`, `my-config-4`, `my-config-3`, `my-config-2` did not exist. `my-config-1` will be applied on the policies defined in it. which will affect the namespace `flux-system` with all applications and resources in it as it matches by namespace only.
+
+  - <em>Any application or resource in namespace `flux-system` replica_count must be `>= 2`</em>
+  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+
 
 ## Possible senarios for using PolicyConfig
 
@@ -200,7 +208,7 @@ Refer to design document [here](https://www.notion.so/weaveworks/Policy-Configur
 
 ## Debugging
 
-- To know which config is applied refer to the kubernetes event, It should have the config name and the applied policiy parameters. Example
+- To know which config is applied refer the validation event that's stored as a kubernetes event, It should have the config name and the applied policiy parameters. Example
 
     ```
     kubectl get events -A -O yaml | grep parameters
