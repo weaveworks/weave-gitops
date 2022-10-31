@@ -1,5 +1,4 @@
 import * as React from "react";
-import { formatURL } from "../lib/nav";
 
 export type LinkResolver = (str: string, params?: any) => string;
 
@@ -8,11 +7,7 @@ interface Props {
   children: any;
 }
 
-function defaultResolver(str: string, params?: any) {
-  return formatURL(str, params);
-}
-
-const LinkResolverContext = React.createContext<LinkResolver>(defaultResolver);
+const LinkResolverContext = React.createContext<LinkResolver>(null);
 
 export function LinkResolverProvider({ resolver, children }: Props) {
   return (
