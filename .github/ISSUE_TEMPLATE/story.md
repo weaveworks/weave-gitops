@@ -1,6 +1,6 @@
 ---
-name: Story
-about: Agile story
+name: Story ✍
+about: Agile story (normally created by project members)
 title: ''
 labels: 'type/story'
 assignees: ''
