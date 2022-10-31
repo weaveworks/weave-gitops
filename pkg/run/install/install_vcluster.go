@@ -3,12 +3,17 @@ package install
 import (
 	"context"
 	"fmt"
-	v1 "k8s.io/api/core/v1"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/run/session"
 	appsv1 "k8s.io/api/apps/v1"
+	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -30,11 +35,18 @@ func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, err
 	return helmRepository, nil
 }
 
-func makeVClusterHelmRelease(name string, namespace string) (*helmv2.HelmRelease, error) {
+func makeVClusterHelmRelease(name string, namespace string, portForwards []string) (*helmv2.HelmRelease, error) {
+	args := append([]string{filepath.Base(os.Args[0])}, os.Args[1:]...)
+	command := strings.Join(args, " ")
+
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Labels: map[string]string{
+				"app":                       "vcluster",
+				"app.kubernetes.io/part-of": "gitops-run",
+			},
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
@@ -55,13 +67,24 @@ func makeVClusterHelmRelease(name string, namespace string) (*helmv2.HelmRelease
 			Upgrade: &helmv2.Upgrade{
 				CRDs: helmv2.CreateReplace,
 			},
+			Values: &apiextensions.JSON{Raw: []byte(fmt.Sprintf(`
+{
+  "labels": {
+    "app.kubernetes.io/part-of": "gitops-run"
+  },
+  "annotations": {
+    "run.weave.works/cli-version": "%s",
+    "run.weave.works/port-forward": "%s",
+	"run.weave.works/command": "%s"
+  }
+}`, version.Version, strings.Join(portForwards, ","), command))},
 		},
 	}
 
 	return helmRelease, nil
 }
 
-func installVCluster(kubeClient client.Client, name string, namespace string) error {
+func installVCluster(kubeClient client.Client, name string, namespace string, portForwards []string) error {
 	helmRepo, err := makeVClusterHelmRepository(namespace)
 	if err != nil {
 		return err
@@ -75,7 +98,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string) er
 		}
 	}
 
-	helmRelease, err := makeVClusterHelmRelease(name, namespace)
+	helmRelease, err := makeVClusterHelmRelease(name, namespace, portForwards)
 	if err != nil {
 		return err
 	}
@@ -117,54 +140,17 @@ func installVCluster(kubeClient client.Client, name string, namespace string) er
 }
 
 func uninstallVcluster(kubeClient client.Client, name string, namespace string) error {
-	helmRelease, err := makeVClusterHelmRelease(name, namespace)
+	// clean up the session resources using functions from the session package
+	internalSession, err := session.Get(kubeClient, name, namespace)
 	if err != nil {
 		return err
 	}
 
-	if err := kubeClient.Delete(context.Background(), helmRelease); err != nil {
+	if err := session.Remove(kubeClient, internalSession); err != nil {
 		return err
 	}
 
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
-		instance := appsv1.StatefulSet{}
-		if err := kubeClient.Get(
-			context.Background(),
-			types.NamespacedName{
-				Name:      name,
-				Namespace: namespace,
-			}, &instance); err != nil && apierrors.IsNotFound(err) {
-			return true, nil
-		} else if err != nil {
-			return false, err
-		}
-
-		return false, nil
-	}); err != nil {
-		return err
-	}
-
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
-		pvc := v1.PersistentVolumeClaim{}
-		if err := kubeClient.Get(
-			context.Background(),
-			types.NamespacedName{
-				Name:      fmt.Sprintf("data-%s-0", name),
-				Namespace: namespace,
-			}, &pvc); err != nil && apierrors.IsNotFound(err) {
-			return true, nil
-		} else if err != nil {
-			return false, err
-		}
-
-		if err := kubeClient.Delete(context.Background(), &pvc); err != nil {
-			return false, err
-		}
-		return false, nil
-	}); err != nil {
-		return err
-	}
-
+	// clean up repo
 	helmRepo, err := makeVClusterHelmRepository(namespace)
 	if err != nil {
 		return err

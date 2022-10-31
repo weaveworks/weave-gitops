@@ -14,4 +14,5 @@ var (
 	ErrGetKubeClient          = errors.New("error getting Kube HTTP client")
 	ErrNoName                 = errors.New("name is required")
 	ErrMultipleNames          = errors.New("only one name is allowed")
+	ErrSessionNameIsRequired  = errors.New("session name is required when --all-sessions is not set")
 )

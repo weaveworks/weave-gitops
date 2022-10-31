@@ -95,10 +95,11 @@ export function useListObjects<T extends FluxObject>(
     ["objects", clusterName, kind, namespace],
     () => {
       return api.ListObjects({ namespace, kind, clusterName }).then((res) => {
-        const objects = res.objects?.map(
-          (obj) => convertResponse(kind, obj) as T
-        );
-        return { objects: objects, errors: res.errors };
+        let objects: FluxObject[];
+        if (res.objects)
+          objects = res.objects.map((obj) => convertResponse(kind, obj) as T);
+        else objects = [];
+        return { objects: objects, errors: res.errors || [] };
       });
     },
     opts

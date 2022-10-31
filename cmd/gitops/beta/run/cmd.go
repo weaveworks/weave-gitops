@@ -423,7 +423,19 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
-	session, err := install.NewSession(sessionLog, kubeClient, flags.SessionName, flags.SessionNamespace, dashboardHashedPassword)
+	spec, err := watch.ParsePortForwardSpec(flags.PortForward)
+	if err != nil {
+		return err
+	}
+
+	session, err := install.NewSession(
+		sessionLog,
+		kubeClient,
+		flags.SessionName,
+		flags.SessionNamespace,
+		[]string{spec.HostPort, flags.DashboardPort},
+		dashboardHashedPassword,
+	)
 
 	if err != nil {
 		return err

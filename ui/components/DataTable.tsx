@@ -259,10 +259,9 @@ export const sortByField = (
   sortFields: Field[],
   useSecondarySort?: boolean
 ) => {
-  const orderFields = [
-    sortFields[0],
-    ...(useSecondarySort && sortFields.length > 1 && [sortFields[1]]),
-  ];
+  const orderFields = [sortFields[0]];
+  if (useSecondarySort && sortFields.length > 1)
+    orderFields.push(sortFields[1]);
 
   return _.orderBy(
     rows,

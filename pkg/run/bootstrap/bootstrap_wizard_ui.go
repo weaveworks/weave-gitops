@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -19,7 +20,39 @@ type preWizardModel struct {
 	msgChan       chan GitProvider
 }
 
-const flagSeparator = " - "
+type wizardModel struct {
+	windowIsReady bool
+	viewport      viewport.Model
+	inputs        []*bootstrapWizardInput
+	msgChan       chan BootstrapCmdOptions
+	cursorMode    textinput.CursorMode
+	focusIndex    int
+	errorMsg      string
+}
+
+type checkbox struct {
+	checked bool
+}
+
+type bootstrapWizardInputType int32
+
+const (
+	bootstrapWizardInputTypeTextInput bootstrapWizardInputType = 0
+	bootstrapWizardInputTypeCheckbox  bootstrapWizardInputType = 1
+)
+
+type bootstrapWizardInput struct {
+	inputType     bootstrapWizardInputType
+	flagName      string
+	prompt        string
+	textInput     textinput.Model
+	checkboxInput *checkbox
+}
+
+const (
+	flagSeparator = " - "
+	buttonText    = "Submit"
+)
 
 // UI styling
 var (
@@ -37,8 +70,8 @@ var (
 	helpStyle           = blurredStyle.Copy()
 	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	focusedButton = focusedStyle.Render(fmt.Sprintf("[ %s ]", buttonText))
+	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render(buttonText))
 )
 
 func makeViewport(width int, height int, content string) viewport.Model {
@@ -162,62 +195,96 @@ func (m preWizardModel) getContent() string {
 	) + m.textInput.View()
 }
 
-type wizardModel struct {
-	windowIsReady bool
-	viewport      viewport.Model
-	textInputs    []textinput.Model
-	prompts       []string
-	msgChan       chan BootstrapCmdOptions
-	cursorMode    textinput.CursorMode
-	focusIndex    int
-	errorMsg      string
+func makeInput(task *BootstrapWizardTask, isFocused bool) *bootstrapWizardInput {
+	var inputType bootstrapWizardInputType
+
+	if task.isBoolean {
+		inputType = bootstrapWizardInputTypeCheckbox
+	} else {
+		inputType = bootstrapWizardInputTypeTextInput
+	}
+
+	flagName := task.flagName
+
+	prompt := task.flagName + flagSeparator + task.flagDescription
+
+	ti := textinput.Model{}
+
+	var cb *checkbox
+
+	if inputType == bootstrapWizardInputTypeCheckbox {
+		cb = &checkbox{
+			checked: task.flagValue == "true",
+		}
+	} else {
+		ti = textinput.New()
+		ti.CursorStyle = cursorStyle
+		ti.CharLimit = 100
+
+		ti.SetValue(task.flagValue)
+		ti.Placeholder = task.flagDescription
+
+		if task.isPassword {
+			ti.EchoMode = textinput.EchoPassword
+		}
+
+		if isFocused {
+			ti.Focus()
+			ti.PromptStyle = focusedStyle
+			ti.TextStyle = focusedStyle
+		}
+	}
+
+	return &bootstrapWizardInput{
+		inputType:     inputType,
+		flagName:      flagName,
+		prompt:        prompt,
+		textInput:     ti,
+		checkboxInput: cb,
+	}
 }
 
-func makeTextInput(task *BootstrapWizardTask, isFocused bool) textinput.Model {
-	ti := textinput.New()
-	ti.CursorStyle = cursorStyle
-	ti.CharLimit = 100
-
-	ti.SetValue(task.flagValue)
-	ti.Placeholder = task.flagDescription
-
-	if task.isPassword {
-		ti.EchoMode = textinput.EchoPassword
+func (input *bootstrapWizardInput) getView(isFocused bool) string {
+	if input.inputType == bootstrapWizardInputTypeTextInput {
+		return input.textInput.View()
 	}
+
+	var checkmark string
+
+	if input.checkboxInput.checked {
+		checkmark = "x"
+
+		if isFocused {
+			checkmark = focusedStyle.Render(checkmark)
+		}
+	} else {
+		checkmark = blurredStyle.Render("_")
+	}
+
+	open := "["
+	close := "]"
 
 	if isFocused {
-		ti.Focus()
-		ti.PromptStyle = focusedStyle
-		ti.TextStyle = focusedStyle
+		open = focusedStyle.Render(open)
+		close = focusedStyle.Render(close)
 	}
 
-	return ti
+	return fmt.Sprintf("%s%s%s %s", open, checkmark, close, input.flagName)
 }
 
 func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdOptions) wizardModel {
 	numInputs := len(tasks)
 
-	inputs := make([]textinput.Model, numInputs)
+	inputs := make([]*bootstrapWizardInput, numInputs)
 
 	for i := range inputs {
-		task := tasks[i]
-
-		ti := makeTextInput(task, i == 0)
-
-		inputs[i] = ti
-	}
-
-	prompts := []string{}
-
-	for _, task := range tasks {
-		prompts = append(prompts, task.flagName+flagSeparator+task.flagDescription)
+		inputs[i] = makeInput(tasks[i], i == 0)
 	}
 
 	return wizardModel{
-		textInputs: inputs,
-		errorMsg:   "",
-		prompts:    prompts,
-		msgChan:    msgChan,
+		inputs:   inputs,
+		errorMsg: "",
+		msgChan:  msgChan,
 	}
 }
 
@@ -241,37 +308,43 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursorMode = textinput.CursorBlink
 			}
 
-			cmdsTextInputs := make([]tea.Cmd, len(m.textInputs))
+			cmdsTextInputs := make([]tea.Cmd, len(m.inputs))
 
-			for i := range m.textInputs {
-				cmdsTextInputs[i] = m.textInputs[i].SetCursorMode(m.cursorMode)
+			for i, input := range m.inputs {
+				if input.inputType == bootstrapWizardInputTypeTextInput {
+					cmdsTextInputs[i] = input.textInput.SetCursorMode(m.cursorMode)
+				}
 			}
 
 			cmds = append(cmds, cmdsTextInputs...)
 		case tea.KeyTab, tea.KeyShiftTab, tea.KeyEnter:
 			t := msg.Type
 
-			if t == tea.KeyEnter && m.focusIndex == len(m.textInputs) {
+			if t == tea.KeyEnter && m.focusIndex == len(m.inputs) {
 				options := make(BootstrapCmdOptions)
 
-				for i, input := range m.textInputs {
-					prompt := m.prompts[i]
+				for _, input := range m.inputs {
+					var value string
 
-					value := strings.TrimSpace(input.Value())
+					if input.inputType == bootstrapWizardInputTypeTextInput {
+						value = strings.TrimSpace(input.textInput.Value())
 
-					if value == "" {
-						m.errorMsg = "Missing value in " + input.Placeholder
+						if value == "" {
+							m.errorMsg = "Missing value in " + input.textInput.Placeholder
 
-						m.viewport.SetContent(m.getContent())
+							m.viewport.SetContent(m.getContent())
 
-						var cmdViewport tea.Cmd
+							var cmdViewport tea.Cmd
 
-						m.viewport, cmdViewport = m.viewport.Update(msg)
+							m.viewport, cmdViewport = m.viewport.Update(msg)
 
-						return m, cmdViewport
+							return m, cmdViewport
+						}
+					} else {
+						value = strconv.FormatBool(input.checkboxInput.checked)
 					}
 
-					options[prompt[:strings.Index(prompt, flagSeparator)]] = value
+					options[input.flagName] = value
 				}
 
 				go func() { m.msgChan <- options }()
@@ -285,29 +358,45 @@ func (m wizardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.textInputs) {
+			if m.focusIndex > len(m.inputs) {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.textInputs)
+				m.focusIndex = len(m.inputs)
 			}
 
-			cmdsTextInputs := make([]tea.Cmd, len(m.textInputs))
+			cmdsTextInputs := []tea.Cmd{}
 
-			for i := 0; i <= len(m.textInputs)-1; i++ {
+			for i, input := range m.inputs[:len(m.inputs)] {
+				if input.inputType == bootstrapWizardInputTypeCheckbox {
+					continue
+				}
+
 				if i == m.focusIndex {
-					cmdsTextInputs[i] = m.textInputs[i].Focus()
-					m.textInputs[i].PromptStyle = focusedStyle
-					m.textInputs[i].TextStyle = focusedStyle
+					cmdsTextInputs = append(cmdsTextInputs, input.textInput.Focus())
+					input.textInput.PromptStyle = focusedStyle
+					input.textInput.TextStyle = focusedStyle
 
 					continue
 				}
 
-				m.textInputs[i].Blur()
-				m.textInputs[i].PromptStyle = noStyle
-				m.textInputs[i].TextStyle = noStyle
+				input.textInput.Blur()
+				input.textInput.PromptStyle = noStyle
+				input.textInput.TextStyle = noStyle
 			}
 
 			cmds = append(cmds, cmdsTextInputs...)
+		case tea.KeySpace:
+			if m.focusIndex == len(m.inputs) {
+				return m, nil
+			}
+
+			input := m.inputs[m.focusIndex]
+
+			if input.inputType != bootstrapWizardInputTypeCheckbox {
+				break
+			}
+
+			input.checkboxInput.checked = !input.checkboxInput.checked
 		}
 	case tea.WindowSizeMsg:
 		if !m.windowIsReady {
@@ -338,12 +427,16 @@ func (m wizardModel) View() string {
 }
 
 func (m *wizardModel) updateInputs(msg tea.Msg) tea.Cmd {
-	cmds := make([]tea.Cmd, len(m.textInputs))
+	cmds := make([]tea.Cmd, len(m.inputs))
 
 	// Only text inputs with Focus() set will respond, so it's safe to simply
 	// update all of them here without any further logic.
-	for i := range m.textInputs {
-		m.textInputs[i], cmds[i] = m.textInputs[i].Update(msg)
+	for i, input := range m.inputs {
+		if input.inputType == bootstrapWizardInputTypeCheckbox {
+			continue
+		}
+
+		input.textInput, cmds[i] = input.textInput.Update(msg)
 	}
 
 	return tea.Batch(cmds...)
@@ -354,21 +447,22 @@ func (m wizardModel) getContent() string {
 
 	b.WriteString("Please enter the following values" + "\n" +
 		"(Tab and Shift+Tab to move input selection," + "\n" +
+		"(Space to toggle the currently focused checkbox," + "\n" +
 		"Enter to move to the next input or submit the form, " + "\n" +
 		"up and down arrows to scroll the view, Ctrl+C twice to quit):" + "\n\n\n")
 
-	for i := range m.textInputs {
-		b.WriteString(m.prompts[i])
+	for i, input := range m.inputs {
+		b.WriteString(input.prompt)
 		b.WriteRune('\n')
-		b.WriteString(m.textInputs[i].View())
+		b.WriteString(input.getView(i == m.focusIndex))
 
-		if i < len(m.textInputs)-1 {
+		if i < len(m.inputs)-1 {
 			b.WriteRune('\n')
 		}
 	}
 
 	button := &blurredButton
-	if m.focusIndex == len(m.textInputs) {
+	if m.focusIndex == len(m.inputs) {
 		button = &focusedButton
 	}
 

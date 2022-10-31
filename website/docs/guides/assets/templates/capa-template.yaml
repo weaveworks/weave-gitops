@@ -3,6 +3,8 @@ kind: CAPITemplate
 metadata:
   name: aws-eks-dev
   namespace: default
+  labels:
+    weave.works/template-type: cluster
 spec:
   description: AWS EKS Development Cluster 
   params:
