@@ -1,4 +1,4 @@
-package docs
+package root
 
 import (
 	"github.com/spf13/cobra"
@@ -10,7 +10,7 @@ var (
 	docFunc func() error
 )
 
-var Cmd = &cobra.Command{
+var docsCmd = &cobra.Command{
 	Use:     "docs",
 	Short:   "Generate hard copy of CLI documentation",
 	Example: "gitops docs",
@@ -23,11 +23,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	Cmd.Flags().StringVarP(&docDir, "directory", "d", ".", "directory in which to place generated documents")
+	docsCmd.Flags().StringVarP(&docDir, "directory", "d", ".", "directory in which to place generated documents")
 
 	docFunc = genDocs
 }
 
 func genDocs() error {
-	return doc.GenMarkdownTree(Cmd.Root(), docDir)
+	return doc.GenMarkdownTree(docsCmd.Root(), docDir)
 }

@@ -1,14 +1,14 @@
-package config
+package root
 
 import (
 	"fmt"
+
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
-
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	gitopsConfig "github.com/weaveworks/weave-gitops/pkg/config"
@@ -21,7 +21,7 @@ const (
 
 var analyticsValue bool
 
-func ConfigCommand(opts *config.Options) *cobra.Command {
+func setConfigCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Set the CLI configuration for Weave GitOps",

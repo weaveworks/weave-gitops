@@ -1,35 +1,29 @@
-package version
+package root
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"os"
 
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-
-	"github.com/spf13/cobra"
 )
 
-// Version is the current wego version
-var Version = "v0.0.0"
-var GitCommit = ""
-var Branch = ""
-var BuildTime = ""
-
-var Cmd = &cobra.Command{
+var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display gitops version",
-	Run:   runCmd,
+	Run:   versionRun,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		CheckVersion(CheckpointParams())
 	},
 }
 
-func runCmd(cmd *cobra.Command, args []string) {
-	fmt.Println("Current Version:", Version)
-	fmt.Println("GitCommit:", GitCommit)
-	fmt.Println("BuildTime:", BuildTime)
-	fmt.Println("Branch:", Branch)
+func versionRun(cmd *cobra.Command, args []string) {
+	fmt.Println("Current Version:", version.Version)
+	fmt.Println("GitCommit:", version.GitCommit)
+	fmt.Println("BuildTime:", version.BuildTime)
+	fmt.Println("Branch:", version.Branch)
 }
 
 // CheckVersion looks to see if there is a newer version of the software available
@@ -47,7 +41,7 @@ func CheckVersion(p *checkpoint.CheckParams) {
 func CheckpointParams() *checkpoint.CheckParams {
 	return &checkpoint.CheckParams{
 		Product: "weave-gitops",
-		Version: Version,
+		Version: version.Version,
 	}
 }
 

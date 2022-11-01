@@ -1,4 +1,4 @@
-package bcrypt
+package root
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"golang.org/x/term"
 )
 
-func HashCommand(opts *config.Options) *cobra.Command {
+func getBcryptHashCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bcrypt-hash",
 		Short: "Generates a hashed secret",
@@ -21,13 +21,13 @@ echo -n $PASSWORD | gitops get bcrypt-hash
 `,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE:          hashCommandRunE(),
+		RunE:          bcryptHashCommandRunE(),
 	}
 
 	return cmd
 }
 
-func hashCommandRunE() func(*cobra.Command, []string) error {
+func bcryptHashCommandRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		file := os.Stdin
 		stats, err := file.Stat()

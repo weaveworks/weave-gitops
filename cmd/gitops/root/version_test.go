@@ -1,4 +1,4 @@
-package version
+package root
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestPostRunDefined(t *testing.T) {
-	assert.NotNil(t, Cmd.PostRun, "PostRun should be defined")
+	assert.NotNil(t, versionCmd.PostRun, "PostRun should be defined")
 }
 
 func TestCheckpointMissingParent(t *testing.T) {

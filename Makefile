@@ -14,7 +14,7 @@ DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:8fbb75
 # Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
 GOARCH=$(shell which go > /dev/null && go env GOARCH)
-LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+LDFLAGS?=		 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \

@@ -1,4 +1,4 @@
-package config
+package root
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
-func ConfigCommand(opts *config.Options) *cobra.Command {
+func getConfigCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Prints out the CLI configuration for Weave GitOps",

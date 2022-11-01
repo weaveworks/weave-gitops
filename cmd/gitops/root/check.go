@@ -1,4 +1,4 @@
-package check
+package root
 
 import (
 	"fmt"
@@ -8,17 +8,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Cmd = &cobra.Command{
+var checkCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Validates flux compatibility",
 	Example: `
 # Validate flux and kubernetes compatibility
 gitops check
 `,
-	RunE: runCmd,
+	RunE: checkCmdRunE,
 }
 
-func runCmd(_ *cobra.Command, _ []string) error {
+func checkCmdRunE(_ *cobra.Command, _ []string) error {
 	output, err := check.Pre()
 	if err != nil {
 		return err

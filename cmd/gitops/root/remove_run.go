@@ -1,7 +1,9 @@
-package run
+package root
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -9,27 +11,25 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
-	"os"
 )
 
 type RunCommandFlags struct {
 	AllSessions bool
 
 	// Global flags.
-	Namespace  string
-	KubeConfig string
+	// Namespace  string
+	// KubeConfig string
 
 	// Flags, created by genericclioptions.
-	Context string
+	// Context string
 }
 
 var flags RunCommandFlags
 
-var kubeConfigArgs *genericclioptions.ConfigFlags
+// var kubeConfigArgs *genericclioptions.ConfigFlags
 
-func RunCommand(opts *config.Options) *cobra.Command {
+func removeRunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Remove GitOps Run sessions",
@@ -53,12 +53,7 @@ gitops remove run -n dev --all-sessions
 	}
 
 	cmdFlags := cmd.Flags()
-
 	cmdFlags.BoolVar(&flags.AllSessions, "all-sessions", false, "Remove all GitOps Run sessions")
-
-	kubeConfigArgs = run.GetKubeConfigArgs()
-
-	kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
 }
@@ -68,50 +63,24 @@ func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Con
 
 	log := logger.NewCLILogger(os.Stdout)
 
-	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
-		return nil, nil, err
-	}
-
-	kubeConfigArgs.Namespace = &flags.Namespace
-
-	if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
-		return nil, nil, err
-	}
-
-	if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
-		return nil, nil, err
-	}
-
-	if flags.KubeConfig != "" {
-		kubeConfigArgs.KubeConfig = &flags.KubeConfig
-
-		if flags.Context == "" {
-			log.Failuref("A context should be provided if a kubeconfig is provided")
-			return nil, nil, cmderrors.ErrNoContextForKubeConfig
-		}
-	}
-
 	var contextName string
 
-	if flags.Context != "" {
-		contextName = flags.Context
-	} else {
+	if kubeconfigArgs.Context == nil {
 		_, contextName, err = kube.RestConfig()
 		if err != nil {
 			log.Failuref("Error getting a restconfig: %v", err.Error())
 			return nil, nil, cmderrors.ErrNoCluster
 		}
+	} else {
+		contextName = *kubeconfigArgs.Context
 	}
 
-	cfg, err := kubeConfigArgs.ToRESTConfig()
+	cfg, err := kubeconfigArgs.ToRESTConfig()
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting a restconfig from kube config args: %w", err)
 	}
 
-	kubeClientOpts := run.GetKubeClientOptions()
-	kubeClientOpts.BindFlags(cmd.Flags())
-
-	kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
+	kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeclientOptions)
 	if err != nil {
 		return nil, nil, cmderrors.ErrGetKubeClient
 	}
@@ -141,7 +110,7 @@ func removeRunRunE(opts *config.Options) func(cmd *cobra.Command, args []string)
 		log := logger.NewCLILogger(os.Stdout)
 
 		if flags.AllSessions {
-			internalSessions, listErr := session.List(kubeClient, flags.Namespace)
+			internalSessions, listErr := session.List(kubeClient, *kubeconfigArgs.Namespace)
 			if listErr != nil {
 				return listErr
 			}
@@ -156,7 +125,7 @@ func removeRunRunE(opts *config.Options) func(cmd *cobra.Command, args []string)
 				log.Successf("Session %s/%s was successfully removed.", internalSession.Namespace, internalSession.Name)
 			}
 		} else {
-			internalSession, err := session.Get(kubeClient, args[0], flags.Namespace)
+			internalSession, err := session.Get(kubeClient, args[0], *kubeconfigArgs.Namespace)
 			if err != nil {
 				return err
 			}

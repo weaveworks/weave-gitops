@@ -1,13 +1,12 @@
-package set
+package root
 
 import (
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	configCmd "github.com/weaveworks/weave-gitops/cmd/gitops/set/config"
 )
 
-func SetCommand(opts *config.Options) *cobra.Command {
+func setCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Sets one or many Weave GitOps CLI configs or resources",
@@ -16,7 +15,7 @@ func SetCommand(opts *config.Options) *cobra.Command {
 gitops set config analytics true`,
 	}
 
-	cmd.AddCommand(configCmd.ConfigCommand(opts))
+	cmd.AddCommand(setConfigCommand(opts))
 
 	return cmd
 }

@@ -1,13 +1,11 @@
-package dashboard
+package root
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"regexp"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -16,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 const (
@@ -24,25 +21,15 @@ const (
 	defaultAdminUsername = "admin"
 )
 
-type DashboardCommandFlags struct {
-	// Create command flags.
-	Export  bool
-	Timeout time.Duration
-	// Overriden global flags.
+var createDashboardCommandFlags struct {
+	// Override global flags.
 	Username string
 	Password string
-	// Global flags.
-	Namespace  string
-	KubeConfig string
-	// Flags, created by genericclioptions.
-	Context string
 }
 
-var flags DashboardCommandFlags
+// var kubeConfigArgs *genericclioptions.ConfigFlags
 
-var kubeConfigArgs *genericclioptions.ConfigFlags
-
-func DashboardCommand(opts *config.Options) *cobra.Command {
+func createDashboardCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dashboard",
 		Short: "Create a HelmRepository and HelmRelease to deploy Weave GitOps",
@@ -62,12 +49,8 @@ gitops create dashboard ww-gitops \
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.Username, "username", "admin", "The username of the dashboard admin user.")
-	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the dashboard admin user.")
-
-	kubeConfigArgs = run.GetKubeConfigArgs()
-
-	kubeConfigArgs.AddFlags(cmd.Flags())
+	cmdFlags.StringVar(&createDashboardCommandFlags.Username, "username", "admin", "The username of the dashboard admin user.")
+	cmdFlags.StringVar(&createDashboardCommandFlags.Password, "password", "", "The password of the dashboard admin user.")
 
 	return cmd
 }
@@ -95,34 +78,13 @@ func createDashboardCommandPreRunE(endpoint *string) func(*cobra.Command, []stri
 
 func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var err error
+		var (
+			err    error
+			output io.Writer
+		)
 
-		if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
-			return err
-		}
-
-		kubeConfigArgs.Namespace = &flags.Namespace
-
-		if flags.KubeConfig, err = cmd.Flags().GetString("kubeconfig"); err != nil {
-			return err
-		}
-
-		if flags.Context, err = cmd.Flags().GetString("context"); err != nil {
-			return err
-		}
-
-		if flags.Export, err = cmd.Flags().GetBool("export"); err != nil {
-			return err
-		}
-
-		if flags.Timeout, err = cmd.Flags().GetDuration("timeout"); err != nil {
-			return err
-		}
-
-		var output io.Writer
-
-		if flags.Export {
-			output = &bytes.Buffer{}
+		if createCommandFlags.Export {
+			output = io.Discard
 		} else {
 			output = os.Stdout
 		}
@@ -133,8 +95,8 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		var passwordHash string
 
-		if flags.Password != "" {
-			passwordHash, err = install.GeneratePasswordHash(log, flags.Password)
+		if createDashboardCommandFlags.Password != "" {
+			passwordHash, err = install.GeneratePasswordHash(log, createDashboardCommandFlags.Password)
 			if err != nil {
 				return err
 			}
@@ -142,65 +104,54 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		dashboardName := args[0]
 
-		adminUsername := flags.Username
+		adminUsername := createDashboardCommandFlags.Username
 
-		if adminUsername == "" && flags.Password != "" {
+		if adminUsername == "" && createDashboardCommandFlags.Password != "" {
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "")
+		manifests, err := install.CreateDashboardObjects(log, dashboardName, *kubeconfigArgs.Namespace, adminUsername, passwordHash, "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}
 
 		log.Successf("Generated GitOps Dashboard manifests")
 
-		if flags.Export {
+		if createCommandFlags.Export {
 			fmt.Println("---")
 			fmt.Println(string(manifests))
 
 			return nil
 		}
 
-		if flags.KubeConfig != "" {
-			kubeConfigArgs.KubeConfig = &flags.KubeConfig
-
-			if flags.Context == "" {
-				log.Failuref("A context should be provided if a kubeconfig is provided")
-				return cmderrors.ErrNoContextForKubeConfig
-			}
-		}
-
+		// Installing the dashboard
 		log.Actionf("Checking for a cluster in the kube config ...")
 
 		var contextName string
 
-		if flags.Context != "" {
-			contextName = flags.Context
-		} else {
+		if kubeconfigArgs.Context != nil {
 			_, contextName, err = kube.RestConfig()
 			if err != nil {
 				log.Failuref("Error getting a restconfig: %v", err.Error())
 				return cmderrors.ErrNoCluster
 			}
+		} else {
+			contextName = *kubeconfigArgs.Context
 		}
 
-		cfg, err := kubeConfigArgs.ToRESTConfig()
+		cfg, err := kubeconfigArgs.ToRESTConfig()
 		if err != nil {
 			return fmt.Errorf("error getting a restconfig from kube config args: %w", err)
 		}
 
-		kubeClientOpts := run.GetKubeClientOptions()
-		kubeClientOpts.BindFlags(cmd.Flags())
-
-		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeClientOpts)
+		kubeClient, err := run.GetKubeClient(log, contextName, cfg, kubeclientOptions)
 		if err != nil {
 			return cmderrors.ErrGetKubeClient
 		}
 
 		log.Actionf("Checking if Flux is already installed ...")
 
-		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
+		ctx, cancel := context.WithTimeout(context.Background(), createCommandFlags.Timeout)
 		defer cancel()
 
 		if fluxVersion, err := install.GetFluxVersion(log, ctx, kubeClient); err != nil {
@@ -212,7 +163,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Actionf("Applying GitOps Dashboard manifests")
 
-		man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+		man, err := install.NewManager(log, ctx, kubeClient, kubeconfigArgs)
 		if err != nil {
 			log.Failuref("Error creating resource manager")
 			return err
@@ -225,13 +176,13 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			log.Successf("GitOps Dashboard has been installed")
 		}
 
-		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
+		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", createCommandFlags.Timeout)
 
 		log.Waitingf("Waiting for GitOps Dashboard reconciliation")
 
 		dashboardPodName := dashboardName + "-" + helmChartName
 
-		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, *kubeconfigArgs.Namespace, dashboardPodName, createCommandFlags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("GitOps Dashboard %s is ready", dashboardName)

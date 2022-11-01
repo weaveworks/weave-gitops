@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	runclient "github.com/fluxcd/pkg/runtime/client"
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -26,11 +27,14 @@ var _ = Describe("GetFluxVersion", func() {
 	})
 
 	It("gets flux version", func() {
-		kubeClientOpts := run.GetKubeClientOptions()
+		kubeclientOpts := &runclient.Options{
+			QPS:   1,
+			Burst: 1,
+		}
 
 		contextName := "test-context"
 
-		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeClientOpts)
+		kubeClient, err := run.GetKubeClient(fakeLogger, contextName, k8sEnv.Rest, kubeclientOpts)
 		Expect(err).NotTo(HaveOccurred())
 
 		ctx := context.Background()

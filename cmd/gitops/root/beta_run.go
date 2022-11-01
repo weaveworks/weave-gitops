@@ -1,4 +1,4 @@
-package run
+package root
 
 import (
 	"context"
@@ -35,8 +35,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/yaml"
 )
 
@@ -48,7 +46,7 @@ const (
 
 var HelmChartVersion = "3.0.0"
 
-type RunCommandFlags struct {
+var betaRunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext []string
 	Components      []string
@@ -69,18 +67,14 @@ type RunCommandFlags struct {
 	NoBootstrap         bool
 
 	// Global flags.
-	Namespace  string
-	KubeConfig string
+	// Namespace  string
+	// KubeConfig string
 
 	// Flags, created by genericclioptions.
-	Context string
+	// Context string
 }
 
-var flags RunCommandFlags
-
-var kubeConfigArgs *genericclioptions.ConfigFlags
-
-func RunCommand(opts *config.Options) *cobra.Command {
+func betaRunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Set up an interactive sync between your cluster and your local file system",
@@ -112,24 +106,24 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 
 	cmdFlags := cmd.Flags()
 
-	cmdFlags.StringVar(&flags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
-	cmdFlags.StringSliceVar(&flags.AllowK8sContext, "allow-k8s-context", []string{}, "The name of the KubeConfig context to explicitly allow.")
-	cmdFlags.StringSliceVar(&flags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
-	cmdFlags.StringSliceVar(&flags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
-	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Minute, "The timeout for operations during GitOps Run.")
-	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
-	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
-	cmdFlags.StringVar(&flags.DashboardHashedPassword, "dashboard-hashed-password", "", "GitOps Dashboard password in BCrypt hash format")
-	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
-	cmdFlags.StringVar(&flags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
-	cmdFlags.StringVar(&flags.SessionNamespace, "session-namespace", "default", "Specify the namespace of the session.")
-	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
-	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
-	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+	cmdFlags.StringVar(&betaRunCommandFlags.FluxVersion, "flux-version", version.FluxVersion, "The version of Flux to install.")
+	cmdFlags.StringSliceVar(&betaRunCommandFlags.AllowK8sContext, "allow-k8s-context", []string{}, "The name of the KubeConfig context to explicitly allow.")
+	cmdFlags.StringSliceVar(&betaRunCommandFlags.Components, "components", []string{"source-controller", "kustomize-controller", "helm-controller", "notification-controller"}, "The Flux components to install.")
+	cmdFlags.StringSliceVar(&betaRunCommandFlags.ComponentsExtra, "components-extra", []string{}, "Additional Flux components to install, allowed values are image-reflector-controller,image-automation-controller.")
+	cmdFlags.DurationVar(&betaRunCommandFlags.Timeout, "timeout", 5*time.Minute, "The timeout for operations during GitOps Run.")
+	cmdFlags.StringVar(&betaRunCommandFlags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
+	cmdFlags.StringVar(&betaRunCommandFlags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
+	cmdFlags.StringVar(&betaRunCommandFlags.DashboardHashedPassword, "dashboard-hashed-password", "", "GitOps Dashboard password in BCrypt hash format")
+	cmdFlags.StringVar(&betaRunCommandFlags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
+	cmdFlags.StringVar(&betaRunCommandFlags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
+	cmdFlags.StringVar(&betaRunCommandFlags.SessionNamespace, "session-namespace", "default", "Specify the namespace of the session.")
+	cmdFlags.BoolVar(&betaRunCommandFlags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
+	cmdFlags.BoolVar(&betaRunCommandFlags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
+	cmdFlags.BoolVar(&betaRunCommandFlags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
 
-	kubeConfigArgs = run.GetKubeConfigArgs()
-
-	kubeConfigArgs.AddFlags(cmd.Flags())
+	// TODO (chanwit): Remove this flag once we have a better way to pass the namespace to this command.
+	// kubeConfigArgs = run.GetKubeConfigArgs()
+	// kubeConfigArgs.AddFlags(cmd.Flags())
 
 	return cmd
 }
@@ -178,6 +172,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
+/*
 func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
@@ -235,6 +230,7 @@ func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Con
 
 	return kubeClient, cfg, nil
 }
+*/
 
 func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string, justInstalled bool, err error) {
 	ctx := context.Background()
@@ -244,7 +240,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 	if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
 
-		product := fluxinstall.NewProduct(flags.FluxVersion)
+		product := fluxinstall.NewProduct(betaRunCommandFlags.FluxVersion)
 
 		installer := fluxinstall.NewInstaller()
 
@@ -269,12 +265,12 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 		flux.SetLogger(log.Logger)
 
 		var components []fluxexec.Component
-		for _, component := range flags.Components {
+		for _, component := range betaRunCommandFlags.Components {
 			components = append(components, fluxexec.Component(component))
 		}
 
 		var componentsExtra []fluxexec.ComponentExtra
-		for _, component := range flags.ComponentsExtra {
+		for _, component := range betaRunCommandFlags.ComponentsExtra {
 			componentsExtra = append(componentsExtra, fluxexec.ComponentExtra(component))
 		}
 
@@ -282,14 +278,14 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 			fluxexec.Components(components...),
 			fluxexec.ComponentsExtra(componentsExtra...),
 			fluxexec.WithGlobalOptions(
-				fluxexec.Namespace(flags.Namespace),
-				fluxexec.Timeout(flags.Timeout),
+				fluxexec.Namespace(*kubeconfigArgs.Namespace),
+				fluxexec.Timeout(betaRunCommandFlags.Timeout),
 			),
 		); err != nil {
 			return "", false, err
 		}
 
-		fluxVersion = flags.FluxVersion
+		fluxVersion = betaRunCommandFlags.FluxVersion
 
 		return fluxVersion, true, nil
 	} else {
@@ -302,7 +298,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, generateManifestsOnly bool) (bool, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-	dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+	dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, *kubeconfigArgs.Namespace)
 
 	var dashboardManifests []byte
 
@@ -311,7 +307,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 	} else {
 
 		wantToInstallTheDashboard := false
-		if flags.DashboardHashedPassword != "" {
+		if betaRunCommandFlags.DashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
 		} else {
 			prompt := promptui.Prompt{
@@ -331,7 +327,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 		if wantToInstallTheDashboard {
 
 			passwordHash := ""
-			if flags.DashboardHashedPassword == "" {
+			if betaRunCommandFlags.DashboardHashedPassword == "" {
 				password, err := install.ReadPassword(log)
 				if err != nil {
 					return false, nil, "", err
@@ -342,10 +338,10 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 					return false, nil, "", err
 				}
 			} else {
-				passwordHash = flags.DashboardHashedPassword
+				passwordHash = betaRunCommandFlags.DashboardHashedPassword
 			}
 
-			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
+			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, *kubeconfigArgs.Namespace, adminUsername, passwordHash, HelmChartVersion)
 			if err != nil {
 				return false, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 			}
@@ -354,7 +350,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 				return false, dashboardManifests, passwordHash, nil
 			}
 
-			man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			man, err := install.NewManager(log, ctx, kubeClient, kubeconfigArgs)
 			if err != nil {
 				log.Failuref("Error creating resource manager")
 				return false, nil, "", err
@@ -372,9 +368,9 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 	}
 
 	if dashboardInstalled {
-		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
+		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", betaRunCommandFlags.Timeout)
 
-		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, *kubeconfigArgs.Namespace, dashboardPodName, betaRunCommandFlags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("Dashboard reconciliation is done.")
@@ -385,7 +381,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 }
 
 func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
-	paths, err := run.NewPaths(args[0], flags.RootDir)
+	paths, err := run.NewPaths(args[0], betaRunCommandFlags.RootDir)
 	if err != nil {
 		return err
 	}
@@ -419,11 +415,11 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
 
-	sessionLog.Actionf("Creating GitOps Run session %s in namespace %s ...", flags.SessionName, flags.SessionNamespace)
+	sessionLog.Actionf("Creating GitOps Run session %s in namespace %s ...", betaRunCommandFlags.SessionName, betaRunCommandFlags.SessionNamespace)
 
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
-	spec, err := watch.ParsePortForwardSpec(flags.PortForward)
+	spec, err := watch.ParsePortForwardSpec(betaRunCommandFlags.PortForward)
 	if err != nil {
 		return err
 	}
@@ -431,9 +427,9 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	session, err := install.NewSession(
 		sessionLog,
 		kubeClient,
-		flags.SessionName,
-		flags.SessionNamespace,
-		[]string{spec.HostPort, flags.DashboardPort},
+		betaRunCommandFlags.SessionName,
+		betaRunCommandFlags.SessionNamespace,
+		[]string{spec.HostPort, betaRunCommandFlags.DashboardPort},
 		dashboardHashedPassword,
 	)
 
@@ -441,28 +437,28 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		return err
 	}
 
-	sessionLog.Actionf("Waiting for GitOps Run session %s to be ready ...", flags.SessionName)
+	sessionLog.Actionf("Waiting for GitOps Run session %s to be ready ...", betaRunCommandFlags.SessionName)
 
 	if err := session.Start(); err != nil {
 		return err
 	}
 
-	sessionLog.Successf("Session %s is ready", flags.SessionName)
+	sessionLog.Successf("Session %s is ready", betaRunCommandFlags.SessionName)
 
-	sessionLog.Actionf("Connecting to GitOps Run session %s ...", flags.SessionName)
+	sessionLog.Actionf("Connecting to GitOps Run session %s ...", betaRunCommandFlags.SessionName)
 
 	if err := session.Connect(); err != nil {
 		return err
 	}
 
 	sessionLog.Println("")
-	sessionLog.Actionf("Deleting GitOps Run session %s ...", flags.SessionName)
+	sessionLog.Actionf("Deleting GitOps Run session %s ...", betaRunCommandFlags.SessionName)
 
 	if err := session.Close(); err != nil {
-		sessionLog.Failuref("Failed to delete session %s: %v", flags.SessionName, err)
+		sessionLog.Failuref("Failed to delete session %s: %v", betaRunCommandFlags.SessionName, err)
 		return err
 	} else {
-		sessionLog.Successf("Session %s is deleted successfully", flags.SessionName)
+		sessionLog.Successf("Session %s is deleted successfully", betaRunCommandFlags.SessionName)
 	}
 
 	// now that the session is deleted, we return to the host cluster
@@ -471,7 +467,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		okToDoFluxBootstrap = true
 	}
 
-	if flags.NoBootstrap {
+	if betaRunCommandFlags.NoBootstrap {
 		okToDoFluxBootstrap = false
 	}
 
@@ -515,7 +511,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	log := logger.NewCLILogger(os.Stdout)
 
-	paths, err := run.NewPaths(args[0], flags.RootDir)
+	paths, err := run.NewPaths(args[0], betaRunCommandFlags.RootDir)
 	if err != nil {
 		return err
 	}
@@ -528,7 +524,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	contextName := kubeClient.ClusterName
 	validAllowedContext := false
 
-	for _, allowContext := range flags.AllowK8sContext {
+	for _, allowContext := range betaRunCommandFlags.AllowK8sContext {
 		if allowContext == contextName {
 			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 
@@ -584,7 +580,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	var cancelDashboardPortForwarding func() = nil
 
 	if dashboardInstalled {
-		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, *kubeconfigArgs.Namespace, dashboardPodName, betaRunCommandFlags.DashboardPort)
 		if err != nil {
 			cancel()
 			return err
@@ -596,7 +592,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
 
-	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, paths.TargetDir, flags.Timeout, devBucketPort); err != nil {
+	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, *kubeconfigArgs.Namespace, paths.TargetDir, betaRunCommandFlags.Timeout, devBucketPort); err != nil {
 		cancel()
 		return err
 	}
@@ -710,20 +706,20 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						needToRescan = false
 					}
 
-					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
+					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", betaRunCommandFlags.Timeout)
 
 					lastReconcile = time.Now()
 					// context that cancels when files change
 					thisCtx := watcherCtx
 
-					if err := watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
+					if err := watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, *kubeconfigArgs.Namespace, betaRunCommandFlags.Timeout); err != nil {
 						log.Failuref("Error requesting reconciliation: %v", err)
 					} else {
 						log.Successf("Reconciliation is done.")
 					}
 
-					if flags.PortForward != "" {
-						specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
+					if betaRunCommandFlags.PortForward != "" {
+						specMap, err := watch.ParsePortForwardSpec(betaRunCommandFlags.PortForward)
 						if err != nil {
 							log.Failuref("Error parsing port forward spec: %v", err)
 						}
@@ -787,8 +783,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	ticker.Stop()
 
 	// this is the default behaviour
-	if !flags.SkipResourceCleanup {
-		if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
+	if !betaRunCommandFlags.SkipResourceCleanup {
+		if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, *kubeconfigArgs.Namespace); err != nil {
 			return err
 		}
 
@@ -803,7 +799,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		okToDoFluxBootstrap = true
 	}
 
-	if flags.NoBootstrap {
+	if betaRunCommandFlags.NoBootstrap {
 		okToDoFluxBootstrap = false
 	}
 
@@ -878,7 +874,7 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 	params := wizard.BuildCmd(log)
 
-	product := fluxinstall.NewProduct(flags.FluxVersion)
+	product := fluxinstall.NewProduct(betaRunCommandFlags.FluxVersion)
 
 	installer := fluxinstall.NewInstaller()
 
@@ -913,7 +909,7 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      slugifiedWorkloadPath,
-			Namespace: flags.Namespace,
+			Namespace: *kubeconfigArgs.Namespace,
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			Interval: metav1.Duration{Duration: 1 * time.Hour},
@@ -1004,7 +1000,7 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if flags.NoSession {
+		if betaRunCommandFlags.NoSession {
 			return runCommandWithoutSession(cmd, args)
 		} else {
 			return runCommandWithSession(cmd, args)
