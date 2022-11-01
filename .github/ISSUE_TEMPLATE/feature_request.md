@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <!--
- Thank you for taking the time to share an idea or requirement, we greatly appreciate your help in improving Weave GitOps :heart:
+ Thank you for taking the time to share an idea or requirement, we greatly appreciate your help in improving Weave GitOps! ❤️
 -->
 
 **Problem**
