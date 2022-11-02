@@ -103,8 +103,6 @@ export const filterByStatusCallback = (v) => {
   else return ReadyType.NotReady;
 };
 
-export const filterByTypeCallback = (v) => v.type;
-
 export function filterConfig(
   rows,
   key: string,
@@ -139,10 +137,6 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
       // status
       if (category === "status") {
         value = filterByStatusCallback(row);
-      }
-      // type
-      else if (category === "type" && typeof row[category] !== "string") {
-        value = filterByTypeCallback(row);
       }
       // strings
       else value = row[category];
