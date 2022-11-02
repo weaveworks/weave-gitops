@@ -49,12 +49,10 @@ describe("Automations", () => {
     render(
       withTheme(withContext(<Automations />, "/automations", { api: client }))
     );
-    await waitFor(() =>
-      expect(screen.getAllByText("Kustomization").length).toBeTruthy()
-    );
-    await waitFor(() =>
-      expect(screen.getAllByText("HelmRelease").length).toBeTruthy()
-    );
+    await waitFor(() => {
+      expect(screen.getAllByText("Kustomization").length).toBeTruthy();
+      expect(screen.getAllByText("HelmRelease").length).toBeTruthy();
+    });
   });
   it("should handle undefined response", async () => {
     const client2 = createCoreMockClient({
