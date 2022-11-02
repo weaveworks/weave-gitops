@@ -103,7 +103,7 @@ export const filterByStatusCallback = (v) => {
   else return ReadyType.NotReady;
 };
 
-export const filterByTypeCallback = (v) => _.get(v, "groupVersionKind.kind");
+export const filterByTypeCallback = (v) => v.type;
 
 export function filterConfig(
   rows,
