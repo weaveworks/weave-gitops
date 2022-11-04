@@ -11,15 +11,16 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Promoting apps through pipeline environments <TierLabel tiers="enterprise" />
 
-Pipelines allow you to configure automatic promotions of applications through a consecutive set of environments, e.g. from dev to staging to production. The environments are defined in the `Pipeline` resource itself so that each pipeline governs a single application and all the environments it is deployed to.
+Pipelines allow you to configure automatic promotions of applications through a consecutive set of environments, e.g. from dev to staging to production. The environments are defined in the `Pipeline` resource itself so that each pipeline governs a single application and all the environments to which it is deployed.
 
 :::note
 At the moment only applications defined as Flux `HelmReleases` are supported in automatic promotions.
 :::
 
-In order to get started with promotions you start by defining the app's pipeline along with all the environments as described in the [Getting started guide](../getting-started). Whenever the app defined in a pipeline is upgraded one of the the pipeline's environments, a GitHub PR is created that updates the manifest file setting the app version in the next environment.
+The [Getting started guide](../getting-started) describes how to create a basic pipeline for an application so you can visualize its deployments across a series of environments. 
+This document will cover adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline is upgraded in one of the pipeline's environments, a GitHub PR is created that updates the manifest file setting the app version in the next environment.
 
-The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files, how to authenticate with the repository and the GitHub API and which file hosts the version definition for each environment.
+The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files, how to authenticate with the repository and the GitHub API, and which file hosts the version definition for each environment.
 
 ## Ensure promotion webhook is reachable from leaf clusters
 
@@ -43,7 +44,7 @@ type: Opaque
 ```
 
 :::caution
-The Secret needs to reside in the same Namespace as the Pipeline resource.
+The Secret needs to reside in the same Namespace as the Pipeline resource on the management cluster.
 :::
 
 ## Define promotion in pipeline resource
@@ -89,7 +90,7 @@ Promotion events are triggered by Flux's [notification controller](https://fluxc
 
 The `address` field's URL path is comprised of 3 components again:
 
-1. The Namespace of the app's pipeline
+1. The Namespace of the app's pipeline.
 1. The name of the pipeline resource.
 1. The origin environment's name. This is the name of the environment that the event is created in, e.g. "dev" for events coming from the "dev" environment.
 
