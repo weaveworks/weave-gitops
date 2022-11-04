@@ -397,7 +397,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/userinfo", nil)
 		w := httptest.NewRecorder()
-		s.UserInfo().ServeHTTP(w, req)
+		s.UserInfo(w, req)
 
 		resp := w.Result()
 		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
@@ -412,7 +412,7 @@ func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -446,7 +446,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -487,7 +487,7 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -525,7 +525,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -613,7 +613,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
