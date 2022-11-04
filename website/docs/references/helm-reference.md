@@ -15,7 +15,7 @@ This reference was generated for the chart version 4.0.6 which installs weave gi
 | adminUser.createClusterRole | bool | `true` | Specifies whether the clusterRole & binding to the admin user should be created. Will be created only if `adminUser.create` is enabled. Without this, the adminUser will only be able to see resources in the target namespace. |
 | adminUser.createSecret | bool | `true` | Whether we should create the secret for the local adminUser. Will be created only if `adminUser.create` is enabled. Without this, we'll still set up the roles and permissions, but the secret with username and password has to be provided separately. |
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
-| adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, these will be stored in a secret in k8s. Requires `adminUser.create` and `adminUser.createSecret`. |
+| adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, this should match the value in the secret `cluster-user-auth` which can be created with `adminUser.createSecret`. Requires `adminUser.create`.. |
 | affinity | object | `{}` |  |
 | annotations | object | `{}` | Annotations to add to the deployment |
 | envVars[0].name | string | `"WEAVE_GITOPS_FEATURE_TENANCY"` |  |
