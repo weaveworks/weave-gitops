@@ -7,7 +7,6 @@ import { statusSortHelper } from "../../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
-  filterByTypeCallback,
   filterConfig,
   filterRows,
   filterSelectionsToQueryString,
@@ -283,112 +282,6 @@ describe("DataTableFilters", () => {
     expect(tableRows2[0].innerHTML).toContain("cool");
 
     const chip2 = screen.getByText(`status${filterSeparator}Suspended`);
-    expect(chip2).toBeTruthy();
-  });
-  it("should filter by type with callback", () => {
-    const rows = [
-      {
-        name: "cool",
-        groupVersionKind: {
-          kind: "foo",
-        },
-      },
-      {
-        name: "slick",
-        groupVersionKind: {
-          kind: "bar",
-        },
-      },
-      {
-        name: "neat",
-        groupVersionKind: {
-          kind: "bar",
-        },
-      },
-      {
-        name: "rad",
-        groupVersionKind: {
-          kind: "bar",
-        },
-      },
-    ];
-
-    const fields: Field[] = [
-      {
-        label: "Name",
-        value: "name",
-        textSearchable: true,
-      },
-      {
-        label: "Type",
-        value: (v: any) => v.groupVersionKind.kind,
-      },
-      {
-        label: "Status",
-        value: "success",
-      },
-      {
-        label: "Qty",
-        value: "count",
-      },
-    ];
-
-    const initialFilterState = {
-      ...filterConfig(rows, "type", filterByTypeCallback),
-    };
-
-    render(
-      withTheme(
-        withContext(
-          <DataTable
-            fields={fields}
-            rows={rows}
-            filters={initialFilterState}
-            dialogOpen
-          />,
-          "/applications",
-          {}
-        )
-      )
-    );
-
-    const tableRows1 = document.querySelectorAll("tbody tr");
-
-    expect(tableRows1).toHaveLength(4);
-    expect(tableRows1[0].innerHTML).toContain("foo");
-
-    const checkbox1 = document.getElementById(
-      `type${filterSeparator}foo`
-    ) as HTMLInputElement;
-    fireEvent.click(checkbox1);
-
-    const tableRows2 = document.querySelectorAll("tbody tr");
-    expect(tableRows2).toHaveLength(1);
-    expect(tableRows2[0].innerHTML).toContain("foo");
-
-    const chip1 = screen.getByText(`type${filterSeparator}foo`);
-    expect(chip1).toBeTruthy();
-
-    const clearAll = screen.getByText("Clear All");
-    const svgButton = clearAll.parentElement.getElementsByTagName("svg")[0];
-    fireEvent.click(svgButton);
-
-    const tableRows3 = document.querySelectorAll("tbody tr");
-
-    expect(tableRows3).toHaveLength(rows.length);
-
-    const checkbox2 = document.getElementById(
-      `type${filterSeparator}bar`
-    ) as HTMLInputElement;
-    fireEvent.click(checkbox2);
-
-    const tableRows4 = document.querySelectorAll("tbody tr");
-    expect(tableRows4).toHaveLength(3);
-    expect(tableRows4[0].innerHTML).toContain("bar");
-    expect(tableRows4[1].innerHTML).toContain("bar");
-    expect(tableRows4[2].innerHTML).toContain("bar");
-
-    const chip2 = screen.getByText(`type${filterSeparator}bar`);
     expect(chip2).toBeTruthy();
   });
   it("should select/deselect all when category checkbox is clicked", () => {

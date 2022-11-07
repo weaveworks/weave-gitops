@@ -4,7 +4,6 @@ import Button from "./components/Button";
 import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
-  filterByTypeCallback,
   filterConfig,
 } from "./components/DataTable";
 import DependenciesView from "./components/DependenciesView";
@@ -97,7 +96,6 @@ export {
   EventsTable,
   Flex,
   filterByStatusCallback,
-  filterByTypeCallback,
   filterConfig,
   FluxRuntime,
   Footer,

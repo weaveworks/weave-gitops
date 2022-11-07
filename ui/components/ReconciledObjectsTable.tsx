@@ -9,11 +9,7 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { Automation, FluxObject } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
-import DataTable, {
-  filterByStatusCallback,
-  filterByTypeCallback,
-  filterConfig,
-} from "./DataTable";
+import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -41,7 +37,7 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfig(objs, "type", filterByTypeCallback),
+    ...filterConfig(objs, "type"),
     ...filterConfig(objs, "namespace"),
     ...filterConfig(objs, "status", filterByStatusCallback),
   };
