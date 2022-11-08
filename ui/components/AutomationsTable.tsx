@@ -73,7 +73,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       maxWidth: 600,
     },
     {
-      label: "Type",
+      label: "Kind",
       value: "type",
     },
     {
