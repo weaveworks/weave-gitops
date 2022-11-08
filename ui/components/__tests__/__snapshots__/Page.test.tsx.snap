@@ -151,7 +151,7 @@ exports[`Page snapshots default 1`] = `
       />
       <a
         className="c9"
-        href="mailto:support@weave.works"
+        href="mailto:sales@weave.works"
         rel="noreferrer"
         target="_blank"
       >
@@ -160,7 +160,7 @@ exports[`Page snapshots default 1`] = `
           color="primary"
           size="medium"
         >
-          support@weave.works
+          sales@weave.works
         </span>
       </a>
     </div>
