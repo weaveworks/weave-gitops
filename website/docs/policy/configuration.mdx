@@ -1,0 +1,100 @@
+# Configuration
+
+The config file is the single entry point for configuring the agent.
+
+The agent needs the following parameters to be provided in the configuration yaml file:
+
+- `kubeConfigFile`: path to the kubernetes config file to access the cluster
+- `accountId`: unique identifier that signifies the owner of that agent
+- `clusterId`: unique identifier for the cluster that the agent will run against
+
+There are additional parameters could be provided:
+
+- `logLevel`: app log level (default: "info")
+- `probesListen`: address for the probes server to run on (default: ":9000")
+- `metricsAddress`: address the metric endpoint binds to (default: ":8080")
+- `audit`: defines cluster periodical audit configuration including the supported sinks (disabled by default)
+- `admission`: defines admission control configuration including the supported sinks and webhooks (disabled by default)
+- `tfAdmission`: defines terraform admission control configuration including the supported sinks (disabled by default)
+
+
+**Example**
+
+```yaml
+accountId: "account-id"
+clusterId: "cluster-id"
+kubeConfigFile: "/.kube/config"
+logLevel: "Info"
+admission:
+   enabled: true
+   sinks:
+      filesystemSink:
+         fileName: admission.txt
+audit:
+   enabled: true
+   writeCompliance: true
+   sinks:
+      filesystemSink:
+         fileName: audit.txt
+```
+
+## Validation Sinks Configuration
+
+### Kubernetes Events
+
+This sink is used to export validation results as kubernetes native events. Kubernetes event has a retention period and it set by default to 1 hour, you can configure the kubernetes [api-server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) to update the period.
+
+**Configuration**
+
+```yaml
+sinks:
+  k8sEventsSink:
+    enabled: true
+```
+
+### Flux Notification Controller
+
+This sink sends the validation results to [Flux Notification Controller](https://github.com/fluxcd/notification-controller).
+
+**Configuration**
+
+```yaml
+sinks:
+  fluxNotificationSink:
+    address: <>
+```
+
+### File System
+
+File system sink writes the validation results to a text file. The file will be located at `/logs/<filename>`
+
+**Configuration**
+
+```yaml
+sinks:
+  fileSystemSink:
+    fileName: audit.txt
+```
+
+### ElasticSearch
+
+This sink stores the validation results in ElasticSearch.
+
+**Configuration**
+
+```yaml
+sinks:
+  elasticSink:
+    address: http://localhost:9200    # ElasticSearch server address
+    username: <elastic username>      # User credentials to access ElasticSearch service
+    password: <elastic password>      # User credentials to access ElasticSearch service
+    indexName: <index_name>           # index name the results would be written in
+    insertionMode: <insertion mode>   # It could be a choice of both insert or upsert, it defines the way the document is written.
+```
+
+#### Insertion modes
+
+- `insert`: would give an insight of all the historical data, doesn't update or delete any old records. so the index would contain a log for all validation objects.
+
+- `upsert`: Would update the old result of validating an entity against a policy happens in the same day, so the index would only contain the latest validation results for a policy and entity combination per day.
+
