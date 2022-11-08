@@ -65,6 +65,10 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   color: #BC381D;
 }
 
+.c4 img {
+  width: 16px;
+}
+
 .c1 .c3 .c5 {
   color: #1a1a1a;
   font-weight: 400;
@@ -160,6 +164,10 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 .c4 .c5 {
   margin-left: 4px;
   color: #27AE60;
+}
+
+.c4 img {
+  width: 16px;
 }
 
 .c1 .c3 .c5 {

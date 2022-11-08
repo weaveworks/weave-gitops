@@ -104,6 +104,10 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   color: #1a1a1a;
 }
 
+.c4 img {
+  width: 32px;
+}
+
 .c1 {
   -webkit-text-decoration: none;
   text-decoration: none;
