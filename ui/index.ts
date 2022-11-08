@@ -57,7 +57,6 @@ import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
 import {
-  Automation,
   Bucket,
   GitRepository,
   HelmChart,
