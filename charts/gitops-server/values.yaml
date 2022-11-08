@@ -76,8 +76,8 @@ adminUser:
   # permissions, but the secret with username and password has to be
   # provided separately.
   createSecret: true
-  # -- Set username for local admin user, these will be stored in a secret in
-  # k8s. Requires `adminUser.create` and `adminUser.createSecret`.
+  # -- Set username for local admin user, this should match the value in the secret `cluster-user-auth`
+  # which can be created with `adminUser.createSecret`. Requires `adminUser.create`.
   username: gitops-test-user
   # -- (string) Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret`
   # This needs to have been hashed using bcrypt.

@@ -4,7 +4,6 @@ import Button from "./components/Button";
 import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
-  filterByTypeCallback,
   filterConfig,
 } from "./components/DataTable";
 import DependenciesView from "./components/DependenciesView";
@@ -45,6 +44,7 @@ import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
+import { LinkResolverProvider } from "./contexts/LinkResolverContext";
 import { useListAutomations } from "./hooks/automations";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
@@ -74,6 +74,7 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+
 export {
   AppContextProvider,
   applicationsClient,
@@ -95,7 +96,6 @@ export {
   EventsTable,
   Flex,
   filterByStatusCallback,
-  filterByTypeCallback,
   filterConfig,
   FluxRuntime,
   Footer,
@@ -119,6 +119,7 @@ export {
   KubeStatusIndicator,
   KustomizationDetail,
   Link,
+  LinkResolverProvider,
   LoadingPage,
   MessageBox,
   Metadata,

@@ -54,7 +54,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 	mux.Handle(prefix, srv.OAuth2Flow())
 	mux.Handle(prefix+"/callback", srv.Callback())
 	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
-	mux.Handle(prefix+"/userinfo", srv.UserInfo())
+	mux.HandleFunc(prefix+"/userinfo", srv.UserInfo)
 	mux.Handle(prefix+"/logout", srv.Logout())
 
 	return nil

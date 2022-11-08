@@ -2,17 +2,14 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { Automation, FluxObject } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
-import DataTable, {
-  filterByStatusCallback,
-  filterByTypeCallback,
-  filterConfig,
-} from "./DataTable";
+import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -40,12 +37,13 @@ function ReconciledObjectsTable({
   );
 
   const initialFilterState = {
-    ...filterConfig(objs, "type", filterByTypeCallback),
+    ...filterConfig(objs, "type"),
     ...filterConfig(objs, "namespace"),
     ...filterConfig(objs, "status", filterByStatusCallback),
   };
 
   const { setNodeYaml } = React.useContext(AppContext);
+  const resolver = useLinkResolver();
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
@@ -57,13 +55,18 @@ function ReconciledObjectsTable({
             value: (u: FluxObject) => {
               const kind = Kind[u.type];
               const secret = u.type === "Secret";
-              return kind ? (
+              const params = {
+                name: u.name,
+                namespace: u.namespace,
+                clusterName: u.clusterName,
+              };
+              // Enterprise is "aware" of more types of objects than Core,
+              // and we want to be able to link to those within this table.
+              // The resolver func provided by the context will decide what URL this routes to.
+              const resolved = resolver && resolver(u.type, params);
+              return kind || resolved ? (
                 <Link
-                  to={formatURL(objectTypeToRoute(kind), {
-                    name: u.name,
-                    namespace: u.namespace,
-                    clusterName: u.clusterName,
-                  })}
+                  to={resolved || formatURL(objectTypeToRoute(kind), params)}
                 >
                   {u.name}
                 </Link>

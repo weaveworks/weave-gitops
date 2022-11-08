@@ -37,6 +37,8 @@ export function useListSources(
         api
           .ListObjects({ namespace, kind })
           .then((response: ListObjectsResponse) => {
+            if (!response.objects) response.objects = [];
+            if (!response.errors) response.errors = [];
             return { kind, response };
           })
       );

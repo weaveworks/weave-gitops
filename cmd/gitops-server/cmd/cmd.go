@@ -18,6 +18,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-logr/logr"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
@@ -37,6 +38,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	k8sMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 const (
@@ -248,7 +250,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	if options.EnableMetrics {
 		metricsMux := http.NewServeMux()
-		metricsMux.Handle("/metrics", promhttp.Handler())
+		gatherers := prometheus.Gatherers{
+			prometheus.DefaultGatherer,
+			k8sMetrics.Registry,
+			clustersmngr.Registry,
+		}
+		metricsMux.Handle("/metrics", promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{}))
 
 		metricsServer = &http.Server{
 			Addr:    options.MetricsAddress,

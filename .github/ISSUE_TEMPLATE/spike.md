@@ -1,6 +1,6 @@
 ---
-name: Spike
-about: Research item for technical and non-techical work
+name: Spike 🔍
+about: Research item (normally created by project members)
 title: ''
 labels: 'type/spike'
 assignees: ''

@@ -360,72 +360,63 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 // it returns a UserInfo object with the email set to the admin token subject. Otherwise it
 // uses the token to query the OIDC provider's user info endpoint and return a UserInfo object
 // back or a 401 status in any other case.
-func (s *AuthServer) UserInfo() http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			rw.Header().Add("Allow", "GET")
-			rw.WriteHeader(http.StatusMethodNotAllowed)
+func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		rw.Header().Add("Allow", "GET")
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 
-			return
-		}
-
-		// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
-		// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
-		// users can use both ways to log into weave-gitops.
-		c, err := r.Cookie(AccessTokenCookieName)
-		if err != nil {
-			if err != http.ErrNoCookie {
-				rw.WriteHeader(http.StatusBadRequest)
-				return
-			}
-
-			c, err = r.Cookie(IDTokenCookieName)
-			if err != nil {
-				rw.WriteHeader(http.StatusBadRequest)
-				return
-			}
-		}
-
-		claims, err := s.tokenSignerVerifier.Verify(c.Value)
-		if err == nil {
-			ui := UserInfo{
-				Email: claims.Subject,
-			}
-			toJSON(rw, ui, s.Log)
-
-			return
-		}
-
-		if !s.oidcEnabled() {
-			ui := UserInfo{}
-			toJSON(rw, ui, s.Log)
-
-			return
-		}
-
-		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: c.Value,
-		}))
-		if err != nil {
-			JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
-			return
-		}
-
-		var userPrincipal UserPrincipal
-
-		// Extract custom claims
-		if err := info.Claims(&userPrincipal); err != nil {
-			JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
-			return
-		}
-
-		ui := UserInfo{
-			Email:  info.Email,
-			Groups: userPrincipal.Groups,
-		}
-
-		toJSON(rw, ui, s.Log)
+		return
 	}
+
+	c, err := findAuthCookie(r)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	claims, err := s.tokenSignerVerifier.Verify(c.Value)
+	if err == nil {
+		ui := UserInfo{
+			Email: claims.Subject,
+		}
+		toJSON(rw, ui, s.Log)
+
+		return
+	}
+
+	if !s.oidcEnabled() {
+		ui := UserInfo{}
+		toJSON(rw, ui, s.Log)
+
+		return
+	}
+
+	info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: c.Value,
+	}))
+	if err != nil {
+		s.Log.Error(err, "failed to query userinfo")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
+
+		return
+	}
+
+	var userPrincipal UserPrincipal
+
+	// Extract custom claims
+	if err := info.Claims(&userPrincipal); err != nil {
+		s.Log.Error(err, "failed to decode user claims")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
+
+		return
+	}
+
+	ui := UserInfo{
+		Email:  info.Email,
+		Groups: userPrincipal.Groups,
+	}
+
+	toJSON(rw, ui, s.Log)
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
@@ -555,4 +546,19 @@ func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error(err, "failed encoding error message", "message", errStr)
 	}
+}
+
+// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
+// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
+// users can use both ways to log into weave-gitops.
+func findAuthCookie(req *http.Request) (*http.Cookie, error) {
+	cookieNames := []string{AccessTokenCookieName, IDTokenCookieName}
+	for _, name := range cookieNames {
+		c, err := req.Cookie(name)
+		if err == nil {
+			return c, nil
+		}
+	}
+
+	return nil, http.ErrNoCookie
 }

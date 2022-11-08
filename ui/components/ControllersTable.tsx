@@ -59,7 +59,8 @@ function ControllersTable({ className, controllers = [] }: Props) {
           : []),
         {
           label: "Flux Version",
-          value: (d: Deployment) => d.labels[fluxVersionLabel],
+          value: (d: Deployment) =>
+            d.labels ? d.labels[fluxVersionLabel] : "",
         },
         {
           value: (d: Deployment) => (
