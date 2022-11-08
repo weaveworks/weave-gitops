@@ -33,6 +33,10 @@ exports[`YamlView snapshots renders 1`] = `
   transform: initial;
 }
 
+.c5 img {
+  width: 12px;
+}
+
 .c2.MuiButton-root {
   border-radius: 50%;
   min-width: 38px;
