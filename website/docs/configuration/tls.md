@@ -18,7 +18,7 @@ can be provided via an ingress controller or directly by the dashboard. In
 either case, the helm release must be updated. To have the dashboard itself
 handle TLS, you must create a `tls` secret containing the cert and key:
 
-```
+```cli
 kubectl create secret tls my-tls-secret \
   --cert=path/to/cert/file \
   --key=path/to/key/file
@@ -26,7 +26,7 @@ kubectl create secret tls my-tls-secret \
 
 and reference it from the helm release:
 
-```
+```yaml
   values:
     serverTLS:
       enabled: true
@@ -36,11 +36,11 @@ and reference it from the helm release:
 If you prefer to delegate TLS handling to the ingress controller instead, your
 helm release should look like:
 
-```
+```yaml
   values:
     ingress:
       enabled: true
-	  ... other parameters specific to the ingress type ...
+      ... other parameters specific to the ingress type ...
 ```
 
 ## cert-manager

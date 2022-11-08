@@ -8,7 +8,8 @@ In this guide we will show you how to enable users to login to the Weave GitOps 
 This example uses [Dex][tool-dex] and its GitHub connector, and assumes Weave GitOps has already been installed on a Kubernetes clusters.
 
 ### Pre-requisites
-- A Kubernetes cluster such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster running a 
+
+- A Kubernetes cluster such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster running a
 [Flux-supported version of Kubernetes](https://fluxcd.io/docs/installation/#prerequisites)
 - Weave GitOps is [installed](../installation.mdx) and [TLS has been enabled](../configuration/tls.md).
 
@@ -40,7 +41,7 @@ There are a [lot of options][dex-connectors] available with Dex, in this guide w
 use the [GitHub connector][dex-github].
 
 We can get a GitHub ClientID and Client secret by creating a
-[new OAuth appliation][github-oauth].
+[new OAuth application][github-oauth].
 
 ![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
 
@@ -256,6 +257,7 @@ Static user password can be generated with `htpasswd`:
 ```bash
 echo password | htpasswd -BinC 10 admin | cut -d: -f2
 ```
+
 ## OIDC login
 
 Using the "Login with OIDC Provider" button:

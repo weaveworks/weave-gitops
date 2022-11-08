@@ -12,11 +12,13 @@ The web UI surfaces key information to help application operators easily discove
 Weave GitOps is an open source project sponsored by [Weaveworks](https://weave.works) - the GitOps company, and original creators of [Flux](https://fluxcd.io).
 
 ## Why adopt GitOps?
+
 > "GitOps is the best thing since configuration as code. Git changed how we collaborate, but declarative configuration is the key to dealing with infrastructure at scale, and sets the stage for the next generation of management tools"
 
 <cite>- Kelsey Hightower, Staff Developer Advocate, Google.</cite><br/><br/>
 
 Adopting GitOps can bring a number of key benefits:
+
 - Faster and more frequent deployments
 - Easy recovery from failures
 - Improved security and auditability
@@ -34,7 +36,7 @@ See [Installation](/docs/installation) and [Getting Started](/docs/getting-start
 
 ## Features
 
-- **Applications view** - allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects. 
+- **Applications view** - allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
 - **Sources view** - shows the status of resources which are synchronizing content from where you have declared the desired state of your system, for example Git repositories. This shows summary information from `gitrepository`, `helmrepository` and `bucket` objects.
 - **Flux Runtime view** - provides status on the GitOps engine continuously reconciling your desired and live state. It shows your installed GitOps Toolkit Controllers and their version.
 - Drill down into more detailed information on any given Flux resource.
@@ -49,5 +51,3 @@ See [Installation](/docs/installation) and [Getting Started](/docs/getting-start
   - Compatible with any conformant [Kubernetes version](https://fluxcd.io/docs/installation/#prerequisites) and common ecosystem technologies such as Helm, Kustomize, RBAC, Prometheus, OPA, Kyverno, etc.
   - Multitenancy, multiple git repositories, multiple clusters
   - Alerts and notifications
-
-
