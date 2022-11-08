@@ -20,7 +20,7 @@ spec:
       description: Number of control planes
       options: ["1", "2", "3"]
     - name: WORKER_MACHINE_COUNT
-      description: Number of control planes
+      description: Number of worker machines
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
