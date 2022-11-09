@@ -112,7 +112,7 @@ exports[`Footer snapshots default 1`] = `
     />
     <a
       class="c5"
-      href="mailto:support@weave.works"
+      href="mailto:sales@weave.works"
       rel="noreferrer"
       target="_blank"
     >
@@ -120,7 +120,7 @@ exports[`Footer snapshots default 1`] = `
         class="c6"
         color="primary"
       >
-        support@weave.works
+        sales@weave.works
       </span>
     </a>
   </div>
@@ -326,7 +326,7 @@ exports[`Footer snapshots no api version 1`] = `
     />
     <a
       class="c5"
-      href="mailto:support@weave.works"
+      href="mailto:sales@weave.works"
       rel="noreferrer"
       target="_blank"
     >
@@ -334,7 +334,7 @@ exports[`Footer snapshots no api version 1`] = `
         class="c6"
         color="primary"
       >
-        support@weave.works
+        sales@weave.works
       </span>
     </a>
   </div>

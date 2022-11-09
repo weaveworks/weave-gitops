@@ -160,6 +160,10 @@ exports[`DataTable snapshots renders 1`] = `
   margin-left: 4px;
 }
 
+.c10 img {
+  width: 16px;
+}
+
 .c6.MuiButton-root {
   height: 32px;
   font-size: 12px;

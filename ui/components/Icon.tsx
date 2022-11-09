@@ -201,4 +201,8 @@ export default styled(Icon)`
     margin-left: 4px;
     color: ${(props) => props.theme.colors[props.color as any]};
   }
+
+  img {
+    width: ${(props) => props.theme.spacing[props.size as any]};
+  }
 `;

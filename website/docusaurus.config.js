@@ -78,7 +78,7 @@ module.exports = {
           items: [
             {
               label: "Contact Us",
-              href: "mailto:support@weave.works",
+              href: "mailto:sales@weave.works",
             },
           ],
         },
