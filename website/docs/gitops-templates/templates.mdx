@@ -114,7 +114,7 @@ Supported templating languages:
     templating uses text/templating for rendering, using go-templating style syntax `{{ .params.CLUSTER_NAME }}` where params are provided by the `.params` variable. 
     Template functions can also be used with the syntax `{{ .params.CLUSTER_NAME | FUNCTION }}`. 
     
-    #### Supported functions [(from Sprig libray)](http://masterminds.github.io/sprig/)
+    #### Supported functions [(from Sprig library)](http://masterminds.github.io/sprig/)
 
     | __Function Type__                   | __Functions__                                                     |
     | -----------------                   | --------------                                                  |
@@ -207,9 +207,9 @@ spec:
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
 
 - `name`: The variable name within the resource templates
-- `descripton`: Description of the parameter. This will be rendered in the UI and CLI
+- `description`: Description of the parameter. This will be rendered in the UI and CLI
 - `options`: The list of possible values this parameter can be set to.
-- `required` -  Whether the paramter must contain a non-empty value
+- `required` -  Whether the parameter must contain a non-empty value
 - `default` - Default value of the parameter 
 
 Sample:
