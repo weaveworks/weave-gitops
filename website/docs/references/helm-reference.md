@@ -56,7 +56,7 @@ This reference was generated for the chart version 4.0.6 which installs weave gi
 | securityContext.runAsUser | int | `1000` |  |
 | securityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
 | serverTLS.enable | bool | `false` | Enable TLS termination in gitops itself. If you enable this, you need to create a secret, and specify the secretName. Another option is to create an ingress. |
-| serverTLS.secretName | string | `"my-secret-tls"` | Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format. See <https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets> for more details and examples |
+| serverTLS.secretName | string | `"my-secret-tls"` | Specify the tls secret name. This type of secrets have a key called `tls.crt` and `tls.key` containing their corresponding values in  base64 format. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets for more details and examples |
 | service.annotations | object | `{}` |  |
 | service.create | bool | `true` |  |
 | service.port | int | `9001` |  |
