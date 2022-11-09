@@ -370,7 +370,9 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 
 	c, err := findAuthCookie(r)
 	if err != nil {
+		s.Log.Error(err, "Failed to get cookie from request")
 		rw.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
