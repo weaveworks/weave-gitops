@@ -1,0 +1,50 @@
+---
+title: Authorization
+sidebar_position: 2
+hide_title: true
+---
+
+import TierLabel from "../../_components/TierLabel";
+
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Authorization  <TierLabel tiers="enterprise" />
+
+This section provides a recommended way to configure RBAC in the context of pipelines. It is oriented to the journey
+that you expect your users to have.
+
+## View pipelines
+
+In order to view pipelines, users would need to have read access to the `pipeline` resource and the underlying `application` resources.
+
+An example of configuration to achieve this purpose could be seen below with `pipeline-reader` role and `search-pipeline-reader`
+role-binding to allow a group `search-developer` to access pipeline resources within `search` namespace.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pipeline-reader
+rules:
+  - apiGroups: [ "pipelines.weave.works" ]
+    resources: [ "pipelines" ]
+    verbs: [ "get", "list", "watch"]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: search-pipeline-reader
+  namespace: search
+subjects:
+  - kind: Group
+    name: search-developer
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: pipeline-reader
+  apiGroup: rbac.authorization.k8s.io
+```
