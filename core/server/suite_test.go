@@ -63,7 +63,11 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 
-	coreCfg := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
+	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	coreCfg.NSAccess = &nsChecker
 
 	core, err := server.NewCoreServer(coreCfg)
@@ -159,7 +163,11 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	// and the default options include the Flowcontrol setup which is not mocked out
 	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log, scheme, clientFn, nil)
 
-	coreCfg := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
+	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	coreCfg.NSAccess = &nsChecker
 
 	return coreCfg

@@ -35,7 +35,8 @@ service Core {
     */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
-            get : "/v1/objects"
+            post : "/v1/objects"
+			body: "*"
         };
     }
 
@@ -188,6 +189,7 @@ message ListObjectsRequest {
     string namespace   = 1;
     string kind        = 2;
     string clusterName = 3;
+    map<string, string> labels = 4;
 }
 
 message ListObjectsResponse {

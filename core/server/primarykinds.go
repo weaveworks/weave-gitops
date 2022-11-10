@@ -18,15 +18,19 @@ func New() *PrimaryKinds {
 	return &kinds
 }
 
-func DefaultPrimaryKinds() *PrimaryKinds {
+func DefaultPrimaryKinds() (*PrimaryKinds, error) {
 	kinds := New()
-	scheme, _ := kube.CreateScheme()
+	scheme, err := kube.CreateScheme()
+
+	if err != nil {
+		return nil, err
+	}
 
 	for gvk := range scheme.AllKnownTypes() {
 		kinds.kinds[gvk.Kind] = gvk
 	}
 
-	return kinds
+	return kinds, nil
 }
 
 // Add sets another kind name and gvk to resolve an object

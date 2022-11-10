@@ -65,7 +65,14 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		return &list
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, true, client.InNamespace(msg.Namespace)); err != nil {
+	listOptions := []client.ListOption{
+		client.InNamespace(msg.Namespace),
+	}
+	if len(msg.Labels) > 0 {
+		listOptions = append(listOptions, client.MatchingLabels(msg.Labels))
+	}
+
+	if err := clustersClient.ClusteredList(ctx, clist, true, listOptions...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, err
