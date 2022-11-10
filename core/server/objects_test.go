@@ -145,6 +145,7 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	g.Expect(res.Object.ClusterName).To(Equal("Default"))
 	g.Expect(res.Object.Payload).NotTo(BeEmpty())
 }
+
 func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -330,6 +331,50 @@ func TestGetObject_HelmReleaseCantGetSecret(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Object.Inventory).To(BeEmpty())
+}
+
+func TestGetObjectSecret(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "schhhhh-dont-tell-anybody",
+			Namespace: ns.Name,
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
+
+	cfg := makeServerConfig(fakeClient, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        secret.Name,
+		Namespace:   ns.Name,
+		Kind:        "Secret",
+		ClusterName: "Default",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Object.ClusterName).To(Equal("Default"))
+
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(res.Object.Payload), &data)
+	g.Expect(err).To(BeNil())
+	g.Expect(data["kind"]).To(Equal("Secret"))
+	g.Expect(data["metadata"].(map[string]interface{})["name"]).To(Equal(secret.Name))
+	g.Expect(data["data"]).To(Equal(map[string]interface{}{"redacted": nil}))
 }
 
 func TestListObjectSingle(t *testing.T) {
@@ -617,4 +662,47 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Errors).To(HaveLen(1))
 	g.Expect(res.Objects).To(HaveLen(1))
+}
+
+func TestListObjectsSecret(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "schhhhh-dont-tell-anybody",
+			Namespace: ns.Name,
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
+
+	cfg := makeServerConfig(fakeClient, t)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
+		Kind:        "Secret",
+		ClusterName: "Default",
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Objects).To(HaveLen(1))
+	g.Expect(res.Objects[0].ClusterName).To(Equal("Default"))
+
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(res.Objects[0].Payload), &data)
+	g.Expect(err).To(BeNil())
+	g.Expect(data["kind"]).To(Equal("Secret"))
+	g.Expect(data["metadata"].(map[string]interface{})["name"]).To(Equal(secret.Name))
+	g.Expect(data["data"]).To(Equal(map[string]interface{}{"redacted": nil}))
 }
