@@ -34,7 +34,7 @@ function HelmChartDetail({ className, helmChart, customActions }: Props) {
       source={helmChart}
       customActions={customActions}
       info={[
-        ["Type", Kind.HelmChart],
+        ["Kind", Kind.HelmChart],
         ["Chart", helmChart.chart],
         ["Version", helmChart.version],
         ["Current Revision", helmChart.revision],

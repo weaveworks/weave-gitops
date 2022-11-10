@@ -69,7 +69,7 @@ function SourcesTable({ className, sources }: Props) {
       textSearchable: true,
       maxWidth: 600,
     },
-    { label: "Type", value: "type" },
+    { label: "Kind", value: "type" },
     { label: "Namespace", value: "namespace" },
     ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
       ? [{ label: "Tenant", value: "tenant" }]

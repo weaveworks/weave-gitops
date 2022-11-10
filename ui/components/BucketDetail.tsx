@@ -35,7 +35,7 @@ function BucketDetail({ className, bucket, customActions }: Props) {
       source={bucket}
       customActions={customActions}
       info={[
-        ["Type", Kind.Bucket],
+        ["Kind", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
         ["Bucket Name", bucket.name],
         ["Last Updated", <Timestamp time={bucket.lastUpdatedAt} />],

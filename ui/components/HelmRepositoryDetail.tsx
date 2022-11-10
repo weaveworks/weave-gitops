@@ -39,7 +39,7 @@ function HelmRepositoryDetail({
       source={helmRepository}
       customActions={customActions}
       info={[
-        ["Type", Kind.HelmRepository],
+        ["Kind", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],
         ["URL", <Link href={helmRepository.url}>{helmRepository.url}</Link>],
         [

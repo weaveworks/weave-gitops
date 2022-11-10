@@ -86,7 +86,7 @@ function ReconciledObjectsTable({
             maxWidth: 600,
           },
           {
-            label: "Type",
+            label: "Kind",
             value: (u: FluxObject) => u.type,
             sortValue: (u: FluxObject) => u.type,
           },

@@ -39,7 +39,7 @@ function GitRepositoryDetail({
       source={gitRepository}
       customActions={customActions}
       info={[
-        ["Type", Kind.GitRepository],
+        ["Kind", Kind.GitRepository],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(gitRepository.url)}>

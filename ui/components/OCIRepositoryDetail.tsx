@@ -39,7 +39,7 @@ function OCIRepositoryDetail({
       source={ociRepository}
       customActions={customActions}
       info={[
-        ["Type", Kind.OCIRepository],
+        ["Kind", Kind.OCIRepository],
         ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],
         [
           "Last Updated",
