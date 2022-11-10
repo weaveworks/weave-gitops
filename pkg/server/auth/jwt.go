@@ -90,16 +90,33 @@ func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDTok
 		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
 	}
 
-	var claims struct {
-		Email  string   `json:"email"`
-		Groups []string `json:"groups"`
-	}
-
+	claims := map[string]interface{}{}
 	if err := token.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("failed to parse claims from the JWT token: %w", err)
 	}
+	var subKey = "email"
+	var groupsKey = "groups"
 
-	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
+	sub, ok := claims[subKey].(string)
+	if !ok {
+		return nil, fmt.Errorf("missing %q claim in response", subKey)
+	}
+	groups := []string{}
+	if v, ok := claims[groupsKey]; ok {
+		gv, ok := v.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
+		}
+		for _, v := range gv {
+			if s, ok := v.(string); !ok {
+				return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
+			} else {
+				groups = append(groups, s)
+			}
+		}
+	}
+
+	return &UserPrincipal{ID: sub, Groups: groups}, nil
 }
 
 type JWTAdminCookiePrincipalGetter struct {
