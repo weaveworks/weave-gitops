@@ -23,7 +23,7 @@ This version of Weave GitOps is tested against the following Kubernetes releases
 Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisites) that you use might impose further minimum version requirements.
 
 #### Install Flux
-Weave GitOps is an extension to Flux and therefore requires that Flux 0.32 or later has already been installed on your Kubernetes cluster. Full documentation is avilable at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.32 or later has already been installed on your Kubernetes cluster. Full documentation is available at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
 
 This version of Weave GitOps is tested against the following Flux releases:
 * 0.32
@@ -36,13 +36,15 @@ This version of Weave GitOps is tested against the following Flux releases:
 
 Weave GitOps includes a command-line interface to help users create and manage resources.
 
+:::note Installation options
 The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
 
 Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+:::
 
 To install:
 
-```console
+```bash
 curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.10.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
@@ -59,7 +61,7 @@ brew install weaveworks/tap/gitops
 
 Weave GitOps is provided through a Helm Chart and installed as a Flux resource through a `HelmRepository` and `HelmRelease`. To install on your cluster, adjust the following so that `username` is the username you want and `passwordHash` is a bcrypt hash of your password, and commit the file to the location bootstrapped with Flux so that it is synchronized to your Cluster.
 
-```
+```yaml
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -207,7 +209,7 @@ aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 <Tabs groupId="infrastructure" default>
 <TabItem value="github" label="GITHUB">
 
-```
+```bash
 flux bootstrap github \
   --owner=<github username> \
   --repository=fleet-infra \
@@ -220,7 +222,7 @@ flux bootstrap github \
 
 <TabItem value="gitlab" label="GITLAB">
 
-```
+```bash
 flux bootstrap gitlab \
   --owner=<gitlab username> \
   --repository=fleet-infra \
@@ -262,7 +264,7 @@ Here we'll continue with our example instructions for CAPD and CAPA.
 <Tabs groupId="infrastructure" default>
 <TabItem value="kind" label="CAPD (kind)">
 
-```
+```bash
 # Enable support for `ClusterResourceSet`s for automatically installing CNIs
 export EXP_CLUSTER_RESOURCE_SET=true
 
@@ -272,7 +274,7 @@ clusterctl init --infrastructure docker
 </TabItem>
 <TabItem value="eks" label="CAPA (EKS)">
 
-```
+```bash
 export EXP_EKS=true
 export EXP_MACHINE_POOL=true
 export CAPA_EKS_IAM=true
@@ -337,7 +339,7 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 
 ### 5. Configure and commit
 
-We deploy WGE via a Helm chart. We'll save and adapt the below template, before commiting it to git to a flux-reconciled path.
+We deploy WGE via a Helm chart. We'll save and adapt the below template, before committing it to git to a flux-reconciled path.
 
 Clone the newly created repo locally as we're gonna add some things!
 
@@ -380,7 +382,7 @@ When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namesp
 
 Commit and push all the files
 
-```
+```bash
 git add clusters/management/weave-gitops-enterprise.yaml
 git commit -m "Deploy Weave GitOps Enterprise"
 git push
@@ -414,7 +416,7 @@ kubectl create secret generic cluster-user-auth \
 
 You should now be able to load the WGE UI by port forwarding. 
 
-```bash
+```console
 kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 ```
 
@@ -436,7 +438,8 @@ With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Te
 Check out our guide on how to [use Terraform templates](./../guides/using-terraform-templates), and why not try your hands at using it with the RDS example!
 
 Install the TF-Controller to a cluster using Helm:
-```bash
+
+```console
 # Add tf-controller helm repository
 helm repo add tf-controller https://weaveworks.github.io/tf-controller/
 
@@ -451,11 +454,11 @@ Consult the TF-Controller [Installation](https://weaveworks.github.io/tf-control
 Install the Weave GitOps Enterprise CLI tool.
 You can use brew or curl
 
-```
+```console
 brew install weaveworks/tap/gitops-ee
 ```
 
-```
+```bash
 curl -O https://artifacts.wge.dev.weave.works/releases/bin/0.9.5/gitops-linux-x86_64.tar.gz
 ```
 
@@ -537,6 +540,7 @@ Use this `eksctl` configuration below (replacing the placeholder values) to:
 - Create the required service account ARN
 
 Save the example below as `oidc-config.yaml`
+
 ```yaml
 ---
 apiVersion: eksctl.io/v1alpha5
@@ -599,7 +603,8 @@ gitops:
 ```
 
 Then install it:
-```bash
+
+```console
 helm install wego <URL/PATH> \
   --namespace=flux-system \
   --create-namespace \
@@ -619,7 +624,7 @@ helm install wego <URL/PATH> \
 
 Run the following from your workstation:
 
-```bash
+```console
 kubectl get pods -n flux-system
 # you should see something like the following returned
 flux-system          helm-controller-5b96d94c7f-tds9n                    1/1     Running   0          53s
@@ -633,7 +638,9 @@ flux-system          ww-gitops-weave-gitops-5bdc9f7744-vkh65             1/1    
 Your Weave GitOps installation is now ready!
 
 The quickest way to access your dashboard is by setting up a port forward:
-```
+
+```console
 kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
 ```
+
 Then, [open the dashboard](http://localhost:9001/).

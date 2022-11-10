@@ -32,6 +32,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
+	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -423,9 +424,15 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
-	spec, err := watch.ParsePortForwardSpec(flags.PortForward)
-	if err != nil {
-		return err
+	portForwardsForSession := []string{flags.DashboardPort}
+
+	if flags.PortForward != "" {
+		spec, err := watch.ParsePortForwardSpec(flags.PortForward)
+		if err != nil {
+			return err
+		}
+
+		portForwardsForSession = append(portForwardsForSession, spec.HostPort)
 	}
 
 	session, err := install.NewSession(
@@ -433,7 +440,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		kubeClient,
 		flags.SessionName,
 		flags.SessionNamespace,
-		[]string{spec.HostPort, flags.DashboardPort},
+		portForwardsForSession,
 		dashboardHashedPassword,
 	)
 
@@ -634,7 +641,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		cancelPortFwd func()
 		// atomic counter for the number of file change events that have changed
 		counter      uint64 = 1
-		needToRescan bool   = false
+		needToRescan        = false
 	)
 
 	watcherCtx, watcherCancel := context.WithCancel(ctx)
@@ -685,6 +692,14 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 					// reset counter
 					atomic.StoreUint64(&counter, 0)
+
+					// validate only files under the target dir
+					log.Actionf("Validating files under %s/ ...", paths.TargetDir)
+
+					if err := validate.Validate(paths.TargetDir); err != nil {
+						log.Failuref("Validation failed: please review the errors and try again")
+						continue
+					}
 
 					// use ctx, not thisCtx - incomplete uploads will never make anybody happy
 					if err := watch.SyncDir(ctx, log, paths.RootDir, "dev-bucket", minioClient, ignorer); err != nil {
