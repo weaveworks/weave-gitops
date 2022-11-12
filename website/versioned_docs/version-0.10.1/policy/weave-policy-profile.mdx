@@ -1,5 +1,5 @@
 ---
-title: Weave policy profile
+title: Weave Policy Profile
 hide_title: true
 sidebar_position: 2
 ---
@@ -22,7 +22,7 @@ Weave policy profile provides policies to automate the enforcement of best pract
 
 Policies are provided in the profile as Custom Resources. The agent reads from the policies deployed on the cluster and runs them during each admission request or when auditing a resource.
 
-Policies are hosted in a policy library which is ususally a git repository. They are fetched in the profile through the use of `kustomize.toolkit.fluxcd.io.Kustomization`, that deploys the policies to the cluster.
+Policies are hosted in a policy library which is usually a git repository. They are fetched in the profile through the use of `kustomize.toolkit.fluxcd.io.Kustomization`, that deploys the policies to the cluster.
 
 By default all policies in the specified path would be deployed in order to specify which policies should be deployed in a library, a `kustomize.config.k8s.io.Kustomization` file should be defined in the repository.
 
@@ -83,7 +83,7 @@ policy-agent:
   caCertificate: "---" # CA bundle to validate the webhook server, used by the client
 ```
 
-If the agent webhook could not be reached or the request failed to complete, the corresponding request would be refused. To change that behavior and accepts the reuqest in cases of failure, this needs to be set:
+If the agent webhook could not be reached or the request failed to complete, the corresponding request would be refused. To change that behavior and accepts the request in cases of failure, this needs to be set:
 
 ```yaml
 policy-agent:
@@ -109,7 +109,7 @@ Audit will be performed when the agent starts and then at an interval of your ch
 ---
 ## Policy Sets
 
-Policy set is a custom resource that gives more control over which policies to be used in each scenario. There are cases in which certain policies are required to be observed but denying the requests of violating objects would be disruptive. Policy set allows definining additional filters for each scenario: `Audit` and `Admission` so it is possible to report violations on certain policies without the need of blocking the deployments if certain policies are not as critical as others.
+Policy set is a custom resource that gives more control over which policies to be used in each scenario. There are cases in which certain policies are required to be observed but denying the requests of violating objects would be disruptive. Policy set allows defining additional filters for each scenario: `Audit` and `Admission` so it is possible to report violations on certain policies without the need of blocking the deployments if certain policies are not as critical as others.
 
 Policy set should also be hosted on the policy library. The following definition defines which specific policies should be used using policy names:
 
@@ -245,7 +245,7 @@ policy-agent:
 <TabItem value="elasticsearch" label="Elasticsearch">
 The results of validating entities against policies would be written in Elasticsearch index.
 
-To enable writing to elasticsearh in audit scenario:
+To enable writing to elasticsearch in audit scenario:
 
 ```yaml
 policy-agent:
@@ -292,5 +292,5 @@ status: string # Violation or Compliance
 message: string # message that summarizes the policy validation
 type: string # Admission or Audit
 trigger: string # what triggered the validation, create request or initial audit,..
-created_at: string # time that the validation occured in 
+created_at: string # time that the validation occurred in 
 ```
