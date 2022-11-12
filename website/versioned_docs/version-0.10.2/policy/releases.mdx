@@ -1,11 +1,38 @@
 ---
 title: Profile Releases
-sidebar_position: 4
 hide_title: true
+sidebar_position: 7
 ---
+
 import TierLabel from "../_components/TierLabel";
 
 # Profile Releases <TierLabel tiers="enterprise" />
+
+## v0.6.4
+
+### Highlights
+- **Agent**
+  - Add PolicyConfig CRD to make it possible to customize policy configuration per namespaces, applications or resources
+  - Add mode field to policy set and add policy modes to its status
+  - Add policy modes to labels to support filtering
+  - Support backward compatibility for policy version v2beta1
+
+### Dependency Versions
+
+- Policy Agent v2.0.0
+
+### Policy Library Compatibility
+
+Compatible with Policy Library versions:
+
+- v1.2.0
+
+Needs this [migration steps](./policy-set.mdx#migration-from-v2beta1-to-v2beta2) to be compatible with the following versions:
+
+- v1.1.0
+- v1.0.0
+- v0.4.0
+
 
 ## v0.6.3
 
