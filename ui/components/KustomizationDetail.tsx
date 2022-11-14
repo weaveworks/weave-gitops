@@ -66,6 +66,7 @@ function KustomizationDetail({
           "Last Updated",
           <Timestamp time={automationLastUpdated(kustomization)} />,
         ],
+        ["Namespace", kustomization?.namespace],
       ]}
     />
   );
