@@ -51,6 +51,7 @@ export type ListObjectsRequest = {
   namespace?: string
   kind?: string
   clusterName?: string
+  labels?: {[key: string]: string}
 }
 
 export type ListObjectsResponse = {
@@ -143,7 +144,7 @@ export class Core {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListObjects(req: ListObjectsRequest, initReq?: fm.InitReq): Promise<ListObjectsResponse> {
-    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

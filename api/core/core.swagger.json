@@ -295,7 +295,7 @@
       }
     },
     "/v1/objects": {
-      "get": {
+      "post": {
         "summary": "ListObjects gets data about primary objects.",
         "operationId": "Core_ListObjects",
         "responses": {
@@ -314,22 +314,12 @@
         },
         "parameters": [
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListObjectsRequest"
+            }
           }
         ],
         "tags": [
@@ -802,6 +792,26 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Namespace"
+          }
+        }
+      }
+    },
+    "v1ListObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }
