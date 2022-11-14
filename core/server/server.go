@@ -47,15 +47,20 @@ type CoreServerConfig struct {
 	PrimaryKinds    *PrimaryKinds
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager) CoreServerConfig {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager) (CoreServerConfig, error) {
+	kinds, err := DefaultPrimaryKinds()
+	if err != nil {
+		return CoreServerConfig{}, err
+	}
+
 	return CoreServerConfig{
 		log:             log.WithName("core-server"),
 		RestCfg:         cfg,
 		clusterName:     clusterName,
 		NSAccess:        nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		ClustersManager: clustersManager,
-		PrimaryKinds:    DefaultPrimaryKinds(),
-	}
+		PrimaryKinds:    kinds,
+	}, nil
 }
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {

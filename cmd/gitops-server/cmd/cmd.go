@@ -187,7 +187,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clientsFactory, clustersmngr.DefaultKubeConfigOptions)
 	clustersManager.Start(ctx)
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName, clustersManager)
+	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager)
+	if err != nil {
+		return fmt.Errorf("could not create core config: %w", err)
+	}
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {

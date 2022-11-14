@@ -266,29 +266,25 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	objects := []*pb.Object{}
 	respErrors := multierror.Error{}
 
-	for _, obj := range result {
-		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+	for _, unstructuredObj := range result {
+		tenant := GetTenant(unstructuredObj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 		var o *pb.Object
 
-		if obj.GetKind() == "Secret" {
-			cleanSecret, err := sanitizeSecret(&obj)
+		var obj client.Object = &unstructuredObj
+
+		if unstructuredObj.GetKind() == "Secret" {
+			obj, err = sanitizeSecret(&unstructuredObj)
 			if err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("error sanitizing secrets: %w", err), respErrors.Errors...)
 				continue
 			}
+		}
 
-			o, err = coretypes.K8sObjectToProto(cleanSecret, msg.ClusterName, tenant, nil)
-			if err != nil {
-				respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
-				continue
-			}
-		} else {
-			o, err = coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
-			if err != nil {
-				respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
-				continue
-			}
+		o, err = coretypes.K8sObjectToProto(obj, msg.ClusterName, tenant, nil)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
+			continue
 		}
 
 		objects = append(objects, o)

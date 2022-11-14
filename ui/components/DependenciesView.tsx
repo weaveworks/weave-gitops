@@ -49,7 +49,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     isLoading: isLoadingData,
     error,
   } = automation
-    ? useListObjects("", automationKind, automation?.clusterName)
+    ? useListObjects("", automationKind, automation?.clusterName, {})
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
   React.useEffect(() => {

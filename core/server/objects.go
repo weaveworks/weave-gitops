@@ -65,7 +65,14 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		return &list
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, true, client.InNamespace(msg.Namespace)); err != nil {
+	listOptions := []client.ListOption{
+		client.InNamespace(msg.Namespace),
+	}
+	if len(msg.Labels) > 0 {
+		listOptions = append(listOptions, client.MatchingLabels(msg.Labels))
+	}
+
+	if err := clustersClient.ClusteredList(ctx, clist, true, listOptions...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, err
@@ -87,13 +94,22 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 				continue
 			}
 
-			for _, object := range list.Items {
-				tenant := GetTenant(object.GetNamespace(), n, clusterUserNamespaces)
+			for _, unstructuredObj := range list.Items {
+				tenant := GetTenant(unstructuredObj.GetNamespace(), n, clusterUserNamespaces)
+
+				var obj client.Object = &unstructuredObj
 
 				var inventory []*pb.GroupVersionKind = nil
 
-				if gvk.Kind == v2beta1.HelmReleaseKind {
-					inventory, err = getUnstructuredHelmReleaseInventory(ctx, object, clustersClient, n)
+				switch gvk.Kind {
+				case "Secret":
+					obj, err = sanitizeSecret(&unstructuredObj)
+					if err != nil {
+						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: fmt.Sprintf("error sanitizing secrets: %v", err)})
+						continue
+					}
+				case v2beta1.HelmReleaseKind:
+					inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, n)
 					if err != nil {
 						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: err.Error()})
 						inventory = nil // We can still display most things without inventory
@@ -102,7 +118,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 					}
 				}
 
-				o, err := types.K8sObjectToProto(&object, n, tenant, inventory)
+				o, err := types.K8sObjectToProto(obj, n, tenant, inventory)
 				if err != nil {
 					respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: "converting items: " + err.Error()})
 					continue
@@ -130,22 +146,30 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		return nil, err
 	}
 
-	obj := unstructured.Unstructured{}
-	obj.SetGroupVersionKind(*gvk)
+	unstructuredObj := unstructured.Unstructured{}
+	unstructuredObj.SetGroupVersionKind(*gvk)
 
 	key := client.ObjectKey{
 		Name:      msg.Name,
 		Namespace: msg.Namespace,
 	}
 
-	if err := clustersClient.Get(ctx, msg.ClusterName, key, &obj); err != nil {
+	if err := clustersClient.Get(ctx, msg.ClusterName, key, &unstructuredObj); err != nil {
 		return nil, err
 	}
 
 	var inventory []*pb.GroupVersionKind = nil
 
-	if gvk.Kind == v2beta1.HelmReleaseKind {
-		inventory, err = getUnstructuredHelmReleaseInventory(ctx, obj, clustersClient, msg.ClusterName)
+	var obj client.Object = &unstructuredObj
+
+	switch gvk.Kind {
+	case "Secret":
+		obj, err = sanitizeSecret(&unstructuredObj)
+		if err != nil {
+			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
+		}
+	case v2beta1.HelmReleaseKind:
+		inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, msg.ClusterName)
 		if err != nil {
 			inventory = nil // We can still display most things without inventory
 
@@ -157,7 +181,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 
 	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
-	res, err := types.K8sObjectToProto(&obj, msg.ClusterName, tenant, inventory)
+	res, err := types.K8sObjectToProto(obj, msg.ClusterName, tenant, inventory)
 
 	if err != nil {
 		return nil, fmt.Errorf("converting object to proto: %w", err)
