@@ -35,6 +35,8 @@ func (s *Session) Connect() error {
 	subProcArgs := append(os.Args,
 		// we must run the sub-process without a session.
 		"--no-session",
+		// we must let the sub-run know that this is the session name of the sub-process
+		"--x-session-name", s.name,
 		// vclusters are always new clusters, that doesn't mean we haven't bootstrapped the outer cluster.
 		"--no-bootstrap",
 		// allow the sub-process to connect to the vcluster context.

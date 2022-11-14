@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -75,6 +76,9 @@ type RunCommandFlags struct {
 
 	// Flags, created by genericclioptions.
 	Context string
+
+	// Hidden session name for the sub-process
+	HiddenSessionName string
 }
 
 var flags RunCommandFlags
@@ -127,6 +131,9 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+
+	cmdFlags.StringVar(&flags.HiddenSessionName, "x-session-name", "", "The session name acknowledged by the sub-process. This is a hidden flag and should not be used.")
+	_ = cmdFlags.MarkHidden("x-session-name")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -603,7 +610,28 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
 
-	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace, paths.TargetDir, flags.Timeout, devBucketPort); err != nil {
+	sessionName := flags.HiddenSessionName
+	if sessionName == "" {
+		sessionName = "no-session"
+	}
+
+	var username string
+	if current, err := user.Current(); err != nil {
+		username = "unknown"
+	} else {
+		username = current.Username
+	}
+
+	setupBucketSourceAndKSParams := watch.SetupBucketSourceAndKSParams{
+		Namespace:     flags.Namespace,
+		Path:          paths.TargetDir,
+		Timeout:       flags.Timeout,
+		DevBucketPort: devBucketPort,
+		SessionName:   sessionName,
+		Username:      username,
+	}
+
+	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupBucketSourceAndKSParams); err != nil {
 		cancel()
 		return err
 	}
@@ -702,7 +730,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					}
 
 					// use ctx, not thisCtx - incomplete uploads will never make anybody happy
-					if err := watch.SyncDir(ctx, log, paths.RootDir, "dev-bucket", minioClient, ignorer); err != nil {
+					if err := watch.SyncDir(ctx, log, paths.RootDir, watch.RunDevBucketName, minioClient, ignorer); err != nil {
 						log.Failuref("Error syncing dir: %v", err)
 					}
 
@@ -725,7 +753,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						needToRescan = false
 					}
 
-					log.Actionf("Request reconciliation of dev-bucket, and dev-ks (timeout %v) ... ", flags.Timeout)
+					log.Actionf("Request reconciliation of GitOps Run resources (timeout %v) ... ", flags.Timeout)
 
 					lastReconcile = time.Now()
 					// context that cancels when files change

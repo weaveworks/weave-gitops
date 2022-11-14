@@ -31,13 +31,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, path string, timeout time.Duration, devBucketPort int32) error {
-	const devBucketCredentials = "dev-bucket-credentials"
+type SetupBucketSourceAndKSParams struct {
+	Namespace     string
+	Path          string
+	Timeout       time.Duration
+	DevBucketPort int32
+	SessionName   string
+	Username      string
+}
+
+func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupBucketSourceAndKSParams) error {
+	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
 
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      devBucketCredentials,
-			Namespace: namespace,
+			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
 			"accesskey": []byte("user"),
@@ -47,33 +56,43 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 	}
 	source := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucket,
-			Namespace: namespace,
+			Name:      RunDevBucketName,
+			Namespace: params.Namespace,
+			Annotations: map[string]string{
+				"metadata.weave.works/description": "This is a temporary Bucket created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
+				"metadata.weave.works/run-id":      params.SessionName,
+				"metadata.weave.works/username":    params.Username,
+			},
 		},
 		Spec: sourcev1.BucketSpec{
 			Interval:   metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Provider:   "generic",
-			BucketName: devBucket,
-			Endpoint:   "dev-bucket.dev-bucket.svc.cluster.local:" + fmt.Sprint(devBucketPort),
+			BucketName: RunDevBucketName,
+			Endpoint:   fmt.Sprintf("%s.%s.svc.cluster.local:%d", RunDevBucketName, GitOpsRunNamespace, params.DevBucketPort),
 			Insecure:   true,
-			Timeout:    &metav1.Duration{Duration: timeout},
+			Timeout:    &metav1.Duration{Duration: params.Timeout},
 			SecretRef:  &meta.LocalObjectReference{Name: devBucketCredentials},
 		},
 	}
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "dev-ks",
-			Namespace: namespace,
+			Name:      RunDevKsName,
+			Namespace: params.Namespace,
+			Annotations: map[string]string{
+				"metadata.weave.works/description": "This is a temporary Kustomization created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
+				"metadata.weave.works/run-id":      params.SessionName,
+				"metadata.weave.works/username":    params.Username,
+			},
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: sourcev1.BucketKind,
-				Name: devBucket,
+				Name: RunDevBucketName,
 			},
-			Timeout: &metav1.Duration{Duration: timeout},
-			Path:    path,
+			Timeout: &metav1.Duration{Duration: params.Timeout},
+			Path:    params.Path,
 			Wait:    true,
 		},
 	}
@@ -200,11 +219,7 @@ func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, 
 
 // CleanupBucketSourceAndKS removes the bucket source and ks
 func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string) error {
-	const (
-		devBucketCredentials = "dev-bucket-credentials"
-		devBucket            = "dev-bucket"
-		devKS                = "dev-ks"
-	)
+	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
 
 	// delete secret
 	secret := corev1.Secret{
@@ -225,7 +240,7 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	// delete source
 	source := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucket,
+			Name:      RunDevBucketName,
 			Namespace: namespace,
 		},
 	}
@@ -241,7 +256,7 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	// delete ks
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      devKS,
+			Name:      RunDevKsName,
 			Namespace: namespace,
 		},
 	}
@@ -401,8 +416,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-bucket
 	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
+			Name:      RunDevBucketName,
 			Namespace: namespace,
-			Name:      "dev-bucket",
 		}, schema.GroupVersionKind{
 			Group:   "source.toolkit.fluxcd.io",
 			Version: "v1beta2",
@@ -416,8 +431,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevBucketName,
 			Namespace: namespace,
-			Name:      "dev-bucket",
 		}, devBucket); err != nil {
 			return false, err
 		}
@@ -431,8 +446,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevBucketName,
 			Namespace: namespace,
-			Name:      "dev-bucket",
 		}, devBucket); err != nil {
 			return false, err
 		}
@@ -444,8 +459,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-ks
 	ksRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
+			Name:      RunDevKsName,
 			Namespace: namespace,
-			Name:      "dev-ks",
 		}, schema.GroupVersionKind{
 			Group:   "kustomize.toolkit.fluxcd.io",
 			Version: "v1beta2",
@@ -458,8 +473,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevKsName,
 			Namespace: namespace,
-			Name:      "dev-ks",
 		}, devKs); err != nil {
 			return false, err
 		}
@@ -472,8 +487,8 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	devKs := &kustomizev1.Kustomization{}
 	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevKsName,
 			Namespace: namespace,
-			Name:      "dev-ks",
 		}, devKs); err != nil {
 			return false, err
 		}
