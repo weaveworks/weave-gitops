@@ -87,6 +87,7 @@ function HelmReleaseDetail({
           "Last Updated",
           <Timestamp time={automationLastUpdated(helmRelease)} />,
         ],
+        ["Namespace", helmRelease?.namespace],
       ]}
     />
   );
