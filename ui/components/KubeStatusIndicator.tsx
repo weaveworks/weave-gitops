@@ -77,7 +77,7 @@ export function computeMessage(conditions: Condition[]) {
   return conditions[0].message;
 }
 
-type SpecialObject = "Daemonset";
+export type SpecialObject = "Daemonset";
 
 interface DaemonSetStatus {
   currentNumberScheduled: number;

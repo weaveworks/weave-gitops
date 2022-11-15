@@ -56,7 +56,7 @@ rules:
     resources: ["configmaps", "secrets", "pods", "services", "namespaces", "persistentvolumes", "persistentvolumeclaims"]
     verbs: [ "get", "list", "watch" ]
   - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets", "statefulsets"]
+    resources: [ "deployments", "replicasets", "statefulsets", "daemonsets"]
     verbs: [ "get", "list", "watch" ]
   - apiGroups: ["batch"]
     resources: [ "jobs", "cronjobs"]
