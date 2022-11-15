@@ -12,10 +12,17 @@ type Props = {
   short?: boolean;
   suspended?: boolean;
 };
+
 export enum ReadyType {
   Ready = "Ready",
   NotReady = "Not Ready",
   Reconciling = "Reconciling",
+}
+
+export enum ReadyStatusValue {
+  True = "True",
+  False = "False",
+  Unknown = "Unknown",
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
@@ -24,30 +31,97 @@ export function computeReady(conditions: Condition[]): ReadyType {
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
   if (readyCondition) {
-    if (readyCondition.status === "True") return ReadyType.Ready;
+    if (readyCondition.status === ReadyStatusValue.True) {
+      return ReadyType.Ready;
+    }
+
     if (
-      readyCondition.status === "Unknown" &&
+      readyCondition.status === ReadyStatusValue.Unknown &&
       readyCondition.reason === "Progressing"
-    )
+    ) {
       return ReadyType.Reconciling;
+    }
+
     return ReadyType.NotReady;
   }
 
-  if (_.find(conditions, (c) => c.status === "False"))
+  if (_.find(conditions, (c) => c.status === ReadyStatusValue.False)) {
     return ReadyType.NotReady;
+  }
+
   return ReadyType.Ready;
 }
 
 export function computeMessage(conditions: Condition[]) {
-  if (!conditions?.length) return undefined;
+  if (!conditions?.length) {
+    return undefined;
+  }
+
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
-  if (readyCondition) return readyCondition.message;
 
-  const falseCondition = _.find(conditions, (c) => c.status === "False");
-  if (falseCondition) return falseCondition.message;
+  if (readyCondition) {
+    return readyCondition.message;
+  }
+
+  const falseCondition = _.find(
+    conditions,
+    (c) => c.status === ReadyStatusValue.False
+  );
+
+  if (falseCondition) {
+    return falseCondition.message;
+  }
+
   return conditions[0].message;
+}
+
+type SpecialObject = "Daemonset";
+
+interface DaemonSetStatus {
+  currentNumberScheduled: number;
+  desiredNumberScheduled: number;
+  numberMisscheduled: number;
+  numberReady: number;
+  numberUnavailable: number;
+  observedGeneration: number;
+  updatedNumberScheduled: number;
+}
+
+const NotReady: Condition[] = [
+  {
+    type: ReadyType.Ready,
+    status: ReadyStatusValue.False,
+    message: "Not Ready",
+  },
+];
+const Ready: Condition[] = [
+  { type: ReadyType.Ready, status: ReadyStatusValue.True, message: "Ready" },
+];
+const Unknown: Condition[] = [
+  { type: ReadyType.Ready, status: ReadyStatusValue.Unknown },
+];
+
+// Certain objects to not have a status.conditions key, so we generate those conditions
+// and feed it into the `KubeStatusIndicator` to keep the public API consistent.
+export function createSyntheticConditions(
+  kind: SpecialObject,
+  // This will eventually be a union type when we add another special object.
+  // Example: DaemonSetStatus | CoolObjectStatus | ...
+  status: DaemonSetStatus
+): Condition[] {
+  switch (kind) {
+    case "Daemonset":
+      if (status.numberReady === status.desiredNumberScheduled) {
+        return Ready;
+      }
+
+      return NotReady;
+
+    default:
+      return Unknown;
+  }
 }
 
 function KubeStatusIndicator({

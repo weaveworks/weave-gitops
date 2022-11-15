@@ -3,7 +3,9 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import KubeStatusIndicator from "../KubeStatusIndicator";
+import KubeStatusIndicator, {
+  createSyntheticConditions,
+} from "../KubeStatusIndicator";
 
 describe("KubeStatusIndicator", () => {
   it("renders ready", () => {
@@ -155,6 +157,43 @@ describe("KubeStatusIndicator", () => {
     render(withTheme(<KubeStatusIndicator conditions={notReady} />));
     expect(screen.getByText(notReady[0].message)).toBeTruthy();
   });
+  describe("special objects", () => {
+    it("daemonset - not ready", () => {
+      const status = {
+        currentNumberScheduled: 0,
+        desiredNumberScheduled: 2,
+        numberMisscheduled: 0,
+        numberReady: 0,
+        numberUnavailable: 2,
+        observedGeneration: 0,
+        updatedNumberScheduled: 0,
+      };
+
+      const conditions = createSyntheticConditions("Daemonset", status);
+
+      render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+
+      expect(screen.getByText("Not Ready")).toBeTruthy();
+    });
+    it("daemonset - ready", () => {
+      const status = {
+        currentNumberScheduled: 0,
+        desiredNumberScheduled: 2,
+        numberMisscheduled: 0,
+        numberReady: 2,
+        numberUnavailable: 0,
+        observedGeneration: 0,
+        updatedNumberScheduled: 0,
+      };
+
+      const conditions = createSyntheticConditions("Daemonset", status);
+
+      render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+
+      expect(screen.getByText("Ready")).toBeTruthy();
+    });
+  });
+
   describe("snapshots", () => {
     it("renders success", () => {
       const conditions = [
