@@ -17,7 +17,10 @@ import {
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
 
-export function convertResponse(kind: Kind, response?: ResponseObject) {
+export function convertResponse(
+  kind: Kind | string,
+  response?: ResponseObject
+) {
   if (kind === Kind.HelmRepository) {
     return new HelmRepository(response);
   }
@@ -82,7 +85,7 @@ type Res = { objects: FluxObject[]; errors: ListError[] };
 
 export function useListObjects<T extends FluxObject>(
   namespace: string,
-  kind: Kind,
+  kind: Kind | string,
   clusterName: string,
   labels: Record<string, string>,
   opts: ReactQueryOptions<Res, RequestError> = {
