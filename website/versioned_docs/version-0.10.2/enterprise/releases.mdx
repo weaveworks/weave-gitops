@@ -7,6 +7,46 @@ import TierLabel from "../_components/TierLabel";
 
 # Releases <TierLabel tiers="enterprise" />
 
+## v0.10.2
+2022-11-15
+
+### Highlights
+- Retain template parameter ordering.
+- Allow configuration of the delimiters in templates.
+- Add create a pipeline button.
+- Add missing support for policy version v2beta2 to tenancy cmd.
+
+### Dependency versions
+- weave-gitops v0.10.2
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 2.1.1
+
+## v0.10.1
+2022-11-10
+
+### Highlights
+
+- Create non-cluster resources / Add Edit option to resources with create-request annotation.
+- Bump pipeline-controller.
+- Parse annotations from template.
+- Add cost estimate message if available.
+- Add support for showing policy modes and policy configs in the UI.
+- Show suspended status on pipelines detail.
+- YAML view for Pipelines.
+- Align and link logo.
+- Remove the watcher from the helm-watcher-cache.
+- UI 1817 disable create target name space if name space is flux system.
+- Add edit capi cluster resource acceptance test.
+- Add preview acceptance test.
+
+### Dependency versions
+
+- weave-gitops v0.10.1
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 2.0.0
+
 ## v0.9.6
 2022-10-17
 
