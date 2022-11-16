@@ -48,7 +48,7 @@ This mode performs the audit functionality. It triggers per the specified interv
 
 ### Admission
 
-This contains the admission module that enforces policies. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent recieves an admission request. Once called, the agent will validate the received resource against the admission and tenant policies and k8s will use the result of this validation to either allow or reject the creation/update of said resource.
+This contains the admission module that enforces policies. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent receives an admission request. Once called, the agent will validate the received resource against the admission and tenant policies and k8s will use the result of this validation to either allow or reject the creation/update of said resource.
 
 > Works with policies of provider `kubernetes`
 

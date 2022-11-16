@@ -50,7 +50,7 @@ import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
-import { useGetObject } from "./hooks/objects";
+import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
@@ -144,6 +144,7 @@ export {
   UnAuthorizedInterceptor,
   useFeatureFlags,
   useGetObject,
+  useListObjects,
   useIsAuthenticated,
   useListAlerts,
   useListAutomations,
