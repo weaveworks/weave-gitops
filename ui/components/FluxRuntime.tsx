@@ -25,7 +25,7 @@ type Props = {
   className?: string;
   deployments?: Deployment[];
   crds?: Crd[];
-  supportMultipleFlux: boolean;
+  supportMultipleFlux?: boolean;
 };
 const fluxVersionLabel = "app.kubernetes.io/version";
 
@@ -33,7 +33,7 @@ function FluxRuntime({
   className,
   deployments,
   crds,
-  supportMultipleFlux,
+  supportMultipleFlux = false,
 }: Props) {
   const { path } = useRouteMatch();
   const tabs: Array<routeTab> = [

@@ -8,7 +8,6 @@ import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 
-
 type Props = {
   className?: string;
   controllers?: Deployment[];

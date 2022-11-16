@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import DataTable, { filterConfig } from "./DataTable";
 
-export interface FluxVersion{
+export interface FluxVersion {
   version?: string;
   clusterName?: string;
   namespace?: string;
@@ -13,7 +13,6 @@ type Props = {
 };
 
 function FluxVersionsTable({ className, versions = [] }: Props) {
-
   const initialFilterState = {
     ...filterConfig(versions, "version"),
   };
@@ -37,7 +36,7 @@ function FluxVersionsTable({ className, versions = [] }: Props) {
         {
           label: "Flux Version",
           value: "version",
-        }
+        },
       ]}
     />
   );
