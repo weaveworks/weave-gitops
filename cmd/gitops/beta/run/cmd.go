@@ -11,10 +11,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -32,6 +34,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
+	"github.com/weaveworks/weave-gitops/pkg/run/ui"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -49,6 +52,10 @@ const (
 )
 
 var HelmChartVersion = "3.0.0"
+
+var program *tea.Program
+
+var uiEvents chan string
 
 type RunCommandFlags struct {
 	FluxVersion     string
@@ -189,7 +196,9 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := logger.NewCLILogger(&ui.UILogger{
+		Program: program,
+	})
 
 	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
 		return nil, nil, err
@@ -314,6 +323,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 
 	var dashboardManifests []byte
 
+	// dashboardInstalled = true
 	if dashboardInstalled {
 		log.Successf("GitOps Dashboard is found")
 	} else {
@@ -404,7 +414,9 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	// create session
-	sessionLog := logger.NewCLILogger(os.Stdout)
+	sessionLog := logger.NewCLILogger(&ui.UILogger{
+		Program: program,
+	})
 	sessionLog.Actionf("Preparing the cluster for GitOps Run session ...\n")
 
 	sessionLog.Println("You can run `gitops beta run --no-session` to disable session management.\n")
@@ -527,7 +539,9 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 }
 
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
-	log := logger.NewCLILogger(os.Stdout)
+	log := logger.NewCLILogger(&ui.UILogger{
+		Program: program,
+	})
 
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
@@ -704,6 +718,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					log.Failuref("Error: %v", err)
 				}
+			case uiEvent := <-uiEvents:
+				fmt.Println(uiEvent)
 			}
 		}
 	}()
@@ -1047,10 +1063,36 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if flags.NoSession {
-			return runCommandWithoutSession(cmd, args)
-		} else {
-			return runCommandWithSession(cmd, args)
+		if uiEvents == nil {
+			uiEvents = make(chan string)
 		}
+
+		if program == nil {
+			m := ui.InitialUIModel(uiEvents)
+
+			program = tea.NewProgram(m, tea.WithAltScreen())
+		}
+
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+
+		var err error
+
+		go func() {
+			defer wg.Done()
+
+			if flags.NoSession {
+				err = runCommandWithoutSession(cmd, args)
+			} else {
+				err = runCommandWithSession(cmd, args)
+			}
+		}()
+
+		_ = program.Start()
+
+		wg.Wait()
+
+		return err
 	}
 }
