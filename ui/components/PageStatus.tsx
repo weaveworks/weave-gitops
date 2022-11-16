@@ -21,7 +21,7 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
   let iconColor: keyof typeof colors;
   if (suspended) {
     iconType = IconType.SuspendedIcon;
-    iconColor = "suspended";
+    iconColor = "feedbackOriginal";
   } else {
     const ok = computeReady(conditions);
     switch (ok) {
@@ -31,11 +31,11 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
         break;
       case ReadyType.Ready:
         iconType = IconType.CheckCircleIcon;
-        iconColor = "success";
+        iconColor = "successOriginal";
         break;
       case ReadyType.NotReady:
         iconType = IconType.FailedIcon;
-        iconColor = "alert";
+        iconColor = "alertOriginal";
         break;
     }
   }
