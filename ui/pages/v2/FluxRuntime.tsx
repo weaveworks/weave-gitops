@@ -21,7 +21,7 @@ function FluxRuntime({ className }: Props) {
       error={error || crdsError}
       className={className}
     >
-      <FluxRuntimeComponent deployments={data?.deployments} crds={crds?.crds} />
+      <FluxRuntimeComponent deployments={data?.deployments} crds={crds?.crds} supportMultipleFlux={false} />
     </Page>
   );
 }
