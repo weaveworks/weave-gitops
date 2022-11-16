@@ -4,7 +4,7 @@ import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
 import KubeStatusIndicator, {
-  createSyntheticConditions,
+  createSyntheticCondition,
 } from "../KubeStatusIndicator";
 
 describe("KubeStatusIndicator", () => {
@@ -169,9 +169,9 @@ describe("KubeStatusIndicator", () => {
         updatedNumberScheduled: 0,
       };
 
-      const conditions = createSyntheticConditions("Daemonset", status);
+      const condition = createSyntheticCondition("DaemonSet", status);
 
-      render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+      render(withTheme(<KubeStatusIndicator conditions={[condition]} />));
 
       expect(screen.getByText("Not Ready")).toBeTruthy();
     });
@@ -186,9 +186,9 @@ describe("KubeStatusIndicator", () => {
         updatedNumberScheduled: 0,
       };
 
-      const conditions = createSyntheticConditions("Daemonset", status);
+      const condition = createSyntheticCondition("DaemonSet", status);
 
-      render(withTheme(<KubeStatusIndicator conditions={conditions} />));
+      render(withTheme(<KubeStatusIndicator conditions={[condition]} />));
 
       expect(screen.getByText("Ready")).toBeTruthy();
     });

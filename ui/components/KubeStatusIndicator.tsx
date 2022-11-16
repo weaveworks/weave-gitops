@@ -30,6 +30,7 @@ export function computeReady(conditions: Condition[]): ReadyType {
   const readyCondition =
     _.find(conditions, (c) => c.type === "Ready") ||
     _.find(conditions, (c) => c.type === "Available");
+
   if (readyCondition) {
     if (readyCondition.status === ReadyStatusValue.True) {
       return ReadyType.Ready;
@@ -77,7 +78,7 @@ export function computeMessage(conditions: Condition[]) {
   return conditions[0].message;
 }
 
-export type SpecialObject = "Daemonset";
+export type SpecialObject = "DaemonSet";
 
 interface DaemonSetStatus {
   currentNumberScheduled: number;
@@ -89,30 +90,34 @@ interface DaemonSetStatus {
   updatedNumberScheduled: number;
 }
 
-const NotReady: Condition[] = [
-  {
-    type: ReadyType.Ready,
-    status: ReadyStatusValue.False,
-    message: "Not Ready",
-  },
-];
-const Ready: Condition[] = [
-  { type: ReadyType.Ready, status: ReadyStatusValue.True, message: "Ready" },
-];
-const Unknown: Condition[] = [
-  { type: ReadyType.Ready, status: ReadyStatusValue.Unknown },
-];
+const NotReady: Condition = {
+  type: ReadyType.Ready,
+  status: ReadyStatusValue.False,
+  message: "Not Ready",
+};
+
+const Ready: Condition = {
+  type: ReadyType.Ready,
+  status: ReadyStatusValue.True,
+  message: "Ready",
+};
+
+const Unknown: Condition = {
+  type: ReadyType.Ready,
+  status: ReadyStatusValue.Unknown,
+  message: "Unknown",
+};
 
 // Certain objects to not have a status.conditions key, so we generate those conditions
 // and feed it into the `KubeStatusIndicator` to keep the public API consistent.
-export function createSyntheticConditions(
+export function createSyntheticCondition(
   kind: SpecialObject,
   // This will eventually be a union type when we add another special object.
   // Example: DaemonSetStatus | CoolObjectStatus | ...
   status: DaemonSetStatus
-): Condition[] {
+): Condition {
   switch (kind) {
-    case "Daemonset":
+    case "DaemonSet":
       if (status.numberReady === status.desiredNumberScheduled) {
         return Ready;
       }

@@ -13,7 +13,8 @@ import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
   computeMessage,
-  createSyntheticConditions,
+  createSyntheticCondition,
+  ReadyStatusValue,
   SpecialObject,
 } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -105,12 +106,18 @@ function ReconciledObjectsTable({
               const status = u.obj.status;
 
               if (!status || !status.conditions) {
+                const cond = createSyntheticCondition(
+                  u.type as SpecialObject,
+                  status
+                );
+
+                if (cond.status === ReadyStatusValue.Unknown) {
+                  return null;
+                }
+
                 return (
                   <KubeStatusIndicator
-                    conditions={createSyntheticConditions(
-                      u.type as SpecialObject,
-                      status
-                    )}
+                    conditions={[cond]}
                     suspended={u.suspended}
                     short
                   />
