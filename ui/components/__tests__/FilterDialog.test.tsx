@@ -64,7 +64,7 @@ describe("FilterDialog", () => {
 
     const filterResult = onFilterSelect.mock.calls[0][0];
     expect(filterResult).toEqual({
-      Name: ["app"],
+      Name: { options: ["app"] },
     });
   });
 });
