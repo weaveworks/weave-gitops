@@ -141,6 +141,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 
       if (!_.includes(vals.options, value)) {
         ok = false;
+        return ok;
       }
     });
 
