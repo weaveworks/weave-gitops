@@ -84,7 +84,11 @@ func NewCommand() *cobra.Command {
 		RunE:  runCmd,
 	}
 
-	options = Options{}
+	options = Options{
+		OIDC: auth.OIDCConfig{
+			ClaimsConfig: &auth.ClaimsConfig{},
+		},
+	}
 
 	// System config
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
@@ -106,6 +110,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Username, "oidc-username-claim", auth.ClaimUsername, "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Groups, "oidc-groups-claim", auth.ClaimGroups, "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")

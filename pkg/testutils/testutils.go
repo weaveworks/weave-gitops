@@ -171,7 +171,7 @@ func MakeRSAPrivateKey(t *testing.T) *rsa.PrivateKey {
 }
 
 // MakeJWToken creates and signs a token with the provided key.
-func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string) string {
+func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string, opts ...func(map[string]any)) string {
 	t.Helper()
 
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: key}, nil)
@@ -189,17 +189,17 @@ func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string) string {
 		IssuedAt:  jwt.NewNumericDate(notBefore),
 		Expiry:    jwt.NewNumericDate(notBefore.Add(time.Duration(maxAgeSecondsAuthCookie))),
 	}
-	githubClaims := struct {
-		Groups            []string `json:"groups"`
-		Email             string   `json:"email"`
-		PreferredUsername string   `json:"preferred_username"`
-	}{
-		[]string{"testing"},
-		email,
-		"example",
+	extraClaims := map[string]any{
+		"groups":             []string{"testing"},
+		"email":              email,
+		"preferred_username": "testing",
 	}
 
-	signed, err := jwt.Signed(signer).Claims(claims).Claims(githubClaims).CompactSerialize()
+	for _, opt := range opts {
+		opt(extraClaims)
+	}
+
+	signed, err := jwt.Signed(signer).Claims(claims).Claims(extraClaims).CompactSerialize()
 	if err != nil {
 		t.Fatal(err)
 	}

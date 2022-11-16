@@ -27,6 +27,14 @@ const (
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
 	FeatureFlagSet             string = "true"
+
+	// ClaimUsername is the default claim for getting the user from OIDC for
+	// auth
+	ClaimUsername string = "email"
+
+	// ClaimGroups is the default claim for getting the groups from OIDC for
+	// auth
+	ClaimGroups string = "groups"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -37,6 +45,7 @@ type OIDCConfig struct {
 	ClientSecret  string
 	RedirectURL   string
 	TokenDuration time.Duration
+	ClaimsConfig  *ClaimsConfig
 }
 
 // This is only used if the OIDCConfig doesn't have a TokenDuration set. If
@@ -49,7 +58,7 @@ type AuthConfig struct {
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
-	config              OIDCConfig
+	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
 }
@@ -72,6 +81,18 @@ type UserInfo struct {
 	Groups []string `json:"groups"`
 }
 
+// NewOIDCConfigFromSecret takes a corev1.Secret and extracts the fields.
+//
+// The following keys are required in the secret:
+//   - issuerURL
+//   - clientID
+//   - clientSecret
+//   - redirectURL
+//
+// The following keys are optional
+// - tokenDuration - defaults to 1 hour.
+// - claimUsername - defaults to "email"
+// - claimGroups - defaults to "groups"
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
@@ -79,6 +100,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 		ClientSecret: string(secret.Data["clientSecret"]),
 		RedirectURL:  string(secret.Data["redirectURL"]),
 	}
+	cfg.ClaimsConfig = claimsConfigFromSecret(secret)
 
 	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
 	if err != nil {
@@ -88,6 +110,27 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg.TokenDuration = tokenDuration
 
 	return cfg
+}
+
+func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
+	claimUsername, ok := secret.Data["claimUsername"]
+	if !ok {
+		claimUsername = []byte(ClaimUsername)
+	}
+
+	claimGroups, ok := secret.Data["claimGroups"]
+	if !ok {
+		claimGroups = []byte(ClaimGroups)
+	}
+
+	if len(claimUsername) > 0 && len(claimGroups) > 0 {
+		return &ClaimsConfig{
+			Username: string(claimUsername),
+			Groups:   string(claimGroups),
+		}
+	}
+
+	return nil
 }
 
 func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
@@ -106,7 +149,7 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
-		config:              oidcCfg,
+		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
 		authMethods:         authMethods,
 	}, nil
@@ -132,12 +175,12 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 
 	var provider *oidc.Provider
 
-	if cfg.config.IssuerURL == "" {
+	if cfg.OIDCConfig.IssuerURL == "" {
 		featureflags.Set(FeatureFlagOIDCAuth, "false")
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
-		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
+		provider, err = oidc.NewProvider(ctx, cfg.OIDCConfig.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
@@ -154,7 +197,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
 // in unit tests only.
 func (s *AuthServer) SetRedirectURL(url string) {
-	s.config.RedirectURL = url
+	s.OIDCConfig.RedirectURL = url
 }
 
 func (s *AuthServer) oidcEnabled() bool {
@@ -166,7 +209,7 @@ func (s *AuthServer) oidcPassthroughEnabled() bool {
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
-	return s.provider.Verifier(&oidc.Config{ClientID: s.config.ClientID})
+	return s.provider.Verifier(&oidc.Config{ClientID: s.OIDCConfig.ClientID})
 }
 
 func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
@@ -176,20 +219,20 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	// Request "email" scope to get user's email address.
-	if !contains(scopes, scopeEmail) {
-		scopes = append(scopes, scopeEmail)
+	if !contains(scopes, ScopeEmail) {
+		scopes = append(scopes, ScopeEmail)
 	}
 
 	// Request "groups" scope to get user's groups.
-	if !contains(scopes, scopeGroups) {
-		scopes = append(scopes, scopeGroups)
+	if !contains(scopes, ScopeGroups) {
+		scopes = append(scopes, ScopeGroups)
 	}
 
 	return &oauth2.Config{
-		ClientID:     s.config.ClientID,
-		ClientSecret: s.config.ClientSecret,
+		ClientID:     s.OIDCConfig.ClientID,
+		ClientSecret: s.OIDCConfig.ClientSecret,
+		RedirectURL:  s.OIDCConfig.RedirectURL,
 		Endpoint:     s.provider.Endpoint(),
-		RedirectURL:  s.config.RedirectURL,
 		Scopes:       scopes,
 	}
 }
@@ -458,9 +501,7 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 
 	state := base64.StdEncoding.EncodeToString(b)
 
-	var scopes []string
-	// "openid", "email" and "groups" scopes added by default
-	scopes = append(scopes, scopeProfile)
+	scopes := []string{ScopeProfile}
 	authCodeURL := s.oauth2Config(scopes).AuthCodeURL(state)
 
 	// Issue state cookie
@@ -489,7 +530,7 @@ func (s *AuthServer) createCookie(name, value string) *http.Cookie {
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(s.config.TokenDuration),
+		Expires:  time.Now().UTC().Add(s.OIDCConfig.TokenDuration),
 		HttpOnly: true,
 		Secure:   false,
 	}

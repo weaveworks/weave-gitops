@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	"github.com/oauth2-proxy/mockoidc"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
@@ -791,4 +792,64 @@ func TestAuthMethods(t *testing.T) {
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+}
+
+func TestNewOIDCConfigFromSecret(t *testing.T) {
+	configTests := []struct {
+		name string
+		data map[string][]byte
+		want auth.OIDCConfig
+	}{
+		{
+			name: "basic fields",
+			data: map[string][]byte{
+				"issuerURL":     []byte("https://example.com/test"),
+				"clientID":      []byte("test-client-id"),
+				"clientSecret":  []byte("test-client-secret"),
+				"redirectURL":   []byte("https://example.com/redirect"),
+				"tokenDuration": []byte("10m"),
+			},
+			want: auth.OIDCConfig{
+				IssuerURL:     "https://example.com/test",
+				ClientID:      "test-client-id",
+				ClientSecret:  "test-client-secret",
+				RedirectURL:   "https://example.com/redirect",
+				TokenDuration: time.Minute * 10,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "bad duration defaults to 1 hour",
+			data: map[string][]byte{
+				"tokenDuration": []byte("10x"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "overridden claims",
+			data: map[string][]byte{
+				"claimUsername": []byte("test-user"),
+				"claimGroups":   []byte("test-groups"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig: &auth.ClaimsConfig{
+					Username: "test-user", Groups: "test-groups",
+				},
+			},
+		},
+	}
+
+	for _, tt := range configTests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := auth.NewOIDCConfigFromSecret(corev1.Secret{Data: tt.data})
+
+			if diff := cmp.Diff(tt.want, cfg); diff != "" {
+				t.Fatalf("failed to parse config from secret:\n%s", diff)
+			}
+		})
+	}
 }
