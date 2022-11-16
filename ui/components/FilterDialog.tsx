@@ -8,7 +8,7 @@ import FormCheckbox from "./FormCheckbox";
 import Text from "./Text";
 
 export type FilterConfig = {
-  [key: string]: { options: string[]; transformFunc: (option) => string };
+  [key: string]: { options: string[]; transformFunc?: (option) => string };
 };
 export type FilterSelections = { [inputName: string]: boolean };
 

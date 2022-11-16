@@ -8,9 +8,9 @@ import FilterDialog, { filterSeparator } from "../FilterDialog";
 describe("FilterDialog", () => {
   const setActiveFilters = jest.fn();
   const filterList = {
-    Name: ["app", "app2", "app3"],
-    Status: ["Ready", "Failed"],
-    Type: ["Application", "Helm Release"],
+    Name: { options: ["app", "app2", "app3"] },
+    Status: { options: ["Ready", "Failed"] },
+    Type: { options: ["Application", "Helm Release"] },
   };
   it("should not render when closed", () => {
     render(
