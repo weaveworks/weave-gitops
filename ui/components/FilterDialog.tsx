@@ -7,7 +7,9 @@ import Flex from "./Flex";
 import FormCheckbox from "./FormCheckbox";
 import Text from "./Text";
 
-export type FilterConfig = { [key: string]: string[] };
+export type FilterConfig = {
+  [key: string]: { options: string[]; transformFunc: (option) => string };
+};
 export type FilterSelections = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
@@ -108,7 +110,10 @@ export interface Props {
   open?: boolean;
 }
 
-export function selectionsToFilters(values: FilterSelections): FilterConfig {
+export function selectionsToFilters(
+  values: FilterSelections,
+  filterList: FilterConfig
+): FilterConfig {
   const out = {};
   _.each(values, (v, k) => {
     const [key, val] = k.split(filterSeparator);
@@ -117,9 +122,12 @@ export function selectionsToFilters(values: FilterSelections): FilterConfig {
       const el = out[key];
 
       if (el) {
-        el.push(val);
+        el.options.push(val);
       } else {
-        out[key] = [val];
+        out[key] = {
+          options: [val],
+          transformFunc: filterList[key]?.transformFunc,
+        };
       }
     }
   });
@@ -143,13 +151,13 @@ function UnstyledFilterDialog({
   const onSectionSelect = (object: sectionSelectObject) => {
     if (onFilterSelect) {
       const next = { ...formState, ...object };
-      onFilterSelect(selectionsToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next, filterList), next);
     }
   };
   const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
-      onFilterSelect(selectionsToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next, filterList), next);
     }
   };
 
@@ -171,7 +179,7 @@ function UnstyledFilterDialog({
                     <FilterSection
                       key={header}
                       header={header}
-                      options={options}
+                      options={options.options}
                       formState={formState}
                       onSectionSelect={onSectionSelect}
                     />
