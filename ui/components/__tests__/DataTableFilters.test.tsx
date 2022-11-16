@@ -121,11 +121,13 @@ describe("DataTableFilters", () => {
       expect(filtered).toHaveLength(4);
     });
     it("filters rows", () => {
-      const filtered = filterRows(rows, { name: ["cool"] });
+      const filtered = filterRows(rows, { name: { options: ["cool"] } });
       expect(filtered).toHaveLength(1);
     });
     it("filters rows with more than one value in a filter key", () => {
-      const filtered = filterRows(rows, { name: ["cool", "slick"] });
+      const filtered = filterRows(rows, {
+        name: { options: ["cool", "slick"] },
+      });
       expect(filtered).toHaveLength(2);
     });
     it("ANDs between categories", () => {
@@ -135,13 +137,13 @@ describe("DataTableFilters", () => {
         { name: "c", namespace: "ns2", type: "git" },
       ];
       const filtered = filterRows(rows, {
-        namespace: ["ns1"],
+        namespace: { options: ["ns1"] },
       });
       expect(filtered).toHaveLength(2);
 
       const filtered2 = filterRows(rows, {
-        namespace: ["ns1"],
-        type: ["git"],
+        namespace: { options: ["ns1"] },
+        type: { options: ["git"] },
       });
       expect(filtered2).toHaveLength(1);
 
@@ -160,13 +162,13 @@ describe("DataTableFilters", () => {
       { name: "c", namespace: "ns2", type: "git" },
     ];
     const filtered = filterRows(rows, {
-      namespace: ["ns1", "ns2"],
+      namespace: { options: ["ns1", "ns2"] },
     });
     expect(filtered).toHaveLength(3);
 
     const filtered2 = filterRows(rows, {
-      namespace: ["ns1"],
-      type: ["git", "bucket"],
+      namespace: { options: ["ns1"] },
+      type: { options: ["git", "bucket"] },
     });
     expect(filtered2).toHaveLength(2);
 
