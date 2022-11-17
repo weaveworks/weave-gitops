@@ -121,7 +121,7 @@ export function filterConfig(
     []
   );
 
-  return { [key]: config };
+  return { [key]: { options: config, transformFunc: computeValue } };
 }
 
 export function filterRows<T>(rows: T[], filters: FilterConfig) {
@@ -134,15 +134,14 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 
     _.each(filters, (vals, category) => {
       let value;
-      // status
-      if (category === "status") {
-        value = filterByStatusCallback(row);
-      }
+
+      if (vals.transformFunc) value = vals.transformFunc(row);
       // strings
       else value = row[category];
 
-      if (!_.includes(vals, value)) {
+      if (!_.includes(vals.options, value)) {
         ok = false;
+        return ok;
       }
     });
 
@@ -339,7 +338,7 @@ function UnstyledDataTable({
 
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<FilterState>({
-    filters: selectionsToFilters(initialSelections),
+    filters: selectionsToFilters(initialSelections, filters),
     formState: initialFormState(filters, initialSelections),
     textFilters: [],
   });
@@ -359,7 +358,7 @@ function UnstyledDataTable({
     }
   };
 
-  const handleChipRemove = (chips: string[]) => {
+  const handleChipRemove = (chips: string[], filterList) => {
     const next = {
       ...filterState,
     };
@@ -368,7 +367,7 @@ function UnstyledDataTable({
       next.formState[chip] = false;
     });
 
-    const filters = selectionsToFilters(next.formState);
+    const filters = selectionsToFilters(next.formState, filterList);
 
     const textFilters = _.filter(
       next.textFilters,
@@ -484,7 +483,7 @@ function UnstyledDataTable({
           <>
             <ChipGroup
               chips={chips}
-              onChipRemove={handleChipRemove}
+              onChipRemove={(chips) => handleChipRemove(chips, filters)}
               onClearAll={handleClearAll}
             />
             <IconFlex align>
