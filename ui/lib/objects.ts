@@ -114,7 +114,9 @@ export class FluxObject {
   get images(): string[] {
     const spec = this.obj.spec;
     if (!spec) return [];
-    if (spec.template) return spec.template.spec.containers.map((x) => x.image);
+    if (spec.template) {
+      return spec.template.spec?.containers.map((x) => x.image);
+    }
     if (spec.containers) return spec.containers.map((x) => x.image);
     return [];
   }
