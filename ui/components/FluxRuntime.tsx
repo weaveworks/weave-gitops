@@ -56,25 +56,23 @@ function FluxRuntime({
   ];
 
   if (supportMultipleFlux) {
-    const fluxVersions: Array<FluxVersion> = [];
+    const fluxVersions: { [key: string]: FluxVersion } = {};
     deployments.forEach((d) => {
       const fv = d.labels[fluxVersionLabel];
-      const version = fluxVersions.filter(
-        (f) => f.version === fv && f.clusterName === d.clusterName
-      )[0];
-      if (!version) {
-        fluxVersions.push({
+      const k = `${fv}${d.clusterName}`;
+      if (!fluxVersions[k]) {
+        fluxVersions[k] = {
           version: fv,
           clusterName: d.clusterName,
           namespace: d.namespace,
-        });
+        };
       }
     });
     tabs.unshift({
       name: "Flux Versions",
       path: `${path}/flux`,
       component: () => {
-        return <FluxVersionsTable versions={fluxVersions} />;
+        return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
       },
       visible: true,
     });
@@ -82,7 +80,7 @@ function FluxRuntime({
   return (
     <Flex wide tall column className={className}>
       <>
-        {!supportMultipleFlux && deployments[0].labels[fluxVersionLabel] && (
+        {!supportMultipleFlux && deployments[0]?.labels[fluxVersionLabel] && (
           <FluxVersionText color="neutral30" titleHeight={true}>
             This cluster is running Flux version:
             <span>{deployments[0].labels[fluxVersionLabel]}</span>
