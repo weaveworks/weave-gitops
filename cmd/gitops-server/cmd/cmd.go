@@ -187,10 +187,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		cl = cluster.NewDelegatingCacheCluster(cl, rest, scheme)
 	}
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(cl)
-	if err != nil {
-		return fmt.Errorf("failed to create cluster fetcher; %w", err)
-	}
+	fetcher := fetcher.NewSingleClusterFetcher(cl)
 
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clustersManager.Start(ctx)
