@@ -6,21 +6,22 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
 )
 
 type FakeClustersManager struct {
-	GetClustersStub        func() []clustersmngr.Cluster
+	GetClustersStub        func() []cluster.Cluster
 	getClustersMutex       sync.RWMutex
 	getClustersArgsForCall []struct {
 	}
 	getClustersReturns struct {
-		result1 []clustersmngr.Cluster
+		result1 []cluster.Cluster
 	}
 	getClustersReturnsOnCall map[int]struct {
-		result1 []clustersmngr.Cluster
+		result1 []cluster.Cluster
 	}
 	GetClustersNamespacesStub        func() map[string][]v1.Namespace
 	getClustersNamespacesMutex       sync.RWMutex
@@ -61,7 +62,7 @@ type FakeClustersManager struct {
 		result1 clustersmngr.Client
 		result2 error
 	}
-	GetImpersonatedDiscoveryClientStub        func(context.Context, *auth.UserPrincipal, string) (*discovery.DiscoveryClient, error)
+	GetImpersonatedDiscoveryClientStub        func(context.Context, *auth.UserPrincipal, string) (discovery.DiscoveryInterface, error)
 	getImpersonatedDiscoveryClientMutex       sync.RWMutex
 	getImpersonatedDiscoveryClientArgsForCall []struct {
 		arg1 context.Context
@@ -69,11 +70,11 @@ type FakeClustersManager struct {
 		arg3 string
 	}
 	getImpersonatedDiscoveryClientReturns struct {
-		result1 *discovery.DiscoveryClient
+		result1 discovery.DiscoveryInterface
 		result2 error
 	}
 	getImpersonatedDiscoveryClientReturnsOnCall map[int]struct {
-		result1 *discovery.DiscoveryClient
+		result1 discovery.DiscoveryInterface
 		result2 error
 	}
 	GetServerClientStub        func(context.Context) (clustersmngr.Client, error)
@@ -152,7 +153,7 @@ type FakeClustersManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClustersManager) GetClusters() []clustersmngr.Cluster {
+func (fake *FakeClustersManager) GetClusters() []cluster.Cluster {
 	fake.getClustersMutex.Lock()
 	ret, specificReturn := fake.getClustersReturnsOnCall[len(fake.getClustersArgsForCall)]
 	fake.getClustersArgsForCall = append(fake.getClustersArgsForCall, struct {
@@ -176,32 +177,32 @@ func (fake *FakeClustersManager) GetClustersCallCount() int {
 	return len(fake.getClustersArgsForCall)
 }
 
-func (fake *FakeClustersManager) GetClustersCalls(stub func() []clustersmngr.Cluster) {
+func (fake *FakeClustersManager) GetClustersCalls(stub func() []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = stub
 }
 
-func (fake *FakeClustersManager) GetClustersReturns(result1 []clustersmngr.Cluster) {
+func (fake *FakeClustersManager) GetClustersReturns(result1 []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = nil
 	fake.getClustersReturns = struct {
-		result1 []clustersmngr.Cluster
+		result1 []cluster.Cluster
 	}{result1}
 }
 
-func (fake *FakeClustersManager) GetClustersReturnsOnCall(i int, result1 []clustersmngr.Cluster) {
+func (fake *FakeClustersManager) GetClustersReturnsOnCall(i int, result1 []cluster.Cluster) {
 	fake.getClustersMutex.Lock()
 	defer fake.getClustersMutex.Unlock()
 	fake.GetClustersStub = nil
 	if fake.getClustersReturnsOnCall == nil {
 		fake.getClustersReturnsOnCall = make(map[int]struct {
-			result1 []clustersmngr.Cluster
+			result1 []cluster.Cluster
 		})
 	}
 	fake.getClustersReturnsOnCall[i] = struct {
-		result1 []clustersmngr.Cluster
+		result1 []cluster.Cluster
 	}{result1}
 }
 
@@ -389,7 +390,7 @@ func (fake *FakeClustersManager) GetImpersonatedClientForClusterReturnsOnCall(i 
 	}{result1, result2}
 }
 
-func (fake *FakeClustersManager) GetImpersonatedDiscoveryClient(arg1 context.Context, arg2 *auth.UserPrincipal, arg3 string) (*discovery.DiscoveryClient, error) {
+func (fake *FakeClustersManager) GetImpersonatedDiscoveryClient(arg1 context.Context, arg2 *auth.UserPrincipal, arg3 string) (discovery.DiscoveryInterface, error) {
 	fake.getImpersonatedDiscoveryClientMutex.Lock()
 	ret, specificReturn := fake.getImpersonatedDiscoveryClientReturnsOnCall[len(fake.getImpersonatedDiscoveryClientArgsForCall)]
 	fake.getImpersonatedDiscoveryClientArgsForCall = append(fake.getImpersonatedDiscoveryClientArgsForCall, struct {
@@ -416,7 +417,7 @@ func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientCallCount() int {
 	return len(fake.getImpersonatedDiscoveryClientArgsForCall)
 }
 
-func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientCalls(stub func(context.Context, *auth.UserPrincipal, string) (*discovery.DiscoveryClient, error)) {
+func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientCalls(stub func(context.Context, *auth.UserPrincipal, string) (discovery.DiscoveryInterface, error)) {
 	fake.getImpersonatedDiscoveryClientMutex.Lock()
 	defer fake.getImpersonatedDiscoveryClientMutex.Unlock()
 	fake.GetImpersonatedDiscoveryClientStub = stub
@@ -429,28 +430,28 @@ func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientArgsForCall(i int
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturns(result1 *discovery.DiscoveryClient, result2 error) {
+func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturns(result1 discovery.DiscoveryInterface, result2 error) {
 	fake.getImpersonatedDiscoveryClientMutex.Lock()
 	defer fake.getImpersonatedDiscoveryClientMutex.Unlock()
 	fake.GetImpersonatedDiscoveryClientStub = nil
 	fake.getImpersonatedDiscoveryClientReturns = struct {
-		result1 *discovery.DiscoveryClient
+		result1 discovery.DiscoveryInterface
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturnsOnCall(i int, result1 *discovery.DiscoveryClient, result2 error) {
+func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturnsOnCall(i int, result1 discovery.DiscoveryInterface, result2 error) {
 	fake.getImpersonatedDiscoveryClientMutex.Lock()
 	defer fake.getImpersonatedDiscoveryClientMutex.Unlock()
 	fake.GetImpersonatedDiscoveryClientStub = nil
 	if fake.getImpersonatedDiscoveryClientReturnsOnCall == nil {
 		fake.getImpersonatedDiscoveryClientReturnsOnCall = make(map[int]struct {
-			result1 *discovery.DiscoveryClient
+			result1 discovery.DiscoveryInterface
 			result2 error
 		})
 	}
 	fake.getImpersonatedDiscoveryClientReturnsOnCall[i] = struct {
-		result1 *discovery.DiscoveryClient
+		result1 discovery.DiscoveryInterface
 		result2 error
 	}{result1, result2}
 }
