@@ -168,9 +168,9 @@ type ClustersManager interface {
 }
 
 type clustersManager struct {
-	clustersFetcher ClusterFetcher
-	nsChecker       nsaccess.Checker
-	log             logr.Logger
+	clustersFetchers clusterFetchers
+	nsChecker        nsaccess.Checker
+	log              logr.Logger
 
 	// list of clusters returned by the clusters fetcher
 	clusters *Clusters
@@ -210,11 +210,11 @@ func (cw *ClustersWatcher) Unsubscribe() {
 	close(cw.Updates)
 }
 
-func NewClustersManager(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClustersManager {
+func NewClustersManager(fetchers []ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClustersManager {
 	registerMetrics()
 
 	return &clustersManager{
-		clustersFetcher:     fetcher,
+		clustersFetchers:    fetchers,
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
@@ -275,7 +275,7 @@ func (cf *clustersManager) watchClusters(ctx context.Context) {
 
 // UpdateClusters updates the clusters list and notifies the registered watchers.
 func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
-	clusters, err := cf.clustersFetcher.Fetch(ctx)
+	clusters, err := cf.clustersFetchers.Fetch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch clusters: %w", err)
 	}

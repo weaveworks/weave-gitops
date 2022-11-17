@@ -192,7 +192,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create cluster fetcher; %w", err)
 	}
 
-	clustersManager := clustersmngr.NewClustersManager(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clustersManager.Start(ctx)
 
 	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager)
