@@ -27,6 +27,23 @@ func (e ClusterNotFoundError) Error() string {
 	return fmt.Sprintf("cluster=%s not found", e.Cluster)
 }
 
+type clusterFetchers []ClusterFetcher
+
+func (fetchers clusterFetchers) Fetch(ctx context.Context) ([]cluster.Cluster, error) {
+	clusters := []cluster.Cluster{}
+
+	for _, fetcher := range fetchers {
+		additionalClusters, err := fetcher.Fetch(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		clusters = append(clusters, additionalClusters...)
+	}
+
+	return clusters, nil
+}
+
 // ClusterFetcher fetches all leaf clusters
 //
 //counterfeiter:generate . ClusterFetcher
