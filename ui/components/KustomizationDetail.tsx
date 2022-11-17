@@ -1,14 +1,15 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
 import { Kustomization } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 export interface routeTab {
   name: string;
@@ -50,6 +51,7 @@ function KustomizationDetail({
       automation={kustomization}
       customActions={customActions}
       info={[
+        ["Kind", Kind.Kustomization],
         [
           "Source",
           <SourceLink
