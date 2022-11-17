@@ -6,12 +6,15 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -324,7 +327,7 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 	}
 }
 
-func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) *rest.Config {
+func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) typedauth.AuthorizationV1Interface {
 	t.Helper()
 
 	scheme, err := kube.CreateScheme()
@@ -335,7 +338,11 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 	adminClient, err := client.New(testCfg, client.Options{
 		Scheme: scheme,
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -348,7 +355,12 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 		UserName: userName,
 	}
 
-	return &userCfg
+	userClient, err := cluster.GetUserClientset(&auth.UserPrincipal{ID: userName})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return userClient.AuthorizationV1()
 }
 
 func removeNs(t *testing.T, k client.Client, ns *corev1.Namespace) {
