@@ -18,7 +18,7 @@ type Logger struct {
 // NewCLILogger returns a wrapped logr that logs to the specified writer
 // Note: unless you're doing CLI work, you should use core/logger.New instead
 func NewCLILogger(writer io.Writer) Logger {
-	return Logger{defaultLogr()}
+	return Logger{defaultLogr(writer)}
 }
 
 // From wraps a logr instance with the extra emoji generating helpers
@@ -54,12 +54,19 @@ func (l Logger) Warningf(format string, a ...interface{}) {
 	l.Info("⚠️ " + fmt.Sprintf(format, a...))
 }
 
-func defaultLogr() logr.Logger {
+func defaultLogr(output io.Writer) logr.Logger {
 	//jsonEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
 	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 		MessageKey: "msg",
 	})
-	consoleOut := zapcore.Lock(os.Stdout)
+
+	out := output
+
+	if out == nil {
+		out = os.Stdout
+	}
+
+	consoleOut := zapcore.Lock(zapcore.AddSync(out))
 
 	// Should point into the cluster
 	//clusterOut := zapcore.Lock(os.Stderr)
