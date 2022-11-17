@@ -7,7 +7,7 @@ import (
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/server"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -74,7 +74,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		Namespace:      ns.Name,
 		AutomationKind: kustomizev1.KustomizationKind,
 		Kinds:          []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
-		ClusterName:    clustersmngr.DefaultCluster,
+		ClusterName:    cluster.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -124,7 +124,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 		Namespace:      ns.Name,
 		AutomationKind: kustomizev1.KustomizationKind,
 		Kinds:          []*pb.GroupVersionKind{{Group: "", Version: "v1", Kind: "Secret"}},
-		ClusterName:    clustersmngr.DefaultCluster,
+		ClusterName:    cluster.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -209,7 +209,7 @@ func TestGetChildObjects(t *testing.T) {
 			Version: "v1",
 			Kind:    "ReplicaSet",
 		},
-		ClusterName: clustersmngr.DefaultCluster,
+		ClusterName: cluster.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -239,7 +239,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
 	g.Expect(res.Errors[0].Namespace).To(BeEmpty())
-	g.Expect(res.Errors[0].ClusterName).To(Equal(clustersmngr.DefaultCluster))
+	g.Expect(res.Errors[0].ClusterName).To(Equal(cluster.DefaultCluster))
 
 	fluxNs := &corev1.Namespace{}
 	fluxNs.Name = "flux-ns"
@@ -334,6 +334,6 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(first.Name.Plural).To(Equal("plural"))
 	g.Expect(first.Name.Group).To(Equal("group"))
 	g.Expect(first.Kind).To(Equal("kind"))
-	g.Expect(first.ClusterName).To(Equal(clustersmngr.DefaultCluster))
+	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
 	g.Expect(res.Crds[1].Version).To(Equal("0"))
 }

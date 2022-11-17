@@ -9,8 +9,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/rest"
 )
 
 func TestUsersNamespaces(t *testing.T) {
@@ -34,7 +36,9 @@ func TestUsersNamespaces(t *testing.T) {
 	})
 
 	t.Run("all namespaces from all", func(t *testing.T) {
-		nsMap := un.GetAll(user, []clustersmngr.Cluster{{Name: clusterName}})
+		cl, err := cluster.NewSingleCluster(clusterName, &rest.Config{}, nil)
+		g.Expect(err).NotTo(HaveOccurred())
+		nsMap := un.GetAll(user, []cluster.Cluster{cl})
 		g.Expect(nsMap).To(Equal(map[string][]v1.Namespace{clusterName: {ns}}))
 	})
 }
@@ -46,15 +50,22 @@ func TestClusters(t *testing.T) {
 
 	c1 := "cluster-1"
 	c2 := "cluster-2"
-	clusters := []clustersmngr.Cluster{{Name: c1}, {Name: c2}}
+
+	cluster1, err := cluster.NewSingleCluster(c1, &rest.Config{}, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cluster2, err := cluster.NewSingleCluster(c2, &rest.Config{}, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	testClusters := []cluster.Cluster{cluster1, cluster2}
 
 	// simulating concurrent access
-	go cs.Set(clusters)
-	go cs.Set(clusters)
+	go cs.Set(testClusters)
+	go cs.Set(testClusters)
 
-	cs.Set(clusters)
+	cs.Set(testClusters)
 
-	g.Expect(cs.Get()).To(Equal([]clustersmngr.Cluster{{Name: c1}, {Name: c2}}))
+	g.Expect(cs.Get()).To(Equal([]cluster.Cluster{cluster1, cluster2}))
 
 	g.Expect(cs.Hash()).To(Equal(fmt.Sprintf("%s%s", c1, c2)))
 }
@@ -82,38 +93,44 @@ func TestClustersNamespaces(t *testing.T) {
 	g.Expect(cs.Get(clusterName)).To(HaveLen(0))
 }
 
+var ClusterComparer = cmp.Comparer(func(a, b cluster.Cluster) bool {
+	return a.GetName() == b.GetName() && a.GetHost() == b.GetHost()
+})
+
 func TestClusterSet_Set(t *testing.T) {
 	cs := clustersmngr.Clusters{}
-	cluster1 := newTestCluster("cluster1", "server1")
-	cluster2 := newTestCluster("cluster2", "server2")
-	cluster3 := newTestCluster("cluster2", "server3")
+	cluster1 := newTestCluster(t, "cluster1", "server1")
+	cluster2 := newTestCluster(t, "cluster2", "server2")
+	cluster3 := newTestCluster(t, "cluster2", "server3")
 
-	clusters := []clustersmngr.Cluster{cluster1, cluster2, cluster3}
+	testClusters := []cluster.Cluster{cluster1, cluster2, cluster3}
 
-	added, removed := cs.Set(clusters)
-	if diff := cmp.Diff([]clustersmngr.Cluster{cluster1, cluster2, cluster3}, added); diff != "" {
+	added, removed := cs.Set(testClusters)
+	if diff := cmp.Diff([]cluster.Cluster{cluster1, cluster2, cluster3}, added, ClusterComparer); diff != "" {
 		t.Fatalf("failed to calculate added:\n%s", diff)
 	}
 
-	if diff := cmp.Diff([]clustersmngr.Cluster{}, removed); diff != "" {
+	if diff := cmp.Diff([]cluster.Cluster{}, removed, ClusterComparer); diff != "" {
 		t.Fatalf("failed to calculate removed:\n%s", diff)
 	}
 
-	clusters = []clustersmngr.Cluster{cluster1}
+	testClusters = []cluster.Cluster{cluster1}
 
-	added, removed = cs.Set(clusters)
-	if diff := cmp.Diff([]clustersmngr.Cluster{}, added); diff != "" {
+	added, removed = cs.Set(testClusters)
+	if diff := cmp.Diff([]cluster.Cluster{}, added, ClusterComparer); diff != "" {
 		t.Fatalf("failed to calculate added:\n%s", diff)
 	}
 
-	if diff := cmp.Diff([]clustersmngr.Cluster{cluster2, cluster3}, removed); diff != "" {
+	if diff := cmp.Diff([]cluster.Cluster{cluster2, cluster3}, removed, ClusterComparer); diff != "" {
 		t.Fatalf("failed to calculate removed:\n%s", diff)
 	}
 }
 
-func newTestCluster(name, server string) clustersmngr.Cluster {
-	return clustersmngr.Cluster{
-		Name:   name,
-		Server: server,
+func newTestCluster(t *testing.T, name, server string) cluster.Cluster {
+	c, err := cluster.NewSingleCluster(name, &rest.Config{Host: server}, nil)
+	if err != nil {
+		t.Error("Expected error to be nil, got", err)
 	}
+
+	return c
 }
