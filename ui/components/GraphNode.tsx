@@ -55,13 +55,13 @@ const StatusLine = styled.div<StatusLineProps>`
   height: 100%;
   border-radius: ${nodeBorderRadius - 4.5}px 0 0 ${nodeBorderRadius - 4.5}px;
   background-color: ${(props) => {
-    if (props.suspended) return props.theme.colors.suspended;
+    if (props.suspended) return props.theme.colors.feedbackOriginal;
     else if (props.status === ReadyType.Ready)
-      return props.theme.colors.success;
+      return props.theme.colors.successOriginal;
     else if (props.status === ReadyType.Reconciling)
       return props.theme.colors.primary10;
     else if (props.status === ReadyType.NotReady)
-      return props.theme.colors.alert;
+      return props.theme.colors.alertOriginal;
     else return "transparent";
   }};
 `;
