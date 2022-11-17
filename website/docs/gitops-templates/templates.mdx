@@ -190,7 +190,8 @@ The default delimiters for `renderType: templating` are `{{` and `}}`. These can
 The `templates.weave.works/add-common-bases: "true"` annotation can be used to
 enabled and disable the addition of a "common bases" `Kustomization` to the
 list of rendered files.
-    
+This kustomization will sync a path that is common to all clusters (`clusters/bases`). Useful to add RBAC and policy that should be applied to all clusters.
+
 ### The `inject-prune-annotation` annotation
 
 The `templates.weave.works/inject-prune-annotation: "true"` annotation can be used to
