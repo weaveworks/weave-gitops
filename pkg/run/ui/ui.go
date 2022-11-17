@@ -12,10 +12,10 @@ type UILogger struct {
 	Program *tea.Program
 }
 
-type uiAction int32
+type uiActionType int32
 
 const (
-	runPrompt uiAction = 0
+	runPrompt uiActionType = 0
 )
 
 type uiPrompt struct {
@@ -24,10 +24,15 @@ type uiPrompt struct {
 	value       string
 }
 
+type uiAction struct {
+	actionType uiActionType
+	prompt     uiPrompt
+}
+
 type RunActionType int32
 
 const (
-	InstallDashboard RunActionType = 0
+	RunActionTypeInstallDashboard RunActionType = 0
 )
 
 type RunAction struct {
@@ -43,8 +48,14 @@ func (log *UILogger) Write(p []byte) (n int, err error) {
 
 type logMsg struct{ msg string }
 
+type PortForwardMsg struct{ Msg string }
+
 type UIModel struct {
-	uiEvents      chan string
+	// actions
+	uiActions  []*uiAction     // prompts
+	runActions chan *RunAction // actions which should be performed by GitOps Run
+
+	// system
 	windowIsReady bool
 
 	// viewports
@@ -53,7 +64,8 @@ type UIModel struct {
 	inputViewport viewport.Model
 
 	// logs
-	log []string
+	Logs            []string
+	portForwardLogs []string
 }
 
 // UI styling
@@ -82,9 +94,21 @@ func makeViewport(width int, height int, content string, style lipgloss.Style) v
 	return vp
 }
 
-func InitialUIModel(uiEvents chan string) UIModel {
+func InitialUIModel(runActions chan *RunAction) UIModel {
+	uiActions := []*uiAction{
+		{
+			actionType: runPrompt,
+			prompt: uiPrompt{
+				prompt:      "Do you want to install the Weave GitOps Dashboard?",
+				placeholder: "",
+				value:       "Y",
+			},
+		},
+	}
+
 	return UIModel{
-		uiEvents: uiEvents,
+		uiActions:  uiActions,
+		runActions: runActions,
 	}
 }
 
@@ -101,7 +125,14 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		case tea.KeyCtrlE:
-			go func() { m.uiEvents <- "test event 1" }()
+			go func() {
+				action := &RunAction{
+					actionType:          RunActionTypeInstallDashboard,
+					shouldPerformAction: true,
+				}
+
+				m.runActions <- action
+			}()
 		}
 	case tea.WindowSizeMsg:
 		if !m.windowIsReady {
@@ -125,9 +156,15 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.rootViewport.Height = msg.Height
 		}
 	case logMsg:
-		m.log = append(m.log, msg.msg)
+		m.Logs = append(m.Logs, msg.msg)
 
-		m.logViewport.SetContent(m.getContent())
+		m.logViewport.SetContent(m.getLogViewportContent())
+
+		m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
+	case PortForwardMsg:
+		m.portForwardLogs = append(m.portForwardLogs, msg.Msg)
+
+		m.inputViewport.SetContent(m.getInputViewportContent())
 
 		m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
 	}
@@ -142,7 +179,6 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.logViewport, cmdLogViewport = m.logViewport.Update(msg)
 	m.inputViewport, cmdInputViewport = m.inputViewport.Update(msg)
 
-	// cmds = append(cmds, cmdRootViewport)
 	cmds = append(cmds, cmdRootViewport, cmdLogViewport, cmdInputViewport)
 
 	return m, tea.Batch(cmds...)
@@ -156,8 +192,12 @@ func (m UIModel) View() string {
 	return m.rootViewport.View()
 }
 
-func (m UIModel) getContent() string {
-	return strings.Join(m.log, "\n")
+func (m UIModel) getLogViewportContent() string {
+	return strings.Join(m.Logs, "\n")
+}
+
+func (m UIModel) getInputViewportContent() string {
+	return strings.Join(m.portForwardLogs, "\n")
 }
 
 const Test = 123

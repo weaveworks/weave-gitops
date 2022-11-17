@@ -55,7 +55,7 @@ var HelmChartVersion = "3.0.0"
 
 var program *tea.Program
 
-var uiEvents chan string
+var runActions chan *ui.RunAction
 
 var kubeConfigArgs *genericclioptions.ConfigFlags
 
@@ -717,8 +717,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 				if err != nil {
 					log.Failuref("Error: %v", err)
 				}
-			case uiEvent := <-uiEvents:
-				fmt.Println(uiEvent)
+			case runAction := <-runActions:
+				fmt.Println(runAction)
 			}
 		}
 	}()
@@ -1062,12 +1062,12 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if uiEvents == nil {
-			uiEvents = make(chan string)
+		if runActions == nil {
+			runActions = make(chan *ui.RunAction)
 		}
 
 		if program == nil {
-			m := ui.InitialUIModel(uiEvents)
+			m := ui.InitialUIModel(runActions)
 
 			program = tea.NewProgram(m, tea.WithAltScreen())
 		}
