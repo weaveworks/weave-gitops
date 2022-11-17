@@ -100,3 +100,22 @@ metadata:
   annotations:
     capi.weave.works/profile-0: '{"name": "weave-policy-agent", "editable": true, "version": "0.2.8", "values": "accountId: weaveworks\nclusterId: ${CLUSTER_NAME}" }'
 ```
+
+### Marking entire Flux HelmRepository resources as containing Profiles
+
+Instead of marking individual Helm charts as Profiles, you can mark entire `HelmRepository` resources as providing Profiles.
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: demo-repository
+  namespace: default
+  annotations:
+    weave.works/profiles: "true"
+    
+spec:
+  interval: 5m0s
+  url: https://example.com/charts
+```
+Note that annotation values _must_ be strings so you can't use `true` here.
