@@ -12,24 +12,36 @@ type UILogger struct {
 	Program *tea.Program
 }
 
+type uiAction int32
+
+const (
+	runPrompt uiAction = 0
+)
+
+type uiPrompt struct {
+	prompt      string
+	placeholder string
+	value       string
+}
+
+type RunActionType int32
+
+const (
+	InstallDashboard RunActionType = 0
+)
+
+type RunAction struct {
+	actionType          RunActionType
+	shouldPerformAction bool
+}
+
 func (log *UILogger) Write(p []byte) (n int, err error) {
 	log.Program.Send(logMsg{msg: string(p)})
-
-	//fmt.Println(">>> " + string(p))
-
-	// os.Stdout.Write(p)
 
 	return len(p), nil
 }
 
 type logMsg struct{ msg string }
-
-// type inputLogMsg struct{ msg string }
-
-// type logErrMsg struct {
-// 	err        error
-// 	shouldExit bool
-// }
 
 type UIModel struct {
 	uiEvents      chan string
@@ -85,8 +97,6 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		go func() { m.uiEvents <- "test event 2" }()
-
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit

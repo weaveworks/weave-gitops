@@ -57,6 +57,8 @@ var program *tea.Program
 
 var uiEvents chan string
 
+var kubeConfigArgs *genericclioptions.ConfigFlags
+
 type RunCommandFlags struct {
 	FluxVersion     string
 	AllowK8sContext []string
@@ -89,8 +91,6 @@ type RunCommandFlags struct {
 }
 
 var flags RunCommandFlags
-
-var kubeConfigArgs *genericclioptions.ConfigFlags
 
 func RunCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
@@ -323,7 +323,6 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 
 	var dashboardManifests []byte
 
-	// dashboardInstalled = true
 	if dashboardInstalled {
 		log.Successf("GitOps Dashboard is found")
 	} else {
