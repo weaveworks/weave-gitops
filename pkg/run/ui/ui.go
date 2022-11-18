@@ -71,25 +71,22 @@ type UIModel struct {
 // UI styling
 var (
 	// viewports
-	rootViewportStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color("#d3d8de")).
-				Foreground(lipgloss.Color("#ffffff")).
-				BorderForeground(lipgloss.Color("#191919"))
-	logViewportStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color("#3492e5")).
-				Foreground(lipgloss.Color("#050e16")).
-				BorderForeground(lipgloss.Color("#191919"))
+	rootViewportStyle = lipgloss.NewStyle()
+	logViewportStyle  = lipgloss.NewStyle().
+				Padding(1).
+				BorderStyle(lipgloss.NormalBorder()).
+				Align(lipgloss.Center, lipgloss.Top)
 	inputViewportStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color("#28aec2")).
-				Foreground(lipgloss.Color("#050e16")).
-				BorderForeground(lipgloss.Color("#191919"))
+				Padding(1).
+				MarginTop(1).
+				BorderStyle(lipgloss.NormalBorder()).
+				Align(lipgloss.Center, lipgloss.Bottom)
 )
 
-func makeViewport(width int, height int, content string, style lipgloss.Style) viewport.Model {
+func makeViewport(width int, height int, style lipgloss.Style) viewport.Model {
 	vp := viewport.New(width, height)
-	vp.YPosition = 0
 	vp.Style = style
-	vp.SetContent(content)
+	// vp.SetContent(content)
 
 	return vp
 }
@@ -125,9 +122,11 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		case tea.KeyUp:
-			m.logViewport.LineUp(1)
+			return m, nil
+			// m.logViewport.LineUp(1)
 		case tea.KeyDown:
-			m.logViewport.LineDown(1)
+			return m, nil
+			// m.logViewport.LineDown(1)
 		case tea.KeyCtrlE:
 			go func() {
 				action := &RunAction{
@@ -140,17 +139,17 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		if !m.windowIsReady {
-			line := strings.Repeat(" ", msg.Width)
+			// line := strings.Repeat(" ", msg.Width)
 
-			m.rootViewport = makeViewport(msg.Width, msg.Height, line+"\n\n\n", rootViewportStyle)
+			m.rootViewport = makeViewport(msg.Width, msg.Height, rootViewportStyle)
 
-			logHeight := int(float64(msg.Height) * 0.6)
+			logHeight := int(float64(msg.Height) * 0.70)
 
-			m.logViewport = makeViewport(msg.Width, logHeight, line+"\n\n\n", logViewportStyle)
-			m.logViewport.YPosition = 0
+			m.logViewport = makeViewport(msg.Width, logHeight, logViewportStyle)
 
-			m.inputViewport = makeViewport(msg.Width, logHeight, line+"\n\n", inputViewportStyle)
-			m.inputViewport.YPosition = logHeight
+			inputHeight := int(float64(msg.Height) * 0.30)
+
+			m.inputViewport = makeViewport(msg.Width, inputHeight, inputViewportStyle)
 
 			m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
 
@@ -158,6 +157,13 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.rootViewport.Width = msg.Width
 			m.rootViewport.Height = msg.Height
+
+			m.logViewport.Width = msg.Width
+			m.logViewport.Height = int(float64(msg.Height) * 0.70)
+
+			m.inputViewport.Width = msg.Width
+			m.inputViewport.Height = int(float64(msg.Height) * 0.30)
+
 		}
 	case logMsg:
 		m.Logs = append(m.Logs, msg.msg)
