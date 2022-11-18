@@ -83,7 +83,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 		return err
 	}
 
-	log.Logger.V(loglevels.LogLevelInfo).Info(applyOutput)
+	log.L().V(loglevels.LogLevelInfo).Info(applyOutput)
 
 	return nil
 }

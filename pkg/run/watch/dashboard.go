@@ -38,7 +38,7 @@ func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, ku
 		log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 		go func() {
-			if err := ForwardPort(log.Logger, pod, config, specMap, waitFwd, readyChannel); err != nil {
+			if err := ForwardPort(log.L(), pod, config, specMap, waitFwd, readyChannel); err != nil {
 				log.Failuref("Error forwarding port: %v", err)
 			}
 		}()
