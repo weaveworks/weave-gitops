@@ -39,10 +39,11 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+  color: #BC3B1D;
 }
 
 .c4 svg {
-  fill: !important;
+  fill: #BC3B1D !important;
   height: 16px;
   width: 16px;
 }
@@ -61,6 +62,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 
 .c4 .c5 {
   margin-left: 4px;
+  color: #BC3B1D;
 }
 
 .c4 img {
@@ -90,7 +92,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
     </svg>
     <span
       className="c5 c6"
-      color="alert"
+      color="alertOriginal"
       size="medium"
     >
       Not Ready
@@ -138,10 +140,11 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
+  color: #27AE60;
 }
 
 .c4 svg {
-  fill: !important;
+  fill: #27AE60 !important;
   height: 16px;
   width: 16px;
 }
@@ -160,6 +163,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 
 .c4 .c5 {
   margin-left: 4px;
+  color: #27AE60;
 }
 
 .c4 img {
@@ -189,7 +193,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
     </svg>
     <span
       className="c5 c6"
-      color="success"
+      color="successOriginal"
       size="medium"
     >
       Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161

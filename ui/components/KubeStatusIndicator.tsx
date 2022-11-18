@@ -2,6 +2,7 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
+import { colors } from "../typedefs/styled.d";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
@@ -137,7 +138,7 @@ function KubeStatusIndicator({
 }: Props) {
   let readyText;
   let icon;
-  let iconColor;
+  let iconColor: keyof typeof colors;
   if (suspended) {
     readyText = "Suspended";
     icon = IconType.SuspendedIcon;
@@ -150,11 +151,11 @@ function KubeStatusIndicator({
     } else if (ready === ReadyType.Ready) {
       readyText = ReadyType.Ready;
       icon = IconType.CheckCircleIcon;
-      iconColor = "success";
+      iconColor = "successOriginal";
     } else {
       readyText = ReadyType.NotReady;
       icon = IconType.FailedIcon;
-      iconColor = "alert";
+      iconColor = "alertOriginal";
     }
   }
 
