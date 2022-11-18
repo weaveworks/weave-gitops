@@ -124,6 +124,10 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
+		case tea.KeyUp:
+			m.logViewport.LineUp(1)
+		case tea.KeyDown:
+			m.logViewport.LineDown(1)
 		case tea.KeyCtrlE:
 			go func() {
 				action := &RunAction{
