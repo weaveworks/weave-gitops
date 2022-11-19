@@ -57,6 +57,8 @@ type UIModel struct {
 
 	// system
 	windowIsReady bool
+	width         int
+	height        int
 
 	// viewports
 	rootViewport  viewport.Model
@@ -86,7 +88,13 @@ var (
 func makeViewport(width int, height int, style lipgloss.Style) viewport.Model {
 	vp := viewport.New(width, height)
 	vp.Style = style
-	// vp.SetContent(content)
+
+	return vp
+}
+
+func updateViewportSize(vp viewport.Model, width int, height int) viewport.Model {
+	vp.Width = width
+	vp.Height = height
 
 	return vp
 }
@@ -138,32 +146,35 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}()
 		}
 	case tea.WindowSizeMsg:
+		w := msg.Width
+		h := msg.Height
+
+		m.width = w
+		m.height = h
+
+		logHeight := int(float64(h) * 0.70)
+		inputHeight := int(float64(h) * 0.30)
+
 		if !m.windowIsReady {
-			// line := strings.Repeat(" ", msg.Width)
+			m.logViewport = makeViewport(w, logHeight, logViewportStyle)
+			m.logViewport.SetContent(m.getLogViewportContent())
 
-			m.rootViewport = makeViewport(msg.Width, msg.Height, rootViewportStyle)
+			m.inputViewport = makeViewport(w, inputHeight, inputViewportStyle)
+			m.inputViewport.SetContent(m.getInputViewportContent())
 
-			logHeight := int(float64(msg.Height) * 0.70)
-
-			m.logViewport = makeViewport(msg.Width, logHeight, logViewportStyle)
-
-			inputHeight := int(float64(msg.Height) * 0.30)
-
-			m.inputViewport = makeViewport(msg.Width, inputHeight, inputViewportStyle)
-
+			m.rootViewport = makeViewport(w, h, rootViewportStyle)
 			m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
 
 			m.windowIsReady = true
 		} else {
-			m.rootViewport.Width = msg.Width
-			m.rootViewport.Height = msg.Height
+			m.logViewport = updateViewportSize(m.logViewport, w, logHeight)
+			m.logViewport.SetContent(m.getLogViewportContent())
 
-			m.logViewport.Width = msg.Width
-			m.logViewport.Height = int(float64(msg.Height) * 0.70)
+			m.inputViewport = updateViewportSize(m.inputViewport, w, inputHeight)
+			m.inputViewport.SetContent(m.getInputViewportContent())
 
-			m.inputViewport.Width = msg.Width
-			m.inputViewport.Height = int(float64(msg.Height) * 0.30)
-
+			m.rootViewport = updateViewportSize(m.rootViewport, w, h)
+			m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
 		}
 	case logMsg:
 		m.Logs = append(m.Logs, msg.msg)
@@ -203,11 +214,15 @@ func (m UIModel) View() string {
 }
 
 func (m UIModel) getLogViewportContent() string {
-	return strings.Join(m.Logs, "\n")
+	filler := strings.Repeat(" ", m.width) + "\n\n\n"
+
+	return filler + strings.Join(m.Logs, "\n")
 }
 
 func (m UIModel) getInputViewportContent() string {
-	return strings.Join(m.portForwardLogs, "\n")
+	filler := strings.Repeat(" ", m.width) + "\n\n"
+
+	return filler + strings.Join(m.portForwardLogs, "\n")
 }
 
 const Test = 123
