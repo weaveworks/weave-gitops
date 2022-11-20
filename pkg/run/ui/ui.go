@@ -6,11 +6,23 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
+	"github.com/muesli/reflow/wrap"
 )
+
+// Logger
 
 type UILogger struct {
 	Program *tea.Program
 }
+
+func (log *UILogger) Write(p []byte) (n int, err error) {
+	log.Program.Send(logMsg{msg: string(p)})
+
+	return len(p), nil
+}
+
+// Actions
 
 type uiActionType int32
 
@@ -40,25 +52,24 @@ type RunAction struct {
 	shouldPerformAction bool
 }
 
-func (log *UILogger) Write(p []byte) (n int, err error) {
-	log.Program.Send(logMsg{msg: string(p)})
-
-	return len(p), nil
-}
+// Messages
 
 type logMsg struct{ msg string }
 
 type PortForwardMsg struct{ Msg string }
 
+// UI Model
+
 type UIModel struct {
+	// rendering
+	windowIsReady bool
+	maxWidth      int
+	width         int
+	height        int
+
 	// actions
 	uiActions  []*uiAction     // prompts
 	runActions chan *RunAction // actions which should be performed by GitOps Run
-
-	// system
-	windowIsReady bool
-	width         int
-	height        int
 
 	// viewports
 	rootViewport  viewport.Model
@@ -66,21 +77,23 @@ type UIModel struct {
 	inputViewport viewport.Model
 
 	// logs
-	Logs            []string
+	logs            []string
 	portForwardLogs []string
 }
 
 // UI styling
+
+const viewportPadding = 1
+
 var (
-	// viewports
 	rootViewportStyle = lipgloss.NewStyle()
 	logViewportStyle  = lipgloss.NewStyle().
-				Padding(1).
+				Padding(viewportPadding).
 				BorderStyle(lipgloss.NormalBorder()).
 				Align(lipgloss.Center, lipgloss.Top)
 	inputViewportStyle = lipgloss.NewStyle().
-				Padding(1).
-				MarginTop(1).
+				Padding(viewportPadding).
+				MarginTop(viewportPadding).
 				BorderStyle(lipgloss.NormalBorder()).
 				Align(lipgloss.Center, lipgloss.Bottom)
 )
@@ -130,11 +143,9 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		case tea.KeyUp:
-			return m, nil
-			// m.logViewport.LineUp(1)
+			m.logViewport.LineUp(1)
 		case tea.KeyDown:
-			return m, nil
-			// m.logViewport.LineDown(1)
+			m.logViewport.LineDown(1)
 		case tea.KeyCtrlE:
 			go func() {
 				action := &RunAction{
@@ -151,6 +162,7 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.width = w
 		m.height = h
+		m.maxWidth = w - viewportPadding*4
 
 		logHeight := int(float64(h) * 0.70)
 		inputHeight := int(float64(h) * 0.30)
@@ -177,7 +189,7 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
 		}
 	case logMsg:
-		m.Logs = append(m.Logs, msg.msg)
+		m.logs = append(m.logs, msg.msg)
 
 		m.logViewport.SetContent(m.getLogViewportContent())
 
@@ -214,15 +226,17 @@ func (m UIModel) View() string {
 }
 
 func (m UIModel) getLogViewportContent() string {
-	filler := strings.Repeat(" ", m.width) + "\n\n\n"
+	placeholder := strings.Repeat(" ", m.width) + "\n"
 
-	return filler + strings.Join(m.Logs, "\n")
+	// This wrapping method can be used in conjunction with word-wrapping
+	// when word-wrapping is preferred but a line limit has to be enforced.
+	content := wrap.String(wordwrap.String(placeholder+strings.Join(m.logs, "\n"), m.maxWidth), m.maxWidth)
+
+	return placeholder + content
 }
 
 func (m UIModel) getInputViewportContent() string {
-	filler := strings.Repeat(" ", m.width) + "\n\n"
+	placeholder := strings.Repeat(" ", m.width) + "\n"
 
-	return filler + strings.Join(m.portForwardLogs, "\n")
+	return placeholder + strings.Join(m.portForwardLogs, "\n")
 }
-
-const Test = 123
