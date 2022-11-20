@@ -23,13 +23,18 @@ export const theme: DefaultTheme = {
     black: "#1a1a1a",
     white: "#fff",
     primary: "#00b3ec",
-    primary05: "#E5F7FD",
-    primaryLight: "#98E0F7",
+    primaryLight05: "#E5F7FD",
+    primaryLight10: "#98E0F7",
     primary10: "#009CCC",
     primary20: "#006B8E",
-    success: "#27AE60",
-    alert: "#BC381D",
-    suspended: "#f2994a",
+    successLight: "#C9EBD7",
+    successMedium: "#78CC9C",
+    successOriginal: "#27AE60",
+    successDark: "#156034",
+    alertLight: "#EECEC7",
+    alertMedium: "#D58572",
+    alertOriginal: "#BC3B1D",
+    alertDark: "#9F3119",
     neutralGray: "#F6F7F9",
     neutral00: "#ffffff",
     neutral10: "#f5f5f5",
@@ -38,6 +43,13 @@ export const theme: DefaultTheme = {
     neutral40: "#1a1a1a",
     backGrey: "#eef0f4",
     feedbackLight: "#FCE6D2",
+    feedbackMedium: "#F7BF8E",
+    feedbackOriginal: "#F2994A",
+    feedbackDark: "#8A460A",
+    defaultLight: "#FCE6D2",
+    defaultMedium: "#F7BF8E",
+    defaultOriginal: "#F2994A",
+    defaultDark: "#8A460A",
   },
   spacing: {
     // 16px
@@ -132,7 +144,7 @@ export const muiTheme = createTheme({
     },
     secondary: {
       //Feedback - Alert - Original
-      main: theme.colors.alert,
+      main: theme.colors.alertOriginal,
     },
     text: {
       //Neutral - Neutral - 40

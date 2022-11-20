@@ -140,7 +140,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Revision",
-      value: "lastAttemptedRevision",
+      maxWidth: 36,
+      value: "lastAppliedRevision",
     },
     {
       label: "Last Updated",
