@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"k8s.io/client-go/discovery"
 	"os"
 	"os/signal"
 	"os/user"
@@ -540,6 +541,19 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+
+	// We need the server version to pass to the validation package
+	kubernetesVersion := trimK8sVersion(serverVersion.GitVersion)
+
 	contextName := kubeClient.ClusterName
 	validAllowedContext := false
 
@@ -563,8 +577,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
-	var fluxJustInstalled bool
-	_, fluxJustInstalled, err = fluxStep(log0, kubeClient)
+	var (
+		fluxJustInstalled bool
+		fluxVersion       string
+	)
+
+	fluxVersion, fluxJustInstalled, err = fluxStep(log0, kubeClient)
 
 	if err != nil {
 		cancel()
@@ -734,8 +752,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// validate only files under the target dir
 					log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-					if err := validate.Validate(paths.TargetDir); err != nil {
-						log.Failuref("Validation failed: please review the errors and try again")
+					if err := validate.Validate(paths.TargetDir, kubernetesVersion, fluxVersion); err != nil {
+						log.Failuref("Validation failed: please review the errors and try again: %v", err)
 						continue
 					}
 
