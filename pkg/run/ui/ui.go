@@ -226,7 +226,13 @@ func (m UIModel) getLogViewportContent() string {
 
 	// This wrapping method can be used in conjunction with word-wrapping
 	// when word-wrapping is preferred but a line limit has to be enforced.
-	content += m.wrapContentString(strings.Join(m.logs, ""))
+
+	numLogs := 10
+	if len(m.logs) < numLogs {
+		numLogs = len(m.logs)
+	}
+
+	content += m.wrapContentString(strings.Join(m.logs[len(m.logs)-numLogs:], ""))
 
 	return content
 }

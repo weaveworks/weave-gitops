@@ -325,11 +325,11 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 		log.Successf("GitOps Dashboard is found")
 	} else {
 
-		wantToInstallTheDashboard := false
+		wantToInstallTheDashboard := true
 		if flags.DashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
 		} else {
-			uiDispatcher.ShowDashboardPrompt()
+			// uiDispatcher.ShowDashboardPrompt()
 
 			// prompt := promptui.Prompt{
 			// 	Label:     "Would you like to install the GitOps Dashboard",
@@ -348,10 +348,13 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 		if wantToInstallTheDashboard {
 			passwordHash := ""
 			if flags.DashboardHashedPassword == "" {
-				password, err := install.ReadPassword(log)
-				if err != nil {
-					return false, nil, "", err
-				}
+				password := "123"
+				// password, err := install.ReadPassword(log)
+				// if err != nil {
+				// 	return false, nil, "", err
+				// }
+
+				var err error
 
 				passwordHash, err = install.GeneratePasswordHash(log, password)
 				if err != nil {
@@ -804,9 +807,11 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 							log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-							if err := watch.ForwardPort(log.Logger, pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+							err := watch.ForwardPort(log.Logger, pod, cfg, specMap, waitFwd, readyChannel)
+							if err != nil {
 								log.Failuref("Error forwarding port: %v", err)
 							} else {
+								// not displayed, because it's blocked
 								uiDispatcher.LogPortForwardMessage(fmt.Sprintf("%s/%s http://localhost:%s", pod.Namespace, pod.Name, specMap.HostPort))
 							}
 
