@@ -2,6 +2,7 @@ package watch
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
@@ -9,10 +10,12 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/pkg/run/ui"
 )
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string, uiDispatcher *ui.UIDispatcher) (func(), error) {
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
@@ -45,6 +48,8 @@ func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, ku
 		<-readyChannel
 
 		log.Successf("Port forwarding for dashboard is ready.")
+
+		uiDispatcher.LogPortForwardMessage(fmt.Sprintf("Dashboard http://localhost:%s", specMap.HostPort))
 
 		return cancelPortFwd, nil
 	}

@@ -199,10 +199,10 @@ func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, 
 			log.Failuref("Couldn't upload %v: %v", path, err)
 			return nil
 		}
-		uploadCount = uploadCount + 1
-		if uploadCount%10 == 0 {
-			fmt.Print(".")
-		}
+		// uploadCount = uploadCount + 1
+		// if uploadCount%10 == 0 {
+		// 	fmt.Print(".")
+		// }
 		return nil
 	})
 

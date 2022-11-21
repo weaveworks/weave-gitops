@@ -70,6 +70,7 @@ var (
 	helpStyle           = blurredStyle.Copy()
 	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 
+	// button
 	focusedButton = focusedStyle.Render(fmt.Sprintf("[ %s ]", buttonText))
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render(buttonText))
 )

@@ -3,7 +3,6 @@ package run
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"os/signal"
@@ -54,6 +53,7 @@ const (
 var HelmChartVersion = "3.0.0"
 
 var program *tea.Program
+var uiDispatcher *ui.UIDispatcher
 
 var runActions chan *ui.RunAction
 
@@ -196,9 +196,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
-	log := logger.NewCLILogger(&ui.UILogger{
-		Program: program,
-	})
+	log := logger.NewCLILogger(uiDispatcher)
 
 	if flags.Namespace, err = cmd.Flags().GetString("namespace"); err != nil {
 		return nil, nil, err
@@ -331,22 +329,23 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 		if flags.DashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
 		} else {
-			prompt := promptui.Prompt{
-				Label:     "Would you like to install the GitOps Dashboard",
-				IsConfirm: true,
-				Default:   "Y",
-			}
+			uiDispatcher.ShowDashboardPrompt()
 
-			// Answering "n" causes err to not be nil. Hitting enter without typing
-			// does not return the default.
-			_, err := prompt.Run()
-			if err == nil {
-				wantToInstallTheDashboard = true
-			}
+			// prompt := promptui.Prompt{
+			// 	Label:     "Would you like to install the GitOps Dashboard",
+			// 	IsConfirm: true,
+			// 	Default:   "Y",
+			// }
+
+			// // Answering "n" causes err to not be nil. Hitting enter without typing
+			// // does not return the default.
+			// _, err := prompt.Run()
+			// if err == nil {
+			// 	wantToInstallTheDashboard = true
+			// }
 		}
 
 		if wantToInstallTheDashboard {
-
 			passwordHash := ""
 			if flags.DashboardHashedPassword == "" {
 				password, err := install.ReadPassword(log)
@@ -413,9 +412,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	// create session
-	sessionLog := logger.NewCLILogger(&ui.UILogger{
-		Program: program,
-	})
+	sessionLog := logger.NewCLILogger(uiDispatcher)
 	sessionLog.Actionf("Preparing the cluster for GitOps Run session ...\n")
 
 	sessionLog.Println("You can run `gitops beta run --no-session` to disable session management.\n")
@@ -425,7 +422,8 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	sessionLog.Println("You may see Flux installation logs in the next step.\n")
 
 	// showing Flux installation twice is confusing
-	log := logger.NewCLILogger(io.Discard)
+	log := logger.NewCLILogger(uiDispatcher)
+	// log := logger.NewCLILogger(io.Discard)
 
 	var fluxJustInstalled bool
 
@@ -490,6 +488,8 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		sessionLog.Successf("Session %s is deleted successfully", flags.SessionName)
 	}
 
+	uiDispatcher.Quit()
+
 	// now that the session is deleted, we return to the host cluster
 	var okToDoFluxBootstrap bool
 	if fluxJustInstalled {
@@ -538,9 +538,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 }
 
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
-	log := logger.NewCLILogger(&ui.UILogger{
-		Program: program,
-	})
+	log := logger.NewCLILogger(uiDispatcher)
 
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
@@ -611,7 +609,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	var cancelDashboardPortForwarding func() = nil
 
 	if dashboardInstalled {
-		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort, uiDispatcher)
 		if err != nil {
 			cancel()
 			return err
@@ -808,6 +806,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
 							if err := watch.ForwardPort(log.Logger, pod, cfg, specMap, waitFwd, readyChannel); err != nil {
 								log.Failuref("Error forwarding port: %v", err)
+							} else {
+								uiDispatcher.LogPortForwardMessage(fmt.Sprintf("%s/%s http://localhost:%s", pod.Namespace, pod.Name, specMap.HostPort))
 							}
 
 							log.Successf("Port forwarding is stopped.")
@@ -1072,6 +1072,13 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			program = tea.NewProgram(m, tea.WithAltScreen())
 		}
 
+		if uiDispatcher == nil {
+			uiDispatcher = &ui.UIDispatcher{
+				Program:    program,
+				RunActions: runActions,
+			}
+		}
+
 		var wg sync.WaitGroup
 
 		wg.Add(1)
@@ -1088,7 +1095,7 @@ func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) err
 			}
 		}()
 
-		_ = program.Start()
+		_ = uiDispatcher.Start()
 
 		wg.Wait()
 

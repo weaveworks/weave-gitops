@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -10,66 +12,45 @@ import (
 	"github.com/muesli/reflow/wrap"
 )
 
-// Logger
-
-type UILogger struct {
-	Program *tea.Program
-}
-
-func (log *UILogger) Write(p []byte) (n int, err error) {
-	log.Program.Send(logMsg{msg: string(p)})
-
-	return len(p), nil
-}
-
 // Actions
 
 type uiActionType int32
 
-const (
-	runPrompt uiActionType = 0
-)
+const uiActionTypeShowDashboardPrompt uiActionType = 0
 
 type uiPrompt struct {
-	prompt      string
-	placeholder string
-	value       string
-}
-
-type uiAction struct {
-	actionType uiActionType
-	prompt     uiPrompt
-}
-
-type RunActionType int32
-
-const (
-	RunActionTypeInstallDashboard RunActionType = 0
-)
-
-type RunAction struct {
-	actionType          RunActionType
-	shouldPerformAction bool
+	textInput textinput.Model
 }
 
 // Messages
 
-type logMsg struct{ msg string }
+type logMsg struct {
+	msg string
+}
 
-type PortForwardMsg struct{ Msg string }
+type portForwardMsg struct {
+	msg string
+}
+
+type uiActionMsg struct {
+	actionType uiActionType
+}
+
+type runActionMsg struct {
+	actionType RunActionType
+}
 
 // UI Model
 
 type UIModel struct {
+	// actions
+	runActions chan *RunAction
+
 	// rendering
 	windowIsReady bool
 	maxWidth      int
 	width         int
 	height        int
-
-	// actions
-	uiActions  []*uiAction     // prompts
-	runActions chan *RunAction // actions which should be performed by GitOps Run
 
 	// viewports
 	rootViewport  viewport.Model
@@ -79,6 +60,9 @@ type UIModel struct {
 	// logs
 	logs            []string
 	portForwardLogs []string
+
+	// prompt
+	prompt *uiPrompt
 }
 
 // UI styling
@@ -86,13 +70,14 @@ type UIModel struct {
 const viewportPadding = 1
 
 var (
+	// viewports
 	rootViewportStyle = lipgloss.NewStyle()
 	logViewportStyle  = lipgloss.NewStyle().
-				Padding(viewportPadding).
+				Padding(0, viewportPadding, viewportPadding, viewportPadding).
 				BorderStyle(lipgloss.NormalBorder()).
 				Align(lipgloss.Center, lipgloss.Top)
 	inputViewportStyle = lipgloss.NewStyle().
-				Padding(viewportPadding).
+				Padding(0, viewportPadding, viewportPadding, viewportPadding).
 				MarginTop(viewportPadding).
 				BorderStyle(lipgloss.NormalBorder()).
 				Align(lipgloss.Center, lipgloss.Bottom)
@@ -113,19 +98,7 @@ func updateViewportSize(vp viewport.Model, width int, height int) viewport.Model
 }
 
 func InitialUIModel(runActions chan *RunAction) UIModel {
-	uiActions := []*uiAction{
-		{
-			actionType: runPrompt,
-			prompt: uiPrompt{
-				prompt:      "Do you want to install the Weave GitOps Dashboard?",
-				placeholder: "",
-				value:       "Y",
-			},
-		},
-	}
-
 	return UIModel{
-		uiActions:  uiActions,
 		runActions: runActions,
 	}
 }
@@ -140,21 +113,26 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case tea.KeyCtrlC:
 			return m, tea.Quit
 		case tea.KeyUp:
 			m.logViewport.LineUp(1)
 		case tea.KeyDown:
 			m.logViewport.LineDown(1)
-		case tea.KeyCtrlE:
-			go func() {
-				action := &RunAction{
-					actionType:          RunActionTypeInstallDashboard,
-					shouldPerformAction: true,
-				}
+		case tea.KeyEnter:
+			if m.prompt != nil {
+				value := strings.ToLower(strings.TrimSpace(m.prompt.textInput.Value()))
 
-				m.runActions <- action
-			}()
+				if value == "y" || value == "yes" {
+					m.installDashboard()
+				} else if value == "n" || value == "no" {
+					m.prompt = nil
+				}
+			}
+		case tea.KeyEsc:
+			if m.prompt != nil {
+				m.prompt = nil
+			}
 		}
 	case tea.WindowSizeMsg:
 		w := msg.Width
@@ -194,12 +172,26 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.logViewport.SetContent(m.getLogViewportContent())
 
 		m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
-	case PortForwardMsg:
-		m.portForwardLogs = append(m.portForwardLogs, msg.Msg)
+	case portForwardMsg:
+		m.portForwardLogs = append(m.portForwardLogs, msg.msg)
 
 		m.inputViewport.SetContent(m.getInputViewportContent())
 
 		m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
+	case uiActionMsg:
+		switch msg.actionType {
+		case uiActionTypeShowDashboardPrompt:
+			m.prompt = makeDashboardPrompt()
+
+			m.inputViewport.SetContent(m.getInputViewportContent())
+
+			m.rootViewport.SetContent(m.logViewport.View() + m.inputViewport.View())
+		}
+	case runActionMsg:
+		switch msg.actionType {
+		case RunActionTypeInstallDashboard:
+			m.installDashboard()
+		}
 	}
 
 	var (
@@ -225,18 +217,66 @@ func (m UIModel) View() string {
 	return m.rootViewport.View()
 }
 
+func (m UIModel) wrapContentString(content string) string {
+	return wrap.String(wordwrap.String(content, m.maxWidth), m.maxWidth)
+}
+
 func (m UIModel) getLogViewportContent() string {
-	placeholder := strings.Repeat(" ", m.width) + "\n"
+	content := strings.Repeat(" ", m.width) + "\n"
 
 	// This wrapping method can be used in conjunction with word-wrapping
 	// when word-wrapping is preferred but a line limit has to be enforced.
-	content := wrap.String(wordwrap.String(placeholder+strings.Join(m.logs, "\n"), m.maxWidth), m.maxWidth)
+	content += m.wrapContentString(strings.Join(m.logs, ""))
 
-	return placeholder + content
+	return content
 }
 
 func (m UIModel) getInputViewportContent() string {
-	placeholder := strings.Repeat(" ", m.width) + "\n"
+	content := strings.Repeat(" ", m.width) + "\n"
 
-	return placeholder + strings.Join(m.portForwardLogs, "\n")
+	numPortForwardLogs := len(m.portForwardLogs)
+
+	if numPortForwardLogs > 0 {
+		pLogs := make([]string, numPortForwardLogs)
+
+		for i, log := range m.portForwardLogs {
+			pLogs[i] = fmt.Sprintf("%d: %s", i+1, log)
+		}
+
+		content += "Port forwards for Applications\n" + m.wrapContentString(strings.Join(pLogs, "\n"))
+	}
+
+	if m.prompt != nil {
+		content += m.prompt.textInput.View()
+	}
+
+	return content
+}
+
+func (m UIModel) installDashboard() {
+	go func() {
+		action := &RunAction{
+			actionType: RunActionTypeInstallDashboard,
+		}
+
+		m.runActions <- action
+	}()
+
+	m.prompt = nil
+}
+
+func makeDashboardPrompt() *uiPrompt {
+	ti := textinput.New()
+
+	ti.CharLimit = 3
+
+	ti.Prompt = "Do you want to install the Weave GitOps Dashboard?"
+	ti.SetValue("Y")
+	ti.Placeholder = ""
+
+	ti.Focus()
+
+	return &uiPrompt{
+		textInput: ti,
+	}
 }
