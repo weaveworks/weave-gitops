@@ -16,7 +16,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-func Validate(targetDir string) error {
+func Validate(targetDir string, kubernetesVersion string, fluxVersion string) error {
 	var (
 		o     output.Output
 		err   error
@@ -35,7 +35,8 @@ func Validate(targetDir string) error {
 		}
 
 		cli := cleanhttp.DefaultClient()
-		response, err := cli.Get("https://github.com/fluxcd/flux2/releases/latest/download/crd-schemas.tar.gz")
+		url := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/%s/crd-schemas.tar.gz", fluxVersion)
+		response, err := cli.Get(url)
 
 		if err != nil {
 			return err
@@ -102,7 +103,7 @@ func Validate(targetDir string) error {
 		return err
 	}
 
-	cacheDir := filepath.Join(userCacheDir, ".gitops", "schema")
+	cacheDir := filepath.Join(userCacheDir, ".gitops", "schema-cache")
 	// make sure the cache directory exists
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		return err
@@ -110,7 +111,7 @@ func Validate(targetDir string) error {
 
 	schemaLocations := []string{
 		// special case for K8s Kustomization config
-		fluxSchemaDir + "/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .Group }}-{{ .ResourceKind }}{{ .KindSuffix }}.json",
+		fluxSchemaDir + "/master-standalone{{ .StrictSuffix }}/{{ .Group }}-{{ .ResourceKind }}{{ .KindSuffix }}.json",
 		// standard Flux schemas
 		fluxSchemaDir,
 		// the default K8s schemas
@@ -124,7 +125,7 @@ func Validate(targetDir string) error {
 		SkipTLS:              false,
 		SkipKinds:            nil,
 		RejectKinds:          nil,
-		KubernetesVersion:    "master",
+		KubernetesVersion:    kubernetesVersion,
 		Strict:               true,
 		IgnoreMissingSchemas: true,
 	})

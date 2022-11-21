@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"k8s.io/client-go/discovery"
 	"os"
 	"os/signal"
 	"os/user"
@@ -274,7 +275,8 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 			return "", false, err
 		}
 
-		flux.SetLogger(log.Logger)
+		// This means that Flux logs will be printed to the console, but not be sent to S3
+		flux.SetLogger(log.L())
 
 		var components []fluxexec.Component
 		for _, component := range flags.Components {
@@ -527,7 +529,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 }
 
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
-	log := logger.NewCLILogger(os.Stdout)
+	log0 := logger.NewCLILogger(os.Stdout)
 
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
@@ -539,12 +541,25 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return err
+	}
+
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return err
+	}
+
+	// We need the server version to pass to the validation package
+	kubernetesVersion := trimK8sVersion(serverVersion.GitVersion)
+
 	contextName := kubeClient.ClusterName
 	validAllowedContext := false
 
 	for _, allowContext := range flags.AllowK8sContext {
 		if allowContext == contextName {
-			log.Actionf("Explicitly allow GitOps Run on %s context", contextName)
+			log0.Actionf("Explicitly allow GitOps Run on %s context", contextName)
 
 			validAllowedContext = true
 
@@ -562,25 +577,32 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
-	var fluxJustInstalled bool
-	_, fluxJustInstalled, err = fluxStep(log, kubeClient)
-
-	if err != nil {
-		cancel()
-		return err
-	}
-
 	var (
-		dashboardInstalled bool
-		dashboardManifests []byte
+		fluxJustInstalled bool
+		fluxVersion       string
 	)
 
-	dashboardInstalled, dashboardManifests, _, err = dashboardStep(log, ctx, kubeClient, false)
+	fluxVersion, fluxJustInstalled, err = fluxStep(log0, kubeClient)
+
 	if err != nil {
 		cancel()
 		return err
 	}
 
+	sessionName := flags.HiddenSessionName
+	if sessionName == "" {
+		sessionName = "no-session"
+	}
+
+	var username string
+	if current, err := user.Current(); err != nil {
+		username = "unknown"
+	} else {
+		username = current.Username
+	}
+
+	// ====================== Dev-bucket ======================
+	// Install dev-bucket server before everything, so that we can also forward logs to it
 	unusedPorts, err := run.GetUnusedPorts(1)
 	if err != nil {
 		cancel()
@@ -588,8 +610,26 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	devBucketPort := unusedPorts[0]
-	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log, kubeClient, cfg, devBucketPort)
+	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketPort)
 
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketPort), log0)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	// ====================== Dashboard ======================
+	var (
+		dashboardInstalled bool
+		dashboardManifests []byte
+	)
+
+	dashboardInstalled, dashboardManifests, _, err = dashboardStep(log, ctx, kubeClient, false)
 	if err != nil {
 		cancel()
 		return err
@@ -608,18 +648,6 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	if err := watch.InitializeTargetDir(paths.GetAbsoluteTargetDir()); err != nil {
 		cancel()
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
-	}
-
-	sessionName := flags.HiddenSessionName
-	if sessionName == "" {
-		sessionName = "no-session"
-	}
-
-	var username string
-	if current, err := user.Current(); err != nil {
-		username = "unknown"
-	} else {
-		username = current.Username
 	}
 
 	setupBucketSourceAndKSParams := watch.SetupBucketSourceAndKSParams{
@@ -724,8 +752,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// validate only files under the target dir
 					log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-					if err := validate.Validate(paths.TargetDir); err != nil {
-						log.Failuref("Validation failed: please review the errors and try again")
+					if err := validate.Validate(paths.TargetDir, kubernetesVersion, fluxVersion); err != nil {
+						log.Failuref("Validation failed: please review the errors and try again: %v", err)
 						continue
 					}
 
@@ -791,7 +819,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 							log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-							if err := watch.ForwardPort(log.Logger, pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+							if err := watch.ForwardPort(log.L(), pod, cfg, specMap, waitFwd, readyChannel); err != nil {
 								log.Failuref("Error forwarding port: %v", err)
 							}
 
@@ -943,7 +971,7 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 		return err
 	}
 
-	flux.SetLogger(log.Logger)
+	flux.SetLogger(log.L())
 
 	slugifiedWorkloadPath := strings.ReplaceAll(paths.TargetDir, "/", "-")
 
