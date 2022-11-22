@@ -2,64 +2,77 @@ package logger
 
 import (
 	"fmt"
-	"io"
-	"os"
-
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"io"
 )
 
-type Logger struct {
+type Logger interface {
+	Println(format string, a ...interface{})
+	Actionf(format string, a ...interface{})
+	Failuref(format string, a ...interface{})
+	Generatef(format string, a ...interface{})
+	Successf(format string, a ...interface{})
+	Waitingf(format string, a ...interface{})
+	Warningf(format string, a ...interface{})
+	L() logr.Logger
+}
+
+type CliLogger struct {
 	logr.Logger
+}
+
+func (l *CliLogger) L() logr.Logger {
+	return l.Logger
 }
 
 // NewCLILogger returns a wrapped logr that logs to the specified writer
 // Note: unless you're doing CLI work, you should use core/logger.New instead
 func NewCLILogger(writer io.Writer) Logger {
-	return Logger{defaultLogr()}
+	return &CliLogger{defaultLogr(writer)}
 }
 
 // From wraps a logr instance with the extra emoji generating helpers
 func From(logger logr.Logger) Logger {
-	return Logger{Logger: logger}
+	return &CliLogger{Logger: logger}
 }
 
-func (l Logger) Println(format string, a ...interface{}) {
+func (l *CliLogger) Println(format string, a ...interface{}) {
 	l.Info(fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Actionf(format string, a ...interface{}) {
+func (l *CliLogger) Actionf(format string, a ...interface{}) {
 	l.Info("► " + fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Failuref(format string, a ...interface{}) {
+func (l *CliLogger) Failuref(format string, a ...interface{}) {
 	l.Info("✗ " + fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Generatef(format string, a ...interface{}) {
+func (l *CliLogger) Generatef(format string, a ...interface{}) {
 	l.Info("✚ " + fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Successf(format string, a ...interface{}) {
+func (l *CliLogger) Successf(format string, a ...interface{}) {
 	l.Info("✔ " + fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Waitingf(format string, a ...interface{}) {
+func (l *CliLogger) Waitingf(format string, a ...interface{}) {
 	l.Info("◎ " + fmt.Sprintf(format, a...))
 }
 
-func (l Logger) Warningf(format string, a ...interface{}) {
+func (l *CliLogger) Warningf(format string, a ...interface{}) {
 	l.Info("⚠️ " + fmt.Sprintf(format, a...))
 }
 
-func defaultLogr() logr.Logger {
+func defaultLogr(w io.Writer) logr.Logger {
 	//jsonEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
 	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 		MessageKey: "msg",
 	})
-	consoleOut := zapcore.Lock(os.Stdout)
+	consoleOut := zapcore.Lock(zapcore.AddSync(w))
 
 	// Should point into the cluster
 	//clusterOut := zapcore.Lock(os.Stderr)
