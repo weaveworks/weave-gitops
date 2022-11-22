@@ -14,7 +14,7 @@ This section details the steps required to install Weave GitOps on a Kubernetes 
 ### Pre-requisites
 
 #### Kubernetes Cluster
-This version of Weave GitOps is tested against the following Kubernetes releases:
+This version of Weave GitOps is tested against the following Kubernetes releases: 1.22 - 1.25.
 * 1.22
 * 1.23
 * 1.24
@@ -42,7 +42,13 @@ The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - includ
 Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
 :::
 
-To install:
+There are multiple ways to install the `gitops` CLI:
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs groupId="installation" default>
+<TabItem value="curl" label="curl">
 
 ```bash
 curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.10.2/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
@@ -50,12 +56,16 @@ sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
 
-Alternatively, users can use Homebrew:
+</TabItem>
+<TabItem value="homebrew" label="Homebrew">
 
 ```console
 brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
+
+</TabItem>
+</Tabs>
 
 ### Install the Helm Chart
 
@@ -107,9 +117,6 @@ To purchase entitlement to Weave GitOps Enterprise please contact [sales@weave.w
 :::note 
 There is no need to install Weave GitOps (OSS) before installing Weave GitOps Enterprise
 :::
-
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 
 To install Weave GitOps Enterprise
 
