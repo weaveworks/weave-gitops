@@ -4,6 +4,34 @@ sidebar_position: 8
 hide_title: true
 ---
 
+## Anonymous Aggregate User Behavior Analytics
+
+
+
+### Why are we collecting this data?
+
+We want to ensure that we are designing the best features, addressing the most pressing bugs, and prioritizing our roadmap appropriately for our users. Collecting analytics on our users’ behaviors gives us valuable insights and allows us to conduct analyses on user behavior within the product. This is important for us so we can make informed decisions- based on how, where and when our users use Weave GitOps - and prioritize what is most important to users like you.
+
+#### For example:
+
+### How long is the collected data stored?
+
+
+### What are we collecting?
+
+
+### When is the data collected and where is it sent?
+
+### How?
+
+### Opting out
+
+#### CLI
+
+#### Dashboard
+
+
+
 ## Feedback
 
 We ❤️ your comments and suggestions as we look to make successfully adopting a cloud-native approach, to application deployment on Kubernetes with GitOps, easier and easier. There are a number of ways you can reach out:
