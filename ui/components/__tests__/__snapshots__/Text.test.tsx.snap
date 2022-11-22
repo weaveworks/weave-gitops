@@ -46,7 +46,7 @@ exports[`Text snapshots with color 1`] = `
 
 <span
   className="c0"
-  color="success"
+  color="successOriginal"
   size="medium"
 >
   some text

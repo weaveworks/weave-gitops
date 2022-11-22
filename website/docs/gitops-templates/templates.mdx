@@ -134,10 +134,9 @@ Supported templating languages:
     | Version Comparison Functions        | *semver*, semverCompare
     | Reflection                          | *typeOf*, *kindIs*, *typeIsLike*
 
-### Pull requests details
+### Editing templates
 
 When rendering a template, a `templates.weave.works/create-request` annotation is added by default to the first resource in the `resourcetemplates`. It can be added to any other resource by simply adding the annotation in empty form. This annotation  holds information about which template generated the resource and the parameter values used as a json string.
-
 
 If the resource type is one of the following and has this annotation, an `Edit resource` button will appear in the UI that allows the editing of the resource and re-rendering it:
 - Applications:
@@ -149,32 +148,72 @@ If the resource type is one of the following and has this annotation, an `Edit r
 - Clusters:
   - GitopsCluster
 
-
-
-
 Example:
-```
-{
-  "repository_url":"https://github.com/org/repo.git",
-  "head_branch":"feature-01",
-  "base_branch":"main",
-  "title":"New Cluster",
-  "description":"Creates a cluster through a CAPI template",
-  "template_name":"cluster-template-1",
-  "parameter_values":{
-      "CLUSTER_NAME":"dev",
-      "NAMESPACE":"clusters-namespace"
-    },
-  "commit_message":"Add cluster manifest",
-  "values":[
-      {"name":"demo-profile",
-      "version":"0.0.1",
-      "namespace":"test-system"
-      }
-    ]
-  }
+```yaml
+spec:
+  resourcetemplates:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: my-configmap
+    data:
+      my-key: my-value
+  - apiVersion: source.toolkit.fluxcd.io/v1beta1
+    kind: HelmRepository
+    metadata:
+      # This annotation will add an `Edit resource` button in the UI for this resource
+      annotations:
+        templates.weave.works/create-request: ''
+      name: nginx
+      namespace: default
 ```
 
+## Custom delimiters for `renderType: templating`
+
+The default delimiters for `renderType: templating` are `{{` and `}}`. These can be changed by setting the `templates.weave.works/delimiters` annotation on the profile. For example:
+
+- `templates.weave.works/delimiters: "{{,}}"` - default
+- `templates.weave.works/delimiters: "${{,}}"`
+  - Use `${{` and `}}`, for example `${{ .params.CLUSTER_NAME }}`
+  - Useful as `{{` in yaml is invalid syntax and needs to be quoted. If you need to provide a un-quoted number value like `replicas: 3` you should use these delimiters.
+  - :x: `replicas: {{ .params.REPLICAS }}` Invalid yaml 
+  - :x: `replicas: "{{ .params.REPLICAS }}"` Valid yaml, incorrect type. The type is a `string` not a `number` and will fail validation.
+  - :white_check_mark: `replicas: ${{ .params.REPLICAS }}` Valid yaml and correct `number` type.
+- `templates.weave.works/delimiters: "<<,>>" `
+  - Use `<<` and `>>`, for example `<< .params.CLUSTER_NAME >>`
+  - Useful if you are nesting templates and need to differentiate between the delimiters used in the inner and outer templates.
+
+## Modifying the rendered resources
+
+### The `add-common-bases` annotation
+
+The `templates.weave.works/add-common-bases: "true"` annotation can be used to
+enabled and disable the addition of a "common bases" `Kustomization` to the
+list of rendered files.
+This kustomization will sync a path that is common to all clusters (`clusters/bases`). Useful to add RBAC and policy that should be applied to all clusters.
+
+### The `inject-prune-annotation` annotation
+
+The `templates.weave.works/inject-prune-annotation: "true"` annotation can be used to
+enable and disable the injection of Flux's `prune` annotation into certain resources.
+
+When enabled we automatically inject a `kustomize.toolkit.fluxcd.io/prune: disabled`
+annotation into every resource in the `spec.resourcetemplates` that is not a 
+`cluster.x-k8s.io.Cluster` and not a `gitops.weave.works.GitopsCluster`.
+
+The intention here is stop flux from explicitly deleting subresources of the `Cluster` like
+`AWSCluster`, `KubeadmControlPlane`, `AWSMachineTemplate` etc and let the capi-controllers remove them itself.
+
+This is the pattern recommended in the capi-quickstart guide https://cluster-api.sigs.k8s.io/user/quick-start.html#clean-up.
+
+## Differences between `CAPITemplate` and `GitOpsTemplate`
+
+The only difference between `CAPITemplate` and `GitOpsTemplate` is the default value of these two annotations:
+
+| Annotation | default value for `CAPITemplate` | default value for `GitOpsTemplate` |
+| ----------- | ---------------- | ------------------ |
+| `templates.weave.works/add-common-bases`  | `"true"` | `"false"` |
+| `templates.weave.works/inject-prune-annotations` | `"true"` | `"false"` |
 
 ## How to: Add a GitOps Template to create a cluster
 

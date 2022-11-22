@@ -83,7 +83,7 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 		return err
 	}
 
-	log.Logger.V(loglevels.LogLevelInfo).Info(applyOutput)
+	log.L().V(loglevels.LogLevelInfo).Info(applyOutput)
 
 	return nil
 }
@@ -222,7 +222,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 				"app.kubernetes.io/created-by": "weave-gitops-cli",
 			},
 			Annotations: map[string]string{
-				"metadata.weave.works/description": "This is the Weave GitOps Dashboard.  It provides a simple way to get insights into your GitOps workloads.",
+				"metadata.weave.works/description": "This is the source location for the Weave GitOps Dashboard's helm chart.",
 			},
 		},
 		Spec: sourcev1.HelmRepositorySpec{
@@ -247,6 +247,9 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Annotations: map[string]string{
+				"metadata.weave.works/description": "This is the Weave GitOps Dashboard.  It provides a simple way to get insights into your GitOps workloads.",
+			},
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Interval: metav1.Duration{

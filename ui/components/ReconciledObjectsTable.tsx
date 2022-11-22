@@ -11,7 +11,12 @@ import { NoNamespace } from "../lib/types";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import ImageLink from "./ImageLink";
-import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeMessage,
+  createSyntheticCondition,
+  ReadyStatusValue,
+  SpecialObject,
+} from "./KubeStatusIndicator";
 import Link from "./Link";
 import RequestStateHandler from "./RequestStateHandler";
 import Text from "./Text";
@@ -97,14 +102,36 @@ function ReconciledObjectsTable({
           },
           {
             label: "Status",
-            value: (u: FluxObject) =>
-              u.conditions.length > 0 ? (
+            value: (u: FluxObject) => {
+              const status = u.obj.status;
+
+              if (!status || !status.conditions) {
+                const cond = createSyntheticCondition(
+                  u.type as SpecialObject,
+                  status
+                );
+
+                if (cond.status === ReadyStatusValue.Unknown) {
+                  return null;
+                }
+
+                return (
+                  <KubeStatusIndicator
+                    conditions={[cond]}
+                    suspended={u.suspended}
+                    short
+                  />
+                );
+              }
+
+              return u.conditions.length > 0 ? (
                 <KubeStatusIndicator
                   conditions={u.conditions}
                   suspended={u.suspended}
                   short
                 />
-              ) : null,
+              ) : null;
+            },
             sortValue: statusSortHelper,
           },
           {
