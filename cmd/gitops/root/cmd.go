@@ -2,11 +2,12 @@ package root
 
 import (
 	"fmt"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -92,22 +93,30 @@ func RootCmd() *cobra.Command {
 
 			_, err = config.GetConfig(false)
 			if err != nil {
+				fmt.Println("To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+
 				prompt := promptui.Prompt{
-					Label:     "Creating config file... Would you like to turn on analytics to help us improve our product",
+					Label:     "Would you like to turn on analytics to help us improve our product",
 					IsConfirm: true,
 					Default:   "Y",
 				}
 
+				enableAnalytics := false
+
 				// Answering "n" causes err to not be nil. Hitting enter without typing
 				// does not return the default.
 				_, err := prompt.Run()
-				gitopsConfig := &config.GitopsCLIConfig{}
-				seed := time.Now().UnixNano()
-				gitopsConfig.UserID = config.GenerateUserID(10, seed)
-				gitopsConfig.Analytics = false
 				if err == nil {
-					gitopsConfig.Analytics = true
+					enableAnalytics = true
 				}
+
+				seed := time.Now().UnixNano()
+
+				gitopsConfig := &config.GitopsCLIConfig{
+					UserID:    config.GenerateUserID(10, seed),
+					Analytics: enableAnalytics,
+				}
+
 				if err = config.SaveConfig(gitopsConfig); err != nil {
 					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 					os.Exit(1)
