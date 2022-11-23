@@ -297,8 +297,8 @@ func makeValues(username string, passwordHash string) ([]byte, error) {
 			}
 	}
 
-	analytics, _ := config.GetConfig(nil, false)
-	if analytics.Analytics {
+	gitopsConfig, _ := config.GetConfig(false)
+	if gitopsConfig.Analytics {
 		valuesMap["WEAVE_GITOPS_FEATURE_TELEMETRY"] = "true"
 	}
 
