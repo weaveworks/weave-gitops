@@ -20,9 +20,10 @@ var (
 )
 
 const (
+	flagPrefix       = "flag_"
+	maxFlagLength    = 32
 	app              = "cli"
 	analyticsType    = "track"
-	commandEvent     = "Command"
 	trackEventURL    = "https://app.pendo.io/data/track"
 	trackEventSecret = "bf6ab33e-cd70-46e7-4b77-279f54cac447"
 )
@@ -35,13 +36,11 @@ type analyticsRequestBody struct {
 	Properties    *eventProperties `json:"properties"`
 }
 
-type eventProperties struct {
-	Tier    string `json:"tier"`
-	Version string `json:"version"`
-	App     string `json:"app"`
-	Command string `json:"command"`
-	Flags   string `json:"flags"`
-}
+const tierKey = "tier"
+const versionKey = "version"
+const appKey = "app"
+
+type eventProperties map[string]interface{}
 
 // TrackCommand converts the provided command into an event
 // and submits it to the analytics service
@@ -52,18 +51,22 @@ func TrackCommand(cmd *cobra.Command, userID string) error {
 
 	client := resty.New()
 
+	props := &eventProperties{
+		tierKey:    Tier,
+		versionKey: version.Version,
+		appKey:     app,
+	}
+
+	for _, flag := range flags {
+		(*props)[flag] = true
+	}
+
 	reqBody := &analyticsRequestBody{
 		AnalyticsType: analyticsType,
-		Event:         commandEvent,
+		Event:         cmdPath,
 		VisitorID:     userID,
 		Timestamp:     time.Now().UnixMilli(),
-		Properties: &eventProperties{
-			Tier:    Tier,
-			Version: version.Version,
-			App:     app,
-			Command: cmdPath,
-			Flags:   flags,
-		},
+		Properties:    props,
 	}
 
 	reqBodyData, err := json.MarshalIndent(reqBody, "", "  ")
@@ -91,14 +94,13 @@ func getCommandPath(cmd *cobra.Command) string {
 	return r.ReplaceAllString(cmdPath, "")
 }
 
-func getFlags(cmd *cobra.Command) string {
+func getFlags(cmd *cobra.Command) []string {
 	flags := []string{}
 
 	allFlags := cmd.Flags()
 
 	err := allFlags.ParseAll(os.Args[1:], func(flag *pflag.Flag, value string) error {
-
-		flags = append(flags, flag.Name)
+		flags = append(flags, sanitizeFlagName(flagPrefix+flag.Name))
 
 		return nil
 	})
@@ -111,5 +113,20 @@ func getFlags(cmd *cobra.Command) string {
 		flags = append(flags, "unknown flag")
 	}
 
-	return strings.Join(flags, " ")
+	return flags
+}
+
+// Sanitizes flag names according to requirements
+// to Pendo event property keys.
+// Pendo event property names must only use letters, numbers, or underscores
+// and must be 32 characters or fewer.
+func sanitizeFlagName(flagName string) string {
+	length := len(flagName)
+	maxLength := maxFlagLength
+
+	if maxFlagLength > length {
+		maxLength = length
+	}
+
+	return strings.ReplaceAll(flagName[:maxLength], "-", "_")
 }

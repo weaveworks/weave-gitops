@@ -92,7 +92,9 @@ func RootCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			gitopsConfig, err := config.GetConfig(false)
+			var gitopsConfig *config.GitopsCLIConfig
+
+			gitopsConfig, err = config.GetConfig(false)
 			if err != nil {
 				fmt.Println("To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
 
@@ -113,7 +115,7 @@ func RootCmd() *cobra.Command {
 
 				seed := time.Now().UnixNano()
 
-				gitopsConfig := &config.GitopsCLIConfig{
+				gitopsConfig = &config.GitopsCLIConfig{
 					UserID:    config.GenerateUserID(10, seed),
 					Analytics: enableAnalytics,
 				}
