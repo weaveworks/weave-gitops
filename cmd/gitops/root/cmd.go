@@ -2,21 +2,25 @@ package root
 
 import (
 	"fmt"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
+
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -24,7 +28,7 @@ import (
 
 const defaultNamespace = "flux-system"
 
-var options = &config.Options{}
+var options = &cfg.Options{}
 
 // Only want AutomaticEnv to be called once!
 func init() {
@@ -85,6 +89,35 @@ func RootCmd() *cobra.Command {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
+			}
+
+			_, err = config.GetConfig(false)
+			if err != nil {
+				fmt.Println("To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+
+				prompt := promptui.Prompt{
+					Label:     "Would you like to turn on analytics to help us improve our product",
+					IsConfirm: true,
+					Default:   "Y",
+				}
+
+				enableAnalytics := false
+
+				// Answering "n" causes err to not be nil. Hitting enter without typing
+				// does not return the default.
+				_, err := prompt.Run()
+				if err == nil {
+					enableAnalytics = true
+				}
+
+				seed := time.Now().UnixNano()
+
+				gitopsConfig := &config.GitopsCLIConfig{
+					UserID:    config.GenerateUserID(10, seed),
+					Analytics: enableAnalytics,
+				}
+
+				_ = config.SaveConfig(gitopsConfig)
 			}
 		},
 	}
