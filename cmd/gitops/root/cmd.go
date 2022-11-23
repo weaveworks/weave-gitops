@@ -117,10 +117,7 @@ func RootCmd() *cobra.Command {
 					Analytics: enableAnalytics,
 				}
 
-				if err = config.SaveConfig(gitopsConfig); err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
-				}
+				_ = config.SaveConfig(gitopsConfig)
 			}
 		},
 	}
