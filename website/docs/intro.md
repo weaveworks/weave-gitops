@@ -38,10 +38,13 @@ Here is a quick demo of what you can look forward to:
 
 import ReactPlayer from "react-player/lazy";
 
-<ReactPlayer
-  controls="true"
-  light="https://images.contentstack.io/v3/assets/blt300387d93dabf50e/blt05bbdbb28e888c3a/629a9f178eeef94572764d71/dashboard-application-reconciliation.png"
-  url="https://assets.contentstack.io/v3/assets/blt300387d93dabf50e/blt351ecb1bd5aba155/629a9719df98c90faab8980f/Core_Redux_-_Sonja_Cut.mp4" />
+<div class="player-wrapper">
+  <ReactPlayer
+    class="react-player"
+    controls="true" width="100%" height="100%"
+    light="https://images.contentstack.io/v3/assets/blt300387d93dabf50e/blt05bbdbb28e888c3a/629a9f178eeef94572764d71/dashboard-application-reconciliation.png"
+    url="https://assets.contentstack.io/v3/assets/blt300387d93dabf50e/blt351ecb1bd5aba155/629a9719df98c90faab8980f/Core_Redux_-_Sonja_Cut.mp4" />
+</div>
 
 ## Features
 
