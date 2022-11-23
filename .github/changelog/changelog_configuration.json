@@ -23,6 +23,12 @@
             "labels": [
                 "test"
             ]
+        },
+        {
+            "title": "## 📖 Documentation",
+            "labels": [
+                "documentation"
+            ]
         }
     ],
     "ignore_labels": [
@@ -32,9 +38,9 @@
     "pr_template": "- PR: #${{NUMBER}} - ${{TITLE}}",
     "empty_template": "- no changes",
     "tag_resolver": {
-      "method": "semver",
-      "filter": {
-        "pattern": "^v[0-9.]+$"
-      }
+        "method": "semver",
+        "filter": {
+            "pattern": "^v[0-9.]+$"
+        }
     }
 }
