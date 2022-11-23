@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/analytics"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -91,7 +92,9 @@ func RootCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			_, err = config.GetConfig(false)
+			var gitopsConfig *config.GitopsCLIConfig
+
+			gitopsConfig, err = config.GetConfig(false)
 			if err != nil {
 				fmt.Println("To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
 
@@ -112,12 +115,16 @@ func RootCmd() *cobra.Command {
 
 				seed := time.Now().UnixNano()
 
-				gitopsConfig := &config.GitopsCLIConfig{
+				gitopsConfig = &config.GitopsCLIConfig{
 					UserID:    config.GenerateUserID(10, seed),
 					Analytics: enableAnalytics,
 				}
 
 				_ = config.SaveConfig(gitopsConfig)
+			}
+
+			if gitopsConfig.Analytics {
+				_ = analytics.TrackCommand(cmd, gitopsConfig.UserID)
 			}
 		},
 	}

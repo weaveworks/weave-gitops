@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
-
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -33,7 +32,7 @@ func getConfigCommandRunE(opts *cfg.Options) func(*cobra.Command, []string) erro
 
 		log := logger.NewCLILogger(os.Stdout)
 
-		cfg, err := config.GetConfig(false)
+		gitopsConfig, err := config.GetConfig(false)
 		if err != nil {
 			log.Warningf(config.WrongConfigFormatMsg)
 			return err
@@ -41,7 +40,7 @@ func getConfigCommandRunE(opts *cfg.Options) func(*cobra.Command, []string) erro
 
 		log.Successf("Your CLI configuration for Weave GitOps:")
 
-		cfgStr, err := cfg.String()
+		cfgStr, err := gitopsConfig.String()
 		if err != nil {
 			log.Failuref("Error printing config")
 			return err
