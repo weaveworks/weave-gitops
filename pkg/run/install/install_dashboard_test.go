@@ -52,7 +52,7 @@ var _ = Describe("InstallDashboard", func() {
 	It("should install dashboard successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
@@ -121,7 +121,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		fakeLogger = logger.From(logr.Discard())
 	})
 
-	It("generates manifests successfully", func() {
+	It("generates manifests", func() {
 		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
 
 		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
@@ -162,7 +162,7 @@ var _ = Describe("makeHelmRelease", func() {
 		fakeLogger = logger.From(logr.Discard())
 	})
 
-	It("creates helmrelease with chart version and values successfully", func() {
+	It("creates helmrelease with chart version and values", func() {
 		config.SetConfig(&config.GitopsCLIConfig{
 			UserID:    testUserID,
 			Analytics: true,
@@ -195,7 +195,7 @@ var _ = Describe("makeHelmRelease", func() {
 		Expect(values["WEAVE_GITOPS_FEATURE_TELEMETRY"]).To(Equal("true"))
 	})
 
-	It("creates helmrelease without chart version successfully", func() {
+	It("creates helmrelease without chart version", func() {
 		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "")
 		Expect(err).NotTo(HaveOccurred())
 
@@ -258,7 +258,7 @@ var _ = Describe("makeHelmRelease", func() {
 })
 
 var _ = Describe("makeHelmRepository", func() {
-	It("creates helmrepository successfully", func() {
+	It("creates helmrepository", func() {
 		actual := makeHelmRepository(testDashboardName, testNamespace)
 		Expect(actual.Kind).To(Equal(sourcev1.HelmRepositoryKind))
 		Expect(actual.APIVersion).To(Equal(sourcev1.GroupVersion.Identifier()))
@@ -280,7 +280,7 @@ var _ = Describe("makeHelmRepository", func() {
 })
 
 var _ = Describe("makeValues", func() {
-	It("creates all values successfully", func() {
+	It("creates all values", func() {
 		config.SetConfig(&config.GitopsCLIConfig{
 			UserID:    testUserID,
 			Analytics: true,
