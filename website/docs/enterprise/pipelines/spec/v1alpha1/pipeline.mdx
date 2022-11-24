@@ -7,7 +7,7 @@ hide_title: true
 
 The Pipeline API defines a resource for continuous delivery pipelines.
 
-An example of a fully defined pipeline is shown below.
+An example of a fully defined pipeline that creates pull requests for application promotions is shown below.
 
 ```yaml
 apiVersion: pipelines.weave.works/v1alpha1
@@ -47,6 +47,11 @@ spec:
             kind: GitopsCluster
             name: prod
             namespace: flux-system
+  promotion:
+    pull-request:
+      url: https://github.com/my-org/my-app-repo
+      secretRef:
+        name: github-credentials
 ```
 
 ## Specification
@@ -74,6 +79,10 @@ type PipelineSpec struct {
 	// AppRef denotes the name and type of the application that's governed by the pipeline.
 	// +required
 	AppRef LocalAppReference `json:"appRef"`
+	// Promotion defines details about how promotions are carried out between the environments
+	// of this pipeline.
+	// +optional
+	Promotion *Promotion `json:"promotion,omitempty"`
 }
 
 type Environment struct {
@@ -96,6 +105,40 @@ type Target struct {
 	// +optional
 	ClusterRef *CrossNamespaceClusterReference `json:"clusterRef,omitempty"`
 }
+
+// Promotion defines all the available promotion strategies. All of the fields in here are mutually exclusive, i.e. you can only select one
+// promotion strategy per Pipeline. Failure to do so will result in undefined behaviour.
+type Promotion struct {
+	// PullRequest defines a promotion through a GitHub Pull Request.
+	// +optional
+	PullRequest *PullRequestPromotion `json:"pull-request,omitempty"`
+	// Notification defines a promotion where an event is emitted through Flux's notification-controller each time an app is to be promoted.
+	// +optional
+	Notification *NotificationPromotion `json:"notification,omitempty"`
+}
+
+type PullRequestPromotion struct {
+	// The git repository URL used to patch the manifests for promotion.
+	// +required
+	URL string `json:"url"`
+	// The branch to checkout after cloning. Note: This is just the base
+	// branch and does not denote the branch used to create a PR from. The
+	// latter is generated automatically and cannot be provided. If not specified
+	// the default "main" is used.
+	// +optional
+	Branch string `json:"branch"`
+	// SecretRef specifies the Secret containing authentication credentials for
+	// the git repository and for the GitHub API.
+	// For HTTPS repositories the Secret must contain 'username' and 'password'
+	// fields.
+	// For SSH repositories the Secret must contain 'identity'
+	// and 'known_hosts' fields.
+	// For the GitHub API the Secret must contain a 'token' field.
+	// +required
+	SecretRef meta.LocalObjectReference `json:"secretRef"`
+}
+
+type NotificationPromotion struct{}
 
 ```
 
