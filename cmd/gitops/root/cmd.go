@@ -96,15 +96,16 @@ func RootCmd() *cobra.Command {
 
 			gitopsConfig, err = config.GetConfig(false)
 			if err != nil {
-				fmt.Println("To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+				fmt.Fprintln(os.Stderr, "To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+
+				enableAnalytics := false
 
 				prompt := promptui.Prompt{
 					Label:     "Would you like to turn on analytics to help us improve our product",
 					IsConfirm: true,
 					Default:   "Y",
+					Stdout:    os.Stderr,
 				}
-
-				enableAnalytics := false
 
 				// Answering "n" causes err to not be nil. Hitting enter without typing
 				// does not return the default.

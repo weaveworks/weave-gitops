@@ -21,7 +21,10 @@ const (
 Please set you configuration with: gitops set config`
 )
 
-var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
+var (
+	sessionConfig *GitopsCLIConfig
+	letters       = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")
+)
 
 type GitopsCLIConfig struct {
 	Analytics bool   `json:"analytics"`
@@ -37,8 +40,17 @@ func (config *GitopsCLIConfig) String() (string, error) {
 	return string(data), nil
 }
 
+// SetConfig sets global config to the provided value
+func SetConfig(config *GitopsCLIConfig) {
+	sessionConfig = config
+}
+
 // GetConfig reads the CLI configuration for Weave GitOps from the config file
 func GetConfig(shouldCreate bool) (*GitopsCLIConfig, error) {
+	if sessionConfig != nil {
+		return sessionConfig, nil
+	}
+
 	configPath, err := getConfigPath(ConfigFileName)
 	if err != nil {
 		return nil, err
@@ -69,6 +81,8 @@ func GetConfig(shouldCreate bool) (*GitopsCLIConfig, error) {
 			return nil, fmt.Errorf("error reading config from file: %w", err)
 		}
 	}
+
+	sessionConfig = config
 
 	return config, nil
 }
@@ -106,6 +120,8 @@ func SaveConfig(config *GitopsCLIConfig) error {
 	if err != nil {
 		return fmt.Errorf("error writing to config file: %w", err)
 	}
+
+	sessionConfig = config
 
 	return nil
 }
