@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,6 +32,8 @@ const (
 	testNamespace     = "test-namespace"
 	testAdminUser     = "testUser"
 	testSecret        = "test-secret"
+	testUserID        = "abcdefgh90"
+	helmChartVersion  = "3.0.0"
 
 	stateGetDashboardHelmChartGetReturnErr stateGetDashboardHelmChart = "get-return-err"
 
@@ -59,7 +62,7 @@ var _ = Describe("InstallDashboard", func() {
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, "3.0.0")
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
@@ -121,7 +124,6 @@ var _ = Describe("generateManifestsForDashboard", func() {
 	It("generates manifests successfully", func() {
 		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
 
-		helmChartVersion := "3.0.0"
 		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -161,7 +163,11 @@ var _ = Describe("makeHelmRelease", func() {
 	})
 
 	It("creates helmrelease with chart version and values successfully", func() {
-		helmChartVersion := "3.0.0"
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: true,
+		})
+
 		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual.Kind).To(Equal(helmv2.HelmReleaseKind))
@@ -185,6 +191,8 @@ var _ = Describe("makeHelmRelease", func() {
 		Expect(adminUser["create"]).To(BeTrue())
 		Expect(adminUser["username"]).To(Equal(testAdminUser))
 		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
+
+		Expect(values["WEAVE_GITOPS_FEATURE_TELEMETRY"]).To(Equal("true"))
 	})
 
 	It("creates helmrelease without chart version successfully", func() {
@@ -195,10 +203,57 @@ var _ = Describe("makeHelmRelease", func() {
 		Expect(chart.Spec.Version).To(BeEmpty())
 	})
 
-	It("does not add values to helmrelease if both username and secret are empty successfully", func() {
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", "3.0.0")
+	It("does not add values to helmrelease if username and secret are empty and analytics is off", func() {
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: false,
+		})
+
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual.Spec.Values).To(BeNil())
+	})
+
+	It("adds only telemetry value to helmrelease if username and secret are empty but analytics is on", func() {
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: true,
+		})
+
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion)
+		Expect(err).NotTo(HaveOccurred())
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(actual.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(values).NotTo(BeNil())
+		Expect(values["adminUser"]).To(BeNil())
+
+		Expect(values["WEAVE_GITOPS_FEATURE_TELEMETRY"]).To(Equal("true"))
+	})
+
+	It("does not add telemetry value to helmrelease if analytics is off", func() {
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: false,
+		})
+
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
+		Expect(err).NotTo(HaveOccurred())
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(actual.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(values).NotTo(BeNil())
+
+		adminUser := values["adminUser"].(map[string]interface{})
+		Expect(adminUser["create"]).To(BeTrue())
+		Expect(adminUser["username"]).To(Equal(testAdminUser))
+		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
+
+		Expect(values["WEAVE_GITOPS_FEATURE_TELEMETRY"]).To(BeNil())
 	})
 })
 
@@ -225,7 +280,12 @@ var _ = Describe("makeHelmRepository", func() {
 })
 
 var _ = Describe("makeValues", func() {
-	It("creates values successfully", func() {
+	It("creates all values successfully", func() {
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: true,
+		})
+
 		values, err := makeValues(testAdminUser, testSecret)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -237,6 +297,8 @@ var _ = Describe("makeValues", func() {
 		Expect(adminUser["create"]).To(BeTrue())
 		Expect(adminUser["username"]).To(Equal(testAdminUser))
 		Expect(adminUser["passwordHash"]).To(Equal(testSecret))
+
+		Expect(actual["WEAVE_GITOPS_FEATURE_TELEMETRY"]).To(Equal("true"))
 	})
 })
 
@@ -266,7 +328,6 @@ var _ = Describe("SanitizeResourceData", func() {
 	})
 
 	It("sanitizes helmrelease data", func() {
-		helmChartVersion := "3.0.0"
 		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testSecret, helmChartVersion)
 		Expect(err).NotTo(HaveOccurred())
 
