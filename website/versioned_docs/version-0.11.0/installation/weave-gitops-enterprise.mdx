@@ -334,7 +334,9 @@ brew install weaveworks/tap/gitops-ee
 ```
 
 ```bash
-curl -O https://artifacts.wge.dev.weave.works/releases/bin/0.9.5/gitops-linux-x86_64.tar.gz
+curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.11.0/gitops-$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
 ```
 
 ## Next steps

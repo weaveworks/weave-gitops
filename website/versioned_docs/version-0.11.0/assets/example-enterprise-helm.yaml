@@ -23,7 +23,7 @@ spec:
         kind: HelmRepository
         name: weave-gitops-enterprise-charts
         namespace: flux-system
-      version: 0.9.5
+      version: 0.11.0
   install:
     crds: CreateReplace
   upgrade:
