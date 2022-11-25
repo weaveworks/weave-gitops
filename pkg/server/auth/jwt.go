@@ -50,6 +50,7 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 	if err == http.ErrNoCookie {
 		return nil, nil
 	}
+
 	pg.log.V(logger.LogLevelDebug).Info("parsing cookie JWT token", "claimsConfig", pg.claimsConfig)
 
 	return parseJWTToken(r.Context(), pg.verifier, cookie.Value, pg.claimsConfig)
@@ -79,6 +80,7 @@ func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*Us
 	if header == "" {
 		return nil, nil
 	}
+
 	pg.log.V(logger.LogLevelDebug).Info("parsing authorization header JWT token", "claimsConfig", pg.claimsConfig)
 
 	return parseJWTToken(r.Context(), pg.verifier, extractToken(header), pg.claimsConfig)

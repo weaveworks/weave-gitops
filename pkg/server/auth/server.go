@@ -78,6 +78,7 @@ type LoginRequest struct {
 // UserInfo represents the response returned from the user info handler.
 type UserInfo struct {
 	Email  string   `json:"email"`
+	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
 }
 
@@ -422,6 +423,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	claims, err := s.tokenSignerVerifier.Verify(c.Value)
 	if err == nil {
 		ui := UserInfo{
+			ID:    claims.Subject,
 			Email: claims.Subject,
 		}
 		toJSON(rw, ui, s.Log)
@@ -455,6 +457,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	ui := UserInfo{
+		ID:     userPrincipal.ID,
 		Email:  userPrincipal.ID,
 		Groups: userPrincipal.Groups,
 	}

@@ -638,6 +638,7 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
+
 	authServer, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
 
 	authorizeQuery := valuesFromMap(map[string]string{
@@ -677,6 +678,7 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 
 	tokenResp, err := httpClient.Do(tokenReq)
 	g.Expect(err).NotTo(HaveOccurred())
+
 	defer tokenResp.Body.Close()
 
 	body, err := io.ReadAll(tokenResp.Body)
@@ -706,8 +708,10 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	var info auth.UserInfo
+
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
 	g.Expect(info.Email).To(Equal("jane.doe"))
+	g.Expect(info.ID).To(Equal("jane.doe"))
 }
 
 func TestLogoutSuccess(t *testing.T) {
