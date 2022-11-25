@@ -446,18 +446,16 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userPrincipal UserPrincipal
-
-	// Extract custom claims
-	if err := info.Claims(&userPrincipal); err != nil {
-		s.Log.Error(err, "failed to decode user claims")
-		JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
+	userPrincipal, err := s.OIDCConfig.ClaimsConfig.PrincipalFromClaims(info)
+	if err != nil {
+		s.Log.Error(err, "failed to parse user info")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
 
 		return
 	}
 
 	ui := UserInfo{
-		Email:  info.Email,
+		Email:  userPrincipal.ID,
 		Groups: userPrincipal.Groups,
 	}
 

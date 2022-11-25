@@ -2,8 +2,6 @@ package auth
 
 import (
 	"fmt"
-
-	"github.com/coreos/go-oidc/v3/oidc"
 )
 
 // ClaimsConfig provides the keys to extract the details for a Principal
@@ -13,10 +11,14 @@ type ClaimsConfig struct {
 	Groups   string
 }
 
+type claimsToken interface {
+	Claims(v interface{}) error
+}
+
 // PrincipalFromClaims takes a token and parses the claims using the
 // configuration and returns a configured UserPrincipal with the details in the
 // claims.
-func (c *ClaimsConfig) PrincipalFromClaims(token *oidc.IDToken) (*UserPrincipal, error) {
+func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, error) {
 	claims := map[string]interface{}{}
 	if err := token.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("failed to parse claims from the JWT token: %w", err)

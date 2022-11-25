@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -20,18 +21,22 @@ type PrincipalGetter interface {
 	Principal(r *http.Request) (*UserPrincipal, error)
 }
 
+type tokenVerifier interface {
+	Verify(ctx context.Context, rawIDToken string) (*oidc.IDToken, error)
+}
+
 // JWTCookiePrincipalGetter inspects a cookie for a JWT token
 // and returns a principal object.
 type JWTCookiePrincipalGetter struct {
 	log          logr.Logger
-	verifier     *oidc.IDTokenVerifier
+	verifier     tokenVerifier
 	cookieName   string
 	claimsConfig *ClaimsConfig
 }
 
 // NewJWTCookiePrincipalGetter looks for a cookie in the provided name and
 // treats that as a JWT token that can be decoded to a Principal.
-func NewJWTCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string, config *ClaimsConfig) PrincipalGetter {
+func NewJWTCookiePrincipalGetter(log logr.Logger, verifier tokenVerifier, cookieName string, config *ClaimsConfig) PrincipalGetter {
 	return &JWTCookiePrincipalGetter{
 		log:          log,
 		verifier:     verifier,
@@ -55,11 +60,11 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 // object.
 type JWTAuthorizationHeaderPrincipalGetter struct {
 	log          logr.Logger
-	verifier     *oidc.IDTokenVerifier
+	verifier     tokenVerifier
 	claimsConfig *ClaimsConfig
 }
 
-func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, config *ClaimsConfig) PrincipalGetter {
+func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier tokenVerifier, config *ClaimsConfig) PrincipalGetter {
 	return &JWTAuthorizationHeaderPrincipalGetter{
 		log:          log,
 		verifier:     verifier,
@@ -92,7 +97,7 @@ func extractToken(s string) string {
 	return strings.TrimSpace(parts[1])
 }
 
-func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDToken string, cc *ClaimsConfig) (*UserPrincipal, error) {
+func parseJWTToken(ctx context.Context, verifier tokenVerifier, rawIDToken string, cc *ClaimsConfig) (*UserPrincipal, error) {
 	token, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
@@ -157,5 +162,5 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("could not find valid principal")
+	return nil, errors.New("could not find valid principal")
 }
