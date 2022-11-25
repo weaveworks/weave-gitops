@@ -66,12 +66,9 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	fetch, err := fetcher.NewSingleClusterFetcher(cluster)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fetch := fetcher.NewSingleClusterFetcher(cluster)
 
-	clustersManager := clustersmngr.NewClustersManager(fetch, &nsChecker, log)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
 
 	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	if err != nil {
@@ -155,14 +152,11 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	cluster.GetUserClientsetReturns(clientset, nil)
 	cluster.GetServerClientReturns(fakeClient, nil)
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(&cluster)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fetcher := fetcher.NewSingleClusterFetcher(&cluster)
 
 	// Don't include the clustersmngr.DefaultKubeConfigOptions here as we're using a fake kubeclient
 	// and the default options include the Flowcontrol setup which is not mocked out
-	clustersManager := clustersmngr.NewClustersManager(fetcher, &nsChecker, log)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, &nsChecker, log)
 
 	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
 	if err != nil {

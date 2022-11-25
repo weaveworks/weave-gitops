@@ -11,8 +11,8 @@ type singleClusterFetcher struct {
 	cluster cluster.Cluster
 }
 
-func NewSingleClusterFetcher(cluster cluster.Cluster) (mngr.ClusterFetcher, error) {
-	return singleClusterFetcher{cluster}, nil
+func NewSingleClusterFetcher(cluster cluster.Cluster) mngr.ClusterFetcher {
+	return singleClusterFetcher{cluster}
 }
 
 func (cf singleClusterFetcher) Fetch(ctx context.Context) ([]cluster.Cluster, error) {
