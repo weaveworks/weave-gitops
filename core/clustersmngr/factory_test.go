@@ -33,10 +33,10 @@ func TestGetImpersonatedClient(t *testing.T) {
 
 	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
 	g.Expect(err).To(BeNil())
-	clustersFetcher, err := fetcher.NewSingleClusterFetcher(cluster)
-	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)
+
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -75,10 +75,10 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 
 	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
 	g.Expect(err).To(BeNil())
-	clustersFetcher, err := fetcher.NewSingleClusterFetcher(cl)
-	g.Expect(err).To(BeNil())
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersFetcher := fetcher.NewSingleClusterFetcher(cl)
+
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -102,7 +102,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -161,7 +161,7 @@ func TestUpdateUsers(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 
 	clusterName1 := "foo"
 	clusterName2 := "bar"
@@ -207,7 +207,7 @@ func TestUpdateUsersFailsToConnect(t *testing.T) {
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 
 	clusterName1 := "foo"
 
@@ -241,7 +241,7 @@ func TestGetClusters(t *testing.T) {
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 
 	c1 := makeLeafCluster(t, "foo")
 	c2 := makeLeafCluster(t, "foo")
@@ -278,7 +278,7 @@ func TestUpdateClusters(t *testing.T) {
 
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 	err := clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -404,12 +404,11 @@ func TestClientCaching(t *testing.T) {
 	cluster.GetUserClientsetReturns(cs, nil)
 	cluster.GetServerClientsetReturns(cs, nil)
 
-	clustersFetcher, err := fetcher.NewSingleClusterFetcher(cluster)
-	g.Expect(err).To(BeNil())
+	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)
 
 	userID := "user-id"
 
-	clustersManager := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 
 	err = clustersManager.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
