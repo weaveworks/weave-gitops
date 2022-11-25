@@ -26,6 +26,21 @@ type PullRequestClient struct {
 		result1 gitprovider.PullRequest
 		result2 error
 	}
+	EditStub        func(context.Context, int, gitprovider.EditOptions) (gitprovider.PullRequest, error)
+	editMutex       sync.RWMutex
+	editArgsForCall []struct {
+		arg1 context.Context
+		arg2 int
+		arg3 gitprovider.EditOptions
+	}
+	editReturns struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}
+	editReturnsOnCall map[int]struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}
 	GetStub        func(context.Context, int) (gitprovider.PullRequest, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
@@ -134,6 +149,72 @@ func (fake *PullRequestClient) CreateReturnsOnCall(i int, result1 gitprovider.Pu
 		})
 	}
 	fake.createReturnsOnCall[i] = struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) Edit(arg1 context.Context, arg2 int, arg3 gitprovider.EditOptions) (gitprovider.PullRequest, error) {
+	fake.editMutex.Lock()
+	ret, specificReturn := fake.editReturnsOnCall[len(fake.editArgsForCall)]
+	fake.editArgsForCall = append(fake.editArgsForCall, struct {
+		arg1 context.Context
+		arg2 int
+		arg3 gitprovider.EditOptions
+	}{arg1, arg2, arg3})
+	stub := fake.EditStub
+	fakeReturns := fake.editReturns
+	fake.recordInvocation("Edit", []interface{}{arg1, arg2, arg3})
+	fake.editMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *PullRequestClient) EditCallCount() int {
+	fake.editMutex.RLock()
+	defer fake.editMutex.RUnlock()
+	return len(fake.editArgsForCall)
+}
+
+func (fake *PullRequestClient) EditCalls(stub func(context.Context, int, gitprovider.EditOptions) (gitprovider.PullRequest, error)) {
+	fake.editMutex.Lock()
+	defer fake.editMutex.Unlock()
+	fake.EditStub = stub
+}
+
+func (fake *PullRequestClient) EditArgsForCall(i int) (context.Context, int, gitprovider.EditOptions) {
+	fake.editMutex.RLock()
+	defer fake.editMutex.RUnlock()
+	argsForCall := fake.editArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *PullRequestClient) EditReturns(result1 gitprovider.PullRequest, result2 error) {
+	fake.editMutex.Lock()
+	defer fake.editMutex.Unlock()
+	fake.EditStub = nil
+	fake.editReturns = struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) EditReturnsOnCall(i int, result1 gitprovider.PullRequest, result2 error) {
+	fake.editMutex.Lock()
+	defer fake.editMutex.Unlock()
+	fake.EditStub = nil
+	if fake.editReturnsOnCall == nil {
+		fake.editReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.PullRequest
+			result2 error
+		})
+	}
+	fake.editReturnsOnCall[i] = struct {
 		result1 gitprovider.PullRequest
 		result2 error
 	}{result1, result2}
@@ -337,6 +418,8 @@ func (fake *PullRequestClient) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
+	fake.editMutex.RLock()
+	defer fake.editMutex.RUnlock()
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	fake.listMutex.RLock()
