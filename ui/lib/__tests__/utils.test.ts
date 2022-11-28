@@ -1,4 +1,3 @@
-import { jest } from "@jest/globals";
 import { Automation, HelmRelease, Kustomization } from "../objects";
 import {
   convertGitURLToGitProvider,
