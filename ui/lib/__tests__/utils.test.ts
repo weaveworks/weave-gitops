@@ -5,7 +5,6 @@ import {
   convertImage,
   formatMetadataKey,
   getSourceRefForAutomation,
-  gitlabOAuthRedirectURI,
   isAllowedLink,
   isHTTP,
   makeImageString,
@@ -14,29 +13,6 @@ import {
 } from "../utils";
 
 describe("utils lib", () => {
-  describe("gitlabOAuthRedirectURI", () => {
-    let windowSpy;
-
-    beforeEach(() => {
-      windowSpy = jest.spyOn(window, "window", "get");
-    });
-
-    afterEach(() => {
-      windowSpy.mockRestore();
-    });
-
-    it("returns correct URL", () => {
-      windowSpy.mockImplementation(() => ({
-        location: {
-          origin: "https://example.com",
-        },
-      }));
-
-      expect(gitlabOAuthRedirectURI()).toEqual(
-        "https://example.com/oauth/gitlab"
-      );
-    });
-  });
   describe("isHTTP", () => {
     it("detects HTTP", () => {
       expect(isHTTP("http://www.google.com")).toEqual(true);

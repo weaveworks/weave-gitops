@@ -78,10 +78,10 @@ import {
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
-import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
 export {
+  AuthorizeGitlabResponse,
   AppContext,
   AppContextProvider,
   applicationsClient,
@@ -135,7 +135,6 @@ export {
   Metadata,
   muiTheme,
   NotificationsTable,
-  OAuthCallback,
   OCIRepository,
   OCIRepositoryDetail,
   Page,
