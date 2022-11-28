@@ -46,7 +46,10 @@ import CallbackStateContextProvider, {
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
-import { LinkResolverProvider } from "./contexts/LinkResolverContext";
+import {
+  LinkResolverProvider,
+  useLinkResolver,
+} from "./contexts/LinkResolverContext";
 import { useListAutomations } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
@@ -163,6 +166,7 @@ export {
   useListFluxRuntimeObjects,
   useListProviders,
   useListSources,
+  useLinkResolver,
   useRequestState,
   UserSettings,
   V2Routes,
