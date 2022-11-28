@@ -1,0 +1,214 @@
+package watch
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+func SetupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupRunObjectParams) error {
+	secret, source := createBucketAndSecretObjects(params)
+
+	helm := helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RunDevHelmName,
+			Namespace: params.Namespace,
+			Annotations: map[string]string{
+				"metadata.weave.works/description": "This is a temporary HelmRelease created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
+				"metadata.weave.works/run-id":      params.SessionName,
+				"metadata.weave.works/username":    params.Username,
+			},
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: params.Path,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind: sourcev1.BucketKind,
+						Name: RunDevBucketName,
+					},
+				},
+			},
+			Timeout: &metav1.Duration{Duration: params.Timeout},
+		},
+	}
+
+	err := reconcileBucketAndSecretObjects(ctx, log, kubeClient, secret, source)
+	if err != nil {
+		return err
+	}
+
+	// create ks
+	log.Actionf("Checking HelmRelease %s ...", helm.Name)
+
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helm), &helm); err != nil && apierrors.IsNotFound(err) {
+		if err := kubeClient.Create(ctx, &helm); err != nil {
+			return fmt.Errorf("couldn't create HelmRelease %s: %v", helm.Name, err.Error())
+		} else {
+			log.Successf("Created HelmRelease %s", helm.Name)
+		}
+	} else if err == nil {
+		log.Successf("HelmRelease %s already existed", source.Name)
+	}
+
+	log.Successf("Setup Bucket Source and HelmRelease successfully")
+
+	return nil
+}
+
+// CleanupBucketSourceAndHelm removes the bucket source and ks
+func CleanupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string) error {
+	// delete ks
+	helm := helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RunDevHelmName,
+			Namespace: namespace,
+		},
+	}
+
+	log.Actionf("Deleting HelmRelease %s ...", helm.Name)
+
+	if err := kubeClient.Delete(ctx, &helm); err != nil {
+		log.Failuref("Error deleting HelmRelease %s: %v", helm.Name, err.Error())
+	} else {
+		log.Successf("Deleted HelmRelease %s", helm.Name)
+	}
+
+	cleanupBucketAndSecretObjects(ctx, log, kubeClient, namespace)
+
+	log.Successf("Cleanup Bucket Source and HelmRelease successfully")
+
+	return nil
+}
+
+// ReconcileDevBucketSourceAndHelm reconciles the dev-bucket and dev-helm asynchronously.
+func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
+	const interval = 10 * time.Second
+
+	log.Actionf("Start reconciling %s and %s ...", RunDevBucketName, RunDevHelmName)
+
+	// reconcile dev-bucket
+	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
+		types.NamespacedName{
+			Name:      RunDevBucketName,
+			Namespace: namespace,
+		}, schema.GroupVersionKind{
+			Group:   sourcev1.GroupVersion.Group,
+			Version: sourcev1.GroupVersion.Version,
+			Kind:    sourcev1.BucketKind,
+		})
+	if err != nil {
+		return err
+	}
+
+	log.Actionf("Reconciling %s ...", RunDevBucketName)
+
+	// wait for the reconciliation of dev-bucket to be done
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		devBucket := &sourcev1.Bucket{}
+		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevBucketName,
+			Namespace: namespace,
+		}, devBucket); err != nil {
+			return false, err
+		}
+
+		return devBucket.Status.GetLastHandledReconcileRequest() == sourceRequestedAt, nil
+	}); err != nil {
+		return err
+	}
+
+	log.Successf("Reconciled %s", RunDevBucketName)
+
+	// wait for devBucket to be ready
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		devBucket := &sourcev1.Bucket{}
+		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevBucketName,
+			Namespace: namespace,
+		}, devBucket); err != nil {
+			return false, err
+		}
+
+		return apimeta.IsStatusConditionPresentAndEqual(devBucket.Status.Conditions, meta.ReadyCondition, metav1.ConditionTrue), nil
+	}); err != nil {
+		return err
+	}
+
+	log.Successf("Bucket %s is ready", RunDevBucketName)
+
+	// reconcile dev-ks
+	helmRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
+		types.NamespacedName{
+			Name:      RunDevHelmName,
+			Namespace: namespace,
+		}, schema.GroupVersionKind{
+			Group:   helmv2.GroupVersion.Group,
+			Version: helmv2.GroupVersion.Version,
+			Kind:    helmv2.HelmReleaseKind,
+		})
+	if err != nil {
+		return err
+	}
+
+	log.Actionf("Reconciling %s ...", RunDevHelmName)
+
+	if err := wait.Poll(interval, timeout, func() (bool, error) {
+		devHelm := &helmv2.HelmRelease{}
+		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevHelmName,
+			Namespace: namespace,
+		}, devHelm); err != nil {
+			return false, err
+		}
+
+		return devHelm.Status.GetLastHandledReconcileRequest() == helmRequestedAt, nil
+	}); err != nil {
+		return err
+	}
+
+	log.Successf("Reconciled %s", RunDevHelmName)
+
+	devHelm := &helmv2.HelmRelease{}
+	devHelmErr := wait.Poll(interval, timeout, func() (bool, error) {
+		if err := kubeClient.Get(ctx, types.NamespacedName{
+			Name:      RunDevHelmName,
+			Namespace: namespace,
+		}, devHelm); err != nil {
+			return false, err
+		}
+
+		log.Actionf("Waiting for %s to be ready ...", RunDevHelmName)
+
+		cond := apimeta.FindStatusCondition(devHelm.Status.Conditions, meta.ReadyCondition)
+		if cond == nil {
+			return false, nil
+		}
+
+		if cond.Status != "False" && cond.Status != "True" {
+			log.Waitingf("Waiting for HelmRelease %s to be ready: %s", devHelm.Name, cond.Message)
+			return false, nil
+		} else if cond.Status == "False" {
+			log.Failuref("HelmRelease %s is not ready: %s", devHelm.Name, cond.Message)
+			return false, fmt.Errorf("HelmRelease %s is not ready: %s", devHelm.Name, cond.Message)
+		}
+
+		return true, nil
+	})
+
+	return devHelmErr
+}
