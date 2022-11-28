@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
-import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
   toast["success"](message);
@@ -11,12 +10,6 @@ export function notifySuccess(message: string) {
 
 export function notifyError(message: string) {
   toast["error"](`Error: ${message}`);
-}
-
-// Must be one of the valid URLs that we have already
-// configured on the Gitlab backend for our Oauth app.
-export function gitlabOAuthRedirectURI(): string {
-  return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
 }
 
 export function poller(cb, interval): any {

@@ -18,6 +18,7 @@ import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
 import InfoList from "./components/InfoList";
+import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
@@ -31,28 +32,33 @@ import Page from "./components/Page";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
-import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
 import Timestamp from "./components/Timestamp";
 import UserSettings from "./components/UserSettings";
 import YamlView from "./components/YamlView";
-import AppContextProvider from "./contexts/AppContext";
+import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
-import CallbackStateContextProvider from "./contexts/CallbackStateContext";
+import CallbackStateContextProvider, {
+  CallbackStateContext,
+} from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
 import { LinkResolverProvider } from "./contexts/LinkResolverContext";
 import { useListAutomations } from "./hooks/automations";
+import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
-import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
+import {
+  Applications as applicationsClient,
+  ParseRepoURLResponse,
+} from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
@@ -76,6 +82,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 
 export {
+  AppContext,
   AppContextProvider,
   applicationsClient,
   Auth,
@@ -86,6 +93,7 @@ export {
   Bucket,
   BucketDetail,
   Button,
+  CallbackStateContext,
   CallbackStateContextProvider,
   clearCallbackState,
   coreClient,
@@ -114,6 +122,8 @@ export {
   IconType,
   InfoList,
   Interval,
+  Input,
+  InputProps,
   isAllowedLink,
   Kind,
   KubeStatusIndicator,
@@ -129,10 +139,10 @@ export {
   OCIRepository,
   OCIRepositoryDetail,
   Page,
+  ParseRepoURLResponse,
   ProviderDetail,
   ReconciledObjectsTable,
   ReconciliationGraph,
-  RepoInputWithAuth,
   RouterTab,
   SignIn,
   SourceLink,
@@ -142,6 +152,7 @@ export {
   theme,
   Timestamp,
   UnAuthorizedInterceptor,
+  useDebounce,
   useFeatureFlags,
   useGetObject,
   useListObjects,
@@ -152,6 +163,7 @@ export {
   useListFluxRuntimeObjects,
   useListProviders,
   useListSources,
+  useRequestState,
   UserSettings,
   V2Routes,
   YamlView,
