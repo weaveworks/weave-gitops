@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -225,56 +226,86 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
-
-	k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
-	g.Expect(err).NotTo(HaveOccurred())
-
-	nss := &corev1.Namespace{}
-	nss.Name = "ns1"
-	g.Expect(k.Create(ctx, nss)).To(Succeed())
-
-	res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
-	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
-	g.Expect(res.Errors[0].Namespace).To(BeEmpty())
-	g.Expect(res.Errors[0].ClusterName).To(Equal(cluster.DefaultCluster))
-
-	fluxNs := &corev1.Namespace{}
-	fluxNs.Name = "flux-ns"
-	fluxNs.Labels = map[string]string{
-		stypes.PartOfLabel: server.FluxNamespacePartOf,
+	tests := []struct {
+		description string
+		objects     []runtime.Object
+		assertions  func(*pb.ListFluxRuntimeObjectsResponse)
+	}{
+		{
+			"no flux runtime",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "ns1"}},
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
+				g.Expect(res.Errors[0].Namespace).To(BeEmpty())
+				g.Expect(res.Errors[0].ClusterName).To(Equal(cluster.DefaultCluster))
+			},
+		},
+		{
+			"flux namespace label, with controllers",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					stypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
+			},
+		},
+		{
+			"use flux-system namespace when no namespace label available",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
+				newDeployment("random-flux-controller", "flux-system", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the default flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
+			},
+		},
+		{
+			"don't use flux-system if other namespace has better labels",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					stypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("correct-flux-controller", "flux-ns", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("incorrect-flux-controller", "flux-system", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in flux ns to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("correct-flux-controller"))
+			},
+		},
 	}
-	g.Expect(k.Create(ctx, fluxNs)).To(Succeed())
 
-	name := "random-flux-controller"
-	ns := newNamespace(ctx, k, g)
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			scheme, err := kube.CreateScheme()
+			g.Expect(err).To(BeNil())
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+			cfg := makeServerConfig(client, t)
+			c := makeServer(cfg, t)
+			res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
+			g.Expect(err).NotTo(HaveOccurred())
 
-	fluxDep := newDeployment(name, fluxNs.Name)
-	fluxDep.ObjectMeta.Labels = map[string]string{
-		stypes.PartOfLabel: server.FluxNamespacePartOf,
+			tt.assertions(res)
+		})
 	}
-	g.Expect(k.Create(ctx, fluxDep)).To(Succeed())
-
-	otherDep := newDeployment("other-deployment", ns.Name)
-	g.Expect(k.Create(ctx, otherDep)).To(Succeed())
-
-	otherDep2 := newDeployment("other-deployment-on-flux-ns", fluxNs.Name)
-	g.Expect(k.Create(ctx, otherDep2)).To(Succeed())
-
-	res, err = c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
-	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
-	g.Expect(res.Deployments[0].Name).To(Equal(fluxDep.Name))
 }
 
-func newDeployment(name, ns string) *appsv1.Deployment {
+func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment {
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
