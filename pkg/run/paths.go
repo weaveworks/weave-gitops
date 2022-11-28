@@ -20,6 +20,17 @@ func (p *Paths) GetAbsoluteTargetDir() string {
 	return targetDir
 }
 
+/*
+func (p *Paths) GetRelativeTargetDir() (string, error) {
+	absGitDir, err := filepath.Abs(p.RootDir)
+
+	if err != nil { // not in a git repo
+		return "", err
+	}
+
+	return filepath.Rel(absGitDir, p.TargetDir)
+}*/
+
 func findGitRepoDir() (string, error) {
 	gitDir := "."
 

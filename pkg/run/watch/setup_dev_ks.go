@@ -18,7 +18,6 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type SetupBucketSourceAndKSParams struct {
+type SetupRunObjectParams struct {
 	Namespace     string
 	Path          string
 	Timeout       time.Duration
@@ -40,40 +39,9 @@ type SetupBucketSourceAndKSParams struct {
 	Username      string
 }
 
-func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupBucketSourceAndKSParams) error {
-	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
+func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupRunObjectParams) error {
+	secret, source := createBucketAndSecretObjects(params)
 
-	secret := corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucketCredentials,
-			Namespace: params.Namespace,
-		},
-		Data: map[string][]byte{
-			"accesskey": []byte("user"),
-			"secretkey": []byte("doesn't matter"),
-		},
-		Type: "Opaque",
-	}
-	source := sourcev1.Bucket{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
-			Namespace: params.Namespace,
-			Annotations: map[string]string{
-				"metadata.weave.works/description": "This is a temporary Bucket created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
-				"metadata.weave.works/run-id":      params.SessionName,
-				"metadata.weave.works/username":    params.Username,
-			},
-		},
-		Spec: sourcev1.BucketSpec{
-			Interval:   metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
-			Provider:   "generic",
-			BucketName: RunDevBucketName,
-			Endpoint:   fmt.Sprintf("%s.%s.svc.cluster.local:%d", RunDevBucketName, GitOpsRunNamespace, params.DevBucketPort),
-			Insecure:   true,
-			Timeout:    &metav1.Duration{Duration: params.Timeout},
-			SecretRef:  &meta.LocalObjectReference{Name: devBucketCredentials},
-		},
-	}
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RunDevKsName,
@@ -97,30 +65,9 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 		},
 	}
 
-	// create secret
-	log.Actionf("Checking secret %s ...", secret.Name)
-
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(ctx, &secret); err != nil {
-			return fmt.Errorf("couldn't create secret %s: %v", secret.Name, err.Error())
-		} else {
-			log.Successf("Created secret %s", secret.Name)
-		}
-	} else if err == nil {
-		log.Successf("Secret %s already existed", secret.Name)
-	}
-
-	// create source
-	log.Actionf("Checking bucket source %s ...", source.Name)
-
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&source), &source); err != nil && apierrors.IsNotFound(err) {
-		if err := kubeClient.Create(ctx, &source); err != nil {
-			return fmt.Errorf("couldn't create source %s: %v", source.Name, err.Error())
-		} else {
-			log.Successf("Created source %s", source.Name)
-		}
-	} else if err == nil {
-		log.Successf("Source %s already existed", source.Name)
+	err := reconcileBucketAndSecretObjects(ctx, log, kubeClient, secret, source)
+	if err != nil {
+		return err
 	}
 
 	// create ks
@@ -130,7 +77,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 		if err := kubeClient.Create(ctx, &ks); err != nil {
 			return fmt.Errorf("couldn't create kustomization %s: %v", ks.Name, err.Error())
 		} else {
-			log.Successf("Created ks %s", ks.Name)
+			log.Successf("Created Kustomization %s", ks.Name)
 		}
 	} else if err == nil {
 		log.Successf("Kustomization %s already existed", source.Name)
@@ -219,40 +166,6 @@ func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, 
 
 // CleanupBucketSourceAndKS removes the bucket source and ks
 func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string) error {
-	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
-
-	// delete secret
-	secret := corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucketCredentials,
-			Namespace: namespace,
-		},
-	}
-
-	log.Actionf("Deleting secret %s ...", secret.Name)
-
-	if err := kubeClient.Delete(ctx, &secret); err != nil {
-		log.Failuref("Error deleting secret %s: %v", secret.Name, err.Error())
-	} else {
-		log.Successf("Deleted secret %s", secret.Name)
-	}
-
-	// delete source
-	source := sourcev1.Bucket{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
-			Namespace: namespace,
-		},
-	}
-
-	log.Actionf("Deleting source %s ...", source.Name)
-
-	if err := kubeClient.Delete(ctx, &source); err != nil {
-		log.Failuref("Error deleting source %s: %v", source.Name, err.Error())
-	} else {
-		log.Successf("Deleted source %s", source.Name)
-	}
-
 	// delete ks
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -261,13 +174,15 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 		},
 	}
 
-	log.Actionf("Deleting ks %s ...", ks.Name)
+	log.Actionf("Deleting Kustomization %s ...", ks.Name)
 
 	if err := kubeClient.Delete(ctx, &ks); err != nil {
-		log.Failuref("Error deleting ks %s: %v", ks.Name, err.Error())
+		log.Failuref("Error deleting Kustomization %s: %v", ks.Name, err.Error())
 	} else {
-		log.Successf("Deleted ks %s", ks.Name)
+		log.Successf("Deleted Kustomization %s", ks.Name)
 	}
+
+	cleanupBucketAndSecretObjects(ctx, log, kubeClient, namespace)
 
 	log.Successf("Cleanup Bucket Source and Kustomization successfully")
 
