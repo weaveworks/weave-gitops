@@ -57,6 +57,7 @@ import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import {
   Applications as applicationsClient,
+  AuthorizeGitlabResponse,
   ParseRepoURLResponse,
 } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
