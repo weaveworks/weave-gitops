@@ -284,7 +284,7 @@ func InitializeTargetDir(targetPath string) error {
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	} else if err != nil {
-		err := os.Mkdir(targetPath, 0755)
+		err := os.MkdirAll(targetPath, 0755)
 		if err != nil {
 			return err
 		}
