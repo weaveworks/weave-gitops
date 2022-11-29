@@ -186,7 +186,7 @@ function filterText(
   });
 }
 
-export function initialFormState(cfg: FilterConfig, initialSelections?) { 
+export function initialFormState(cfg: FilterConfig, initialSelections?) {
   if (!initialSelections) {
     return {};
   }
