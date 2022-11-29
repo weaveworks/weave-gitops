@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	"github.com/oauth2-proxy/mockoidc"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
@@ -550,13 +551,14 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
 
-	authorizeQuery := url.Values{}
-	authorizeQuery.Set("client_id", m.Config().ClientID)
-	authorizeQuery.Set("scope", "openid email profile groups")
-	authorizeQuery.Set("response_type", "code")
-	authorizeQuery.Set("redirect_uri", "https://example.com/oauth2/callback")
-	authorizeQuery.Set("state", state)
-	authorizeQuery.Set("nonce", nonce)
+	authorizeQuery := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"scope":         "openid email profile groups",
+		"response_type": "code",
+		"redirect_uri":  "https://example.com/oauth2/callback",
+		"state":         state,
+		"nonce":         nonce,
+	})
 
 	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
 	g.Expect(err).NotTo(HaveOccurred())
@@ -577,11 +579,12 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	g.Expect(appRedirect.Query().Get("code")).To(Equal(code))
 	g.Expect(appRedirect.Query().Get("state")).To(Equal(state))
 
-	tokenForm := url.Values{}
-	tokenForm.Set("client_id", m.Config().ClientID)
-	tokenForm.Set("client_secret", m.Config().ClientSecret)
-	tokenForm.Set("grant_type", "authorization_code")
-	tokenForm.Set("code", code)
+	tokenForm := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"client_secret": m.Config().ClientSecret,
+		"grant_type":    "authorization_code",
+		"code":          code,
+	})
 
 	tokenReq, err := http.NewRequest(
 		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
@@ -622,6 +625,93 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
 	g.Expect(info.Email).To(Equal("jane.doe@example.com"))
+}
+
+func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
+	const (
+		state = "abcdef"
+		nonce = "ghijkl"
+		code  = "mnopqr"
+	)
+
+	g := NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	authServer, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	authorizeQuery := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"scope":         "openid email profile groups",
+		"response_type": "code",
+		"redirect_uri":  "https://example.com/oauth2/callback",
+		"state":         state,
+		"nonce":         nonce,
+	})
+
+	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	authorizeURL.RawQuery = authorizeQuery.Encode()
+
+	authorizeReq, err := http.NewRequest(http.MethodGet, authorizeURL.String(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	m.QueueCode(code)
+
+	authorizeResp, err := httpClient.Do(authorizeReq)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(authorizeResp.StatusCode).To(Equal(http.StatusFound))
+
+	tokenForm := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"client_secret": m.Config().ClientSecret,
+		"grant_type":    "authorization_code",
+		"code":          code,
+	})
+
+	tokenReq, err := http.NewRequest(
+		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
+	g.Expect(err).NotTo(HaveOccurred())
+	tokenReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := httpClient.Do(tokenReq)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	defer tokenResp.Body.Close()
+
+	body, err := io.ReadAll(tokenResp.Body)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	tokens := make(map[string]interface{})
+	g.Expect(json.Unmarshal(body, &tokens)).To(Succeed())
+
+	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: idToken.Raw,
+	})
+
+	w := httptest.NewRecorder()
+	authServer.OIDCConfig.ClaimsConfig = &auth.ClaimsConfig{
+		Username: "preferred_username",
+		Groups:   "groups",
+	}
+
+	authServer.UserInfo(w, req)
+
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	var info auth.UserInfo
+
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal("jane.doe"))
+	g.Expect(info.ID).To(Equal("jane.doe"))
 }
 
 func TestLogoutSuccess(t *testing.T) {
@@ -791,4 +881,73 @@ func TestAuthMethods(t *testing.T) {
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+}
+
+func TestNewOIDCConfigFromSecret(t *testing.T) {
+	configTests := []struct {
+		name string
+		data map[string][]byte
+		want auth.OIDCConfig
+	}{
+		{
+			name: "basic fields",
+			data: map[string][]byte{
+				"issuerURL":     []byte("https://example.com/test"),
+				"clientID":      []byte("test-client-id"),
+				"clientSecret":  []byte("test-client-secret"),
+				"redirectURL":   []byte("https://example.com/redirect"),
+				"tokenDuration": []byte("10m"),
+			},
+			want: auth.OIDCConfig{
+				IssuerURL:     "https://example.com/test",
+				ClientID:      "test-client-id",
+				ClientSecret:  "test-client-secret",
+				RedirectURL:   "https://example.com/redirect",
+				TokenDuration: time.Minute * 10,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "bad duration defaults to 1 hour",
+			data: map[string][]byte{
+				"tokenDuration": []byte("10x"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "overridden claims",
+			data: map[string][]byte{
+				"claimUsername": []byte("test-user"),
+				"claimGroups":   []byte("test-groups"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig: &auth.ClaimsConfig{
+					Username: "test-user", Groups: "test-groups",
+				},
+			},
+		},
+	}
+
+	for _, tt := range configTests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := auth.NewOIDCConfigFromSecret(corev1.Secret{Data: tt.data})
+
+			if diff := cmp.Diff(tt.want, cfg); diff != "" {
+				t.Fatalf("failed to parse config from secret:\n%s", diff)
+			}
+		})
+	}
+}
+
+func valuesFromMap(data map[string]string) url.Values {
+	vals := url.Values{}
+	for k, v := range data {
+		vals.Set(k, v)
+	}
+
+	return vals
 }
