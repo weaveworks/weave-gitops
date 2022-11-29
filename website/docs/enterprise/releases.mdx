@@ -21,6 +21,9 @@ import TierLabel from "../_components/TierLabel";
 - This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag. 
 - GitOpsTemplates are a highly flexible way to create new resources - including Pipelines. We now provide a shortcut on the Pipelines table view to navigate you to Templates with the `weave.works/template-type=pipeline` label.
 
+#### Telemetry
+This release incorporates anonymous aggregate user behavior analytics to help us continuously improve the product. As an Enterprise customer, this is enabled by default. You can learn more about this [here](../../feedback-and-telemetry/#anonymous-aggregate-user-behavior-analytics).
+
 ### Dependency versions
 - weave-gitops v0.11.0
 - cluster-controller v1.4.1
@@ -31,14 +34,14 @@ import TierLabel from "../_components/TierLabel";
 ### Breaking changes
 
 #### GitOpsTemplates and CAPITemplates
-We are making these changes to provide a unified and inutitive self-service experience within Weave GitOps Enterprise, removing misleading and potentially confusing terminology born from when only Clusters were backed by Templates.
+We are making these changes to provide a unified and intuitive self-service experience within Weave GitOps Enterprise, removing misleading and potentially confusing terminology born from when only Clusters were backed by Templates.
 
 **New API Group for the GitOpsTemplate CRD**
 - old: `clustertemplates.weave.works`
 - new: `templates.weave.works`
 
 After upgrading Weave GitOps Enterprise which includes the updated CRD:
-1. Update all your GitOpsTemplates in Git changing all occurances of `apiVersion: clustertemplates.weave.works/v1alpha1` to `apiVersion: templates.weave.works/v1alpha1`.
+1. Update all your GitOpsTemplates in Git changing all occurrences of `apiVersion: clustertemplates.weave.works/v1alpha1` to `apiVersion: templates.weave.works/v1alpha1`.
 2. Commit, push and reconcile. They should now be viewable in the Templates view again.
 3. Clean up the old CRD. As it stands:
    - `kubectl get gitopstemplate -A` will be empty as it is pointing to the old `clustertemplates.weave.works` CRD.
