@@ -7,6 +7,83 @@ import TierLabel from "../_components/TierLabel";
 
 # Releases <TierLabel tiers="enterprise" />
 
+## v0.11.0
+2022-11-25
+
+### Dependency versions
+
+- weave-gitops v0.11.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) pipeline-controller v0.0.11
+- (optional) policy-agent 2.1.1
+
+### Breaking changes
+
+**Migration started!**
+
+We kicked off the migration process to our unified GitOpsTemplates API group. Streamlining and unifying CAPI and GitOps templates under one umbrella as we continue to focus on providing a self-service experience within Weave GitOps Enterprise. These changes are designed to remove misleading and potentially confusing terminology born from when only Clusters were backed by Templates.
+
+#### Step 1:
+
+Get the GitOps API group right. The group clustertemplates.weave.works is quite misleading, templates are today used for creating pipelines, applications and other things!
+
+Changes in the group of GitopsTemplate CRD
+
+- old: `clustertemplates.weave.works`
+- new: `templates.weave.works`
+
+Read below the detailed guide.
+
+#### Step 2:
+
+CAPI templates as part of the self-service experience of Weave GitOps Enterprise are today in production use in lighthouse engagements.
+
+That's why we are careful and we will migrate with the simplicity of those templates into the new GitOpsTemplates umbrella. We will do this with conversion hooks that will automatically convert those templates.
+
+#### Step 3:
+
+Start to use the new upcoming feature like defining a path per resource in the template. Providing you with the flexibility to manage resources for example in different clusters with a single template.
+
+**Detailed guide for step 1**:
+
+**`apiVersion` group change**
+
+This release changes the Group of GitopsTemplate CRD. It requires some manual intervention after and potentially before upgrading.
+
+**After upgrading**:
+
+1. Navigating to templates, all GitopsTemplates will be missing
+2. In git, manually change all occurances of `apiVersion: clustertemplates.weave.works/v1alpha1` to `apiVersion: templates.weave.works/v1alpha1`.
+3. Commit, push and reconcile. The GitopsTemplates should be back.
+4. We now want to clean up the old CRD. As it stands
+   - `kubectl get gitopstemplate -A` will be empty as it is pointing to the old `clustertemplates.weave.works` CRD.
+   - `kubectl get gitopstemplate.templates.weave.works -A` will work
+5. To fix the former of the commands we can remove the old CRD (helm does not do this automatically for safety reasons):
+   - `kubectl delete crd gitopstemplates.clustertemplates.weave.works`
+   - You may have to wait up to 5 minutes for your local kubectl CRD cache to invalidate, then `kubectl get gitopstemplate -A` should be working as usual
+
+**Template Profiles / Applications / Credentials sections are hidden by default**
+
+For both `CAPITemplates` and `GitopsTemplates` the default visibility for all sections in a template has been set to `"false"`. To re-enable profiles or applications on a template you can tweak the annotations
+
+```yaml
+annotations:
+  templates.weave.works/profiles-enabled: "true" # enable profiles
+  templates.weave.works/kustomizations-enabled: "true" # enable applications
+  templates.weave.works/credentials-enabled: "true" # enable credentials
+```
+
+**The default values for a profile are not fetched and included in a pull-request**
+
+Prior to this release WGE would fetch the default values.yaml for every profile installed and include them in the `HelmRelease`s in the Pull Request when rendering out the profiles of a template.
+
+This was an expensive operation and occasionally led to timeouts.
+
+The new behaviour is to omit the values and fall back to the defaults included in the helm-chart. This is sacrifices some UX (being able to see all the defaults in the PR and tweak them) to improve performance. **There should not be any final behaviour changes to the installed charts**.
+
+You can still view and tweak the `values.yaml` when selecting profiles to include on the "Create resource (cluster)" page. If changes are made here the updated values.yaml will be included.
+
 ## v0.10.2
 2022-11-15
 

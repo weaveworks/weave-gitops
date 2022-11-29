@@ -21,8 +21,7 @@ func TestSingleFetcher(t *testing.T) {
 	cluster, err := cluster.NewSingleCluster("Default", config, nil)
 	g.Expect(err).To(BeNil())
 
-	fetcher, err := fetcher.NewSingleClusterFetcher(cluster)
-	g.Expect(err).To(BeNil())
+	fetcher := fetcher.NewSingleClusterFetcher(cluster)
 
 	clusters, err := fetcher.Fetch(context.TODO())
 	g.Expect(err).To(BeNil())

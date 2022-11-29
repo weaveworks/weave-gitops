@@ -108,7 +108,12 @@ gitops beta run ./clusters/default/dev --root-dir ./clusters/default
 # Run the sync on the podinfo demo.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
-gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898`,
+gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
+
+# Run the sync on the podinfo Helm chart. Please note that file Chart.yaml must exist in the directory.
+git clone https://github.com/stefanprodan/podinfo
+cd podinfo
+gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
 		PreRunE:           betaRunCommandPreRunE(&opts.Endpoint),
@@ -529,6 +534,9 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 }
 
 func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+	// There are two loggers in this function.
+	// 1. log0 is the os.Stdout logger
+	// 2. log is the S3 logger that also delegates its outputs to "log0".
 	log0 := logger.NewCLILogger(os.Stdout)
 
 	paths, err := run.NewPaths(args[0], flags.RootDir)
@@ -650,7 +658,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
 
-	setupBucketSourceAndKSParams := watch.SetupBucketSourceAndKSParams{
+	setupParams := watch.SetupRunObjectParams{
 		Namespace:     flags.Namespace,
 		Path:          paths.TargetDir,
 		Timeout:       flags.Timeout,
@@ -659,9 +667,16 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		Username:      username,
 	}
 
-	if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupBucketSourceAndKSParams); err != nil {
-		cancel()
-		return err
+	if !isHelm(paths.TargetDir) {
+		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
+			cancel()
+			return err
+		}
+	} else {
+		if err := watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
+			cancel()
+			return err
+		}
 	}
 
 	ignorer := watch.CreateIgnorer(paths.RootDir)
@@ -749,12 +764,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// reset counter
 					atomic.StoreUint64(&counter, 0)
 
-					// validate only files under the target dir
-					log.Actionf("Validating files under %s/ ...", paths.TargetDir)
+					// we have to skip validation for helm charts
+					if !isHelm(paths.TargetDir) {
+						// validate only files under the target dir
+						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-					if err := validate.Validate(paths.TargetDir, kubernetesVersion, fluxVersion); err != nil {
-						log.Failuref("Validation failed: please review the errors and try again: %v", err)
-						continue
+						if err := validate.Validate(paths.TargetDir, kubernetesVersion, fluxVersion); err != nil {
+							log.Failuref("Validation failed: please review the errors and try again: %v", err)
+							continue
+						}
 					}
 
 					// use ctx, not thisCtx - incomplete uploads will never make anybody happy
@@ -787,8 +805,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					// context that cancels when files change
 					thisCtx := watcherCtx
 
-					if err := watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout); err != nil {
-						log.Failuref("Error requesting reconciliation: %v", err)
+					var reconcileErr error
+					if !isHelm(paths.TargetDir) {
+						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else {
+						reconcileErr = watch.ReconcileDevBucketSourceAndHelm(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					}
+
+					if reconcileErr != nil {
+						log.Failuref("Error requesting reconciliation: %v", reconcileErr)
 					} else {
 						log.Successf("Reconciliation is done.")
 					}
@@ -859,12 +884,18 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// this is the default behaviour
 	if !flags.SkipResourceCleanup {
-		if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
-			return err
+		if !isHelm(paths.TargetDir) {
+			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else {
+			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
 		}
 
 		// uninstall dev-bucket server
-		if err := watch.UninstallDevBucketServer(ctx, log, kubeClient); err != nil {
+		if err := watch.UninstallDevBucketServer(ctx, log0, kubeClient); err != nil {
 			return err
 		}
 	}
@@ -892,12 +923,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 
 		for {
-			err := runBootstrap(ctx, log, paths, dashboardManifests)
+			err := runBootstrap(ctx, log0, paths, dashboardManifests)
 			if err == nil {
 				break
 			}
 
-			log.Warningf("Error bootstrapping: %v", err)
+			log0.Warningf("Error bootstrapping: %v", err)
 
 			prompt := promptui.Prompt{
 				Label:     "Couldn't bootstrap - would you like to try again",
@@ -913,6 +944,11 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func isHelm(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, "Chart.yaml"))
+	return err == nil
 }
 
 func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, manifests []byte) (err error) {
