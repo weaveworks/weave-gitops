@@ -11,6 +11,8 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// InitAuthServer creates a new AuthServer and configures it for the correct
+// authentication methods.
 func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret string, namespace string, authMethodStrings []string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
@@ -40,7 +42,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 
 			oidcConfig = NewOIDCConfigFromSecret(secret)
 		} else if err != nil {
-			log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "error", err)
+			log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "namespace", namespace, "error", err)
 		}
 
 		if oidcConfig.ClientSecret != "" {
