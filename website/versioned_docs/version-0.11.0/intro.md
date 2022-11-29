@@ -32,7 +32,7 @@ To learn more about GitOps, check out these resources:
 
 ## Getting Started
 
-To start your own journey with Weave GitOps, please see [Installation](./installation.mdx) and [Getting Started](./getting-started.mdx).
+To start your own journey with Weave GitOps, please see [Installation](./installation/index.mdx) and [Getting Started](./getting-started.mdx).
 
 Here is a quick demo of what you can look forward to:
 
