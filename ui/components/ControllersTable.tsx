@@ -1,4 +1,3 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
@@ -56,16 +55,20 @@ function ControllersTable({ className, controllers = [] }: Props) {
           ? [{ label: "Cluster", value: "clusterName" }]
           : []),
         {
+          label: "Namespace",
+          value: "namespace",
+        },
+        {
+          label: "Image",
           value: (d: Deployment) => (
             <>
-              {_.map(d.images, (img) => (
+              {d.images.map((img) => (
                 <Link href={`https://${img}`} key={img} newTab>
                   {img}
                 </Link>
               ))}
             </>
           ),
-          label: "Image",
         },
       ]}
     />
