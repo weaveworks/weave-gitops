@@ -25,7 +25,6 @@ type Props = {
   className?: string;
   deployments?: Deployment[];
   crds?: Crd[];
-  supportMultipleFlux?: boolean;
 };
 const fluxVersionLabel = "app.kubernetes.io/version";
 
