@@ -193,7 +193,7 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
   const allFilters = _.reduce(
     cfg,
     (r, vals, k) => {
-      _.each(vals, (v) => {
+      _.each(vals.options, (v) => {
         const key = `${k}${filterSeparator}${v}`;
         const selection = _.get(initialSelections, key);
         if (selection) {
