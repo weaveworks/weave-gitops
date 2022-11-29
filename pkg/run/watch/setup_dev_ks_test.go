@@ -162,7 +162,7 @@ var _ = Describe("InitializeTargetDir", func() {
 		Expect(err).ToNot(HaveOccurred())
 		defer os.RemoveAll(dir)
 
-		childDir := filepath.Join(dir, "subdirectory")
+		childDir := filepath.Join(dir, "subdirectory", "subsubdirectory")
 		_, err = os.Stat(childDir)
 		Expect(err).To(HaveOccurred()) // Directory not created yet
 
