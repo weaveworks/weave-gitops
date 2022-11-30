@@ -25,6 +25,8 @@ type Config struct {
 	AuthServer       *auth.AuthServer
 }
 
+// NewHandlers creates and returns a new server configured to serve the core
+// application.
 func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handler, error) {
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 

@@ -429,7 +429,7 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		}
 	}
 
-	if cl.GetName() == "" {
+	if cl == nil {
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 

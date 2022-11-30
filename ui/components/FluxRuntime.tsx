@@ -25,16 +25,10 @@ type Props = {
   className?: string;
   deployments?: Deployment[];
   crds?: Crd[];
-  supportMultipleFlux?: boolean;
 };
 const fluxVersionLabel = "app.kubernetes.io/version";
 
-function FluxRuntime({
-  className,
-  deployments,
-  crds,
-  supportMultipleFlux = false,
-}: Props) {
+function FluxRuntime({ className, deployments, crds }: Props) {
   const { path } = useRouteMatch();
   const tabs: Array<routeTab> = [
     {
@@ -54,20 +48,23 @@ function FluxRuntime({
       visible: true,
     },
   ];
+  const fluxVersions: { [key: string]: FluxVersion } = {};
+  deployments.forEach((d) => {
+    const fv = d.labels[fluxVersionLabel];
+    const k = `${fv}${d.clusterName}`;
+    if (!fluxVersions[k]) {
+      fluxVersions[k] = {
+        version: fv,
+        clusterName: d.clusterName,
+        namespace: d.namespace,
+      };
+    }
+  });
+
+  const supportMultipleFlux =
+    Object.keys(fluxVersions).length > 1 ? true : false;
 
   if (supportMultipleFlux) {
-    const fluxVersions: { [key: string]: FluxVersion } = {};
-    deployments.forEach((d) => {
-      const fv = d.labels[fluxVersionLabel];
-      const k = `${fv}${d.clusterName}`;
-      if (!fluxVersions[k]) {
-        fluxVersions[k] = {
-          version: fv,
-          clusterName: d.clusterName,
-          namespace: d.namespace,
-        };
-      }
-    });
     tabs.unshift({
       name: "Flux Versions",
       path: `${path}/flux`,
