@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -247,6 +248,13 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 			if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 				if k8serrors.IsForbidden(err) {
+					cs.logger.V(logger.LogLevelDebug).Info(
+						"forbidden list request",
+						"cluster", msg.ClusterName,
+						"automation", msg.AutomationName,
+						"namespace", msg.Namespace,
+						"gvk", gvk.String(),
+					)
 					// Our service account (or impersonated user) may not have the ability to see the resource in question,
 					// in the given namespace. We pretend it doesn't exist and keep looping.
 					// We need logging to make this error more visible.
