@@ -50,7 +50,7 @@ function Errors({ error }) {
 }
 
 function Page({ children, loading, error, className }: PageProps) {
-  // const { settings } = useCommon();
+  const { settings } = useCommon();
 
   if (loading) {
     return (
@@ -66,7 +66,7 @@ function Page({ children, loading, error, className }: PageProps) {
         <Errors error={error} />
         {children}
       </Children>
-      {/* {settings.renderFooter && <Footer />} */}
+      {settings.renderFooter && <Footer />}
     </Content>
   );
 }
