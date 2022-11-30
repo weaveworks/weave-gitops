@@ -88,31 +88,31 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
 				continue
 			}
-		}
-		for _, d := range list.Items {
-			r := &pb.Deployment{
-				Name:        d.Name,
-				Namespace:   d.Namespace,
-				Conditions:  []*pb.Condition{},
-				ClusterName: clusterName,
-				Uid:         string(d.GetUID()),
-				Labels:      d.Labels,
-			}
+			for _, d := range list.Items {
+				r := &pb.Deployment{
+					Name:        d.Name,
+					Namespace:   d.Namespace,
+					Conditions:  []*pb.Condition{},
+					ClusterName: clusterName,
+					Uid:         string(d.GetUID()),
+					Labels:      d.Labels,
+				}
 
-			for _, cond := range d.Status.Conditions {
-				r.Conditions = append(r.Conditions, &pb.Condition{
-					Message: cond.Message,
-					Reason:  cond.Reason,
-					Status:  string(cond.Status),
-					Type:    string(cond.Type),
-				})
-			}
+				for _, cond := range d.Status.Conditions {
+					r.Conditions = append(r.Conditions, &pb.Condition{
+						Message: cond.Message,
+						Reason:  cond.Reason,
+						Status:  string(cond.Status),
+						Type:    string(cond.Type),
+					})
+				}
 
-			for _, img := range d.Spec.Template.Spec.Containers {
-				r.Images = append(r.Images, img.Image)
-			}
+				for _, img := range d.Spec.Template.Spec.Containers {
+					r.Images = append(r.Images, img.Image)
+				}
 
-			results = append(results, r)
+				results = append(results, r)
+			}
 		}
 	}
 
@@ -187,14 +187,13 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	fluxSystem := []v1.Namespace{}
 
-	for i, ns := range nss {
+	for _, ns := range nss {
 		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
 			fluxSystem = append(fluxSystem, ns)
 		}
-
-		if ns.Name == DefaultFluxNamespace {
-			fluxSystem = append(fluxSystem, nss[i])
-		}
+		// if ns.Name == DefaultFluxNamespace {
+		// 	fluxSystem = append(fluxSystem, ns)
+		// }
 	}
 
 	return fluxSystem
