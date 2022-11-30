@@ -69,8 +69,8 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 	var results []*pb.Deployment
 
 	for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
-		fluxNs := filterFluxNamespace(nss)
-		if fluxNs == nil {
+		fluxNamepsaces := filterFluxNamespace(nss)
+		if len(fluxNamepsaces) == 0 {
 			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
 			continue
 		}
@@ -81,11 +81,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 		list := &appsv1.DeploymentList{}
 
-		if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
-			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
-			continue
-		}
+		for _, fluxNs := range fluxNamepsaces {
 
+			if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
+				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+				continue
+			}
+		}
 		for _, d := range list.Items {
 			r := &pb.Deployment{
 				Name:        d.Name,
@@ -181,16 +183,16 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 	return &pb.ListFluxCrdsResponse{Crds: results, Errors: respErrors}, nil
 }
 
-func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
-	var fluxSystem *v1.Namespace
+func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
+	fluxSystem := []v1.Namespace{}
 
 	for i, ns := range nss {
 		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
-			return &ns
+			fluxSystem = append(fluxSystem, ns)
 		}
 
 		if ns.Name == DefaultFluxNamespace {
-			fluxSystem = &nss[i]
+			fluxSystem = append(fluxSystem, nss[i])
 		}
 	}
 
