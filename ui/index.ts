@@ -11,7 +11,6 @@ import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
-import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import GitRepositoryDetail from "./components/GitRepositoryDetail";
 import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
@@ -54,7 +53,6 @@ import { useListAutomations } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
-import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
@@ -74,11 +72,6 @@ import {
   HelmRepository,
   OCIRepository,
 } from "./lib/objects";
-import {
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-} from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import { isAllowedLink, statusSortHelper } from "./lib/utils";
@@ -99,7 +92,6 @@ export {
   Button,
   CallbackStateContext,
   CallbackStateContextProvider,
-  clearCallbackState,
   coreClient,
   CoreClientContextProvider,
   DataTable,
@@ -112,9 +104,6 @@ export {
   FluxRuntime,
   Footer,
   formatURL,
-  getCallbackState,
-  getProviderToken,
-  GithubDeviceAuthModal,
   GitRepository,
   GitRepositoryDetail,
   HelmChart,
@@ -159,7 +148,6 @@ export {
   useFeatureFlags,
   useGetObject,
   useListObjects,
-  useIsAuthenticated,
   useListAlerts,
   useListAutomations,
   useListFluxCrds,

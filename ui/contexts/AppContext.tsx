@@ -3,13 +3,6 @@ import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
-import {
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-  storeCallbackState,
-  storeProviderToken,
-} from "../lib/storage";
 import { PageRoute, V2Routes } from "../lib/types";
 import { notifySuccess } from "../lib/utils";
 
@@ -30,11 +23,6 @@ export type AppContextType = {
   setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
-  getProviderToken: typeof getProviderToken;
-  storeProviderToken: typeof storeProviderToken;
-  getCallbackState: typeof getCallbackState;
-  storeCallbackState: typeof storeCallbackState;
-  clearCallbackState: typeof clearCallbackState;
   navigate: {
     internal: (page: PageRoute | V2Routes, query?: any) => void;
     external: (url: string) => void;
@@ -96,11 +84,6 @@ export default function AppContextProvider({
     clearAsyncError,
     setNodeYaml,
     appState,
-    getProviderToken,
-    storeProviderToken,
-    storeCallbackState,
-    getCallbackState,
-    clearCallbackState,
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: {
       renderFooter: props.renderFooter,
