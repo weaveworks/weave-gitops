@@ -5,12 +5,17 @@ import styled from "styled-components";
 type Props = {
   className?: string;
   time: string;
+  duration?: boolean;
 };
 
-function Timestamp({ className, time }: Props) {
+function Timestamp({ className, time, duration }: Props) {
   const t = DateTime.fromISO(time);
-
-  return <span className={className}>{t.toRelative()}</span>;
+  let formatted;
+  if (duration) {
+    formatted = t.diffNow();
+    formatted = formatted.toHuman();
+  } else formatted = t.toRelative();
+  return <span className={className}>{formatted}</span>;
 }
 
 export default styled(Timestamp)``;
