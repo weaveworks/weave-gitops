@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -39,7 +40,17 @@ var (
 	ErrFluxNamespaceNotFound = errors.New("could not find flux namespace in cluster")
 	// ErrListingDeployments no deployments found
 	ErrListingDeployments = errors.New("could not list deployments in namespace")
+
+	DefaultFluxNamespace = lookupEnv("WEAVE_GITOPS_FALLBACK_NAMESPACE", "flux-system")
 )
+
+func lookupEnv(envVar string, fallback string) string {
+	if val, ok := os.LookupEnv(envVar); ok {
+		return val
+	}
+
+	return fallback
+}
 
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
@@ -171,13 +182,19 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 }
 
 func filterFluxNamespace(nss []v1.Namespace) *v1.Namespace {
-	for _, ns := range nss {
+	var fluxSystem *v1.Namespace
+
+	for i, ns := range nss {
 		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
 			return &ns
 		}
+
+		if ns.Name == DefaultFluxNamespace {
+			fluxSystem = &nss[i]
+		}
 	}
 
-	return nil
+	return fluxSystem
 }
 
 func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
