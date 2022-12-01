@@ -190,12 +190,9 @@ func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	for _, ns := range nss {
 		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
 			fluxSystem = append(fluxSystem, ns)
+			continue
 		}
-		// if ns.Name == DefaultFluxNamespace {
-		// 	fluxSystem = append(fluxSystem, ns)
-		// }
 	}
-
 	return fluxSystem
 }
 
