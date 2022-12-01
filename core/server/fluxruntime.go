@@ -192,6 +192,10 @@ func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 			fluxSystem = append(fluxSystem, ns)
 			continue
 		}
+
+		if ns.Name == DefaultFluxNamespace {
+			fluxSystem = append(fluxSystem, ns)
+		}
 	}
 
 	return fluxSystem
