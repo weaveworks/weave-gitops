@@ -453,6 +453,13 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		portForwardsForSession = append(portForwardsForSession, spec.HostPort)
 	}
 
+	var kind string
+	if isHelm(paths.GetAbsoluteTargetDir()) {
+		kind = "helm"
+	} else {
+		kind = "ks"
+	}
+
 	session, err := install.NewSession(
 		sessionLog,
 		kubeClient,
@@ -460,6 +467,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		flags.SessionNamespace,
 		portForwardsForSession,
 		dashboardHashedPassword,
+		kind,
 	)
 
 	if err != nil {
@@ -663,7 +671,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		Username:      username,
 	}
 
-	if !isHelm(paths.TargetDir) {
+	if !isHelm(paths.GetAbsoluteTargetDir()) {
 		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
 			cancel()
 			return err
@@ -761,7 +769,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					atomic.StoreUint64(&counter, 0)
 
 					// we have to skip validation for helm charts
-					if !isHelm(paths.TargetDir) {
+					if !isHelm(paths.GetAbsoluteTargetDir()) {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
@@ -802,7 +810,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					thisCtx := watcherCtx
 
 					var reconcileErr error
-					if !isHelm(paths.TargetDir) {
+					if !isHelm(paths.GetAbsoluteTargetDir()) {
 						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
 					} else {
 						reconcileErr = watch.ReconcileDevBucketSourceAndHelm(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
@@ -880,7 +888,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// this is the default behaviour
 	if !flags.SkipResourceCleanup {
-		if !isHelm(paths.TargetDir) {
+		if !isHelm(paths.GetAbsoluteTargetDir()) {
 			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
 				return err
 			}
