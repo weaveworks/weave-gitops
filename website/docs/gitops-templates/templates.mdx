@@ -234,12 +234,10 @@ spec:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
   resourcetemplates:
-    - path: clusters/custom-path.yaml
-      content: # Template objects go here
-      - apiVersion: cluster.x-k8s.io/v1alpha3
-        kind: Cluster
-        metadata:
-          name: "{{ .params.CLUSTER_NAME }}"
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .params.CLUSTER_NAME }}"
 ```
 
 ### Parameter metadata - `spec.params`
