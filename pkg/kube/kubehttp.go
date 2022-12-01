@@ -11,6 +11,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
@@ -32,6 +33,7 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 		appsv1.AddToScheme,
 		rbacv1.AddToScheme,
 		authv1.AddToScheme,
+		notificationv2.AddToScheme,
 	}
 
 	err := builder.AddToScheme(scheme)
