@@ -81,11 +81,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 		}
 
 		list := &appsv1.DeploymentList{}
+
 		for _, fluxNs := range fluxNamepsaces {
 			if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
 				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
 				continue
 			}
+
 			for _, d := range list.Items {
 				r := &pb.Deployment{
 					Name:        d.Name,
@@ -184,12 +186,14 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 
 func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	fluxSystem := []v1.Namespace{}
+
 	for _, ns := range nss {
 		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
 			fluxSystem = append(fluxSystem, ns)
 			continue
 		}
 	}
+
 	return fluxSystem
 }
 
