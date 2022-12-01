@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"k8s.io/client-go/discovery"
 	"os"
 	"os/signal"
 	"os/user"
@@ -15,6 +14,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"k8s.io/client-go/discovery"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -63,6 +64,7 @@ type RunCommandFlags struct {
 	// Dashboard
 	DashboardPort           string
 	DashboardHashedPassword string
+	SkipDashboardInstall    bool
 
 	// Session
 	SessionName         string
@@ -130,6 +132,7 @@ gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-syste
 	cmdFlags.DurationVar(&flags.Timeout, "timeout", 5*time.Minute, "The timeout for operations during GitOps Run.")
 	cmdFlags.StringVar(&flags.PortForward, "port-forward", "", "Forward the port from a cluster's resource to your local machine i.e. 'port=8080:8080,resource=svc/app'.")
 	cmdFlags.StringVar(&flags.DashboardPort, "dashboard-port", "9001", "GitOps Dashboard port")
+	cmdFlags.BoolVar(&flags.SkipDashboardInstall, "skip-dashboard-install", false, "Skip installation of the Dashboard. This also disables the prompt asking whether the Dashboard should be installed.")
 	cmdFlags.StringVar(&flags.DashboardHashedPassword, "dashboard-hashed-password", "", "GitOps Dashboard password in BCrypt hash format")
 	cmdFlags.StringVar(&flags.RootDir, "root-dir", "", "Specify the root directory to watch for changes. If not specified, the root of Git repository will be used.")
 	cmdFlags.StringVar(&flags.SessionName, "session-name", getSessionNameFromGit(), "Specify the name of the session. If not specified, the name of the current branch and the last commit id will be used.")
@@ -326,9 +329,10 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 	} else {
 
 		wantToInstallTheDashboard := false
-		if flags.DashboardHashedPassword != "" {
+		switch {
+		case flags.DashboardHashedPassword != "":
 			wantToInstallTheDashboard = true
-		} else {
+		case !flags.SkipDashboardInstall:
 			prompt := promptui.Prompt{
 				Label:     "Would you like to install the GitOps Dashboard",
 				IsConfirm: true,
@@ -487,17 +491,9 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	// now that the session is deleted, we return to the host cluster
-	var okToDoFluxBootstrap bool
-	if fluxJustInstalled {
-		okToDoFluxBootstrap = true
-	}
-
-	if flags.NoBootstrap {
-		okToDoFluxBootstrap = false
-	}
 
 	// run bootstrap wizard only if Flux was not installed
-	if okToDoFluxBootstrap {
+	if fluxJustInstalled && !flags.NoBootstrap {
 		prompt := promptui.Prompt{
 			Label:     "Would you like to bootstrap your cluster into GitOps mode",
 			IsConfirm: true,
@@ -900,17 +896,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var okToDoFluxBootstrap bool
-	if fluxJustInstalled {
-		okToDoFluxBootstrap = true
-	}
-
-	if flags.NoBootstrap {
-		okToDoFluxBootstrap = false
-	}
-
 	// run bootstrap wizard only if Flux was not installed
-	if okToDoFluxBootstrap {
+	if fluxJustInstalled && !flags.NoBootstrap {
 		prompt := promptui.Prompt{
 			Label:     "Would you like to bootstrap your cluster into GitOps mode",
 			IsConfirm: true,
