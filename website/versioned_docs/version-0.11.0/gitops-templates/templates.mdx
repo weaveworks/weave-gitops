@@ -240,11 +240,13 @@ spec:
         name: "{{ .params.CLUSTER_NAME }}"
 ```
 
+
 ## Parameters
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
 
 ### Required Parameters
+
 Currently templates use the `CLUSTER_NAME` to determine the path in gitrepo and `RESOURCE_NAME` for the file name when we create the PR and write to your git repository. 
 
 You must provide either:
@@ -252,12 +254,15 @@ You must provide either:
 - `RESOURCE_NAME`
 
 **Default path for templates**
+
 The default path for a template has a few components:
 - From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
 - From the params: `NAMESPACE`, default: `default`
 - From values.yaml: `values.config.capi.repositoryPath`, default: `./clusters/management/clusters`
+
 These are composed to create the path:
 `${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
+
 Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
 `./clusters/management/clusters/default/my-cluster.yaml`
 
@@ -282,6 +287,8 @@ spec:
       required: true
       default: DEFAULT_2
 ```
+
+
 ### Loading the template into the cluster
 
 Load templates into the cluster by adding them to your flux managed git repository or by using apply directly with
