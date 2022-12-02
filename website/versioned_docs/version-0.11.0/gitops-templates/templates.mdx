@@ -240,9 +240,33 @@ spec:
         name: "{{ .params.CLUSTER_NAME }}"
 ```
 
-### Parameter metadata - `spec.params`
+
+## Parameters
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
+
+### Required Parameters
+
+Templates use the `CLUSTER_NAME` to determine the path in gitrepository and `RESOURCE_NAME` for the file name when we create the pull request. 
+
+You must provide:
+- `CLUSTER_NAME`
+- `RESOURCE_NAME`
+
+**Default path for templates**
+
+The default path for a template has a few components:
+- From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
+- From the params: `NAMESPACE`, default: `default`
+- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `./clusters/management/clusters`
+
+These are composed to create the path:
+`${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
+
+Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
+`./clusters/management/clusters/default/my-cluster.yaml`
+
+### Parameters metadata - `spec.params`
 
 - `name`: The variable name within the resource templates
 - `description`: Description of the parameter. This will be rendered in the UI and CLI
