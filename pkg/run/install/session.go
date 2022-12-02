@@ -21,10 +21,11 @@ type Session struct {
 	log                     logger.Logger
 	dashboardHashedPassword string
 	portForwards            []string
+	automationKind          string
 }
 
 func (s *Session) Start() error {
-	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.portForwards); err != nil {
+	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.portForwards, s.automationKind); err != nil {
 		return err
 	}
 
@@ -103,7 +104,7 @@ func (s *Session) Close() error {
 	return nil
 }
 
-func NewSession(log logger.Logger, kubeClient client.Client, name string, namespace string, portForwards []string, dashboardHashedPassword string) (*Session, error) {
+func NewSession(log logger.Logger, kubeClient client.Client, name string, namespace string, portForwards []string, dashboardHashedPassword string, automationKind string) (*Session, error) {
 	return &Session{
 		name:                    name,
 		namespace:               namespace,
@@ -111,5 +112,6 @@ func NewSession(log logger.Logger, kubeClient client.Client, name string, namesp
 		log:                     log,
 		portForwards:            portForwards,
 		dashboardHashedPassword: dashboardHashedPassword,
+		automationKind:          automationKind,
 	}, nil
 }

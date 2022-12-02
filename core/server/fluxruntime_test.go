@@ -268,21 +268,6 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
 			},
 		},
-		{
-			"don't use flux-system if other namespace has better labels",
-			[]runtime.Object{
-				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					stypes.PartOfLabel: server.FluxNamespacePartOf,
-				}}},
-				newDeployment("correct-flux-controller", "flux-ns", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
-				newDeployment("incorrect-flux-controller", "flux-system", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
-			},
-			func(res *pb.ListFluxRuntimeObjectsResponse) {
-				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in flux ns to be returned")
-				g.Expect(res.Deployments[0].Name).To(Equal("correct-flux-controller"))
-			},
-		},
 	}
 
 	for _, tt := range tests {
