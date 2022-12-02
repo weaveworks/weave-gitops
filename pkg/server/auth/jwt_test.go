@@ -70,7 +70,7 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 		{
 			name:          "Custom user claim",
 			authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"),
-			claimsConfig:  &auth.ClaimsConfig{Username: "sub"},
+			claimsConfig:  &auth.ClaimsConfig{Username: "sub", Groups: "groups"},
 			want:          &auth.UserPrincipal{ID: "testing", Groups: []string{"testing"}},
 		},
 		{

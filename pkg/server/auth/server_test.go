@@ -930,6 +930,19 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "empty groups claim",
+			data: map[string][]byte{
+				"claimGroups": []byte(""),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig: &auth.ClaimsConfig{
+					Username: "email",
+					Groups:   "",
+				},
+			},
+		},
 	}
 
 	for _, tt := range configTests {

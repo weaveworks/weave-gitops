@@ -209,8 +209,65 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusSeeOther))
 
-	authCodeURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", m.AuthorizationEndpoint(), fake.ClientID, url.QueryEscape(redirectURL), strings.Join([]string{auth.ScopeProfile, oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups}, "+"))
+	authCodeURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", m.AuthorizationEndpoint(), fake.ClientID, url.QueryEscape(redirectURL), strings.Join([]string{auth.ScopeProfile, oidc.ScopeOpenID, auth.ScopeGroups, auth.ScopeEmail}, "+"))
 	g.Expect(res.Result().Header.Get("Location")).To(ContainSubstring(authCodeURL))
+}
+
+func TestOauth2FlowRedirectsToOIDCIssuerWithNoGroupsScopeWhenEmpty(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	m, err := mockoidc.Run()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		_ = m.Shutdown()
+	})
+
+	fake := m.Config()
+	mux := http.NewServeMux()
+	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// The Groups claim config is empty here, this should not request the Groups
+	// scope.
+	oidcCfg := auth.OIDCConfig{
+		ClientID:     fake.ClientID,
+		ClientSecret: fake.ClientSecret,
+		IssuerURL:    fake.Issuer,
+		ClaimsConfig: &auth.ClaimsConfig{Username: "email", Groups: ""},
+	}
+
+	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
+
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
+
+	s := httptest.NewServer(mux)
+
+	t.Cleanup(func() {
+		s.Close()
+	})
+
+	// Set the correct redirect URL now that we have a server running
+	redirectURL := s.URL + "/oauth2/callback"
+	srv.SetRedirectURL(redirectURL)
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
+	srv.OAuth2Flow().ServeHTTP(res, req)
+
+	g.Expect(res).To(HaveHTTPStatus(http.StatusSeeOther))
+
+	authCodeURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", m.AuthorizationEndpoint(), fake.ClientID, url.QueryEscape(redirectURL), strings.Join([]string{auth.ScopeProfile, oidc.ScopeOpenID, auth.ScopeEmail}, "+"))
+	g.Expect(res.Result().Header.Get("Location")).To(ContainSubstring(authCodeURL))
+
 }
 
 func TestIsPublicRoute(t *testing.T) {

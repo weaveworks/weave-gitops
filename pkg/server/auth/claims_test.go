@@ -22,7 +22,7 @@ func TestPrincipalFromClaims(t *testing.T) {
 		{
 			name:   "simple user with groups",
 			token:  testutils.MakeJWToken(t, privKey, "example@example.com"),
-			config: &auth.ClaimsConfig{},
+			config: &auth.ClaimsConfig{Groups: "groups"},
 			want: &auth.UserPrincipal{
 				ID:     "example@example.com",
 				Groups: []string{"testing"},
@@ -31,7 +31,7 @@ func TestPrincipalFromClaims(t *testing.T) {
 		{
 			name:   "custom user claim",
 			token:  testutils.MakeJWToken(t, privKey, "example@example.com"),
-			config: &auth.ClaimsConfig{Username: "sub"},
+			config: &auth.ClaimsConfig{Username: "sub", Groups: "groups"},
 			want:   &auth.UserPrincipal{ID: "testing", Groups: []string{"testing"}},
 		},
 		{
@@ -41,6 +41,14 @@ func TestPrincipalFromClaims(t *testing.T) {
 			}),
 			config: &auth.ClaimsConfig{Groups: "test_groups"},
 			want:   &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"new-group1", "new-group2"}},
+		},
+		{
+			name: "empty groups claim",
+			token: testutils.MakeJWToken(t, privKey, "example@example.com", func(m map[string]any) {
+				m["groups"] = []string{"new-group1", "new-group2"}
+			}),
+			config: &auth.ClaimsConfig{Groups: ""},
+			want:   &auth.UserPrincipal{ID: "example@example.com", Groups: []string{}},
 		},
 	}
 

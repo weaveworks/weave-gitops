@@ -33,7 +33,7 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 		idKey = c.Username
 	}
 
-	if c != nil && c.Groups != "" {
+	if c != nil {
 		groupsKey = c.Groups
 	}
 

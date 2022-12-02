@@ -92,8 +92,8 @@ type UserInfo struct {
 //
 // The following keys are optional
 // - tokenDuration - defaults to 1 hour.
-// - claimUsername - defaults to "email"
-// - claimGroups - defaults to "groups"
+// - claimUsername - defaults to "email" if not provided
+// - claimGroups - defaults to "groups" if not provided, can be empty ""
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
@@ -124,14 +124,10 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 		claimGroups = []byte(ClaimGroups)
 	}
 
-	if len(claimUsername) > 0 && len(claimGroups) > 0 {
-		return &ClaimsConfig{
-			Username: string(claimUsername),
-			Groups:   string(claimGroups),
-		}
+	return &ClaimsConfig{
+		Username: string(claimUsername),
+		Groups:   string(claimGroups),
 	}
-
-	return nil
 }
 
 func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
@@ -219,14 +215,17 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		scopes = append(scopes, oidc.ScopeOpenID)
 	}
 
+	// If the groups claim is empty, don't request the groups scope.
+	if s.OIDCConfig.ClaimsConfig != nil && s.OIDCConfig.ClaimsConfig.Groups != "" {
+		// Request "groups" scope to get user's groups.
+		if !contains(scopes, ScopeGroups) {
+			scopes = append(scopes, ScopeGroups)
+		}
+	}
+
 	// Request "email" scope to get user's email address.
 	if !contains(scopes, ScopeEmail) {
 		scopes = append(scopes, ScopeEmail)
-	}
-
-	// Request "groups" scope to get user's groups.
-	if !contains(scopes, ScopeGroups) {
-		scopes = append(scopes, ScopeGroups)
 	}
 
 	return &oauth2.Config{
