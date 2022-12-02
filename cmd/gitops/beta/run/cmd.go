@@ -773,7 +773,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-						if err := validate.Validate(paths.TargetDir, kubernetesVersion, fluxVersion); err != nil {
+						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersion); err != nil {
 							log.Failuref("Validation failed: please review the errors and try again: %v", err)
 							continue
 						}
