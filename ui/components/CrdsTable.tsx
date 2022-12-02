@@ -11,7 +11,7 @@ type Props = {
 
 function CrdsTable({ className, crds = [] }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(crds, "version"),

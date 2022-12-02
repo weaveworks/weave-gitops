@@ -57,6 +57,7 @@
     "jest-canvas-mock": "^2.4.0",
     "jest-fail-on-console": "^3.0.1",
     "jest-worker": "^27.5.1",
+    "js-sha3": "0.8.0",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "mnemonic-browser": "^0.0.1",

@@ -26,7 +26,7 @@ type Props = {
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(automations, "type"),
