@@ -8,6 +8,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/tls"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -29,11 +30,11 @@ var (
 	// The variables below are to be set by flags passed to `go build`.
 	// Examples: -X run.DevBucketContainerImage=xxxxx
 
-	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server@sha256:8fbb7534e772e14ea598d287a4b54a3f556416cac6621095ce45f78346fda78a"
+	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server:1670322194"
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, devBucketPort int32) (func(), error) {
+func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, httpPort, httpsPort int32) (func(), []byte, error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -57,7 +58,7 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketNamespace); err != nil {
 			log.Failuref("Error creating namespace %s: %v", GitOpsRunNamespace, err.Error())
-			return nil, err
+			return nil, nil, err
 		} else {
 			log.Successf("Created namespace %s", GitOpsRunNamespace)
 		}
@@ -76,8 +77,12 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
 				{
-					Name: RunDevBucketName,
-					Port: devBucketPort,
+					Name: fmt.Sprintf("%s-http", RunDevBucketName),
+					Port: httpPort,
+				},
+				{
+					Name: fmt.Sprintf("%s-https", RunDevBucketName),
+					Port: httpsPort,
 				},
 			},
 			Selector: devBucketAppLabels,
@@ -93,12 +98,36 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketService); err != nil {
 			log.Failuref("Error creating service %s/%s: %v", GitOpsRunNamespace, RunDevBucketName, err.Error())
-			return nil, err
+			return nil, nil, err
 		} else {
 			log.Successf("Created service %s/%s", GitOpsRunNamespace, RunDevBucketName)
 		}
 	} else if err == nil {
 		log.Successf("Service %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
+	}
+
+	cert, err := tls.GenerateSelfSignedCertificate("localhost", fmt.Sprintf("%s.%s.svc.cluster.local", devBucketService.Name, devBucketService.Namespace))
+	if err != nil {
+		err = fmt.Errorf("failed generating self-signed certificate for dev bucket server: %w", err)
+		log.Failuref(err.Error())
+
+		return nil, nil, err
+	}
+
+	certsSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "dev-bucket-server-certs",
+			Namespace: GitOpsRunNamespace,
+			Labels:    devBucketAppLabels,
+		},
+		Data: map[string][]byte{
+			"cert.pem": cert.Cert,
+			"cert.key": cert.Key,
+		},
+	}
+	if err := kubeClient.Create(ctx, certsSecret); err != nil {
+		log.Failuref("Error creating Secret %s/%s: %v", certsSecret.Namespace, certsSecret.Name, err.Error())
+		return nil, nil, err
 	}
 
 	// create deployment
@@ -119,21 +148,43 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 					Labels: devBucketAppLabels,
 				},
 				Spec: corev1.PodSpec{
+					Volumes: []corev1.Volume{{
+						Name: "certs",
+						VolumeSource: corev1.VolumeSource{
+							Secret: &corev1.SecretVolumeSource{
+								SecretName: "dev-bucket-server-certs",
+							},
+						},
+					}},
 					Containers: []corev1.Container{
 						{
-							Name:  RunDevBucketName,
-							Image: DevBucketContainerImage,
+							Name:            RunDevBucketName,
+							Image:           DevBucketContainerImage,
+							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{Name: "MINIO_ROOT_USER", Value: "user"},
 								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
 							},
 							Ports: []corev1.ContainerPort{
 								{
-									ContainerPort: devBucketPort,
-									HostPort:      devBucketPort,
+									ContainerPort: httpPort,
+									HostPort:      httpPort,
+								},
+								{
+									ContainerPort: httpsPort,
+									HostPort:      httpsPort,
 								},
 							},
-							Args: []string{strconv.Itoa(int(devBucketPort))},
+							Args: []string{
+								fmt.Sprintf("--http-port=%d", httpPort),
+								fmt.Sprintf("--https-port=%d", httpsPort),
+								"--cert-file=/tmp/certs/cert.pem",
+								"--key-file=/tmp/certs/cert.key",
+							},
+							VolumeMounts: []corev1.VolumeMount{{
+								Name:      "certs",
+								MountPath: "/tmp/certs",
+							}},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyAlways,
@@ -151,7 +202,7 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketDeployment); err != nil {
 			log.Failuref("Error creating deployment %s/%s: %v", GitOpsRunNamespace, RunDevBucketName, err.Error())
-			return nil, err
+			return nil, nil, err
 		} else {
 			log.Successf("Created deployment %s/%s", GitOpsRunNamespace, RunDevBucketName)
 		}
@@ -189,8 +240,8 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		Name:          RunDevBucketName,
 		Namespace:     GitOpsRunNamespace,
 		Kind:          "service",
-		HostPort:      strconv.Itoa(int(devBucketPort)),
-		ContainerPort: strconv.Itoa(int(devBucketPort)),
+		HostPort:      strconv.Itoa(int(httpsPort)),
+		ContainerPort: strconv.Itoa(int(httpsPort)),
 	}
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
@@ -218,10 +269,10 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 
 		log.Successf("Port forwarding for %s is ready.", RunDevBucketName)
 
-		return cancelPortFwd, nil
+		return cancelPortFwd, cert.Cert, nil
 	}
 
-	return nil, fmt.Errorf("pod not found")
+	return nil, nil, fmt.Errorf("pod not found")
 }
 
 // UninstallDevBucketServer deletes the dev-bucket namespace.
