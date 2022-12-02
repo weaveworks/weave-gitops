@@ -241,7 +241,7 @@ spec:
 ```
 
 
-### Parameter metadata - `spec.params`
+## Parameters
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
 
@@ -261,6 +261,8 @@ These are composed to create the path:
 `${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
 Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
 `./clusters/management/clusters/default/my-cluster.yaml`
+
+### Parameters metadata - `spec.params`
 
 - `name`: The variable name within the resource templates
 - `description`: Description of the parameter. This will be rendered in the UI and CLI
