@@ -20,10 +20,7 @@ function ClusterDashboardLink({
   namespaceIncluded?: boolean;
   clusterDashboardRoute?: string;
 }) {
-  const clsName = extractClusterName(
-    clusterName || "",
-    namespaceIncluded
-  );
+  const clsName = extractClusterName(clusterName || "", namespaceIncluded);
   return (
     <>
       {clsName ? (
