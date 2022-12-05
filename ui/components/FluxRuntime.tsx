@@ -51,7 +51,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
   const fluxVersions: { [key: string]: FluxVersion } = {};
   deployments.forEach((d) => {
     const fv = d.labels[fluxVersionLabel];
-    const k = `${fv}${d.clusterName}`;
+    const k = `${fv}${d.clusterName}${d.namespace}`;
     if (!fluxVersions[k]) {
       fluxVersions[k] = {
         version: fv,

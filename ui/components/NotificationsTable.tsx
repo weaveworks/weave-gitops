@@ -97,10 +97,9 @@ function NotificationsTable({ className, rows }: Props) {
       : []),
   ];
 
-  if (!rows.length)
+  if (!rows?.length)
     return (
       <Flex wide tall column align>
-        <Spacer padding="xxl" />
         <MessageBox>
           <Text size="large" semiBold>
             No notifications are currently configured
