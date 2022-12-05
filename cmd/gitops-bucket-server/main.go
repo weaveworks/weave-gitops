@@ -11,21 +11,49 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/weaveworks/weave-gitops/pkg/http"
+	"github.com/weaveworks/weave-gitops/pkg/s3"
 )
 
 func main() {
+	logger := log.New(os.Stdout, "", 0)
+
+	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	if awsAccessKeyID == "" {
+		minioRootUser := os.Getenv("MINIO_ROOT_USER")
+		if minioRootUser == "" {
+			logger.Fatal("AWS_ACCESS_KEY_ID or MINIO_ROOT_USER must be set")
+			return
+		}
+
+		awsAccessKeyID = minioRootUser
+	}
+
+	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	if awsSecretAccessKey == "" {
+		minioRootPassword := os.Getenv("MINIO_ROOT_PASSWORD")
+		if minioRootPassword == "" {
+			logger.Fatal("AWS_SECRET_ACCESS_KEY or MINIO_ROOT_PASSWORD must be set")
+			return
+		}
+
+		awsSecretAccessKey = minioRootPassword
+	}
+
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
 		syscall.SIGTERM)
 	defer cancel()
 
-	logger := log.New(os.Stdout, "", 0)
-	backend := s3mem.New()
-	s3 := gofakes3.New(backend,
+	s3Server := gofakes3.New(s3mem.New(),
 		gofakes3.WithAutoBucket(true),
-		gofakes3.WithLogger(gofakes3.StdLog(logger, gofakes3.LogErr, gofakes3.LogWarn, gofakes3.LogInfo)))
-	s3Server := s3.Server()
+		gofakes3.WithLogger(
+			gofakes3.StdLog(
+				logger,
+				gofakes3.LogErr,
+				gofakes3.LogWarn,
+				gofakes3.LogInfo,
+			))).Server()
 
 	var (
 		httpPort, httpsPort int
@@ -54,7 +82,7 @@ func main() {
 		Logger:    logger,
 	}
 
-	if err := srv.Start(ctx, s3Server); err != nil {
+	if err := srv.Start(ctx, s3.AuthMiddleware(awsAccessKeyID, awsSecretAccessKey, s3Server)); err != nil {
 		logger.Fatalf("server exited unexpectedly: %s", err)
 	}
 }
