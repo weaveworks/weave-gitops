@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
-import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
 import { PageRoute, V2Routes } from "../lib/types";
@@ -16,7 +15,6 @@ type AppSettings = {
 };
 
 export type AppContextType = {
-  applicationsClient: typeof Applications;
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
@@ -36,16 +34,12 @@ export const AppContext = React.createContext<AppContextType>(
 );
 
 export interface AppProps {
-  applicationsClient?: typeof Applications;
   children?: any;
   renderFooter?: boolean;
   notifySuccess?: typeof notifySuccess;
 }
 
-export default function AppContextProvider({
-  applicationsClient,
-  ...props
-}: AppProps) {
+export default function AppContextProvider({ ...props }: AppProps) {
   const history = useHistory();
   const [appState, setAppState] = React.useState({
     error: null,
@@ -78,7 +72,6 @@ export default function AppContextProvider({
   };
 
   const value: AppContextType = {
-    applicationsClient,
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,

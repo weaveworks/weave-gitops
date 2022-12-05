@@ -53,11 +53,6 @@ import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
-import {
-  Applications as applicationsClient,
-  AuthorizeGitlabResponse,
-  ParseRepoURLResponse,
-} from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
@@ -71,14 +66,12 @@ import {
 } from "./lib/objects";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { isAllowedLink, statusSortHelper } from "./lib/utils";
+import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
 export {
-  AuthorizeGitlabResponse,
   AppContext,
   AppContextProvider,
-  applicationsClient,
   Auth,
   AuthCheck,
   AuthContextProvider,
@@ -125,8 +118,8 @@ export {
   NotificationsTable,
   OCIRepository,
   OCIRepositoryDetail,
+  poller,
   Page,
-  ParseRepoURLResponse,
   ProviderDetail,
   ReconciledObjectsTable,
   ReconciliationGraph,
