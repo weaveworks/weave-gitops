@@ -32,7 +32,7 @@ function KustomizationDetail({
   customActions,
 }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && kustomization?.tenant

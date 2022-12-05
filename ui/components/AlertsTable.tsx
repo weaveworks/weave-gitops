@@ -35,7 +35,7 @@ export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
 
 function AlertsTable({ className, rows = [] }: Props) {
   const { data: flagData } = useFeatureFlags();
-  const flags = flagData?.flags || {};
+  const flags = flagData.flags;
   let initialFilterState = {
     ...filterConfig(rows, "name"),
     ...filterConfig(rows, "namespace"),
