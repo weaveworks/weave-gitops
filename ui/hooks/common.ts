@@ -23,12 +23,12 @@ export function useRequestState<T>(): ReturnType<T> {
     error: null,
   });
 
-  const req = useCallback((p: Promise<T>) => {
+  function req(p: Promise<T>) {
     setState({ ...state, loading: true });
     return p
       .then((res) => setState({ value: res, loading: false, error: null }))
       .catch((error) => setState({ error, loading: false, value: null }));
-  }, []);
+  }
 
   return [state.value, state.loading, state.error, req];
 }
