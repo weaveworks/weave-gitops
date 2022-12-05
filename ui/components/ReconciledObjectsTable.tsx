@@ -68,13 +68,14 @@ function ReconciledObjectsTable({
               // and we want to be able to link to those within this table.
               // The resolver func provided by the context will decide what URL this routes to.
               const resolved = resolver && resolver(u.type, params);
-              return kind || resolved ? (
-                <Link
-                  to={resolved || formatURL(objectTypeToRoute(kind), params)}
-                >
-                  {u.name}
-                </Link>
-              ) : (
+              const route = objectTypeToRoute(kind);
+              const formatted = formatURL(route, params);
+
+              if (route || resolved) {
+                return <Link to={resolved || formatted}>{u.name}</Link>;
+              }
+
+              return (
                 <Text
                   onClick={() => (secret ? null : setNodeYaml(u))}
                   color={secret ? "neutral40" : "primary10"}
