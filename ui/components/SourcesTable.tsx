@@ -29,7 +29,7 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),

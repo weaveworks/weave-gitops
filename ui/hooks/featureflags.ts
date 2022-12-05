@@ -5,5 +5,5 @@ export type FeatureFlags = { [key: string]: string };
 
 export function useFeatureFlags() {
   const { featureFlags } = useContext(CoreClientContext);
-  return { data: { flags: featureFlags } };
+  return { data: { flags: featureFlags || {} } };
 }

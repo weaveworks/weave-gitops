@@ -14,7 +14,7 @@ type Props = {
 
 function ControllersTable({ className, controllers = [] }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(controllers, "status", filterByStatusCallback),

@@ -54,7 +54,7 @@ function FeatureFlags(api) {
       cacheTime: Infinity,
     }
   );
-  return data?.flags || {};
+  return data?.flags;
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {
