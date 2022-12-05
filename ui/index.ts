@@ -1,6 +1,7 @@
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
+import ClusterDashboardLink from "./components/ClusterDashboardLink";
 import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
@@ -90,6 +91,7 @@ export {
   clearCallbackState,
   coreClient,
   CoreClientContextProvider,
+  ClusterDashboardLink,
   DataTable,
   DagGraph,
   DependenciesView,

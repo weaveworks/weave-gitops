@@ -6,6 +6,7 @@ import { HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
@@ -65,7 +66,12 @@ function HelmReleaseDetail({
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", helmRelease?.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={helmRelease?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (

@@ -6,6 +6,7 @@ import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { Bucket } from "../lib/objects";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -25,7 +26,12 @@ function BucketDetail({ className, bucket, customActions }: Props) {
 
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", bucket.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={bucket?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (

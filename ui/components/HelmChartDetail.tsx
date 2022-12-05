@@ -6,6 +6,7 @@ import Timestamp from "../components/Timestamp";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmChart } from "../lib/objects";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -24,7 +25,12 @@ function HelmChartDetail({ className, helmChart, customActions }: Props) {
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", helmChart.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={helmChart?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
