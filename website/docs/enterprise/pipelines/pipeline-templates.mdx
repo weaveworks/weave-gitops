@@ -121,17 +121,17 @@ apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: pipeline-sample
-  namespace: flux-system # Namespace where the GitOpsTemplate is installed, consider that a team will need READ access to this namespace and the custom resource
+  namespace: flux-system
   labels:
     weave.works/template-type: pipeline
 spec:
   description: Sample Pipeline showing visualization of two helm releases across two environments.
   params:
-    - name: RESOURCE_NAME # This is a required parameter name to enable Weave GitOps to write to your Git Repository
+    - name: RESOURCE_NAME
       description: Name of the Pipeline
     - name: RESOURCE_NAMESPACE
       description: Namespace for the Pipeline on the management cluster
-      default: flux-system # default values make it easier for users to fill in a template
+      default: flux-system
     - name: FIRST_CLUSTER_NAME
       description: Name of GitopsCluster object for the first environment
     - name: FIRST_CLUSTER_NAMESPACE
@@ -231,7 +231,6 @@ metadata:
 spec:
   description: Creates flux notification controller resources for a cluster, required for promoting applications via pipelines.
   params:
-    # Pipeline parameters
     - name: RESOURCE_NAME 
       description: Name for the generated objects, should match the target Application (HelmRelease) name.
     - name: RESOURCE_NAMESPACE
