@@ -1,4 +1,3 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
@@ -136,8 +135,7 @@ function ReconciledObjectsTable({
           },
           {
             label: "Message",
-            value: (u: FluxObject) => _.first(u.conditions)?.message,
-            sortValue: ({ conditions }) => computeMessage(conditions),
+            value: (u: FluxObject) => computeMessage(u.conditions),
             maxWidth: 600,
           },
           {
