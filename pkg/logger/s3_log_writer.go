@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/weaveworks/weave-gitops/pkg/s3"
 )
 
 type S3LogWriter struct {
@@ -23,16 +23,8 @@ func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
 }
 
-func NewS3LogWriter(id string, endpoint string, log0 Logger) (Logger, error) {
-	minioClient, err := minio.New(
-		endpoint,
-		&minio.Options{
-			Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
-			Secure:       false,
-			BucketLookup: minio.BucketLookupPath,
-		},
-	)
-
+func NewS3LogWriter(id, endpoint string, caCert []byte, log0 Logger) (Logger, error) {
+	minioClient, err := s3.NewMinioClient(endpoint, caCert)
 	if err != nil {
 		return nil, err
 	}
