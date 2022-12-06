@@ -218,7 +218,7 @@ This example shows how you can configure multiple resources in a single template
 
 For the `Alert`, this template is filtering events to detect when an update has occurred. Depending on your use case, you could use different filtering.
 
-For the `Provider`, this template allows the user to choose between unauthenticated (Generic) and authenticated (HMAC) communication to the promotion endpoint. In the authenticated use case, a secret will need to be present on both the management cluster and leaf cluster(s).
+For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret will need to be present on both the management cluster and leaf cluster(s). For simplicity, a `generic` provider could be used instead - which would not require the secret.
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
@@ -234,16 +234,10 @@ spec:
     # Pipeline parameters
     - name: RESOURCE_NAME 
       description: Name for the generated objects, should match the target Application (HelmRelease) name.
-    - name: RESOURCE_NAMESPACE # Required parameter name for a valid template
+    - name: RESOURCE_NAMESPACE
       description: Namespace for the generated objects, should match the target Application (HelmRelease) namespace.
-    - name: HOST_URL # Required parameter name for a valid template
-      description: Exposed URL for the promotion webhook on the management cluster
-    - name: PROVIDER_TYPE
-      options: ["generic", "generic-hmac"]
-      description: Choose between unauthenticated (generic) and authenticate (generic-hmac) communication with promotion webhook 
-    - name: SECRET_REF
-      description: Required credentials for generic-hmac PROVIDER_TYPE
-      required: false
+    - name: PROMOTION_HOST
+      description: Host for the promotion webhook on the management cluster, i.e. "promotions.example.org"
     - name: ENV_NAME
       description: Environment the cluster is a part of within a pipeline.
   resourcetemplates:
@@ -253,9 +247,8 @@ spec:
       name: ${RESOURCE_NAME}
       namespace: ${RESOURCE_NAMESPACE}
     spec:
-      address: http://${HOST_URL}/default/${APP_NAME}/${ENV_NAME}
-      type: ${PROVIDER_TYPE}
-      secretRef: ${SECRET_REF}
+      address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
+      type: generic
   - apiVersion: notification.toolkit.fluxcd.io/v1beta1
     kind: Alert
     metadata:
