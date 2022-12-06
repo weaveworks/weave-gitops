@@ -238,6 +238,12 @@ spec:
       description: Namespace for the generated objects, should match the target Application (HelmRelease) namespace.
     - name: HOST_URL # Required parameter name for a valid template
       description: Exposed URL for the promotion webhook on the management cluster
+    - name: PROVIDER_TYPE
+      options: ["generic", "generic-hmac"]
+      description: Choose between unauthenticated (generic) and authenticate (generic-hmac) communication with promotion webhook 
+    - name: SECRET_REF
+      description: Required credentials for generic-hmac PROVIDER_TYPE
+      required: false
     - name: ENV_NAME
       description: Environment the cluster is a part of within a pipeline.
   resourcetemplates:
@@ -248,7 +254,8 @@ spec:
       namespace: ${RESOURCE_NAMESPACE}
     spec:
       address: http://${HOST_URL}/default/${APP_NAME}/${ENV_NAME}
-      type: generic
+      type: ${PROVIDER_TYPE}
+      secretRef: ${SECRET_REF}
   - apiVersion: notification.toolkit.fluxcd.io/v1beta1
     kind: Alert
     metadata:
