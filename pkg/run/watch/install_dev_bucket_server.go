@@ -2,12 +2,10 @@ package watch
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/http"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 
@@ -26,7 +24,6 @@ const (
 	RunDevKsName       = "run-dev-ks"
 	RunDevHelmName     = "run-dev-helm"
 	GitOpsRunNamespace = "gitops-run"
-	secretName         = "minio.auth"
 )
 
 var (
@@ -105,32 +102,7 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		log.Successf("Service %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
 	}
 
-	// generate access key and secret key for Minio auth
-	accessKey, err := http.GenerateAccessKey([]byte("user"))
-	if err != nil {
-		log.Failuref("Error generating access key")
-		return nil, err
-	}
-
-	secretKey, err := http.GenerateSecretKey(64, time.Now().UnixNano())
-	if err != nil {
-		log.Failuref("Error generating secret key")
-		return nil, err
-	}
-
-	// TODO: how can I actually add secret to Pod,
-	// for now I am only specifying secret name and keys
-	_ = corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: GitOpsRunNamespace,
-		},
-		Data: map[string][]byte{
-			"MINIO_ACCESS_KEY": []byte(base64.StdEncoding.EncodeToString(accessKey)),
-			"MINIO_SECRET_KEY": []byte(base64.StdEncoding.EncodeToString(secretKey)),
-		},
-		Type: "Opaque",
-	}
+	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
 
 	// create deployment
 	replicas := int32(1)
@@ -155,21 +127,18 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 							Name:  RunDevBucketName,
 							Image: DevBucketContainerImage,
 							Env: []corev1.EnvVar{
-								// TODO: check which env var names are correct
-								// and if we should still add
-								// MINIO_ROOT_USER and MINIO_ROOT_PASSWORD vars
-								{Name: "MINIO_ROOT_USER", Value: "user"},
-								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
-								{Name: "MINIO_ACCESS_KEY", ValueFrom: &corev1.EnvVarSource{
+								// {Name: "MINIO_ROOT_USER", Value: "user"},
+								// {Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
+								{Name: "MINIO_ROOT_USER", ValueFrom: &corev1.EnvVarSource{
 									SecretKeyRef: &corev1.SecretKeySelector{
-										LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
-										Key:                  "MINIO_ACCESS_KEY",
+										LocalObjectReference: corev1.LocalObjectReference{Name: devBucketCredentials},
+										Key:                  "accesskey",
 									},
 								}},
-								{Name: "MINIO_SECRET_KEY", ValueFrom: &corev1.EnvVarSource{
+								{Name: "MINIO_ROOT_PASSWORD", ValueFrom: &corev1.EnvVarSource{
 									SecretKeyRef: &corev1.SecretKeySelector{
-										LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
-										Key:                  "MINIO_SECRET_KEY",
+										LocalObjectReference: corev1.LocalObjectReference{Name: devBucketCredentials},
+										Key:                  "secretkey",
 									},
 								}},
 							},
