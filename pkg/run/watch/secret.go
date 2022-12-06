@@ -6,7 +6,7 @@ import (
 
 var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-func generateAccessKey(numChars int, seed int64) []byte {
+func GenerateAccessKey(numChars int, seed int64) []byte {
 	rand.Seed(seed)
 
 	secretKey := make([]byte, numChars)
@@ -17,7 +17,7 @@ func generateAccessKey(numChars int, seed int64) []byte {
 	return secretKey
 }
 
-func generateSecretKey(numChars int, seed int64) []byte {
+func GenerateSecretKey(numChars int, seed int64) []byte {
 	rand.Seed(seed)
 
 	secretKey := make([]byte, numChars)

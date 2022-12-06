@@ -622,7 +622,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	devBucketPort := unusedPorts[0]
-	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketPort)
+
+	// generate access key and secret key for Minio auth
+	accessKey := watch.GenerateAccessKey(64, time.Now().UnixNano())
+	secretKey := watch.GenerateSecretKey(64, time.Now().UnixNano())
+
+	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketPort, accessKey, secretKey)
 
 	if err != nil {
 		cancel()
@@ -669,6 +674,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		DevBucketPort: devBucketPort,
 		SessionName:   sessionName,
 		Username:      username,
+		AccessKey:     accessKey,
+		SecretKey:     secretKey,
 	}
 
 	if !isHelm(paths.GetAbsoluteTargetDir()) {

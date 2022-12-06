@@ -17,10 +17,6 @@ import (
 func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, sourcev1.Bucket) {
 	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
 
-	// generate access key and secret key for Minio auth
-	accessKey := generateAccessKey(64, time.Now().UnixNano())
-	secretKey := generateSecretKey(64, time.Now().UnixNano())
-
 	// create a secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -28,8 +24,8 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
-			"accesskey": accessKey,
-			"secretkey": secretKey,
+			"accesskey": params.AccessKey,
+			"secretkey": params.SecretKey,
 		},
 		Type: "Opaque",
 	}

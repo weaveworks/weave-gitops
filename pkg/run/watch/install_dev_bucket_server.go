@@ -34,7 +34,14 @@ var (
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, devBucketPort int32) (func(), error) {
+func InstallDevBucketServer(
+	ctx context.Context,
+	log logger.Logger,
+	kubeClient client.Client,
+	config *rest.Config,
+	devBucketPort int32,
+	accessKey,
+	secretKey []byte) (func(), error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -102,7 +109,20 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		log.Successf("Service %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
 	}
 
-	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
+	credentialsSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: GitOpsRunNamespace,
+			Name:      fmt.Sprintf("%s-credentials", RunDevBucketName),
+		},
+		Data: map[string][]byte{
+			"accesskey": accessKey,
+			"secretkey": secretKey,
+		},
+	}
+	if err := kubeClient.Create(ctx, &credentialsSecret); err != nil {
+		log.Failuref("Error creating credentials secret: %s", err.Error())
+		return nil, fmt.Errorf("failed creating credentials secret: %w", err)
+	}
 
 	// create deployment
 	replicas := int32(1)
@@ -131,13 +151,13 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 								// {Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
 								{Name: "MINIO_ROOT_USER", ValueFrom: &corev1.EnvVarSource{
 									SecretKeyRef: &corev1.SecretKeySelector{
-										LocalObjectReference: corev1.LocalObjectReference{Name: devBucketCredentials},
+										LocalObjectReference: corev1.LocalObjectReference{Name: credentialsSecret.Name},
 										Key:                  "accesskey",
 									},
 								}},
 								{Name: "MINIO_ROOT_PASSWORD", ValueFrom: &corev1.EnvVarSource{
 									SecretKeyRef: &corev1.SecretKeySelector{
-										LocalObjectReference: corev1.LocalObjectReference{Name: devBucketCredentials},
+										LocalObjectReference: corev1.LocalObjectReference{Name: credentialsSecret.Name},
 										Key:                  "secretkey",
 									},
 								}},
