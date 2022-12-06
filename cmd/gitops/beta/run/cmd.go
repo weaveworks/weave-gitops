@@ -22,8 +22,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -35,6 +33,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
+	"github.com/weaveworks/weave-gitops/pkg/s3"
 	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -615,26 +614,26 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// ====================== Dev-bucket ======================
 	// Install dev-bucket server before everything, so that we can also forward logs to it
-	unusedPorts, err := run.GetUnusedPorts(1)
+	unusedPorts, err := run.GetUnusedPorts(2)
 	if err != nil {
 		cancel()
 		return err
 	}
 
-	devBucketPort := unusedPorts[0]
+	devBucketHTTPPort := unusedPorts[0]
+	devBucketHTTPSPort := unusedPorts[1]
 
 	// generate access key and secret key for Minio auth
 	accessKey := watch.GenerateAccessKey(64, time.Now().UnixNano())
 	secretKey := watch.GenerateSecretKey(64, time.Now().UnixNano())
 
-	cancelDevBucketPortForwarding, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketPort, accessKey, secretKey)
-
+	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort, accessKey, secretKey)
 	if err != nil {
 		cancel()
-		return err
+		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketPort), log0)
+	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), cert, log0)
 	if err != nil {
 		cancel()
 		return err
@@ -671,7 +670,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		Namespace:     flags.Namespace,
 		Path:          paths.TargetDir,
 		Timeout:       flags.Timeout,
-		DevBucketPort: devBucketPort,
+		DevBucketPort: devBucketHTTPPort,
 		SessionName:   sessionName,
 		Username:      username,
 		AccessKey:     accessKey,
@@ -690,16 +689,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	ignorer := watch.CreateIgnorer(paths.RootDir)
-	minioClient, err := minio.New(
-		"localhost:"+strconv.Itoa(int(devBucketPort)),
-		&minio.Options{
-			Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
-			Secure:       false,
-			BucketLookup: minio.BucketLookupPath,
-		},
-	)
-
+	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), cert)
 	if err != nil {
 		cancel()
 		return err
@@ -711,6 +701,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		cancel()
 		return err
 	}
+
+	ignorer := watch.CreateIgnorer(paths.RootDir)
 
 	err = filepath.Walk(paths.RootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 	if err != nil {
@@ -1050,12 +1042,10 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 
 	workloadKustomizationContentStr := string(workloadKustomizationContent)
 
-	commitFiles := []gitprovider.CommitFile{
-		gitprovider.CommitFile{
-			Path:    &workloadKustomizationPath,
-			Content: &workloadKustomizationContentStr,
-		},
-	}
+	commitFiles := []gitprovider.CommitFile{{
+		Path:    &workloadKustomizationPath,
+		Content: &workloadKustomizationContentStr,
+	}}
 
 	if len(manifests) > 0 {
 		strManifests := string(manifests)

@@ -118,7 +118,12 @@ func TestSync(t *testing.T) {
 
 			go func() {
 				_, err := c.SyncFluxObject(ctx, msg)
-				done <- err
+				select {
+				case <-done:
+					return
+				default:
+					done <- err
+				}
 			}()
 
 			ticker := time.NewTicker(500 * time.Millisecond)

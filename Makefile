@@ -9,7 +9,7 @@ GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=0.37.0
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
-DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:8fbb7534e772e14ea598d287a4b54a3f556416cac6621095ce45f78346fda78a
+DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:157fa617e893e3ab0239547d8f1e820664b10c849fbd652c7f8738920b842f13
 TIER=oss
 
 # Go build args
@@ -31,7 +31,7 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 # Docker args
 # LDFLAGS is passed so we don't have to copy the entire .git directory into the image
 # just to get, e.g. the commit hash
-DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
+DOCKERARGS+=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
 # We want to be able to reference this in builds & pushes
 DEFAULT_DOCKER_REPO=localhost:5001
 DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
