@@ -94,4 +94,6 @@ export function objectTypeToRoute(t: Kind): V2Routes {
     default:
       break;
   }
+
+  return "" as V2Routes;
 }
