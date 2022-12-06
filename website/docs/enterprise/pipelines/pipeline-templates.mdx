@@ -1,0 +1,280 @@
+---
+title: Using GitOpsTemplates for Pipelines
+sidebar_position: 4
+hide_title: true
+---
+
+import TierLabel from "../../_components/TierLabel";
+
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Using GitOpsTemplates for Pipelines <TierLabel tiers="enterprise" />
+
+To create new Pipelines and their required resources from within Weave GitOps Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/templates.mdx) to help platform teams scale for developer self-service. 
+
+This document will provide example configuration which could be adapted for use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/) of choice.
+
+We will cover the creation of:
+- Pipelines
+- HelmReleases
+- Alerts
+- Providers
+
+Secrets, required for authentication and authorization between leaf and management clusters as well as to Git, are out of scope for this document and would need to be handled by your secret management solution of choice.
+
+For advice on Secrets Management, you can refer to the Flux guide [here](https://fluxcd.io/flux/security/secrets-management/) or contact [Weaveworks](mailto:sales@weave.works) for assistance.
+
+Templates can include a single resource or multiple resources depending on your use case, for example - you may want to only create the Pipeline custom resource to associate existing HelmReleases, or you could create the HelmReleases, notification controller resources, and Pipeline all in a single template. They are highly customizable to suit your teams' needs.
+
+## Adding new resources from within the Weave GitOps Enterprise dashboard
+GitOpsTemplates are custom resources installed onto the management cluster where Weave GitOps Enterprise resides. To add a new Pipeline, click `Add Pipeline` from within the Pipeline view, which will take you to a pre-filtered list of templates with the label: `weave.works/template-type: pipeline`.
+
+![Create Pipeline button in Pipeline view](img/pipelines-table-create.png)
+
+ The `Templates` view (shown below) lists all templates for which a given user has the appropriate permission to view. You can install GitOpsTemplates into different namespaces, and apply standard kubernetes RBAC to limit which teams can utilize which templates. You could additionally configure [Policy](../../policy/intro.mdx) to enforce permitted values within a template.
+
+![Templates view showing Pipeline templates](img/pipelines-templates.png)
+
+## Example GitOpsTemplates
+
+This section provides examples to help you build your own templates for Pipelines.
+
+### Pipeline - Visualization only
+
+:::note Included Sample
+This template is shipped by default with Weave GitOps Enterprise to help you get started with Pipelines.
+:::
+
+For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation. 
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: pipeline-sample
+  namespace: flux-system # Namespace where the GitOpsTemplate is installed, consider that a team will need READ access to this namespace and the custom resource
+  labels:
+    weave.works/template-type: pipeline
+spec:
+  description: Sample Pipeline showing visualization of two helm releases across two environments.
+  params:
+    - name: RESOURCE_NAME # This is a required parameter name to enable Weave GitOps to write to your Git Repository
+      description: Name of the Pipeline
+    - name: RESOURCE_NAMESPACE
+      description: Namespace for the Pipeline on the management cluster
+      default: flux-system # default values make it easier for users to fill in a template
+    - name: FIRST_CLUSTER_NAME
+      description: Name of GitopsCluster object for the first environment
+    - name: FIRST_CLUSTER_NAMESPACE
+      description: Namespace where this object exists
+      default: default
+    - name: FIRST_APPLICATION_NAME
+      description: Name of the HelmRelease for your application in the first environment
+    - name: FIRST_APPLICATION_NAMESPACE
+      description: Namespace for this application
+      default: flux-system
+    - name: SECOND_CLUSTER_NAME
+      description: Name of GitopsCluster object for the second environment
+    - name: SECOND_CLUSTER_NAMESPACE
+      description: Namespace where this object exists
+      default: default
+    - name: SECOND_APPLICATION_NAME
+      description: Name of the HelmRelease for your application in the second environment
+    - name: SECOND_APPLICATION_NAMESPACE
+      description: Namespace for this application
+      default: flux-system
+  resourcetemplates:
+  - apiVersion: pipelines.weave.works/v1alpha1
+    kind: Pipeline
+    metadata:
+      name: ${RESOURCE_NAME}
+      namespace: ${RESOURCE_NAMESPACE}
+    spec:
+      appRef:
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        name: ${APPLICATION_NAME}
+      environments:
+      - name: First-Environment
+        targets:
+          - namespace: ${FIRST_APPLICATION_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${FIRST_CLUSTER_NAME}
+              namespace: ${FIRST_CLUSTER_NAMESPACE}
+      - name: Second-Environment
+        targets:
+          - namespace: ${SECOND_APPLICATION_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${SECOND_CLUSTER_NAME}
+              namespace: ${SECOND_CLUSTER_NAMESPACE}
+```
+
+### Pipeline - Multi-cluster promotion
+
+This example builds on the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: pipeline-sample
+  namespace: flux-system # Namespace where the GitOpsTemplate is installed, consider that a team will need READ access to this namespace and the custom resource
+  labels:
+    weave.works/template-type: pipeline
+spec:
+  description: Sample Pipeline showing visualization of two helm releases across two environments.
+  params:
+    - name: RESOURCE_NAME # This is a required parameter name to enable Weave GitOps to write to your Git Repository
+      description: Name of the Pipeline
+    - name: RESOURCE_NAMESPACE
+      description: Namespace for the Pipeline on the management cluster
+      default: flux-system # default values make it easier for users to fill in a template
+    - name: FIRST_CLUSTER_NAME
+      description: Name of GitopsCluster object for the first environment
+    - name: FIRST_CLUSTER_NAMESPACE
+      description: Namespace where this object exists
+      default: default
+    - name: FIRST_APPLICATION_NAME
+      description: Name of the HelmRelease for your application in the first environment
+    - name: FIRST_APPLICATION_NAMESPACE
+      description: Namespace for this application
+      default: flux-system
+    - name: SECOND_CLUSTER_NAME
+      description: Name of GitopsCluster object for the second environment
+    - name: SECOND_CLUSTER_NAMESPACE
+      description: Namespace where this object exists
+      default: default
+    - name: SECOND_APPLICATION_NAME
+      description: Name of the HelmRelease for your application in the second environment
+    - name: SECOND_APPLICATION_NAMESPACE
+      description: Namespace for this application
+      default: flux-system
+    - name: APPLICATION_REPO_URL
+      description: URL for the git repository containing the HelmRelease objects
+    - name: APPLICATION_REPO_BRANCH
+      description: Branch to update with new version
+    - name: GIT_CREDENTIALS_SECRET
+      description: Name of the secret in RESOURCE_NAMESPACE containing credentials to create pull requests
+  resourcetemplates:
+  - apiVersion: pipelines.weave.works/v1alpha1
+    kind: Pipeline
+    metadata:
+      name: ${RESOURCE_NAME}
+      namespace: ${RESOURCE_NAMESPACE}
+    spec:
+      appRef:
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: HelmRelease
+        name: ${APPLICATION_NAME}
+      environments:
+      - name: First-Environment
+        targets:
+          - namespace: ${FIRST_APPLICATION_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${FIRST_CLUSTER_NAME}
+              namespace: ${FIRST_CLUSTER_NAMESPACE}
+      - name: Second-Environment
+        targets:
+          - namespace: ${SECOND_APPLICATION_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${SECOND_CLUSTER_NAME}
+              namespace: ${SECOND_CLUSTER_NAMESPACE}
+      promotion:
+        pull-request:
+            url: ${APPLICATION_REPO_URL}
+            branch: ${APPLICATION_REPO_BRANCH}
+            secretRef:
+              name: ${GIT_CREDENTIALS_SECRET}
+```
+
+#### Git credentials
+For guidance on configuring credentials - see instructions in the [Promoting Applications](../promoting-applications#create-credentials-secret) documentation.
+
+#### Promotion marker to be added to HelmRelease in `Second-Environment`
+A comment would need to be added to the HelmRelease or Kustomization patch where the `spec.chart.spec.version` is defined.
+
+For example, if the values used in the above template were as follows:
+
+```yaml
+RESOURCE_NAME=my-app
+RESOURCE_NAMESPACE=pipeline-01
+```
+
+Then the marker would be:
+
+```yaml
+# {"$promotion": "pipeline-01:my-app:Second-Environment"}
+```
+
+More guidance on adding markers can be found [here](../promoting-applications#add-markers-to-app-manifests).
+
+### Alerts and Providers
+This example shows how you can configure multiple resources in a single template, and simplify creation through common naming strategies. The notification controller is used to communicate update events from the leaf clusters where Applications are deployed, to the management cluster where the Pipeline Controller resides and orchestrates.
+
+For the `Alert`, this template is filtering events to detect when an update has occurred. Depending on your use case, you could use different filtering.
+
+For the `Provider`, this template allows the user to choose between unauthenticated (Generic) and authenticated (HMAC) communication to the promotion endpoint. In the authenticated use case, a secret will need to be present on both the management cluster and leaf cluster(s).
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: pipeline-notification-resources
+  namespace: flux-system
+  labels:
+    weave.works/template-type: application # These are generic Flux resources rather than Pipeline-specific
+spec:
+  description: Creates flux notification controller resources for a cluster, required for promoting applications via pipelines.
+  params:
+    # Pipeline parameters
+    - name: RESOURCE_NAME 
+      description: Name for the generated objects, should match the target Application (HelmRelease) name.
+    - name: RESOURCE_NAMESPACE # Required parameter name for a valid template
+      description: Namespace for the generated objects, should match the target Application (HelmRelease) namespace.
+    - name: HOST_URL # Required parameter name for a valid template
+      description: Exposed URL for the promotion webhook on the management cluster
+    - name: ENV_NAME
+      description: Environment the cluster is a part of within a pipeline.
+  resourcetemplates:
+  - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+    kind: Provider
+    metadata:
+      name: ${RESOURCE_NAME}
+      namespace: ${RESOURCE_NAMESPACE}
+    spec:
+      address: http://${HOST_URL}/default/${APP_NAME}/${ENV_NAME}
+      type: generic
+  - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+    kind: Alert
+    metadata:
+      name: ${RESOURCE_NAME}
+      namespace: ${RESOURCE_NAMESPACE}
+    spec:
+      providerRef:
+        name: ${RESOURCE_NAME}
+      eventSeverity: info
+      eventSources:
+        - kind: HelmRelease
+          name: ${RESOURCE_NAME}
+      exclusionList:
+        - ".*upgrade.*has.*started"
+        - ".*is.*not.*ready"
+        - "^Dependencies.*"
+```
+
+## Summary
+GitOpsTemplates provide a highly flexible way for platform and application teams to work together with Pipelines.
+
+You can hard-code values, offer a range of accepted values, or leave open to the consumer of the template to provide input based on your organization's requirements. 
+
+Templates are subject to RBAC as with any Kubernetes resource, enabling you to easily control which tenants have access to which templates.
+
+For full details on GitOpsTemplates, be sure to read our [documentation](../../gitops-templates/templates.mdx).
+
+
+
