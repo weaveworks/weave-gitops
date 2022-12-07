@@ -10,7 +10,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-func NewMinioClient(endpoint string, caCert []byte) (*minio.Client, error) {
+func NewMinioClient(endpoint string, accessKey, secretKey, caCert []byte) (*minio.Client, error) {
 	tr, err := NewTLSRoundTripper(caCert)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating transport: %w", err)
@@ -19,7 +19,7 @@ func NewMinioClient(endpoint string, caCert []byte) (*minio.Client, error) {
 	return minio.New(
 		endpoint,
 		&minio.Options{
-			Creds:        credentials.NewStaticV4("user", "doesn't matter", ""),
+			Creds:        credentials.NewStaticV4(string(accessKey), string(secretKey), ""),
 			Secure:       true,
 			BucketLookup: minio.BucketLookupPath,
 			Transport:    tr,

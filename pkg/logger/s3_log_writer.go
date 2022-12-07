@@ -23,8 +23,8 @@ func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
 }
 
-func NewS3LogWriter(id, endpoint string, caCert []byte, log0 Logger) (Logger, error) {
-	minioClient, err := s3.NewMinioClient(endpoint, caCert)
+func NewS3LogWriter(id, endpoint string, accessKey, secretKey, caCert []byte, log0 Logger) (Logger, error) {
+	minioClient, err := s3.NewMinioClient(endpoint, accessKey, secretKey, caCert)
 	if err != nil {
 		return nil, err
 	}
