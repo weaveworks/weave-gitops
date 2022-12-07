@@ -6,7 +6,7 @@ import Text from "./Text";
 
 function ClusterDashboardLink({ clusterName }: { clusterName: string }) {
   const resolver = useLinkResolver();
-  const resolved = resolver && resolver("Cluster-dashboard", { clusterName });
+  const resolved = resolver && resolver("ClusterDashboard", { clusterName });
   
   if (resolved && clusterName != "management") {
     return <Link to={resolved}>{clusterName}</Link>;
