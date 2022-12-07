@@ -246,7 +246,7 @@ spec:
       namespace: ${RESOURCE_NAMESPACE}
     spec:
       address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
-      type: generic
+      type: generic-hmac
   - apiVersion: notification.toolkit.fluxcd.io/v1beta1
     kind: Alert
     metadata:
