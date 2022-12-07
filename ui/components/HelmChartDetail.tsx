@@ -17,7 +17,7 @@ type Props = {
 
 function HelmChartDetail({ className, helmChart, customActions }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmChart.tenant

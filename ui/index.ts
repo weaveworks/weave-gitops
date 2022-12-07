@@ -29,6 +29,7 @@ import Metadata from "./components/Metadata";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
+import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
@@ -131,6 +132,7 @@ export {
   OCIRepository,
   OCIRepositoryDetail,
   Page,
+  Pendo,
   ProviderDetail,
   ReconciledObjectsTable,
   ReconciliationGraph,

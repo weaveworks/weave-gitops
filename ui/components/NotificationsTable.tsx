@@ -24,7 +24,7 @@ type Props = {
 
 function NotificationsTable({ className, rows }: Props) {
   const { data: flagData } = useFeatureFlags();
-  const flags = flagData?.flags || {};
+  const flags = flagData.flags;
 
   let initialFilterState = {
     ...filterConfig(rows, "provider"),

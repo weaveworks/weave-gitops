@@ -112,7 +112,7 @@ export default function AppContainer() {
             <AppContextProvider renderFooter>
               <AuthContextProvider>
                 <CoreClientContextProvider api={Core}>
-                  <Pendo />
+                  <Pendo defaultTelemetryFlag="false" />
                   <Switch>
                     {/* <Signin> does not use the base page <Layout> so pull it up here */}
                     <Route component={SignIn} exact path="/sign_in" />

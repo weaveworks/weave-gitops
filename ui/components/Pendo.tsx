@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { shake128 } from "js-sha3";
 import Mnemonic from "mnemonic-browser";
-import { useFeatureFlags } from "../hooks/featureflags";
 import { Auth } from "../contexts/AuthContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 
 declare global {
   interface Window {
@@ -12,14 +12,21 @@ declare global {
 
 const key = "VyzGoWoKvtJHyTnU+GVhDe+wU9bwZDH87bp505/0f/2UIpHzB+tmyZmfsH8/iJoH";
 
-export default function Pendo() {
-  const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+export interface Props {
+  /** Value to use as default if the telemetry flag cannot be read. */
+  defaultTelemetryFlag: string;
+}
+
+export default function Pendo({ defaultTelemetryFlag }: Props) {
+  const { featureFlags: flags } = useContext(CoreClientContext);
   const { userInfo } = useContext(Auth);
   const [isPendoInitialized, setIsPendoInitialized] = React.useState(false);
   const [isPendoAgentReady, setIsPendoAgentReady] = React.useState(false);
 
-  const shouldInitPendo = flags.WEAVE_GITOPS_FEATURE_TELEMETRY === "true";
+  const telemetryFlag =
+    flags?.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
+
+  const shouldInitPendo = !!flags && telemetryFlag === "true";
 
   React.useEffect(() => {
     if (!shouldInitPendo) {
@@ -53,7 +60,10 @@ export default function Pendo() {
           const currentVisitorId = window.pendo.getVisitorId();
           const currentAccountId = window.pendo.getAccountId();
 
-          if (currentVisitorId == visitorId && currentAccountId == accountId) {
+          if (
+            currentVisitorId === visitorId &&
+            currentAccountId === accountId
+          ) {
             shouldIdentify = false;
           }
         }
@@ -89,7 +99,7 @@ export default function Pendo() {
 
           account: {
             id: accountId,
-            devMode: flags.WEAVE_GITOPS_FEATURE_DEV_MODE == "true",
+            devMode: flags.WEAVE_GITOPS_FEATURE_DEV_MODE === "true",
           },
 
           events: {
