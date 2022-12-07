@@ -1,41 +1,18 @@
 import React from "react";
 import styled from "styled-components";
-import { formatURL } from "../lib/nav";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
 import Link from "./Link";
+import Text from "./Text";
 
-function extractClusterName(cluster: string, includeNamespace = true): string {
-  if (cluster === "management") return "";
-  if (includeNamespace) {
-    return cluster.split("/")[1];
+function ClusterDashboardLink({ clusterName }: { clusterName: string }) {
+  const resolver = useLinkResolver();
+  const resolved = resolver && resolver("Cluster-dashboard", { clusterName });
+  
+  if (resolved && clusterName != "management") {
+    return <Link to={resolved}>{clusterName}</Link>;
   }
-  return cluster;
-}
 
-function ClusterDashboardLink({
-  clusterName,
-  namespaceIncluded = true,
-  clusterDashboardRoute = "/cluster",
-}: {
-  clusterName: string;
-  namespaceIncluded?: boolean;
-  clusterDashboardRoute?: string;
-}) {
-  const clsName = extractClusterName(clusterName || "", namespaceIncluded);
-  return (
-    <>
-      {clsName ? (
-        <Link
-          to={formatURL(clusterDashboardRoute, {
-            clusterName: clsName,
-          })}
-        >
-          {clusterName}
-        </Link>
-      ) : (
-        clusterName
-      )}
-    </>
-  );
+  return <Text>{clusterName}</Text>;
 }
 export default styled(ClusterDashboardLink).attrs({
   className: ClusterDashboardLink.name,
