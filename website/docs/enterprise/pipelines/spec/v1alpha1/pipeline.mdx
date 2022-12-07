@@ -115,6 +115,9 @@ type Promotion struct {
 	// Notification defines a promotion where an event is emitted through Flux's notification-controller each time an app is to be promoted.
 	// +optional
 	Notification *NotificationPromotion `json:"notification,omitempty"`
+	// SecrefRef reference the secret that contains a 'hmac-key' field with HMAC key used to authenticate webhook calls.
+	// +optional
+	SecretRef *meta.LocalObjectReference `json:"secretRef,omitempty"`
 }
 
 type PullRequestPromotion struct {

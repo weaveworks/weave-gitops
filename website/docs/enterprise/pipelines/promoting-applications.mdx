@@ -74,8 +74,12 @@ metadata:
   name: promotion-my-app
 spec:
   address: "https://promotions.example.org/promotion/pipeline-01/my-app/dev"
-  type: generic
+  type: generic-hmac
+  secretRef:
+    name: hmac-secret
 ```
+
+In the example above, the `generic-hmac` Provider is used to ensure notifications originate from authenticated sources. The referenced Secret, should include a `token` field which holds the HMAC key. The same HMAC key must be specified in the Secret referenced by the `.spec.promotion.secretRef.name` field, so that the pipeline controller can verify any incoming notifications. For more information on the `generic-hmac` Provider, please refer to the notification controller [docs](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac).
 
 Note that by default, the promotion webhook endpoint is exposed at `/promotion` as shown in the example above. However you may use rewrite rules in your ingress configuration to omit it, if desired. For example, if using NGINX ingress controller, you may use the following annotation:
 ```yaml
@@ -141,11 +145,12 @@ data:
   username: ZXhhbXBsZQ==
   password: ZXhhbXBsZS1wYXNzd29yZA==
   token: Z2hwX01IL3RsTFpXTXZMY0FxVWRYY1ZGL0lGbzh0WDdHNjdsZmRxWQ==
+  hmac-key: OEIzMTNBNjQ0REU0OEVGODgxMTJCQ0VFNTQ3NkE=
 type: Opaque
 ```
 
 :::note
-The GitHub token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.pull-request.url`).
+The GitHub token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
 :::caution
@@ -154,7 +159,7 @@ The Secret needs to reside in the same Namespace as the Pipeline resource on the
 
 ### Define promotion in pipeline resource
 
-The field `.spec.promotion.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`).
+The field `.spec.promotion.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`). If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.secretRef.name` to the name of the Secret created previously.
 
 ### Add markers to app manifests
 
