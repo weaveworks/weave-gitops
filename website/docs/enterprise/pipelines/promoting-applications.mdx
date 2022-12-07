@@ -79,7 +79,7 @@ spec:
     name: hmac-secret
 ```
 
-In the example above, the `generic-hmac` Provider is used to ensure notifications originate from authenticated sources. The referenced Secret, should include a `token` field which holds the HMAC key. The same key must be specified in the Secret referenced by the `.spec.promotion.secretRef` field, so that the pipeline controller can verify any incoming notifications. For more information on the `generic-hmac` Provider, please refer to the notification controller [docs](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac).
+In the example above, the `generic-hmac` Provider is used to ensure notifications originate from authenticated sources. The referenced Secret, should include a `token` field which holds the HMAC key. The same HMAC key must be specified in the Secret referenced by the `.spec.promotion.secretRef.name` field, so that the pipeline controller can verify any incoming notifications. For more information on the `generic-hmac` Provider, please refer to the notification controller [docs](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac).
 
 Note that by default, the promotion webhook endpoint is exposed at `/promotion` as shown in the example above. However you may use rewrite rules in your ingress configuration to omit it, if desired. For example, if using NGINX ingress controller, you may use the following annotation:
 ```yaml
