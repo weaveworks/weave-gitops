@@ -52,7 +52,7 @@ apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: pipeline-sample
-  namespace: flux-system # Namespace where the GitOpsTemplate is installed, consider that a team will need READ access to this namespace and the custom resource
+  namespace: default # Namespace where the GitOpsTemplate is installed, consider that a team will need READ access to this namespace and the custom resource
   labels:
     weave.works/template-type: pipeline
 spec:
@@ -113,14 +113,14 @@ spec:
 
 ### Pipeline - Multi-cluster promotion
 
-This example builds on the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
+This example extends the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: pipeline-sample
-  namespace: flux-system
+  namespace: default
   labels:
     weave.works/template-type: pipeline
 spec:
@@ -224,7 +224,7 @@ apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: pipeline-notification-resources
-  namespace: flux-system
+  namespace: default
   labels:
     weave.works/template-type: application # These are generic Flux resources rather than Pipeline-specific
 spec:
@@ -236,6 +236,8 @@ spec:
       description: Namespace for the generated objects, should match the target Application (HelmRelease) namespace.
     - name: PROMOTION_HOST
       description: Host for the promotion webhook on the management cluster, i.e. "promotions.example.org"
+    - name: SECRET_REF
+      description: Name of the secret containing HMAC key in the token field
     - name: ENV_NAME
       description: Environment the cluster is a part of within a pipeline.
   resourcetemplates:
@@ -247,6 +249,7 @@ spec:
     spec:
       address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
       type: generic-hmac
+      secretRef: ${SECRET_REF}
   - apiVersion: notification.toolkit.fluxcd.io/v1beta1
     kind: Alert
     metadata:
