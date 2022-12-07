@@ -30,7 +30,7 @@ var (
 	// The variables below are to be set by flags passed to `go build`.
 	// Examples: -X run.DevBucketContainerImage=xxxxx
 
-	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server:1670322194"
+	DevBucketContainerImage string
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
