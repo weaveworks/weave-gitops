@@ -165,6 +165,9 @@ type ClustersManager interface {
 	RemoveWatcher(cw *ClustersWatcher)
 	// GetClusters returns all the currently known clusters
 	GetClusters() []cluster.Cluster
+
+	// GetOIDCClient
+	GetOIDCClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
 }
 
 type clustersManager struct {
@@ -534,6 +537,10 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
+}
+
+func (cf *clustersManager) GetOIDCClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+	return NewAltClient()
 }
 
 func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {

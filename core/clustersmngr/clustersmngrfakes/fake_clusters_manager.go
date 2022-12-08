@@ -77,6 +77,20 @@ type FakeClustersManager struct {
 		result1 discovery.DiscoveryInterface
 		result2 error
 	}
+	GetOIDCClientStub        func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)
+	getOIDCClientMutex       sync.RWMutex
+	getOIDCClientArgsForCall []struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
+	}
+	getOIDCClientReturns struct {
+		result1 clustersmngr.Client
+		result2 error
+	}
+	getOIDCClientReturnsOnCall map[int]struct {
+		result1 clustersmngr.Client
+		result2 error
+	}
 	GetServerClientStub        func(context.Context) (clustersmngr.Client, error)
 	getServerClientMutex       sync.RWMutex
 	getServerClientArgsForCall []struct {
@@ -452,6 +466,71 @@ func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturnsOnCall(i i
 	}
 	fake.getImpersonatedDiscoveryClientReturnsOnCall[i] = struct {
 		result1 discovery.DiscoveryInterface
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClustersManager) GetOIDCClient(arg1 context.Context, arg2 *auth.UserPrincipal) (clustersmngr.Client, error) {
+	fake.getOIDCClientMutex.Lock()
+	ret, specificReturn := fake.getOIDCClientReturnsOnCall[len(fake.getOIDCClientArgsForCall)]
+	fake.getOIDCClientArgsForCall = append(fake.getOIDCClientArgsForCall, struct {
+		arg1 context.Context
+		arg2 *auth.UserPrincipal
+	}{arg1, arg2})
+	stub := fake.GetOIDCClientStub
+	fakeReturns := fake.getOIDCClientReturns
+	fake.recordInvocation("GetOIDCClient", []interface{}{arg1, arg2})
+	fake.getOIDCClientMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClustersManager) GetOIDCClientCallCount() int {
+	fake.getOIDCClientMutex.RLock()
+	defer fake.getOIDCClientMutex.RUnlock()
+	return len(fake.getOIDCClientArgsForCall)
+}
+
+func (fake *FakeClustersManager) GetOIDCClientCalls(stub func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)) {
+	fake.getOIDCClientMutex.Lock()
+	defer fake.getOIDCClientMutex.Unlock()
+	fake.GetOIDCClientStub = stub
+}
+
+func (fake *FakeClustersManager) GetOIDCClientArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
+	fake.getOIDCClientMutex.RLock()
+	defer fake.getOIDCClientMutex.RUnlock()
+	argsForCall := fake.getOIDCClientArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClustersManager) GetOIDCClientReturns(result1 clustersmngr.Client, result2 error) {
+	fake.getOIDCClientMutex.Lock()
+	defer fake.getOIDCClientMutex.Unlock()
+	fake.GetOIDCClientStub = nil
+	fake.getOIDCClientReturns = struct {
+		result1 clustersmngr.Client
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClustersManager) GetOIDCClientReturnsOnCall(i int, result1 clustersmngr.Client, result2 error) {
+	fake.getOIDCClientMutex.Lock()
+	defer fake.getOIDCClientMutex.Unlock()
+	fake.GetOIDCClientStub = nil
+	if fake.getOIDCClientReturnsOnCall == nil {
+		fake.getOIDCClientReturnsOnCall = make(map[int]struct {
+			result1 clustersmngr.Client
+			result2 error
+		})
+	}
+	fake.getOIDCClientReturnsOnCall[i] = struct {
+		result1 clustersmngr.Client
 		result2 error
 	}{result1, result2}
 }
@@ -866,6 +945,8 @@ func (fake *FakeClustersManager) Invocations() map[string][][]interface{} {
 	defer fake.getImpersonatedClientForClusterMutex.RUnlock()
 	fake.getImpersonatedDiscoveryClientMutex.RLock()
 	defer fake.getImpersonatedDiscoveryClientMutex.RUnlock()
+	fake.getOIDCClientMutex.RLock()
+	defer fake.getOIDCClientMutex.RUnlock()
 	fake.getServerClientMutex.RLock()
 	defer fake.getServerClientMutex.RUnlock()
 	fake.getUserNamespacesMutex.RLock()

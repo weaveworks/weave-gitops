@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/hashicorp/go-multierror"
@@ -47,6 +48,10 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	} else {
 		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	}
+
+	if os.Getenv("USE_OTHER_CLIENT") != "" {
+		clustersClient, err = cs.clustersManager.GetOIDCClient(ctx, auth.Principal(ctx))
 	}
 
 	if err != nil {
