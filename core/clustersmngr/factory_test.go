@@ -31,7 +31,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns2}, nil)
 
-	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
+	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultRESTConfigOptions...)
 	g.Expect(err).To(BeNil())
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)

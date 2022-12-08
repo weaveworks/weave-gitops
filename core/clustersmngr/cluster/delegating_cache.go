@@ -89,8 +89,8 @@ func (c *delegatingCacheCluster) GetUserClient(user *auth.UserPrincipal) (client
 	return c.makeCachingClient(client)
 }
 
-func (c *delegatingCacheCluster) GetServerClient() (client.Client, error) {
-	client, err := c.cluster.GetServerClient()
+func (c *delegatingCacheCluster) GetServerClient(opts ...RESTConfigOption) (client.Client, error) {
+	client, err := c.cluster.GetServerClient(opts...)
 	if err != nil {
 		return nil, err
 	}

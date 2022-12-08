@@ -29,10 +29,12 @@ const (
 
 var (
 	kubeClientTimeout        = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
-	DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+	DefaultRESTConfigOptions = []RESTConfigOption{WithFlowControl}
 )
 
-type KubeConfigOption func(*rest.Config) (*rest.Config, error)
+// RESTConfigOption is an option-func that allows configuring a generated
+// rest.Config.
+type RESTConfigOption func(*rest.Config) (*rest.Config, error)
 
 // Cluster is an abstraction around a connection to a specific k8s cluster
 // It's effectively a pair of (name, rest.Config), with some helpers
@@ -44,7 +46,7 @@ type Cluster interface {
 	// GetHost gets the host of the cluster - this should match what's set in the `rest.Config`s below
 	GetHost() string
 	// GetServerClient gets a un-impersonated client for this cluster
-	GetServerClient() (client.Client, error)
+	GetServerClient(opts ...RESTConfigOption) (client.Client, error)
 	// GetUserClient gets an appropriately impersonated client for the user on this cluster
 	GetUserClient(*auth.UserPrincipal) (client.Client, error)
 	// GetServerClientset gets an un-impersonated clientset for this cluster

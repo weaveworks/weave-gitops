@@ -18,7 +18,9 @@ type singleCluster struct {
 	scheme     *apiruntime.Scheme
 }
 
-func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, kubeConfigOptions ...KubeConfigOption) (Cluster, error) {
+// NewSingleCluster creates and returns a Cluster that uses the provided
+// rest.Config.
+func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, restConfigOptions ...RESTConfigOption) (Cluster, error) {
 	// TODO: why does the cluster care about options?
 	config.Timeout = kubeClientTimeout
 	config.Dial = (&net.Dialer{
@@ -29,7 +31,7 @@ func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Schem
 
 	var err error
 
-	for _, opt := range kubeConfigOptions {
+	for _, opt := range restConfigOptions {
 		config, err = opt(config)
 		if err != nil {
 			return nil, err
@@ -49,6 +51,60 @@ func (c *singleCluster) GetName() string {
 
 func (c *singleCluster) GetHost() string {
 	return c.restConfig.Host
+}
+
+func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, error) {
+	cfg, err := getImpersonatedConfig(c.restConfig, user)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := getClientFromConfig(cfg, c.scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func (c *singleCluster) GetServerClient(opts ...RESTConfigOption) (client.Client, error) {
+	cfg, err := applyOptsToRESTConfig(c.restConfig, opts...)
+	if err != nil {
+		return nil, err
+	}
+	client, err := getClientFromConfig(cfg, c.scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func (c *singleCluster) GetUserClientset(user *auth.UserPrincipal) (kubernetes.Interface, error) {
+	cfg, err := getImpersonatedConfig(c.restConfig, user)
+	if err != nil {
+		return nil, err
+	}
+
+	cs, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("making clientset: %w", err)
+	}
+
+	return cs, nil
+}
+
+func (c *singleCluster) GetServerClientset() (kubernetes.Interface, error) {
+	cs, err := kubernetes.NewForConfig(c.restConfig)
+	if err != nil {
+		return nil, fmt.Errorf("making clientset: %w", err)
+	}
+
+	return cs, nil
+}
+
+func (c *singleCluster) GetServerConfig() (*rest.Config, error) {
+	return c.restConfig, nil
 }
 
 func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client.Client, error) {
@@ -85,52 +141,17 @@ func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest
 	return cfg, nil
 }
 
-func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, error) {
-	cfg, err := getImpersonatedConfig(c.restConfig, user)
-	if err != nil {
-		return nil, err
+// applyOptsToRESTConfig applies the provided options to a copy of the provided
+// rest.Config struct.
+func applyOptsToRESTConfig(cfg *rest.Config, opts ...RESTConfigOption) (*rest.Config, error) {
+	updated := rest.CopyConfig(cfg)
+	for _, opt := range opts {
+		changed, err := opt(updated)
+		if err != nil {
+			return nil, err
+		}
+		updated = changed
 	}
 
-	client, err := getClientFromConfig(cfg, c.scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func (c *singleCluster) GetServerClient() (client.Client, error) {
-	client, err := getClientFromConfig(c.restConfig, c.scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func (c *singleCluster) GetUserClientset(user *auth.UserPrincipal) (kubernetes.Interface, error) {
-	cfg, err := getImpersonatedConfig(c.restConfig, user)
-	if err != nil {
-		return nil, err
-	}
-
-	cs, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("making clientset: %w", err)
-	}
-
-	return cs, nil
-}
-
-func (c *singleCluster) GetServerClientset() (kubernetes.Interface, error) {
-	cs, err := kubernetes.NewForConfig(c.restConfig)
-	if err != nil {
-		return nil, fmt.Errorf("making clientset: %w", err)
-	}
-
-	return cs, nil
-}
-
-func (c *singleCluster) GetServerConfig() (*rest.Config, error) {
-	return c.restConfig, nil
+	return updated, nil
 }

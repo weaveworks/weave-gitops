@@ -185,7 +185,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, cluster.DefaultKubeConfigOptions...)
+	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, cluster.DefaultRESTConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster client; %w", err)
 	}
