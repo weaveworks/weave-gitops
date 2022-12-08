@@ -7,6 +7,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { GitRepository } from "../lib/objects";
 import { convertGitURLToGitProvider } from "../lib/utils";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 
 type Props = {
@@ -29,7 +30,12 @@ function GitRepositoryDetail({
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", gitRepository.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={gitRepository?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
