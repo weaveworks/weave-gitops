@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -52,11 +53,11 @@ func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
 }
 
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) ([]byte, error) {
+func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string, dashboardImage string) ([]byte, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
-	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion)
+	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion, dashboardImage)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -239,7 +240,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string, dashboardImage string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -272,7 +273,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	values, err := makeValues(username, passwordHash)
+	values, err := makeValues(username, passwordHash, dashboardImage)
 	if err != nil {
 		log.Failuref("Error generating chart values")
 		return nil, err
@@ -286,7 +287,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(username string, passwordHash string) ([]byte, error) {
+func makeValues(username string, passwordHash string, dashboardImage string) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
 	if username != "" && passwordHash != "" {
 		valuesMap["adminUser"] =
@@ -300,6 +301,19 @@ func makeValues(username string, passwordHash string) ([]byte, error) {
 	gitopsConfig, err := config.GetConfig(false)
 	if err == nil && gitopsConfig.Analytics {
 		valuesMap["WEAVE_GITOPS_FEATURE_TELEMETRY"] = "true"
+	}
+
+	if dashboardImage != "" {
+		// check : and spit on it
+		split := strings.Split(dashboardImage, ":")
+		if len(split) != 2 {
+			return nil, fmt.Errorf("invalid image format, expected image:tag")
+		}
+
+		valuesMap["image"] = map[string]interface{}{
+			"repository": split[0],
+			"tag":        split[1],
+		}
 	}
 
 	if len(valuesMap) > 0 {

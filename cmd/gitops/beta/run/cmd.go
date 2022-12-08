@@ -64,6 +64,7 @@ type RunCommandFlags struct {
 	DashboardPort           string
 	DashboardHashedPassword string
 	SkipDashboardInstall    bool
+	DashboardImage          string
 
 	// Session
 	SessionName         string
@@ -139,6 +140,9 @@ gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-syste
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+
+	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
+	_ = cmdFlags.MarkHidden("dashboard-image")
 
 	cmdFlags.StringVar(&flags.HiddenSessionName, "x-session-name", "", "The session name acknowledged by the sub-process. This is a hidden flag and should not be used.")
 	_ = cmdFlags.MarkHidden("x-session-name")
@@ -363,7 +367,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 				passwordHash = flags.DashboardHashedPassword
 			}
 
-			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
+			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
 			if err != nil {
 				return false, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 			}

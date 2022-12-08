@@ -28,7 +28,7 @@ type DashboardCommandFlags struct {
 	// Create command flags.
 	Export  bool
 	Timeout time.Duration
-	// Overriden global flags.
+	// Overridden global flags.
 	Username string
 	Password string
 	// Global flags.
@@ -148,7 +148,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "")
+		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "", "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}
