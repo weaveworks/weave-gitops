@@ -17,14 +17,15 @@ import (
 func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, sourcev1.Bucket) {
 	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
 
+	// create a secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      devBucketCredentials,
 			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
-			"accesskey": []byte("user"),
-			"secretkey": []byte("doesn't matter"),
+			"accesskey": params.AccessKey,
+			"secretkey": params.SecretKey,
 		},
 		Type: "Opaque",
 	}

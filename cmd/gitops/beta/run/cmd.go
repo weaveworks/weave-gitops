@@ -623,16 +623,29 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	devBucketHTTPPort := unusedPorts[0]
 	devBucketHTTPSPort := unusedPorts[1]
 
-	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort)
+	// generate access key and secret key for Minio auth
+	accessKey, err := s3.GenerateAccessKey(s3.DefaultRandIntFunc)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed generating access key: %w", err)
+	}
+
+	secretKey, err := s3.GenerateSecretKey(s3.DefaultRandIntFunc)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed generating secret key: %w", err)
+	}
+
+	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort, accessKey, secretKey)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), cert, log0)
+	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert, log0)
 	if err != nil {
 		cancel()
-		return err
+		return fmt.Errorf("failed creating S3 log writer: %w", err)
 	}
 
 	// ====================== Dashboard ======================
@@ -669,6 +682,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		DevBucketPort: devBucketHTTPPort,
 		SessionName:   sessionName,
 		Username:      username,
+		AccessKey:     accessKey,
+		SecretKey:     secretKey,
 	}
 
 	if !isHelm(paths.GetAbsoluteTargetDir()) {
@@ -683,7 +698,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), cert)
+	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
 	if err != nil {
 		cancel()
 		return err

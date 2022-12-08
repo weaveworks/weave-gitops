@@ -37,6 +37,8 @@ type SetupRunObjectParams struct {
 	DevBucketPort int32
 	SessionName   string
 	Username      string
+	AccessKey     []byte
+	SecretKey     []byte
 }
 
 func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupRunObjectParams) error {
