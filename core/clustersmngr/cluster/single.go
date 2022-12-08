@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"errors"
 	"fmt"
 	"net"
 
@@ -128,8 +129,10 @@ func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest
 	cfg := rest.CopyConfig(config)
 
 	if !user.Valid() {
-		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
-	} else if tok := user.Token(); tok != "" {
+		return nil, errors.New("no user ID or Token found in UserPrincipal")
+	}
+
+	if tok := user.Token(); tok != "" {
 		cfg.BearerToken = tok
 	} else {
 		cfg.Impersonate = rest.ImpersonationConfig{
@@ -141,8 +144,7 @@ func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest
 	return cfg, nil
 }
 
-// applyOptsToRESTConfig applies the provided options to a copy of the provided
-// rest.Config struct.
+// applyOptsToRESTConfig applies the options to a copy of the rest.Config param.
 func applyOptsToRESTConfig(cfg *rest.Config, opts ...RESTConfigOption) (*rest.Config, error) {
 	updated := rest.CopyConfig(cfg)
 	for _, opt := range opts {
