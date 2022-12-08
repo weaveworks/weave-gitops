@@ -68,10 +68,16 @@ spec:
             httpGet:
               path: /
               port: http
+              {{- if .Values.serverTLS.enable }}
+              scheme: HTTPS
+              {{- end }}
           readinessProbe:
             httpGet:
               path: /
               port: http
+              {{- if .Values.serverTLS.enable }}
+              scheme: HTTPS
+              {{- end }}
           env:
           {{- if .Values.envVars }}
           {{- with .Values.envVars }}
