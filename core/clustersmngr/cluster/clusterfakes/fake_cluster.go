@@ -32,9 +32,10 @@ type FakeCluster struct {
 	getNameReturnsOnCall map[int]struct {
 		result1 string
 	}
-	GetServerClientStub        func() (client.Client, error)
+	GetServerClientStub        func(...cluster.RESTConfigOption) (client.Client, error)
 	getServerClientMutex       sync.RWMutex
 	getServerClientArgsForCall []struct {
+		arg1 []cluster.RESTConfigOption
 	}
 	getServerClientReturns struct {
 		result1 client.Client
@@ -204,17 +205,18 @@ func (fake *FakeCluster) GetNameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeCluster) GetServerClient() (client.Client, error) {
+func (fake *FakeCluster) GetServerClient(arg1 ...cluster.RESTConfigOption) (client.Client, error) {
 	fake.getServerClientMutex.Lock()
 	ret, specificReturn := fake.getServerClientReturnsOnCall[len(fake.getServerClientArgsForCall)]
 	fake.getServerClientArgsForCall = append(fake.getServerClientArgsForCall, struct {
-	}{})
+		arg1 []cluster.RESTConfigOption
+	}{arg1})
 	stub := fake.GetServerClientStub
 	fakeReturns := fake.getServerClientReturns
-	fake.recordInvocation("GetServerClient", []interface{}{})
+	fake.recordInvocation("GetServerClient", []interface{}{arg1})
 	fake.getServerClientMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -228,10 +230,17 @@ func (fake *FakeCluster) GetServerClientCallCount() int {
 	return len(fake.getServerClientArgsForCall)
 }
 
-func (fake *FakeCluster) GetServerClientCalls(stub func() (client.Client, error)) {
+func (fake *FakeCluster) GetServerClientCalls(stub func(...cluster.RESTConfigOption) (client.Client, error)) {
 	fake.getServerClientMutex.Lock()
 	defer fake.getServerClientMutex.Unlock()
 	fake.GetServerClientStub = stub
+}
+
+func (fake *FakeCluster) GetServerClientArgsForCall(i int) []cluster.RESTConfigOption {
+	fake.getServerClientMutex.RLock()
+	defer fake.getServerClientMutex.RUnlock()
+	argsForCall := fake.getServerClientArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeCluster) GetServerClientReturns(result1 client.Client, result2 error) {

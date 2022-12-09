@@ -503,7 +503,7 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	g.Expect(err).To(BeNil())
 	err = clientsPool.Add(
 		client,
-		cluster,
+		cluster.GetName(),
 	)
 
 	g.Expect(err).To(BeNil())

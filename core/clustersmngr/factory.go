@@ -394,7 +394,7 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 				return
 			}
 
-			if err := pool.Add(client, cluster); err != nil {
+			if err := pool.Add(client, cluster.GetName()); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cl, pool, errChan)
@@ -438,7 +438,7 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("failed creating cluster client: %w", err)
 	}
 
-	if err := pool.Add(client, cl); err != nil {
+	if err := pool.Add(client, cl.GetName()); err != nil {
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
@@ -484,7 +484,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 				return
 			}
 
-			if err := pool.Add(client, cluster); err != nil {
+			if err := pool.Add(client, cluster.GetName()); err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
 			}
 		}(cl, pool, errChan)
