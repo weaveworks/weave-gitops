@@ -4,7 +4,7 @@ sidebar_position: 1
 hide_title: true
 ---
 
-import TierLabel from "../../_components/TierLabel";
+import TierLabel from "./../_components/TierLabel";
 
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
@@ -71,7 +71,7 @@ spec:
 ```
 
 In the previous example, `podinfo` application is delivered to a traditional pipeline composed by `dev`, `qa`, `perf` and `production` environments.
-Each environment is backed by a `GitopsCluster` [deployment target](../../../cluster-management/managing-existing-clusters/).
+Each environment is backed by a `GitopsCluster` [deployment target](../../cluster-management/managing-existing-clusters/).
 
 For more details about the spec of a pipeline [see here](spec/v1alpha1/pipeline.mdx)
 

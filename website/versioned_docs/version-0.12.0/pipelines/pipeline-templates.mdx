@@ -4,14 +4,14 @@ sidebar_position: 4
 hide_title: true
 ---
 
-import TierLabel from "../../_components/TierLabel";
+import TierLabel from "./../_components/TierLabel";
 
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Using GitOpsTemplates for Pipelines <TierLabel tiers="enterprise" />
 
-To create new Pipelines and their required resources from within Weave GitOps Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/templates.mdx) to help platform teams scale for developer self-service. 
+To create new Pipelines and their required resources from within Weave GitOps Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/templates) to help platform teams scale for developer self-service. 
 
 This document will provide example configuration which could be adapted for use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/) of choice.
 
@@ -31,7 +31,7 @@ GitOpsTemplates are custom resources installed onto the management cluster where
 
 ![Create Pipeline button in Pipeline view](img/pipelines-table-create.png)
 
- The `Templates` view (shown below) lists all templates for which a given user has the appropriate permission to view. You can install GitOpsTemplates into different namespaces, and apply standard kubernetes RBAC to limit which teams can utilize which templates. You could additionally configure [Policy](../../policy/intro.mdx) to enforce permitted values within a template.
+ The `Templates` view (shown below) lists all templates for which a given user has the appropriate permission to view. You can install GitOpsTemplates into different namespaces, and apply standard kubernetes RBAC to limit which teams can utilize which templates. You could additionally configure [Policy](../../policy/intro) to enforce permitted values within a template.
 
 ![Templates view showing Pipeline templates](img/pipelines-templates.png)
 
@@ -275,7 +275,7 @@ You can hard-code values, offer a range of accepted values, or leave open to the
 
 Templates are subject to RBAC as with any Kubernetes resource, enabling you to easily control which tenants have access to which templates.
 
-For full details on GitOpsTemplates, be sure to read our [documentation](../../gitops-templates/templates.mdx).
+For full details on GitOpsTemplates, be sure to read our [documentation](../../gitops-templates/templates).
 
 
 
