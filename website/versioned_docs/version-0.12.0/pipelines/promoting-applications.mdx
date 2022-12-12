@@ -145,6 +145,10 @@ Select your Git provider via `.spec.promotion.pull-request.type`. For example, f
   promotion:
     pull-request:
       type: "gitlab"
+      url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
+      secretRef:
+        name: "gitlab-promotion-credentials"
+
 ```
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
@@ -152,7 +156,7 @@ More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 ### Create credentials secret
 
 In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
-The contents of this secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
+The contents of this Secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
 In addition to these you need to include a `token` field containing a git provider access token that is used to authenticate with the Git provider API when creating a pull request. Here is an example Secret:
 
 ```yaml
