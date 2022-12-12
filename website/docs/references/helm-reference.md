@@ -15,7 +15,7 @@ This reference was generated for the chart version 4.0.9 which installs weave gi
 | adminUser.createClusterRole | bool | `true` | Specifies whether the clusterRole & binding to the admin user should be created. Will be created only if `adminUser.create` is enabled. Without this, the adminUser will only be able to see resources in the target namespace. |
 | adminUser.createSecret | bool | `true` | Whether we should create the secret for the local adminUser. Will be created only if `adminUser.create` is enabled. Without this, we'll still set up the roles and permissions, but the secret with username and password has to be provided separately. |
 | adminUser.passwordHash | string | `nil` | Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret` This needs to have been hashed using bcrypt. You can do this via our CLI with `gitops get bcrypt-hash`. |
-| adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, this should match the value in the secret `cluster-user-auth` which can be created with `adminUser.createSecret`. Requires `adminUser.create`. |
+| adminUser.username | string | `"gitops-test-user"` | Set username for local admin user, this should match the value in the admin user secret which can be created with `adminUser.createSecret`. Requires `adminUser.create`. |
 | affinity | object | `{}` |  |
 | annotations | object | `{}` | Annotations to add to the deployment |
 | envVars[0].name | string | `"WEAVE_GITOPS_FEATURE_TENANCY"` |  |
@@ -46,7 +46,7 @@ This reference was generated for the chart version 4.0.9 which installs weave gi
 | rbac.create | bool | `true` | Specifies whether the clusterRole & binding to the service account should be created |
 | rbac.impersonationResourceNames | list | `[]` | If non-empty, this limits the resources that the service account can impersonate. This applies to both users and groups, e.g. `['user1@corporation.com', 'user2@corporation.com', 'operations']` |
 | rbac.impersonationResources | list | `["users","groups"]` | Limit the type of principal that can be impersonated |
-| rbac.viewSecretsResourceNames | list | `["cluster-user-auth","oidc-auth"]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
+| rbac.viewSecretsResourceNames | list | `["oidc-auth"]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
 | securityContext.allowPrivilegeEscalation | bool | `false` |  |

@@ -49,6 +49,12 @@ Once the HTTP server starts unauthenticated users will have to click the 'login 
 
 ## Login via a cluster user account
 
+### Weave GitOps OSS
+
+If you followed the [installation instructions](../installation/weave-gitops.mdx) you don't need to perform any additional steps to enable this login method. You will be able to login to the dashboard using the credentials generated in the installation step.
+
+### Weave GitOps Enterprise
+
 Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI:
 
 Generate the password by running:

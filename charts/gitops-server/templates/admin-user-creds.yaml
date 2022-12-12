@@ -1,10 +1,9 @@
-{{- if .Values.adminUser.create }}
-{{- if .Values.adminUser.createSecret }}
+{{- if (and .Values.adminUser.create .Values.adminUser.createSecret) }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cluster-user-auth
+  name: {{ include "chart.adminUserSecret" . }}
   namespace: {{ .Release.Namespace }}
 type: Opaque
 data:
@@ -12,5 +11,4 @@ data:
   username: {{ .username | b64enc | quote }}
   password: {{ .passwordHash | required "passwordHash must be set!" | b64enc | quote }}
   {{- end }}
-{{- end }}
 {{- end }}

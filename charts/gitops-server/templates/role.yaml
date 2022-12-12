@@ -23,7 +23,7 @@ rules:
     {{- fail "You've supplied both rbac.viewSecrets and rbac.viewSecretsResourceNames. Please only use rbac.viewSecretsResourceNames" }}
     {{- end }}
     # or should return the first non-falsy result
-    {{- with (or .Values.rbac.viewSecretsResourceNames .Values.rbac.viewSecrets) }}
+    {{- with concat (or .Values.rbac.viewSecretsResourceNames .Values.rbac.viewSecrets) (list (or .Values.adminUser.secretName (include "chart.adminUserSecret" .))) }}
     resourceNames: {{ . | toJson }}
     {{- end }}
 
