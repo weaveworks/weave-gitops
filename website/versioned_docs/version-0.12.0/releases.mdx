@@ -44,13 +44,13 @@ config
 
 #### Minor fixes
 
-- Clicking on objects resulting in crashed UI
+- **Clicking on objects resulting in crashed UI**\
 We highly recommend users upgrade to v0.12.0 from 0.11.0, as unfortunately a bug slipped in where clicking on objects in the details tab for reconciled resources often resulted in the UI displaying a raw error message.
 
-- Terraform CRD Error
+- **Terraform CRD Error**\
 Users of the Terraform Controller will be pleased to know we’ve addressed the issue where an error would be displayed if it had not been installed on all connected clusters.
 
-- Management cluster renaming
+- **Management cluster renaming**\
 If a customer chose to rename the local cluster as it is known to Weave GitOps Enterprise from the default of management there were certain workflows where errors would occur, such as fetching profiles, this has now been resolved.
 
 ### Dependency versions​
