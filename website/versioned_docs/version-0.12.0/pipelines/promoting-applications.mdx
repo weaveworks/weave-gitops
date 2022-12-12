@@ -151,7 +151,7 @@ More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
 ### Create credentials secret
 
-In order to authenticate with the git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
+In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
 The contents of this secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
 In addition to these you need to include a `token` field containing a git provider access token that is used to authenticate with the git provider API when creating a pull request. Here is an example Secret:
 
