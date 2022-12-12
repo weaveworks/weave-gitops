@@ -16,11 +16,12 @@ import (
 )
 
 type InternalSession struct {
-	Name        string
-	Namespace   string
-	PortForward []string
-	CliVersion  string
-	Command     string
+	SessionName      string
+	SessionNamespace string
+	PortForward      []string
+	CliVersion       string
+	Command          string
+	Namespace        string
 }
 
 func Remove(kubeClient client.Client, session *InternalSession) error {
@@ -31,8 +32,8 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 
 	if err := kubeClient.Get(context.Background(),
 		types.NamespacedName{
-			Namespace: session.Namespace,
-			Name:      session.Name,
+			Namespace: session.SessionNamespace,
+			Name:      session.SessionName,
 		}, &helmRelease); err != nil {
 		result = multierror.Append(result, err)
 	}
@@ -46,8 +47,8 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		if err := kubeClient.Get(
 			context.Background(),
 			types.NamespacedName{
-				Namespace: session.Namespace,
-				Name:      session.Name},
+				Namespace: session.SessionNamespace,
+				Name:      session.SessionName},
 			&instance,
 		); err != nil && apierrors.IsNotFound(err) {
 			return true, nil
@@ -65,8 +66,8 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		if err := kubeClient.Get(
 			context.Background(),
 			types.NamespacedName{
-				Namespace: session.Namespace,
-				Name:      fmt.Sprintf("data-%s-0", session.Name),
+				Namespace: session.SessionNamespace,
+				Name:      fmt.Sprintf("data-%s-0", session.SessionName),
 			},
 			&pvc,
 		); err != nil && apierrors.IsNotFound(err) {
