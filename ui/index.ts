@@ -39,14 +39,18 @@ import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
 import Timestamp from "./components/Timestamp";
 import UserSettings from "./components/UserSettings";
 import YamlView from "./components/YamlView";
-import AppContextProvider from "./contexts/AppContext";
+import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
-import { LinkResolverProvider } from "./contexts/LinkResolverContext";
+import {
+  LinkResolverProvider,
+  useLinkResolver,
+} from "./contexts/LinkResolverContext";
 import { useListAutomations } from "./hooks/automations";
+import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
@@ -72,11 +76,13 @@ import {
 } from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { isAllowedLink, statusSortHelper } from "./lib/utils";
+import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
+import Input, { InputProps } from "./components/Input";
 
 export {
+  AppContext,
   AppContextProvider,
   applicationsClient,
   Auth,
@@ -115,6 +121,8 @@ export {
   IconType,
   InfoList,
   Interval,
+  Input,
+  InputProps,
   isAllowedLink,
   Kind,
   KubeStatusIndicator,
@@ -129,6 +137,7 @@ export {
   OAuthCallback,
   OCIRepository,
   OCIRepositoryDetail,
+  poller,
   Page,
   Pendo,
   ProviderDetail,
@@ -143,6 +152,7 @@ export {
   SubRouterTabs,
   theme,
   Timestamp,
+  useDebounce,
   UnAuthorizedInterceptor,
   useFeatureFlags,
   useGetObject,
@@ -154,6 +164,8 @@ export {
   useListFluxRuntimeObjects,
   useListProviders,
   useListSources,
+  useLinkResolver,
+  useRequestState,
   UserSettings,
   V2Routes,
   YamlView,
