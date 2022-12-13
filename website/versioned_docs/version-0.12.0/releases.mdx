@@ -72,7 +72,7 @@ config
 Users of the Terraform Controller will be pleased to know we’ve addressed the issue where an error would be displayed if it had not been installed on all connected clusters.
 
 **Management cluster renaming**
-If a customer chose to rename the local cluster as it is known to Weave GitOps Enterprise from the default of management there were certain workflows where errors would occur, such as fetching profiles, this has now been resolved.
+If the name of the cluster where Weave GitOps Enterprise is installed, was changed from the default of management through the config.cluster.name parameter, certain workflows could fail such as fetching profiles, this has now been resolved.
 
 ### Dependency versions​
 weave-gitops v0.12.0
