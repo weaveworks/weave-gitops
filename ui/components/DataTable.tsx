@@ -34,6 +34,7 @@ export type Field = {
   value: string | ((k: any) => string | JSX.Element | null);
   sortValue?: (k: any) => any;
   textSearchable?: boolean;
+  minWidth?: number;
   maxWidth?: number;
   /** boolean for field to initially sort against. */
   defaultSort?: boolean;
@@ -458,20 +459,24 @@ function UnstyledDataTable({
             />
           </TableCell>
         )}
-        {_.map(fields, (f) => (
-          <TableCell
-            style={
-              f.maxWidth && {
-                maxWidth: f.maxWidth,
-              }
-            }
-            key={f.label}
-          >
-            <Text>
-              {(typeof f.value === "function" ? f.value(r) : r[f.value]) || "-"}
-            </Text>
-          </TableCell>
-        ))}
+        {_.map(fields, (f) => {
+          const style: React.CSSProperties = {
+            ...(f.minWidth && { minWidth: f.minWidth }),
+            ...(f.maxWidth && { maxWidth: f.maxWidth }),
+          };
+
+          return (
+            <TableCell
+              style={Object.keys(style).length > 0 ? style : undefined}
+              key={f.label}
+            >
+              <Text>
+                {(typeof f.value === "function" ? f.value(r) : r[f.value]) ||
+                  "-"}
+              </Text>
+            </TableCell>
+          );
+        })}
       </TableRow>
     );
   });
