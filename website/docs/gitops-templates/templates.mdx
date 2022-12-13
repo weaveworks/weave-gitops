@@ -64,7 +64,64 @@ annotations:
 
 ## Default profile values
 
-Default and required profiles can be added via the template annotation `capi.weave.works/profile-INDEX` so that if the profiles section has been enabled on a template you can choose those profiles for the template.
+Default and required profiles can be added via the template `spec.charts` section.
+
+```yaml
+spec:
+  charts:
+    items:
+      - name: nginx
+        version: 1.0.0
+        targetNamespace: nginx
+      - name: cert-manager
+        targetNamespace: cert-manager
+```
+
+### Available keys
+
+Keys available in the `spec.charts.items` entries and the template variables available to them.
+
+| __Key__            | __Description__                                   | __Template vars__ |
+| -----------------  | --------------                                    | ----
+| `template.content` | Full `HelmRelease` CR template                    | `params` |
+| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`   ||
+| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version` ||
+| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`    ||
+| `values`           | Shortcut to `HelmRelease.spec.values`             | `params`
+| `layer`            | Layer to install as                               ||
+| `required`         | (default=false) Allow the user to de-select this profile|
+| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile|
+
+Here is a more complete example showing all the available keys:
+
+```yaml
+spec:
+  charts:
+    items:
+      - chart: cert-manager
+        version: v1.5.3
+        editable: false
+        required: true
+        values:
+          installCRDs: ${CERT_MANAGER_INSTALL_CRDS}
+        targetNamespace: cert-manager
+        layer: layer-1
+        template:
+          content:
+            metadata:
+              labels:
+                app.kubernetes.io/name: cert-manager
+            spec:
+              retries: ${CERT_MANAGER_RETRY_COUNT}
+```
+
+### Declaring profiles with annotations
+
+:::caution Deprecated feature
+Where possible please use the `spec.charts` section to declare profiles.
+:::
+
+You can also use the `capi.weave.works/profile-INDEX` annotation to specify profiles.
 
 The annotation is added as the following:
 ```
@@ -309,12 +366,3 @@ import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 >
   {CapdTemplate}
 </CodeBlock>
-
-## Updating from v1alpha1 to v1alpha2
-
-`resourcetemplates` values was changed in `v1alpha2`. Instead of directly holding a list of Kubernetes resources manifests it is now a list of a new object that has two keys:
-
-- content: This now holds the resource manifests.
-- path: This allows you to specify which path to render the templates into in the repo instead of rendering them to the default path.
-
-If the user does not wish to specify where to render the templates but still update and keep the old behavior then he will have to move the resource templates list under the content section.
