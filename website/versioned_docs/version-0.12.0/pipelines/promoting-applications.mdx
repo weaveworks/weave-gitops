@@ -127,37 +127,13 @@ Now as soon as the `HelmRelease` on the first environment defined in the pipelin
 
 ## Pull request
 
-This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline
-is upgraded in one of the pipeline's environments, a PR is created that updates the manifest file setting the application version in the next environment.
+This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline is upgraded in one of the pipeline's environments, a GitHub PR is created that updates the manifest file setting the application version in the next environment.
 
-The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files,
-how to authenticate with the repository and the Git provider API, and which file hosts the version definition for each environment.
-
-### Supported Git Providers
-The following Git providers are currently support by this promotion strategy:
-
-- [Github](https://github.com/)
-- [Gitlab](https://gitlab.com/)
-
-Select your Git provider via `.spec.promotion.pull-request.type`. For example, for `gitlab` it would look similar to:
-
-```yaml
-  promotion:
-    pull-request:
-      type: "gitlab"
-      url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
-      secretRef:
-        name: "gitlab-promotion-credentials"
-
-```
-
-More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
+The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files, how to authenticate with the repository and the GitHub API, and which file hosts the version definition for each environment.
 
 ### Create credentials secret
 
-In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
-The contents of this Secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
-In addition to these you need to include a `token` field containing a git provider access token that is used to authenticate with the Git provider API when creating a pull request. Here is an example Secret:
+In order to authenticate with the GitHub repository hosting the manifests, you need to create a Secret with credentials used for cloning. The contents of this secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference). In addition to these you need to include a `token` field containing a GitHub access token that is used to authenticate with the GitHub API when creating a pull request. Here is an example Secret:
 
 ```yaml
 apiVersion: v1
@@ -174,7 +150,7 @@ type: Opaque
 ```
 
 :::note
-The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
+The GitHub token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
 :::caution
@@ -205,7 +181,7 @@ The value of the `$promotion` field in the comment is comprised of 3 components 
 1. The second field denotes the name of the pipeline resource.
 1. The third field is the name of the environment that this specific HelmRelease targets. The environment name in the marker needs to match with the `name` field of one of the environments defined in the pipeline's `.spec.environments` array.
 
-Weave GitOps Enterprise will look for this marker whenever it receives an event from the respective HelmRelease of one of the leaf clusters and patch the file with the version denoted in the event (see the section above for instructions on setting up notification events from leaf clusters). Finally, it will create a Git provider PR to update the version of the application for the next environment in the pipeline.
+Weave GitOps Enterprise will look for this marker whenever it receives an event from the respective HelmRelease of one of the leaf clusters and patch the file with the version denoted in the event (see the section above for instructions on setting up notification events from leaf clusters). Finally, it will create a GitHub PR to update the version of the application for the next environment in the pipeline.
 
 ## Notification
 
