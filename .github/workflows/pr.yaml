@@ -247,8 +247,13 @@ jobs:
       js-version: ${{ steps.package-version.outputs.js-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
+          # avoid the merge commit that on.pull_request creates
+          # fallback to github.sha if not present (e.g. on.push(main))
+          # https://github.com/actions/checkout#checkout-pull-request-head-commit-instead-of-merge-commit
+          # We want the correct sha so we can tag the npm package correctly
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
