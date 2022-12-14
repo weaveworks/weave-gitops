@@ -19,6 +19,14 @@ func (ac *altClient) ClusteredList(ctx context.Context, clist ClusteredObjectLis
 	// build a client from values extracted from ctx or read from cache
 	// cache the resulting client (?)
 	// Q: should we do this on login?
+	// Q: can we take the user to some special loading page while we build their client?
+	// - imagining a special button they click on the login screen that navigates to a page to trigger this work.
+	// - show progress
+	// - bust the client cache
+	// - guard against retries that will saturate the api server
+	// - mutex to lock the go routine that gets cleaned up
+	// - endpoint to hit to generate client
+	// - endpoint to give client generation status; SSE?
 
 	// get a list of clusters
 

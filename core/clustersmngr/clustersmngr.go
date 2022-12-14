@@ -41,6 +41,8 @@ func (fetchers clusterFetchers) Fetch(ctx context.Context) ([]cluster.Cluster, e
 		clusters = append(clusters, additionalClusters...)
 	}
 
+	fmt.Println(clusters)
+
 	return clusters, nil
 }
 
