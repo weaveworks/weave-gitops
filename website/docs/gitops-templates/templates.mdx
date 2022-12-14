@@ -92,7 +92,7 @@ Keys available in the `spec.charts.items` entries and the template variables ava
 | `required`         | (default=false) Allow the user to de-select this profile|
 | `editable`         | (default=false) Allow the user to edit the values.yaml of this profile|
 
-Here is a more complete example showing all the available keys:
+Here is a more complete example showing all the available keys and the sections that can be templated.
 
 ```yaml
 spec:
@@ -114,6 +114,8 @@ spec:
             spec:
               retries: ${CERT_MANAGER_RETRY_COUNT}
 ```
+
+`template.content` will be merged over the top of a default `HelmRelease` CR so it does not need to be complete.
 
 ### Declaring profiles with annotations
 
