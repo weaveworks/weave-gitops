@@ -147,24 +147,24 @@ func removeRunRunE(opts *config.Options) func(cmd *cobra.Command, args []string)
 			}
 
 			for _, internalSession := range internalSessions {
-				log.Actionf("Removing session %s/%s ...", internalSession.Namespace, internalSession.Name)
+				log.Actionf("Removing session %s/%s ...", internalSession.SessionNamespace, internalSession.SessionName)
 
 				if err := session.Remove(kubeClient, internalSession); err != nil {
 					return err
 				}
 
-				log.Successf("Session %s/%s was successfully removed.", internalSession.Namespace, internalSession.Name)
+				log.Successf("Session %s/%s was successfully removed.", internalSession.SessionNamespace, internalSession.SessionName)
 			}
 		} else {
 			internalSession, err := session.Get(kubeClient, args[0], flags.Namespace)
 			if err != nil {
 				return err
 			}
-			log.Actionf("Removing session %s/%s ...", internalSession.Namespace, internalSession.Name)
+			log.Actionf("Removing session %s/%s ...", internalSession.SessionNamespace, internalSession.SessionName)
 			if err := session.Remove(kubeClient, internalSession); err != nil {
 				return err
 			}
-			log.Successf("Session %s/%s was successfully removed.", internalSession.Namespace, internalSession.Name)
+			log.Successf("Session %s/%s was successfully removed.", internalSession.SessionNamespace, internalSession.SessionName)
 		}
 
 		return nil
