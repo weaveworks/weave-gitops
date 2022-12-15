@@ -70,8 +70,14 @@ func TestMultiServerServesOverBothProtocols(t *testing.T) {
 
 	// test HTTP
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/", httpPort))
-	g.Expect(err).NotTo(HaveOccurred())
+	var resp *http.Response
+
+	g.Eventually(func() error {
+		var err error
+		resp, err = http.Get(fmt.Sprintf("http://localhost:%d/", httpPort))
+		return err
+	}).Should(Succeed())
+	g.Expect(resp).NotTo(BeNil(), "response is nil even though no error has been returned")
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := io.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
