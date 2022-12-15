@@ -110,7 +110,7 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 ## FAQ
 
-Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
+Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-gitops)
 
 ## Contribution
 
