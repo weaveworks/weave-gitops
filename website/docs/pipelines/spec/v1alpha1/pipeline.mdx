@@ -49,6 +49,7 @@ spec:
             namespace: flux-system
   promotion:
     pull-request:
+      type: github
       url: https://github.com/my-org/my-app-repo
       secretRef:
         name: github-credentials
@@ -109,7 +110,7 @@ type Target struct {
 // Promotion defines all the available promotion strategies. All of the fields in here are mutually exclusive, i.e. you can only select one
 // promotion strategy per Pipeline. Failure to do so will result in undefined behaviour.
 type Promotion struct {
-	// PullRequest defines a promotion through a GitHub Pull Request.
+	// PullRequest defines a promotion through a pull request
 	// +optional
 	PullRequest *PullRequestPromotion `json:"pull-request,omitempty"`
 	// Notification defines a promotion where an event is emitted through Flux's notification-controller each time an app is to be promoted.
@@ -120,7 +121,18 @@ type Promotion struct {
 	SecretRef *meta.LocalObjectReference `json:"secretRef,omitempty"`
 }
 
+type GitProviderType string
+
+const (
+	Github GitProviderType = "github"
+	Gitlab GitProviderType = "gitlab"
+)
+
 type PullRequestPromotion struct {
+	// Indicates the git provider type to manage pull requests.
+	// +required
+	// +kubebuilder:validation:Enum=github;gitlab
+	Type GitProviderType `json:"type"`
 	// The git repository URL used to patch the manifests for promotion.
 	// +required
 	URL string `json:"url"`
@@ -131,12 +143,12 @@ type PullRequestPromotion struct {
 	// +optional
 	Branch string `json:"branch"`
 	// SecretRef specifies the Secret containing authentication credentials for
-	// the git repository and for the GitHub API.
+	// the git repository and for the Git provider API.
 	// For HTTPS repositories the Secret must contain 'username' and 'password'
 	// fields.
 	// For SSH repositories the Secret must contain 'identity'
 	// and 'known_hosts' fields.
-	// For the GitHub API the Secret must contain a 'token' field.
+	// For Git Provider API to manage pull requests, it must contain a 'token' field.
 	// +required
 	SecretRef meta.LocalObjectReference `json:"secretRef"`
 }

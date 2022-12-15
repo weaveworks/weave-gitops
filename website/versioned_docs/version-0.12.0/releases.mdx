@@ -10,6 +10,79 @@ import TierLabel from "./_components/TierLabel";
 :::note
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+## v0.12.0
+2022-12-09
+
+### Highlights
+
+**We highly recommend users of v0.11.0 upgrade to this version as it includes fixes for a number of UI issues.**
+
+#### GitOps Templates
+- Support to specify Helm charts inside the CRD, instead of annotations. We’ve provided [documentation](.gitops.weave.works/docs/gitops-templates/templates.mdx) which has a example. 
+
+```yaml
+spec:
+  charts:
+    items:
+      - chart: cert-manager
+        version: v1.5.3
+        editable: false
+        required: true
+        values:
+          installCRDs: ${CERT_MANAGER_INSTALL_CRDS}
+        targetNamespace: cert-manager
+        layer: layer-1
+        template:
+          content:
+            metadata:
+              labels:
+                app.kubernetes.io/name: cert-manager
+            spec:
+              retries: ${CERT_MANAGER_RETRY_COUNT}
+```
+
+- Ability to edit all fields now, including name/namespace
+
+#### Authentication with OIDC support
+Supporting custom OIDC groups claims for azure/okta integration
+Support for OIDC custom username and group claims:
+
+```yaml
+config
+  oidc:
+    claimUsername: ""
+    claimGroups: ""
+```
+
+#### Policy commit-time agent 
+- Support Azure DevOps and auto-remediation in commit-time enforcement.
+
+#### Admin User- simpler RBAC 
+- Weave GitOps default admin user can now “read” all objects. Why is this important? As users are trying out Weave GitOps they will most likely try it out with some of their favorite Cloud Native tools such as Crossplane, Tekton, Istio, etc. This enables them to see all of those resources and explore the full power of Weave GitOps. We still do not recommend this user for “production-use” cases, and customers should always be pushed towards implementing OIDC with scoped roles.
+
+#### Pipelines - adding Pipelines through Templates
+- From the Pipelines view you can add new Pipelines in a way which leverages GitOpsTemplates, additionally - to help users configure these, we’ve provided [documentation](.gitops.weave.works/docs/pipelines/pipeline-templates.mdx) which has some samples.
+
+#### Support for multiple Flux instances on a single cluster
+- Support for running multiple flux instances in different namespaces on a single cluster for resource isolation.
+
+#### Minor fixes
+
+**Terraform CRD Error**
+Users of the Terraform Controller will be pleased to know we’ve addressed the issue where an error would be displayed if it had not been installed on all connected clusters.
+
+**Management cluster renaming**
+If the name of the cluster where Weave GitOps Enterprise is installed, was changed from the default of management through the config.cluster.name parameter, certain workflows could fail such as fetching profiles, this has now been resolved.
+
+### Dependency versions​
+weave-gitops v0.12.0
+cluster-controller v1.4.1
+cluster-bootstrap-controller v0.3.0
+(optional) pipeline-controller v0.0.11
+(optional) policy-agent 2.1.1
+
+### Known issues
+- [UI] Notifications provider page shows a 404. 
 
 ## v0.11.0
 2022-11-25
