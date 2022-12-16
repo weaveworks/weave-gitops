@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -145,9 +146,21 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		}
 	}
 
+	// Remove this
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	c := &http.Client{
+		Transport: tr,
+	}
+
+	http.DefaultClient = c
+
 	return AuthConfig{
-		Log:                 log.WithName("auth-server"),
-		client:              http.DefaultClient,
+		Log: log.WithName("auth-server"),
+		// client:              http.DefaultClient,
+		client:              c,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
 		OIDCConfig:          oidcCfg,
