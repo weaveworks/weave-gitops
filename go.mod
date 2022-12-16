@@ -30,12 +30,14 @@ require (
 	github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
 	github.com/loft-sh/vcluster v0.12.0
 	github.com/manifoldco/promptui v0.9.0
+	github.com/mattn/go-tty v0.0.4
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/minio/minio-go/v7 v7.0.31
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/onsi/ginkgo/v2 v2.5.0
 	github.com/onsi/gomega v1.24.1
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/slok/go-http-metrics v0.10.0
