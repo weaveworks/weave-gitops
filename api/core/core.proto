@@ -25,7 +25,7 @@ service Core {
     */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
-            get : "/v1/object/{name}"
+            get: "/v1/object/{name}"
         };
     }
 
@@ -35,8 +35,8 @@ service Core {
     */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/objects"
-			body: "*"
+            post: "/v1/objects"
+            body: "*"
         };
     }
 
@@ -46,14 +46,14 @@ service Core {
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest) returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
-          get : "/v1/flux_runtime_objects"
+            get: "/v1/flux_runtime_objects"
         };
     }
 
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
-            get : "/v1/flux_crds"
-          };
+            get: "/v1/flux_crds"
+        };
     }
 
     /**
@@ -62,7 +62,7 @@ service Core {
     */
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/reconciled_objects"
+            post: "/v1/reconciled_objects"
             body: "*"
         };
     };
@@ -73,7 +73,7 @@ service Core {
     */
     rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/child_objects"
+            post: "/v1/child_objects"
             body: "*"
         };
     };
@@ -129,7 +129,7 @@ service Core {
     */
     rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
-            get : "/v1/featureflags"
+            get: "/v1/featureflags"
         };
     }
 
@@ -139,6 +139,16 @@ service Core {
     rpc ToggleSuspendResource(ToggleSuspendResourceRequest) returns (ToggleSuspendResourceResponse) {
         option (google.api.http) = {
             post: "/v1/suspend"
+            body: "*"
+        };
+    }
+
+    /*
+     * GetSessionLogs returns the logs for a given session
+     */
+    rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
+        option (google.api.http) = {
+            post: "/v1/session_logs"
             body: "*"
         };
     }
@@ -271,4 +281,16 @@ message ToggleSuspendResourceRequest {
 }
 
 message ToggleSuspendResourceResponse {
+}
+
+message GetSessionLogsRequest {
+    string sessionId   = 1;
+    string token       = 2;
+    string clusterName = 3;
+    string namespace   = 4;
+}
+
+message GetSessionLogsResponse {
+    repeated string logs = 1;
+    string nextToken     = 2;
 }
