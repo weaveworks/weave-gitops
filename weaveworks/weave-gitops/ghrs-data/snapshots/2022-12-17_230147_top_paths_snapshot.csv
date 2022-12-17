@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops,1140,526
+/weaveworks/weave-gitops/pulls,264,31
+/weaveworks/weave-gitops/issues,241,52
+/weaveworks/weave-gitops/tree/main/charts/gitops-server,169,71
+/weaveworks/weave-gitops/blob/main/doc/img/02-workload-detail.png,103,79
+/weaveworks/weave-gitops/search,87,12
+/weaveworks/weave-gitops/blob/main/charts/gitops-server/values.yaml,78,42
+/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates,73,29
+/weaveworks/weave-gitops/releases,72,47
+/weaveworks/weave-gitops/blob/main/doc/img/01-workloads.png,69,64
