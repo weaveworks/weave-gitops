@@ -8,6 +8,7 @@ import {
   Route,
   Switch,
 } from "react-router-dom";
+import { CompatRouter } from "react-router-dom-v5-compat";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
@@ -109,23 +110,25 @@ export default function AppContainer() {
           <Fonts />
           <GlobalStyle />
           <Router>
-            <AppContextProvider renderFooter>
-              <AuthContextProvider>
-                <CoreClientContextProvider api={Core}>
-                  <Pendo defaultTelemetryFlag="false" />
-                  <Switch>
-                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                    <Route component={SignIn} exact path="/sign_in" />
-                    <Route path="*">
-                      {/* Check we've got a logged in user otherwise redirect back to signin */}
-                      <AuthCheck>
-                        <App />
-                      </AuthCheck>
-                    </Route>
-                  </Switch>
-                </CoreClientContextProvider>
-              </AuthContextProvider>
-            </AppContextProvider>
+            <CompatRouter>
+              <AppContextProvider renderFooter>
+                <AuthContextProvider>
+                  <CoreClientContextProvider api={Core}>
+                    <Pendo defaultTelemetryFlag="false" />
+                    <Switch>
+                      {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                      <Route component={SignIn} exact path="/sign_in" />
+                      <Route path="*">
+                        {/* Check we've got a logged in user otherwise redirect back to signin */}
+                        <AuthCheck>
+                          <App />
+                        </AuthCheck>
+                      </Route>
+                    </Switch>
+                  </CoreClientContextProvider>
+                </AuthContextProvider>
+              </AppContextProvider>
+            </CompatRouter>
           </Router>
         </ThemeProvider>
       </QueryClientProvider>
