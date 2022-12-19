@@ -77,17 +77,17 @@ type FakeClustersManager struct {
 		result1 discovery.DiscoveryInterface
 		result2 error
 	}
-	GetOIDCClientStub        func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)
-	getOIDCClientMutex       sync.RWMutex
-	getOIDCClientArgsForCall []struct {
+	GetPassthroughClientStub        func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)
+	getPassthroughClientMutex       sync.RWMutex
+	getPassthroughClientArgsForCall []struct {
 		arg1 context.Context
 		arg2 *auth.UserPrincipal
 	}
-	getOIDCClientReturns struct {
+	getPassthroughClientReturns struct {
 		result1 clustersmngr.Client
 		result2 error
 	}
-	getOIDCClientReturnsOnCall map[int]struct {
+	getPassthroughClientReturnsOnCall map[int]struct {
 		result1 clustersmngr.Client
 		result2 error
 	}
@@ -470,17 +470,17 @@ func (fake *FakeClustersManager) GetImpersonatedDiscoveryClientReturnsOnCall(i i
 	}{result1, result2}
 }
 
-func (fake *FakeClustersManager) GetOIDCClient(arg1 context.Context, arg2 *auth.UserPrincipal) (clustersmngr.Client, error) {
-	fake.getOIDCClientMutex.Lock()
-	ret, specificReturn := fake.getOIDCClientReturnsOnCall[len(fake.getOIDCClientArgsForCall)]
-	fake.getOIDCClientArgsForCall = append(fake.getOIDCClientArgsForCall, struct {
+func (fake *FakeClustersManager) GetPassthroughClient(arg1 context.Context, arg2 *auth.UserPrincipal) (clustersmngr.Client, error) {
+	fake.getPassthroughClientMutex.Lock()
+	ret, specificReturn := fake.getPassthroughClientReturnsOnCall[len(fake.getPassthroughClientArgsForCall)]
+	fake.getPassthroughClientArgsForCall = append(fake.getPassthroughClientArgsForCall, struct {
 		arg1 context.Context
 		arg2 *auth.UserPrincipal
 	}{arg1, arg2})
-	stub := fake.GetOIDCClientStub
-	fakeReturns := fake.getOIDCClientReturns
-	fake.recordInvocation("GetOIDCClient", []interface{}{arg1, arg2})
-	fake.getOIDCClientMutex.Unlock()
+	stub := fake.GetPassthroughClientStub
+	fakeReturns := fake.getPassthroughClientReturns
+	fake.recordInvocation("GetPassthroughClient", []interface{}{arg1, arg2})
+	fake.getPassthroughClientMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
 	}
@@ -490,46 +490,46 @@ func (fake *FakeClustersManager) GetOIDCClient(arg1 context.Context, arg2 *auth.
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeClustersManager) GetOIDCClientCallCount() int {
-	fake.getOIDCClientMutex.RLock()
-	defer fake.getOIDCClientMutex.RUnlock()
-	return len(fake.getOIDCClientArgsForCall)
+func (fake *FakeClustersManager) GetPassthroughClientCallCount() int {
+	fake.getPassthroughClientMutex.RLock()
+	defer fake.getPassthroughClientMutex.RUnlock()
+	return len(fake.getPassthroughClientArgsForCall)
 }
 
-func (fake *FakeClustersManager) GetOIDCClientCalls(stub func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)) {
-	fake.getOIDCClientMutex.Lock()
-	defer fake.getOIDCClientMutex.Unlock()
-	fake.GetOIDCClientStub = stub
+func (fake *FakeClustersManager) GetPassthroughClientCalls(stub func(context.Context, *auth.UserPrincipal) (clustersmngr.Client, error)) {
+	fake.getPassthroughClientMutex.Lock()
+	defer fake.getPassthroughClientMutex.Unlock()
+	fake.GetPassthroughClientStub = stub
 }
 
-func (fake *FakeClustersManager) GetOIDCClientArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
-	fake.getOIDCClientMutex.RLock()
-	defer fake.getOIDCClientMutex.RUnlock()
-	argsForCall := fake.getOIDCClientArgsForCall[i]
+func (fake *FakeClustersManager) GetPassthroughClientArgsForCall(i int) (context.Context, *auth.UserPrincipal) {
+	fake.getPassthroughClientMutex.RLock()
+	defer fake.getPassthroughClientMutex.RUnlock()
+	argsForCall := fake.getPassthroughClientArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeClustersManager) GetOIDCClientReturns(result1 clustersmngr.Client, result2 error) {
-	fake.getOIDCClientMutex.Lock()
-	defer fake.getOIDCClientMutex.Unlock()
-	fake.GetOIDCClientStub = nil
-	fake.getOIDCClientReturns = struct {
+func (fake *FakeClustersManager) GetPassthroughClientReturns(result1 clustersmngr.Client, result2 error) {
+	fake.getPassthroughClientMutex.Lock()
+	defer fake.getPassthroughClientMutex.Unlock()
+	fake.GetPassthroughClientStub = nil
+	fake.getPassthroughClientReturns = struct {
 		result1 clustersmngr.Client
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeClustersManager) GetOIDCClientReturnsOnCall(i int, result1 clustersmngr.Client, result2 error) {
-	fake.getOIDCClientMutex.Lock()
-	defer fake.getOIDCClientMutex.Unlock()
-	fake.GetOIDCClientStub = nil
-	if fake.getOIDCClientReturnsOnCall == nil {
-		fake.getOIDCClientReturnsOnCall = make(map[int]struct {
+func (fake *FakeClustersManager) GetPassthroughClientReturnsOnCall(i int, result1 clustersmngr.Client, result2 error) {
+	fake.getPassthroughClientMutex.Lock()
+	defer fake.getPassthroughClientMutex.Unlock()
+	fake.GetPassthroughClientStub = nil
+	if fake.getPassthroughClientReturnsOnCall == nil {
+		fake.getPassthroughClientReturnsOnCall = make(map[int]struct {
 			result1 clustersmngr.Client
 			result2 error
 		})
 	}
-	fake.getOIDCClientReturnsOnCall[i] = struct {
+	fake.getPassthroughClientReturnsOnCall[i] = struct {
 		result1 clustersmngr.Client
 		result2 error
 	}{result1, result2}
@@ -945,8 +945,8 @@ func (fake *FakeClustersManager) Invocations() map[string][][]interface{} {
 	defer fake.getImpersonatedClientForClusterMutex.RUnlock()
 	fake.getImpersonatedDiscoveryClientMutex.RLock()
 	defer fake.getImpersonatedDiscoveryClientMutex.RUnlock()
-	fake.getOIDCClientMutex.RLock()
-	defer fake.getOIDCClientMutex.RUnlock()
+	fake.getPassthroughClientMutex.RLock()
+	defer fake.getPassthroughClientMutex.RUnlock()
 	fake.getServerClientMutex.RLock()
 	defer fake.getServerClientMutex.RUnlock()
 	fake.getUserNamespacesMutex.RLock()

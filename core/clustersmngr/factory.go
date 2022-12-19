@@ -166,8 +166,8 @@ type ClustersManager interface {
 	// GetClusters returns all the currently known clusters
 	GetClusters() []cluster.Cluster
 
-	// GetOIDCClient
-	GetOIDCClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
+	// GetPassthroughClient
+	GetPassthroughClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
 }
 
 type clustersManager struct {
@@ -254,6 +254,11 @@ func (cf *clustersManager) GetClusters() []cluster.Cluster {
 }
 
 func (cf *clustersManager) Start(ctx context.Context) {
+	if os.Getenv("USE_OTHER_CLIENT") != "" {
+		// Remove this?
+		// We don't want to watch clusters or namespaces in this config.
+		return
+	}
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
 }
@@ -539,7 +544,7 @@ func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[strin
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
 
-func (cf *clustersManager) GetOIDCClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+func (cf *clustersManager) GetPassthroughClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	return NewAltClient()
 }
 

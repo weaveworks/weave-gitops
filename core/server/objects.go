@@ -51,7 +51,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}
 
 	if os.Getenv("USE_OTHER_CLIENT") != "" {
-		clustersClient, err = cs.clustersManager.GetOIDCClient(ctx, auth.Principal(ctx))
+		clustersClient, err = cs.clustersManager.GetPassthroughClient(ctx, auth.Principal(ctx))
 	}
 
 	if err != nil {
