@@ -51,7 +51,7 @@ use Flux already then you can easily add Weave GitOps to create a platform manag
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.11.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.12.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
@@ -110,7 +110,7 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 ## FAQ
 
-Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
+Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-gitops)
 
 ## Contribution
 

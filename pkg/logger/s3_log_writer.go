@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"strings"
 	"time"
 
@@ -23,8 +24,33 @@ func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
 }
 
-func NewS3LogWriter(id, endpoint string, caCert []byte, log0 Logger) (Logger, error) {
-	minioClient, err := s3.NewMinioClient(endpoint, caCert)
+func NewInsecureS3LogWriter(id, endpoint string, accessKey, secretKey string, log0 Logger) (Logger, error) {
+	minioClient, err := minio.New(
+		endpoint,
+		&minio.Options{
+			Creds:        credentials.NewStaticV4(accessKey, secretKey, ""),
+			Secure:       false,
+			BucketLookup: minio.BucketLookupPath,
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := minioClient.MakeBucket(context.Background(), logBucketName, minio.MakeBucketOptions{}); err != nil {
+		return nil, err
+	}
+
+	return &S3LogWriter{
+		id:    id,
+		s3cli: minioClient,
+		log0:  log0,
+	}, nil
+}
+
+func NewS3LogWriter(id, endpoint string, accessKey, secretKey, caCert []byte, log0 Logger) (Logger, error) {
+	minioClient, err := s3.NewMinioClient(endpoint, accessKey, secretKey, caCert)
 	if err != nil {
 		return nil, err
 	}

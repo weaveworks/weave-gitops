@@ -139,6 +139,18 @@ export type ToggleSuspendResourceRequest = {
 export type ToggleSuspendResourceResponse = {
 }
 
+export type GetSessionLogsRequest = {
+  sessionId?: string
+  token?: string
+  clusterName?: string
+  namespace?: string
+}
+
+export type GetSessionLogsResponse = {
+  logs?: string[]
+  nextToken?: string
+}
+
 export class Core {
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
@@ -178,5 +190,8 @@ export class Core {
   }
   static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
     return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetSessionLogs(req: GetSessionLogsRequest, initReq?: fm.InitReq): Promise<GetSessionLogsResponse> {
+    return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session_logs`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

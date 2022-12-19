@@ -11,8 +11,6 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
 
-const pendoKey = "pendo";
-
 const SignInBackgroundAnimation = React.lazy(
   () => import("../components/Animations/SignInBackground")
 );
@@ -83,19 +81,6 @@ function SignIn() {
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
-
-  React.useEffect(() => {
-    if (!window.localStorage) {
-      console.warn("no local storage found");
-      return;
-    }
-
-    const pendoKeys = Object.keys(window.localStorage).filter(
-      (key) => key.toLowerCase().indexOf(pendoKey) != -1
-    );
-
-    pendoKeys.forEach((key) => window.localStorage.removeItem(key));
-  }, []);
 
   return (
     <Flex

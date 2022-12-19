@@ -30,12 +30,14 @@ require (
 	github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
 	github.com/loft-sh/vcluster v0.12.0
 	github.com/manifoldco/promptui v0.9.0
+	github.com/mattn/go-tty v0.0.4
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/minio/minio-go/v7 v7.0.31
 	github.com/mitchellh/go-ps v1.0.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
 	github.com/onsi/ginkgo/v2 v2.5.0
 	github.com/onsi/gomega v1.24.1
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pkg/errors v0.9.1
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/slok/go-http-metrics v0.10.0
@@ -220,10 +222,10 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/net v0.2.0
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/net v0.4.0
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.2.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect

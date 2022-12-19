@@ -34,6 +34,14 @@ func TestVerifySignature(t *testing.T) {
 		expected error
 	}
 
+	g := NewGomegaWithT(t)
+
+	accessKey, err := GenerateAccessKey(DefaultRandIntFunc)
+	g.Expect(err).NotTo(HaveOccurred(), "failed generating access key")
+
+	secretKey, err := GenerateSecretKey(DefaultRandIntFunc)
+	g.Expect(err).NotTo(HaveOccurred(), "failed generating secret key")
+
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE"} {
 		for _, region := range []string{"us-east-1", "us-west-1"} {
 			for _, host := range []string{"", "localhost", "localhost:8080", "localhost:9000"} {
@@ -52,7 +60,8 @@ func TestVerifySignature(t *testing.T) {
 									if err != nil {
 										t.Fatal(err)
 									}
-									signed := signer.SignV4(*req, "gitopsrun", "gitopsrun123", "", region)
+
+									signed := signer.SignV4(*req, string(accessKey), string(secretKey), "", region)
 									return signed
 								}(),
 								expected: nil,
@@ -70,7 +79,7 @@ func TestVerifySignature(t *testing.T) {
 									if err != nil {
 										t.Fatal(err)
 									}
-									signed := signer.SignV4(*req, "gitopsrun", "invalid", "", region)
+									signed := signer.SignV4(*req, string(accessKey), "invalid", "", region)
 									return signed
 								}(),
 								expected: fmt.Errorf("access denied: signature does not match"),
@@ -88,7 +97,7 @@ func TestVerifySignature(t *testing.T) {
 									if err != nil {
 										t.Fatal(err)
 									}
-									signed := signer.SignV4(*req, "invalid", "gitopsrun123", "", region)
+									signed := signer.SignV4(*req, "invalid", string(secretKey), "", region)
 									return signed
 								}(),
 								expected: fmt.Errorf("access denied: credential does not match"),
@@ -104,9 +113,9 @@ func TestVerifySignature(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			if tc.expected == nil {
-				g.Expect(verifySignature(*tc.req, "gitopsrun", "gitopsrun123")).To(Succeed())
+				g.Expect(verifySignature(*tc.req, string(accessKey), string(secretKey))).To(Succeed())
 			} else {
-				g.Expect(verifySignature(*tc.req, "gitopsrun", "gitopsrun123").Error()).To(Equal(tc.expected.Error()))
+				g.Expect(verifySignature(*tc.req, string(accessKey), string(secretKey)).Error()).To(Equal(tc.expected.Error()))
 			}
 		})
 	}

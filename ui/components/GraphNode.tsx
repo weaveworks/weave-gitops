@@ -2,6 +2,7 @@ import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { Kind } from "../lib/api/core/types.pb";
 import images from "../lib/images";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
@@ -87,6 +88,15 @@ function GraphNode({ className, object }: Props) {
   const { setNodeYaml } = React.useContext(AppContext);
   const status = computeReady(object.conditions);
   const secret = object.type === "Secret";
+
+  const resolver = useLinkResolver();
+  const resolved =
+    resolver &&
+    resolver(object.type, {
+      name: object.name,
+      namespace: object.namespace,
+      clusterName: object.clusterName,
+    });
   return (
     <Node wide tall between className={className}>
       <StatusLine suspended={object.suspended} status={status} />
@@ -98,14 +108,17 @@ function GraphNode({ className, object }: Props) {
             title={object.name.length > 23 ? object.name : ""}
             placement="top"
           >
-            {Kind[object.type] ? (
+            {Kind[object.type] || resolved ? (
               <div>
                 <Link
-                  to={formatURL(objectTypeToRoute(Kind[object.type]), {
-                    name: object.name,
-                    namespace: object.namespace,
-                    clusterName: object.clusterName,
-                  })}
+                  to={
+                    resolved ||
+                    formatURL(objectTypeToRoute(Kind[object.type]), {
+                      name: object.name,
+                      namespace: object.namespace,
+                      clusterName: object.clusterName,
+                    })
+                  }
                   textProps={{ size: "huge", semiBold: object.isCurrentNode }}
                 >
                   {object.name}

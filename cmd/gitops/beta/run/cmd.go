@@ -64,6 +64,7 @@ type RunCommandFlags struct {
 	DashboardPort           string
 	DashboardHashedPassword string
 	SkipDashboardInstall    bool
+	DashboardImage          string
 
 	// Session
 	SessionName         string
@@ -139,6 +140,9 @@ gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-syste
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+
+	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
+	_ = cmdFlags.MarkHidden("dashboard-image")
 
 	cmdFlags.StringVar(&flags.HiddenSessionName, "x-session-name", "", "The session name acknowledged by the sub-process. This is a hidden flag and should not be used.")
 	_ = cmdFlags.MarkHidden("x-session-name")
@@ -363,7 +367,7 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 				passwordHash = flags.DashboardHashedPassword
 			}
 
-			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion)
+			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
 			if err != nil {
 				return false, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 			}
@@ -623,16 +627,29 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	devBucketHTTPPort := unusedPorts[0]
 	devBucketHTTPSPort := unusedPorts[1]
 
-	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort)
+	// generate access key and secret key for Minio auth
+	accessKey, err := s3.GenerateAccessKey(s3.DefaultRandIntFunc)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed generating access key: %w", err)
+	}
+
+	secretKey, err := s3.GenerateSecretKey(s3.DefaultRandIntFunc)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("failed generating secret key: %w", err)
+	}
+
+	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort, accessKey, secretKey)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), cert, log0)
+	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert, log0)
 	if err != nil {
 		cancel()
-		return err
+		return fmt.Errorf("failed creating S3 log writer: %w", err)
 	}
 
 	// ====================== Dashboard ======================
@@ -669,6 +686,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		DevBucketPort: devBucketHTTPPort,
 		SessionName:   sessionName,
 		Username:      username,
+		AccessKey:     accessKey,
+		SecretKey:     secretKey,
 	}
 
 	if !isHelm(paths.GetAbsoluteTargetDir()) {
@@ -683,7 +702,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), cert)
+	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
 	if err != nil {
 		cancel()
 		return err
@@ -815,12 +834,49 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						log.Successf("Reconciliation is done.")
 					}
 
+					portForwards := map[rune]watch.PortForwardShortcut{}
+
+					if dashboardInstalled {
+						portForwardKey, err := watch.GetNextPortForwardKey(portForwards)
+						if err != nil {
+							log.Failuref("Error adding a portForward: %v", err)
+						} else {
+							portForwards[portForwardKey] = watch.PortForwardShortcut{
+								Name:     dashboardName,
+								HostPort: flags.DashboardPort,
+							}
+						}
+					}
+
+					var specMap *watch.PortForwardSpec
+
 					if flags.PortForward != "" {
-						specMap, err := watch.ParsePortForwardSpec(flags.PortForward)
+						specMap, err = watch.ParsePortForwardSpec(flags.PortForward)
 						if err != nil {
 							log.Failuref("Error parsing port forward spec: %v", err)
-						}
+						} else {
+							serviceName := specMap.Name
+							if serviceName == "" {
+								serviceName = "service"
+							}
 
+							portForwardKey, err := watch.GetNextPortForwardKey(portForwards)
+							if err != nil {
+								log.Failuref("Error adding a port forward: %v", err)
+							} else {
+								portForwards[portForwardKey] = watch.PortForwardShortcut{
+									Name:     serviceName,
+									HostPort: specMap.HostPort,
+								}
+							}
+						}
+					}
+
+					if len(portForwards) > 0 {
+						watch.ShowPortForwards(ctx, log, portForwards)
+					}
+
+					if specMap != nil {
 						// get pod from specMap
 						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 

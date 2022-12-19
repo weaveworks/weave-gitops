@@ -10,7 +10,9 @@ declare global {
   }
 }
 
-const key = "VyzGoWoKvtJHyTnU+GVhDe+wU9bwZDH87bp505/0f/2UIpHzB+tmyZmfsH8/iJoH";
+const pendoKey = "pendo";
+const hashKey =
+  "VyzGoWoKvtJHyTnU+GVhDe+wU9bwZDH87bp505/0f/2UIpHzB+tmyZmfsH8/iJoH";
 
 export interface Props {
   /** Value to use as default if the telemetry flag cannot be read. */
@@ -33,12 +35,27 @@ export default function Pendo({ defaultTelemetryFlag }: Props) {
       return;
     }
 
-    let visitorId = "";
+    let pendoKeys: string[] = [];
+
+    if (!window.localStorage) {
+      console.warn("no local storage found");
+    } else {
+      pendoKeys = Object.keys(window.localStorage).filter(
+        (key) => key.toLowerCase().indexOf(pendoKey) != -1
+      );
+    }
+
     const userEmail = userInfo?.email;
+
+    if (!userEmail && pendoKeys.length == 0) {
+      return;
+    }
+
+    let visitorId = "";
 
     if (userEmail) {
       const hasher = shake128.create(128);
-      hasher.update(key);
+      hasher.update(hashKey);
       hasher.update(userEmail);
       visitorId = Mnemonic.fromHex(hasher.hex()).toWords().join("-");
     }

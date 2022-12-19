@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { OCIRepository } from "../lib/objects";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";
@@ -29,7 +30,12 @@ function OCIRepositoryDetail({
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", ociRepository.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={ociRepository.clusterName} />,
+          ],
+        ]
       : [];
 
   return (

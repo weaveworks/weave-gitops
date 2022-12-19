@@ -30,11 +30,19 @@ var (
 	// The variables below are to be set by flags passed to `go build`.
 	// Examples: -X run.DevBucketContainerImage=xxxxx
 
-	DevBucketContainerImage = "ghcr.io/weaveworks/gitops-bucket-server:1670322194"
+	DevBucketContainerImage string
 )
 
 // InstallDevBucketServer installs the dev bucket server, open port forwarding, and returns a function that can be used to the port forwarding.
-func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, httpPort, httpsPort int32) (func(), []byte, error) {
+func InstallDevBucketServer(
+	ctx context.Context,
+	log logger.Logger,
+	kubeClient client.Client,
+	config *rest.Config,
+	httpPort,
+	httpsPort int32,
+	accessKey,
+	secretKey []byte) (func(), []byte, error) {
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
@@ -106,6 +114,21 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 		log.Successf("Service %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
 	}
 
+	credentialsSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: GitOpsRunNamespace,
+			Name:      fmt.Sprintf("%s-credentials", RunDevBucketName),
+		},
+		Data: map[string][]byte{
+			"accesskey": accessKey,
+			"secretkey": secretKey,
+		},
+	}
+	if err := kubeClient.Create(ctx, &credentialsSecret); err != nil {
+		log.Failuref("Error creating credentials secret: %s", err.Error())
+		return nil, nil, fmt.Errorf("failed creating credentials secret: %w", err)
+	}
+
 	cert, err := tls.GenerateSelfSignedCertificate("localhost", fmt.Sprintf("%s.%s.svc.cluster.local", devBucketService.Name, devBucketService.Namespace))
 	if err != nil {
 		err = fmt.Errorf("failed generating self-signed certificate for dev bucket server: %w", err)
@@ -162,8 +185,18 @@ func InstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient c
 							Image:           DevBucketContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
-								{Name: "MINIO_ROOT_USER", Value: "user"},
-								{Name: "MINIO_ROOT_PASSWORD", Value: "doesn't matter"},
+								{Name: "MINIO_ROOT_USER", ValueFrom: &corev1.EnvVarSource{
+									SecretKeyRef: &corev1.SecretKeySelector{
+										LocalObjectReference: corev1.LocalObjectReference{Name: credentialsSecret.Name},
+										Key:                  "accesskey",
+									},
+								}},
+								{Name: "MINIO_ROOT_PASSWORD", ValueFrom: &corev1.EnvVarSource{
+									SecretKeyRef: &corev1.SecretKeySelector{
+										LocalObjectReference: corev1.LocalObjectReference{Name: credentialsSecret.Name},
+										Key:                  "secretkey",
+									},
+								}},
 							},
 							Ports: []corev1.ContainerPort{
 								{

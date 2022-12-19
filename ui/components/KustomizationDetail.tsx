@@ -6,6 +6,7 @@ import { Kustomization } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
@@ -41,7 +42,12 @@ function KustomizationDetail({
 
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", kustomization?.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={kustomization?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (

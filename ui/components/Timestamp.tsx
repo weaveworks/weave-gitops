@@ -5,12 +5,17 @@ import styled from "styled-components";
 type Props = {
   className?: string;
   time: string;
+  hideSeconds?: boolean;
 };
 
-function Timestamp({ className, time }: Props) {
-  const t = DateTime.fromISO(time);
+function Timestamp({ className, time, hideSeconds }: Props) {
+  let formattedTime = DateTime.fromISO(time).toRelative();
 
-  return <span className={className}>{t.toRelative()}</span>;
+  if (hideSeconds && formattedTime.includes("second")) {
+    formattedTime = "less than a minute ago";
+  }
+
+  return <span className={className}>{formattedTime}</span>;
 }
 
 export default styled(Timestamp)``;
