@@ -130,7 +130,7 @@ func RootCmd() *cobra.Command {
 		},
 	}
 
-	rootCmd.PersistentFlags().String("namespace", defaultNamespace, "The namespace scope for this operation")
+	rootCmd.PersistentFlags().StringP("namespace", "n", defaultNamespace, "The namespace scope for this operation")
 	rootCmd.PersistentFlags().StringVarP(&options.Endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint can be set with `WEAVE_GITOPS_ENTERPRISE_API_URL` environment variable")
 	rootCmd.PersistentFlags().StringVarP(&options.Username, "username", "u", "", "The Weave GitOps Enterprise username for authentication can be set with `WEAVE_GITOPS_USERNAME` environment variable")
 	rootCmd.PersistentFlags().StringVarP(&options.Password, "password", "p", "", "The Weave GitOps Enterprise password for authentication can be set with `WEAVE_GITOPS_PASSWORD` environment variable")
