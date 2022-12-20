@@ -1,8 +1,11 @@
-apiVersion: capi.weave.works/v1alpha2
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
 metadata:
   name: aws-eks-dev
   namespace: default
+  annotations:
+    templates.weave.works/inject-prune-annotation: "true"
+    templates.weave.works/add-common-bases: "true"
   labels:
     weave.works/template-type: cluster
 spec:

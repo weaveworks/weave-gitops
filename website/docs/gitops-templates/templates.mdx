@@ -424,6 +424,20 @@ import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 
 There are now multiple published versions of the template CRD.
 
+### Migration notes
+
+#### `v1alpha1` to `v1alpha2`
+
+When manually migrating a template from v1alpha1 to v1alpha2 (for example in git) you will need to:
+1. Update the `apiVersion` to `templates.weave.works/v1alpha2`
+2. Move the `spec.resourcetemplates` field to `spec.resourcetemplates[0].contents`
+3. Either leave the `spec.resourcetemplates[0].path` field empty or give it a sensible value.
+
+If you experience issues with the path not being recognised when flux reconciles the new template versions
+you should try manually applying the new template to the cluster directly with:
+1. Run `kubectl apply -f capi-template.yaml`
+2. Run `flux reconcile kustomization --with-source flux-system` **two times**.
+
 ### Webhooks
 
 A conversion webhook is hosted by the `flux-system/templates-controller-webhook-service` service.

@@ -21,8 +21,8 @@ Some Cluster API providers allow you to choose the account or identity that the 
 Our _templates_ describe the properties of the cluster, how many nodes, what version of Kubernetes etc, while the _identity_ is which account will be used to create the cluster. So given in our cluster we have the template:
 
 ```yaml
-apiVersion: capi.weave.works/v1alpha2
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
 metadata:
   name: capa-cluster-template
 spec:
