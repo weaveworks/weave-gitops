@@ -5,10 +5,10 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import {
   BrowserRouter as Router,
   Redirect,
-  Route,
+  // Route,
   Switch,
 } from "react-router-dom";
-import { CompatRouter } from "react-router-dom-v5-compat";
+import { CompatRouter, CompatRoute } from "react-router-dom-v5-compat";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
@@ -51,47 +51,51 @@ const App = () => (
   <Layout>
     <ErrorBoundary>
       <Switch>
-        <Route exact path={V2Routes.Automations} component={Automations} />
-        <Route
+        <CompatRoute
+          exact
+          path={V2Routes.Automations}
+          component={Automations}
+        />
+        <CompatRoute
           path={V2Routes.Kustomization}
           component={withSearchParams(KustomizationPage)}
         />
-        <Route path={V2Routes.Sources} component={Sources} />
-        <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
-        <Route
+        <CompatRoute path={V2Routes.Sources} component={Sources} />
+        <CompatRoute path={V2Routes.FluxRuntime} component={FluxRuntime} />
+        <CompatRoute
           path={V2Routes.GitRepo}
           component={withSearchParams(GitRepositoryDetail)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.HelmRepo}
           component={withSearchParams(HelmRepositoryDetail)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.Bucket}
           component={withSearchParams(BucketDetail)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.HelmRelease}
           component={withSearchParams(HelmReleasePage)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.HelmChart}
           component={withSearchParams(HelmChartDetail)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.OCIRepository}
           component={withSearchParams(OCIRepositoryPage)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.Notifications}
           component={withSearchParams(Notifications)}
         />
-        <Route
+        <CompatRoute
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
         />
         <Redirect exact from="/" to={V2Routes.Automations} />
-        <Route exact path="*" component={Error} />
+        <CompatRoute exact path="*" component={Error} />
       </Switch>
     </ErrorBoundary>
     <ToastContainer
@@ -117,13 +121,13 @@ export default function AppContainer() {
                     <Pendo defaultTelemetryFlag="false" />
                     <Switch>
                       {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                      <Route component={SignIn} exact path="/sign_in" />
-                      <Route path="*">
+                      <CompatRoute component={SignIn} exact path="/sign_in" />
+                      <CompatRoute path="*">
                         {/* Check we've got a logged in user otherwise redirect back to signin */}
                         <AuthCheck>
                           <App />
                         </AuthCheck>
-                      </Route>
+                      </CompatRoute>
                     </Switch>
                   </CoreClientContextProvider>
                 </AuthContextProvider>
