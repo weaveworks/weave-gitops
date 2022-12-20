@@ -22,7 +22,7 @@ Commit and push these changes. Once a template is available in the cluster, it c
 
 ```yaml title="./clusters/management/tf-template.yaml"
 ---
-apiVersion: clustertemplates.weave.works/v1alpha1
+apiVersion: clustertemplates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: tf-template
@@ -34,20 +34,21 @@ spec:
     - name: RESOURCE_NAME
       description: Resource Name
   resourcetemplates:
-    - apiVersion: infra.contrib.fluxcd.io/v1alpha1
-      kind: Terraform
-      metadata:
-        name: ${RESOURCE_NAME}
-        namespace: flux-system
-      spec:
-        interval: 1h
-        path: ./
-        approvePlan: auto
-        alwaysCleanupRunnerPod: true
-        sourceRef:
-          kind: GitRepository
-          name: flux-system
+    - content:
+      - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+        kind: Terraform
+        metadata:
+          name: ${RESOURCE_NAME}
           namespace: flux-system
+        spec:
+          interval: 1h
+          path: ./
+          approvePlan: auto
+          alwaysCleanupRunnerPod: true
+          sourceRef:
+            kind: GitRepository
+            name: flux-system
+            namespace: flux-system
 ```
 
 Verify that your template is in the cluster:
@@ -241,7 +242,7 @@ Add the following template to a path in your Git repository that is synced by Fl
 
 ```yaml title="./clusters/management/rds-template.yaml"
 ---
-apiVersion: clustertemplates.weave.works/v1alpha1
+apiVersion: clustertemplates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: rds-template
@@ -260,32 +261,33 @@ spec:
     - name: REGION
       description: Region
   resourcetemplates:
-    - apiVersion: infra.contrib.fluxcd.io/v1alpha1
-      kind: Terraform
-      metadata:
-        name: ${RESOURCE_NAME}
-        namespace: flux-system
-      spec:
-        interval: 1h
-        path: ./
-        approvePlan: auto
-        alwaysCleanupRunnerPod: true
-        vars:
-        - name: cluster_identifier
-          value: ${CLUSTER_IDENTIFIER}
-        - name: database_name
-          value: ${DATABASE_NAME}
-        - name: backup_retention_period
-          value: ${BACKUP_RETENTION_PERIOD}
-        - name: region
-          value: ${REGION}
-        varsFrom:
-        - kind: Secret
-          name: tf-controller-auth
-        sourceRef:
-          kind: GitRepository
-          name: flux-system
+    - contents:
+      - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+        kind: Terraform
+        metadata:
+          name: ${RESOURCE_NAME}
           namespace: flux-system
+        spec:
+          interval: 1h
+          path: ./
+          approvePlan: auto
+          alwaysCleanupRunnerPod: true
+          vars:
+          - name: cluster_identifier
+            value: ${CLUSTER_IDENTIFIER}
+          - name: database_name
+            value: ${DATABASE_NAME}
+          - name: backup_retention_period
+            value: ${BACKUP_RETENTION_PERIOD}
+          - name: region
+            value: ${REGION}
+          varsFrom:
+          - kind: Secret
+            name: tf-controller-auth
+          sourceRef:
+            kind: GitRepository
+            name: flux-system
+            namespace: flux-system
 ```
 
 Commit and push your changes.
