@@ -84,6 +84,8 @@ adminUser:
   # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
 podAnnotations: {}
+podLabels: {}
+# aadpodidbinding: identity
 podSecurityContext: {}
 # fsGroup: 2000
 
