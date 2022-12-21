@@ -48,7 +48,7 @@ This template is shipped by default with Weave GitOps Enterprise to help you get
 For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation. 
 
 ```yaml
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: pipeline-sample
@@ -84,31 +84,32 @@ spec:
       description: Namespace for this application
       default: flux-system
   resourcetemplates:
-  - apiVersion: pipelines.weave.works/v1alpha1
-    kind: Pipeline
-    metadata:
-      name: ${RESOURCE_NAME}
-      namespace: ${RESOURCE_NAMESPACE}
-    spec:
-      appRef:
-        apiVersion: helm.toolkit.fluxcd.io/v2beta1
-        kind: HelmRelease
-        name: ${APPLICATION_NAME}
-      environments:
-      - name: First-Environment
-        targets:
-          - namespace: ${FIRST_APPLICATION_NAMESPACE}
-            clusterRef:
-              kind: GitopsCluster
-              name: ${FIRST_CLUSTER_NAME}
-              namespace: ${FIRST_CLUSTER_NAMESPACE}
-      - name: Second-Environment
-        targets:
-          - namespace: ${SECOND_APPLICATION_NAMESPACE}
-            clusterRef:
-              kind: GitopsCluster
-              name: ${SECOND_CLUSTER_NAME}
-              namespace: ${SECOND_CLUSTER_NAMESPACE}
+    - content:
+      - apiVersion: pipelines.weave.works/v1alpha1
+        kind: Pipeline
+        metadata:
+          name: ${RESOURCE_NAME}
+          namespace: ${RESOURCE_NAMESPACE}
+        spec:
+          appRef:
+            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            kind: HelmRelease
+            name: ${APPLICATION_NAME}
+          environments:
+          - name: First-Environment
+            targets:
+              - namespace: ${FIRST_APPLICATION_NAMESPACE}
+                clusterRef:
+                  kind: GitopsCluster
+                  name: ${FIRST_CLUSTER_NAME}
+                  namespace: ${FIRST_CLUSTER_NAMESPACE}
+          - name: Second-Environment
+            targets:
+              - namespace: ${SECOND_APPLICATION_NAMESPACE}
+                clusterRef:
+                  kind: GitopsCluster
+                  name: ${SECOND_CLUSTER_NAME}
+                  namespace: ${SECOND_CLUSTER_NAMESPACE}
 ```
 
 ### Pipeline - Multi-cluster promotion
@@ -116,7 +117,7 @@ spec:
 This example extends the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
 
 ```yaml
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: pipeline-sample
@@ -158,37 +159,38 @@ spec:
     - name: GIT_CREDENTIALS_SECRET
       description: Name of the secret in RESOURCE_NAMESPACE containing credentials to create pull requests
   resourcetemplates:
-  - apiVersion: pipelines.weave.works/v1alpha1
-    kind: Pipeline
-    metadata:
-      name: ${RESOURCE_NAME}
-      namespace: ${RESOURCE_NAMESPACE}
-    spec:
-      appRef:
-        apiVersion: helm.toolkit.fluxcd.io/v2beta1
-        kind: HelmRelease
-        name: ${APPLICATION_NAME}
-      environments:
-      - name: First-Environment
-        targets:
-          - namespace: ${FIRST_APPLICATION_NAMESPACE}
-            clusterRef:
-              kind: GitopsCluster
-              name: ${FIRST_CLUSTER_NAME}
-              namespace: ${FIRST_CLUSTER_NAMESPACE}
-      - name: Second-Environment
-        targets:
-          - namespace: ${SECOND_APPLICATION_NAMESPACE}
-            clusterRef:
-              kind: GitopsCluster
-              name: ${SECOND_CLUSTER_NAME}
-              namespace: ${SECOND_CLUSTER_NAMESPACE}
-      promotion:
-        pull-request:
-            url: ${APPLICATION_REPO_URL}
-            branch: ${APPLICATION_REPO_BRANCH}
-            secretRef:
-              name: ${GIT_CREDENTIALS_SECRET}
+    - content:
+      - apiVersion: pipelines.weave.works/v1alpha1
+        kind: Pipeline
+        metadata:
+          name: ${RESOURCE_NAME}
+          namespace: ${RESOURCE_NAMESPACE}
+        spec:
+          appRef:
+            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            kind: HelmRelease
+            name: ${APPLICATION_NAME}
+          environments:
+          - name: First-Environment
+            targets:
+              - namespace: ${FIRST_APPLICATION_NAMESPACE}
+                clusterRef:
+                  kind: GitopsCluster
+                  name: ${FIRST_CLUSTER_NAME}
+                  namespace: ${FIRST_CLUSTER_NAMESPACE}
+          - name: Second-Environment
+            targets:
+              - namespace: ${SECOND_APPLICATION_NAMESPACE}
+                clusterRef:
+                  kind: GitopsCluster
+                  name: ${SECOND_CLUSTER_NAME}
+                  namespace: ${SECOND_CLUSTER_NAMESPACE}
+          promotion:
+            pull-request:
+                url: ${APPLICATION_REPO_URL}
+                branch: ${APPLICATION_REPO_BRANCH}
+                secretRef:
+                  name: ${GIT_CREDENTIALS_SECRET}
 ```
 
 #### Git credentials
@@ -220,7 +222,7 @@ For the `Alert`, this template is filtering events to detect when an update has 
 For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret will need to be present on both the management cluster and leaf cluster(s). For simplicity, a `generic` provider could be used instead - which would not require the secret.
 
 ```yaml
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: pipeline-notification-resources
@@ -241,31 +243,32 @@ spec:
     - name: ENV_NAME
       description: Environment the cluster is a part of within a pipeline.
   resourcetemplates:
-  - apiVersion: notification.toolkit.fluxcd.io/v1beta1
-    kind: Provider
-    metadata:
-      name: ${RESOURCE_NAME}
-      namespace: ${RESOURCE_NAMESPACE}
-    spec:
-      address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
-      type: generic-hmac
-      secretRef: ${SECRET_REF}
-  - apiVersion: notification.toolkit.fluxcd.io/v1beta1
-    kind: Alert
-    metadata:
-      name: ${RESOURCE_NAME}
-      namespace: ${RESOURCE_NAMESPACE}
-    spec:
-      providerRef:
-        name: ${RESOURCE_NAME}
-      eventSeverity: info
-      eventSources:
-        - kind: HelmRelease
+    - content:
+      - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+        kind: Provider
+        metadata:
           name: ${RESOURCE_NAME}
-      exclusionList:
-        - ".*upgrade.*has.*started"
-        - ".*is.*not.*ready"
-        - "^Dependencies.*"
+          namespace: ${RESOURCE_NAMESPACE}
+        spec:
+          address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
+          type: generic-hmac
+          secretRef: ${SECRET_REF}
+      - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+        kind: Alert
+        metadata:
+          name: ${RESOURCE_NAME}
+          namespace: ${RESOURCE_NAMESPACE}
+        spec:
+          providerRef:
+            name: ${RESOURCE_NAME}
+          eventSeverity: info
+          eventSources:
+            - kind: HelmRelease
+              name: ${RESOURCE_NAME}
+          exclusionList:
+            - ".*upgrade.*has.*started"
+            - ".*is.*not.*ready"
+            - "^Dependencies.*"
 ```
 
 ## Summary
