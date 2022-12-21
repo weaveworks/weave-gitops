@@ -122,7 +122,7 @@ export default function AppContainer() {
                     <Switch>
                       {/* <Signin> does not use the base page <Layout> so pull it up here */}
                       <CompatRoute component={SignIn} exact path="/sign_in" />
-                      <CompatRoute path="*">
+                      <CompatRoute path="" component={SignIn}>
                         {/* Check we've got a logged in user otherwise redirect back to signin */}
                         <AuthCheck>
                           <App />

@@ -2,8 +2,8 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, Switch } from "react-router-dom";
-import { CompatRoute } from "react-router-dom-v5-compat";
+import { Redirect, Route, Switch } from "react-router-dom";
+// import { CompatRoute } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
@@ -54,9 +54,9 @@ function routesToIndex(routes: PathConfig[], pathname) {
 
 export function RouterTab({ children }: TabProps) {
   return (
-    <CompatRoute exact path={children.props.path}>
+    <Route exact path={children.props.path}>
       {children}
-    </CompatRoute>
+    </Route>
   );
 }
 
