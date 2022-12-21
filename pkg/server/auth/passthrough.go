@@ -85,6 +85,7 @@ type JWTPassthroughCookiePrincipalGetter struct {
 func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
 	cookie, err := r.Cookie(pg.cookieName)
 	if err == http.ErrNoCookie {
+		fmt.Println("no cookie!")
 		return nil, nil
 	}
 

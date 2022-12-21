@@ -152,7 +152,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 			}
 
 			listOpts := append(opts, client.Continue(nsContinueToken))
-			listOpts = append(listOpts, client.InNamespace(ns.Name))
+			listOpts = append(listOpts)
 
 			wg.Add(1)
 

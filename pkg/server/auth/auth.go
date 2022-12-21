@@ -174,7 +174,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 				}
 
 				multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, srv.OIDCConfig.ClaimsConfig))
-				}
+
 			}
 
 		case UserAccount:

@@ -2,15 +2,14 @@ package clustersmngr
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,14 +26,6 @@ type altClient struct {
 	Client
 }
 
-type GitopsClusterCRSpec struct {
-	SecretRef map[string]string `json:"secretRef"`
-}
-
-type GitopsClusterCR struct {
-	Spec GitopsClusterCRSpec `json:"spec"`
-}
-
 func (ac *altClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, namespaced bool, opts ...client.ListOption) error {
 	// build a client from values extracted from ctx or read from cache
 	fmt.Println("doing other client")
@@ -45,25 +36,30 @@ func (ac *altClient) ClusteredList(ctx context.Context, clist ClusteredObjectLis
 
 	user := auth.Principal(ctx)
 
+	fmt.Println(user.Token())
+
+	// id="jordan@weave.works" groups=[wge-test-org-jp:team-a wge-test-org-jp:team-b]
+
 	cfg.BearerToken = user.Token()
+	// Set this to zero to ensure the in-cluster config does not read from file for the token.
+	cfg.BearerTokenFile = ""
 
-	fmt.Println(user.Groups, user.ID)
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		return fmt.Errorf("creating scheme: %w", err)
+	}
 
-	cc, err := client.New(cfg, client.Options{})
+	cc, err := client.New(cfg, client.Options{
+		Scheme: scheme,
+	})
 	if err != nil {
 		return fmt.Errorf("creating client: %w", err)
 	}
 
-	clusterList := unstructured.UnstructuredList{}
-
-	clusterList.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "gitops.weave.works",
-		Kind:    "GitopsCluster",
-		Version: "v1alpha1",
-	})
+	clusterList := &gitopsv1alpha1.GitopsClusterList{}
 
 	// get a list of clusters
-	if err := cc.List(ctx, &clusterList); err != nil {
+	if err := cc.List(ctx, clusterList); err != nil {
 		return fmt.Errorf("listing clusters: %w", err)
 	}
 
@@ -73,21 +69,10 @@ func (ac *altClient) ClusteredList(ctx context.Context, clist ClusteredObjectLis
 
 	for _, clust := range clusterList.Items {
 
-		b, err := clust.MarshalJSON()
-		if err != nil {
-			return err
-		}
-
-		cr := &GitopsClusterCR{}
-
-		if err := json.Unmarshal(b, cr); err != nil {
-			return fmt.Errorf("unmarshalling: %w", err)
-		}
-
 		s := &corev1.Secret{}
 
 		t := types.NamespacedName{
-			Name:      cr.Spec.SecretRef["name"],
+			Name:      clust.Spec.SecretRef.Name,
 			Namespace: clust.GetNamespace(),
 		}
 
