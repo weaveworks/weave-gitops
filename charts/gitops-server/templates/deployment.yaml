@@ -86,18 +86,28 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.serverTLS.enable }}
+          {{- if or .Values.serverTLS.enable .Values.extraVolumeMounts }}
           volumeMounts:
+          {{- end }}
+          {{- if .Values.serverTLS.enable }}
             - name: tls-volume
               readOnly: true
               mountPath: "/etc/tls-volume"
           {{- end }}
-      {{- if .Values.serverTLS.enable }}
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if or .Values.serverTLS.enable .Values.extraVolumes }}
       volumes:
+      {{- end }}
+      {{- if .Values.serverTLS.enable }}
         - name: tls-volume
           secret:
             secretName: {{ .Values.serverTLS.secretName }}
       {{ end }}
+      {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
