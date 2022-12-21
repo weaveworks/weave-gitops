@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started.mdx) guide.
 
-This reference was generated for the chart version 4.0.9 which installs weave gitops v0.12.0.
+This reference was generated for the chart version 4.0.10 which installs weave gitops v0.13.0.
 
 ## Values
 
@@ -22,10 +22,12 @@ This reference was generated for the chart version 4.0.9 which installs weave gi
 | envVars[0].value | string | `"true"` |  |
 | envVars[1].name | string | `"WEAVE_GITOPS_FEATURE_CLUSTER"` |  |
 | envVars[1].value | string | `"false"` |  |
+| extraVolumeMounts | list | `[]` |  |
+| extraVolumes | list | `[]` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
-| image.tag | string | `"v0.12.0"` |  |
+| image.tag | string | `"v0.13.0"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
@@ -41,6 +43,7 @@ This reference was generated for the chart version 4.0.9 which installs weave gi
 | nodeSelector | object | `{}` |  |
 | oidcSecret.create | bool | `false` |  |
 | podAnnotations | object | `{}` |  |
+| podLabels | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
 | rbac.additionalRules | list | `[]` | If non-empty, these additional rules will be appended to the RBAC role and the cluster role. for example, additionalRules: - apiGroups: ["infra.contrib.fluxcd.io"]   resources: ["terraforms"]   verbs: [ "get", "list", "patch" ] |
 | rbac.create | bool | `true` | Specifies whether the clusterRole & binding to the service account should be created |
