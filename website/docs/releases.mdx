@@ -14,8 +14,46 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 2022-12-22
 ### Highlights
 
-- Add Workspaces List and details in the UI
-- Bug fixes and improvements 
+#### GitOps Templates Path feature
+- GitOps templates now provide the capability to write resources to multiple paths in the Git repository. This feature allows complex scenarios, like for example creating a self-service for an application that requires an RDS database. We’ve provided [documentation](./gitops-templates/templates.mdx#template-paths) which has a example.
+
+```yaml
+spec:
+  resourcetemplates:
+    - path: ./clusters/${CLUSTER_NAME}/definition/cluster.yaml
+      content:
+        - apiVersion: cluster.x-k8s.io/v1alpha4
+          kind: Cluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          ...
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+          kind: AWSCluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          ...
+    - path: ./clusters/${CLUSTER_NAME}/workloads/helmreleases.yaml
+      content:
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${CLUSTER_NAME}-nginx
+          ...
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${CLUSTER_NAME}-cert-manager
+          ...
+```
+
+#### Workspace UI 
+- Weave GitOps now provides a GUI for Workspaces. 
+
+#### Enhanced Terraform Table in UI 
+- Weave GitOps now provides more details on the Terraform inventory GUI page. Adding the type and identifier fields to the inventory table, plus filtering and a 'no data' message.
+
+#### Minor fixes
+**[UI] Notifications** Fixed provider page showing a 404. 
 
 ### Dependency versions
 
@@ -27,7 +65,7 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 
 ### Breaking changes
 
-No breaking changes (?)
+No breaking changes
 
 ## v0.12.0
 2022-12-09
