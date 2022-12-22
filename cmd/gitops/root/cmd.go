@@ -2,6 +2,10 @@ package root
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"log"
 	"os"
 	"strings"
@@ -16,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
+	deletepkg "github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
@@ -148,7 +153,12 @@ func RootCmd() *cobra.Command {
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
 	rootCmd.AddCommand(create.GetCommand(options))
+	rootCmd.AddCommand(deletepkg.GetCommand(options))
+	rootCmd.AddCommand(logs.GetCommand(options))
 	rootCmd.AddCommand(remove.GetCommand(options))
+	rootCmd.AddCommand(replan.Command(options))
+	rootCmd.AddCommand(resume.Command(options))
+	rootCmd.AddCommand(suspend.Command(options))
 
 	return rootCmd
 }
