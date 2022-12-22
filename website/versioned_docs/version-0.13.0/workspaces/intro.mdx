@@ -1,0 +1,17 @@
+---
+title: Introduction
+sidebar_position: 0
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+## Workspaces
+
+Organizations working with Kubernetes have a tremendous need to manage tenancy for numerous software delivery teams. Weave GitOps Workspaces offers tenancy management for Kubernetes clusters at scale. Weave GitOps Workspaces, build on top of Flux's powerful approach to managing tenancy, and add in policies that help define finer grain rules on the tenants. 
+
+With Workspaces, platform operators get to create all workspaces using one or more YAML files. All it takes is a single CLI command to generate all necessary YAML configuration files needed to set up the tenant as well as a list of policies that apply to each workspace and the list of repositories to which each workspace has access.
