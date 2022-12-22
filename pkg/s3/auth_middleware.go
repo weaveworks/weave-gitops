@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"net/http"
 	"sort"
 	"strings"
@@ -60,13 +61,11 @@ func authorizedError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusUnauthorized)
 	w.Header().Set("Content-Type", "application/xml")
 
-	xml := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+	if err := template.Must(template.New("xml").Parse(`<?xml version="1.0" encoding="UTF-8"?>
 <Error>
   <Code>Unauthorized</Code>
-  <Message>%s</Message>
-</Error>`, err.Error())
-
-	if _, err := w.Write([]byte(xml)); err != nil {
+  <Message>{{ .Error }} </Message>
+</Error>`)).Execute(w, map[string]string{"Error": err.Error()}); err != nil {
 		return
 	}
 }
@@ -253,10 +252,26 @@ func verifySignature(req http.Request, accessKeyID string, secretAccessKey strin
 		return fmt.Errorf("invalid Authorization header")
 	}
 
-	credentialStr := strings.SplitN(parts[0], "=", 2)[1]
-	signedHeaders := strings.SplitN(parts[1], "=", 2)[1]
-	parsedSignature := strings.SplitN(parts[2], "=", 2)[1]
+	credentialPart := strings.SplitN(parts[0], "=", 2)
+	if len(credentialPart) != 2 {
+		return fmt.Errorf("invalid Authorization header")
+	}
 
+	credentialStr := credentialPart[1]
+
+	signedHeadersPart := strings.SplitN(parts[1], "=", 2)
+	if len(signedHeadersPart) != 2 {
+		return fmt.Errorf("invalid Authorization header")
+	}
+
+	signedHeaders := signedHeadersPart[1]
+
+	parsedSignaturePart := strings.SplitN(parts[2], "=", 2)
+	if len(parsedSignaturePart) != 2 {
+		return fmt.Errorf("invalid Authorization header")
+	}
+
+	parsedSignature := parsedSignaturePart[1]
 	hashedPayload := getHashedPayload(req)
 
 	amzDate := req.Header.Get("X-Amz-Date")
