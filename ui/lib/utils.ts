@@ -1,6 +1,8 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
+import { AppVersion, repoUrl } from "../components/Version";
+import { GetVersionResponse } from "../lib/api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
 import { PageRoute } from "./types";
@@ -155,4 +157,30 @@ export function getSourceRefForAutomation(
   return automation?.type === Kind.Kustomization
     ? (automation as Kustomization)?.sourceRef
     : (automation as HelmRelease)?.helmChart?.sourceRef;
+}
+
+// getAppVersion returns the app version to display in the UI or track in analytics.
+export function getAppVersion(
+  versionData: GetVersionResponse,
+  defaultVersion: string,
+  isLoading = false,
+  defaultVersionPrefix = ""
+): AppVersion {
+  const shouldDisplayApiVersion =
+    !isLoading &&
+    (versionData.semver || "").replace(/^v+/, "") !== defaultVersion &&
+    versionData.branch &&
+    versionData.commit;
+
+  const versionText = shouldDisplayApiVersion
+    ? `${versionData.branch}-${versionData.commit}`
+    : `${defaultVersionPrefix}${defaultVersion}`;
+  const versionHref = shouldDisplayApiVersion
+    ? `${repoUrl}/commit/${versionData.commit}`
+    : `${repoUrl}/releases/tag/v${defaultVersion}`;
+
+  return {
+    versionText,
+    versionHref,
+  };
 }

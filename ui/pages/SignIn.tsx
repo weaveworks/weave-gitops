@@ -59,7 +59,12 @@ const DocsWrapper = styled(Flex)`
   }
 `;
 
-function SignIn() {
+export interface Props {
+  /** Analytics component */
+  analytics?: React.ReactNode;
+}
+
+function SignIn({ analytics }: Props) {
   const { data } = useFeatureFlags();
   const flags = data.flags;
 
@@ -94,6 +99,7 @@ function SignIn() {
         width: "100vw",
       }}
     >
+      {analytics}
       <React.Suspense fallback={null}>
         <SignInBackgroundAnimation />
       </React.Suspense>

@@ -14,7 +14,7 @@ describe("Version", () => {
       const tree = renderer
         .create(
           withTheme(
-            <Version productName={productName} versionText={versionText} />
+            <Version productName={productName} appVersion={{ versionText }} />
           )
         )
         .toJSON();
@@ -26,8 +26,7 @@ describe("Version", () => {
           withTheme(
             <Version
               productName={productName}
-              versionText={versionText}
-              versionHref={versionHref}
+              appVersion={{ versionText, versionHref }}
             />
           )
         )
@@ -36,7 +35,14 @@ describe("Version", () => {
     });
     it("renders a dash without version text and without version href", () => {
       const tree = renderer
-        .create(withTheme(<Version productName={productName} versionText="" />))
+        .create(
+          withTheme(
+            <Version
+              productName={productName}
+              appVersion={{ versionText: "" }}
+            />
+          )
+        )
         .toJSON();
       expect(tree).toMatchSnapshot();
     });
@@ -46,8 +52,7 @@ describe("Version", () => {
           withTheme(
             <Version
               productName={productName}
-              versionText=""
-              versionHref={versionHref}
+              appVersion={{ versionText: "", versionHref }}
             />
           )
         )
