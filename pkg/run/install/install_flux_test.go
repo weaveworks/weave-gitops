@@ -44,7 +44,7 @@ var _ = Describe("GetFluxVersion", func() {
 
 		Expect(kubeClient.Create(ctx, fluxNs)).To(Succeed())
 
-		fluxVersion, err := GetFluxVersion(fakeLogger, ctx, kubeClient)
+		fluxVersion, err := GetFluxVersion(ctx, fakeLogger, kubeClient)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fluxVersion).To(Equal(testVersion))

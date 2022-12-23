@@ -20,7 +20,7 @@ type ResourceManagerForApply interface {
 	WaitForSet(set object.ObjMetadataSet, opts ssa.WaitOptions) error
 }
 
-func NewManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
+func NewManager(ctx context.Context, log logger.Logger, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
 	restMapper, err := kubeConfigArgs.ToRESTMapper()
 	if err != nil {
 		log.Failuref("Error getting a restmapper")
@@ -36,7 +36,7 @@ func NewManager(log logger.Logger, ctx context.Context, kubeClient ctrlclient.Cl
 }
 
 // apply is the equivalent of 'kubectl apply --server-side -f'.
-func apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifestsContent []byte) (string, error) {
+func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifestsContent []byte) (string, error) {
 	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
 		log.Failuref("Error reading Kubernetes objects from the manifests")
@@ -69,7 +69,7 @@ func apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApp
 	}
 
 	if len(stageOne) > 0 {
-		cs, err := applySet(log, ctx, manager, stageOne)
+		cs, err := applySet(ctx, log, manager, stageOne)
 		if err != nil {
 			log.Failuref("Error applying stage one objects")
 			return "", err
@@ -77,14 +77,14 @@ func apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApp
 
 		changeSet.Append(cs.Entries)
 
-		if err := waitForSet(log, ctx, manager, changeSet); err != nil {
+		if err := waitForSet(ctx, log, manager, changeSet); err != nil {
 			log.Failuref("Error waiting for set")
 			return "", err
 		}
 	}
 
 	if len(stageTwo) > 0 {
-		cs, err := applySet(log, ctx, manager, stageTwo)
+		cs, err := applySet(ctx, log, manager, stageTwo)
 		if err != nil {
 			log.Failuref("Error applying stage two objects")
 			return "", err
@@ -96,10 +96,10 @@ func apply(log logger.Logger, ctx context.Context, manager ResourceManagerForApp
 	return changeSet.String(), nil
 }
 
-func applySet(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
+func applySet(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
 	return manager.ApplyAll(ctx, objects, ssa.DefaultApplyOptions())
 }
 
-func waitForSet(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, changeSet *ssa.ChangeSet) error {
+func waitForSet(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, changeSet *ssa.ChangeSet) error {
 	return manager.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }
