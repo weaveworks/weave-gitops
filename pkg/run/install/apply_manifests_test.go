@@ -68,14 +68,14 @@ var _ = Describe("apply", func() {
 	It("should apply manifests successfully", func() {
 		man := &mockResourceManagerForApply{}
 
-		_, err := apply(logger.From(logr.Discard()), fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeContext, logger.From(logr.Discard()), man, fakeManifestsContent)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
 
-		_, err := apply(logger.From(logr.Discard()), fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeContext, logger.From(logr.Discard()), man, fakeManifestsContent)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -83,7 +83,7 @@ var _ = Describe("apply", func() {
 	It("should return a wait for set error if the resource manager returns a wait for set error", func() {
 		man := &mockResourceManagerForApply{state: stateWaitForSetReturnErr}
 
-		_, err := apply(logger.From(logr.Discard()), fakeContext, man, fakeManifestsContent)
+		_, err := apply(fakeContext, logger.From(logr.Discard()), man, fakeManifestsContent)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(waitForSetErrorMsg))
 	})
