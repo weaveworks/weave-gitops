@@ -6,22 +6,20 @@ hide_title: true
 
 # Overview
 
-TF-controller is a controller for Weave GitOps that follows the patterns established 
-by [Flux](https://fluxcd.io) to reconcile Terraform resources in the GitOps way.
-With the power of Weave GitOps together with Terraform, the tf-controller allows you to GitOps-ify infrastructure,
-and application resources, in the Kubernetes and Terraform universe, at your own pace.
+TF-controller is a controller for Weave GitOps that follows the patterns established
+by [Flux](https://fluxcd.io). It is a reliable tool for managing your infrastructure using the GitOps approach.
+With its support for Terraform and integration with Weave GitOps,
+you can trust that it will help you effectively GitOps-ify your infrastructure and application
+resources in the Kubernetes and Terraform universe at your own pace.
 
-"At your own pace" means you don't need to GitOps-ify everything at once.
+The following GitOps models are available to suit your specific needs:
 
-TF-controller offers many GitOps models:
+  1. **GitOps Automation Model:** Fully automate the GitOps process for all of your Terraform resources, including the provisioning and enforcement steps.
+  2. **Hybrid GitOps Automation Model:** Choose to GitOps-ify certain parts of your existing infrastructure resources, such as a nodegroup or security group in an existing EKS cluster.
+  3. **State Enforcement Model:** Use GitOps to enforce an existing `tfstate` without making any other changes.
+  4. **Drift Detection Model:** Use GitOps for drift detection, so you can decide what actions to take when a drift occurs.
 
-  1. **GitOps Automation Model:** GitOps your Terraform resources from the provision steps to the enforcement steps, like a whole EKS cluster.
-  2. **Hybrid GitOps Automation Model:** GitOps parts of your existing infrastructure resources. For example, you have an existing EKS cluster.
-     You can choose to GitOps only its nodegroup, or its security group.
-  3. **State Enforcement Model:** You have a TFSTATE file, and you'd like to use GitOps enforce it, without changing anything else.
-  4. **Drift Detection Model:** You have a TFSTATE file, and you'd like to use GitOps just for drift detection, so you can decide to do things later when a drift occurs.
-
-To get started, follow the [getting started](../get-started) guide.
+To get started with TF-controller, simply follow the provided [getting started](../get-started) guide.
 
 ## Features
 
@@ -48,11 +46,11 @@ To get started, follow the [getting started](../get-started) guide.
     You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
     With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
     review and approve too. _This feature is available since v0.6.0._
-  * **First-class YAML-based Terraform**: The `Terraform` object in v0.13.0+ allows you to better configure your 
+  * **First-class YAML-based Terraform**: The `Terraform` object in v0.13.0+ allows you to better configure your
     Terraform resources via YAMLs, but without introducing any extra CRDs to your cluster. Together with a new generator
     called **Tofu-Jet**, we'll now be able to ship pre-generated primitive Terraform modules for all major cloud providers.
     A primitive Terraform module is a module that only contains a single primitive resource, like `aws_iam_role`, or `aws_iam_policy`.
-    With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time. 
+    With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time.
     _This feature is available since v0.13.0._
   * **Enterprise Dashboard Support:** with Weave GitOps Enterprise v0.9.6 you are now able to manage `Terraform` objects the same way you can
     with `Kustomization` and `HelmReleases`.
@@ -61,5 +59,5 @@ To get started, follow the [getting started](../get-started) guide.
 
 |   Version   | Terraform | Source Controller | Flux v2 |
 |:-----------:|:---------:|:-----------------:|:-------:|
-| v0.13.0-rc  |  v1.3.1   |      v0.30.0      | v0.35.x |
-| **v0.12.0** |  v1.1.9   |      v0.26.1      | v0.32.x |
+| **v0.13.1** |  v1.3.1   |      v0.31.0      | v0.38.x |
+|   v0.12.0   |  v1.1.9   |      v0.26.1      | v0.32.x |
