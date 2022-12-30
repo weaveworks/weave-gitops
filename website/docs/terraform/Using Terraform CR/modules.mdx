@@ -1,6 +1,6 @@
 ---
 title: Primitive Modules
-sidebar_position: 2
+sidebar_position: 102
 hide_title: true
 ---
 
@@ -27,12 +27,12 @@ and the image is tagged as `ghcr.io/tf-controller/hello-primitive-modules/v4.32.
 
 We'll use the following Terraform object definition to provision the resource.
 
-1. We need to create a Terraform object with the `spec.sourceRef.kind` field 
+1. We need to create a Terraform object with the `spec.sourceRef.kind` field
 set to `OCIRepository` and the `spec.sourceRef.name` field set to the name of the OCIRepository object.
 
 2. We need to set the `spec.path` field to the name of the resource, in this case `aws_hello_world`.
 
-3. We need to set the `spec.values` field to the values of the resource. This is a YAML object that 
+3. We need to set the `spec.values` field to the values of the resource. This is a YAML object that
 will be converted to an HCL variable, and passed to the Terraform module.
 
 4. We need to set the `spec.approvePlan` field to `auto` to automatically approve the plan.
