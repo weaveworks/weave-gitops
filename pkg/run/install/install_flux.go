@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func GetFluxVersion(log logger.Logger, ctx context.Context, kubeClient client.Client) (string, error) {
+func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Client) (string, error) {
 	log.Actionf("Getting Flux version ...")
 
 	listResult := unstructured.UnstructuredList{}

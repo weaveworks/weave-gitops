@@ -15,6 +15,7 @@ import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import Pendo from "./components/Pendo";
+import PendoContainer, { tier } from "./components/PendoContainer";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -49,6 +50,7 @@ function withSearchParams(Cmp) {
 
 const App = () => (
   <Layout>
+    <PendoContainer />
     <ErrorBoundary>
       <Switch>
         <CompatRoute
@@ -107,7 +109,7 @@ const App = () => (
 );
 
 export default function AppContainer() {
-  return (
+  return ( 
     <MuiThemeProvider theme={muiTheme}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
@@ -118,10 +120,16 @@ export default function AppContainer() {
               <AppContextProvider renderFooter>
                 <AuthContextProvider>
                   <CoreClientContextProvider api={Core}>
-                    <Pendo defaultTelemetryFlag="false" />
-                    <Switch>
+                      <Switch>
                       {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                      <CompatRoute component={SignIn} exact path="/sign_in" />
+                      <CompatRoute exact path="/sign_in">
+                      <SignIn
+                        analytics={
+                          <Pendo defaultTelemetryFlag="false" tier={tier} />
+                        }
+                      />
+                      </CompatRoute>
+                  
                       <CompatRoute path="" component={SignIn}>
                         {/* Check we've got a logged in user otherwise redirect back to signin */}
                         <AuthCheck>

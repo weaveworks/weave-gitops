@@ -261,7 +261,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 
 	log.Actionf("Checking if Flux is already installed ...")
 
-	if fluxVersion, err = install.GetFluxVersion(log, ctx, kubeClient); err != nil {
+	if fluxVersion, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
 
 		product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -320,10 +320,10 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 	return fluxVersion, false, nil
 }
 
-func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.KubeHTTP, generateManifestsOnly bool) (bool, []byte, string, error) {
+func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool) (bool, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-	dashboardInstalled := install.IsDashboardInstalled(log, ctx, kubeClient, dashboardName, flags.Namespace)
+	dashboardInstalled := install.IsDashboardInstalled(ctx, log, kubeClient, dashboardName, flags.Namespace)
 
 	var dashboardManifests []byte
 
@@ -376,13 +376,13 @@ func dashboardStep(log logger.Logger, ctx context.Context, kubeClient *kube.Kube
 				return false, dashboardManifests, passwordHash, nil
 			}
 
-			man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+			man, err := install.NewManager(ctx, log, kubeClient, kubeConfigArgs)
 			if err != nil {
 				log.Failuref("Error creating resource manager")
 				return false, nil, "", err
 			}
 
-			err = install.InstallDashboard(log, ctx, man, dashboardManifests)
+			err = install.InstallDashboard(ctx, log, man, dashboardManifests)
 			if err != nil {
 				return false, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
 			} else {
@@ -436,7 +436,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to install Flux on the host cluster: %v", err)
 	}
 
-	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(log, context.Background(), kubeClient, true)
+	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true)
 	if err != nil {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -658,7 +658,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		dashboardManifests []byte
 	)
 
-	dashboardInstalled, dashboardManifests, _, err = dashboardStep(log, ctx, kubeClient, false)
+	dashboardInstalled, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false)
 	if err != nil {
 		cancel()
 		return err

@@ -95,6 +95,15 @@ exports[`Metadata snapshots renders with data 1`] = `
   font-style: normal;
 }
 
+.c7 {
+  padding: 12px;
+}
+
+.c5 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c3 {
   border-spacing: 0;
 }
@@ -112,15 +121,6 @@ exports[`Metadata snapshots renders with data 1`] = `
 
 .c3 tr {
   height: 16px;
-}
-
-.c7 {
-  padding: 12px;
-}
-
-.c5 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
 }
 
 .c11 {

@@ -76,10 +76,10 @@ func CreateDashboardObjects(log logger.Logger, name string, namespace string, us
 }
 
 // InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceManagerForApply, manifests []byte) error {
+func InstallDashboard(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifests []byte) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
-	applyOutput, err := apply(log, ctx, manager, manifests)
+	applyOutput, err := apply(ctx, log, manager, manifests)
 	if err != nil {
 		log.Failuref("GitOps Dashboard install failed")
 		return err
@@ -91,12 +91,12 @@ func InstallDashboard(log logger.Logger, ctx context.Context, manager ResourceMa
 }
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(log logger.Logger, ctx context.Context, kubeClient client.Client, name string, namespace string) bool {
-	return getDashboardHelmChart(log, ctx, kubeClient, name, namespace) != nil
+func IsDashboardInstalled(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) bool {
+	return getDashboardHelmChart(ctx, log, kubeClient, name, namespace) != nil
 }
 
 // GetDashboardHelmChart checks if the GitOps Dashboard is installed.
-func getDashboardHelmChart(log logger.Logger, ctx context.Context, kubeClient client.Client, name string, namespace string) *sourcev1.HelmChart {
+func getDashboardHelmChart(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) *sourcev1.HelmChart {
 	helmChart := sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace + "-" + name,

@@ -1,9 +1,11 @@
 import { jest } from "@jest/globals";
 import { Automation, HelmRelease, Kustomization } from "../objects";
+import { GetVersionResponse } from "../api/core/core.pb";
 import {
   convertGitURLToGitProvider,
   convertImage,
   formatMetadataKey,
+  getAppVersion,
   getSourceRefForAutomation,
   gitlabOAuthRedirectURI,
   isAllowedLink,
@@ -329,6 +331,61 @@ describe("utils lib", () => {
       let automation: Automation;
 
       expect(getSourceRefForAutomation(automation)).toBeUndefined();
+    });
+  });
+  describe("getAppVersion", () => {
+    const fullResponse: GetVersionResponse = {
+      semver: "semver",
+      commit: "commit",
+      branch: "branch",
+      buildTime: "buildTime",
+      fluxVersion: "flux-version",
+      kubeVersion: "kube-version",
+    };
+    const defaultVersion = "default version";
+    const defaultVersionPrefix = "v";
+
+    it("should return default version for full response if loading data", () => {
+      const appVersion = getAppVersion(
+        fullResponse,
+        defaultVersion,
+        true,
+        defaultVersionPrefix
+      );
+
+      expect(appVersion.versionText).toEqual(`vdefault version`);
+      expect(appVersion.versionHref).toEqual(
+        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version"
+      );
+    });
+    it("should return api version for full response if not loading data", () => {
+      const appVersion = getAppVersion(
+        fullResponse,
+        defaultVersion,
+        false,
+        defaultVersionPrefix
+      );
+
+      expect(appVersion.versionText).toEqual("branch-commit");
+      expect(appVersion.versionHref).toEqual(
+        "https://github.com/weaveworks/weave-gitops/commit/commit"
+      );
+    });
+    it("should return default version without prefix for full response if loading data", () => {
+      const appVersion = getAppVersion(fullResponse, defaultVersion, true);
+
+      expect(appVersion.versionText).toEqual(`default version`);
+      expect(appVersion.versionHref).toEqual(
+        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version"
+      );
+    });
+    it("should return api version without prefix for full response", () => {
+      const appVersion = getAppVersion(fullResponse, defaultVersion, false);
+
+      expect(appVersion.versionText).toEqual("branch-commit");
+      expect(appVersion.versionHref).toEqual(
+        "https://github.com/weaveworks/weave-gitops/commit/commit"
+      );
     });
   });
 });

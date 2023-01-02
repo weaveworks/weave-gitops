@@ -1,4 +1,13 @@
 # Weave Gitops Release Process
+
+## Versioning
+
+We follow [semantic versioning](https://semver.org/) where
+- Releases adding new features or changing existing ones increase the minor versions (0.11.0, 0.12.0, etc)
+- Releases exclusively fixing bugs increase the patch version (0.11.1, 0.11.2)
+
+## Releases
+
 We have two types of releases: stable, and pre-releases. These change
 what steps are included.
 

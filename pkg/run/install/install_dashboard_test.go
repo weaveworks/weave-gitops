@@ -55,7 +55,7 @@ var _ = Describe("InstallDashboard", func() {
 		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
+		err = InstallDashboard(fakeContext, fakeLogger, man, manifests)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -65,7 +65,7 @@ var _ = Describe("InstallDashboard", func() {
 		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = InstallDashboard(fakeLogger, fakeContext, man, manifests)
+		err = InstallDashboard(fakeContext, fakeLogger, man, manifests)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal(applyAllErrorMsg))
 	})
@@ -102,14 +102,14 @@ var _ = Describe("getDashboardHelmChart", func() {
 	})
 
 	It("returns the dashboard helmchart if there is no error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{}, testDashboardName, testNamespace)
+		helmChart := getDashboardHelmChart(fakeContext, fakeLogger, &mockClientForGetDashboardHelmChart{}, testDashboardName, testNamespace)
 		Expect(helmChart).ToNot(BeNil())
 		Expect(helmChart.Namespace).To(Equal("test-namespace"))
 		Expect(helmChart.Name).To(Equal("test-namespace-ww-gitops"))
 	})
 
 	It("returns nil if there is an error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeLogger, fakeContext, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, testDashboardName, testNamespace)
+		helmChart := getDashboardHelmChart(fakeContext, fakeLogger, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, testDashboardName, testNamespace)
 		Expect(helmChart).To(BeNil())
 	})
 })

@@ -3,6 +3,7 @@ import { shake128 } from "js-sha3";
 import Mnemonic from "mnemonic-browser";
 import { Auth } from "../contexts/AuthContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
+import { noVersion } from "../components/Version";
 
 declare global {
   interface Window {
@@ -17,20 +18,34 @@ const hashKey =
 export interface Props {
   /** Value to use as default if the telemetry flag cannot be read. */
   defaultTelemetryFlag: string;
+  /** Dashboard tier */
+  tier: string;
+  /** If this flag is set to true, wait for the version prop value before initializing Pendo. */
+  shouldWaitForVersion?: boolean;
+  /** Dashboard version */
+  version?: string;
 }
 
-export default function Pendo({ defaultTelemetryFlag }: Props) {
+export default function Pendo({
+  defaultTelemetryFlag,
+  tier,
+  shouldWaitForVersion,
+  version,
+}: Props) {
   const { featureFlags: flags } = useContext(CoreClientContext);
   const { userInfo } = useContext(Auth);
   const [isPendoInitialized, setIsPendoInitialized] = React.useState(false);
   const [isPendoAgentReady, setIsPendoAgentReady] = React.useState(false);
 
-  const telemetryFlag =
-    flags?.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
-
-  const shouldInitPendo = !!flags && telemetryFlag === "true";
-
   React.useEffect(() => {
+    const telemetryFlag =
+      flags?.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
+
+    const shouldInitPendo =
+      !!flags &&
+      telemetryFlag === "true" &&
+      (!shouldWaitForVersion || !!version);
+
     if (!shouldInitPendo) {
       return;
     }
@@ -60,11 +75,20 @@ export default function Pendo({ defaultTelemetryFlag }: Props) {
       visitorId = Mnemonic.fromHex(hasher.hex()).toWords().join("-");
     }
 
+    const shouldAddVersion = !!version && version !== noVersion;
+
     const visitor = {
       id: visitorId,
+      tier,
+      ...(shouldAddVersion && { latestVersion: version }),
     };
 
     const accountId = Mnemonic.fromHex(flags.ACCOUNT_ID).toWords().join("-");
+
+    const account = {
+      id: accountId,
+      devMode: flags.WEAVE_GITOPS_FEATURE_DEV_MODE === "true",
+    };
 
     // This is copied from the pendo docs
     // eslint unwrapps it, and the initialize call has been customized
@@ -76,17 +100,19 @@ export default function Pendo({ defaultTelemetryFlag }: Props) {
         if (isPendoAgentReady) {
           const currentVisitorId = window.pendo.getVisitorId();
           const currentAccountId = window.pendo.getAccountId();
+          const metadata = window.pendo.getSerializedMetadata();
 
           if (
             currentVisitorId === visitorId &&
-            currentAccountId === accountId
+            currentAccountId === accountId &&
+            metadata?.latestVersion === version
           ) {
             shouldIdentify = false;
           }
         }
 
         if (shouldIdentify) {
-          window.pendo.identify(visitorId, accountId);
+          window.pendo.identify({ visitor, account });
         }
       } else {
         (function (p, e, n, d, o) {
@@ -114,10 +140,7 @@ export default function Pendo({ defaultTelemetryFlag }: Props) {
         window.pendo.initialize({
           visitor: visitor,
 
-          account: {
-            id: accountId,
-            devMode: flags.WEAVE_GITOPS_FEATURE_DEV_MODE === "true",
-          },
+          account: account,
 
           events: {
             ready: function () {
@@ -129,7 +152,7 @@ export default function Pendo({ defaultTelemetryFlag }: Props) {
         setIsPendoInitialized(true);
       }
     })("7a83d612-fa5b-4bfe-4544-861a89ceaf89");
-  }, [shouldInitPendo, userInfo]);
+  }, [flags, userInfo, shouldWaitForVersion, version]);
 
   return <></>;
 }

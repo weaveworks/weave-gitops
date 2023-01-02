@@ -203,7 +203,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
 		defer cancel()
 
-		if fluxVersion, err := install.GetFluxVersion(log, ctx, kubeClient); err != nil {
+		if fluxVersion, err := install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 			log.Failuref("Flux is not found")
 			return err
 		} else {
@@ -212,13 +212,13 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Actionf("Applying GitOps Dashboard manifests")
 
-		man, err := install.NewManager(log, ctx, kubeClient, kubeConfigArgs)
+		man, err := install.NewManager(ctx, log, kubeClient, kubeConfigArgs)
 		if err != nil {
 			log.Failuref("Error creating resource manager")
 			return err
 		}
 
-		err = install.InstallDashboard(log, ctx, man, manifests)
+		err = install.InstallDashboard(ctx, log, man, manifests)
 		if err != nil {
 			return fmt.Errorf("gitops dashboard installation failed: %w", err)
 		} else {

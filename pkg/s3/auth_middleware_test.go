@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -25,6 +26,29 @@ func generateRandomBody(method string) io.Reader {
 	rand.Read(buf)
 
 	return bytes.NewReader(buf)
+}
+
+func TestAuthMiddlewareSanitizesInput(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Add("Authorization", "AWS4-HMAC-SHA256 1=AccessKeyID/Time/Location/Service/Request, 2=2, 3=3")
+	req.Header.Add("X-Amz-Date", "<script>foobar</script>")
+	g.Expect(err).NotTo(HaveOccurred(), "failed creating test request")
+
+	rr := httptest.NewRecorder()
+
+	dummyHandler := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {})
+	authMW := AuthMiddleware("", "", dummyHandler)
+
+	authMW.ServeHTTP(rr, req)
+
+	g.Expect(rr.Code).To(Equal(http.StatusUnauthorized), "unexpected status code")
+	respBody, err := io.ReadAll(rr.Body)
+	g.Expect(err).NotTo(HaveOccurred(), "failed reading response body")
+
+	g.Expect(string(respBody)).NotTo(ContainSubstring("<script>"))
+	g.Expect(string(respBody)).To(ContainSubstring("&lt;script&gt;"))
 }
 
 func TestVerifySignature(t *testing.T) {

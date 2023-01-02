@@ -1,12 +1,16 @@
 ---
 title: Multi Tenancy
-sidebar_position: 9
+sidebar_position: 1
 hide_title: true
 ---
-import TierLabel from "./_components/TierLabel";
 
+import TierLabel from "./../_components/TierLabel";
 
-# Multi tenancy <TierLabel tiers="enterprise" />
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+## Multi Tenancy
 
 Multi tenancy provides users with the ability to define boundaries to multiple engineering teams working on a single cluster. Through a simple interface it adds permissions to the necessary Kubernetes resources to make it easy for customers to manage their multiple tenants.
 

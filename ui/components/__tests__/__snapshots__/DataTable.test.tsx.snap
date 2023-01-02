@@ -164,6 +164,10 @@ exports[`DataTable snapshots renders 1`] = `
   width: 16px;
 }
 
+.c8 {
+  padding: 4px;
+}
+
 .c6.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -179,10 +183,6 @@ exports[`DataTable snapshots renders 1`] = `
 .c6.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
-}
-
-.c8 {
-  padding: 4px;
 }
 
 .c13 {

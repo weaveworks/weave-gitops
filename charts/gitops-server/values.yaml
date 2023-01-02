@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.12.0"
+  tag: "v0.13.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -84,6 +84,8 @@ adminUser:
   # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
 podAnnotations: {}
+podLabels: {}
+# aadpodidbinding: identity
 podSecurityContext: {}
 # fsGroup: 2000
 
@@ -119,6 +121,23 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+extraVolumes: []
+extraVolumeMounts: []
+# Example using extraVolumes and extraVolumeMounts to load 'oidc-auth' secret 
+# with a secrets store CSI driver. Specify the secretName 'oidc-auth' in the 
+# secretProviderClass so this will be created by the secrets store CSI driver.
+# See https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret.html
+# extraVolumeMounts:
+#   - name: ww-gitops-oauth-volume
+#     mountPath: /mnt/secrets
+#     readOnly: true
+# extraVolumes:
+#   - name: ww-gitops-oauth-volume
+#     csi:
+#       driver: secrets-store.csi.k8s.io
+#       readOnly: true
+#       volumeAttributes:
+#         secretProviderClass: ww-gitops-oauth-provider
 resources: {}
 # We usually recommend not to specify default resources and to leave this as a conscious
 # choice for the user. This also increases chances charts run on environments with little
