@@ -1,38 +1,52 @@
 ---
-title: Configure AWS EKS
+title: Configure IRSA for AWS EKS
 sidebar_position: 3
 hide_title: true
 ---
 
-# Configure for AWS Elastic Kubernetes Service (EKS)
+# Configure IRSA for AWS Elastic Kubernetes Service (EKS)
 
-AWS Elastic Kubernetes Service (EKS) offers IAM Roles for Service Accounts (IRSA) as a mechanism by which to provide
-credentials to Kubernetes pods. This can be used to provide the required AWS credentials to Terraform runners
-for performing plans and applies.
+To use AWS Elastic Kubernetes Service (EKS) with TF-controller, you can leverage IAM Roles for Service Accounts (IRSA)
+as a way to provide credentials to the Terraform runners (`tf-runner` pods).
+IRSA allows you to create IAM roles that can be assumed by the identity provider for your Kubernetes cluster,
+which can then be used by the pods running in the cluster to access AWS resources.
+This can be especially useful for automating infrastructure management tasks using TF-controller.
 
-You can use `eksctl` to associate an OIDC provider with your EKS cluster, for example:
+To set up IRSA for use with TF-controller, you will need to follow a few steps to associate an OpenID Connect (OIDC) provider with your EKS cluster,
+create a trust policy for the IAM role, and annotate the ServiceAccount for the `tf-runner` with the Role ARN.
+In this document, we will walk you through these steps in detail so that you can use IRSA with TF-controller in your EKS cluster.
 
-```shell
-eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
-```
+To use AWS Elastic Kubernetes Service (EKS) with TF-controller, you will need to follow these steps:
 
-Then follow the instructions [here](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html)
-to add a trust policy to the IAM role which grants the necessary permissions for Terraform.
-Please note that if you have installed the controller following the README, then the `namespace:serviceaccountname`
-will be `flux-system:tf-runner`. You'll obtain a Role ARN to use in the next step.
+1. Use eksctl to associate an OpenID Connect (OIDC) provider with your EKS cluster. This can be done by running the following command:
 
-Finally, annotate the ServiceAccount for the `tf-runner` with the obtained Role ARN in your cluster:
+    ```bash
+    eksctl utils associate-iam-oidc-provider --cluster CLUSTER_NAME --approve
+    ````
 
-```shell
-kubectl annotate -n flux-system serviceaccount tf-runner eks.amazonaws.com/role-arn=ROLE_ARN
-```
+2. Replace `CLUSTER_NAME` with the name of your EKS cluster. This command will create an IAM OIDC provider and associate it with your EKS cluster.
 
-If deploying the `tf-controller` via Helm, this can be accomplished as follows:
+3. Follow the instructions in [the AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html)
+to add a trust policy to the IAM role that grants the necessary permissions for Terraform.
+Make sure to use the `namespace:serviceaccountname` of `flux-system:tf-runner`. This will give you a Role ARN that you will need in the next step.
 
-```yaml hl_lines="5"
-values:
-  runner:
-    serviceAccount:
-      annotations:
-        eks.amazonaws.com/role-arn: ROLE_ARN
-```
+4. Annotate the ServiceAccount for the `tf-runner` with the obtained Role ARN in your cluster. You can do this by running the following command:
+
+    ```bash
+    kubectl annotate -n flux-system serviceaccount tf-runner eks.amazonaws.com/role-arn=ROLE_ARN
+    ```
+
+5. Replace `ROLE_ARN` with the Role ARN obtained in the previous step.
+
+    If you are deploying TF-controller using Helm, you can pass the Role ARN as an annotation to the `tf-runner` ServiceAccount in your Helm values file.
+    This can be done by adding the following block to your values file:
+
+    ```yaml {5}
+    values:
+      runner:
+        serviceAccount:
+          annotations:
+            eks.amazonaws.com/role-arn: ROLE_ARN
+    ```
+
+By following these steps, you will be able to use the Terraform controller with your EKS cluster and provide the necessary AWS credentials for performing plans and applies.

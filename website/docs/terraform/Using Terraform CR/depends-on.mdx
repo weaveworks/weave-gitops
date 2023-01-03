@@ -1,22 +1,22 @@
 ---
 title: Dependency Management
-sidebar_position: 2
+sidebar_position: 102
 hide_title: true
 ---
 
 # Dependency Management
 
-TF-controller supports GitOps dependency management.  The GitOps dependency management feature 
+TF-controller supports GitOps dependency management.  The GitOps dependency management feature
 is based on the Kustomization controller of Flux.
 
 This means that you can use TF-controller to provision resources that depend on other resources at the GitOps level.
-For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller 
+For example, you can use TF-controller to provision an S3 bucket, and then use TF-controller
 to provision another resource to configure ACL for that bucket.
 
 ## Create a Terraform object
 
-Similar to the same feature in the Kustomization controller, the dependency management feature is enabled 
-by setting the `dependsOn` field in the `Terraform` object. The `dependsOn` field is a list of 
+Similar to the same feature in the Kustomization controller, the dependency management feature is enabled
+by setting the `dependsOn` field in the `Terraform` object. The `dependsOn` field is a list of
 `Terraform` objects.
 
 First, create a `Terraform` object to provision the S3 bucket, name it `aws-s3-bucket`.
@@ -61,7 +61,7 @@ The ACL is provisioned by the Terraform module `aws_s3_bucket_acl`, also from th
 In the `dependsOn` field, specify the `Terraform` object that provisions the S3 bucket.
 This means that the ACL will be configured only after the S3 bucket is provisioned, and has its outputs Secret written.
 We can read the outputs of the S3 bucket from the Secret `aws-s3-bucket-outputs`, by specifying the `spec.readInputsFromSecrets` field.
-The `spec.readInputsFromSecrets` field is a list of Secret objects. 
+The `spec.readInputsFromSecrets` field is a list of Secret objects.
 Its `name` field is the name of the Secret, and its `as` field is the name of variable that can be used in the `spec.values` block.
 
 For example, the `spec.values.bucket` field in the `aws-s3-bucket-acl` Terraform object is set to `${{ .aws_s3_bucket.bucket }}`.
