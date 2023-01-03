@@ -252,7 +252,7 @@ func (cf *clustersManager) GetClusters() []cluster.Cluster {
 
 func (cf *clustersManager) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
-	go cf.watchNamespaces(ctx)
+	// go cf.watchNamespaces(ctx)
 }
 
 func (cf *clustersManager) watchClusters(ctx context.Context) {
@@ -356,6 +356,43 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 
 	return result.ErrorOrNil()
 }
+func (cf *clustersManager) UpdateNamespacesFromUser(ctx context.Context, user *auth.UserPrincipal) error {
+	var result *multierror.Error
+
+	clientset, err := cf.GetImpersonatedClientNoNamespaces(ctx, user)
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*ClientError); ok {
+					result = multierror.Append(result, fmt.Errorf("%w, cluster: %v", cerr, cerr.ClusterName))
+				}
+			}
+		}
+	}
+
+	nsList := NewClusteredList(func() client.ObjectList {
+		return &v1.NamespaceList{}
+	})
+
+	if err := clientset.ClusteredList(ctx, nsList, false); err != nil {
+		result = multierror.Append(result, err)
+	}
+
+	for clusterName, lists := range nsList.Lists() {
+		// This is the "namespace loop", but namespaces aren't
+		// namespaced so only 1 item
+		for _, l := range lists {
+			list, ok := l.(*v1.NamespaceList)
+			if !ok {
+				continue
+			}
+
+			cf.clustersNamespaces.Set(clusterName, list.Items)
+		}
+	}
+
+	return result.ErrorOrNil()
+}
 
 func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
 	return cf.clustersNamespaces.namespaces
@@ -410,6 +447,46 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 	}
 
 	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
+}
+
+func (cf *clustersManager) GetImpersonatedClientNoNamespaces(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+	if user == nil {
+		return nil, errors.New("no user supplied")
+	}
+
+	pool := NewClustersClientsPool()
+	errChan := make(chan error, len(cf.clusters.Get()))
+
+	var wg sync.WaitGroup
+
+	for _, cl := range cf.clusters.Get() {
+		wg.Add(1)
+
+		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
+			defer wg.Done()
+
+			client, err := cf.getOrCreateClient(ctx, user, cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed creating user client to pool: %w", err)}
+				return
+			}
+
+			if err := pool.Add(client, cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+		}(cl, pool, errChan)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	var result *multierror.Error
+
+	for err := range errChan {
+		result = multierror.Append(result, err)
+	}
+
+	return NewClient(pool, nil), result.ErrorOrNil()
 }
 
 func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
@@ -542,6 +619,7 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 		return userNamespaces
 	}
 
+	cf.UpdateNamespacesFromUser(ctx, user)
 	cf.UpdateUserNamespaces(ctx, user)
 
 	return cf.GetUserNamespaces(user)

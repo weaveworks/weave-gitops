@@ -19,6 +19,10 @@ metrics:
   enabled: true
 
 envVars:
+  # - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH
+  #   value: "true"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
+    value: "true"
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER

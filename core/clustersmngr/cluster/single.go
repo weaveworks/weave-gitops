@@ -75,6 +75,8 @@ func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest
 		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
 	} else if tok := user.Token(); tok != "" {
 		cfg.BearerToken = tok
+		// Clear the token file as it seems to take precedence over the token
+		cfg.BearerTokenFile = ""
 	} else {
 		cfg.Impersonate = rest.ImpersonationConfig{
 			UserName: user.ID,

@@ -150,7 +150,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 	// FIXME: currently the order must be OIDC last, or it'll "shadow" the other
 	// methods so they don't work.
-	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC}
+	methods := []AuthMethod{TokenPassthrough, OIDC, UserAccount}
 	for _, method := range methods {
 		enabled, ok := srv.authMethods[method]
 		if !ok {
@@ -171,8 +171,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 				if srv.oidcPassthroughEnabled() {
 					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
 					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
-				} else {
-					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, srv.OIDCConfig.ClaimsConfig))
+					// multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, srv.OIDCConfig.ClaimsConfig))
 				}
 			}
 
