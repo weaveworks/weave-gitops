@@ -36,15 +36,7 @@ func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
 	shallowCopy := *r.cfg
 
 	if p := auth.Principal(ctx); p != nil {
-		if tok := p.Token(); tok != "" {
-			shallowCopy.BearerToken = tok
-			shallowCopy.BearerTokenFile = ""
-		} else {
-			shallowCopy.Impersonate = rest.ImpersonationConfig{
-				UserName: p.ID,
-				Groups:   p.Groups,
-			}
-		}
+		AddPrincipalToConfig(p, &shallowCopy)
 	}
 
 	if r.insecure {
@@ -54,4 +46,18 @@ func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
 	}
 
 	return &shallowCopy
+}
+
+// Add the credentials from a principal to a rest.Config.
+func AddPrincipalToConfig(user *auth.UserPrincipal, cfg *rest.Config) {
+	if tok := user.Token(); tok != "" {
+		cfg.BearerToken = tok
+		// Clear the token file as it takes precedence over the token.
+		cfg.BearerTokenFile = ""
+	} else {
+		cfg.Impersonate = rest.ImpersonationConfig{
+			UserName: user.ID,
+			Groups:   user.Groups,
+		}
+	}
 }

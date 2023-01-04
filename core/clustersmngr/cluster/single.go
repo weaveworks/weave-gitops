@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -73,16 +74,9 @@ func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest
 
 	if !user.Valid() {
 		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
-	} else if tok := user.Token(); tok != "" {
-		cfg.BearerToken = tok
-		// Clear the token file as it seems to take precedence over the token
-		cfg.BearerTokenFile = ""
-	} else {
-		cfg.Impersonate = rest.ImpersonationConfig{
-			UserName: user.ID,
-			Groups:   user.Groups,
-		}
 	}
+
+	kube.AddPrincipalToConfig(user, cfg)
 
 	return cfg, nil
 }

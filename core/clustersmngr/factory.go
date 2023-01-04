@@ -340,7 +340,7 @@ func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 // instead.
 func (cf *clustersManager) updateNamespacesFromUserClient(ctx context.Context, user *auth.UserPrincipal) error {
 	return cf.updateNamespacesWithClient(ctx, func() (Client, error) {
-		return cf.getImpersonatedClientWithNamespaces(ctx, user, false)
+		return cf.getUserClientWithNamespaces(ctx, user, false)
 	})
 }
 
@@ -403,13 +403,13 @@ func (cf *clustersManager) syncCaches() {
 }
 
 func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
-	return cf.getImpersonatedClientWithNamespaces(ctx, user, true)
+	return cf.getUserClientWithNamespaces(ctx, user, true)
 }
 
-// getImpersonatedClientWithNamespaces returns a client for the user and optionally fetching the namespaces
+// getUserClientWithNamespaces returns a client for the user and optionally fetches the namespaces
 // the user has access to. If lookupNamespaces is false, the namespaces will not be fetched and the client will only be
-// able to make non-namespaced requests. (e.g. listing the namespaces themselves).
-func (cf *clustersManager) getImpersonatedClientWithNamespaces(ctx context.Context, user *auth.UserPrincipal, lookupNamespaces bool) (Client, error) {
+// able to make non-namespaced requests. (e.g. listing the namespaces themselves etc).
+func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user *auth.UserPrincipal, lookupNamespaces bool) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
@@ -587,6 +587,8 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	if cf.useUserClientForNamespaces {
 		err := cf.updateNamespacesFromUserClient(ctx, user)
 		if err != nil {
+			// This may not completely fail the request, e.g. if some of the clusters
+			// are able to respond with their namespaces. So log the error and continue.
 			cf.log.Error(err, "failed updating namespaces from user client")
 		}
 	}
