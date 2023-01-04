@@ -106,10 +106,11 @@ exports[`Page snapshots default 1`] = `
 
 .c5 {
   color: #737373;
+  padding-top: 12px;
 }
 
 .c1 {
-  background-color: rgba(255,255,255,0.75);
+  background-color: #fff;
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
@@ -150,7 +151,7 @@ exports[`Page snapshots default 1`] = `
       />
       <a
         className="c9"
-        href="mailto:support@weave.works"
+        href="mailto:sales@weave.works"
         rel="noreferrer"
         target="_blank"
       >
@@ -159,7 +160,7 @@ exports[`Page snapshots default 1`] = `
           color="primary"
           size="medium"
         >
-          support@weave.works
+          sales@weave.works
         </span>
       </a>
     </div>

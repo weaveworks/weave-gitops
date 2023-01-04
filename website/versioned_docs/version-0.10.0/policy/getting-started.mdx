@@ -1,0 +1,84 @@
+---
+title: Getting started
+sidebar_position: 1
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Getting started <TierLabel tiers="enterprise" />
+
+This section introduces you to the Policy Profile and details the steps required to install it in Weave GitOps.
+
+## Pre-requisites
+
+### Weave GitOps
+You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weave.works/docs/installation/) page for more details about installing Weave GitOps.
+
+### Policy Library
+For the policy agent to work, it will need a source for the policies that it will enforce in the cluster. You should have a policy library repo set up which includes your policies resources as CRDs. You can also add a `kustomization.yaml` file selecting the policies you want to install on that specific cluster that will be provisioned by Weave Gitops:
+
+```
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- policies/<policy1.yaml>
+- policies/<policy2.yaml>
+- policies/<policy3.yaml>
+```
+
+:::info
+Enterprise customers should have access to fork policy library repo into their local repositories. 
+:::
+
+## Install agent on management cluster
+
+The agent comes packaged with the WGE chart. To install it you need to set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.accountId`: organization name, used as identifier
+- `values.policy-agent.clusterId`: unique identifier for the cluster
+
+## Install Policy Profile
+To install the policy profile on a cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page. 
+
+![Policy Profile](./img/weave-policy-profile.png)
+
+You should then configure the `values.yaml`. You can find more about the policy profile configurations [here](../weave-policy-profile/).
+
+<em><strong>Add or link to profile config</strong></em>
+
+```
+policySource:
+  url: URL of the repo where your policies exist
+  tag: tag name on the policies repo
+  path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
+  secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
+```
+
+## Policies in UI
+After the leaf cluster is provisioned and the profile is installed, you should now see the policies listed in the Policies tab in Weave GitOps UI.
+
+![Policies](./img/weave-policies.png)
+
+Now you have a provisioned cluster with these policies enforced by the policy agent.
+
+> By default, the policy profile is set up to enforce policies at deployment time using admission controller, which results in blocking any deployment that violates the enforced policies.
+
+## Prevent Violating Changes
+Now let's try to deploy a Kubernetes deployment that violates one of the enforced policies. Let's deploy a deployment that has `spec.securityContext.allowPrivilegeEscalation` as `true`. This violates the `Allow Privilege Escalation` policy.
+
+Once you apply it, the policy agent will deny this request and show a violation message.
+
+## Violations Logs in UI
+You can view all the violation log in Weave GitOps UI to view all connected clusters policy violations, and where you can dive into the details of each violation. 
+
+<strong>Violations Log</strong>
+
+![Violations Logs](./img/violations-logs.png)
+
+<strong>Violations Log Details</strong>
+
+![Violation Log Details](./img/violations-log-detail.png)

@@ -4,12 +4,14 @@ export namespace colors {
   const black: string;
   const white: string;
   const primary: string;
-  const primaryLight: string;
+  const primaryLight05: string;
+  const primaryLight10: string;
   const primary10: string;
   const primary20: string;
-  const success: string;
-  const alert: string;
-  const suspended: string;
+  const alertLight: string;
+  const alertOriginal: string;
+  const alertMedium: string;
+  const alertDark: string;
   const neutralGray: string;
   const neutral00: string;
   const neutral10: string;
@@ -18,7 +20,19 @@ export namespace colors {
   const neutral40: string;
   const backGrey: string;
   const feedbackLight: string;
+  const feedbackMedium: string;
+  const feedbackOriginal: string;
+  const feedbackDark: string;
+  const successLight: string;
+  const successMedium: string;
+  const successOriginal: string;
+  const successDark: string;
+  const defaultLight: string;
+  const defaultMedium: string;
+  const defaultOriginal: string;
+  const defaultDark: string;
 }
+
 export namespace spacing {
   const base: string;
   const large: string;

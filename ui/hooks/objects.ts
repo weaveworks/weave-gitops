@@ -1,34 +1,52 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { GetObjectResponse } from "../lib/api/core/core.pb";
-import { Object as ResponseObject } from "../lib/api/core/types.pb";
+import { GetObjectResponse, ListError } from "../lib/api/core/core.pb";
+import { Kind, Object as ResponseObject } from "../lib/api/core/types.pb";
 import {
+  Alert,
   Bucket,
   FluxObject,
   GitRepository,
   HelmChart,
+  HelmRelease,
   HelmRepository,
+  Kustomization,
   OCIRepository,
-  Kind,
+  Provider,
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
 
-function convertResponse(kind: Kind, response?: ResponseObject) {
-  if (kind == Kind.HelmRepository) {
+export function convertResponse(
+  kind: Kind | string,
+  response?: ResponseObject
+) {
+  if (kind === Kind.HelmRepository) {
     return new HelmRepository(response);
   }
-  if (kind == Kind.HelmChart) {
+  if (kind === Kind.HelmChart) {
     return new HelmChart(response);
   }
-  if (kind == Kind.Bucket) {
+  if (kind === Kind.Bucket) {
     return new Bucket(response);
   }
-  if (kind == Kind.GitRepository) {
+  if (kind === Kind.GitRepository) {
     return new GitRepository(response);
   }
-  if (kind == Kind.OCIRepository) {
+  if (kind === Kind.OCIRepository) {
     return new OCIRepository(response);
+  }
+  if (kind === Kind.Kustomization) {
+    return new Kustomization(response);
+  }
+  if (kind === Kind.HelmRelease) {
+    return new HelmRelease(response);
+  }
+  if (kind === Kind.Provider) {
+    return new Provider(response);
+  }
+  if (kind === Kind.Alert) {
+    return new Alert(response);
   }
 
   return new FluxObject(response);
@@ -61,4 +79,37 @@ export function useGetObject<T extends FluxObject>(
     return { ...response, data: convertResponse(kind) as T };
   }
   return response;
+}
+
+type Res = { objects: FluxObject[]; errors: ListError[] };
+
+export function useListObjects<T extends FluxObject>(
+  namespace: string,
+  kind: Kind | string,
+  clusterName: string,
+  labels: Record<string, string>,
+  opts: ReactQueryOptions<Res, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<Res, RequestError>(
+    ["objects", clusterName, kind, namespace],
+    async () => {
+      const res = await api.ListObjects({
+        namespace,
+        kind,
+        clusterName,
+        labels,
+      });
+      let objects: FluxObject[];
+      if (res.objects)
+        objects = res.objects.map((obj) => convertResponse(kind, obj) as T);
+      else objects = [];
+      return { objects: objects, errors: res.errors || [] };
+    },
+    opts
+  );
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -21,12 +20,25 @@ func TestJWTCookiePrincipalGetter(t *testing.T) {
 
 	privKey := testutils.MakeRSAPrivateKey(t)
 	authTests := []struct {
-		name   string
-		cookie string
-		want   *auth.UserPrincipal
+		name         string
+		cookie       string
+		claimsConfig *auth.ClaimsConfig
+		want         *auth.UserPrincipal
 	}{
-		{"JWT ID Token", testutils.MakeJWToken(t, privKey, "example@example.com"), &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"testing"}}},
-		{"no cookie value", "", nil},
+		{
+			name:   "JWT ID Token",
+			cookie: testutils.MakeJWToken(t, privKey, "example@example.com"),
+			want:   &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"testing"}},
+		},
+		{
+			name: "Custom user and groups claim",
+			cookie: testutils.MakeJWToken(t, privKey, "example@example.com", func(m map[string]any) {
+				m["demo_groups"] = []string{"group1", "group2"}
+			}),
+			claimsConfig: &auth.ClaimsConfig{Username: "sub", Groups: "demo_groups"},
+			want:         &auth.UserPrincipal{ID: "testing", Groups: []string{"group1", "group2"}},
+		},
+		{"no cookie value", "", nil, nil},
 	}
 
 	srv := testutils.MakeKeysetServer(t, privKey)
@@ -35,7 +47,7 @@ func TestJWTCookiePrincipalGetter(t *testing.T) {
 
 	for _, tt := range authTests {
 		t.Run(tt.name, func(t *testing.T) {
-			principal, err := auth.NewJWTCookiePrincipalGetter(logr.Discard(), verifier, cookieName).Principal(makeCookieRequest(cookieName, tt.cookie))
+			principal, err := auth.NewJWTCookiePrincipalGetter(logr.Discard(), verifier, cookieName, tt.claimsConfig).Principal(makeCookieRequest(cookieName, tt.cookie))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -51,10 +63,26 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 	authTests := []struct {
 		name          string
 		authorization string
+		claimsConfig  *auth.ClaimsConfig
 		want          *auth.UserPrincipal
 	}{
-		{"JWT ID Token", "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"), &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"testing"}}},
-		{"no auth header value", "", nil},
+		{name: "JWT ID Token", authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"), want: &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"testing"}}},
+		{
+			name:          "Custom user claim",
+			authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"),
+			claimsConfig:  &auth.ClaimsConfig{Username: "sub"},
+			want:          &auth.UserPrincipal{ID: "testing", Groups: []string{"testing"}},
+		},
+		{
+			name: "Custom groups claim",
+			authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com", func(m map[string]any) {
+				m["test_groups"] = []string{"test-group1", "test-group2"}
+			}),
+			claimsConfig: &auth.ClaimsConfig{Groups: "test_groups"},
+			want:         &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"test-group1", "test-group2"}},
+		},
+
+		{"no auth header value", "", nil, nil},
 	}
 
 	srv := testutils.MakeKeysetServer(t, privKey)
@@ -63,7 +91,7 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 
 	for _, tt := range authTests {
 		t.Run(tt.name, func(t *testing.T) {
-			principal, err := auth.NewJWTAuthorizationHeaderPrincipalGetter(logr.Discard(), verifier).Principal(makeAuthenticatedRequest(tt.authorization))
+			principal, err := auth.NewJWTAuthorizationHeaderPrincipalGetter(logr.Discard(), verifier, tt.claimsConfig).Principal(makeAuthenticatedRequest(tt.authorization))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -96,10 +124,10 @@ func makeAuthenticatedRequest(token string) *http.Request {
 }
 
 func TestMultiAuth(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	err := errors.New("oops")
-	noAuthError := errors.New("Could not find valid principal")
+	noAuthError := errors.New("could not find valid principal")
 
 	multiAuthTests := []struct {
 		name  string

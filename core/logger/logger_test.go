@@ -2,7 +2,7 @@ package logger_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -184,7 +184,7 @@ func getLogs(t *testing.T, r, w *os.File) []byte {
 
 	w.Close()
 
-	out, err := ioutil.ReadAll(r)
+	out, err := io.ReadAll(r)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	return out

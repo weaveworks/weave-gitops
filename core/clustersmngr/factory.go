@@ -4,21 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/cheshir/ttlcache"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-multierror"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
-	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -30,10 +29,99 @@ const (
 	userNamespaceResolution = 30 * time.Second
 	watchClustersFrequency  = 30 * time.Second
 	watchNamespaceFrequency = 30 * time.Second
-	kubeClientTimeout       = 8 * time.Second
-	kubeClientDialTimeout   = 5 * time.Second
-	kubeClientDialKeepAlive = 30 * time.Second
+	usersClientResolution   = 30 * time.Second
 )
+
+var (
+	usersClientsTTL = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 30*time.Minute)
+)
+
+func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultDuration
+	}
+
+	d, err := time.ParseDuration(val)
+
+	// on error return the default duration
+	if err != nil {
+		return defaultDuration
+	}
+
+	return d
+}
+
+var (
+	opsUpdateClusters = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "update_clusters_total",
+			Help:      "The number of times clusters have been refreshed",
+		})
+	opsClustersCount = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "clusters_total",
+			Help:      "The number of clusters currently being tracked",
+		})
+	opsUpdateNamespaces = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "update_namespaces_total",
+			Help:      "The number of times namespaces have been refreshed",
+		})
+	opsNamespacesCount = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "namespaces_count",
+			Help:      "The number of namespaces currently being tracked",
+		},
+		[]string{
+			// Which cluster has these namespaces
+			"cluster",
+		},
+	)
+	opsCreateServerClient = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "create_server_client_total",
+			Help:      "The number of times a server client has been created",
+		},
+		[]string{
+			// Which cluster created the client
+			"cluster",
+		},
+	)
+	opsCreateUserClient = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "gitops",
+			Subsystem: "clustersmngr",
+			Name:      "create_user_client_total",
+			Help:      "The number of times a server client has been created",
+		},
+		[]string{
+			// Which cluster created the client
+			"cluster",
+		},
+	)
+
+	Registry = prometheus.NewRegistry()
+)
+
+func registerMetrics() {
+	_ = Registry.Register(opsUpdateClusters)
+	_ = Registry.Register(opsClustersCount)
+	_ = Registry.Register(opsUpdateNamespaces)
+	_ = Registry.Register(opsNamespacesCount)
+	_ = Registry.Register(opsCreateServerClient)
+	_ = Registry.Register(opsCreateUserClient)
+}
 
 // ClientError is an error returned by the GetImpersonatedClient function which contains
 // the details of the cluster that caused the error.
@@ -47,15 +135,16 @@ func (ce *ClientError) Error() string {
 	return ce.Err.Error()
 }
 
-// ClientsFactory is a factory for creating clients for clusters
-//counterfeiter:generate . ClientsFactory
-type ClientsFactory interface {
+// ClustersManager is a manager for creating clients for clusters
+//
+//counterfeiter:generate . ClustersManager
+type ClustersManager interface {
 	// GetImpersonatedClient returns the clusters client for the given user
 	GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error)
 	// GetImpersonatedClientForCluster returns the client for the given user and cluster
 	GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error)
 	// GetImpersonatedDiscoveryClient returns the discovery for the given user and for the given cluster
-	GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error)
+	GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (discovery.DiscoveryInterface, error)
 	// UpdateClusters updates the clusters list
 	UpdateClusters(ctx context.Context) error
 	// UpdateNamespaces updates the namespaces all namespaces for all clusters
@@ -70,14 +159,18 @@ type ClientsFactory interface {
 	GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace
 	// Start starts go routines to keep clusters and namespaces lists up to date
 	Start(ctx context.Context)
+	// Subscribe returns a new ClustersWatcher
+	Subscribe() *ClustersWatcher
+	// RemoveWatcher removes the given ClustersWatcher from the list of watchers
+	RemoveWatcher(cw *ClustersWatcher)
+	// GetClusters returns all the currently known clusters
+	GetClusters() []cluster.Cluster
 }
 
-type ClusterPoolFactoryFn func(*apiruntime.Scheme) ClientsPool
-
-type clientsFactory struct {
-	clustersFetcher ClusterFetcher
-	nsChecker       nsaccess.Checker
-	log             logr.Logger
+type clustersManager struct {
+	clustersFetchers clusterFetchers
+	nsChecker        nsaccess.Checker
+	log              logr.Logger
 
 	// list of clusters returned by the clusters fetcher
 	clusters *Clusters
@@ -87,32 +180,82 @@ type clientsFactory struct {
 	clustersNamespaces *ClustersNamespaces
 	// lists of namespaces accessible by the user on every cluster
 	usersNamespaces *UsersNamespaces
+	usersClients    *UsersClients
 
 	initialClustersLoad chan bool
-	scheme              *apiruntime.Scheme
-	newClustersPool     ClusterPoolFactoryFn
+	// list of watchers to notify of clusters updates
+	watchers []*ClustersWatcher
 }
 
-func NewClientFactory(fetcher ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger, scheme *apiruntime.Scheme, clusterPoolFactory ClusterPoolFactoryFn) ClientsFactory {
-	return &clientsFactory{
-		clustersFetcher:     fetcher,
+// ClusterListUpdate records the changes to the cluster state managed by the factory.
+type ClusterListUpdate struct {
+	Added   []cluster.Cluster
+	Removed []cluster.Cluster
+}
+
+// ClustersWatcher watches for cluster list updates and notifies the registered clients.
+type ClustersWatcher struct {
+	Updates chan ClusterListUpdate
+	cf      *clustersManager
+}
+
+// Notify publishes cluster updates to the current watcher.
+func (cw *ClustersWatcher) Notify(addedClusters, removedClusters []cluster.Cluster) {
+	cw.Updates <- ClusterListUpdate{Added: addedClusters, Removed: removedClusters}
+}
+
+// Unsubscribe removes the given ClustersWatcher from the list of watchers.
+func (cw *ClustersWatcher) Unsubscribe() {
+	cw.cf.RemoveWatcher(cw)
+	close(cw.Updates)
+}
+
+func NewClustersManager(fetchers []ClusterFetcher, nsChecker nsaccess.Checker, logger logr.Logger) ClustersManager {
+	registerMetrics()
+
+	return &clustersManager{
+		clustersFetchers:    fetchers,
 		nsChecker:           nsChecker,
 		clusters:            &Clusters{},
 		clustersNamespaces:  &ClustersNamespaces{},
 		usersNamespaces:     &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
+		usersClients:        &UsersClients{Cache: ttlcache.New(usersClientResolution)},
 		log:                 logger,
 		initialClustersLoad: make(chan bool),
-		scheme:              scheme,
-		newClustersPool:     clusterPoolFactory,
+		watchers:            []*ClustersWatcher{},
 	}
 }
 
-func (cf *clientsFactory) Start(ctx context.Context) {
+// Subscribe returns a new ClustersWatcher.
+func (cf *clustersManager) Subscribe() *ClustersWatcher {
+	cw := &ClustersWatcher{cf: cf, Updates: make(chan ClusterListUpdate, 1)}
+	cf.watchers = append(cf.watchers, cw)
+
+	return cw
+}
+
+// RemoveWatcher removes the given ClustersWatcher from the list of watchers.
+func (cf *clustersManager) RemoveWatcher(cw *ClustersWatcher) {
+	watchers := []*ClustersWatcher{}
+	for _, w := range cf.watchers {
+		if cw != w {
+			watchers = append(watchers, w)
+		}
+	}
+
+	cf.watchers = watchers
+}
+
+func (cf *clustersManager) GetClusters() []cluster.Cluster {
+	return cf.clusters.Get()
+}
+
+func (cf *clustersManager) Start(ctx context.Context) {
 	go cf.watchClusters(ctx)
 	go cf.watchNamespaces(ctx)
 }
 
-func (cf *clientsFactory) watchClusters(ctx context.Context) {
+func (cf *clustersManager) watchClusters(ctx context.Context) {
 	if err := cf.UpdateClusters(ctx); err != nil {
 		cf.log.Error(err, "failed updating clusters")
 	}
@@ -130,18 +273,29 @@ func (cf *clientsFactory) watchClusters(ctx context.Context) {
 	}
 }
 
-func (cf *clientsFactory) UpdateClusters(ctx context.Context) error {
-	clusters, err := cf.clustersFetcher.Fetch(ctx)
+// UpdateClusters updates the clusters list and notifies the registered watchers.
+func (cf *clustersManager) UpdateClusters(ctx context.Context) error {
+	clusters, err := cf.clustersFetchers.Fetch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch clusters: %w", err)
 	}
 
-	cf.clusters.Set(clusters)
+	addedClusters, removedClusters := cf.clusters.Set(clusters)
+
+	opsUpdateClusters.Inc()
+	opsClustersCount.Set(float64(len(clusters)))
+
+	if len(addedClusters) > 0 || len(removedClusters) > 0 {
+		// notify watchers of the changes
+		for _, w := range cf.watchers {
+			w.Notify(addedClusters, removedClusters)
+		}
+	}
 
 	return nil
 }
 
-func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
+func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 	// waits the first load of cluster to start watching namespaces
 	<-cf.initialClustersLoad
 
@@ -160,12 +314,18 @@ func (cf *clientsFactory) watchNamespaces(ctx context.Context) {
 	}
 }
 
-func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
+func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
 	var result *multierror.Error
 
 	serverClient, err := cf.GetServerClient(ctx)
 	if err != nil {
-		return err
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*ClientError); ok {
+					result = multierror.Append(result, fmt.Errorf("%w, cluster: %v", cerr, cerr.ClusterName))
+				}
+			}
+		}
 	}
 
 	cf.syncCaches()
@@ -188,46 +348,56 @@ func (cf *clientsFactory) UpdateNamespaces(ctx context.Context) error {
 			}
 
 			cf.clustersNamespaces.Set(clusterName, list.Items)
+			opsNamespacesCount.WithLabelValues(clusterName).Set(float64(len(list.Items)))
 		}
 	}
+
+	opsUpdateNamespaces.Inc()
 
 	return result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) GetClustersNamespaces() map[string][]v1.Namespace {
+func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
 	return cf.clustersNamespaces.namespaces
 }
 
-func (cf *clientsFactory) syncCaches() {
+func (cf *clustersManager) syncCaches() {
 	newHash := cf.clusters.Hash()
 
 	if newHash != cf.clustersHash {
+		cf.log.Info("Clearing namespace caches")
 		cf.clustersNamespaces.Clear()
 		cf.usersNamespaces.Clear()
 		cf.clustersHash = newHash
 	}
 }
 
-func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
+func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
 
-	pool := cf.newClustersPool(cf.scheme)
+	pool := NewClustersClientsPool()
 	errChan := make(chan error, len(cf.clusters.Get()))
 
 	var wg sync.WaitGroup
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.Get() {
 		wg.Add(1)
 
-		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
+		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigWithUser(user), cluster); err != nil {
-				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			client, err := cf.getOrCreateClient(ctx, user, cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed creating user client to pool: %w", err)}
+				return
 			}
-		}(cluster, pool, errChan)
+
+			if err := pool.Add(client, cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+		}(cl, pool, errChan)
 	}
 
 	wg.Wait()
@@ -242,82 +412,82 @@ func (cf *clientsFactory) GetImpersonatedClient(ctx context.Context, user *auth.
 	return NewClient(pool, cf.userNsList(ctx, user)), result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
+func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
 
-	pool := cf.newClustersPool(cf.scheme)
+	var cl cluster.Cluster
+
+	pool := NewClustersClientsPool()
 	clusters := cf.clusters.Get()
 
-	var cl Cluster
-
 	for _, c := range clusters {
-		if c.Name == clusterName {
+		if c.GetName() == clusterName {
 			cl = c
 			break
 		}
 	}
 
-	if cl.Name == "" {
+	if cl == nil {
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	if err := pool.Add(ClientConfigWithUser(user), cl); err != nil {
+	client, err := cf.getOrCreateClient(ctx, user, cl)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating cluster client: %w", err)
+	}
+
+	if err := pool.Add(client, cl); err != nil {
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
 	return NewClient(pool, cf.userNsList(ctx, user)), nil
 }
 
-func (cf *clientsFactory) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (*discovery.DiscoveryClient, error) {
+func (cf *clustersManager) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (discovery.DiscoveryInterface, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
 
-	var config *rest.Config
-
 	for _, cluster := range cf.clusters.Get() {
-		if cluster.Name == clusterName {
+		if cluster.GetName() == clusterName {
 			var err error
 
-			config, err = ClientConfigWithUser(user)(cluster)
+			clientset, err := cluster.GetUserClientset(user)
 			if err != nil {
 				return nil, fmt.Errorf("error creating client for cluster: %w", err)
 			}
 
-			break
+			return clientset.Discovery(), nil
 		}
 	}
 
-	if config == nil {
-		return nil, fmt.Errorf("cluster not found: %s", clusterName)
-	}
-
-	dc, err := discovery.NewDiscoveryClientForConfig(config)
-	if err != nil {
-		return nil, fmt.Errorf("error creating discovery client for config: %w", err)
-	}
-
-	return dc, nil
+	return nil, fmt.Errorf("cluster not found: %s", clusterName)
 }
 
-func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
-	pool := cf.newClustersPool(cf.scheme)
+func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) {
+	pool := NewClustersClientsPool()
 	errChan := make(chan error, len(cf.clusters.Get()))
 
 	var wg sync.WaitGroup
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.Get() {
 		wg.Add(1)
 
-		go func(cluster Cluster, pool ClientsPool, errChan chan error) {
+		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			if err := pool.Add(ClientConfigAsServer, cluster); err != nil {
-				errChan <- &ClientError{ClusterName: cluster.Name, Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			client, err := cf.getOrCreateClient(ctx, nil, cluster)
+			if err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed creating server client to pool: %w", err)}
+				return
 			}
-		}(cluster, pool, errChan)
+
+			if err := pool.Add(client, cluster); err != nil {
+				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed adding cluster client to pool: %w", err)}
+			}
+		}(cl, pool, errChan)
 	}
 
 	wg.Wait()
@@ -332,39 +502,41 @@ func (cf *clientsFactory) GetServerClient(ctx context.Context) (Client, error) {
 	return NewClient(pool, cf.clustersNamespaces.namespaces), result.ErrorOrNil()
 }
 
-func (cf *clientsFactory) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
+func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
 	wg := sync.WaitGroup{}
 
-	for _, cluster := range cf.clusters.Get() {
+	for _, cl := range cf.clusters.Get() {
 		wg.Add(1)
 
-		go func(cluster Cluster) {
+		go func(cluster cluster.Cluster) {
 			defer wg.Done()
 
-			clusterNs := cf.clustersNamespaces.Get(cluster.Name)
+			clusterNs := cf.clustersNamespaces.Get(cluster.GetName())
 
-			cfg, err := ClientConfigWithUser(user)(cluster)
+			clientset, err := cluster.GetUserClientset(user)
 			if err != nil {
-				cf.log.Error(err, "failed creating client config", "cluster", cluster.Name, "user", user.ID)
+				cf.log.Error(err, "failed creating clientset", "cluster", cluster.GetName(), "user", user.ID)
+				return
 			}
 
-			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, cfg, clusterNs)
+			filteredNs, err := cf.nsChecker.FilterAccessibleNamespaces(ctx, clientset.AuthorizationV1(), clusterNs)
 			if err != nil {
-				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.Name, "user", user.ID)
+				cf.log.Error(err, "failed filtering namespaces", "cluster", cluster.GetName(), "user", user.ID)
+				return
 			}
 
-			cf.usersNamespaces.Set(user, cluster.Name, filteredNs)
-		}(cluster)
+			cf.usersNamespaces.Set(user, cluster.GetName(), filteredNs)
+		}(cl)
 	}
 
 	wg.Wait()
 }
 
-func (cf *clientsFactory) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
+func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
 
-func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
+func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrincipal) map[string][]v1.Namespace {
 	userNamespaces := cf.GetUserNamespaces(user)
 	if len(userNamespaces) > 0 {
 		return userNamespaces
@@ -375,80 +547,38 @@ func (cf *clientsFactory) userNsList(ctx context.Context, user *auth.UserPrincip
 	return cf.GetUserNamespaces(user)
 }
 
-// restConfigFromCluster creates a generic rest.Config for a given cluster.
-// You should not call this directly, but rather via
-// ClientConfigAsServer or ClientConfigWithUser
-func restConfigFromCluster(cluster Cluster) (*rest.Config, error) {
-	config := &rest.Config{
-		Host:            cluster.Server,
-		TLSClientConfig: cluster.TLSConfig,
-		QPS:             ClientQPS,
-		Burst:           ClientBurst,
-		Timeout:         kubeClientTimeout,
-		Dial: (&net.Dialer{
-			Timeout: kubeClientDialTimeout,
-			// KeepAlive is default to 30s within client-go.
-			KeepAlive: kubeClientDialKeepAlive,
-		}).DialContext,
-	}
+func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.UserPrincipal, cluster cluster.Cluster) (client.Client, error) {
+	isServer := false
 
-	// flowcontrol.IsEnabled makes a request to the K8s API of the cluster stored in the config.
-	// It does a HEAD request to /livez/ping which uses the config.Dial timeout. We can use this
-	// function to error early rather than wait to call client.New.
-	enabled, err := flowcontrol.IsEnabled(context.Background(), config)
-	if err != nil {
-		return nil, fmt.Errorf("error querying cluster for flowcontrol config: %w", err)
-	}
-
-	if enabled {
-		// Enabled & negative QPS and Burst indicate that the client would use the rate limit set by the server.
-		// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
-		config.QPS = -1
-		config.Burst = -1
-
-		return config, nil
-	}
-
-	config.QPS = ClientQPS
-	config.Burst = ClientBurst
-
-	return config, nil
-}
-
-// clientConfigAsServer returns a *rest.Config for a given cluster
-// as the server service acconut
-func ClientConfigAsServer(cluster Cluster) (*rest.Config, error) {
-	config, err := restConfigFromCluster(cluster)
-	if err != nil {
-		return nil, err
-	}
-
-	config.BearerToken = cluster.BearerToken
-
-	return config, nil
-}
-
-// ClientConfigWithUser returns a function that returns a *rest.Config with the relevant
-// user authentication details pre-defined for a given cluster.
-func ClientConfigWithUser(user *auth.UserPrincipal) ClusterClientConfigFunc {
-	return func(cluster Cluster) (*rest.Config, error) {
-		config, err := restConfigFromCluster(cluster)
-		if err != nil {
-			return nil, err
+	if user == nil {
+		user = &auth.UserPrincipal{
+			ID: "weave-gitops-server",
 		}
-
-		if !user.Valid() {
-			return nil, fmt.Errorf("No user ID or Token found in UserPrincipal.")
-		} else if tok := user.Token(); tok != "" {
-			config.BearerToken = tok
-		} else {
-			config.BearerToken = cluster.BearerToken
-			config.Impersonate = rest.ImpersonationConfig{
-				UserName: user.ID,
-				Groups:   user.Groups,
-			}
-		}
-
-		return config, nil
+		isServer = true
 	}
+
+	if client, found := cf.usersClients.Get(user, cluster.GetName()); found {
+		return client, nil
+	}
+
+	var (
+		client client.Client
+		err    error
+	)
+
+	if isServer {
+		opsCreateServerClient.WithLabelValues(cluster.GetName()).Inc()
+		client, err = cluster.GetServerClient()
+	} else {
+		opsCreateUserClient.WithLabelValues(cluster.GetName()).Inc()
+		client, err = cluster.GetUserClient(user)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed creating client for cluster=%s: %w", cluster.GetName(), err)
+	}
+
+	cf.usersClients.Set(user, cluster.GetName(), client)
+
+	return client, nil
 }

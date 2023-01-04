@@ -1,27 +1,25 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
 import {
   Bucket,
-  FluxObjectKind,
   GitRepository,
   HelmRepository,
   OCIRepository,
-} from "../lib/api/core/types.pb";
-import { formatURL, objectTypeToRoute } from "../lib/nav";
+  Source,
+} from "../lib/objects";
 import { showInterval } from "../lib/time";
-import { Source } from "../lib/types";
-import {
-  convertGitURLToGitProvider,
-  removeKind,
-  statusSortHelper,
-} from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
-import { Field } from "./DataTable";
 
 type Props = {
   className?: string;
@@ -31,12 +29,7 @@ type Props = {
 
 function SourcesTable({ className, sources }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
-
-  const [filterDialogOpen, setFilterDialog] = React.useState(false);
-  sources = sources?.map((s) => {
-    return { ...s, type: removeKind(s.kind) };
-  });
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),
@@ -63,7 +56,7 @@ function SourcesTable({ className, sources }: Props) {
       label: "Name",
       value: (s: Source) => (
         <Link
-          to={formatURL(objectTypeToRoute(s.kind), {
+          to={formatURL(objectTypeToRoute(Kind[s.type]), {
             name: s?.name,
             namespace: s?.namespace,
             clusterName: s?.clusterName,
@@ -76,7 +69,7 @@ function SourcesTable({ className, sources }: Props) {
       textSearchable: true,
       maxWidth: 600,
     },
-    { label: "Type", value: "type" },
+    { label: "Kind", value: "type" },
     { label: "Namespace", value: "namespace" },
     ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
       ? [{ label: "Tenant", value: "tenant" }]
@@ -107,19 +100,19 @@ function SourcesTable({ className, sources }: Props) {
         let text;
         let url;
         let link = false;
-        switch (s.kind) {
-          case FluxObjectKind.KindGitRepository:
+        switch (s.type) {
+          case Kind.GitRepository:
             text = (s as GitRepository).url;
             url = convertGitURLToGitProvider((s as GitRepository).url);
             link = true;
             break;
-          case FluxObjectKind.KindBucket:
+          case Kind.Bucket:
             text = (s as Bucket).endpoint;
             break;
-          case FluxObjectKind.KindOCIRepository:
+          case Kind.OCIRepository:
             text = (s as OCIRepository).url;
             break;
-          case FluxObjectKind.KindHelmRepository:
+          case Kind.HelmRepository:
             text = (s as HelmRepository).url;
             url = text;
             link = true;
@@ -141,7 +134,7 @@ function SourcesTable({ className, sources }: Props) {
     {
       label: "Reference",
       value: (s: Source) => {
-        if (s.kind === FluxObjectKind.KindGitRepository) {
+        if (s.type === Kind.GitRepository) {
           const repo = s as GitRepository;
           const ref =
             repo?.reference?.branch ||
@@ -166,12 +159,11 @@ function SourcesTable({ className, sources }: Props) {
   ];
 
   return (
-    <URLAddressableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
+      hasCheckboxes
       rows={sources}
-      dialogOpen={filterDialogOpen}
-      onDialogClose={() => setFilterDialog(false)}
       fields={fields}
     />
   );

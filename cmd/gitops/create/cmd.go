@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create/dashboard"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/create/terraform"
 )
 
 type CreateCommandFlags struct {
@@ -24,6 +25,14 @@ func GetCommand(opts *config.Options) *cobra.Command {
 gitops create dashboard ww-gitops \
   --password=$PASSWORD \
   --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
+
+# Create a Terraform object
+gitops create terraform my-resource \
+  -n my-namespace \
+  --source GitRepository/my-project \
+  --path ./terraform \
+  --interval 1m \
+  --export > ./clusters/my-cluster/infra/terraform-my-resource.yaml
 		`,
 	}
 
@@ -31,6 +40,7 @@ gitops create dashboard ww-gitops \
 	cmd.PersistentFlags().DurationVar(&flags.Timeout, "timeout", 3*time.Minute, "The timeout for operations during resource creation.")
 
 	cmd.AddCommand(dashboard.DashboardCommand(opts))
+	cmd.AddCommand(terraform.Command(opts))
 
 	return cmd
 }

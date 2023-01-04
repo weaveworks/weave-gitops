@@ -1,0 +1,94 @@
+---
+title: Getting started
+sidebar_position: 1
+hide_title: true
+---
+
+import TierLabel from "../../_components/TierLabel";
+
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Getting started with pipelines <TierLabel tiers="enterprise" />
+
+## Requirements
+:::note Feature toggle
+The Pipelines feature can be enabled or disabled by setting the `enablePipelines` 
+flag in the values for the Weave GitOps Enterprise Helm Chart.
+:::
+
+- You have configured Weave GitOps Enterprise [RBAC for pipelines](../authorization)
+
+## Define a pipeline
+
+A pipeline allows you to define the route your application is taking in order to make it to production.
+There are three main concepts playing in a pipeline:
+- the `application` to deliver
+- the `environments` that your app will go through in its way to production (general)
+- the `deployment targets` or the clusters that each environment has
+
+You can define a delivery pipeline using a `Pipeline` custom resource.
+An example of how it looks for an application `podinfo` is shown below.
+
+```yaml
+apiVersion: pipelines.weave.works/v1alpha1
+kind: Pipeline
+metadata:
+  name: podinfo-02
+  namespace: default
+spec:
+  appRef:
+    apiVersion: helm.toolkit.fluxcd.io/v2beta1
+    kind: HelmRelease
+    name: podinfo
+  environments:
+    - name: dev
+      targets:
+        - namespace: podinfo-02-dev
+          clusterRef:
+            kind: GitopsCluster
+            name: dev
+            namespace: flux-system
+    - name: test
+      targets:
+        - namespace: podinfo-02-qa
+          clusterRef:
+            kind: GitopsCluster
+            name: dev
+            namespace: flux-system
+        - namespace: podinfo-02-perf
+          clusterRef:
+            kind: GitopsCluster
+            name: dev
+            namespace: flux-system
+    - name: prod
+      targets:
+        - namespace: podinfo-02-prod
+          clusterRef:
+            kind: GitopsCluster
+            name: prod
+            namespace: flux-system
+```
+
+In the previous example, `podinfo` application is delivered to a traditional pipeline composed by `dev`, `qa`, `perf` and `production` environments.
+Each environment is backed by a `GitopsCluster` [deployment target](../../../cluster-management/managing-existing-clusters/).
+
+For more details about the spec of a pipeline [see here](spec/v1alpha1/pipeline.mdx)
+
+## View the list of pipelines
+
+Once flux has created your pipeline you can navigate to the pipelines view to see it.
+
+![view pipelines](img/view-pipelines.png)
+
+Pipeline list view show the list of pipelines you have access to. For each pipeline, a simplified view of the pipeline
+is shown with the application `Type` and `Environments` it goes through.
+
+## View the details of a pipeline
+
+Once you have selected a pipeline from the list, you will navigate to its details view.
+In pipeline details view you could view the current status of your application by environment and deployment
+target.
+
+![view pipeline details](img/view-pipeline-details.png)
+

@@ -28,7 +28,7 @@ func TestInvariant(t *testing.T) {
 
 func TestBadAuthMethod(t *testing.T) {
 	method, err := auth.ParseAuthMethod("badMethod")
-	if !strings.HasPrefix(err.Error(), "Unknown auth method") {
+	if !strings.HasPrefix(err.Error(), "unknown auth method") {
 		t.Fatalf("Expected ParseAuthMethod to produce 'Unknown auth method' error, instead got (method='%d', err='%s')", method, err)
 	}
 }

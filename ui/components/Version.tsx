@@ -5,20 +5,23 @@ import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
-export type VersionProps = {
-  className?: string;
-  productName: string;
+export const repoUrl = "https://github.com/weaveworks/weave-gitops";
+
+export const noVersion = "no version";
+
+export type AppVersion = {
   versionText?: string;
   versionHref?: string;
 };
 
-function Version({
-  className,
-  productName,
-  versionText,
-  versionHref,
-}: VersionProps) {
-  const formattedVersionText = versionText || "-";
+export type VersionProps = {
+  className?: string;
+  productName: string;
+  appVersion?: AppVersion;
+};
+
+function Version({ className, productName, appVersion }: VersionProps) {
+  const formattedVersionText = appVersion?.versionText || "-";
 
   return (
     <Flex className={className}>
@@ -26,8 +29,8 @@ function Version({
         {productName}:
       </Text>
       <Spacer padding="xxs" />
-      {versionHref && versionText ? (
-        <Link newTab href={versionHref}>
+      {appVersion?.versionHref && appVersion?.versionText ? (
+        <Link newTab href={appVersion?.versionHref}>
           <Text semiBold>{formattedVersionText}</Text>
         </Link>
       ) : (

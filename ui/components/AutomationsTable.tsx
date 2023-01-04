@@ -1,19 +1,21 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import { Automation } from "../hooks/automations";
-import { FluxObjectKind, HelmRelease } from "../lib/api/core/types.pb";
-import { formatURL } from "../lib/nav";
-import { V2Routes } from "../lib/types";
-import { statusSortHelper, removeKind } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
-import { Field } from "./DataTable";
-import { filterConfig, filterByStatusCallback } from "./FilterableTable";
+import { Kind } from "../lib/api/core/types.pb";
+import { formatURL } from "../lib/nav";
+import { Automation, HelmRelease } from "../lib/objects";
+import { V2Routes } from "../lib/types";
+import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
+import DataTable, {
+  Field,
+  filterByStatusCallback,
+  filterConfig,
+} from "./DataTable";
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -24,11 +26,7 @@ type Props = {
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
-
-  automations = automations.map((a) => {
-    return { ...a, type: removeKind(a.kind) };
-  });
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(automations, "type"),
@@ -55,7 +53,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Name",
       value: (k) => {
         const route =
-          k.kind === FluxObjectKind.KindKustomization
+          k.type === Kind.Kustomization
             ? V2Routes.Kustomization
             : V2Routes.HelmRelease;
         return (
@@ -75,7 +73,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       maxWidth: 600,
     },
     {
-      label: "Type",
+      label: "Kind",
       value: "type",
     },
     {
@@ -91,26 +89,27 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Source",
       value: (a: Automation) => {
-        let sourceKind: FluxObjectKind;
+        let sourceKind: string;
         let sourceName: string;
         let sourceNamespace: string;
 
-        if (a.kind === FluxObjectKind.KindKustomization) {
-          sourceKind = a.sourceRef?.kind;
-          sourceName = a.sourceRef?.name;
-          sourceNamespace = a.sourceRef?.namespace;
+        if (a.type === Kind.Kustomization) {
+          const sourceRef = getSourceRefForAutomation(a);
+          sourceKind = sourceRef?.kind;
+          sourceName = sourceRef?.name;
+          sourceNamespace = sourceRef?.namespace;
         } else {
           const hr = a as HelmRelease;
-          sourceKind = FluxObjectKind.KindHelmChart;
-          sourceName = hr.helmChart.name;
-          sourceNamespace = hr.helmChart.namespace;
+          sourceKind = Kind.HelmChart;
+          sourceName = hr.helmChart?.name;
+          sourceNamespace = hr.helmChart?.namespace;
         }
 
         return (
           <SourceLink
             short
             sourceRef={{
-              kind: sourceKind,
+              kind: Kind[sourceKind],
               name: sourceName,
               namespace: sourceNamespace,
             }}
@@ -118,7 +117,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
           />
         );
       },
-      sortValue: (a: Automation) => a.sourceRef?.name,
+      sortValue: (a: Automation) => getSourceRefForAutomation(a)?.name,
     },
     {
       label: "Status",
@@ -141,7 +140,8 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     },
     {
       label: "Revision",
-      value: "lastAttemptedRevision",
+      maxWidth: 36,
+      value: "lastAppliedRevision",
     },
     {
       label: "Last Updated",
@@ -159,11 +159,12 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
   if (hideSource) fields = _.filter(fields, (f) => f.label !== "Source");
 
   return (
-    <URLAddressableTable
+    <DataTable
       fields={fields}
-      filters={initialFilterState}
       rows={automations}
       className={className}
+      filters={initialFilterState}
+      hasCheckboxes
     />
   );
 }

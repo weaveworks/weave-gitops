@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-var _ = DescribeTable("detectGitProviderFromUrl", func(input string, expected GitProviderName) {
-	result, err := detectGitProviderFromUrl(input, map[string]string{})
+var _ = DescribeTable("detectGitProviderFromURL", func(input string, expected GitProviderName) {
+	result, err := detectGitProviderFromURL(input, map[string]string{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },
@@ -18,10 +18,10 @@ var _ = DescribeTable("detectGitProviderFromUrl", func(input string, expected Gi
 )
 
 var _ = Describe("get owner from url", func() {
-	DescribeTable("getOwnerFromUrl", func(normalizedUrl string, providerName GitProviderName, expected string) {
-		u, err := url.Parse(normalizedUrl)
+	DescribeTable("getOwnerFromURL", func(normalizedURL string, providerName GitProviderName, expected string) {
+		u, err := url.Parse(normalizedURL)
 		Expect(err).NotTo(HaveOccurred())
-		result, err := getOwnerFromUrl(*u, providerName)
+		result, err := getOwnerFromURL(*u, providerName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal(expected))
 	},
@@ -31,28 +31,28 @@ var _ = Describe("get owner from url", func() {
 	)
 
 	It("missing owner", func() {
-		normalizedUrl := "ssh://git@gitlab.com/weave-gitops.git"
-		u, err := url.Parse(normalizedUrl)
+		normalizedURL := "ssh://git@gitlab.com/weave-gitops.git"
+		u, err := url.Parse(normalizedURL)
 		Expect(err).NotTo(HaveOccurred())
-		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		_, err = getOwnerFromURL(*u, GitProviderGitLab)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("could not get owner from url ssh://git@gitlab.com/weave-gitops.git"))
 	})
 
 	It("empty url", func() {
-		normalizedUrl := ""
-		u, err := url.Parse(normalizedUrl)
+		normalizedURL := ""
+		u, err := url.Parse(normalizedURL)
 		Expect(err).NotTo(HaveOccurred())
-		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		_, err = getOwnerFromURL(*u, GitProviderGitLab)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("could not get owner from url "))
 	})
 
 	It("subgroup in a subgroup", func() {
-		normalizedUrl := "ssh://git@gitlab.com/weaveworks/sub_group/another_sub_group/weave-gitops.git"
-		u, err := url.Parse(normalizedUrl)
+		normalizedURL := "ssh://git@gitlab.com/weaveworks/sub_group/another_sub_group/weave-gitops.git"
+		u, err := url.Parse(normalizedURL)
 		Expect(err).NotTo(HaveOccurred())
-		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		_, err = getOwnerFromURL(*u, GitProviderGitLab)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("a subgroup in a subgroup is not currently supported"))
 	})

@@ -4,6 +4,10 @@ metadata:
   name: {{ include "chart.fullname" . }}
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -17,6 +21,9 @@ spec:
       {{- end }}
       labels:
         {{- include "chart.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -64,17 +71,17 @@ spec:
             httpGet:
               path: /
               port: http
+              {{- if .Values.serverTLS.enable }}
+              scheme: HTTPS
+              {{- end }}
           readinessProbe:
             httpGet:
               path: /
               port: http
+              {{- if .Values.serverTLS.enable }}
+              scheme: HTTPS
+              {{- end }}
           env:
-            - name: WEAVE_GITOPS_AUTH_ENABLED
-              value: "true"
-          {{- if .Values.listOCIRepositories }}
-            - name: WEAVE_GITOPS_FEATURE_OCI_REPOSITORIES
-              value: "true"
-          {{- end }}
           {{- if .Values.envVars }}
           {{- with .Values.envVars }}
             {{- toYaml . | nindent 12 }}
@@ -82,18 +89,28 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.serverTLS.enable }}
+          {{- if or .Values.serverTLS.enable .Values.extraVolumeMounts }}
           volumeMounts:
+          {{- end }}
+          {{- if .Values.serverTLS.enable }}
             - name: tls-volume
               readOnly: true
               mountPath: "/etc/tls-volume"
           {{- end }}
-      {{- if .Values.serverTLS.enable }}
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- if or .Values.serverTLS.enable .Values.extraVolumes }}
       volumes:
+      {{- end }}
+      {{- if .Values.serverTLS.enable }}
         - name: tls-volume
           secret:
             secretName: {{ .Values.serverTLS.secretName }}
       {{ end }}
+      {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

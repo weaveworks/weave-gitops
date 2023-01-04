@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
-import CoreClientContextProvider from "../contexts/CoreClientContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   Applications,
   GetGithubAuthStatusRequest,
@@ -26,6 +26,8 @@ import {
   GetReconciledObjectsResponse,
   GetVersionRequest,
   GetVersionResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
@@ -36,6 +38,7 @@ export type CoreOverrides = {
     req: GetReconciledObjectsRequest
   ) => GetReconciledObjectsResponse;
   GetVersion?: (req: GetVersionRequest) => GetVersionResponse;
+  ListObjects?: (req: ListObjectsRequest) => ListObjectsResponse;
 };
 
 export const createCoreMockClient = (
@@ -104,24 +107,26 @@ export function withTheme(element) {
   );
 }
 
-type TestContextProps = AppProps & { api?: Core };
+type TestContextProps = AppProps & { api?: typeof Core };
 
 export function withContext(
   TestComponent,
   url: string,
-  { api = {}, ...appProps }: TestContextProps
+  { api, ...appProps }: TestContextProps
 ) {
   const history = createMemoryHistory();
   history.push(url);
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
       <AppContextProvider renderFooter {...appProps}>
         <QueryClientProvider client={queryClient}>
-          <CoreClientContextProvider api={api as any}>
+          <CoreClientContext.Provider value={{ api, featureFlags: {} }}>
             {isElement ? TestComponent : <TestComponent />}
-          </CoreClientContextProvider>
+          </CoreClientContext.Provider>
         </QueryClientProvider>
       </AppContextProvider>
     </Router>

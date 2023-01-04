@@ -77,7 +77,7 @@ func (sv *HMACTokenSignerVerifier) Verify(tokenString string) (*AdminClaims, err
 	token, err := jwt.ParseWithClaims(tokenString, &AdminClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
 
 			return sv.hmacSecret, nil

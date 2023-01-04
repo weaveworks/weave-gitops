@@ -26,7 +26,7 @@ type RepoURL struct {
 }
 
 func NewRepoURL(uri string) (RepoURL, error) {
-	providerName, err := detectGitProviderFromUrl(uri, ViperGetStringMapString("git-host-types"))
+	providerName, err := detectGitProviderFromURL(uri, ViperGetStringMapString("git-host-types"))
 	if err != nil {
 		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
@@ -41,7 +41,7 @@ func NewRepoURL(uri string) (RepoURL, error) {
 		return RepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
 	}
 
-	owner, err := getOwnerFromUrl(*u, providerName)
+	owner, err := getOwnerFromURL(*u, providerName)
 	if err != nil {
 		return RepoURL{}, fmt.Errorf("could not get owner name from URL %s: %w", uri, err)
 	}
@@ -52,7 +52,7 @@ func NewRepoURL(uri string) (RepoURL, error) {
 	}
 
 	return RepoURL{
-		repoName:   utils.UrlToRepoName(uri),
+		repoName:   utils.URLToRepoName(uri),
 		owner:      owner,
 		url:        u,
 		normalized: normalized,
@@ -85,7 +85,7 @@ func (n RepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
 }
 
-func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) {
+func getOwnerFromURL(url url.URL, providerName GitProviderName) (string, error) {
 	url.Path = strings.TrimPrefix(url.Path, "/")
 
 	parts := strings.Split(url.Path, "/")
@@ -106,9 +106,9 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 	return parts[0], nil
 }
 
-// detectGitProviderFromUrl accepts a url related to a git repo and
+// detectGitProviderFromURL accepts a url related to a git repo and
 // returns the name of the provider associated.
-func detectGitProviderFromUrl(raw string, gitHostTypes map[string]string) (GitProviderName, error) {
+func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitProviderName, error) {
 	u, err := parseGitURL(raw)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)

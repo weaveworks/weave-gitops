@@ -35,6 +35,7 @@ function UnstyledButton({ loading, ...props }: Props) {
       disableElevation={true}
       {...defaultProps}
       {...props}
+      innerRef={props.innerRef}
     />
   );
 }

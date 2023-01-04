@@ -7,8 +7,10 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=0.31.5
-DEV_BUCKET_CONTAINER_IMAGE=ghcr.io/weaveworks/gitops-bucket-server@sha256:b0446a6c645b5d39cf0db558958bf28363aca3ea80dc9d593983173613a4f290
+FLUX_VERSION=0.37.0
+CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
+DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:9fa2a68032b9d67197a3d41a46b5029ffdf9a7bc415e4e7e9794faec8bc3b8e4
+TIER=oss
 
 # Go build args
 GOOS=$(shell which go > /dev/null && go env GOOS)
@@ -18,16 +20,18 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
-				 -X github.com/weaveworks/weave-gitops/pkg/run.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
+				 -X github.com/weaveworks/weave-gitops/pkg/run/watch.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
+				 -X github.com/weaveworks/weave-gitops/pkg/analytics.Tier=$(TIER) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
 				 -X github.com/weaveworks/weave-gitops/core/server.GitCommit=$(GIT_COMMIT) \
-				 -X github.com/weaveworks/weave-gitops/core/server.Version=$(VERSION)
+				 -X github.com/weaveworks/weave-gitops/core/server.Version=$(VERSION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/beta/run.HelmChartVersion=$(CHART_VERSION)
 
 # Docker args
 # LDFLAGS is passed so we don't have to copy the entire .git directory into the image
 # just to get, e.g. the commit hash
-DOCKERARGS:=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
+DOCKERARGS+=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
 # We want to be able to reference this in builds & pushes
 DEFAULT_DOCKER_REPO=localhost:5001
 DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
@@ -57,7 +61,7 @@ unit-tests: ## Run unit tests
 	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
 	# This tool doesn't have releases - it also is only a shim
 	@go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.19.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
+	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.24.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -209,6 +213,9 @@ echo-ldflags:
 
 echo-flux-version:
 	@echo $(FLUX_VERSION)
+
+echo-dev-bucket-container:
+	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

@@ -18,7 +18,7 @@ describe("Text", () => {
     });
     it("with color", () => {
       const tree = renderer
-        .create(withTheme(<Text color="success">some text</Text>))
+        .create(withTheme(<Text color="successOriginal">some text</Text>))
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

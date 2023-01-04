@@ -1,3 +1,0 @@
-{
-    "renderedTemplate": "apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1\nkind: Terraform\nmetadata:\n  name: dev\nspec:\n  interval: 1h\n  path: ./\n  approvePlan: \"auto\"\n  vars:\n    - name: cluster_identifier\n      value: cluster-name\n  sourceRef:\n    kind: GitRepository\n    name: git-repo-name\n    namespace: git-repo-namespace\n"
-}

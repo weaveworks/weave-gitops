@@ -10,15 +10,17 @@ message Interval {
     int64 seconds = 3;
 }
 
-enum FluxObjectKind {
-    KindGitRepository  = 0;
-    KindBucket         = 1;
-    KindHelmRepository = 2;
-    KindHelmChart      = 3;
-    KindKustomization  = 4;
-    KindHelmRelease    = 5;
-    KindCluster        = 6;
-    KindOCIRepository  = 7;
+enum Kind {
+    GitRepository  = 0;
+    Bucket         = 1;
+    HelmRepository = 2;
+    HelmChart      = 3;
+    Kustomization  = 4;
+    HelmRelease    = 5;
+    Cluster        = 6;
+    OCIRepository  = 7;
+    Provider       = 8;
+    Alert          = 9;
 };
 
 enum HelmRepositoryType {
@@ -26,16 +28,11 @@ enum HelmRepositoryType {
     OCI     = 1;
 };
 
-message FluxObjectRef {
-    FluxObjectKind kind      = 1;
-    string         name      = 2;
-    string         namespace = 3;
-}
-
 message ObjectRef {
     string         kind      = 1;
     string         name      = 2;
     string         namespace = 3;
+    string         clusterName = 4;
 }
 
 message Condition {
@@ -60,125 +57,17 @@ message GroupVersionKind {
     string version = 3;
 }
 
-message Kustomization {
-    string        namespace                  = 1;
-    string        name                       = 2;
-    string        path                       = 3;
-    FluxObjectRef sourceRef                  = 4;
-    Interval      interval                   = 5;
-    repeated      Condition conditions       = 6;
-    string        lastAppliedRevision        = 7;
-    string        lastAttemptedRevision      = 8;
-    repeated      GroupVersionKind inventory = 9;
-    bool          suspended                  = 10;
-    string        clusterName                = 11;
-    string        apiVersion                 = 12;
-    string        tenant                     = 17;
+message NamespacedObjectReference {
+    string name      = 1;
+    string namespace = 2;
 }
-
-message HelmChart {
-    string        namespace            = 1;
-    string        name                 = 2;
-    FluxObjectRef sourceRef            = 3;
-    string        chart                = 4;
-    string        version              = 5;
-    Interval      interval             = 6;
-    repeated      Condition conditions = 7;
-    bool          suspended            = 8;
-    string        lastUpdatedAt        = 9;
-    string        clusterName          = 10;
-    string        apiVersion           = 11;
-    string        tenant               = 12;
-}
-
-message HelmRelease {
-    string    releaseName                = 1;
-    string    namespace                  = 2;
-    string    name                       = 3;
-    Interval  interval                   = 4;
-    HelmChart helmChart                  = 5;
-    repeated  Condition conditions       = 6;
-    repeated  GroupVersionKind inventory = 10;
-    bool      suspended                  = 11;
-    string    clusterName                = 12;
-    string    helmChartName              = 13;
-    string    lastAppliedRevision        = 14;
-    string    lastAttemptedRevision      = 15;
-    string    apiVersion                 = 16;
-    string    tenant                     = 17;
-}
-
-message GitRepository {
-    string           namespace            = 1;
-    string           name                 = 2;
-    string           url                  = 3;
-    GitRepositoryRef reference            = 4;
-    string           secretRef            = 5;
-    Interval         interval             = 6;
-    repeated         Condition conditions = 7;
-    bool             suspended            = 8;
-    string           lastUpdatedAt        = 9;
-    string           clusterName          = 10;
-    string           apiVersion           = 11;
-    string           tenant               = 12;
-}
-
-message HelmRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    HelmRepositoryType repositoryType       = 10;
-    string             tenant               = 11;
-}
-
-message Bucket {
-    string   namespace = 1;
-    string   name      = 2;
-    string   endpoint  = 3;
-    bool     insecure  = 4;
-    Interval interval  = 5;
-    enum Provider {
-      Generic = 0;
-      AWS     = 1;
-      GCP     = 2;
-    };
-    Provider provider             = 6;
-    string   region               = 7;
-    string   secretRefName        = 8;
-    int32    timeout              = 9;
-    repeated Condition conditions = 10;
-    string   bucketName           = 11;
-    bool     suspended            = 12;
-    string   lastUpdatedAt        = 13;
-    string   clusterName          = 14;
-    string   apiVersion           = 15;
-    string   tenant               = 16;
-}
-
-message OCIRepository {
-    string             namespace            = 1;
-    string             name                 = 2;
-    string             url                  = 3;
-    Interval           interval             = 4;
-    repeated           Condition conditions = 5;
-    bool               suspended            = 6;
-    string             lastUpdatedAt        = 7;
-    string             clusterName          = 8;
-    string             apiVersion           = 9;
-    string             tenant               = 10;
-}
-
 
 message Object {
-    string payload     = 1;
-    string clusterName = 2;
-    string tenant      = 3;
+    string   payload                    = 1;
+    string   clusterName                = 2;
+    string   tenant                     = 3;
+    string   uid                        = 4;
+    repeated GroupVersionKind inventory = 5;
 }
 
 message Deployment {
@@ -188,6 +77,8 @@ message Deployment {
     repeated string images        = 4;
     bool     suspended            = 5;
     string   clusterName          = 6;
+    string   uid                  = 7;
+    map<string, string> labels    = 8;
 }
 
 message Crd {
@@ -199,19 +90,7 @@ message Crd {
     string   version              = 2;
     string   kind                 = 3;
     string   clusterName          = 4;
-}
-
-// UnstructuredObject is a Kubernetes object of an unknown type
-message UnstructuredObject {
-    GroupVersionKind groupVersionKind     = 1;
-    string           name                 = 2;
-    string           namespace            = 3;
-    string           uid                  = 4;
-    string           status               = 5;
-    repeated         Condition conditions = 6;
-    bool             suspended            = 7;
-    string           clusterName          = 8;
-    repeated         string images        = 9;
+    string   uid                  = 5;
 }
 
 message Namespace {
@@ -230,4 +109,5 @@ message Event {
     string component = 5;
     string host      = 6;
     string name      = 7;
+    string uid       = 8;
 }

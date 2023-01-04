@@ -2,20 +2,24 @@ package run
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func requestReconciliation(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) (string, error) {
+func RequestReconciliation(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName, gvk schema.GroupVersionKind) (string, error) {
 	requestAt := time.Now().Format(time.RFC3339Nano)
 
 	return requestAt, retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
@@ -64,13 +68,72 @@ func IsLocalCluster(kubeClient *kube.KubeHTTP) bool {
 	}
 }
 
-// isPodStatusConditionPresentAndEqual returns true when conditionType is present and equal to status.
-func isPodStatusConditionPresentAndEqual(conditions []corev1.PodCondition, conditionType corev1.PodConditionType, status corev1.ConditionStatus) bool {
-	for _, condition := range conditions {
-		if condition.Type == conditionType {
-			return condition.Status == status
+func GetPodFromResourceDescription(ctx context.Context, namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
+	switch kind {
+	case "pod":
+		pod := &corev1.Pod{}
+		if err := kubeClient.Get(ctx, namespacedName, pod); err != nil {
+			return nil, err
 		}
+
+		return pod, nil
+	case "service":
+		svc := &corev1.Service{}
+		if err := kubeClient.Get(ctx, namespacedName, svc); err != nil {
+			return nil, fmt.Errorf("error getting service: %s, namespaced Name: %v", err, namespacedName)
+		}
+
+		// list pods of the service "svc" by selector in a specific namespace using the controller-runtime client
+		podList := &corev1.PodList{}
+		if err := kubeClient.List(ctx, podList,
+			client.MatchingLabelsSelector{
+				Selector: labels.Set(svc.Spec.Selector).AsSelector(),
+			},
+			client.InNamespace(svc.Namespace),
+		); err != nil {
+			return nil, err
+		}
+
+		if len(podList.Items) == 0 {
+			return nil, ErrNoPodsForService
+		}
+
+		for _, pod := range podList.Items {
+			if pod.Status.Phase == corev1.PodRunning {
+				return &pod, nil
+			}
+		}
+
+		return nil, ErrNoRunningPodsForService
+	case "deployment":
+		deployment := &appsv1.Deployment{}
+		if err := kubeClient.Get(ctx, namespacedName, deployment); err != nil {
+			return nil, fmt.Errorf("error getting deployment: %s, namespaced Name: %v", err, namespacedName)
+		}
+
+		// list pods of the deployment "deployment" by selector in a specific namespace using the controller-runtime client
+		podList := &corev1.PodList{}
+		if err := kubeClient.List(ctx, podList,
+			client.MatchingLabelsSelector{
+				Selector: labels.Set(deployment.Spec.Selector.MatchLabels).AsSelector(),
+			},
+			client.InNamespace(deployment.Namespace),
+		); err != nil {
+			return nil, err
+		}
+
+		if len(podList.Items) == 0 {
+			return nil, ErrNoPodsForDeployment
+		}
+
+		for _, pod := range podList.Items {
+			if pod.Status.Phase == corev1.PodRunning {
+				return &pod, nil
+			}
+		}
+
+		return nil, ErrNoRunningPodsForDeployment
 	}
 
-	return false
+	return nil, errors.New("unsupported spec kind")
 }

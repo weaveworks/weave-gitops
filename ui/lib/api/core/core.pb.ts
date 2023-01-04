@@ -17,72 +17,6 @@ export type ListError = {
   message?: string
 }
 
-export type ListKustomizationsRequest = {
-  namespace?: string
-  pagination?: Pagination
-}
-
-export type ListKustomizationsResponse = {
-  kustomizations?: Gitops_coreV1Types.Kustomization[]
-  nextPageToken?: string
-  errors?: ListError[]
-}
-
-export type ListHelmReleasesRequest = {
-  namespace?: string
-}
-
-export type ListHelmReleasesResponse = {
-  helmReleases?: Gitops_coreV1Types.HelmRelease[]
-  errors?: ListError[]
-}
-
-export type GetHelmReleaseRequest = {
-  name?: string
-  namespace?: string
-  clusterName?: string
-}
-
-export type GetHelmReleaseResponse = {
-  helmRelease?: Gitops_coreV1Types.HelmRelease
-}
-
-export type ListGitRepositoriesRequest = {
-  namespace?: string
-}
-
-export type ListGitRepositoriesResponse = {
-  gitRepositories?: Gitops_coreV1Types.GitRepository[]
-  errors?: ListError[]
-}
-
-export type ListHelmRepositoriesRequest = {
-  namespace?: string
-}
-
-export type ListHelmRepositoriesResponse = {
-  helmRepositories?: Gitops_coreV1Types.HelmRepository[]
-  errors?: ListError[]
-}
-
-export type ListBucketRequest = {
-  namespace?: string
-}
-
-export type ListBucketsResponse = {
-  buckets?: Gitops_coreV1Types.Bucket[]
-  errors?: ListError[]
-}
-
-export type ListOCIRepositoriesRequest = {
-  namespace?: string
-}
-
-export type ListOCIRepositoriesResponse = {
-  ociRepositories?: Gitops_coreV1Types.OCIRepository[]
-  errors?: ListError[]
-}
-
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
@@ -102,25 +36,6 @@ export type ListFluxCrdsResponse = {
   errors?: ListError[]
 }
 
-export type ListHelmChartsRequest = {
-  namespace?: string
-}
-
-export type ListHelmChartsResponse = {
-  helmCharts?: Gitops_coreV1Types.HelmChart[]
-  errors?: ListError[]
-}
-
-export type GetKustomizationRequest = {
-  name?: string
-  namespace?: string
-  clusterName?: string
-}
-
-export type GetKustomizationResponse = {
-  kustomization?: Gitops_coreV1Types.Kustomization
-}
-
 export type GetObjectRequest = {
   name?: string
   namespace?: string
@@ -132,16 +47,28 @@ export type GetObjectResponse = {
   object?: Gitops_coreV1Types.Object
 }
 
+export type ListObjectsRequest = {
+  namespace?: string
+  kind?: string
+  clusterName?: string
+  labels?: {[key: string]: string}
+}
+
+export type ListObjectsResponse = {
+  objects?: Gitops_coreV1Types.Object[]
+  errors?: ListError[]
+}
+
 export type GetReconciledObjectsRequest = {
   automationName?: string
   namespace?: string
-  automationKind?: Gitops_coreV1Types.FluxObjectKind
+  automationKind?: string
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }
 
 export type GetReconciledObjectsResponse = {
-  objects?: Gitops_coreV1Types.UnstructuredObject[]
+  objects?: Gitops_coreV1Types.Object[]
 }
 
 export type GetChildObjectsRequest = {
@@ -152,7 +79,7 @@ export type GetChildObjectsRequest = {
 }
 
 export type GetChildObjectsResponse = {
-  objects?: Gitops_coreV1Types.UnstructuredObject[]
+  objects?: Gitops_coreV1Types.Object[]
 }
 
 export type GetFluxNamespaceRequest = {
@@ -178,10 +105,7 @@ export type ListEventsResponse = {
 }
 
 export type SyncFluxObjectRequest = {
-  name?: string
-  namespace?: string
-  kind?: Gitops_coreV1Types.FluxObjectKind
-  clusterName?: string
+  objects?: Gitops_coreV1Types.ObjectRef[]
   withSource?: boolean
 }
 
@@ -208,46 +132,31 @@ export type GetFeatureFlagsResponse = {
 }
 
 export type ToggleSuspendResourceRequest = {
-  kind?: Gitops_coreV1Types.FluxObjectKind
-  name?: string
-  namespace?: string
-  clusterName?: string
+  objects?: Gitops_coreV1Types.ObjectRef[]
   suspend?: boolean
 }
 
 export type ToggleSuspendResourceResponse = {
 }
 
+export type GetSessionLogsRequest = {
+  sessionId?: string
+  token?: string
+  clusterName?: string
+  namespace?: string
+}
+
+export type GetSessionLogsResponse = {
+  logs?: string[]
+  nextToken?: string
+}
+
 export class Core {
-  static ListKustomizations(req: ListKustomizationsRequest, initReq?: fm.InitReq): Promise<ListKustomizationsResponse> {
-    return fm.fetchReq<ListKustomizationsRequest, ListKustomizationsResponse>(`/v1/kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetKustomization(req: GetKustomizationRequest, initReq?: fm.InitReq): Promise<GetKustomizationResponse> {
-    return fm.fetchReq<GetKustomizationRequest, GetKustomizationResponse>(`/v1/kustomizations/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
-  }
-  static ListHelmReleases(req: ListHelmReleasesRequest, initReq?: fm.InitReq): Promise<ListHelmReleasesResponse> {
-    return fm.fetchReq<ListHelmReleasesRequest, ListHelmReleasesResponse>(`/v1/helmreleases?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetHelmRelease(req: GetHelmReleaseRequest, initReq?: fm.InitReq): Promise<GetHelmReleaseResponse> {
-    return fm.fetchReq<GetHelmReleaseRequest, GetHelmReleaseResponse>(`/v1/helmrelease/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
-  }
-  static ListGitRepositories(req: ListGitRepositoriesRequest, initReq?: fm.InitReq): Promise<ListGitRepositoriesResponse> {
-    return fm.fetchReq<ListGitRepositoriesRequest, ListGitRepositoriesResponse>(`/v1/gitrepositories?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListHelmCharts(req: ListHelmChartsRequest, initReq?: fm.InitReq): Promise<ListHelmChartsResponse> {
-    return fm.fetchReq<ListHelmChartsRequest, ListHelmChartsResponse>(`/v1/helmcharts?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListHelmRepositories(req: ListHelmRepositoriesRequest, initReq?: fm.InitReq): Promise<ListHelmRepositoriesResponse> {
-    return fm.fetchReq<ListHelmRepositoriesRequest, ListHelmRepositoriesResponse>(`/v1/helmrepositories?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListBuckets(req: ListBucketRequest, initReq?: fm.InitReq): Promise<ListBucketsResponse> {
-    return fm.fetchReq<ListBucketRequest, ListBucketsResponse>(`/v1/buckets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListOCIRepositories(req: ListOCIRepositoriesRequest, initReq?: fm.InitReq): Promise<ListOCIRepositoriesResponse> {
-    return fm.fetchReq<ListOCIRepositoriesRequest, ListOCIRepositoriesResponse>(`/v1/oci?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static ListObjects(req: ListObjectsRequest, initReq?: fm.InitReq): Promise<ListObjectsResponse> {
+    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
     return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -281,5 +190,8 @@ export class Core {
   }
   static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
     return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetSessionLogs(req: GetSessionLogsRequest, initReq?: fm.InitReq): Promise<GetSessionLogsResponse> {
+    return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session_logs`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

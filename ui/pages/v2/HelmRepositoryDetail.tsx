@@ -3,7 +3,8 @@ import styled from "styled-components";
 import HelmRepositoryDetailComponent from "../../components/HelmRepositoryDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { HelmRepository, Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { HelmRepository } from "../../lib/objects";
 
 type Props = {
   className?: string;
@@ -30,7 +31,7 @@ function HelmRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <HelmRepositoryDetailComponent helmRepository={helmRepository} />
     </Page>
   );

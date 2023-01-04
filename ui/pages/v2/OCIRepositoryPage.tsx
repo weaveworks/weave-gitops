@@ -3,7 +3,8 @@ import styled from "styled-components";
 import OCIRepositoryDetail from "../../components/OCIRepositoryDetail";
 import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
-import { OCIRepository, Kind } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
+import { OCIRepository } from "../../lib/objects";
 
 type Props = {
   className?: string;
@@ -25,7 +26,7 @@ function OCIRepositoryPage({ className, name, namespace, clusterName }: Props) {
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className} title={name}>
+    <Page error={error} loading={isLoading} className={className}>
       <OCIRepositoryDetail ociRepository={ociRepository} />
     </Page>
   );

@@ -20,96 +20,23 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service Core {
-    // Automations
-
-    /*
-     * ListKustomization lists Kustomizations from a cluster via GitOps.
-     */
-    rpc ListKustomizations(ListKustomizationsRequest) returns (ListKustomizationsResponse) {
-        option (google.api.http) = {
-            get : "/v1/kustomizations"
-        };
-    }
-
-    /*
-    * GetKustomization gets data about a single Kustomization from a cluster.
-    */
-    rpc GetKustomization(GetKustomizationRequest) returns (GetKustomizationResponse) {
-        option (google.api.http) = {
-            get : "/v1/kustomizations/{name}"
-        };
-    }
-
-    /*
-     * ListHelmReleases lists helm releases from a cluster.
-     */
-    rpc ListHelmReleases(ListHelmReleasesRequest) returns (ListHelmReleasesResponse) {
-        option (google.api.http) = {
-          get : "/v1/helmreleases"
-        };
-    }
-
-
-    /*
-     * GetHelmRelease gets data about a single HelmRelease from the cluster.
-     */
-    rpc GetHelmRelease(GetHelmReleaseRequest) returns (GetHelmReleaseResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmrelease/{name}"
-        };
-    }
-
-
-    // Sources
-
-    /*
-     * ListGitRepository lists git repositories objects from a cluster.
-     */
-    rpc ListGitRepositories(ListGitRepositoriesRequest) returns (ListGitRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/gitrepositories"
-        };
-    }
-
-    /*
-     * ListHelmCharts lists helm chart objects from a cluster.
-     */
-    rpc ListHelmCharts(ListHelmChartsRequest) returns (ListHelmChartsResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmcharts"
-        };
-    }
-    /*
-     * ListHelmRepository lists helm repository objects from a cluster.
-     */
-    rpc ListHelmRepositories(ListHelmRepositoriesRequest) returns (ListHelmRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/helmrepositories"
-        };
-    }
-    /*
-     * ListBuckets lists bucket objects from a cluster.
-     */
-    rpc ListBuckets(ListBucketRequest) returns (ListBucketsResponse) {
-        option (google.api.http) = {
-            get : "/v1/buckets"
-        };
-    }
-    /*
-     * ListOCIRepositories lists OCI repository objects from a cluster.
-     */
-    rpc ListOCIRepositories(ListOCIRepositoriesRequest) returns (ListOCIRepositoriesResponse) {
-        option (google.api.http) = {
-            get : "/v1/oci"
-        };
-    }
-
     /*
     * GetObject gets data about a single primary object from a cluster.
     */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
-            get : "/v1/object/{name}"
+            get: "/v1/object/{name}"
+        };
+    }
+
+
+    /*
+    * ListObjects gets data about primary objects.
+    */
+    rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+        option (google.api.http) = {
+            post: "/v1/objects"
+            body: "*"
         };
     }
 
@@ -119,14 +46,14 @@ service Core {
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest) returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
-          get : "/v1/flux_runtime_objects"
+            get: "/v1/flux_runtime_objects"
         };
     }
 
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
-            get : "/v1/flux_crds"
-          };
+            get: "/v1/flux_crds"
+        };
     }
 
     /**
@@ -135,7 +62,7 @@ service Core {
     */
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/reconciled_objects"
+            post: "/v1/reconciled_objects"
             body: "*"
         };
     };
@@ -146,7 +73,7 @@ service Core {
     */
     rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/child_objects"
+            post: "/v1/child_objects"
             body: "*"
         };
     };
@@ -202,7 +129,7 @@ service Core {
     */
     rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
-            get : "/v1/featureflags"
+            get: "/v1/featureflags"
         };
     }
 
@@ -212,6 +139,16 @@ service Core {
     rpc ToggleSuspendResource(ToggleSuspendResourceRequest) returns (ToggleSuspendResourceResponse) {
         option (google.api.http) = {
             post: "/v1/suspend"
+            body: "*"
+        };
+    }
+
+    /*
+     * GetSessionLogs returns the logs for a given session
+     */
+    rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
+        option (google.api.http) = {
+            post: "/v1/session_logs"
             body: "*"
         };
     }
@@ -228,71 +165,6 @@ message ListError {
     string message = 3;
 }
 
-message ListKustomizationsRequest {
-    string namespace = 1;
-    Pagination pagination = 2;
-}
-
-message ListKustomizationsResponse {
-    repeated Kustomization kustomizations = 1;
-    string nextPageToken = 2;
-    repeated ListError errors = 3;
-}
-
-message ListHelmReleasesRequest {
-    string namespace = 1;
-}
-
-message ListHelmReleasesResponse {
-    repeated HelmRelease helmReleases = 1;
-    repeated ListError errors = 2;
-}
-
-message GetHelmReleaseRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string clusterName = 3;
-}
-
-message GetHelmReleaseResponse {
-    HelmRelease helmRelease = 1;
-}
-
-message ListGitRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListGitRepositoriesResponse {
-    repeated GitRepository gitRepositories = 1;
-    repeated ListError errors = 2;
-}
-
-message ListHelmRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListHelmRepositoriesResponse {
-    repeated HelmRepository helmRepositories = 1;
-    repeated ListError errors = 2;
-}
-
-message ListBucketRequest {
-    string namespace = 1;
-}
-
-message ListBucketsResponse {
-    repeated Bucket buckets = 1;
-    repeated ListError errors = 2;
-}
-
-message ListOCIRepositoriesRequest {
-    string namespace = 1;
-}
-
-message ListOCIRepositoriesResponse {
-    repeated OCIRepository ociRepositories = 1;
-    repeated ListError errors = 2;
-}
 message ListFluxRuntimeObjectsRequest {
     string namespace   = 1;
     string clusterName = 2;
@@ -312,25 +184,6 @@ message ListFluxCrdsResponse {
     repeated ListError errors = 2;
 }
 
-message ListHelmChartsRequest {
-    string namespace = 1;
-}
-
-message ListHelmChartsResponse {
-    repeated HelmChart helmCharts = 1;
-    repeated ListError errors = 2;
-}
-
-message GetKustomizationRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string clusterName = 3;
-}
-
-message GetKustomizationResponse {
-    Kustomization kustomization = 1;
-}
-
 message GetObjectRequest {
     string name        = 1;
     string namespace   = 2;
@@ -342,16 +195,28 @@ message GetObjectResponse {
     Object object = 1;
 }
 
+message ListObjectsRequest {
+    string namespace   = 1;
+    string kind        = 2;
+    string clusterName = 3;
+    map<string, string> labels = 4;
+}
+
+message ListObjectsResponse {
+    repeated Object objects = 1;
+    repeated ListError errors = 2;
+}
+
 message GetReconciledObjectsRequest {
     string         automationName         = 1;
     string         namespace              = 2;
-    FluxObjectKind automationKind         = 3;
+    string         automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;
     string         clusterName            = 5;
 }
 
 message GetReconciledObjectsResponse {
-    repeated UnstructuredObject objects = 1;
+    repeated Object objects = 1;
 }
 
 message GetChildObjectsRequest {
@@ -362,7 +227,7 @@ message GetChildObjectsRequest {
 }
 
 message GetChildObjectsResponse {
-    repeated UnstructuredObject objects = 1;
+    repeated Object objects = 1;
 }
 
 message GetFluxNamespaceRequest {}
@@ -378,7 +243,7 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    ObjectRef involvedObject = 2;
+    ObjectRef involvedObject = 1;
 }
 
 message ListEventsResponse {
@@ -386,11 +251,8 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    string         name        = 1;
-    string         namespace   = 2;
-    FluxObjectKind kind        = 3;
-    string         clusterName = 4;
-    bool           withSource  = 5;
+    repeated ObjectRef objects    = 1;
+    bool               withSource = 2;
 }
 
 message SyncFluxObjectResponse {
@@ -414,13 +276,21 @@ message GetFeatureFlagsResponse {
 }
 
 message ToggleSuspendResourceRequest {
-    FluxObjectKind kind        = 1;
-    string         name        = 2;
-    string         namespace   = 3;
-    string         clusterName = 4;
-    bool           suspend     = 5;
+    repeated ObjectRef objects = 1;
+    bool               suspend = 2;
 }
 
 message ToggleSuspendResourceResponse {
+}
 
+message GetSessionLogsRequest {
+    string sessionId   = 1;
+    string token       = 2;
+    string clusterName = 3;
+    string namespace   = 4;
+}
+
+message GetSessionLogsResponse {
+    repeated string logs = 1;
+    string nextToken     = 2;
 }

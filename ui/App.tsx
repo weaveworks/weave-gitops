@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
-import Pendo from "./components/Pendo";
+import PendoContainer from "./components/PendoContainer";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -29,9 +29,11 @@ import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
-import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
 import KustomizationPage from "./pages/v2/KustomizationPage";
+import Notifications from "./pages/v2/Notifications";
+import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
+import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,7 @@ function withSearchParams(Cmp) {
 
 const App = () => (
   <Layout>
+    <PendoContainer />
     <ErrorBoundary>
       <Switch>
         <Route exact path={V2Routes.Automations} component={Automations} />
@@ -79,6 +82,14 @@ const App = () => (
           path={V2Routes.OCIRepository}
           component={withSearchParams(OCIRepositoryPage)}
         />
+        <Route
+          path={V2Routes.Notifications}
+          component={withSearchParams(Notifications)}
+        />
+        <Route
+          path={V2Routes.Provider}
+          component={withSearchParams(ProviderPage)}
+        />
         <Redirect exact from="/" to={V2Routes.Automations} />
         <Route exact path="*" component={Error} />
       </Switch>
@@ -102,10 +113,11 @@ export default function AppContainer() {
             <AppContextProvider renderFooter>
               <AuthContextProvider>
                 <CoreClientContextProvider api={Core}>
-                  <Pendo />
                   <Switch>
                     {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                    <Route component={SignIn} exact path="/sign_in" />
+                    <Route exact path="/sign_in">
+                      <SignIn />
+                    </Route>
                     <Route path="*">
                       {/* Check we've got a logged in user otherwise redirect back to signin */}
                       <AuthCheck>

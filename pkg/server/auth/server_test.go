@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -34,7 +34,7 @@ var httpClient = &http.Client{
 }
 
 func TestCallbackAllowsGet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodPost,
@@ -59,7 +59,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 }
 
 func TestCallbackErrorFromOIDC(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -71,7 +71,7 @@ func TestCallbackErrorFromOIDC(t *testing.T) {
 }
 
 func TestCallbackCodeIsEmpty(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -83,7 +83,7 @@ func TestCallbackCodeIsEmpty(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotSet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -95,7 +95,7 @@ func TestCallbackStateCookieNotSet(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotValid(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -112,7 +112,7 @@ func TestCallbackStateCookieNotValid(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -129,7 +129,7 @@ func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 }
 
 func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -148,7 +148,7 @@ func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 }
 
 func TestCallbackCodeExchangeError(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
@@ -171,7 +171,7 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 }
 
 func TestSignInAllowsPOST(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodGet,
@@ -199,7 +199,7 @@ func TestSignInAllowsPOST(t *testing.T) {
 }
 
 func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	if err != nil {
@@ -215,14 +215,14 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(string(b)).To(ContainSubstring("Failed to read request body."))
 }
 
 func TestSignInNoSecret(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -242,7 +242,7 @@ func TestSignInNoSecret(t *testing.T) {
 }
 
 func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	username := "admin"
 	password := "my-secret-password"
@@ -286,7 +286,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 }
 
 func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	password := "my-secret-password"
 
@@ -327,7 +327,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 }
 
 func TestSingInCorrectPassword(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	password := "my-secret-password"
 
@@ -382,7 +382,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 }
 
 func TestUserInfoAllowsGET(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	methods := []string{
 		http.MethodPost,
@@ -398,7 +398,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/userinfo", nil)
 		w := httptest.NewRecorder()
-		s.UserInfo().ServeHTTP(w, req)
+		s.UserInfo(w, req)
 
 		resp := w.Result()
 		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
@@ -407,19 +407,19 @@ func TestUserInfoAllowsGET(t *testing.T) {
 }
 
 func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func TestUserInfoAdminFlow(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -447,7 +447,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -459,7 +459,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 }
 
 func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -488,7 +488,7 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -500,7 +500,7 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 }
 
 func TestUserInfoAdminFlowBadCookie(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -526,7 +526,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -544,15 +544,16 @@ func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map
 		code  = "mnopqr"
 	)
 
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
-	authorizeQuery := url.Values{}
-	authorizeQuery.Set("client_id", m.Config().ClientID)
-	authorizeQuery.Set("scope", "openid email profile groups")
-	authorizeQuery.Set("response_type", "code")
-	authorizeQuery.Set("redirect_uri", "https://example.com/oauth2/callback")
-	authorizeQuery.Set("state", state)
-	authorizeQuery.Set("nonce", nonce)
+	authorizeQuery := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"scope":         "openid email profile groups",
+		"response_type": "code",
+		"redirect_uri":  "https://example.com/oauth2/callback",
+		"state":         state,
+		"nonce":         nonce,
+	})
 
 	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
 	g.Expect(err).NotTo(HaveOccurred())
@@ -573,11 +574,12 @@ func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map
 	g.Expect(appRedirect.Query().Get("code")).To(Equal(code))
 	g.Expect(appRedirect.Query().Get("state")).To(Equal(state))
 
-	tokenForm := url.Values{}
-	tokenForm.Set("client_id", m.Config().ClientID)
-	tokenForm.Set("client_secret", m.Config().ClientSecret)
-	tokenForm.Set("grant_type", "authorization_code")
-	tokenForm.Set("code", code)
+	tokenForm := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"client_secret": m.Config().ClientSecret,
+		"grant_type":    "authorization_code",
+		"code":          code,
+	})
 
 	tokenReq, err := http.NewRequest(
 		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
@@ -589,7 +591,7 @@ func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map
 	g.Expect(tokenResp.StatusCode).To(Equal(http.StatusOK))
 
 	defer tokenResp.Body.Close()
-	body, err := ioutil.ReadAll(tokenResp.Body)
+	body, err := io.ReadAll(tokenResp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	tokens := make(map[string]interface{})
@@ -622,7 +624,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.UserInfo().ServeHTTP(w, req)
+	s.UserInfo(w, req)
 
 	resp := w.Result()
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -631,6 +633,93 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
 	g.Expect(info.Email).To(Equal("jane.doe@example.com"))
+}
+
+func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
+	const (
+		state = "abcdef"
+		nonce = "ghijkl"
+		code  = "mnopqr"
+	)
+
+	g := NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	authServer, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	authorizeQuery := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"scope":         "openid email profile groups",
+		"response_type": "code",
+		"redirect_uri":  "https://example.com/oauth2/callback",
+		"state":         state,
+		"nonce":         nonce,
+	})
+
+	authorizeURL, err := url.Parse(m.AuthorizationEndpoint())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	authorizeURL.RawQuery = authorizeQuery.Encode()
+
+	authorizeReq, err := http.NewRequest(http.MethodGet, authorizeURL.String(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	m.QueueCode(code)
+
+	authorizeResp, err := httpClient.Do(authorizeReq)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(authorizeResp.StatusCode).To(Equal(http.StatusFound))
+
+	tokenForm := valuesFromMap(map[string]string{
+		"client_id":     m.Config().ClientID,
+		"client_secret": m.Config().ClientSecret,
+		"grant_type":    "authorization_code",
+		"code":          code,
+	})
+
+	tokenReq, err := http.NewRequest(
+		http.MethodPost, m.TokenEndpoint(), bytes.NewBufferString(tokenForm.Encode()))
+	g.Expect(err).NotTo(HaveOccurred())
+	tokenReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := httpClient.Do(tokenReq)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	defer tokenResp.Body.Close()
+
+	body, err := io.ReadAll(tokenResp.Body)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	tokens := make(map[string]interface{})
+	g.Expect(json.Unmarshal(body, &tokens)).To(Succeed())
+
+	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
+	g.Expect(err).NotTo(HaveOccurred())
+
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.IDTokenCookieName,
+		Value: idToken.Raw,
+	})
+
+	w := httptest.NewRecorder()
+	authServer.OIDCConfig.ClaimsConfig = &auth.ClaimsConfig{
+		Username: "preferred_username",
+		Groups:   "groups",
+	}
+
+	authServer.UserInfo(w, req)
+
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	var info auth.UserInfo
+
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.Email).To(Equal("jane.doe"))
+	g.Expect(info.ID).To(Equal("jane.doe"))
 }
 
 func TestRefresh(t *testing.T) {
@@ -697,7 +786,7 @@ func TestRefreshInvalidToken(t *testing.T) {
 }
 
 func TestLogoutSuccess(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -739,7 +828,7 @@ func TestLogoutSuccess(t *testing.T) {
 }
 
 func TestLogoutWithWrongMethod(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -765,7 +854,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 
 func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod) (*auth.AuthServer, *mockoidc.MockOIDC) {
 	t.Helper()
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	featureflags.Set("OIDC_AUTH", "") // Reset this
 
@@ -803,7 +892,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 }
 
 func TestAuthMethods(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	featureflags.Set("OIDC_AUTH", "")
 	featureflags.Set("CLUSTER_USER_AUTH", "")
@@ -863,4 +952,73 @@ func TestAuthMethods(t *testing.T) {
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+}
+
+func TestNewOIDCConfigFromSecret(t *testing.T) {
+	configTests := []struct {
+		name string
+		data map[string][]byte
+		want auth.OIDCConfig
+	}{
+		{
+			name: "basic fields",
+			data: map[string][]byte{
+				"issuerURL":     []byte("https://example.com/test"),
+				"clientID":      []byte("test-client-id"),
+				"clientSecret":  []byte("test-client-secret"),
+				"redirectURL":   []byte("https://example.com/redirect"),
+				"tokenDuration": []byte("10m"),
+			},
+			want: auth.OIDCConfig{
+				IssuerURL:     "https://example.com/test",
+				ClientID:      "test-client-id",
+				ClientSecret:  "test-client-secret",
+				RedirectURL:   "https://example.com/redirect",
+				TokenDuration: time.Minute * 10,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "bad duration defaults to 1 hour",
+			data: map[string][]byte{
+				"tokenDuration": []byte("10x"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+			},
+		},
+		{
+			name: "overridden claims",
+			data: map[string][]byte{
+				"claimUsername": []byte("test-user"),
+				"claimGroups":   []byte("test-groups"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig: &auth.ClaimsConfig{
+					Username: "test-user", Groups: "test-groups",
+				},
+			},
+		},
+	}
+
+	for _, tt := range configTests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := auth.NewOIDCConfigFromSecret(corev1.Secret{Data: tt.data})
+
+			if diff := cmp.Diff(tt.want, cfg); diff != "" {
+				t.Fatalf("failed to parse config from secret:\n%s", diff)
+			}
+		})
+	}
+}
+
+func valuesFromMap(data map[string]string) url.Values {
+	vals := url.Values{}
+	for k, v := range data {
+		vals.Set(k, v)
+	}
+
+	return vals
 }

@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"fmt"
+
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -41,7 +43,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "Kustomization",
+			Kind:      kustomizev1.KustomizationKind,
 			Namespace: ns.Name,
 			Name:      kustomizationObjectName,
 		},
@@ -57,7 +59,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "HelmRelease",
+			Kind:      helmv2.HelmReleaseKind,
 			Namespace: ns.Name,
 			Name:      helmObjectName,
 		},
@@ -73,7 +75,7 @@ func TestListEvents(t *testing.T) {
 			Namespace: ns.Name,
 		},
 		InvolvedObject: corev1.ObjectReference{
-			Kind:      "Kustomization",
+			Kind:      kustomizev1.KustomizationKind,
 			Namespace: ns.Name,
 			Name:      "someotherobject",
 		},
@@ -100,6 +102,21 @@ func TestListEvents(t *testing.T) {
 
 	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
 
+	// Get kustomization events, explicit cluster
+	res, err = c.ListEvents(ctx, &pb.ListEventsRequest{
+		InvolvedObject: &pb.ObjectRef{
+			Name:        kustomizationObjectName,
+			Namespace:   ns.Name,
+			Kind:        kustomizev1.KustomizationKind,
+			ClusterName: "Default",
+		},
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(res.Events).To(HaveLen(1))
+
+	g.Expect(res.Events[0].Component).To(Equal(kustomizeEvent.Source.Component))
+
 	// Get helmrelease events
 	res, err = c.ListEvents(ctx, &pb.ListEventsRequest{
 		InvolvedObject: &pb.ObjectRef{
@@ -113,4 +130,13 @@ func TestListEvents(t *testing.T) {
 	g.Expect(res.Events).To(HaveLen(1))
 
 	g.Expect(res.Events[0].Component).To(Equal(helmEvent.Source.Component))
+}
+
+func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
+	ns := &corev1.Namespace{}
+	ns.Name = "kube-test-" + rand.String(5)
+
+	g.Expect(k.Create(ctx, ns)).To(Succeed())
+
+	return ns
 }

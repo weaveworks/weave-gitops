@@ -43,7 +43,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "installation",
+          docId: "installation/index",
           position: "left",
           label: "Installation",
         },
@@ -52,6 +52,11 @@ module.exports = {
           docId: "getting-started",
           position: "left",
           label: "Getting Started",
+        },
+        {
+          to: 'security',
+          label: 'Security',
+          position: 'left',
         },
         {
           type: "docsVersionDropdown",
@@ -73,7 +78,7 @@ module.exports = {
           items: [
             {
               label: "Contact Us",
-              href: "mailto:support@weave.works",
+              href: "mailto:sales@weave.works",
             },
           ],
         },

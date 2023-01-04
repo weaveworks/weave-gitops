@@ -21,6 +21,10 @@ describe("Metadata", () => {
                 ["link-to-google", "https://google.com"],
                 ["multi-lines", "This is first line\nThis is second line\n"],
               ]}
+              labels={[
+                ["label", "label"],
+                ["goose", "goose"],
+              ]}
             />
           )
         )

@@ -6,12 +6,15 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -208,41 +211,75 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 
 		g.Expect(filtered).To(HaveLen(1))
 	})
-	t.Run("works when a user has * permissions on a resource", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
-		defer removeNs(t, adminClient, ns)
-
-		userName = userName + "-" + rand.String(5)
-
-		roleName := makeRole(ns)
-
-		roleRules := []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"secrets", "events", "namespaces"},
-				Verbs:     []string{"*"},
+	t.Run("works when a user has * permissions on api/group/verb", func(t *testing.T) {
+		testCases := map[string][]rbacv1.PolicyRule{
+			"_ _ *": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"secrets", "events", "namespaces"},
+					Verbs:     []string{"*"},
+				},
+			},
+			"_ * _": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"*"},
+					Verbs:     []string{"get", "list"},
+				},
+			},
+			"* _ _": {
+				{
+					APIGroups: []string{"*"},
+					Resources: []string{"secrets", "events", "namespaces"},
+					Verbs:     []string{"get", "list"},
+				},
+			},
+			"_ * *": {
+				{
+					APIGroups: []string{""},
+					Resources: []string{"*"},
+					Verbs:     []string{"*"},
+				},
+			},
+			"* * *": {
+				{
+					APIGroups: []string{"*"},
+					Resources: []string{"*"},
+					Verbs:     []string{"*"},
+				},
 			},
 		}
 
-		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+		for name, roleRules := range testCases {
+			t.Run(name, func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+				defer removeNs(t, adminClient, ns)
 
-		requiredRules := []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"secrets", "events", "namespaces"},
-				Verbs:     []string{"get", "list"},
-			},
+				userName = userName + "-" + rand.String(5)
+
+				roleName := makeRole(ns)
+
+				userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+				requiredRules := []rbacv1.PolicyRule{
+					{
+						APIGroups: []string{""},
+						Resources: []string{"secrets", "events", "namespaces"},
+						Verbs:     []string{"get", "list"},
+					},
+				}
+
+				list := &corev1.NamespaceList{}
+				g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+				checker := NewChecker(requiredRules)
+				filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+				g.Expect(err).NotTo(HaveOccurred())
+
+				g.Expect(filtered).To(HaveLen(1))
+			})
 		}
-
-		list := &corev1.NamespaceList{}
-		g.Expect(adminClient.List(ctx, list)).To(Succeed())
-
-		checker := NewChecker(requiredRules)
-		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
-		g.Expect(err).NotTo(HaveOccurred())
-
-		g.Expect(filtered).To(HaveLen(1))
 	})
 }
 
@@ -290,7 +327,7 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 	}
 }
 
-func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) *rest.Config {
+func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.NamespacedName, rules []rbacv1.PolicyRule) typedauth.AuthorizationV1Interface {
 	t.Helper()
 
 	scheme, err := kube.CreateScheme()
@@ -301,7 +338,11 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 	adminClient, err := client.New(testCfg, client.Options{
 		Scheme: scheme,
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -314,7 +355,12 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 		UserName: userName,
 	}
 
-	return &userCfg
+	userClient, err := cluster.GetUserClientset(&auth.UserPrincipal{ID: userName})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return userClient.AuthorizationV1()
 }
 
 func removeNs(t *testing.T, k client.Client, ns *corev1.Namespace) {

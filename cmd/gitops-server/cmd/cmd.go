@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/go-logr/logr"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
@@ -35,9 +36,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	k8sMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 const (
@@ -70,6 +73,8 @@ type Options struct {
 	// Metrics
 	EnableMetrics  bool
 	MetricsAddress string
+
+	UseK8sCachedClients bool
 }
 
 var options Options
@@ -80,7 +85,11 @@ func NewCommand() *cobra.Command {
 		RunE:  runCmd,
 	}
 
-	options = Options{}
+	options = Options{
+		OIDC: auth.OIDCConfig{
+			ClaimsConfig: &auth.ClaimsConfig{},
+		},
+	}
 
 	// System config
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
@@ -89,6 +98,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
+	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
@@ -101,6 +111,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Username, "oidc-username-claim", auth.ClaimUsername, "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Groups, "oidc-groups-claim", auth.ClaimGroups, "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -156,7 +168,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	namespace, _, err := kubeConfig.Namespace()
 	if err != nil {
-		return fmt.Errorf("Couldn't get current namespace")
+		return fmt.Errorf("couldn't get current namespace")
 	}
 
 	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
@@ -173,12 +185,33 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	fetcher := fetcher.NewSingleClusterFetcher(rest)
+	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, cluster.DefaultKubeConfigOptions...)
+	if err != nil {
+		return fmt.Errorf("failed to create cluster client; %w", err)
+	}
 
-	clusterClientsFactory := clustersmngr.NewClientFactory(fetcher, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log, scheme, clustersmngr.NewClustersClientsPool)
-	clusterClientsFactory.Start(ctx)
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") == "true" {
+		err := telemetry.InitTelemetry(ctx, cl)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
+	}
 
-	coreConfig := core.NewCoreConfig(log, rest, clusterName, clusterClientsFactory)
+	if options.UseK8sCachedClients {
+		cl = cluster.NewDelegatingCacheCluster(cl, rest, scheme)
+	}
+
+	fetcher := fetcher.NewSingleClusterFetcher(cl)
+
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clustersManager.Start(ctx)
+
+	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager)
+	if err != nil {
+		return fmt.Errorf("could not create core config: %w", err)
+	}
 
 	appConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
@@ -241,7 +274,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	if options.EnableMetrics {
 		metricsMux := http.NewServeMux()
-		metricsMux.Handle("/metrics", promhttp.Handler())
+		gatherers := prometheus.Gatherers{
+			prometheus.DefaultGatherer,
+			k8sMetrics.Registry,
+			clustersmngr.Registry,
+		}
+		metricsMux.Handle("/metrics", promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{}))
 
 		metricsServer = &http.Server{
 			Addr:    options.MetricsAddress,
@@ -269,12 +307,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("Server shutdown failed: %w", err)
+		return fmt.Errorf("server shutdown failed: %w", err)
 	}
 
 	if options.EnableMetrics {
 		if err := metricsServer.Shutdown(ctx); err != nil {
-			return fmt.Errorf("Metrics server shutdown failed: %w", err)
+			return fmt.Errorf("metrics server shutdown failed: %w", err)
 		}
 	}
 
@@ -292,7 +330,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	}
 
 	if options.MTLS {
-		caCert, err := ioutil.ReadFile(options.TLSCertFile)
+		caCert, err := os.ReadFile(options.TLSCertFile)
 		if err != nil {
 			return fmt.Errorf("failed reading cert file %s. %s", options.TLSCertFile, err)
 		}

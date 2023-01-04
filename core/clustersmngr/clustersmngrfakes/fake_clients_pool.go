@@ -5,15 +5,16 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FakeClientsPool struct {
-	AddStub        func(clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) error
+	AddStub        func(client.Client, cluster.Cluster) error
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
-		arg1 clustersmngr.ClusterClientConfigFunc
-		arg2 clustersmngr.Cluster
+		arg1 client.Client
+		arg2 cluster.Cluster
 	}
 	addReturns struct {
 		result1 error
@@ -48,12 +49,12 @@ type FakeClientsPool struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeClientsPool) Add(arg1 clustersmngr.ClusterClientConfigFunc, arg2 clustersmngr.Cluster) error {
+func (fake *FakeClientsPool) Add(arg1 client.Client, arg2 cluster.Cluster) error {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		arg1 clustersmngr.ClusterClientConfigFunc
-		arg2 clustersmngr.Cluster
+		arg1 client.Client
+		arg2 cluster.Cluster
 	}{arg1, arg2})
 	stub := fake.AddStub
 	fakeReturns := fake.addReturns
@@ -74,13 +75,13 @@ func (fake *FakeClientsPool) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeClientsPool) AddCalls(stub func(clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) error) {
+func (fake *FakeClientsPool) AddCalls(stub func(client.Client, cluster.Cluster) error) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = stub
 }
 
-func (fake *FakeClientsPool) AddArgsForCall(i int) (clustersmngr.ClusterClientConfigFunc, clustersmngr.Cluster) {
+func (fake *FakeClientsPool) AddArgsForCall(i int) (client.Client, cluster.Cluster) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]

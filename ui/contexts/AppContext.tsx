@@ -2,6 +2,7 @@ import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
+import { FluxObject, FluxObjectNode } from "../lib/objects";
 import {
   clearCallbackState,
   getCallbackState,
@@ -14,26 +15,21 @@ import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
+  nodeYaml: FluxObjectNode | null;
 };
 
 type AppSettings = {
   renderFooter: boolean;
 };
 
-export type LinkResolver = (incoming: string) => string;
-
-export function defaultLinkResolver(incoming: string): string {
-  return incoming;
-}
-
 export type AppContextType = {
   applicationsClient: typeof Applications;
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
+  setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
-  linkResolver: LinkResolver;
   getProviderToken: typeof getProviderToken;
   storeProviderToken: typeof storeProviderToken;
   getCallbackState: typeof getCallbackState;
@@ -53,7 +49,6 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   applicationsClient?: typeof Applications;
-  linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
   notifySuccess?: typeof notifySuccess;
@@ -66,6 +61,7 @@ export default function AppContextProvider({
   const history = useHistory();
   const [appState, setAppState] = React.useState({
     error: null,
+    nodeYaml: null,
   });
 
   const clearAsyncError = () => {
@@ -88,13 +84,18 @@ export default function AppContextProvider({
     });
   };
 
+  const setNodeYaml = (obj: FluxObject | FluxObjectNode) => {
+    if (obj) setAppState({ ...appState, nodeYaml: obj });
+    else setAppState({ ...appState, nodeYaml: null });
+  };
+
   const value: AppContextType = {
     applicationsClient,
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
+    setNodeYaml,
     appState,
-    linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
     storeProviderToken,
     storeCallbackState,

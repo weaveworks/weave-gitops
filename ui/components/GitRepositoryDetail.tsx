@@ -3,20 +3,26 @@ import styled from "styled-components";
 import Link from "../components/Link";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { convertGitURLToGitProvider, removeKind } from "../lib/utils";
-import { GitRepository } from "../lib/objects";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { GitRepository } from "../lib/objects";
+import { convertGitURLToGitProvider } from "../lib/utils";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
   gitRepository: GitRepository;
+  customActions?: JSX.Element[];
 };
 
-function GitRepositoryDetail({ className, gitRepository }: Props) {
+function GitRepositoryDetail({
+  className,
+  gitRepository,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && gitRepository.tenant
@@ -24,16 +30,22 @@ function GitRepositoryDetail({ className, gitRepository }: Props) {
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", gitRepository.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={gitRepository?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindGitRepository}
+      type={Kind.GitRepository}
       source={gitRepository}
+      customActions={customActions}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindGitRepository)],
+        ["Kind", Kind.GitRepository],
         [
           "URL",
           <Link newTab href={convertGitURLToGitProvider(gitRepository.url)}>

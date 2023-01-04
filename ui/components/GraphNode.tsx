@@ -1,14 +1,20 @@
 import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import { UnstructuredObjectWithChildren } from "../lib/graph";
+import { AppContext } from "../contexts/AppContext";
+import { useLinkResolver } from "../contexts/LinkResolverContext";
+import { Kind } from "../lib/api/core/types.pb";
 import images from "../lib/images";
+import { formatURL, objectTypeToRoute } from "../lib/nav";
+import { FluxObjectNode } from "../lib/objects";
 import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
+import Link from "./Link";
+import Text from "./Text";
 
 type Props = {
   className?: string;
-  object?: UnstructuredObjectWithChildren & { kind: string };
+  object?: FluxObjectNode;
 };
 
 const nodeBorderRadius = 30;
@@ -35,10 +41,6 @@ const NodeText = styled(Flex)`
   justify-content: space-evenly;
 `;
 
-const Title = styled(Flex)`
-  font-size: ${titleFontSize};
-`;
-
 const Kinds = styled(Flex)`
   font-size: ${kindFontSize};
   color: ${(props) => props.theme.colors.neutral30};
@@ -54,13 +56,13 @@ const StatusLine = styled.div<StatusLineProps>`
   height: 100%;
   border-radius: ${nodeBorderRadius - 4.5}px 0 0 ${nodeBorderRadius - 4.5}px;
   background-color: ${(props) => {
-    if (props.suspended) return props.theme.colors.suspended;
+    if (props.suspended) return props.theme.colors.feedbackOriginal;
     else if (props.status === ReadyType.Ready)
-      return props.theme.colors.success;
+      return props.theme.colors.successOriginal;
     else if (props.status === ReadyType.Reconciling)
       return props.theme.colors.primary10;
     else if (props.status === ReadyType.NotReady)
-      return props.theme.colors.alert;
+      return props.theme.colors.alertOriginal;
     else return "transparent";
   }};
 `;
@@ -81,24 +83,62 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
       return "";
   }
 }
+
 function GraphNode({ className, object }: Props) {
+  const { setNodeYaml } = React.useContext(AppContext);
   const status = computeReady(object.conditions);
+  const secret = object.type === "Secret";
+
+  const resolver = useLinkResolver();
+  const resolved =
+    resolver &&
+    resolver(object.type, {
+      name: object.name,
+      namespace: object.namespace,
+      clusterName: object.clusterName,
+    });
   return (
     <Node wide tall between className={className}>
       <StatusLine suspended={object.suspended} status={status} />
       <NodeText tall column>
-        <Title start wide align>
+        <Flex start wide align>
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
           <Tooltip
-            placement="top"
             title={object.name.length > 23 ? object.name : ""}
+            placement="top"
           >
-            <span>{object.name}</span>
+            {Kind[object.type] || resolved ? (
+              <div>
+                <Link
+                  to={
+                    resolved ||
+                    formatURL(objectTypeToRoute(Kind[object.type]), {
+                      name: object.name,
+                      namespace: object.namespace,
+                      clusterName: object.clusterName,
+                    })
+                  }
+                  textProps={{ size: "huge", semiBold: object.isCurrentNode }}
+                >
+                  {object.name}
+                </Link>
+              </div>
+            ) : (
+              <Text
+                size="huge"
+                onClick={() => (secret ? null : setNodeYaml(object))}
+                color={secret ? "neutral40" : "primary10"}
+                pointer={!secret}
+                semiBold={object.isCurrentNode}
+              >
+                {object.name}
+              </Text>
+            )}
           </Tooltip>
-        </Title>
+        </Flex>
         <Kinds start wide align>
-          {object.kind || object.groupVersionKind.kind || ""}
+          {object.type || ""}
         </Kinds>
         <Kinds start wide align>
           <span>{object.namespace}</span>
@@ -109,7 +149,8 @@ function GraphNode({ className, object }: Props) {
 }
 
 export default styled(GraphNode).attrs({ className: GraphNode.name })`
-  span {
+  span,
+  a {
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;

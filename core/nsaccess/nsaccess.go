@@ -8,9 +8,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/util/sets"
 	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
-	"k8s.io/client-go/rest"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -50,10 +49,11 @@ var DefautltWegoAppRules = []rbacv1.PolicyRule{
 }
 
 // Checker contains methods for validing user access to Kubernetes namespaces, based on a set of PolicyRules
+//
 //counterfeiter:generate . Checker
 type Checker interface {
 	// FilterAccessibleNamespaces returns a filtered list of namespaces to which a user has access to
-	FilterAccessibleNamespaces(ctx context.Context, cfg *rest.Config, namespaces []corev1.Namespace) ([]corev1.Namespace, error)
+	FilterAccessibleNamespaces(ctx context.Context, auth typedauth.AuthorizationV1Interface, namespaces []corev1.Namespace) ([]corev1.Namespace, error)
 }
 
 type simpleChecker struct {
@@ -64,11 +64,11 @@ func NewChecker(rules []rbacv1.PolicyRule) Checker {
 	return simpleChecker{rules: rules}
 }
 
-func (sc simpleChecker) FilterAccessibleNamespaces(ctx context.Context, cfg *rest.Config, namespaces []corev1.Namespace) ([]corev1.Namespace, error) {
+func (sc simpleChecker) FilterAccessibleNamespaces(ctx context.Context, auth typedauth.AuthorizationV1Interface, namespaces []corev1.Namespace) ([]corev1.Namespace, error) {
 	result := []corev1.Namespace{}
 
 	for _, ns := range namespaces {
-		ok, err := userCanUseNamespace(ctx, cfg, ns, sc.rules)
+		ok, err := userCanUseNamespace(ctx, auth, ns, sc.rules)
 		if err != nil {
 			return nil, fmt.Errorf("user namespace access: %w", err)
 		}
@@ -81,12 +81,7 @@ func (sc simpleChecker) FilterAccessibleNamespaces(ctx context.Context, cfg *res
 	return result, nil
 }
 
-func userCanUseNamespace(ctx context.Context, cfg *rest.Config, ns corev1.Namespace, rules []rbacv1.PolicyRule) (bool, error) {
-	auth, err := newAuthClient(cfg)
-	if err != nil {
-		return false, err
-	}
-
+func userCanUseNamespace(ctx context.Context, auth typedauth.AuthorizationV1Interface, ns corev1.Namespace, rules []rbacv1.PolicyRule) (bool, error) {
 	sar := &authorizationv1.SelfSubjectRulesReview{
 		Spec: authorizationv1.SelfSubjectRulesReviewSpec{
 			Namespace: ns.Name,
@@ -103,37 +98,106 @@ func userCanUseNamespace(ctx context.Context, cfg *rest.Config, ns corev1.Namesp
 
 var allK8sVerbs = []string{"create", "get", "list", "watch", "patch", "delete", "deletecollection"}
 
+func allResources(rules []rbacv1.PolicyRule) []string {
+	resources := sets.NewString()
+	for _, r := range rules {
+		resources.Insert(r.Resources...)
+	}
+
+	return resources.List()
+}
+
+func allAPIGroups(rules []rbacv1.PolicyRule) []string {
+	apiGroups := sets.NewString()
+	for _, r := range rules {
+		apiGroups.Insert(r.APIGroups...)
+	}
+
+	return apiGroups.List()
+}
+
 // hasAll rules determines if a set of SubjectRulesReview rules match a minimum set of policy rules
+//
+// We need to understand the "sum" of all the rules for a role.
+// Convert to a hash lookup to make it easier to tell what a user can do.
+// Looks like { "apps": { "deployments": { get: true, list: true } } }
+//
+// We handle wildcards by expanding them out to all the types of resources/APIGroups
+// that are relevant to the provided rules.
+// This creates slightly nonsensical sets sometimes, for example given:
+//
+// PolicyRules:
+//
+//	{
+//		APIGroups: []string{""},
+//		Resources: []string{"secrets"},
+//		Verbs:     []string{"get"},
+//	},
+//
+//	{
+//		APIGroups: []string{"apps"},
+//		Resources: []string{"deployment"}",
+//		Verbs:     []string{"get"},
+//	},
+//
+// SubjectRulesReviewStatus:
+// ["*", "*", "get"]
+//
+// We get:
+//
+//	{
+//		"": {
+//			"secrets": { get: true }
+//			"deployments": { get: true }
+//		},
+//		"apps": {
+//			"secrets": { get: true }
+//			"deployments", "secrets": { get: true }
+//		}
+//	}
+//
+// Secrets don't exist in "apps" according to k8s,
+// but the "index checker" that checks this struct does not mind.
 func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1.PolicyRule, ns string) bool {
-	hasAccess := true
-	// We need to understand the "sum" of all the rules for a role.
-	// Convert to a hash lookup to make it easier to tell what a user can do.
-	// Looks like { "apps": { "deployments": { get: true, list: true } } }
 	derivedAccess := map[string]map[string]map[string]bool{}
 
+	allResourcesInRules := allResources(rules)
+	allAPIGroupsInRules := allAPIGroups(rules)
+
 	for _, statusRule := range status.ResourceRules {
-		for _, apiGroup := range statusRule.APIGroups {
+		apiGroups := statusRule.APIGroups
+		if containsWildcard(apiGroups) {
+			apiGroups = allAPIGroupsInRules
+		}
+
+		for _, apiGroup := range apiGroups {
 			if _, ok := derivedAccess[apiGroup]; !ok {
 				derivedAccess[apiGroup] = map[string]map[string]bool{}
 			}
 
-			for _, resource := range statusRule.Resources {
+			resources := statusRule.Resources
+			if containsWildcard(resources) {
+				resources = allResourcesInRules
+			}
+
+			for _, resource := range resources {
 				if _, ok := derivedAccess[apiGroup][resource]; !ok {
 					derivedAccess[apiGroup][resource] = map[string]bool{}
 				}
 
-				for _, verb := range statusRule.Verbs {
-					if verb == "*" {
-						for _, v := range allK8sVerbs {
-							derivedAccess[apiGroup][resource][v] = true
-						}
-					} else {
-						derivedAccess[apiGroup][resource][verb] = true
-					}
+				verbs := statusRule.Verbs
+				if containsWildcard(verbs) {
+					verbs = allK8sVerbs
+				}
+
+				for _, v := range verbs {
+					derivedAccess[apiGroup][resource][v] = true
 				}
 			}
 		}
 	}
+
+	hasAccess := true
 
 Rules:
 	for _, rule := range rules {
@@ -172,11 +236,12 @@ Rules:
 	return hasAccess
 }
 
-func newAuthClient(cfg *rest.Config) (typedauth.AuthorizationV1Interface, error) {
-	cs, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("making clientset: %w", err)
+func containsWildcard(permissions []string) bool {
+	for _, p := range permissions {
+		if p == "*" {
+			return true
+		}
 	}
 
-	return cs.AuthorizationV1(), nil
+	return false
 }

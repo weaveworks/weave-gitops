@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.9.3"
+  tag: "v0.13.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -24,7 +24,8 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
-
+# -- Annotations to add to the deployment
+annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed
 # explanation of these attributes please see our documentation:
 # https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/#login-via-an-oidc-provider
@@ -67,7 +68,7 @@ adminUser:
   create: false
   # -- Specifies whether the clusterRole & binding to the admin user should be created.
   # Will be created only if `adminUser.create` is enabled. Without this,
-  # the adminUser will only be able to see resources in the `flux-system` namespace.
+  # the adminUser will only be able to see resources in the target namespace.
   createClusterRole: true
   # -- Whether we should create the secret for the local
   # adminUser. Will be created only if `adminUser.create` is
@@ -75,32 +76,34 @@ adminUser:
   # permissions, but the secret with username and password has to be
   # provided separately.
   createSecret: true
-  # -- Set username for local admin user, these will be stored in a secret in
-  # k8s. Requires `adminUser.create` and `adminUser.createSecret`.
+  # -- Set username for local admin user, this should match the value in the secret `cluster-user-auth`
+  # which can be created with `adminUser.createSecret`. Requires `adminUser.create`.
   username: gitops-test-user
   # -- (string) Set the password for local admin user. Requires `adminUser.create` and `adminUser.createSecret`
   # This needs to have been hashed using bcrypt.
   # You can do this via our CLI with `gitops get bcrypt-hash`.
   passwordHash:
 podAnnotations: {}
+podLabels: {}
+# aadpodidbinding: identity
 podSecurityContext: {}
 # fsGroup: 2000
 
-securityContext: {}
-# capabilities:
-#   drop:
-#   - ALL
-# readOnlyRootFilesystem: true
-# runAsNonRoot: true
-# runAsUser: 1000
-
-# -- If set to true, OCI repositories will be included in the source view.
-# This requires flux 0.32 or later.
-listOCIRepositories: false
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
 service:
   create: true
   type: ClusterIP
   port: 9001
+  # nodePort:
   annotations: {}
 ingress:
   enabled: false
@@ -118,6 +121,23 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+extraVolumes: []
+extraVolumeMounts: []
+# Example using extraVolumes and extraVolumeMounts to load 'oidc-auth' secret 
+# with a secrets store CSI driver. Specify the secretName 'oidc-auth' in the 
+# secretProviderClass so this will be created by the secrets store CSI driver.
+# See https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret.html
+# extraVolumeMounts:
+#   - name: ww-gitops-oauth-volume
+#     mountPath: /mnt/secrets
+#     readOnly: true
+# extraVolumes:
+#   - name: ww-gitops-oauth-volume
+#     csi:
+#       driver: secrets-store.csi.k8s.io
+#       readOnly: true
+#       volumeAttributes:
+#         secretProviderClass: ww-gitops-oauth-provider
 resources: {}
 # We usually recommend not to specify default resources and to leave this as a conscious
 # choice for the user. This also increases chances charts run on environments with little
@@ -130,6 +150,9 @@ resources: {}
 #   cpu: 100m
 #   memory: 128Mi
 
+networkPolicy:
+  # -- Specifies whether default network policies should be created.
+  create: true
 nodeSelector: {}
 tolerations: []
 affinity: {}

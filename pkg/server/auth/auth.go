@@ -32,11 +32,11 @@ const (
 	// used for token passthrough authentication.
 	AuthorizationTokenHeaderName = "Authorization"
 	// ScopeProfile is the "profile" scope
-	scopeProfile = "profile"
+	ScopeProfile = "profile"
 	// ScopeEmail is the "email" scope
-	scopeEmail = "email"
+	ScopeEmail = "email"
 	// ScopeGroups is the "groups" scope
-	scopeGroups = "groups"
+	ScopeGroups = "groups"
 )
 
 // RegisterAuthServer registers the /callback route under a specified prefix.
@@ -58,7 +58,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 	mux.Handle(prefix, srv.OAuth2Flow())
 	mux.Handle(prefix+"/callback", srv.Callback())
 	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
-	mux.Handle(prefix+"/userinfo", srv.UserInfo())
+	mux.HandleFunc(prefix+"/userinfo", srv.UserInfo)
 	mux.Handle(prefix+"/logout", srv.Logout())
 
 	return nil
@@ -170,13 +170,13 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		case OIDC:
 			if srv.oidcEnabled() {
 				// OIDC tokens may be passed by token or cookie
-				multi.Getters = append(multi.Getters, NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier()))
+				multi.Getters = append(multi.Getters, NewJWTAuthorizationHeaderPrincipalGetter(srv.Log, srv.verifier(), srv.OIDCConfig.ClaimsConfig))
 
 				if srv.oidcPassthroughEnabled() {
 					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
 					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
 				} else {
-					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, srv.OIDCConfig.ClaimsConfig))
 				}
 			}
 

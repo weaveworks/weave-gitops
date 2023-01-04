@@ -7,7 +7,9 @@ import Flex from "./Flex";
 import FormCheckbox from "./FormCheckbox";
 import Text from "./Text";
 
-export type FilterConfig = { [key: string]: string[] };
+export type FilterConfig = {
+  [key: string]: { options: string[]; transformFunc?: (option) => string };
+};
 export type FilterSelections = { [inputName: string]: boolean };
 
 const SlideContainer = styled.div`
@@ -33,7 +35,7 @@ const SlideContent = styled.div`
   padding-left: ${(props) => props.theme.spacing.large};
 `;
 
-export const filterSeparator = ":";
+export const filterSeparator = ": ";
 
 type FilterSectionProps = {
   header: string;
@@ -48,11 +50,12 @@ const FilterSection = ({
   formState,
   onSectionSelect,
 }: FilterSectionProps) => {
-  const compoundKeys = options.map((option) => `${header}:${option}`);
+  const compoundKeys = options.map(
+    (option) => `${header}${filterSeparator}${option}`
+  );
   // every on an empty list is true so check that too
   const all =
-    compoundKeys.length > 0 &&
-    compoundKeys.every((key) => formState[key] === true);
+    compoundKeys.length > 0 && compoundKeys.every((key) => formState[key]);
 
   const handleChange = () => {
     const optionKeys = _.map(options, (option) => [
@@ -68,7 +71,7 @@ const FilterSection = ({
         <ListItem>
           <ListItemIcon>
             <Checkbox
-              disabled={!options[0]}
+              disabled={!options.length}
               checked={all}
               onChange={handleChange}
               id={header}
@@ -78,22 +81,19 @@ const FilterSection = ({
             {convertHeaders(header)}
           </Text>
         </ListItem>
-        {options.sort().map((option: string, index: number) => {
-          if (option)
-            return (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <FormCheckbox
-                    label=""
-                    name={`${header}${filterSeparator}${option}`}
-                  />
-                </ListItemIcon>
-                <Text color="neutral40" size="small">
-                  {_.toString(option)}
-                </Text>
-              </ListItem>
-            );
-        })}
+        {options.sort().map((option: string, index: number) => (
+          <ListItem key={index}>
+            <ListItemIcon>
+              <FormCheckbox
+                label=""
+                name={`${header}${filterSeparator}${option}`}
+              />
+            </ListItemIcon>
+            <Text color="neutral40" size="small">
+              {_.toString(option) || "-"}
+            </Text>
+          </ListItem>
+        ))}
       </List>
     </ListItem>
   );
@@ -110,7 +110,10 @@ export interface Props {
   open?: boolean;
 }
 
-export function selectionsToFilters(values: FilterSelections): FilterConfig {
+export function selectionsToFilters(
+  values: FilterSelections,
+  filterList: FilterConfig
+): FilterConfig {
   const out = {};
   _.each(values, (v, k) => {
     const [key, val] = k.split(filterSeparator);
@@ -119,9 +122,12 @@ export function selectionsToFilters(values: FilterSelections): FilterConfig {
       const el = out[key];
 
       if (el) {
-        el.push(val);
+        el.options.push(val);
       } else {
-        out[key] = [val];
+        out[key] = {
+          options: [val],
+          transformFunc: filterList[key]?.transformFunc,
+        };
       }
     }
   });
@@ -138,20 +144,20 @@ type sectionSelectObject = { [header: string]: boolean };
 function UnstyledFilterDialog({
   className,
   onFilterSelect,
-  filterList,
-  formState,
+  filterList = {},
+  formState = {},
   open,
 }: Props) {
   const onSectionSelect = (object: sectionSelectObject) => {
     if (onFilterSelect) {
       const next = { ...formState, ...object };
-      onFilterSelect(selectionsToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next, filterList), next);
     }
   };
   const onFormChange = (name: string, value: any) => {
     if (onFilterSelect) {
       const next = { ...formState, [name]: value };
-      onFilterSelect(selectionsToFilters(next), next);
+      onFilterSelect(selectionsToFilters(next, filterList), next);
     }
   };
 
@@ -173,7 +179,7 @@ function UnstyledFilterDialog({
                     <FilterSection
                       key={header}
                       header={header}
-                      options={options}
+                      options={options.options}
                       formState={formState}
                       onSectionSelect={onSectionSelect}
                     />

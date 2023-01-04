@@ -3,6 +3,7 @@ import styled from "styled-components";
 import p from "../../package.json";
 import { useVersion } from "../hooks/version";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
+import { getAppVersion } from "../lib/utils";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
@@ -19,39 +20,29 @@ const RightFoot = styled(Flex)`
 
 const LeftFoot = styled(Flex)``;
 
-const REPO_URL = "https://github.com/weaveworks/weave-gitops";
-
 function Footer({ className }: Props) {
   const { data, isLoading } = useVersion();
   const versionData = data || ({} as GetVersionResponse);
 
-  const shouldDisplayApiVersion =
-    !isLoading &&
-    versionData.semver !== p.version &&
-    versionData.branch &&
-    versionData.commit;
-
-  const wegoVersionText = shouldDisplayApiVersion
-    ? `${versionData.branch}-${versionData.commit}`
-    : `v${p.version}`;
-  const wegoVersionHref = shouldDisplayApiVersion
-    ? `${REPO_URL}/commit/${versionData.commit}`
-    : `${REPO_URL}/releases/tag/v${p.version}`;
+  const appVersion = getAppVersion(data, p.version, isLoading, "v");
 
   const versions: VersionProps[] = !isLoading
     ? [
         {
           productName: "Kubernetes",
-          versionText: versionData.kubeVersion,
+          appVersion: {
+            versionText: versionData.kubeVersion,
+          },
         },
         {
           productName: "Flux",
-          versionText: versionData.fluxVersion,
+          appVersion: {
+            versionText: versionData.fluxVersion,
+          },
         },
         {
           productName: "Weave GitOps",
-          versionText: wegoVersionText,
-          versionHref: wegoVersionHref,
+          appVersion: appVersion,
         },
       ]
     : [];
@@ -61,8 +52,8 @@ function Footer({ className }: Props) {
       <LeftFoot>
         <Text noWrap>Need help? Contact us at</Text>
         <Spacer padding="xxs" />
-        <Link newTab href="mailto:support@weave.works">
-          support@weave.works
+        <Link newTab href="mailto:sales@weave.works">
+          sales@weave.works
         </Link>
       </LeftFoot>
       <RightFoot>
@@ -82,4 +73,5 @@ function Footer({ className }: Props) {
 
 export default styled(Footer).attrs({ className: Footer.name })`
   color: ${(props) => props.theme.colors.neutral30};
+  padding-top: ${(props) => props.theme.spacing.small};
 `;

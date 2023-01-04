@@ -3,20 +3,21 @@ import styled from "styled-components";
 import Interval from "../components/Interval";
 import SourceDetail from "../components/SourceDetail";
 import Timestamp from "../components/Timestamp";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { Bucket } from "../lib/objects";
-import { removeKind } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { Bucket } from "../lib/objects";
+import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
   bucket: Bucket;
+  customActions?: JSX.Element[];
 };
 
-function BucketDetail({ className, bucket }: Props) {
+function BucketDetail({ className, bucket, customActions }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && bucket.tenant
@@ -25,16 +26,22 @@ function BucketDetail({ className, bucket }: Props) {
 
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", bucket.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={bucket?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindBucket}
+      type={Kind.Bucket}
       source={bucket}
+      customActions={customActions}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindBucket)],
+        ["Kind", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
         ["Bucket Name", bucket.name],
         ["Last Updated", <Timestamp time={bucket.lastUpdatedAt} />],

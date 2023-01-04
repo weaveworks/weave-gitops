@@ -5,21 +5,29 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
+
+	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
+
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
+	deletepkg "github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/pkg/analytics"
+	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -27,7 +35,7 @@ import (
 
 const defaultNamespace = "flux-system"
 
-var options = &config.Options{}
+var options = &cfg.Options{}
 
 // Only want AutomaticEnv to be called once!
 func init() {
@@ -40,7 +48,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
-func RootCmd(client *adapters.HTTPClient) *cobra.Command {
+func RootCmd() *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -48,9 +56,9 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 		Short:         "Weave GitOps",
 		Long:          "Command line utility for managing Kubernetes applications via GitOps.",
 		Example: `
-  # Get help for gitops add cluster command
-  gitops add cluster -h
-  gitops help add cluster
+  # Get help for gitops create dashboard command
+  gitops create dashboard -h
+  gitops help create dashboard
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
@@ -89,10 +97,50 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
 			}
+
+			if options.NoAnalytics {
+				return
+			}
+
+			var gitopsConfig *config.GitopsCLIConfig
+
+			gitopsConfig, err = config.GetConfig(false)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+
+				enableAnalytics := false
+
+				prompt := promptui.Prompt{
+					Label:     "Would you like to turn on analytics to help us improve our product",
+					IsConfirm: true,
+					Default:   "Y",
+					Stdout:    os.Stderr,
+				}
+
+				// Answering "n" causes err to not be nil. Hitting enter without typing
+				// does not return the default.
+				_, err := prompt.Run()
+				if err == nil {
+					enableAnalytics = true
+				}
+
+				seed := time.Now().UnixNano()
+
+				gitopsConfig = &config.GitopsCLIConfig{
+					UserID:    config.GenerateUserID(10, seed),
+					Analytics: enableAnalytics,
+				}
+
+				_ = config.SaveConfig(gitopsConfig)
+			}
+
+			if gitopsConfig.Analytics {
+				_ = analytics.TrackCommand(cmd, gitopsConfig.UserID)
+			}
 		},
 	}
 
-	rootCmd.PersistentFlags().String("namespace", defaultNamespace, "The namespace scope for this operation")
+	rootCmd.PersistentFlags().StringP("namespace", "n", defaultNamespace, "The namespace scope for this operation")
 	rootCmd.PersistentFlags().StringVarP(&options.Endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint can be set with `WEAVE_GITOPS_ENTERPRISE_API_URL` environment variable")
 	rootCmd.PersistentFlags().StringVarP(&options.Username, "username", "u", "", "The Weave GitOps Enterprise username for authentication can be set with `WEAVE_GITOPS_USERNAME` environment variable")
 	rootCmd.PersistentFlags().StringVarP(&options.Password, "password", "p", "", "The Weave GitOps Enterprise password for authentication can be set with `WEAVE_GITOPS_PASSWORD` environment variable")
@@ -100,19 +148,24 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.PersistentFlags().StringToStringVar(&options.GitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	rootCmd.PersistentFlags().BoolVar(&options.InsecureSkipTLSVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 	rootCmd.PersistentFlags().StringVar(&options.Kubeconfig, "kubeconfig", "", "Paths to a kubeconfig. Only required if out-of-cluster.")
+	rootCmd.PersistentFlags().BoolVar(&options.NoAnalytics, "no-analytics", false, "Don't ask to enable/disable analytics.")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
+	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("no-analytics"))
 
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(get.GetCommand(options, client))
-	rootCmd.AddCommand(add.GetCommand(options, client))
-	rootCmd.AddCommand(update.UpdateCommand(options, client))
-	rootCmd.AddCommand(delete.DeleteCommand(options, client))
-	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(get.GetCommand(options))
+	rootCmd.AddCommand(set.SetCommand(options))
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
 	rootCmd.AddCommand(create.GetCommand(options))
+	rootCmd.AddCommand(deletepkg.GetCommand(options))
+	rootCmd.AddCommand(logs.GetCommand(options))
+	rootCmd.AddCommand(remove.GetCommand(options))
+	rootCmd.AddCommand(replan.Command(options))
+	rootCmd.AddCommand(resume.Command(options))
+	rootCmd.AddCommand(suspend.Command(options))
 
 	return rootCmd
 }

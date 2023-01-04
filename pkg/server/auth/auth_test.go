@@ -14,7 +14,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
@@ -26,7 +25,7 @@ import (
 const testNamespace = "flux-system"
 
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -84,7 +83,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	// In theory all attempts to login in this should fail as, despite
 	// the auth server having access to
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -147,7 +146,6 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	g.Expect(res).To(HaveHTTPStatus(http.StatusUnauthorized))
 
 	// Try logging in via the static user
-	// res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
 	res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"bad-password"}`)))
 
 	g.Expect(err).NotTo(HaveOccurred())
@@ -162,7 +160,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 }
 
 func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -182,6 +180,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 		ClientID:     fake.ClientID,
 		ClientSecret: fake.ClientSecret,
 		IssuerURL:    fake.Issuer,
+		ClaimsConfig: &auth.ClaimsConfig{Username: "email", Groups: "groups"},
 	}
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
@@ -210,12 +209,12 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusSeeOther))
 
-	authCodeURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", m.AuthorizationEndpoint(), fake.ClientID, url.QueryEscape(redirectURL), strings.Join([]string{"profile", oidc.ScopeOpenID, "email"}, "+"))
+	authCodeURL := fmt.Sprintf("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", m.AuthorizationEndpoint(), fake.ClientID, url.QueryEscape(redirectURL), strings.Join([]string{auth.ScopeProfile, oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups}, "+"))
 	g.Expect(res.Result().Header.Get("Location")).To(ContainSubstring(authCodeURL))
 }
 
 func TestIsPublicRoute(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	g.Expect(auth.IsPublicRoute(&url.URL{Path: "/foo"}, []string{"/foo"})).To(BeTrue())
 	g.Expect(auth.IsPublicRoute(&url.URL{Path: "foo"}, []string{"/foo"})).To(BeFalse())
@@ -223,7 +222,7 @@ func TestIsPublicRoute(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	mux := http.NewServeMux()
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -284,7 +283,7 @@ func TestRateLimit(t *testing.T) {
 }
 
 func TestUserPrincipalValid(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tests := []struct {
 		name    string

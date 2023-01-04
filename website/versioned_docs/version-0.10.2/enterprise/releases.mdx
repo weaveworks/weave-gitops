@@ -1,0 +1,114 @@
+---
+title: Releases
+sidebar_position: 4
+hide_title: true
+---
+import TierLabel from "../_components/TierLabel";
+
+# Releases <TierLabel tiers="enterprise" />
+
+## v0.10.2
+2022-11-15
+
+### Highlights
+- Retain template parameter ordering.
+- Allow configuration of the delimiters in templates.
+- Add create a pipeline button.
+- Add missing support for policy version v2beta2 to tenancy cmd.
+
+### Dependency versions
+- weave-gitops v0.10.2
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 2.1.1
+
+## v0.10.1
+2022-11-10
+
+### Highlights
+
+- Create non-cluster resources / Add Edit option to resources with create-request annotation.
+- Bump pipeline-controller.
+- Parse annotations from template.
+- Add cost estimate message if available.
+- Add support for showing policy modes and policy configs in the UI.
+- Show suspended status on pipelines detail.
+- YAML view for Pipelines.
+- Align and link logo.
+- Remove the watcher from the helm-watcher-cache.
+- UI 1817 disable create target name space if name space is flux system.
+- Add edit capi cluster resource acceptance test.
+- Add preview acceptance test.
+
+### Dependency versions
+
+- weave-gitops v0.10.1
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 2.0.0
+
+## v0.9.6
+2022-10-17
+
+### Highlights
+- When adding applications, you can now preview the changes(PR) before creating a pull request
+- You can now see included Cluster Profiles when previewing your Create Cluster PR
+- Notifications are now available in the Notifications Page
+- You can now automatically create namespace when adding applications
+
+### Dependency versions
+
+- weave-gitops v0.9.6
+- cluster-controller v1.3.2
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 1.2.1
+
+## v0.9.5
+2022-09-22
+
+### Highlights
+- **Tenancy**
+  - `gitops create tenant` now supports `--prune` to remove old resources from the cluster if you're not using `--export` with gitops.
+  - `deploymentRBAC` section in `tenancy.yaml` allows you to specify the permissions given to the flux `Kustomizations` that will apply the resources from git to your tenants' namespaces in the cluster.
+  - Support for `OCIRepository` sources when restricting/allowing the sources that can be applied into tenants' namespaces.
+- **Templates**
+  - Templates now support helm functions for simple transformations of values: `{{ .params.CLUSTER_NAME | upper }}`
+  - Templates has moved to its own page in the UI, this is the first step in moving towards embracing them as a more generic feature, not just for cluster creation.
+  - If a version is not specified in a **template profile annotation** it can be selected by the user.
+  - A `namespace` can be specified in the **template profile annotation** that will be provided as the `HelmRelease`'s `targetNamespace` by default.
+- **Bootstrapping**
+  - A ClusterBootstrapConfig can now optionally be triggered when `phase="Provisioned"`, rather than `ControlPlaneReady=True` status.
+
+### Dependency versions
+
+- weave-gitops v0.9.5
+- cluster-controller v1.3.2
+- cluster-bootstrap-controller v0.3.0
+- (optional) policy-agent 1.1.0
+
+### Known issues
+
+- [UI] Notifications page shows a 404 instead of the notification-controller's configuration.
+
+### ⚠️ Breaking changes from v0.9.4
+
+If using the policy-agent included in the weave-gitops-enterprise helm chart, the configuration should now be placed under the `config` key.
+
+**old**
+```yaml
+policy-agent:
+  enabled: true
+  accountId: "my-account"
+  clusterId: "my-cluster"
+```
+
+**new**
+```yaml
+policy-agent:
+  enabled: true
+  config:
+    accountId: "my-account"
+    clusterId: "my-cluster"
+```
+
+

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import qs from "query-string";
-import { FluxObjectKind } from "./api/core/types.pb";
+import { Kind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
@@ -27,6 +27,10 @@ export const getParentNavValue = (
     case V2Routes.FluxRuntime:
       return V2Routes.FluxRuntime;
 
+    case V2Routes.Notifications:
+    case V2Routes.Provider:
+      return V2Routes.Notifications;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -37,6 +41,7 @@ const pageTitles = {
   [V2Routes.Automations]: "Applications",
   [V2Routes.Sources]: "Sources",
   [V2Routes.FluxRuntime]: "Flux Runtime",
+  [V2Routes.Notifications]: "Notifications",
 };
 
 export const getPageLabel = (route: V2Routes): string => {
@@ -48,38 +53,47 @@ export const formatURL = (page: string, query: any = {}) => {
 };
 
 export const formatSourceURL = (
-  kind: FluxObjectKind,
+  kind: string,
   name: string,
   namespace: string = NoNamespace,
   clusterName: string
 ) => {
-  return formatURL(objectTypeToRoute(kind), { name, namespace, clusterName });
+  return formatURL(objectTypeToRoute(Kind[kind]), {
+    name,
+    namespace,
+    clusterName,
+  });
 };
 
-export function objectTypeToRoute(t: FluxObjectKind): V2Routes {
+export function objectTypeToRoute(t: Kind): V2Routes {
   switch (t) {
-    case FluxObjectKind.KindGitRepository:
+    case Kind.GitRepository:
       return V2Routes.GitRepo;
 
-    case FluxObjectKind.KindBucket:
+    case Kind.Bucket:
       return V2Routes.Bucket;
 
-    case FluxObjectKind.KindHelmRepository:
+    case Kind.HelmRepository:
       return V2Routes.HelmRepo;
 
-    case FluxObjectKind.KindHelmChart:
+    case Kind.HelmChart:
       return V2Routes.HelmChart;
 
-    case FluxObjectKind.KindKustomization:
+    case Kind.Kustomization:
       return V2Routes.Kustomization;
 
-    case FluxObjectKind.KindHelmRelease:
+    case Kind.HelmRelease:
       return V2Routes.HelmRelease;
 
-    case FluxObjectKind.KindOCIRepository:
+    case Kind.OCIRepository:
       return V2Routes.OCIRepository;
+
+    case Kind.Provider:
+      return V2Routes.Provider;
 
     default:
       break;
   }
+
+  return "" as V2Routes;
 }

@@ -1,0 +1,364 @@
+---
+title: Getting Started
+sidebar_position: 2
+hide_title: true
+---
+
+# Getting Started with Weave GitOps
+
+This hands-on guide will introduce you to the basics of the GitOps Dashboard web UI, to help you understand the state of your system, before deploying a new application to your cluster. It is adapted from this guide - [Flux - Getting Started](https://fluxcd.io/docs/get-started/).
+
+If you haven't already, be sure to check out our [introduction](./intro.md) to Weave GitOps.
+
+## Before you begin
+
+We will provide a complete walkthrough of getting Flux installed and Weave GitOps configured. However, if you have:
+- an existing cluster bootstrapped Flux version >= 0.32.0 🎉
+- followed our [installation](./installation.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
+
+Then you can skip ahead to [Part 1](#part-1---weave-gitops-overview) 🏃
+but note ⚠️ you may need to alter commands where we are committing files to GitHub ⚠️.
+
+To follow along, you will need the following:
+- A Kubernetes cluster - such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/).
+- A [GitHub](https://github.com) account and [personal access token with repo permissions](https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
+### Install Flux
+
+1. Install the flux CLI
+
+   ```
+   brew install fluxcd/tap/flux
+   ```
+
+   For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
+
+1. Make sure that the CLI version is at least 0.32.0
+
+   ```
+   flux -v
+   ```
+
+1. Export your credentials
+
+   ```
+   export GITHUB_TOKEN=<your-token>
+   export GITHUB_USER=<your-username>
+   ```
+
+1. Check your Kubernetes cluster
+
+   ```
+   flux check --pre
+   ```
+
+   The output is similar to:
+   ```
+   ► checking prerequisites
+   ✔ kubernetes 1.22.2 >=1.20.6
+   ✔ prerequisites checks passed
+   ```
+
+1. Install Flux onto your cluster with the `flux bootstrap` command
+
+   ```
+   flux bootstrap github \
+     --owner=$GITHUB_USER \
+     --repository=fleet-infra \
+     --branch=main \
+     --path=./clusters/my-cluster \
+     --personal
+   ```
+
+Full installation documentation including how to work with other Git providers is available [here](https://fluxcd.io/docs/installation/).
+
+The bootstrap command above does following:
+
+- Creates a git repository fleet-infra on your GitHub account
+- Adds Flux component manifests to the repository
+- Deploys Flux Components to your Kubernetes Cluster
+- Configures Flux components to track the path /clusters/my-cluster/ in the repository
+
+### Install Weave GitOps
+
+For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](./configuration/securing-access-to-the-dashboard.mdx).
+
+1. Install the Weave GitOps CLI
+   ```
+   brew install weaveworks/tap/weave-gitops 
+   ```
+
+   For other installation methods, see our [installation doc](./installation.mdx).
+
+1. Clone your git repository where Flux has been bootstrapped.
+
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
+
+1. Run the following command which will create a `HelmRepository` and `HelmRelease` to deploy Weave GitOps
+
+   ```
+   PASSWORD="<your password>"
+   gitops create dashboard ww-gitops \
+     --password=$PASSWORD \
+     --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
+   ```
+
+:::warning
+This command stores a hash of a password.  While this is relatively safe for demo and testing purposes it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+:::
+
+1. Commit and push the `weave-gitops-dashboard.yaml` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add Weave GitOps Dashboard"
+   git push
+   ```
+
+1. Validate that Weave GitOps and Flux are installed
+
+   ```
+   kubectl get pods -n flux-system
+   ```
+
+   You should see something similar to:
+
+   ```
+   NAME                                       READY   STATUS    RESTARTS   AGE
+   helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
+   kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
+   notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
+   source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
+   ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
+   ```
+
+:::info
+There's many other things you can configure in the weave gitops helm chart. For a reference, see [our value file reference](./references/helm-reference.md).
+:::
+
+## Part 1 - Weave GitOps overview
+
+Weave GitOps provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams. We will now login to the dashboard web UI and start to explore the state of our GitOps deployments.
+
+### Login to the GitOps Dashboard
+
+1. Expose the service running on the cluster
+
+   ```
+   kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
+   ```
+
+1. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](./configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encypted value you provided as $PASSWORD.
+
+   ![Weave GitOps login screen](/img/dashboard-login.png)
+
+### Applications view
+
+When you login to the dashboard you are brought to the Applications view, which allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
+
+![Applications summary view showing Flux System and Weave GitOps deployments](/img/dashboard-applications-overview.png)
+
+In the above screenshot you can see:
+-  a `Kustomization` called `flux-system`, which was created when Flux was bootstrapped onto the Cluster, and is deploying the GitOps Toolkit controllers. It is also deploying further Flux objects defined in the same repo, so that Flux will deploy additional workloads which includes our Helm Chart for Weave GitOps.
+- a `HelmRelease` called `ww-gitops` which deploys the aforementioned Helm Chart.
+
+This table view shows the reported status so you can understand whether a reconciliation has been successful, and when they have last been updated. You can also see where the Flux objects are deployed and which `Source` object they are reconciling from; clicking the name of the Source it will take you to a detail view for the given source object. The view automatically updates every few seconds so you know the current state of your system.
+
+You can search for and filter objects by `Name` by clicking the magnifying glass, or filter by `Type` by clicking the strawberry icon to its right.
+
+Clicking the Name of an object will take you to a detailed view for the given Kustomization or HelmRelease. Which we will explore in a moment.
+
+### The Sources view
+
+Clicking on Sources in the left hand menu will bring you to the Sources view. This view shows you where flux pulls its application definitions from, for example Git repositories, and the current state of that synchronization. This shows summary information from `gitrepository`, `helmrepository`, `helmchart` and `bucket` objects.
+
+![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-sources.png)
+
+In the above screenshot you can see:
+- a `GitRepository` called `flux-system`, which was created when Flux was bootstrapped onto the Cluster, and contains the manifests for the GitOps Toolkit and Weave GitOps and various Flux objects.
+- a `HelmChart` called `flux-system-ww-gitops`, which is automatically created by Flux when you define a `HelmRelease` to deploy a Helm Chart from a given source.
+- a `HelmRepository` called `ww-gitops` which pulls from the Helm Repository where the Weave GitOps Helm Chart is published.
+
+The table view again shows summary status information so you can see whether Flux has been able to successfully pull from a given source and which specific commit was last detected. It shows key information like the `Interval`, namely how frequently Flux will check for updates in a given source location. You can apply filtering as per the Applications view, can click the `URL` to navigate to a given source i.e. a repository in GitHub, or the `Name` of a `Source` to view more details about it.
+
+
+### The Flux Runtime view
+
+Clicking on `Flux Runtime` provides status on the GitOps engine continuously reconciling your desired and live state. It shows your installed GitOps Toolkit Controllers and their version.
+
+![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime.png)
+
+By default `flux bootstrap` will install the following controllers:
+- helm-controller
+- kustomize-controller
+- notification-controller
+- source-controller
+
+For a full description of the controllers, see [GitOps ToolKit components](https://fluxcd.io/docs/components/) in the Flux documentation.
+
+Weave GitOps is an extension to Flux and the pod serving this web application is also viewable as `ww-gitops-weave-gitops`.
+
+From this view you can see whether the controllers are healthy and which version of a given component is currently deployed.
+
+### Exploring the flux-system deployment
+
+Let's explore the `flux-system` kustomization. Navigate back to the `Applications` view and click on the `flux-system` object.
+
+![Application detail view for the flux system kustomization](/img/dashboard-application-flux.png)
+
+After a few moments loading the data, you should see similar to the above screenshot. From here you can see key information about how this resource is defined: which `Source` it is reading from, the latest applied commit, the exact path with the Source repository that is being deployed, and the `Interval` in which Flux will look to reconcile any difference between the declared and live state - i.e. if a kubectl patch had been applied on the cluster, it would effectively be reverted. If a longer error message was being reported by this object, you would be able to see it in its entirety on this page.
+
+Underneath the summary information are four tabs:
+
+- Details (default) is a table view which shows all the Kubernetes objects (including flux objects, deployments, pods, services, etc) managed and deployed through this `kustomization`.
+- Events (shown below) shows any related Kubernetes events to help you diagnose issues and understand health over time.
+- Reconciliation Graph (shown below) provides a directional graph alternative to the Details view to help you understand how the various objects relate to each other.
+- Yaml (shown below) provides a raw dump on the current object as it currently exists inside your cluster. Note that this will be different from what's in your gitops repository, since this yaml view will contain the current status of the object.
+
+**Events tab**
+![Application detail view showing events for an object](/img/dashboard-application-events.png)
+
+**Reconciliation Graph tab**
+![Application detail view showing reconciliation graph - a directional graph showing object relationships](/img/dashboard-application-reconciliation.png)
+
+**Yaml tab**
+![Application detail view showing the yaml display](/img/dashboard-application-yaml.png)
+
+#### Source details view
+Finally lets look at the Source in more detail - go back to the Details tab, and click `GitRepository/flux-system` from the summary at the top of the page.
+
+![Source detail view showing details for an object](/img/dashboard-source-flux.png)
+
+As with an Application detail view, you can see key information about how the resource is defined. Then beneath alongside the Events tab, is a Related Automations view. This shows all the `kustomization` objects which have this object as their Source.
+
+
+## Part 2 - Deploying and viewing podinfo application
+
+Now that you have a feel for how to navigate the dashboard. Let's deploy a new application and explore that as well. In this section we will use the [podinfo](https://github.com/stefanprodan/podinfo) sample web application.
+
+### Deploying podinfo
+
+1. Clone or navigate back to your git repository where you have bootstrapped Flux, for example:
+
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
+
+1. Create a `GitRepository` Source for podinfo
+
+   ```
+   flux create source git podinfo \
+     --url=https://github.com/stefanprodan/podinfo \
+     --branch=master \
+     --interval=30s \
+     --export > ./clusters/my-cluster/podinfo-source.yaml
+   ```
+
+1. Commit and push the `podinfo-source` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add podinfo source"
+   git push
+   ```
+
+1. Create a `kustomization` to build and apply the podinfo manifest
+
+   ```
+   flux create kustomization podinfo \
+     --target-namespace=flux-system \
+     --source=podinfo \
+     --path="./kustomize" \
+     --prune=true \
+     --interval=5m \
+     --export > ./clusters/my-cluster/podinfo-kustomization.yaml
+   ```
+
+1. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add podinfo kustomization"
+   git push
+   ```
+
+### View the application in Weave GitOps
+
+Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back to the [dashboard](http://localhost:9001/) you should see the podinfo application appear.
+
+![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
+
+Click on podinfo and you will see details about the deployment, including that there are 2 replicas available.
+
+![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
+
+### Customize podinfo
+
+To customize a deployment from a repository you don’t control, you can use Flux in-line patches. The following example shows how to use in-line patches to change the podinfo deployment.
+
+1. Add the `patches` section as shown below to the field spec of your podinfo-kustomization.yaml file so it looks like this:
+
+   ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
+   ---
+   apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+   kind: Kustomization
+   metadata:
+     name: podinfo
+     namespace: flux-system
+   spec:
+     interval: 60m0s
+     path: ./kustomize
+     prune: true
+     sourceRef:
+       kind: GitRepository
+       name: podinfo
+     targetNamespace: flux-system
+   // highlight-start
+     patches:
+       - patch: |-
+           apiVersion: autoscaling/v2beta2
+           kind: HorizontalPodAutoscaler
+           metadata:
+             name: podinfo
+           spec:
+             minReplicas: 3
+         target:
+           name: podinfo
+           kind: HorizontalPodAutoscaler
+   // highlight-end
+   ```
+
+1. Commit and push the podinfo-kustomization.yaml changes:
+
+   ```
+   git add -A && git commit -m "Increase podinfo minimum replicas"
+   git push
+   ```
+
+3. Navigate back to the dashboard and you will now see increased replica count and the newly created 3rd pod
+
+   ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
+
+
+### Suspend updates
+
+Suspending updates to a kustomization allows you to directly edit objects applied from a kustomization, without your changes being reverted by the state in Git.
+
+To suspend updates for a kustomization, from the details page, click on the suspend button at the top, and you should see it be suspended:
+
+![Podinfo details showing Podinfo suspended](/img/dashboard-podinfo-details-suspended.png)
+
+This shows in the applications view with a yellow warning status indicating it is now suspended
+
+![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
+
+To resume updates, go back to the details page, click the resume button, and after a few seconds reconsolidation will continue:
+
+![Applications details view for podinfo being resumed](/img/dashboard-podinfo-updated.png)
+
+## Complete!
+
+Congratulations 🎉🎉🎉
+
+You've now completed the getting started guide. We would welcome any and all [feedback](feedback-and-telemetry.md) on your experience.

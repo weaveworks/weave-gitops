@@ -19,7 +19,8 @@ func TestGetFeatureFlags(t *testing.T) {
 
 	featureflags.Set("this is a flag", "you won't find it anywhere else")
 
-	cfg := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClientsFactory{})
+	cfg, err := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", &clustersmngrfakes.FakeClustersManager{})
+	Expect(err).NotTo(HaveOccurred())
 	coreSrv, err := server.NewCoreServer(cfg)
 	Expect(err).NotTo(HaveOccurred())
 

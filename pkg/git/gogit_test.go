@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +35,7 @@ var _ = BeforeEach(func() {
 	fakeGit = &wrapperfakes.FakeGit{}
 	fakeGitClient = git.New(nil, fakeGit)
 
-	dir, err = ioutil.TempDir("", "wego-git-test-")
+	dir, err = os.MkdirTemp("", "wego-git-test-")
 	Expect(err).ShouldNot(HaveOccurred())
 })
 
@@ -165,7 +164,7 @@ var _ = Describe("Read", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err := ioutil.WriteFile(dir+filePath, content, 0644)
+		err := os.WriteFile(dir+filePath, content, 0644)
 		Expect(err).ShouldNot(HaveOccurred())
 		fileContent, err := gitClient.Read(filePath)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -207,7 +206,7 @@ var _ = Describe("Write", func() {
 		content := []byte("testing")
 		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
-		fileContent, err := ioutil.ReadFile(dir + filePath)
+		fileContent, err := os.ReadFile(dir + filePath)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(content).To(Equal(fileContent))

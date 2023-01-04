@@ -10,106 +10,16 @@ import (
 	"io"
 	"strings"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/ssa"
-	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (cs *coreServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleasesRequest) (*pb.ListHelmReleasesResponse, error) {
-	respErrors := []*pb.ListError{}
-
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
-			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
-					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
-				}
-			}
-		}
-	}
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
-		return &helmv2.HelmReleaseList{}
-	})
-
-	if err := clustersClient.ClusteredList(ctx, clist, true); err != nil {
-		return nil, err
-	}
-
-	var results []*pb.HelmRelease
-
-	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
-
-	for clusterName, lists := range clist.Lists() {
-		for _, l := range lists {
-			list, ok := l.(*helmv2.HelmReleaseList)
-			if !ok {
-				continue
-			}
-
-			for _, helmrelease := range list.Items {
-				inv, err := getHelmReleaseInventory(ctx, helmrelease, clustersClient, clusterName)
-				if err != nil {
-					return nil, err
-				}
-
-				tenant := GetTenant(helmrelease.Namespace, clusterName, clusterUserNamespaces)
-
-				results = append(results, types.HelmReleaseToProto(&helmrelease, clusterName, inv, tenant))
-			}
-		}
-	}
-
-	return &pb.ListHelmReleasesResponse{
-		HelmReleases: results,
-		Errors:       respErrors,
-	}, nil
-}
-
-func (cs *coreServer) GetHelmRelease(ctx context.Context, msg *pb.GetHelmReleaseRequest) (*pb.GetHelmReleaseResponse, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	apiVersion := helmv2.GroupVersion.String()
-	helmRelease := helmv2.HelmRelease{}
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	if err := clustersClient.Get(ctx, msg.ClusterName, key, &helmRelease); err != nil {
-		return nil, err
-	}
-
-	inventory, err := getHelmReleaseInventory(ctx, helmRelease, clustersClient, msg.ClusterName)
-	if err != nil {
-		return nil, err
-	}
-
-	clusterUserNamespaces := cs.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
-
-	tenant := GetTenant(helmRelease.Namespace, msg.ClusterName, clusterUserNamespaces)
-
-	res := types.HelmReleaseToProto(&helmRelease, msg.ClusterName, inventory, tenant)
-
-	res.ApiVersion = apiVersion
-
-	return &pb.GetHelmReleaseResponse{
-		HelmRelease: res,
-	}, err
-}
-
-func getHelmReleaseInventory(ctx context.Context, helmRelease v2beta1.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
+func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
 	storageNamespace := helmRelease.GetStorageNamespace()
 
 	storageName := helmRelease.GetReleaseName()

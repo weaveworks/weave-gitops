@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -27,12 +27,12 @@ const (
 )
 
 func (cs *coreServer) getScopedClient(ctx context.Context) (client.Client, error) {
-	clustersClient, err := cs.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	scopedClient, err := clustersClient.Scoped(clustersmngr.DefaultCluster)
+	scopedClient, err := clustersClient.Scoped(cluster.DefaultCluster)
 	if err != nil {
 		return nil, fmt.Errorf("error getting scoped client: %w", err)
 	}
@@ -81,7 +81,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 }
 
 func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
-	dc, err := cs.clientsFactory.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), clustersmngr.DefaultCluster)
+	dc, err := cs.clustersManager.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), cluster.DefaultCluster)
 	if err != nil {
 		return "", fmt.Errorf("error creating discovery client: %w", err)
 	}

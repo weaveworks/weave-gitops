@@ -45,7 +45,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoURL gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
 	SetupDeployKey(ctx context.Context, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
 }
@@ -76,13 +76,13 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error) {
+func (a *authSvc) CreateGitClient(ctx context.Context, repoURL gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error) {
 	if dryRun {
 		d, _ := makePublicKey([]byte(""))
 		return git.New(d, wrapper.NewGoGit()), nil
 	}
 
-	pubKey, keyErr := a.SetupDeployKey(ctx, namespace, repoUrl)
+	pubKey, keyErr := a.SetupDeployKey(ctx, namespace, repoURL)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}

@@ -1,23 +1,28 @@
 import * as React from "react";
 import styled from "styled-components";
-import { removeKind } from "../lib/utils";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { HelmRepository } from "../lib/objects";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { HelmRepository } from "../lib/objects";
+import ClusterDashboardLink from "./ClusterDashboardLink";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import Link from "./Link";
 import SourceDetail from "./SourceDetail";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 type Props = {
   className?: string;
   helmRepository: HelmRepository;
+  customActions?: JSX.Element[];
 };
 
-function HelmRepositoryDetail({ className, helmRepository }: Props) {
+function HelmRepositoryDetail({
+  className,
+  helmRepository,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRepository.tenant
@@ -25,16 +30,22 @@ function HelmRepositoryDetail({ className, helmRepository }: Props) {
       : [];
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", helmRepository.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={helmRepository?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
     <SourceDetail
       className={className}
-      type={FluxObjectKind.KindHelmRepository}
+      type={Kind.HelmRepository}
       source={helmRepository}
+      customActions={customActions}
       info={[
-        ["Type", removeKind(FluxObjectKind.KindHelmRepository)],
+        ["Kind", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],
         ["URL", <Link href={helmRepository.url}>{helmRepository.url}</Link>],
         [

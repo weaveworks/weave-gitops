@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -15,7 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/weaveworks/weave-gitops/core/server/internal"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -39,13 +39,13 @@ func TestSync(t *testing.T) {
 	name := "myapp"
 	ns := newNamespace(ctx, k, g)
 
-	gitRepo := makeGitRepo(name, ns)
+	gitRepo := makeGitRepo(name, *ns)
 
-	kust := makeKustomization(name, ns, gitRepo)
+	kust := makeKustomization(name, *ns, gitRepo)
 
-	chart := makeHelmChart(name, ns)
-	helmRepo := makeHelmRepo(name, ns)
-	hr := makeHelmRelease(name, ns, helmRepo, chart)
+	chart := makeHelmChart(name, *ns)
+	helmRepo := makeHelmRepo(name, *ns)
+	hr := makeHelmRelease(name, *ns, helmRepo, chart)
 
 	g.Expect(k.Create(ctx, gitRepo)).Should(Succeed())
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
@@ -56,56 +56,74 @@ func TestSync(t *testing.T) {
 	tests := []struct {
 		name       string
 		msg        *pb.SyncFluxObjectRequest
-		automation internal.Automation
-		source     internal.Reconcilable
+		automation fluxsync.Automation
+		source     fluxsync.Reconcilable
 	}{{
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindKustomization,
-			WithSource:  false,
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: kustomizev1.KustomizationKind}},
+			WithSource: false,
 		},
-		automation: internal.KustomizationAdapter{Kustomization: kust},
+		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindKustomization,
-			WithSource:  true,
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: kustomizev1.KustomizationKind}},
+			WithSource: true,
 		},
-		automation: internal.KustomizationAdapter{Kustomization: kust},
-		source:     internal.NewReconcileable(gitRepo),
+		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
+		source:     fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindHelmRelease,
-			WithSource:  false,
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: helmv2.HelmReleaseKind}},
+			WithSource: false,
 		},
-		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
+		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
-			ClusterName: "Default",
-			Kind:        pb.FluxObjectKind_KindHelmRelease,
-			WithSource:  true,
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: helmv2.HelmReleaseKind}},
+			WithSource: true,
 		},
-		automation: internal.HelmReleaseAdapter{HelmRelease: hr},
-		source:     internal.NewReconcileable(helmRepo),
-	}}
+		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:     fluxsync.NewReconcileable(helmRepo),
+	},
+		{
+			name: "multiple objects",
+			msg: &pb.SyncFluxObjectRequest{
+				Objects: []*pb.ObjectRef{{ClusterName: "Default",
+					Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
+					Kind: helmv2.HelmReleaseKind}},
+				WithSource: true,
+			},
+			automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+			source:     fluxsync.NewReconcileable(helmRepo),
+		}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := tt.msg
-			msg.Name = tt.automation.GetName()
-			msg.Namespace = tt.automation.GetNamespace()
+			for _, msg := range msg.Objects {
+				msg.Name = tt.automation.GetName()
+				msg.Namespace = tt.automation.GetNamespace()
+			}
 
 			done := make(chan error)
 			defer close(done)
 
 			go func() {
 				_, err := c.SyncFluxObject(ctx, msg)
-				done <- err
+				select {
+				case <-done:
+					return
+				default:
+					done <- err
+				}
 			}()
 
 			ticker := time.NewTicker(500 * time.Millisecond)
@@ -166,7 +184,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *v2beta1.HelmRelease:
+	case *helmv2.HelmRelease:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -221,7 +239,7 @@ func makeKustomization(name string, ns corev1.Namespace, source *sourcev1.GitRep
 
 	if source != nil {
 		k.Spec.SourceRef = kustomizev1.CrossNamespaceSourceReference{
-			Kind:      "GitRepository",
+			Kind:      sourcev1.GitRepositoryKind,
 			Name:      source.GetName(),
 			Namespace: source.GetNamespace(),
 		}
@@ -284,18 +302,18 @@ func makeHelmRepo(name string, ns corev1.Namespace) *sourcev1.HelmRepository {
 	}
 }
 
-func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmRepository, chart *sourcev1.HelmChart) *v2beta1.HelmRelease {
-	return &v2beta1.HelmRelease{
+func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmRepository, chart *sourcev1.HelmChart) *helmv2.HelmRelease {
+	return &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: v2beta1.HelmReleaseSpec{
-			Chart: v2beta1.HelmChartTemplate{
-				Spec: v2beta1.HelmChartTemplateSpec{
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   chart.Spec.Chart,
 					Version: chart.Spec.Version,
-					SourceRef: v2beta1.CrossNamespaceObjectReference{
+					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      repo.GetName(),
 						Namespace: repo.GetNamespace(),
 						Kind:      sourcev1.HelmRepositoryKind,
@@ -303,7 +321,7 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmReposi
 				},
 			},
 		},
-		Status: v2beta1.HelmReleaseStatus{
+		Status: helmv2.HelmReleaseStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

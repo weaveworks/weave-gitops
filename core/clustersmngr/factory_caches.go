@@ -7,34 +7,36 @@ import (
 	"sync"
 
 	"github.com/cheshir/ttlcache"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Clusters struct {
 	sync.RWMutex
-	clusters    []Cluster
-	clustersMap map[string]Cluster
+	clusters    []cluster.Cluster
+	clustersMap map[string]cluster.Cluster
 }
 
 // Set updates Clusters.clusters, and returns the newly added clusters and removed clusters.
-func (c *Clusters) Set(clusters []Cluster) (added, removed []Cluster) {
+func (c *Clusters) Set(newClusters []cluster.Cluster) (added, removed []cluster.Cluster) {
 	c.Lock()
 	defer c.Unlock()
 
 	currentClustersSet := sets.NewString()
 
 	for _, cluster := range c.clusters {
-		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+		clusterKey := fmt.Sprintf("%s:%s", cluster.GetName(), cluster.GetHost())
 		currentClustersSet.Insert(clusterKey)
 	}
 
 	newClustersSet := sets.NewString()
-	clustersMap := map[string]Cluster{}
+	clustersMap := map[string]cluster.Cluster{}
 
-	for _, cluster := range clusters {
-		clusterKey := fmt.Sprintf("%s:%s", cluster.Name, cluster.Server)
+	for _, cluster := range newClusters {
+		clusterKey := fmt.Sprintf("%s:%s", cluster.GetName(), cluster.GetHost())
 		newClustersSet.Insert(clusterKey)
 
 		clustersMap[clusterKey] = cluster
@@ -46,14 +48,14 @@ func (c *Clusters) Set(clusters []Cluster) (added, removed []Cluster) {
 	removedClusters := currentClustersSet.Difference(newClustersSet)
 	removed = appendClusters(c.clustersMap, removedClusters.List())
 
-	c.clusters = clusters
+	c.clusters = newClusters
 	c.clustersMap = clustersMap
 
 	return added, removed
 }
 
-func appendClusters(clustersMap map[string]Cluster, keys []string) []Cluster {
-	clusters := []Cluster{}
+func appendClusters(clustersMap map[string]cluster.Cluster, keys []string) []cluster.Cluster {
+	clusters := []cluster.Cluster{}
 
 	for _, key := range keys {
 		clusters = append(clusters, clustersMap[key])
@@ -62,7 +64,7 @@ func appendClusters(clustersMap map[string]Cluster, keys []string) []Cluster {
 	return clusters
 }
 
-func (c *Clusters) Get() []Cluster {
+func (c *Clusters) Get() []cluster.Cluster {
 	c.Lock()
 	defer c.Unlock()
 
@@ -73,7 +75,7 @@ func (c *Clusters) Hash() string {
 	names := []string{}
 
 	for _, cluster := range c.clusters {
-		names = append(names, cluster.Name)
+		names = append(names, cluster.GetName())
 	}
 
 	sort.Strings(names)
@@ -129,12 +131,12 @@ func (un *UsersNamespaces) Set(user *auth.UserPrincipal, cluster string, nsList 
 
 // GetAll will return all namespace mappings based on the list of clusters provided.
 // The cache very well may contain more, but this List is targeted.
-func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []Cluster) map[string][]v1.Namespace {
+func (un *UsersNamespaces) GetAll(user *auth.UserPrincipal, clusters []cluster.Cluster) map[string][]v1.Namespace {
 	namespaces := map[string][]v1.Namespace{}
 
 	for _, cluster := range clusters {
-		if nsList, found := un.Get(user, cluster.Name); found {
-			namespaces[cluster.Name] = nsList
+		if nsList, found := un.Get(user, cluster.GetName()); found {
+			namespaces[cluster.GetName()] = nsList
 		}
 	}
 
@@ -145,6 +147,30 @@ func (un *UsersNamespaces) Clear() {
 	un.Cache.Clear()
 }
 
-func (u UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
+func (un UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uint64 {
 	return ttlcache.StringKey(fmt.Sprintf("%s:%s", user.ID, cluster))
+}
+
+type UsersClients struct {
+	Cache *ttlcache.Cache
+}
+
+func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) uint64 {
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s-%s", user.ID, strings.Join(user.Groups, "/"), clusterName))
+}
+
+func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
+	uc.Cache.Set(uc.cacheKey(user, clusterName), client, usersClientsTTL)
+}
+
+func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {
+	if val, found := uc.Cache.Get(uc.cacheKey(user, clusterName)); found {
+		return val.(client.Client), true
+	}
+
+	return nil, false
+}
+
+func (uc *UsersClients) Clear() {
+	uc.Cache.Clear()
 }

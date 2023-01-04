@@ -115,7 +115,7 @@ func doGithubCodeRequest(client *http.Client, scope string) (*GithubDeviceCodeRe
 var ErrAuthPending = errors.New("auth pending")
 var ErrSlowDown = errors.New("slow down")
 
-const accessTokenUrl = "https://github.com/login/oauth/access_token?%s"
+const accessTokenURL = "https://github.com/login/oauth/access_token?%s"
 const githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
 
 // It appears we need `repo` scope, which is VERY permissive.
@@ -135,7 +135,7 @@ func doGithubDeviceAuthRequest(client *http.Client, deviceCode string) (string, 
 		"device_code": {deviceCode},
 		"grant_type":  {githubRequiredGrantType},
 	})
-	url := fmt.Sprintf(accessTokenUrl, query)
+	url := fmt.Sprintf(accessTokenURL, query)
 
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {

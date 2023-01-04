@@ -4,7 +4,7 @@ Depending on your area of focus we're providing guidance of each kind of develop
 
 Step one, you **must** have the following things installed:
 
-* [go](https://go.dev) v1.17 -- Primary development language.
+* [go](https://go.dev) v1.19 -- Primary development language.
 * [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
 * [helm](https://helm.sh/docs/intro/install/) v3. -- Package manager for kubernetes
 * [kind](https://kind.sigs.k8s.io/docs/user/quick-start#installation) -- Run kubernetes clusters in docker for testing.

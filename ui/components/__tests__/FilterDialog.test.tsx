@@ -2,15 +2,15 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
-import { initialFormState } from "../FilterableTable";
-import FilterDialog from "../FilterDialog";
+import { initialFormState } from "../DataTable";
+import FilterDialog, { filterSeparator } from "../FilterDialog";
 
 describe("FilterDialog", () => {
   const setActiveFilters = jest.fn();
   const filterList = {
-    Name: ["app", "app2", "app3"],
-    Status: ["Ready", "Failed"],
-    Type: ["Application", "Helm Release"],
+    Name: { options: ["app", "app2", "app3"] },
+    Status: { options: ["Ready", "Failed"] },
+    Type: { options: ["Application", "Helm Release"] },
   };
   it("should not render when closed", () => {
     render(
@@ -55,14 +55,16 @@ describe("FilterDialog", () => {
       )
     );
 
-    const checkbox1 = document.getElementById("Name:app") as HTMLInputElement;
+    const checkbox1 = document.getElementById(
+      `Name${filterSeparator}app`
+    ) as HTMLInputElement;
 
     expect(checkbox1.checked).toEqual(false);
     fireEvent.click(checkbox1);
 
     const filterResult = onFilterSelect.mock.calls[0][0];
     expect(filterResult).toEqual({
-      Name: ["app"],
+      Name: { options: ["app"] },
     });
   });
 });

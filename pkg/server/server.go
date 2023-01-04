@@ -190,7 +190,7 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 		return nil, fmt.Errorf("could not exchange code: %w", err)
 	}
 
-	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresInSeconds, gitproviders.GitProviderGitLab, tokenState.AccessToken)
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderGitLab, tokenState.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate token: %w", err)
 	}

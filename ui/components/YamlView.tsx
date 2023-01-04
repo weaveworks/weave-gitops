@@ -1,13 +1,12 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectRef } from "../lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "../lib/objects";
+import { ObjectRef } from "../lib/api/core/types.pb";
 import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
 type Props = {
   className?: string;
   yaml: string;
-  object?: FluxObjectRef;
+  object?: ObjectRef;
 };
 const YamlHeader = styled.div`
   background: ${(props) => props.theme.colors.neutral10};
@@ -31,11 +30,11 @@ const CopyButton = styled(IconButton)`
   }
 `;
 
-function YamlView({ yaml, object, className }: Props) {
+function UnstyledYamlView({ yaml, object, className }: Props) {
   const [copied, setCopied] = React.useState(false);
-  const headerText = `kubectl get ${fluxObjectKindToKind(
-    object.kind
-  ).toLowerCase()} ${object.name} -n ${object.namespace} -o yaml `;
+  const headerText = `kubectl get ${object.kind.toLowerCase()} ${
+    object.name
+  } -n ${object.namespace} -o yaml `;
 
   return (
     <div className={className}>
@@ -62,16 +61,18 @@ function YamlView({ yaml, object, className }: Props) {
   );
 }
 
-export default styled(YamlView).attrs({
-  className: YamlView.name,
+const YamlView = styled(UnstyledYamlView).attrs({
+  className: UnstyledYamlView.name,
 })`
   margin-bottom: ${(props) => props.theme.spacing.small};
-  width: calc(100% - ${(props) => props.theme.spacing.medium});
+  width: 100%;
   font-size: ${(props) => props.theme.fontSizes.small};
   border: 1px solid ${(props) => props.theme.colors.neutral20};
   border-radius: 8px;
-  overflow: scroll;
+  overflow: hidden;
   pre {
+    overflow-y: scroll;
+    overflow-x: hidden;
     padding: ${(props) => props.theme.spacing.small};
     white-space: pre-wrap;
   }
@@ -100,3 +101,11 @@ export default styled(YamlView).attrs({
     text-align: right;
   }
 `;
+
+export const DialogYamlView = styled(YamlView)`
+  margin-bottom: 0;
+  overflow: auto;
+  overflow-x: hidden;
+`;
+
+export default YamlView;

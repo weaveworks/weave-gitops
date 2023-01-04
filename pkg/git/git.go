@@ -82,6 +82,7 @@ func GetProfilesPath(clusterName, profilesManifestPath string) string {
 
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.
+//
 //counterfeiter:generate . Git
 type Git interface {
 	Open(path string) (*gogit.Repository, error)
@@ -95,6 +96,6 @@ type Git interface {
 	Push(ctx context.Context) error
 	Status() (bool, error)
 	Head() (string, error)
-	GetRemoteUrl(dir string, remoteName string) (string, error)
+	GetRemoteURL(dir string, remoteName string) (string, error)
 	ValidateAccess(ctx context.Context, url string, branch string) error
 }

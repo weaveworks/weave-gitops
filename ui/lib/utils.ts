@@ -1,7 +1,10 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
-import { Condition, HelmRelease, Kustomization } from "./api/core/types.pb";
+import { AppVersion, repoUrl } from "../components/Version";
+import { GetVersionResponse } from "../lib/api/core/core.pb";
+import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
+import { Automation, HelmRelease, Kustomization } from "./objects";
 import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
@@ -89,22 +92,6 @@ export function automationLastUpdated(a: Kustomization | HelmRelease): string {
   return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
 }
 
-const kindPrefix = "Kind";
-
-export function addKind(kind: string): string {
-  if (!kind.startsWith(kindPrefix)) {
-    return `${kindPrefix}${kind}`;
-  }
-  return kind;
-}
-
-export function removeKind(kind: string): string {
-  if (kind.startsWith(kindPrefix)) {
-    return kind.slice(kindPrefix.length);
-  }
-  return kind;
-}
-
 export function makeImageString(images: string[]): string {
   let imageString = "";
   if (!images[0]) return "-";
@@ -161,3 +148,39 @@ export const convertImage = (image: string) => {
   //one slash docker images w/o docker.io
   return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
+
+// getSourceRefForAutomation returns the automation's sourceRef
+// depending on whether the automation is a Kustomization or a HelmRelease.
+export function getSourceRefForAutomation(
+  automation?: Automation
+): ObjectRef | undefined {
+  return automation?.type === Kind.Kustomization
+    ? (automation as Kustomization)?.sourceRef
+    : (automation as HelmRelease)?.helmChart?.sourceRef;
+}
+
+// getAppVersion returns the app version to display in the UI or track in analytics.
+export function getAppVersion(
+  versionData: GetVersionResponse,
+  defaultVersion: string,
+  isLoading = false,
+  defaultVersionPrefix = ""
+): AppVersion {
+  const shouldDisplayApiVersion =
+    !isLoading &&
+    (versionData.semver || "").replace(/^v+/, "") !== defaultVersion &&
+    versionData.branch &&
+    versionData.commit;
+
+  const versionText = shouldDisplayApiVersion
+    ? `${versionData.branch}-${versionData.commit}`
+    : `${defaultVersionPrefix}${defaultVersion}`;
+  const versionHref = shouldDisplayApiVersion
+    ? `${repoUrl}/commit/${versionData.commit}`
+    : `${repoUrl}/releases/tag/v${defaultVersion}`;
+
+  return {
+    versionText,
+    versionHref,
+  };
+}

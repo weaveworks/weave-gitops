@@ -17,8 +17,8 @@ var gitlabScopes = []string{"api", "read_user", "profile"}
 
 //counterfeiter:generate . GitlabAuthClient
 type GitlabAuthClient interface {
-	AuthURL(ctx context.Context, redirectUri string) (url.URL, error)
-	ExchangeCode(ctx context.Context, redirectUri, code string) (*types.TokenResponseState, error)
+	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
+	ExchangeCode(ctx context.Context, redirectURI, code string) (*types.TokenResponseState, error)
 	ValidateToken(ctx context.Context, token string) error
 }
 
@@ -39,18 +39,18 @@ func NewGitlabAuthClient(client *http.Client) GitlabAuthClient {
 	}
 }
 
-func (g glAuth) AuthURL(ctx context.Context, redirectUri string) (url.URL, error) {
-	return internal.GitlabAuthorizeUrl(redirectUri, gitlabScopes, g.verifier)
+func (g glAuth) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
+	return internal.GitlabAuthorizeURL(redirectURI, gitlabScopes, g.verifier)
 }
 
-func (g glAuth) ExchangeCode(ctx context.Context, redirectUri, code string) (*types.TokenResponseState, error) {
-	tUrl := internal.GitlabTokenUrl(redirectUri, code, g.verifier)
+func (g glAuth) ExchangeCode(ctx context.Context, redirectURI, code string) (*types.TokenResponseState, error) {
+	tURL := internal.GitlabTokenURL(redirectURI, code, g.verifier)
 
-	return doCodeExchangeRequest(ctx, tUrl, g.http)
+	return doCodeExchangeRequest(ctx, tURL, g.http)
 }
 
 func (g glAuth) ValidateToken(ctx context.Context, token string) error {
-	u := internal.GitlabUserUrl()
+	u := internal.GitlabUserURL()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
@@ -69,8 +69,8 @@ func (g glAuth) ValidateToken(ctx context.Context, token string) error {
 	return nil
 }
 
-func doCodeExchangeRequest(ctx context.Context, tUrl url.URL, c *http.Client) (*types.TokenResponseState, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tUrl.String(), strings.NewReader(""))
+func doCodeExchangeRequest(ctx context.Context, tURL url.URL, c *http.Client) (*types.TokenResponseState, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tURL.String(), strings.NewReader(""))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab code request: %w", err)
 	}

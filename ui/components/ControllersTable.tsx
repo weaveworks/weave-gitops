@@ -1,13 +1,11 @@
-import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../hooks/featureflags";
 import { Deployment } from "../lib/api/core/types.pb";
 import { statusSortHelper } from "../lib/utils";
-import { useFeatureFlags } from "../hooks/featureflags";
-import { filterByStatusCallback, filterConfig } from "./FilterableTable";
+import DataTable, { filterByStatusCallback, filterConfig } from "./DataTable";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
-import URLAddressableTable from "./URLAddressableTable";
 
 type Props = {
   className?: string;
@@ -16,7 +14,7 @@ type Props = {
 
 function ControllersTable({ className, controllers = [] }: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   let initialFilterState = {
     ...filterConfig(controllers, "status", filterByStatusCallback),
@@ -30,7 +28,7 @@ function ControllersTable({ className, controllers = [] }: Props) {
   }
 
   return (
-    <URLAddressableTable
+    <DataTable
       className={className}
       filters={initialFilterState}
       rows={controllers}
@@ -57,16 +55,20 @@ function ControllersTable({ className, controllers = [] }: Props) {
           ? [{ label: "Cluster", value: "clusterName" }]
           : []),
         {
+          label: "Namespace",
+          value: "namespace",
+        },
+        {
+          label: "Image",
           value: (d: Deployment) => (
             <>
-              {_.map(d.images, (img) => (
+              {d.images.map((img) => (
                 <Link href={`https://${img}`} key={img} newTab>
                   {img}
                 </Link>
               ))}
             </>
           ),
-          label: "Image",
         },
       ]}
     />

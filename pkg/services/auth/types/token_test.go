@@ -35,7 +35,7 @@ var _ = Describe("TokenResponseState", func() {
 
 		Expect(token.AccessToken).To(Equal(accessToken))
 		Expect(token.TokenType).To(Equal(tokenType))
-		Expect(token.ExpiresInSeconds).To(Equal(time.Duration(seconds) * time.Second))
+		Expect(token.ExpiresIn).To(Equal(time.Duration(seconds) * time.Second))
 		Expect(token.RefreshToken).To(Equal(refreshToken))
 		Expect(token.CreatedAt).To(Equal(createdAt))
 

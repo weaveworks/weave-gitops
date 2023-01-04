@@ -207,10 +207,10 @@ var _ = Describe("ApplicationsServer", func() {
 	Describe("GetGitlabAuthURL", func() {
 		It("returns the gitlab url", func() {
 			urlString := "http://gitlab.com/oauth/authorize"
-			authUrl, err := url.Parse(urlString)
+			authURL, err := url.Parse(urlString)
 			Expect(err).NotTo(HaveOccurred())
 
-			glAuthClient.AuthURLReturns(*authUrl, nil)
+			glAuthClient.AuthURLReturns(*authURL, nil)
 
 			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
 				RedirectUri: "http://example.com/oauth/fake",
@@ -255,7 +255,7 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
-	DescribeTable("ValidateProviderToken", func(provider pb.GitProvider, ctx context.Context, errResponse error, expectedCode codes.Code) {
+	DescribeTable("ValidateProviderToken", func(ctx context.Context, provider pb.GitProvider, errResponse error, expectedCode codes.Code) {
 		glAuthClient.ValidateTokenReturns(errResponse)
 		ghAuthClient.ValidateTokenReturns(errResponse)
 
@@ -274,11 +274,11 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res.Valid).To(BeTrue())
 	},
-		Entry("bad gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument),
-		Entry("good gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), nil, codes.OK),
-		Entry("bad github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument),
-		Entry("good github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), nil, codes.OK),
-		Entry("no gitops jwt", pb.GitProvider_GitHub, context.Background(), errors.New("unauth error"), codes.Unauthenticated),
+		Entry("bad gitlab token", contextWithAuth(context.Background()), pb.GitProvider_GitLab, errors.New("this token is bad"), codes.InvalidArgument),
+		Entry("good gitlab token", contextWithAuth(context.Background()), pb.GitProvider_GitLab, nil, codes.OK),
+		Entry("bad github token", contextWithAuth(context.Background()), pb.GitProvider_GitHub, errors.New("this token is bad"), codes.InvalidArgument),
+		Entry("good github token", contextWithAuth(context.Background()), pb.GitProvider_GitHub, nil, codes.OK),
+		Entry("no gitops jwt", context.Background(), pb.GitProvider_GitHub, errors.New("unauth error"), codes.Unauthenticated),
 	)
 
 	Describe("middleware", func() {

@@ -7,19 +7,16 @@ import {
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
-import {
-  FluxObjectKind,
-  GroupVersionKind,
-  UnstructuredObject,
-} from "../lib/api/core/types.pb";
+import { GroupVersionKind, Kind } from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
+import { FluxObject } from "../lib/objects";
 import {
   DefaultCluster,
   NoNamespace,
   ReactQueryOptions,
   RequestError,
 } from "../lib/types";
-
+import { notifyError, notifySuccess } from "../lib/utils";
 export function useListFluxRuntimeObjects(
   clusterName = DefaultCluster,
   namespace = NoNamespace,
@@ -47,20 +44,51 @@ export function useListFluxCrds(clusterName = DefaultCluster) {
   );
 }
 
+export function flattenChildren(children: FluxObject[]) {
+  return children.flatMap((child) =>
+    [child].concat(flattenChildren(child.children))
+  );
+}
+
 export function useGetReconciledObjects(
   name: string,
   namespace: string,
-  type: FluxObjectKind,
+  type: Kind,
   kinds: GroupVersionKind[],
   clusterName = DefaultCluster,
-  opts: ReactQueryOptions<UnstructuredObject[], RequestError> = {
+  opts: ReactQueryOptions<FluxObject[], RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
+  const result = useGetReconciledTree(
+    name,
+    namespace,
+    type,
+    kinds,
+    clusterName,
+    opts
+  );
+  if (result.data) {
+    result.data = flattenChildren(result.data);
+  }
+  return result;
+}
+
+export function useGetReconciledTree(
+  name: string,
+  namespace: string,
+  type: Kind,
+  kinds: GroupVersionKind[],
+  clusterName = DefaultCluster,
+  opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<UnstructuredObject[], RequestError>(
+  return useQuery<FluxObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
     () => getChildren(api, name, namespace, type, kinds, clusterName),
     opts
@@ -77,7 +105,12 @@ export function useToggleSuspend(
     () => api.ToggleSuspendResource(req),
     {
       onSuccess: () => {
+        const suspend = req.suspend ? "Suspend" : "Resume";
+        notifySuccess(`${suspend} request successful!`);
         return queryClient.invalidateQueries(type);
+      },
+      onError: (error) => {
+        notifyError(error.message);
       },
     }
   );

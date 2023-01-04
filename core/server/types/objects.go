@@ -8,7 +8,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func K8sObjectToProto(object client.Object, clusterName string, tenant string) (*pb.Object, error) {
+type HelmReleaseStorage struct {
+	Name     string `json:"name,omitempty"`
+	Manifest string `json:"manifest,omitempty"`
+}
+
+func K8sObjectToProto(object client.Object, clusterName string, tenant string, inventory []*pb.GroupVersionKind) (*pb.Object, error) {
 	var buf bytes.Buffer
 
 	serializer := json.NewSerializer(json.DefaultMetaFactory, nil, nil, false)
@@ -20,6 +25,8 @@ func K8sObjectToProto(object client.Object, clusterName string, tenant string) (
 		Payload:     buf.String(),
 		ClusterName: clusterName,
 		Tenant:      tenant,
+		Uid:         string(object.GetUID()),
+		Inventory:   inventory,
 	}
 
 	return obj, nil

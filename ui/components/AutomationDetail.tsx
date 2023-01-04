@@ -1,14 +1,15 @@
+import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { Automation, useSyncFluxObject } from "../hooks/automations";
+import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { useGetObject } from "../hooks/objects";
-import { FluxObjectKind } from "../lib/api/core/types.pb";
-import { fluxObjectKindToKind } from "../lib/objects";
-import Alert from "./Alert";
+import { Kind } from "../lib/api/core/types.pb";
+import { Automation } from "../lib/objects";
 import Button from "./Button";
+import CustomActions from "./CustomActions";
+import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
@@ -21,50 +22,49 @@ import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
-import YamlView from "./YamlView";
+import YamlView, { DialogYamlView } from "./YamlView";
 
 type Props = {
-  automation?: Automation;
+  automation: Automation;
   className?: string;
   info: InfoField[];
   customTabs?: Array<routeTab>;
+  customActions?: JSX.Element[];
 };
 
-function AutomationDetail({ automation, className, info, customTabs }: Props) {
-  const { notifySuccess } = React.useContext(AppContext);
+function AutomationDetail({
+  automation,
+  className,
+  info,
+  customTabs,
+  customActions,
+}: Props) {
   const { path } = useRouteMatch();
-  const { data: object } = useGetObject(
-    automation.name,
-    automation.namespace,
-    fluxObjectKindToKind(automation.kind),
-    automation.clusterName
-  );
-
-  const sync = useSyncFluxObject({
-    name: automation?.name,
-    namespace: automation?.namespace,
-    clusterName: automation?.clusterName,
-    kind: automation?.kind,
-  });
+  const { setNodeYaml, appState } = React.useContext(AppContext);
+  const nodeYaml = appState.nodeYaml;
+  const sync = useSyncFluxObject([
+    {
+      name: automation.name,
+      namespace: automation.namespace,
+      clusterName: automation.clusterName,
+      kind: Kind[automation.type],
+    },
+  ]);
 
   const suspend = useToggleSuspend(
     {
-      name: automation?.name,
-      namespace: automation?.namespace,
-      clusterName: automation?.clusterName,
-      kind: automation?.kind,
-      suspend: !automation?.suspended,
+      objects: [
+        {
+          name: automation.name,
+          namespace: automation.namespace,
+          clusterName: automation.clusterName,
+          kind: automation.type,
+        },
+      ],
+      suspend: !automation.suspended,
     },
-    automation?.kind === FluxObjectKind.KindHelmRelease
-      ? "helmrelease"
-      : "kustomizations"
+    automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
-
-  const handleSyncClicked = (opts) => {
-    sync.mutateAsync(opts).then(() => {
-      notifySuccess("Resource synced successfully");
-    });
-  };
 
   // default routes
   const defaultTabs: Array<routeTab> = [
@@ -75,14 +75,11 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
         return (
           <>
             <InfoList items={info} />
-            <Metadata metadata={object?.metadata} />
-            <ReconciledObjectsTable
-              automationKind={automation?.kind}
-              automationName={automation?.name}
-              namespace={automation?.namespace}
-              kinds={automation?.inventory}
-              clusterName={automation?.clusterName}
+            <Metadata
+              metadata={automation.metadata}
+              labels={automation.labels}
             />
+            <ReconciledObjectsTable automation={automation} />
           </>
         );
       },
@@ -94,11 +91,12 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       component: () => {
         return (
           <EventsTable
-            namespace={automation?.namespace}
+            namespace={automation.namespace}
             involvedObject={{
-              kind: automation?.kind,
-              name: automation?.name,
-              namespace: automation?.namespace,
+              kind: automation.type,
+              name: automation.name,
+              namespace: automation.namespace,
+              clusterName: automation.clusterName,
             }}
           />
         );
@@ -111,19 +109,17 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       component: () => {
         return (
           <ReconciliationGraph
-            automationKind={automation?.kind}
-            automationName={automation?.name}
-            kinds={automation?.inventory}
             parentObject={automation}
-            clusterName={automation?.clusterName}
-            source={
-              automation?.kind === FluxObjectKind.KindKustomization
-                ? automation?.sourceRef
-                : automation?.helmChart?.sourceRef
-            }
+            source={automation.sourceRef}
           />
         );
       },
+      visible: true,
+    },
+    {
+      name: "Dependencies",
+      path: `${path}/dependencies`,
+      component: () => <DependenciesView automation={automation} />,
       visible: true,
     },
     {
@@ -132,55 +128,42 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
       component: () => {
         return (
           <YamlView
-            yaml={object.yaml}
+            yaml={automation.yaml}
             object={{
-              kind: automation?.kind,
-              name: automation?.name,
-              namespace: automation?.namespace,
+              kind: automation.type,
+              name: automation.name,
+              namespace: automation.namespace,
             }}
           />
         );
       },
-      visible: !!object,
+      visible: true,
     },
   ];
 
   return (
     <Flex wide tall column className={className}>
       <Text size="large" semiBold titleHeight>
-        {automation?.name}
+        {automation.name}
       </Text>
-      {sync.isError && (
-        <Alert
-          severity="error"
-          message={sync.error.message}
-          title="Sync Error"
-        />
-      )}
-      {suspend.isError && (
-        <Alert
-          severity="error"
-          message={suspend.error.message}
-          title="Sync Error"
-        />
-      )}
       <PageStatus
-        conditions={automation?.conditions}
-        suspended={automation?.suspended}
+        conditions={automation.conditions}
+        suspended={automation.suspended}
       />
       <Flex wide start>
         <SyncButton
-          onClick={handleSyncClicked}
+          onClick={(opts) => sync.mutateAsync(opts)}
           loading={sync.isLoading}
-          disabled={automation?.suspended}
+          disabled={automation.suspended}
         />
         <Spacer padding="xs" />
         <Button
           onClick={() => suspend.mutateAsync()}
           loading={suspend.isLoading}
         >
-          {automation?.suspended ? "Resume" : "Suspend"}
+          {automation.suspended ? "Resume" : "Suspend"}
         </Button>
+        <CustomActions actions={customActions} />
       </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
@@ -205,6 +188,23 @@ function AutomationDetail({ automation, className, info, customTabs }: Props) {
             )
         )}
       </SubRouterTabs>
+      {nodeYaml && (
+        <Dialog
+          open={!!nodeYaml}
+          onClose={() => setNodeYaml(null)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogYamlView
+            object={{
+              name: nodeYaml.name,
+              namespace: nodeYaml.namespace,
+              kind: nodeYaml.type,
+            }}
+            yaml={nodeYaml.yaml}
+          />
+        </Dialog>
+      )}
     </Flex>
   );
 }

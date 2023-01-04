@@ -12,7 +12,7 @@ import (
 var (
 	dryRunProvider GitProvider
 	ctx            context.Context
-	repoUrl        RepoURL
+	repoURL        RepoURL
 )
 
 var _ = Describe("DryRun", func() {
@@ -32,12 +32,12 @@ var _ = Describe("DryRun", func() {
 			provider: orgProvider,
 		}
 
-		repoUrl = RepoURL{}
+		repoURL = RepoURL{}
 	})
 
 	Describe("RepositoryExists", func() {
 		It("returns true", func() {
-			res, err := dryRunProvider.RepositoryExists(ctx, repoUrl)
+			res, err := dryRunProvider.RepositoryExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -45,7 +45,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("DeployKeyExists", func() {
 		It("returns true", func() {
-			res, err := dryRunProvider.DeployKeyExists(ctx, repoUrl)
+			res, err := dryRunProvider.DeployKeyExists(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -53,7 +53,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("GetDefaultBranch", func() {
 		It("returns branch placeholder", func() {
-			res, err := dryRunProvider.GetDefaultBranch(ctx, repoUrl)
+			res, err := dryRunProvider.GetDefaultBranch(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal("<default-branch>"))
 		})
@@ -61,7 +61,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("GetRepoVisibility", func() {
 		It("returns private", func() {
-			res, err := dryRunProvider.GetRepoVisibility(ctx, repoUrl)
+			res, err := dryRunProvider.GetRepoVisibility(ctx, repoURL)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate)))
 		})
@@ -69,13 +69,13 @@ var _ = Describe("DryRun", func() {
 
 	Describe("UploadDeployKey", func() {
 		It("returns nil", func() {
-			Expect(dryRunProvider.UploadDeployKey(ctx, repoUrl, []byte{})).To(Succeed())
+			Expect(dryRunProvider.UploadDeployKey(ctx, repoURL, []byte{})).To(Succeed())
 		})
 	})
 
 	Describe("CreatePullRequest", func() {
 		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequest(ctx, repoUrl, PullRequestInfo{})
+			res, err := dryRunProvider.CreatePullRequest(ctx, repoURL, PullRequestInfo{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeNil())
 		})
@@ -83,7 +83,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("GetCommits", func() {
 		It("returns emtpy", func() {
-			res, err := dryRunProvider.GetCommits(ctx, repoUrl, "", 1, 1)
+			res, err := dryRunProvider.GetCommits(ctx, repoURL, "", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]gitprovider.Commit{}))
 		})

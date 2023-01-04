@@ -16,7 +16,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -29,6 +28,14 @@ const (
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
 	FeatureFlagSet             string = "true"
+
+	// ClaimUsername is the default claim for getting the user from OIDC for
+	// auth
+	ClaimUsername string = "email"
+
+	// ClaimGroups is the default claim for getting the groups from OIDC for
+	// auth
+	ClaimGroups string = "groups"
 )
 
 // OIDCConfig is used to configure an AuthServer to interact with
@@ -39,6 +46,7 @@ type OIDCConfig struct {
 	ClientSecret  string
 	RedirectURL   string
 	TokenDuration time.Duration
+	ClaimsConfig  *ClaimsConfig
 }
 
 // This is only used if the OIDCConfig doesn't have a TokenDuration set. If
@@ -51,7 +59,7 @@ type AuthConfig struct {
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
 	tokenSignerVerifier TokenSignerVerifier
-	config              OIDCConfig
+	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
 }
@@ -71,9 +79,22 @@ type LoginRequest struct {
 // UserInfo represents the response returned from the user info handler.
 type UserInfo struct {
 	Email  string   `json:"email"`
+	ID     string   `json:"id"`
 	Groups []string `json:"groups"`
 }
 
+// NewOIDCConfigFromSecret takes a corev1.Secret and extracts the fields.
+//
+// The following keys are required in the secret:
+//   - issuerURL
+//   - clientID
+//   - clientSecret
+//   - redirectURL
+//
+// The following keys are optional
+// - tokenDuration - defaults to 1 hour.
+// - claimUsername - defaults to "email"
+// - claimGroups - defaults to "groups"
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
@@ -81,6 +102,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 		ClientSecret: string(secret.Data["clientSecret"]),
 		RedirectURL:  string(secret.Data["redirectURL"]),
 	}
+	cfg.ClaimsConfig = claimsConfigFromSecret(secret)
 
 	tokenDuration, err := time.ParseDuration(string(secret.Data["tokenDuration"]))
 	if err != nil {
@@ -90,6 +112,27 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg.TokenDuration = tokenDuration
 
 	return cfg
+}
+
+func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
+	claimUsername, ok := secret.Data["claimUsername"]
+	if !ok {
+		claimUsername = []byte(ClaimUsername)
+	}
+
+	claimGroups, ok := secret.Data["claimGroups"]
+	if !ok {
+		claimGroups = []byte(ClaimGroups)
+	}
+
+	if len(claimUsername) > 0 && len(claimGroups) > 0 {
+		return &ClaimsConfig{
+			Username: string(claimUsername),
+			Groups:   string(claimGroups),
+		}
+	}
+
+	return nil
 }
 
 func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
@@ -108,7 +151,7 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
-		config:              oidcCfg,
+		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
 		authMethods:         authMethods,
 	}, nil
@@ -118,13 +161,13 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	if cfg.authMethods[UserAccount] {
 		var secret corev1.Secret
-		err := cfg.kubernetesClient.Get(ctx, client.ObjectKey{
+		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
 			Namespace: cfg.namespace,
 			Name:      ClusterUserAuthSecretName,
 		}, &secret)
 
 		if err != nil {
-			return nil, fmt.Errorf("Could not get secret for cluster user, %w", err)
+			return nil, fmt.Errorf("could not get secret for cluster user, %w", err)
 		} else {
 			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
 		}
@@ -134,12 +177,12 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 
 	var provider *oidc.Provider
 
-	if cfg.config.IssuerURL == "" {
+	if cfg.OIDCConfig.IssuerURL == "" {
 		featureflags.Set(FeatureFlagOIDCAuth, "false")
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
-		provider, err = oidc.NewProvider(ctx, cfg.config.IssuerURL)
+		provider, err = oidc.NewProvider(ctx, cfg.OIDCConfig.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
@@ -147,7 +190,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	}
 
 	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
-		return nil, fmt.Errorf("Neither OIDC auth or local auth enabled, can't start")
+		return nil, fmt.Errorf("neither OIDC auth or local auth enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil
@@ -156,7 +199,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
 // in unit tests only.
 func (s *AuthServer) SetRedirectURL(url string) {
-	s.config.RedirectURL = url
+	s.OIDCConfig.RedirectURL = url
 }
 
 func (s *AuthServer) oidcEnabled() bool {
@@ -168,7 +211,7 @@ func (s *AuthServer) oidcPassthroughEnabled() bool {
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
-	return s.provider.Verifier(&oidc.Config{ClientID: s.config.ClientID})
+	return s.provider.Verifier(&oidc.Config{ClientID: s.OIDCConfig.ClientID})
 }
 
 func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
@@ -178,13 +221,13 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	// Request "email" scope to get user's email address.
-	if !contains(scopes, scopeEmail) {
-		scopes = append(scopes, scopeEmail)
+	if !contains(scopes, ScopeEmail) {
+		scopes = append(scopes, ScopeEmail)
 	}
 
 	// Request "groups" scope to get user's groups.
-	if !contains(scopes, scopeGroups) {
-		scopes = append(scopes, scopeGroups)
+	if !contains(scopes, ScopeGroups) {
+		scopes = append(scopes, ScopeGroups)
 	}
 
 	// Ensure "offline_access" scope is always present for refresh tokens.
@@ -193,10 +236,10 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	return &oauth2.Config{
-		ClientID:     s.config.ClientID,
-		ClientSecret: s.config.ClientSecret,
+		ClientID:     s.OIDCConfig.ClientID,
+		ClientSecret: s.OIDCConfig.ClientSecret,
+		RedirectURL:  s.OIDCConfig.RedirectURL,
 		Endpoint:     s.provider.Endpoint(),
-		RedirectURL:  s.config.RedirectURL,
 		Scopes:       scopes,
 	}
 }
@@ -368,72 +411,65 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 // it returns a UserInfo object with the email set to the admin token subject. Otherwise it
 // uses the token to query the OIDC provider's user info endpoint and return a UserInfo object
 // back or a 401 status in any other case.
-func (s *AuthServer) UserInfo() http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			rw.Header().Add("Allow", "GET")
-			rw.WriteHeader(http.StatusMethodNotAllowed)
+func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		rw.Header().Add("Allow", "GET")
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 
-			return
-		}
-
-		// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
-		// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
-		// users can use both ways to log into weave-gitops.
-		c, err := r.Cookie(AccessTokenCookieName)
-		if err != nil {
-			if err != http.ErrNoCookie {
-				rw.WriteHeader(http.StatusBadRequest)
-				return
-			}
-
-			c, err = r.Cookie(IDTokenCookieName)
-			if err != nil {
-				rw.WriteHeader(http.StatusBadRequest)
-				return
-			}
-		}
-
-		claims, err := s.tokenSignerVerifier.Verify(c.Value)
-		if err == nil {
-			ui := UserInfo{
-				Email: claims.Subject,
-			}
-			toJson(rw, ui, s.Log)
-
-			return
-		}
-
-		if !s.oidcEnabled() {
-			ui := UserInfo{}
-			toJson(rw, ui, s.Log)
-
-			return
-		}
-
-		info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: c.Value,
-		}))
-		if err != nil {
-			JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
-			return
-		}
-
-		var userPrincipal UserPrincipal
-
-		// Extract custom claims
-		if err := info.Claims(&userPrincipal); err != nil {
-			JSONError(s.Log, rw, fmt.Sprintf("failed to decode user claims: %v", err), http.StatusUnauthorized)
-			return
-		}
-
-		ui := UserInfo{
-			Email:  info.Email,
-			Groups: userPrincipal.Groups,
-		}
-
-		toJson(rw, ui, s.Log)
+		return
 	}
+
+	c, err := findAuthCookie(r)
+	if err != nil {
+		s.Log.Error(err, "Failed to get cookie from request")
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	claims, err := s.tokenSignerVerifier.Verify(c.Value)
+	if err == nil {
+		ui := UserInfo{
+			ID:    claims.Subject,
+			Email: claims.Subject,
+		}
+		toJSON(rw, ui, s.Log)
+
+		return
+	}
+
+	if !s.oidcEnabled() {
+		ui := UserInfo{}
+		toJSON(rw, ui, s.Log)
+
+		return
+	}
+
+	info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: c.Value,
+	}))
+	if err != nil {
+		s.Log.Error(err, "failed to query userinfo")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
+
+		return
+	}
+
+	userPrincipal, err := s.OIDCConfig.ClaimsConfig.PrincipalFromClaims(info)
+	if err != nil {
+		s.Log.Error(err, "failed to parse user info")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
+
+		return
+	}
+
+	ui := UserInfo{
+		ID:     userPrincipal.ID,
+		Email:  userPrincipal.ID,
+		Groups: userPrincipal.Groups,
+	}
+
+	toJSON(rw, ui, s.Log)
 }
 
 func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) error {
@@ -465,7 +501,7 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
+func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
 		JSONError(log, rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
@@ -478,39 +514,37 @@ func toJson(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	}
 }
 
-func (c *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
+func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	nonce, err := generateNonce()
 	if err != nil {
-		JSONError(c.Log, rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
+		JSONError(s.Log, rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	returnUrl := r.URL.Query().Get("return_url")
+	returnURL := r.URL.Query().Get("return_url")
 
-	if returnUrl == "" {
-		returnUrl = r.URL.String()
+	if returnURL == "" {
+		returnURL = r.URL.String()
 	}
 
 	b, err := json.Marshal(SessionState{
 		Nonce:     nonce,
-		ReturnURL: returnUrl,
+		ReturnURL: returnURL,
 	})
 	if err != nil {
-		JSONError(c.Log, rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
+		JSONError(s.Log, rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	state := base64.StdEncoding.EncodeToString(b)
 
-	var scopes []string
-	// "openid", "email" and "groups" scopes added by default
-	scopes = append(scopes, scopeProfile)
-	authCodeUrl := c.oauth2Config(scopes).AuthCodeURL(state)
+	scopes := []string{ScopeProfile}
+	authCodeURL := s.oauth2Config(scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, c.createCookie(StateCookieName, state))
+	http.SetCookie(rw, s.createCookie(StateCookieName, state))
 
-	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
+	http.Redirect(rw, r, authCodeURL, http.StatusSeeOther)
 }
 
 func (s *AuthServer) Logout() http.HandlerFunc {
@@ -528,12 +562,12 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 	}
 }
 
-func (c *AuthServer) createCookie(name, value string) *http.Cookie {
+func (s *AuthServer) createCookie(name, value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(c.config.TokenDuration),
+		Expires:  time.Now().UTC().Add(s.OIDCConfig.TokenDuration),
 		HttpOnly: true,
 		Secure:   false,
 	}
@@ -541,7 +575,7 @@ func (c *AuthServer) createCookie(name, value string) *http.Cookie {
 	return cookie
 }
 
-func (c *AuthServer) clearCookie(name string) *http.Cookie {
+func (s *AuthServer) clearCookie(name string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:    name,
 		Value:   "",
@@ -592,4 +626,19 @@ func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error(err, "failed encoding error message", "message", errStr)
 	}
+}
+
+// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
+// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
+// users can use both ways to log into weave-gitops.
+func findAuthCookie(req *http.Request) (*http.Cookie, error) {
+	cookieNames := []string{AccessTokenCookieName, IDTokenCookieName}
+	for _, name := range cookieNames {
+		c, err := req.Cookie(name)
+		if err == nil {
+			return c, nil
+		}
+	}
+
+	return nil, http.ErrNoCookie
 }

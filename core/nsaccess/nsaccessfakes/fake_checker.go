@@ -7,15 +7,15 @@ import (
 
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/rest"
+	v1a "k8s.io/client-go/kubernetes/typed/authorization/v1"
 )
 
 type FakeChecker struct {
-	FilterAccessibleNamespacesStub        func(context.Context, *rest.Config, []v1.Namespace) ([]v1.Namespace, error)
+	FilterAccessibleNamespacesStub        func(context.Context, v1a.AuthorizationV1Interface, []v1.Namespace) ([]v1.Namespace, error)
 	filterAccessibleNamespacesMutex       sync.RWMutex
 	filterAccessibleNamespacesArgsForCall []struct {
 		arg1 context.Context
-		arg2 *rest.Config
+		arg2 v1a.AuthorizationV1Interface
 		arg3 []v1.Namespace
 	}
 	filterAccessibleNamespacesReturns struct {
@@ -30,7 +30,7 @@ type FakeChecker struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeChecker) FilterAccessibleNamespaces(arg1 context.Context, arg2 *rest.Config, arg3 []v1.Namespace) ([]v1.Namespace, error) {
+func (fake *FakeChecker) FilterAccessibleNamespaces(arg1 context.Context, arg2 v1a.AuthorizationV1Interface, arg3 []v1.Namespace) ([]v1.Namespace, error) {
 	var arg3Copy []v1.Namespace
 	if arg3 != nil {
 		arg3Copy = make([]v1.Namespace, len(arg3))
@@ -40,7 +40,7 @@ func (fake *FakeChecker) FilterAccessibleNamespaces(arg1 context.Context, arg2 *
 	ret, specificReturn := fake.filterAccessibleNamespacesReturnsOnCall[len(fake.filterAccessibleNamespacesArgsForCall)]
 	fake.filterAccessibleNamespacesArgsForCall = append(fake.filterAccessibleNamespacesArgsForCall, struct {
 		arg1 context.Context
-		arg2 *rest.Config
+		arg2 v1a.AuthorizationV1Interface
 		arg3 []v1.Namespace
 	}{arg1, arg2, arg3Copy})
 	stub := fake.FilterAccessibleNamespacesStub
@@ -62,13 +62,13 @@ func (fake *FakeChecker) FilterAccessibleNamespacesCallCount() int {
 	return len(fake.filterAccessibleNamespacesArgsForCall)
 }
 
-func (fake *FakeChecker) FilterAccessibleNamespacesCalls(stub func(context.Context, *rest.Config, []v1.Namespace) ([]v1.Namespace, error)) {
+func (fake *FakeChecker) FilterAccessibleNamespacesCalls(stub func(context.Context, v1a.AuthorizationV1Interface, []v1.Namespace) ([]v1.Namespace, error)) {
 	fake.filterAccessibleNamespacesMutex.Lock()
 	defer fake.filterAccessibleNamespacesMutex.Unlock()
 	fake.FilterAccessibleNamespacesStub = stub
 }
 
-func (fake *FakeChecker) FilterAccessibleNamespacesArgsForCall(i int) (context.Context, *rest.Config, []v1.Namespace) {
+func (fake *FakeChecker) FilterAccessibleNamespacesArgsForCall(i int) (context.Context, v1a.AuthorizationV1Interface, []v1.Namespace) {
 	fake.filterAccessibleNamespacesMutex.RLock()
 	defer fake.filterAccessibleNamespacesMutex.RUnlock()
 	argsForCall := fake.filterAccessibleNamespacesArgsForCall[i]

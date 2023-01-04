@@ -1,14 +1,16 @@
 import * as React from "react";
 import styled from "styled-components";
-import { FluxObjectKind, Kustomization } from "../lib/api/core/types.pb";
-import { automationLastUpdated } from "../lib/utils";
 import { useFeatureFlags } from "../hooks/featureflags";
+import { Kind } from "../lib/api/core/types.pb";
+import { Kustomization } from "../lib/objects";
+import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
+import ClusterDashboardLink from "./ClusterDashboardLink";
+import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import { InfoField } from "./InfoList";
 
 export interface routeTab {
   name: string;
@@ -21,11 +23,17 @@ type Props = {
   kustomization?: Kustomization;
   className?: string;
   customTabs?: Array<routeTab>;
+  customActions?: JSX.Element[];
 };
 
-function KustomizationDetail({ kustomization, className, customTabs }: Props) {
+function KustomizationDetail({
+  kustomization,
+  className,
+  customTabs,
+  customActions,
+}: Props) {
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
   const tenancyInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && kustomization?.tenant
@@ -34,18 +42,22 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
 
   const clusterInfo: InfoField[] =
     flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [["Cluster", kustomization?.clusterName]]
+      ? [
+          [
+            "Cluster",
+            <ClusterDashboardLink clusterName={kustomization?.clusterName} />,
+          ],
+        ]
       : [];
 
   return (
     <AutomationDetail
       className={className}
       customTabs={customTabs}
-      automation={{
-        ...kustomization,
-        kind: FluxObjectKind.KindKustomization,
-      }}
+      automation={kustomization}
+      customActions={customActions}
       info={[
+        ["Kind", Kind.Kustomization],
         [
           "Source",
           <SourceLink
@@ -62,6 +74,7 @@ function KustomizationDetail({ kustomization, className, customTabs }: Props) {
           "Last Updated",
           <Timestamp time={automationLastUpdated(kustomization)} />,
         ],
+        ["Namespace", kustomization?.namespace],
       ]}
     />
   );

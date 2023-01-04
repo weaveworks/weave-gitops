@@ -17,7 +17,7 @@ jobs:
   staging-release:
     permissions:
       statuses: write
-    if: github.event_name != 'push'
+    if: github.event_name != 'push' && github.repository_owner == 'weaveworks'
     runs-on: ubuntu-latest
     defaults:
       run:

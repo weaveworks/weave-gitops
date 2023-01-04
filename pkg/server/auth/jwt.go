@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -20,19 +21,27 @@ type PrincipalGetter interface {
 	Principal(r *http.Request) (*UserPrincipal, error)
 }
 
+type tokenVerifier interface {
+	Verify(ctx context.Context, rawIDToken string) (*oidc.IDToken, error)
+}
+
 // JWTCookiePrincipalGetter inspects a cookie for a JWT token
 // and returns a principal object.
 type JWTCookiePrincipalGetter struct {
-	log        logr.Logger
-	verifier   *oidc.IDTokenVerifier
-	cookieName string
+	log          logr.Logger
+	verifier     tokenVerifier
+	cookieName   string
+	claimsConfig *ClaimsConfig
 }
 
-func NewJWTCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string) PrincipalGetter {
+// NewJWTCookiePrincipalGetter looks for a cookie in the provided name and
+// treats that as a JWT token that can be decoded to a Principal.
+func NewJWTCookiePrincipalGetter(log logr.Logger, verifier tokenVerifier, cookieName string, config *ClaimsConfig) PrincipalGetter {
 	return &JWTCookiePrincipalGetter{
-		log:        log,
-		verifier:   verifier,
-		cookieName: cookieName,
+		log:          log,
+		verifier:     verifier,
+		cookieName:   cookieName,
+		claimsConfig: config,
 	}
 }
 
@@ -42,21 +51,25 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 		return nil, nil
 	}
 
-	return parseJWTToken(r.Context(), pg.verifier, cookie.Value)
+	pg.log.V(logger.LogLevelDebug).Info("parsing cookie JWT token", "claimsConfig", pg.claimsConfig)
+
+	return parseJWTToken(r.Context(), pg.verifier, cookie.Value, pg.claimsConfig)
 }
 
 // JWTAuthorizationHeaderPrincipalGetter inspects the Authorization
 // header (bearer token) for a JWT token and returns a principal
 // object.
 type JWTAuthorizationHeaderPrincipalGetter struct {
-	log      logr.Logger
-	verifier *oidc.IDTokenVerifier
+	log          logr.Logger
+	verifier     tokenVerifier
+	claimsConfig *ClaimsConfig
 }
 
-func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier) PrincipalGetter {
+func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier tokenVerifier, config *ClaimsConfig) PrincipalGetter {
 	return &JWTAuthorizationHeaderPrincipalGetter{
-		log:      log,
-		verifier: verifier,
+		log:          log,
+		verifier:     verifier,
+		claimsConfig: config,
 	}
 }
 
@@ -68,7 +81,9 @@ func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*Us
 		return nil, nil
 	}
 
-	return parseJWTToken(r.Context(), pg.verifier, extractToken(header))
+	pg.log.V(logger.LogLevelDebug).Info("parsing authorization header JWT token", "claimsConfig", pg.claimsConfig)
+
+	return parseJWTToken(r.Context(), pg.verifier, extractToken(header), pg.claimsConfig)
 }
 
 func extractToken(s string) string {
@@ -84,22 +99,13 @@ func extractToken(s string) string {
 	return strings.TrimSpace(parts[1])
 }
 
-func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDToken string) (*UserPrincipal, error) {
+func parseJWTToken(ctx context.Context, verifier tokenVerifier, rawIDToken string, cc *ClaimsConfig) (*UserPrincipal, error) {
 	token, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
 	}
 
-	var claims struct {
-		Email  string   `json:"email"`
-		Groups []string `json:"groups"`
-	}
-
-	if err := token.Claims(&claims); err != nil {
-		return nil, fmt.Errorf("failed to parse claims from the JWT token: %w", err)
-	}
-
-	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
+	return cc.PrincipalFromClaims(token)
 }
 
 type JWTAdminCookiePrincipalGetter struct {
@@ -158,5 +164,5 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("Could not find valid principal")
+	return nil, errors.New("could not find valid principal")
 }

@@ -26,6 +26,7 @@ type Claims struct {
 }
 
 // JWTClient represents a type that has methods to generate and verify JWT tokens.
+//
 //counterfeiter:generate . JWTClient
 type JWTClient interface {
 	GenerateJWT(expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error)

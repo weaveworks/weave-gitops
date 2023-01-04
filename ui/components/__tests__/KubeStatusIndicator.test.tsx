@@ -3,7 +3,9 @@ import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
-import KubeStatusIndicator from "../KubeStatusIndicator";
+import KubeStatusIndicator, {
+  createSyntheticCondition,
+} from "../KubeStatusIndicator";
 
 describe("KubeStatusIndicator", () => {
   it("renders ready", () => {
@@ -111,6 +113,87 @@ describe("KubeStatusIndicator", () => {
     const msg = screen.getByText("Suspended");
     expect(msg).toBeTruthy();
   });
+  it("handles conditions without type: Ready and status: False", () => {
+    const notReady = [
+      {
+        type: "test-condition",
+        status: "True",
+        reason: "ReconciliationSucceeded",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+      {
+        type: "other-test-condition",
+        status: "False",
+        reason: "ReconciliationFailed",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+    ];
+    render(withTheme(<KubeStatusIndicator conditions={notReady} />));
+    expect(screen.getByText(notReady[1].message)).toBeTruthy();
+  });
+  it("handles conditions without type: Ready and status: True", () => {
+    const notReady = [
+      {
+        type: "test-condition",
+        status: "True",
+        reason: "ReconciliationSucceeded",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+      {
+        type: "other-test-condition",
+        status: "True",
+        reason: "ReconciliationDidItBigTime",
+        message:
+          "Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161",
+        timestamp: "2022-03-03 17:00:38 +0000 UTC",
+      },
+    ];
+    render(withTheme(<KubeStatusIndicator conditions={notReady} />));
+    expect(screen.getByText(notReady[0].message)).toBeTruthy();
+  });
+  describe("special objects", () => {
+    it("daemonset - not ready", () => {
+      const status = {
+        currentNumberScheduled: 0,
+        desiredNumberScheduled: 2,
+        numberMisscheduled: 0,
+        numberReady: 0,
+        numberUnavailable: 2,
+        observedGeneration: 0,
+        updatedNumberScheduled: 0,
+      };
+
+      const condition = createSyntheticCondition("DaemonSet", status);
+
+      render(withTheme(<KubeStatusIndicator conditions={[condition]} />));
+
+      expect(screen.getByText("Not Ready")).toBeTruthy();
+    });
+    it("daemonset - ready", () => {
+      const status = {
+        currentNumberScheduled: 0,
+        desiredNumberScheduled: 2,
+        numberMisscheduled: 0,
+        numberReady: 2,
+        numberUnavailable: 0,
+        observedGeneration: 0,
+        updatedNumberScheduled: 0,
+      };
+
+      const condition = createSyntheticCondition("DaemonSet", status);
+
+      render(withTheme(<KubeStatusIndicator conditions={[condition]} />));
+
+      expect(screen.getByText("Ready")).toBeTruthy();
+    });
+  });
+
   describe("snapshots", () => {
     it("renders success", () => {
       const conditions = [

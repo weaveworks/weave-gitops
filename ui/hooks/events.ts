@@ -4,7 +4,6 @@ import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListEventsResponse } from "../lib/api/core/core.pb";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { ReactQueryOptions, RequestError } from "../lib/types";
-import { removeKind } from "../lib/utils";
 
 export function useListEvents(
   obj: ObjectRef,
@@ -20,7 +19,7 @@ export function useListEvents(
     ["events", obj],
     () =>
       api.ListEvents({
-        involvedObject: { ...obj, kind: removeKind(obj.kind) },
+        involvedObject: obj,
       }),
     opts
   );

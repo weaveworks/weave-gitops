@@ -28,9 +28,9 @@ var _ = Describe("CreateSecretGit", func() {
 			return []byte(`ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
 		}
 
-		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
+		repoURL, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, "flux-system")
+		out, err := fluxClient.CreateSecretGit("my-secret", repoURL, "flux-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
 
