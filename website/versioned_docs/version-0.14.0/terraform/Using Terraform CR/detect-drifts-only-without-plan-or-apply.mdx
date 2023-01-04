@@ -1,0 +1,29 @@
+---
+title: Detect drifts only without planning or applying
+sidebar_position: 4
+hide_title: true
+---
+
+# Use TF-controller to detect drifts only without planning or applying
+
+To detect drifts of your Terraform resources only, you can use the `Terraform` custom resource (CR) object
+in TF-controller and set the `spec.approvePlan` field to `disable`. This will tell the controller to skip
+the plan and apply stages, and only perform drift detection.
+
+Here is an example of a `Terraform` CR object with `spec.approvePlan` set to `disable`:
+
+```yaml {7}
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: hello-world
+  namespace: flux-system
+spec:
+  approvePlan: disable
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```
