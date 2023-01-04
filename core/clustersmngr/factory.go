@@ -585,7 +585,10 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	}
 
 	if cf.useUserClientForNamespaces {
-		cf.updateNamespacesFromUserClient(ctx, user)
+		err := cf.updateNamespacesFromUserClient(ctx, user)
+		if err != nil {
+			cf.log.Error(err, "failed updating namespaces from user client")
+		}
 	}
 
 	cf.UpdateUserNamespaces(ctx, user)
