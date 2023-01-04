@@ -1,0 +1,92 @@
+---
+title: Provision resources and auto approve
+sidebar_position: 1
+hide_title: true
+---
+
+# Use TF-controller to provision resources and auto approve
+
+TF-controller is a tool that allows you to manage infrastructure as code using Terraform,
+a popular infrastructure as code tool, within a Kubernetes cluster.
+With TF-controller, you can define your infrastructure in a declarative way and have
+it automatically managed and updated. In this guide, we will walk through the steps of
+setting up and using TF-controller to provision resources, as well as setting it up to automatically approve changes.
+
+## Create a Terraform object
+
+To get started with using TF-controller, the first step is to prepare the necessary objects.
+This includes creating a Terraform object and a Flux source object.
+
+The Terraform object is a Kubernetes custom resource (CR) that defines
+the Terraform module, backend configuration, and GitOps automation mode.
+The Terraform module is the configuration used to provision resources
+and can be stored in a Git repository or packaged in an OCI image in an OCI registry.
+
+The backend configuration is optional and sets the backend to be used to store the Terraform state.
+If not specified, the Kubernetes backend will be used by default.
+
+The GitOps automation mode is also optional, with the default being "plan-and-manually-apply".
+In this example, we'll use the "auto-apply" mode.
+
+The Flux source object is a source of configuration files,
+such as a Git repository or OCI registry. It tells TF-controller where to find the Terraform module
+and any other necessary configuration files.
+There are several types of Flux source objects available, including `GitRepository` and `OCIRepository`.
+Choose the one that best fits your needs.
+
+Once you have prepared these objects, you are ready to start using TF-controller to manage your infrastructure.
+
+## GitOps Automation Mode
+
+In TF-controller, the GitOps automation mode determines how Terraform runs and manages your infrastructure.
+There are several options available for the GitOps automation mode, including "plan-and-manually-apply" and "auto-apply".
+
+In the "plan-and-manually-apply" mode,
+TF-controller will run a Terraform plan and output the proposed changes to a Git repository.
+A human must then review and manually apply the changes.
+This is the default GitOps automation mode if none is specified.
+
+In the "auto-apply" mode, TF-controller will automatically apply the changes after a Terraform plan is run.
+This can be useful for environments where changes can be made automatically,
+but it is important to ensure that the proper controls, like policies, are in place to prevent unintended changes
+from being applied.
+
+To specify the GitOps automation mode in a Terraform object,
+you can set the `spec.approvePlan` field to the desired value. For example, to use the "auto-apply" mode, y
+ou would set it to `spec.approvePlan: auto`.
+
+It is important to carefully consider which GitOps automation mode is appropriate for your use case to ensure that
+your infrastructure is properly managed and controlled.
+
+## Example
+
+```yaml {8}
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+spec:
+  path: ./helloworld
+  interval: 10m
+  approvePlan: auto
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+```
+
+This code is defining a `Terraform` object in Kubernetes.
+The `apiVersion` field specifies the version of the Kubernetes API being used,
+and the `kind` field specifies that it is a `Terraform` object.
+The `metadata` block contains information about the object, including its `name`.
+
+The `spec` field contains the specification for the `Terraform` object.
+The `path` field specifies the path to the Terraform configuration files,
+in this case a directory named "helloworld".
+The `interval` field specifies the frequency at which TF-controller should run the Terraform configuration,
+in this case every 10 minutes. The `approvePlan` field specifies whether or not
+to automatically approve the changes proposed by a Terraform plan.
+In this case, it is set to `auto`, meaning that changes will be automatically approved.
+
+The `sourceRef` field specifies the Flux source object to be used.
+In this case, it is a `GitRepository` object with the name "helloworld".
+This indicates that the Terraform configuration is stored in a Git repository object with the name `helloworld`.
