@@ -601,7 +601,7 @@ func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map
 }
 
 func TestUserInfoOIDCFlow(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -723,7 +723,7 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 }
 
 func TestRefresh(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -764,7 +764,7 @@ func TestRefresh(t *testing.T) {
 }
 
 func TestRefreshNoToken(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
 	w := httptest.NewRecorder()
@@ -773,7 +773,7 @@ func TestRefreshNoToken(t *testing.T) {
 }
 
 func TestRefreshInvalidToken(t *testing.T) {
-	g := gomega.NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
 
 	w := httptest.NewRecorder()
