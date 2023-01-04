@@ -2,9 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
 import { Kind } from "../lib/api/core/types.pb";
-import { getGraphNodes } from "../lib/dependencies";
-import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
-import DagGraph from "./DagGraph";
+import { Automation } from "../lib/objects";
+import DependenciesGraph from "./DependenciesGraph";
 import Flex from "./Flex";
 import MessageBox from "./MessageBox";
 import RequestStateHandler from "./RequestStateHandler";
@@ -35,58 +34,23 @@ type DependenciesViewProps = {
   automation?: Automation;
 };
 
-const graphNodesPlaceholder = [] as FluxObjectNode[];
-
 function DependenciesView({ className, automation }: DependenciesViewProps) {
-  const [graphNodes, setGraphNodes] = React.useState<FluxObjectNode[] | null>(
-    null
-  );
-
   const automationKind = Kind[automation?.type];
 
-  const {
-    data,
-    isLoading: isLoadingData,
-    error,
-  } = automation
+  const { data, isLoading, error } = automation
     ? useListObjects("", automationKind, automation?.clusterName, {})
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
-  React.useEffect(() => {
-    if (isLoadingData) {
-      return;
-    }
-
-    if (error || data?.errors?.length > 0) {
-      setGraphNodes(graphNodesPlaceholder);
-      return;
-    }
-
-    const allNodes: FluxObjectNodesMap = {};
-    data.objects.forEach((obj) => {
-      const n = new FluxObjectNode(obj);
-      allNodes[n.id] = n;
-    });
-
-    const nodes = getGraphNodes(allNodes, automation);
-
-    nodes.sort((a, b) => a.id.localeCompare(b.id));
-
-    if (nodes.length === 0) {
-      setGraphNodes(graphNodesPlaceholder);
-    } else {
-      setGraphNodes(nodes);
-    }
-  }, [isLoadingData, data, error]);
-
-  const isLoading = isLoadingData && !graphNodes;
-
-  const shouldShowGraph = !!graphNodes && graphNodes.length > 0;
+  const shouldShowGraph = !!data.objects && data.objects.length > 0;
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       {shouldShowGraph ? (
-        <DagGraph className={className} nodes={graphNodes} />
+        <DependenciesGraph
+          data={data.objects}
+          name={automation?.name}
+          namespace={automation?.namespace}
+        />
       ) : (
         <Flex className={className} wide tall column align>
           <Spacer padding="xl" />

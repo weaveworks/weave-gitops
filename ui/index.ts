@@ -6,6 +6,7 @@ import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./components/DataTable";
+import DependenciesGraph from "./components/DependenciesGraph";
 import DependenciesView from "./components/DependenciesView";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
@@ -18,6 +19,7 @@ import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
 import InfoList from "./components/InfoList";
+import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
@@ -79,7 +81,6 @@ import { V2Routes } from "./lib/types";
 import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
-import Input, { InputProps } from "./components/Input";
 
 export {
   AppContext,
@@ -100,6 +101,7 @@ export {
   DataTable,
   DagGraph,
   DependenciesView,
+  DependenciesGraph,
   EventsTable,
   Flex,
   filterByStatusCallback,
