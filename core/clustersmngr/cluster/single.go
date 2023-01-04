@@ -70,15 +70,11 @@ func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client
 }
 
 func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest.Config, error) {
-	cfg := rest.CopyConfig(config)
-
 	if !user.Valid() {
 		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
 	}
 
-	kube.AddPrincipalToConfig(user, cfg)
-
-	return cfg, nil
+	return kube.ConfigWithPrincipal(user, config), nil
 }
 
 func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, error) {
