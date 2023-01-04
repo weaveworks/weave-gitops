@@ -13,8 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
-import Pendo from "./components/Pendo";
-import PendoContainer, { tier } from "./components/PendoContainer";
+import PendoContainer from "./components/PendoContainer";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -117,11 +116,7 @@ export default function AppContainer() {
                   <Switch>
                     {/* <Signin> does not use the base page <Layout> so pull it up here */}
                     <Route exact path="/sign_in">
-                      <SignIn
-                        analytics={
-                          <Pendo defaultTelemetryFlag="false" tier={tier} />
-                        }
-                      />
+                      <SignIn />
                     </Route>
                     <Route path="*">
                       {/* Check we've got a logged in user otherwise redirect back to signin */}
