@@ -18,10 +18,13 @@ adminUser:
 metrics:
   enabled: true
 
+additionalArgs:
+  - --auth-methods=oidc,token-passthrough
+
 envVars:
-  # - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH
-  #   value: "true"
   - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
+    value: "true"
+  - name: WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
