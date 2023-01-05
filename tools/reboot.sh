@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 # This is a deliberately opinionated script for developing Weave Gitops.
 # To get started run ./tools/reboot.sh --help
 #
@@ -23,6 +23,7 @@ do_bootstrap(){
 
         flux bootstrap "$provider" \
             --owner="$owner" \
+            --components-extra=image-reflector-controller,image-automation-controller \
             --repository="$repo" \
             --branch=main \
             --path=./clusters/wego-dev \
