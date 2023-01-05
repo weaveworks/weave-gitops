@@ -1,0 +1,23 @@
+---
+title: Introduction
+sidebar_position: 0
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+## Policy
+
+Weave Policy Engine help users to have continuous security and compliance checks across their software delivery pipeline. The engine utilize policy-as-code to guarantee security, resilience and coding standards across applications and infrastructure. The engine comes alongside with 100+ policies covering SOC2, GDPR, PCI-DSS, HIPAA, Mitre Attack and more. 
+
+The policy engine provide the following functionality: 
+<h4>Admission Controller</h4>
+An out-of-the-box admission controller that monitors any changes happening to the clusters deployments and resources, and prevent violating changes at deployment time from being deployed to clusters.
+<h4>Audit</h4>
+Daily scans for your clusters deployments and resources, then report back any policy violations. The audit results can be published to different data analytics tools to provide compliance posture analysis for your clusters runtime. 
+<h4>Commit/Build Time Checks</h4>
+Early feedback on policy violations at the commit or build time, by reporting policy violations right inside git or other CI tools. That helps developers and operators detect policy violations and fix them before they deploy their changes to the clusters. 
