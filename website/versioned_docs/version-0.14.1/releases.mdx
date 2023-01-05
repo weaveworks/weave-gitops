@@ -10,6 +10,38 @@ import TierLabel from "./_components/TierLabel";
 :::note
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+## v0.14.1
+2023-01-05
+### Highlights
+
+#### Secrets management
+- We are introducing new functionality into Weave GitOps Enterprise to help observe and manage secrets through external secrets operator (ESO). The new secrets UI will enable customers using ESO to observe and manage external secrets, as well as help them troubleshoot issues during their secrets creation and sync operations. In this release, we are including the ability to list all ExternalSecrets custom resources across multi-cluster environments. Users also will have the ability to navigate to each ExternalSecret and know the details of the secret, its sync status, and the last time this secret has been updated, as well as the latest events associated with the secret.
+
+#### Pipelines
+- Retry promotion on failure. Now if a promotion fails there is an automatic retry functionalty, you can configure the threshold and delay via the CLI. 
+- Promotion webhook rate limiting. We enable now the configuration of the rate limit for the promotion webhooks. 
+
+#### Minor fixes
+##### Workspaces
+**[UI] "Tenant" is renamed to "Workspace" on details page.
+**[UI] Use time.RFC3339 for all timestamps of the workspaces tabs.
+
+##### Other
+**[UI] Error boundary does not allow user to navigate away from the page.
+** [Gitops run] GitOps Run doesn't ask to install dashboard twice
+
+### Dependency versions
+
+- weave-gitops v0.14.1
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) pipeline-controller v0.9.0
+- (optional) policy-agent v2.2.0
+
+### Breaking changes
+
+No breaking changes
+
 ## v0.13.0
 2022-12-22
 ### Highlights
