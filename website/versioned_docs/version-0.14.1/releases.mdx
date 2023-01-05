@@ -21,13 +21,15 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 - Retry promotion on failure. Now if a promotion fails there is an automatic retry functionalty, you can configure the threshold and delay via the CLI. 
 - Promotion webhook rate limiting. We enable now the configuration of the rate limit for the promotion webhooks. 
 
-#### Minor fixes
-##### Workspaces
+### Minor fixes
+#### Workspaces
 ** [UI] "Tenant" ** is renamed to "Workspace" on details page.
-** [UI] Use time.RFC3339 ** for all timestamps of the workspaces tabs.
 
-##### Other
+** [UI] Use time.RFC3339 ** format for all timestamps of the workspaces tabs.
+
+#### Other
 ** [UI] Error notification boundary ** does not allow user to navigate away from the page.
+
 ** [Gitops run] GitOps Run ** doesn't ask to install dashboard twice
 
 ### Dependency versions
