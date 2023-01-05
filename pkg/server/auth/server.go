@@ -472,12 +472,14 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	toJSON(rw, ui, s.Log)
 }
 
-func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) error {
+// Refresh is used to refresh the access token and id token. It updates the cookies on the response
+// with the new tokens. It returns the new user principal.
+func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
 	ctx := oidc.ClientContext(r.Context(), s.client)
 
 	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
 	if err != nil {
-		return errors.New("couldn't fetch refresh token from cookie")
+		return nil, errors.New("couldn't fetch refresh token from cookie")
 	}
 
 	token, err := s.oauth2Config(nil).TokenSource(
@@ -486,19 +488,19 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) error {
 			RefreshToken: refreshTokenCookie.Value,
 		}).Token()
 	if err != nil {
-		return fmt.Errorf("failed to refresh token: %w", err)
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return errors.New("no id_token in token response")
+		return nil, errors.New("no id_token in token response")
 	}
 
 	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
 	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
 	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 
-	return nil
+	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
