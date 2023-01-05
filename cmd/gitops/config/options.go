@@ -8,4 +8,5 @@ type Options struct {
 	Username              string
 	Password              string
 	Kubeconfig            string
+	NoAnalytics           bool
 }

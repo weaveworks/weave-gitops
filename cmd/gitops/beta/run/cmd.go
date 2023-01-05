@@ -15,8 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"k8s.io/client-go/discovery"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -39,6 +37,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/yaml"
 )
@@ -110,9 +109,14 @@ gitops beta run ./clusters/default/dev --root-dir ./clusters/default
 # Run the sync on the podinfo demo.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
+gitops beta run ./deploy/overlays/dev --no-session --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
+
+# Run the sync on the podinfo demo in the session mode.
+git clone https://github.com/stefanprodan/podinfo
+cd podinfo
 gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
 
-# Run the sync on the podinfo Helm chart. Please note that file Chart.yaml must exist in the directory.
+# Run the sync on the podinfo Helm chart, in the session mode. Please note that file Chart.yaml must exist in the directory.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
 gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
@@ -320,7 +324,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 	return fluxVersion, false, nil
 }
 
-func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool) (bool, []byte, string, error) {
+func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (bool, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
 	dashboardInstalled := install.IsDashboardInstalled(ctx, log, kubeClient, dashboardName, flags.Namespace)
@@ -330,12 +334,10 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	if dashboardInstalled {
 		log.Successf("GitOps Dashboard is found")
 	} else {
-
 		wantToInstallTheDashboard := false
-		switch {
-		case flags.DashboardHashedPassword != "":
+		if dashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
-		case !flags.SkipDashboardInstall:
+		} else if !flags.SkipDashboardInstall && dashboardHashedPassword == "" {
 			prompt := promptui.Prompt{
 				Label:     "Would you like to install the GitOps Dashboard",
 				IsConfirm: true,
@@ -351,9 +353,8 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 		}
 
 		if wantToInstallTheDashboard {
-
 			passwordHash := ""
-			if flags.DashboardHashedPassword == "" {
+			if dashboardHashedPassword == "" {
 				password, err := install.ReadPassword(log)
 				if err != nil {
 					return false, nil, "", err
@@ -364,7 +365,7 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 					return false, nil, "", err
 				}
 			} else {
-				passwordHash = flags.DashboardHashedPassword
+				passwordHash = dashboardHashedPassword
 			}
 
 			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
@@ -436,7 +437,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to install Flux on the host cluster: %v", err)
 	}
 
-	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true)
+	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
 	if err != nil {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -457,10 +458,12 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	var kind string
-	if isHelm(paths.GetAbsoluteTargetDir()) {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		kind = "helm"
-	} else {
+	} else if !yes && err == nil {
 		kind = "ks"
+	} else {
+		return err
 	}
 
 	session, err := install.NewSession(
@@ -658,7 +661,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		dashboardManifests []byte
 	)
 
-	dashboardInstalled, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false)
+	dashboardInstalled, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
 	if err != nil {
 		cancel()
 		return err
@@ -690,16 +693,20 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		SecretKey:     secretKey,
 	}
 
-	if !isHelm(paths.GetAbsoluteTargetDir()) {
-		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
-			cancel()
-			return err
-		}
-	} else {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		if err := watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
 			cancel()
 			return err
 		}
+	} else if !yes && err == nil {
+		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
+			cancel()
+			return err
+		}
+	} else if err != nil {
+		log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+		cancel()
+		return err
 	}
 
 	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
@@ -733,10 +740,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	watcherCtx, watcherCancel := context.WithCancel(ctx)
 	lastReconcile := time.Now()
+	stopUploadCh := make(chan struct{})
 
 	go func() {
 		for {
 			select {
+			case <-watcherCtx.Done():
+				return
+			case <-stopUploadCh:
+				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Create == fsnotify.Create ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
@@ -773,6 +785,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	go func() {
 		for { // nolint:gosimple
 			select {
+			case <-stopUploadCh:
+				return
 			case <-ticker.C:
 				if counter > 0 {
 					log.Actionf("%d change events detected", counter)
@@ -781,7 +795,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					atomic.StoreUint64(&counter, 0)
 
 					// we have to skip validation for helm charts
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); !yes && err == nil {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
@@ -822,10 +836,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					thisCtx := watcherCtx
 
 					var reconcileErr error
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
-						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
-					} else {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 						reconcileErr = watch.ReconcileDevBucketSourceAndHelm(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if !yes && err == nil {
+						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if err != nil {
+						log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+						reconcileErr = err
 					}
 
 					if reconcileErr != nil {
@@ -914,6 +931,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	sig := <-sigs
 
+	close(stopUploadCh)
 	cancel()
 	// create new context that isn't cancelled, for bootstrapping
 	ctx = context.Background()
@@ -937,14 +955,17 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// this is the default behaviour
 	if !flags.SkipResourceCleanup {
-		if !isHelm(paths.GetAbsoluteTargetDir()) {
-			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
-				return err
-			}
-		} else {
+		if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
 				return err
 			}
+		} else if !yes && err == nil {
+			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else if err != nil {
+			log0.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+			return err
 		}
 
 		// uninstall dev-bucket server
@@ -990,9 +1011,21 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func isHelm(dir string) bool {
+func isHelm(dir string) (bool, error) {
 	_, err := os.Stat(filepath.Join(dir, "Chart.yaml"))
-	return err == nil
+	if err != nil && os.IsNotExist(err) {
+		// check Chart.yml
+		_, err = os.Stat(filepath.Join(dir, "Chart.yml"))
+		if err != nil && os.IsNotExist(err) {
+			return false, nil
+		} else if err != nil {
+			return false, err
+		}
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, manifests []byte) (err error) {

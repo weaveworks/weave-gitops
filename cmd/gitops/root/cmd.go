@@ -2,14 +2,15 @@ package root
 
 import (
 	"fmt"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
 
@@ -97,6 +98,10 @@ func RootCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
+			if options.NoAnalytics {
+				return
+			}
+
 			var gitopsConfig *config.GitopsCLIConfig
 
 			gitopsConfig, err = config.GetConfig(false)
@@ -143,8 +148,10 @@ func RootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().StringToStringVar(&options.GitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	rootCmd.PersistentFlags().BoolVar(&options.InsecureSkipTLSVerify, "insecure-skip-tls-verify", false, "If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure")
 	rootCmd.PersistentFlags().StringVar(&options.Kubeconfig, "kubeconfig", "", "Paths to a kubeconfig. Only required if out-of-cluster.")
+	rootCmd.PersistentFlags().BoolVar(&options.NoAnalytics, "no-analytics", false, "Don't ask to enable/disable analytics.")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
+	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("no-analytics"))
 
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(get.GetCommand(options))
