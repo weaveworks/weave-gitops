@@ -458,10 +458,12 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	var kind string
-	if isHelm(paths.GetAbsoluteTargetDir()) {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		kind = "helm"
-	} else {
+	} else if !yes && err == nil {
 		kind = "ks"
+	} else {
+		return err
 	}
 
 	session, err := install.NewSession(
@@ -691,16 +693,20 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		SecretKey:     secretKey,
 	}
 
-	if !isHelm(paths.GetAbsoluteTargetDir()) {
-		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
-			cancel()
-			return err
-		}
-	} else {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		if err := watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
 			cancel()
 			return err
 		}
+	} else if !yes && err == nil {
+		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
+			cancel()
+			return err
+		}
+	} else if err != nil {
+		log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+		cancel()
+		return err
 	}
 
 	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
@@ -789,7 +795,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					atomic.StoreUint64(&counter, 0)
 
 					// we have to skip validation for helm charts
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); !yes && err == nil {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
@@ -830,10 +836,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					thisCtx := watcherCtx
 
 					var reconcileErr error
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
-						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
-					} else {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 						reconcileErr = watch.ReconcileDevBucketSourceAndHelm(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if !yes && err == nil {
+						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if err != nil {
+						log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+						reconcileErr = err
 					}
 
 					if reconcileErr != nil {
@@ -946,14 +955,17 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// this is the default behaviour
 	if !flags.SkipResourceCleanup {
-		if !isHelm(paths.GetAbsoluteTargetDir()) {
-			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
-				return err
-			}
-		} else {
+		if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
 				return err
 			}
+		} else if !yes && err == nil {
+			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else if err != nil {
+			log0.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+			return err
 		}
 
 		// uninstall dev-bucket server
@@ -999,9 +1011,21 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func isHelm(dir string) bool {
+func isHelm(dir string) (bool, error) {
 	_, err := os.Stat(filepath.Join(dir, "Chart.yaml"))
-	return err == nil
+	if err != nil && os.IsNotExist(err) {
+		// check Chart.yml
+		_, err = os.Stat(filepath.Join(dir, "Chart.yml"))
+		if err != nil && os.IsNotExist(err) {
+			return false, nil
+		} else if err != nil {
+			return false, err
+		}
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, manifests []byte) (err error) {
