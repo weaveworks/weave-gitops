@@ -42,6 +42,7 @@ const (
 // DefaultScopes is the set of scopes that we require.
 var DefaultScopes = []string{
 	oidc.ScopeOpenID,
+	oidc.ScopeOfflineAccess,
 	ScopeProfile,
 	ScopeEmail,
 	ScopeGroups,
@@ -123,7 +124,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
 	scopes := splitAndTrim(string(secret.Data["customScopes"]))
 	if len(scopes) == 0 {
-		scopes = []string{oidc.ScopeOpenID, ScopeEmail, ScopeGroups}
+		scopes = DefaultScopes
 	}
 
 	cfg.Scopes = scopes
@@ -252,11 +253,6 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	}
 
 	requestScopes = append(requestScopes, scopes...)
-
-	// Ensure "offline_access" scope is always present for refresh tokens.
-	if !contains(scopes, oidc.ScopeOfflineAccess) {
-		scopes = append(scopes, oidc.ScopeOfflineAccess)
-	}
 
 	return &oauth2.Config{
 		ClientID:     s.OIDCConfig.ClientID,
