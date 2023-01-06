@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -38,6 +39,14 @@ const (
 	ClaimGroups string = "groups"
 )
 
+// DefaultScopes is the set of scopes that we require.
+var DefaultScopes = []string{
+	oidc.ScopeOpenID,
+	ScopeProfile,
+	ScopeEmail,
+	ScopeGroups,
+}
+
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
@@ -46,6 +55,7 @@ type OIDCConfig struct {
 	ClientSecret  string
 	RedirectURL   string
 	TokenDuration time.Duration
+	Scopes        []string
 	ClaimsConfig  *ClaimsConfig
 }
 
@@ -111,7 +121,27 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
 	cfg.TokenDuration = tokenDuration
 
+	scopes := splitAndTrim(string(secret.Data["customScopes"]))
+	if len(scopes) == 0 {
+		scopes = []string{oidc.ScopeOpenID, ScopeEmail, ScopeGroups}
+	}
+
+	cfg.Scopes = scopes
+
 	return cfg
+}
+
+func splitAndTrim(s string) []string {
+	result := []string{}
+	splits := strings.Split(s, ",")
+
+	for _, s := range splits {
+		if v := strings.TrimSpace(s); v != "" {
+			result = append(result, v)
+		}
+	}
+
+	return result
 }
 
 func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
@@ -215,20 +245,13 @@ func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
 }
 
 func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
+	requestScopes := []string{}
 	// Ensure "openid" scope is always present.
 	if !contains(scopes, oidc.ScopeOpenID) {
-		scopes = append(scopes, oidc.ScopeOpenID)
+		requestScopes = append(requestScopes, oidc.ScopeOpenID)
 	}
 
-	// Request "email" scope to get user's email address.
-	if !contains(scopes, ScopeEmail) {
-		scopes = append(scopes, ScopeEmail)
-	}
-
-	// Request "groups" scope to get user's groups.
-	if !contains(scopes, ScopeGroups) {
-		scopes = append(scopes, ScopeGroups)
-	}
+	requestScopes = append(requestScopes, scopes...)
 
 	// Ensure "offline_access" scope is always present for refresh tokens.
 	if !contains(scopes, oidc.ScopeOfflineAccess) {
@@ -240,7 +263,7 @@ func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 		ClientSecret: s.OIDCConfig.ClientSecret,
 		RedirectURL:  s.OIDCConfig.RedirectURL,
 		Endpoint:     s.provider.Endpoint(),
-		Scopes:       scopes,
+		Scopes:       requestScopes,
 	}
 }
 
@@ -540,8 +563,7 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 
 	state := base64.StdEncoding.EncodeToString(b)
 
-	scopes := []string{ScopeProfile}
-	authCodeURL := s.oauth2Config(scopes).AuthCodeURL(state)
+	authCodeURL := s.oauth2Config(s.OIDCConfig.Scopes).AuthCodeURL(state)
 
 	// Issue state cookie
 	http.SetCookie(rw, s.createCookie(StateCookieName, state))

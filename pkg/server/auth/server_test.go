@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/oauth2-proxy/mockoidc"
@@ -976,6 +977,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 				RedirectURL:   "https://example.com/redirect",
 				TokenDuration: time.Minute * 10,
 				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
 			},
 		},
 		{
@@ -986,6 +988,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 			want: auth.OIDCConfig{
 				TokenDuration: time.Hour * 1,
 				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
 			},
 		},
 		{
@@ -996,8 +999,23 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 			},
 			want: auth.OIDCConfig{
 				TokenDuration: time.Hour * 1,
+				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
 				ClaimsConfig: &auth.ClaimsConfig{
 					Username: "test-user", Groups: "test-groups",
+				},
+			},
+		},
+		{
+			name: "overridden scopes",
+			data: map[string][]byte{
+				"claimUsername": []byte("test-user"),
+				"customScopes":  []byte("other-groups,new-user-id"),
+			},
+			want: auth.OIDCConfig{
+				TokenDuration: time.Hour * 1,
+				Scopes:        []string{"other-groups", "new-user-id"},
+				ClaimsConfig: &auth.ClaimsConfig{
+					Username: "test-user", Groups: "groups",
 				},
 			},
 		},

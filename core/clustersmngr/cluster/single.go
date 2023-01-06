@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -69,20 +70,11 @@ func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client
 }
 
 func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest.Config, error) {
-	cfg := rest.CopyConfig(config)
-
 	if !user.Valid() {
 		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
-	} else if tok := user.Token(); tok != "" {
-		cfg.BearerToken = tok
-	} else {
-		cfg.Impersonate = rest.ImpersonationConfig{
-			UserName: user.ID,
-			Groups:   user.Groups,
-		}
 	}
 
-	return cfg, nil
+	return kube.ConfigWithPrincipal(user, config), nil
 }
 
 func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, error) {
