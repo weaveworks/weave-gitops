@@ -1,6 +1,7 @@
 package clustersmngr_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
@@ -50,6 +52,64 @@ func TestGetImpersonatedClient(t *testing.T) {
 		g.Expect(nsChecker.FilterAccessibleNamespacesCallCount()).To(Equal(1))
 
 		_, _, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
+		nsFound := 0
+		for _, n := range nss {
+			if n.Name == ns1.Name || n.Name == ns2.Name {
+				nsFound++
+			}
+		}
+
+		g.Expect(nsFound).To(Equal(2))
+	})
+}
+
+func TestUseUserClientForNamespaces(t *testing.T) {
+	// enabled the feature flag for this test
+	useUserClientForNamespaces := featureflags.Get("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES")
+	featureflags.Set("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES", "true")
+	defer featureflags.Set("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES", useUserClientForNamespaces)
+
+	g := NewGomegaWithT(t)
+	logger := logr.Discard()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ns1 := createNamespace(g)
+	ns2 := createNamespace(g)
+	// User has be able to list namespaces
+	createClusterRoleBinding(g, "user-id")
+
+	nsChecker := &nsaccessfakes.FakeChecker{}
+	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns2}, nil)
+
+	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
+	g.Expect(err).To(BeNil())
+
+	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)
+
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
+	err = clustersManager.UpdateClusters(ctx)
+	g.Expect(err).To(BeNil())
+
+	// We would usually call UpdateNamespaces here, but we are testing the
+	// user client for namespaces, so we don't need to call it.
+	// E.g. can skip some call like this:
+	// err = clustersManager.UpdateNamespaces(ctx)
+
+	userClient, err := clustersManager.GetImpersonatedClient(ctx, &auth.UserPrincipal{ID: "user-id"})
+	g.Expect(err).To(BeNil())
+
+	t.Run("checks all namespaces in the cluster when through the filtering", func(t *testing.T) {
+		g = NewGomegaWithT(t)
+		g.Expect(nsChecker.FilterAccessibleNamespacesCallCount()).To(Equal(1))
+
+		g.Expect(userClient.Namespaces()).To(HaveLen(1))
+		g.Expect(userClient.Namespaces()["test"]).To(HaveLen(1))
+		g.Expect(userClient.Namespaces()["test"][0].GetName()).To(Equal(ns2.Name))
+
+		a, b, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
+		fmt.Println(a, b, nss)
 		nsFound := 0
 		for _, n := range nss {
 			if n.Name == ns1.Name || n.Name == ns2.Name {
@@ -151,7 +211,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	})
 }
 
-func TestUpdateUsers(t *testing.T) {
+func TestUpdateUserNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
@@ -171,7 +231,7 @@ func TestUpdateUsers(t *testing.T) {
 
 	u1 := &auth.UserPrincipal{ID: "drstrange"}
 
-	t.Run("UpdateUsers will return a map based on the clusters returned by Fetch", func(t *testing.T) {
+	t.Run("UpdateUserNamespaces will return a map based on the clusters returned by Fetch", func(t *testing.T) {
 		clustersFetcher.FetchReturns([]cluster.Cluster{c1, c2}, nil)
 
 		g.Expect(clustersManager.UpdateClusters(ctx)).To(Succeed())
@@ -197,7 +257,7 @@ func TestUpdateUsers(t *testing.T) {
 	})
 }
 
-func TestUpdateUsersFailsToConnect(t *testing.T) {
+func TestUpdateUserNamespacesFailsToConnect(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
