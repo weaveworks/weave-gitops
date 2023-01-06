@@ -66,6 +66,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 func TestUseUserClientForNamespaces(t *testing.T) {
 	// enabled the feature flag for this test
 	useUserClientForNamespaces := featureflags.Get("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES")
+
 	featureflags.Set("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES", "true")
 	defer featureflags.Set("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES", useUserClientForNamespaces)
 
