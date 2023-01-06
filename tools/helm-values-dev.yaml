@@ -18,6 +18,9 @@ adminUser:
 metrics:
   enabled: true
 
+# additionalArgs:
+#   - --auth-methods=oidc,token-passthrough
+
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
