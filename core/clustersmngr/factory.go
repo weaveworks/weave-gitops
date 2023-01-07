@@ -330,21 +330,34 @@ func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 // Used when all clusters have kubeconfig secrets that contain credentials to connect to the cluster
 // and list their namespaces.
 func (cf *clustersManager) UpdateNamespaces(ctx context.Context) error {
-	return cf.updateNamespacesWithClient(ctx, func() (Client, error) {
+	createClient := func() (Client, error) {
 		return cf.GetServerClient(ctx)
-	})
+	}
+	newClustersNamespaces, partialErr := cf.getNamespacesWithClient(ctx, createClient)
+
+	for clusterName, namespaces := range newClustersNamespaces.namespaces {
+		cf.clustersNamespaces.Set(clusterName, namespaces)
+		opsNamespacesCount.WithLabelValues(clusterName).Set(float64(len(namespaces)))
+	}
+
+	opsUpdateNamespaces.Inc()
+
+	return partialErr
 }
 
 // Used when clusters have kubeconfig secrets that DO NOT contain credentials to connect to the cluster.
 // We need to use the user's token from the incoming request to connect to the cluster and list its namespaces
 // instead.
-func (cf *clustersManager) updateNamespacesFromUserClient(ctx context.Context, user *auth.UserPrincipal) error {
-	return cf.updateNamespacesWithClient(ctx, func() (Client, error) {
-		return cf.getUserClientWithNamespaces(ctx, user, false)
-	})
+func (cf *clustersManager) getNamespacesFromUserClient(ctx context.Context, user *auth.UserPrincipal) (*ClustersNamespaces, error) {
+	createClient := func() (Client, error) {
+		loadNamespaces := false
+		return cf.getUserClientWithNamespaces(ctx, user, loadNamespaces)
+	}
+
+	return cf.getNamespacesWithClient(ctx, createClient)
 }
 
-func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, createClient func() (Client, error)) error {
+func (cf *clustersManager) getNamespacesWithClient(ctx context.Context, createClient func() (Client, error)) (*ClustersNamespaces, error) {
 	var result *multierror.Error
 
 	clientset, err := createClient()
@@ -368,6 +381,7 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 		result = multierror.Append(result, err)
 	}
 
+	newClustersNamespaces := &ClustersNamespaces{}
 	for clusterName, lists := range nsList.Lists() {
 		// This is the "namespace loop", but namespaces aren't
 		// namespaced so only 1 item
@@ -377,14 +391,11 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 				continue
 			}
 
-			cf.clustersNamespaces.Set(clusterName, list.Items)
-			opsNamespacesCount.WithLabelValues(clusterName).Set(float64(len(list.Items)))
+			newClustersNamespaces.Set(clusterName, list.Items)
 		}
 	}
 
-	opsUpdateNamespaces.Inc()
-
-	return result.ErrorOrNil()
+	return newClustersNamespaces, result.ErrorOrNil()
 }
 
 func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
@@ -403,13 +414,14 @@ func (cf *clustersManager) syncCaches() {
 }
 
 func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
-	return cf.getUserClientWithNamespaces(ctx, user, true)
+	loadNamespaces := true
+	return cf.getUserClientWithNamespaces(ctx, user, loadNamespaces)
 }
 
 // getUserClientWithNamespaces returns a client for the user and optionally fetches the namespaces
-// the user has access to. If lookupNamespaces is false, the namespaces will not be fetched and the client will only be
+// the user has access to. If loadNamespaces is false, the namespaces will not be fetched and the client will only be
 // able to make non-namespaced requests. (e.g. listing the namespaces themselves etc).
-func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user *auth.UserPrincipal, lookupNamespaces bool) (Client, error) {
+func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user *auth.UserPrincipal, loadNamespaces bool) (Client, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
 	}
@@ -447,7 +459,7 @@ func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user
 	}
 
 	var nss map[string][]v1.Namespace
-	if lookupNamespaces {
+	if loadNamespaces {
 		nss = cf.userNsList(ctx, user)
 	}
 
@@ -545,6 +557,10 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 }
 
 func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
+	cf.updateUserNamespacesWithClustersNamespaces(ctx, cf.clustersNamespaces, user)
+}
+
+func (cf *clustersManager) updateUserNamespacesWithClustersNamespaces(ctx context.Context, clustersNamespaces *ClustersNamespaces, user *auth.UserPrincipal) {
 	wg := sync.WaitGroup{}
 
 	for _, cl := range cf.clusters.Get() {
@@ -553,7 +569,7 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 		go func(cluster cluster.Cluster) {
 			defer wg.Done()
 
-			clusterNs := cf.clustersNamespaces.Get(cluster.GetName())
+			clusterNs := clustersNamespaces.Get(cluster.GetName())
 
 			clientset, err := cluster.GetUserClientset(user)
 			if err != nil {
@@ -574,6 +590,8 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 	wg.Wait()
 }
 
+// This method relies on the user namespace cache being up to date.
+// Its caller should make sure that the cache is updated before calling this method.
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }
@@ -585,15 +603,16 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	}
 
 	if cf.useUserClientForNamespaces {
-		err := cf.updateNamespacesFromUserClient(ctx, user)
+		newClustersNamespaces, err := cf.getNamespacesFromUserClient(ctx, user)
 		if err != nil {
 			// This may not completely fail the request, e.g. if some of the clusters
 			// are able to respond with their namespaces. So log the error and continue.
 			cf.log.Error(err, "failed updating namespaces from user client")
 		}
+		cf.updateUserNamespacesWithClustersNamespaces(ctx, newClustersNamespaces, user)
+	} else {
+		cf.UpdateUserNamespaces(ctx, user)
 	}
-
-	cf.UpdateUserNamespaces(ctx, user)
 
 	return cf.GetUserNamespaces(user)
 }
