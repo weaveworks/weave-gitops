@@ -69,7 +69,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
-	for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
+	for clusterName, nss := range cs.clustersManager.GetUserNamespaces(auth.Principal(ctx)) {
 		fluxNamepsaces := filterFluxNamespace(nss)
 		if len(fluxNamepsaces) == 0 {
 			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
