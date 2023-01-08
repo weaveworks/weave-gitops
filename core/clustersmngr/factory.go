@@ -422,7 +422,8 @@ func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth
 	return NewClient(pool, userNamespaces), partialErr
 }
 
-// getUserClientWithNamespaces returns a client for the user
+// getUserClientsPool returns a pool of clients for each cluster that the user has access to.
+// The pool can be used to instantiate a client once the namespaces are known.
 func (cf *clustersManager) getUserClientsPool(ctx context.Context, user *auth.UserPrincipal) (ClientsPool, error) {
 	if user == nil {
 		return nil, errors.New("no user supplied")
@@ -596,9 +597,9 @@ func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.
 	wg.Wait()
 }
 
-// This method relies on the user namespace cache being up to date.
+// GetUserNamespaces returns the cached namespaces for the given user.
 // Its caller should make sure that the cache is updated before calling this method.
-// (e.g. By calling GetImpersonatedClient which will make sure namespaces are up to date).
+// (e.g. By calling GetImpersonatedClient first)
 func (cf *clustersManager) GetUserNamespaces(user *auth.UserPrincipal) map[string][]v1.Namespace {
 	return cf.usersNamespaces.GetAll(user, cf.clusters.Get())
 }

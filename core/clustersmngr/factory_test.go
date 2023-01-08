@@ -109,6 +109,9 @@ func TestUseUserClientForNamespaces(t *testing.T) {
 		g.Expect(userClient.Namespaces()["test"]).To(HaveLen(1))
 		g.Expect(userClient.Namespaces()["test"][0].GetName()).To(Equal(ns2.Name))
 
+		// clusterNamespaces should be empty because we are using the user client
+		g.Expect(clustersManager.GetClustersNamespaces()).To(HaveLen(0))
+
 		a, b, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
 		fmt.Println(a, b, nss)
 		nsFound := 0
