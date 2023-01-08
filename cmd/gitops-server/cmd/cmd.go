@@ -200,6 +200,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	log.Info("Using cached clients", "enabled", options.UseK8sCachedClients)
 	if options.UseK8sCachedClients {
 		cl = cluster.NewDelegatingCacheCluster(cl, rest, scheme)
 	}

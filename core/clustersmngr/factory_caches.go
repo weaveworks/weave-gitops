@@ -156,7 +156,7 @@ type UsersClients struct {
 }
 
 func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) uint64 {
-	return ttlcache.StringKey(fmt.Sprintf("%s:%s-%s", user.ID, strings.Join(user.Groups, "/"), clusterName))
+	return ttlcache.StringKey(fmt.Sprintf("%s:%s-%s", user.ID, user.Hash(), clusterName))
 }
 
 func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
