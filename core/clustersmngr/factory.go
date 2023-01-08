@@ -383,6 +383,7 @@ func (cf *clustersManager) getNamespacesWithClient(ctx context.Context, createCl
 	}
 
 	newClustersNamespaces := &ClustersNamespaces{}
+
 	for clusterName, lists := range nsList.Lists() {
 		// This is the "namespace loop", but namespaces aren't
 		// namespaced so only 1 item
@@ -417,6 +418,7 @@ func (cf *clustersManager) syncCaches() {
 func (cf *clustersManager) GetImpersonatedClient(ctx context.Context, user *auth.UserPrincipal) (Client, error) {
 	pool, partialErr := cf.getUserClientsPool(ctx, user)
 	userNamespaces := cf.userNsList(ctx, user)
+
 	return NewClient(pool, userNamespaces), partialErr
 }
 
@@ -553,8 +555,10 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 
 func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
 	clustersNamespaces := cf.clustersNamespaces
+
 	if cf.useUserClientForNamespaces {
 		var err error
+
 		clustersNamespaces, err = cf.getNamespacesFromUserClient(ctx, user)
 		if err != nil {
 			// This may not completely fail the request, e.g. if some of the clusters
