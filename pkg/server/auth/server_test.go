@@ -723,10 +723,9 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 	g.Expect(info.ID).To(Equal("jane.doe"))
 }
 
+// Given the user only has a valid refresh_token
+// we should be able to refresh it and get an id_token and an access_token
 func TestRefresh(t *testing.T) {
-	// Given the user only has a valid refresh_token
-	// we should be able to refresh it and get an id_token and an access_token
-
 	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -751,6 +750,7 @@ func TestRefresh(t *testing.T) {
 	g.Expect(user.ID).To(Equal("jane.doe@example.com"))
 
 	cookies := make(map[string]*http.Cookie)
+
 	for _, c := range w.Result().Cookies() {
 		if c.Name == auth.IDTokenCookieName || c.Name == auth.AccessTokenCookieName || c.Name == auth.RefreshTokenCookieName {
 			cookies[c.Name] = c
@@ -807,7 +807,9 @@ func TestRefreshInvalidToken(t *testing.T) {
 		Name:  auth.RefreshTokenCookieName,
 		Value: "invalid",
 	})
+
 	user, err := s.Refresh(w, req)
+
 	g.Expect(err).To(MatchError(MatchRegexp("failed to refresh token: oauth2: cannot fetch token")))
 	g.Expect(user).To(BeNil())
 }

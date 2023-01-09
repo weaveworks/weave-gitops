@@ -206,11 +206,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 		principal, err := multi.Principal(r)
 		if err != nil {
-			srv.Log.Error(err, "failed to get principal")
-		}
-
-		if err != nil {
-			srv.Log.V(logger.LogLevelDebug).Info("Attempting to refresh token")
 			var refreshErr error
 			principal, refreshErr = srv.Refresh(rw, r)
 			if refreshErr != nil {
@@ -220,6 +215,8 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 				JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
 				return
 			}
+
+			srv.Log.Info("Successfully refreshed token", "principal", principal)
 		}
 
 		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
