@@ -25,6 +25,11 @@ const navItems: NavItem[] = [
     styles: { sub: true, groupEnd: true },
   },
   {
+    label: "IMAGE AUTOMATION",
+    link: { value: V2Routes.ImageAutomation },
+    styles: { sub: true, groupEnd: true },
+  },
+  {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
     styles: { icon: IconType.FluxIcon, groupEnd: true },
