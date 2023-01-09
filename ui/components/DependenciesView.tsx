@@ -1,7 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
-import { Kind } from "../lib/api/core/types.pb";
 import { getGraphNodes } from "../lib/dependencies";
 import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
@@ -42,14 +41,12 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     null
   );
 
-  const automationKind = Kind[automation?.type];
-
   const {
     data,
     isLoading: isLoadingData,
     error,
   } = automation
-    ? useListObjects("", automationKind, automation?.clusterName, {})
+    ? useListObjects("", automation?.type, automation?.clusterName, {})
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
   React.useEffect(() => {
