@@ -7,8 +7,8 @@ pagination_next: "getting-started"
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import TierLabel from "../_components/TierLabel";
-import CurlCodeBlock from "../_components/CurlCodeBlock";
+import TierLabel from "../../_components/TierLabel";
+import CurlCodeBlock from "../../_components/CurlCodeBlock";
 
 ## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
@@ -263,8 +263,8 @@ cd fleet-infra
 
 Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
 
-import ExampleWGE from "../assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!../assets/example-enterprise-helm.yaml";
+import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
 
 <CurlCodeBlock
   localPath="clusters/management/weave-gitops-enterprise.yaml"
