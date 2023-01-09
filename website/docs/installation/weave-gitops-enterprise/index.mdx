@@ -7,8 +7,8 @@ pagination_next: "getting-started"
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import TierLabel from "../_components/TierLabel";
-import CurlCodeBlock from "../_components/CurlCodeBlock";
+import TierLabel from "../../_components/TierLabel";
+import CurlCodeBlock from "../../_components/CurlCodeBlock";
 
 ## Installing Weave GitOps Enterprise<TierLabel tiers="enterprise" />
 
@@ -171,7 +171,7 @@ The example templates provided in this guide have been tested with `clusterctl` 
 Download a specific version of clusterctl from the [releases page](https://github.com/kubernetes-sigs/cluster-api/releases).
 :::
 
-In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed. See [Cluster API Providers](../cluster-management/cluster-api-providers.mdx) page for more details on providers.
+In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed. See [Cluster API Providers](../../cluster-management/cluster-api-providers.mdx) page for more details on providers.
 Here we'll continue with our example instructions for CAPD and CAPA.
 
 <Tabs groupId="infrastructure" default>
@@ -263,8 +263,8 @@ cd fleet-infra
 
 Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
 
-import ExampleWGE from "../assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!../assets/example-enterprise-helm.yaml";
+import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
 
 <CurlCodeBlock
   localPath="clusters/management/weave-gitops-enterprise.yaml"
@@ -287,7 +287,7 @@ When the new cluster is bootstrapped, flux will be sync the `./clusters/{.namesp
 
 #### (Optional) Install policy agent
 
-[Policy agent](../policy/intro.mdx) comes packaged with the WGE chart. To install it you need to set the following values:
+[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it you need to set the following values:
 
 - `values.policy-agent.enabled`: set to true to install the agent with WGE
 - `values.policy-agent.config.accountId`: organization name, used as identifier
@@ -341,12 +341,12 @@ gitops version
 
 ## Next steps
 
-In our following [Get Started document](../getting-started.mdx), we will walk you through logging into the GitOps Dashboard and deploying an application.
+In our following [Get Started document](../../getting-started.mdx), we will walk you through logging into the GitOps Dashboard and deploying an application.
 
 Then you can head over to either:
 
-- [Cluster Management - Getting started](../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
-- [Deploying CAPA with EKS](../guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
+- [Cluster Management - Getting started](../../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
+- [Deploying CAPA with EKS](../../guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
 
 ### (Optional) Install the TF-Controller
 
@@ -354,7 +354,7 @@ The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller
 
 With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest. 
 
-Check out our guide on how to [use Terraform templates](../guides/using-terraform-templates.mdx), and why not try your hands at using it with the RDS example!
+Check out our guide on how to [use Terraform templates](../../guides/using-terraform-templates.mdx), and why not try your hands at using it with the RDS example!
 
 Install the TF-Controller to a cluster using Helm:
 
