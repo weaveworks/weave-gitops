@@ -744,7 +744,9 @@ func TestRefresh(t *testing.T) {
 	w := httptest.NewRecorder()
 	cookies := make(map[string]*http.Cookie)
 
-	g.Expect(s.Refresh(w, req)).To(Succeed())
+	user, err := s.Refresh(w, req)
+	g.Expect(err).To(Succeed())
+	g.Expect(user.ID).To(Equal("jane.doe@example.com"))
 
 	for _, c := range w.Result().Cookies() {
 		if c.Name == auth.IDTokenCookieName || c.Name == auth.AccessTokenCookieName || c.Name == auth.RefreshTokenCookieName {
@@ -770,7 +772,9 @@ func TestRefreshNoToken(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
-	g.Expect(s.Refresh(w, req)).To(HaveOccurred())
+	user, err := s.Refresh(w, req)
+	g.Expect(err).To(MatchError("couldn't fetch refresh token from cookie"))
+	g.Expect(user).To(BeNil())
 }
 
 func TestRefreshInvalidToken(t *testing.T) {
@@ -783,7 +787,9 @@ func TestRefreshInvalidToken(t *testing.T) {
 		Name:  auth.RefreshTokenCookieName,
 		Value: "invalid",
 	})
-	g.Expect(s.Refresh(w, req)).To(HaveOccurred())
+	user, err := s.Refresh(w, req)
+	g.Expect(err).To(MatchError(MatchRegexp("failed to refresh token: oauth2: cannot fetch token")))
+	g.Expect(user).To(BeNil())
 }
 
 func TestLogoutSuccess(t *testing.T) {
@@ -977,7 +983,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 				RedirectURL:   "https://example.com/redirect",
 				TokenDuration: time.Minute * 10,
 				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
-				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
+				Scopes:        []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, auth.ScopeEmail, auth.ScopeGroups},
 			},
 		},
 		{
@@ -988,7 +994,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 			want: auth.OIDCConfig{
 				TokenDuration: time.Hour * 1,
 				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
-				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
+				Scopes:        []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, auth.ScopeEmail, auth.ScopeGroups},
 			},
 		},
 		{
@@ -999,7 +1005,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 			},
 			want: auth.OIDCConfig{
 				TokenDuration: time.Hour * 1,
-				Scopes:        []string{oidc.ScopeOpenID, auth.ScopeEmail, auth.ScopeGroups},
+				Scopes:        []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, auth.ScopeEmail, auth.ScopeGroups},
 				ClaimsConfig: &auth.ClaimsConfig{
 					Username: "test-user", Groups: "test-groups",
 				},

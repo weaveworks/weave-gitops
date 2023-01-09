@@ -43,7 +43,6 @@ const (
 var DefaultScopes = []string{
 	oidc.ScopeOpenID,
 	oidc.ScopeOfflineAccess,
-	ScopeProfile,
 	ScopeEmail,
 	ScopeGroups,
 }

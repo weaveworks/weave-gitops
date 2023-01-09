@@ -35,8 +35,6 @@ const (
 	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
 	// used for token passthrough authentication.
 	AuthorizationTokenHeaderName = "Authorization"
-	// ScopeProfile is the "profile" scope
-	ScopeProfile = "profile"
 	// ScopeEmail is the "email" scope
 	ScopeEmail = "email"
 	// ScopeGroups is the "groups" scope
