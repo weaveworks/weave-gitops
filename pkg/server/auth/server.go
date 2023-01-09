@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/strings/slices"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -494,11 +493,6 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 // Refresh is used to refresh the access token and id token. It updates the cookies on the response
 // with the new tokens. It returns the new user principal.
 func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
-	// if the offline scope is not present, we can't refresh the token
-	if !slices.Contains(s.OIDCConfig.Scopes, oidc.ScopeOfflineAccess) {
-		return nil, fmt.Errorf("no offline scope, cannot refresh token, scopes: %v", s.OIDCConfig.Scopes)
-	}
-
 	ctx := oidc.ClientContext(r.Context(), s.client)
 
 	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
