@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { AppContext, AppContextType } from "../contexts/AppContext";
 
@@ -19,3 +19,9 @@ export default function useNavigation(): {
     navigate,
   };
 }
+
+export const useOnLocationChange = (handleLocationChange: any) => {
+  const location = useLocation();
+
+  useEffect(() => handleLocationChange(location), [location, handleLocationChange]);
+};

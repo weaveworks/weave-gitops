@@ -1,6 +1,6 @@
 import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Flex from "../components/Flex";
@@ -21,7 +21,7 @@ type Props = {
 };
 
 function OAuthCallback({ className, code, provider }: Props) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { applicationsClient, storeProviderToken, getCallbackState } =
     React.useContext(AppContext);
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
@@ -50,7 +50,7 @@ function OAuthCallback({ className, code, provider }: Props) {
     const state = getCallbackState();
 
     if (state?.page) {
-      history.push(linkResolver(state.page));
+      navigate(linkResolver(state.page));
       return;
     }
   }, [res]);

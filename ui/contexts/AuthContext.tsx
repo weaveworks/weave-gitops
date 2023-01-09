@@ -1,6 +1,8 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, useHistory } from "react-router-dom";
+import { Redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom-v5-compat";
+import { useOnLocationChange } from "../hooks/navigation";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -59,7 +61,7 @@ export default function AuthContextProvider({ children }) {
   }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
@@ -74,7 +76,7 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          history.push(qs.parse(location.search).redirect || "/");
+          navigate(qs.parse(location.search).redirect || "/");
         });
       })
       .finally(() => setLoading(false));
@@ -110,10 +112,12 @@ export default function AuthContextProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  const locationChange = useOnLocationChange(getUserInfo)
+
   React.useEffect(() => {
     getUserInfo();
-    return history.listen(getUserInfo);
-  }, [getUserInfo, history]);
+    return locationChange
+  }, [getUserInfo, location]);
 
   return (
     <>

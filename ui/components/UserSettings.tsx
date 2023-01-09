@@ -6,7 +6,7 @@ import {
   Tooltip,
 } from "@material-ui/core";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
@@ -42,7 +42,7 @@ const PersonButton = styled(IconButton)<{ open: boolean }>`
 `;
 
 function UserSettings({ className }: { className?: string }) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
 
@@ -76,7 +76,7 @@ function UserSettings({ className }: { className?: string }) {
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
         <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
-        <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
+        <MenuItem onClick={() => navigate(V2Routes.Notifications)}>
           Notifications
         </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>

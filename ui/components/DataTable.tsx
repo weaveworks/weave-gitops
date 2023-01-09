@@ -10,7 +10,8 @@ import {
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import {  useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import Button, { IconButton } from "./Button";
 import CheckboxActions from "./CheckboxActions";
@@ -332,7 +333,7 @@ function UnstyledDataTable({
   emptyMessagePlaceholder,
 }: Props) {
   //URL info
-  const history = useHistory();
+  const navigate = useNavigate()
   const location = useLocation();
   const search = location.search;
   const initialSelections = parseFilterStateFromURL(search);
@@ -346,7 +347,8 @@ function UnstyledDataTable({
 
   const handleFilterChange = (sel: FilterSelections) => {
     const filterQuery = filterSelectionsToQueryString(sel);
-    history.replace({ ...location, search: filterQuery });
+    // history.replace();
+    navigate({ ...location, search: filterQuery }, { replace: true })
   };
 
   let filtered = filterRows(rows, filterState.filters);
