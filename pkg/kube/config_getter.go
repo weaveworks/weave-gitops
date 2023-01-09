@@ -33,25 +33,36 @@ func NewImpersonatingConfigGetter(cfg *rest.Config, insecure bool) *Impersonatin
 // Config returns a *rest.Config configured to impersonate a user or
 // use the default service account credentials.
 func (r *ImpersonatingConfigGetter) Config(ctx context.Context) *rest.Config {
-	shallowCopy := *r.cfg
+	cfg := rest.CopyConfig(r.cfg)
 
 	if p := auth.Principal(ctx); p != nil {
-		if tok := p.Token(); tok != "" {
-			shallowCopy.BearerToken = tok
-			shallowCopy.BearerTokenFile = ""
-		} else {
-			shallowCopy.Impersonate = rest.ImpersonationConfig{
-				UserName: p.ID,
-				Groups:   p.Groups,
-			}
-		}
+		cfg = ConfigWithPrincipal(p, cfg)
 	}
 
 	if r.insecure {
-		shallowCopy.TLSClientConfig = rest.TLSClientConfig{
+		cfg.TLSClientConfig = rest.TLSClientConfig{
 			Insecure: r.insecure,
 		}
 	}
 
-	return &shallowCopy
+	return cfg
+}
+
+// ConfigWithPrincipal returns a new config with the principal set as the
+// impersonated user or bearer token.
+func ConfigWithPrincipal(user *auth.UserPrincipal, config *rest.Config) *rest.Config {
+	cfg := rest.CopyConfig(config)
+
+	if tok := user.Token(); tok != "" {
+		cfg.BearerToken = tok
+		// Clear the token file as it takes precedence over the token.
+		cfg.BearerTokenFile = ""
+	} else {
+		cfg.Impersonate = rest.ImpersonationConfig{
+			UserName: user.ID,
+			Groups:   user.Groups,
+		}
+	}
+
+	return cfg
 }

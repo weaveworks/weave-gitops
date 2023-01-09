@@ -42,6 +42,9 @@ type Client interface {
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
 
+	// Namespaces returns the list of namespaces the client has access to.
+	Namespaces() map[string][]v1.Namespace
+
 	// Scoped returns a client that is scoped to a single cluster
 	Scoped(cluster string) (client.Client, error)
 }
@@ -91,6 +94,10 @@ func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Cl
 
 func (c *clustersClient) ClientsPool() ClientsPool {
 	return c.pool
+}
+
+func (c *clustersClient) Namespaces() map[string][]v1.Namespace {
+	return c.namespaces
 }
 
 func (c *clustersClient) Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error {

@@ -481,6 +481,25 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	return ns
 }
 
+func createClusterRoleBinding(g *GomegaWithT, user string) *rbacv1.ClusterRoleBinding {
+	crb := &rbacv1.ClusterRoleBinding{}
+	crb.Name = "kube-test-" + rand.String(5)
+	crb.Subjects = []rbacv1.Subject{
+		{
+			Kind: "User",
+			Name: user,
+		},
+	}
+	crb.RoleRef = rbacv1.RoleRef{
+		Kind: "ClusterRole",
+		Name: "cluster-admin",
+	}
+
+	g.Expect(k8sEnv.Client.Create(context.Background(), crb)).To(Succeed())
+
+	return crb
+}
+
 func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.ClientsPool {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
