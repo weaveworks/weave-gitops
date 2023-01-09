@@ -205,10 +205,10 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		principal, err := multi.Principal(r)
-		if err != nil {
+		if err != nil || principal == nil {
 			var refreshErr error
 			principal, refreshErr = srv.Refresh(rw, r)
-			if refreshErr != nil {
+			if refreshErr != nil || principal == nil {
 				srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
 				srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
 
