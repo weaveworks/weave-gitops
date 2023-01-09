@@ -783,6 +783,20 @@ func TestRefreshNoToken(t *testing.T) {
 	g.Expect(user).To(BeNil())
 }
 
+func TestRefreshNoOfflineScope(t *testing.T) {
+	g := NewGomegaWithT(t)
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, func(c *auth.AuthConfig) {
+		// remove the offline scope
+		c.OIDCConfig.Scopes = []string{"openid", "profile", "email"}
+	})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+	user, err := s.Refresh(w, req)
+	g.Expect(err).To(MatchError("no offline scope, cannot refresh token, scopes: [openid profile email]"))
+	g.Expect(user).To(BeNil())
+}
+
 func TestRefreshInvalidToken(t *testing.T) {
 	g := NewGomegaWithT(t)
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
@@ -865,7 +879,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
 }
 
-func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod) (*auth.AuthServer, *mockoidc.MockOIDC) {
+func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod, configOpts ...func(*auth.AuthConfig)) (*auth.AuthServer, *mockoidc.MockOIDC) {
 	t.Helper()
 	g := NewGomegaWithT(t)
 
@@ -888,6 +902,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		IssuerURL:    cfg.Issuer,
+		Scopes:       auth.DefaultScopes,
 	}
 
 	authMethodsMap := map[auth.AuthMethod]bool{}
@@ -897,6 +912,10 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	for _, opt := range configOpts {
+		opt(&authCfg)
+	}
 
 	s, err := auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())

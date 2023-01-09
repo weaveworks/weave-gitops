@@ -10,12 +10,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"k8s.io/utils/strings/slices"
 )
 
 const (
@@ -212,13 +210,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		if err != nil {
-			// if the offline scope is not present, we can't refresh the token
-			if !slices.Contains(srv.OIDCConfig.Scopes, oidc.ScopeOfflineAccess) {
-				srv.Log.V(logger.LogLevelDebug).Info("No offline scope, cannot refresh token", "scopes", srv.OIDCConfig.Scopes)
-				JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
-				return
-			}
-
 			srv.Log.V(logger.LogLevelDebug).Info("Attempting to refresh token")
 			var refreshErr error
 			principal, refreshErr = srv.Refresh(rw, r)
