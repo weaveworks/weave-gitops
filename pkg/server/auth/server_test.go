@@ -724,6 +724,9 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 }
 
 func TestRefresh(t *testing.T) {
+	// Given the user only has a valid refresh_token
+	// we should be able to refresh it and get an id_token and an access_token
+
 	g := NewGomegaWithT(t)
 
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -742,22 +745,25 @@ func TestRefresh(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	cookies := make(map[string]*http.Cookie)
 
 	user, err := s.Refresh(w, req)
 	g.Expect(err).To(Succeed())
 	g.Expect(user.ID).To(Equal("jane.doe@example.com"))
 
+	cookies := make(map[string]*http.Cookie)
 	for _, c := range w.Result().Cookies() {
 		if c.Name == auth.IDTokenCookieName || c.Name == auth.AccessTokenCookieName || c.Name == auth.RefreshTokenCookieName {
 			cookies[c.Name] = c
 		}
 	}
 
+	// We should have the 3 cookie set.
+	// Technically the system doesn't have to set the refresh_token again
 	g.Expect(cookies).To(HaveKey(auth.IDTokenCookieName))
 	g.Expect(cookies).To(HaveKey(auth.AccessTokenCookieName))
 	g.Expect(cookies).To(HaveKey(auth.RefreshTokenCookieName))
 
+	// And they should all be valid!
 	_, err = m.Keypair.VerifyJWT(cookies[auth.IDTokenCookieName].Value)
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = m.Keypair.VerifyJWT(cookies[auth.AccessTokenCookieName].Value)
