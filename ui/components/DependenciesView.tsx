@@ -49,6 +49,8 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     ? useListObjects("", automation?.type, automation?.clusterName, {})
     : { data: { objects: [], errors: [] }, error: null, isLoading: false };
 
+  console.log(data);
+
   React.useEffect(() => {
     if (isLoadingData) {
       return;
