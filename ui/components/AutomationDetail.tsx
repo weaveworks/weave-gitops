@@ -1,6 +1,7 @@
 import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
@@ -40,6 +41,9 @@ function AutomationDetail({
   customActions,
 }: Props) {
   const { path } = useRouteMatch();
+  const { pathname } = useLocation()
+  console.log(pathname,'pathname')
+  console.log(path, 'path')
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
