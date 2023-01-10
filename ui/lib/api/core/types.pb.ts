@@ -16,6 +16,7 @@ export enum Kind {
   Provider = "Provider",
   Alert = "Alert",
   ImageRepository = "ImageRepository",
+  ImageUpdateAutomation = "ImageUpdateAutomation",
 }
 
 export enum HelmRepositoryType {

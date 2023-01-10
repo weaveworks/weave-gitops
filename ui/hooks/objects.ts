@@ -11,6 +11,8 @@ import {
   HelmChart,
   HelmRelease,
   HelmRepository,
+  ImageRepository,
+  ImageUpdateAutomation,
   Kustomization,
   OCIRepository,
   Provider,
@@ -41,7 +43,9 @@ export function convertResponse(
     case Kind.Alert:
       return new Alert(response);
     case Kind.ImageRepository:
-      return new FluxObject(response);
+      return new ImageRepository(response);
+    case Kind.ImageUpdateAutomation:
+      return new ImageUpdateAutomation(response);
 
     default:
       return new FluxObject(response);

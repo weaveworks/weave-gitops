@@ -21,7 +21,9 @@ enum Kind {
     OCIRepository  = 7;
     Provider       = 8;
     Alert          = 9;
-    ImageRepository=10;
+    ImageRepository = 10;
+    ImageUpdateAutomation = 11;
+
 };
 
 enum HelmRepositoryType {
