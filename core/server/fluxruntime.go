@@ -238,9 +238,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
 	for _, namespaces := range clusterUserNamespaces {
-
 		for _, ns := range namespaces {
-
 			nsOpts := client.InNamespace(ns.Name)
 
 			for _, gvk := range msg.Kinds {
