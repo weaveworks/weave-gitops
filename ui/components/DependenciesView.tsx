@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
 import { getGraphNodes } from "../lib/dependencies";
-import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
+import { FluxObject, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";
 import MessageBox from "./MessageBox";
@@ -31,7 +31,7 @@ const Paragraph = Text.withComponent("p");
 
 type DependenciesViewProps = {
   className?: string;
-  automation?: Automation;
+  automation?: FluxObject;
 };
 
 const graphNodesPlaceholder = [] as FluxObjectNode[];

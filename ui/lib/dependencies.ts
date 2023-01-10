@@ -1,5 +1,5 @@
 import {
-  Automation,
+  FluxObject,
   FluxObjectNode,
   FluxObjectNodesMap,
   makeObjectId,
@@ -51,7 +51,7 @@ export function getNeighborNodes(
 // getGraphNodes returns all nodes in the current node's dependency tree, including the current node.
 export function getGraphNodes(
   nodes: FluxObjectNodesMap,
-  automation: Automation
+  automation: FluxObject
 ): FluxObjectNode[] {
   // Find node, corresponding to the automation.
   const currentNode =
