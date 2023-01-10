@@ -257,7 +257,7 @@ To set up a default git repository, the `weave.works/repo-rule: default` annotat
 Depending on the action performed on the resource (creation/deletion/editing), the default git repository will be set as (from highest to lowest priority):
 
 - the repository used to initially create the resource found in the `templates.weave.works/create-request` annotation (in the case of editing or deleting of resources) or
-```
+```yaml
         metadata: {
           annotations: {
             "templates.weave.works/create-request": "{...\"parameter_values\":{...\"url\":\"https://github.com/wkp-example-org/capd-demo-reloaded\"}",
@@ -266,7 +266,7 @@ Depending on the action performed on the resource (creation/deletion/editing), t
 ```
 
 - the repository containing the `weave.works/repo-rule: default` annotation or 
-```
+```yaml
         metadata: {
           annotations: {
             "weave.works/repo-rule": "default",
@@ -275,7 +275,7 @@ Depending on the action performed on the resource (creation/deletion/editing), t
 ```
 
 - the flux-system repository 
-```
+```yaml
           metadata: {
             name: "flux-system",
             namespace: "flux-system",
