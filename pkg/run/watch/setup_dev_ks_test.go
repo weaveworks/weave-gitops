@@ -9,8 +9,15 @@ import (
 	. "github.com/onsi/gomega"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 // mock controller-runtime client
@@ -97,6 +104,83 @@ func (c *mockClientForFindConditionMessages) List(_ context.Context, list client
 
 	return nil
 }
+
+func deleteObjects(ctx context.Context, o ...client.Object) {
+	for _, obj := range o {
+		Expect(
+			k8sClient.Delete(ctx, obj),
+		).To(
+			Succeed(), "failed deleting object %s/%s", obj.GetNamespace(), obj.GetName())
+
+		if _, isNamespace := obj.(*corev1.Namespace); isNamespace {
+			// Namespaces can't be deleted in envtest:
+			// https://book.kubebuilder.io/reference/envtest.html#namespace-usage-limitation
+			return
+		}
+
+		Eventually(k8sClient.Get, "10s").
+			WithArguments(ctx, client.ObjectKeyFromObject(obj), obj).
+			Should(WithTransform(apierrors.IsNotFound, BeTrue()),
+				"object %s/%s not deleted", obj.GetNamespace(), obj.GetName())
+	}
+}
+
+var _ = Describe("SetupBucketSourceAndKS", func() {
+	log := logger.NewCLILogger(GinkgoWriter)
+
+	It("fails when Namespace isn't set", func() {
+		Expect(
+			SetupBucketSourceAndKS(context.Background(), log, k8sClient, SetupRunObjectParams{}),
+		).To(
+			HaveOccurred(), "expected function call to fail")
+	})
+
+	It("fails when user lacks permission in Namespace", func() {
+		// create a user that has no permission on the cluster
+		authUser, err := k8sEnv.Env.AddUser(envtest.User{
+			Name: "no-permission",
+		}, nil)
+		Expect(err).NotTo(HaveOccurred(), "failed creating unauthenticated user")
+
+		scheme, err := kube.CreateScheme()
+		Expect(err).NotTo(HaveOccurred())
+
+		unauthClient, err = client.New(authUser.Config(), client.Options{
+			Scheme: scheme,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		testNS := corev1.Namespace{
+			ObjectMeta: v1.ObjectMeta{
+				GenerateName: "setupbucketsourceandks-",
+			},
+		}
+		Expect(k8sClient.Create(context.Background(), &testNS)).To(Succeed(), "failed creating test Namespace")
+		defer deleteObjects(context.Background(), &testNS)
+
+		Expect(
+			SetupBucketSourceAndKS(context.Background(), log, unauthClient, SetupRunObjectParams{
+				Namespace: testNS.Name,
+			}),
+		).To(
+			HaveOccurred(), "expected function call to fail")
+	})
+
+	It("returns no error", func() {
+		testNS := &corev1.Namespace{
+			ObjectMeta: v1.ObjectMeta{
+				GenerateName: "setupbucketsourceandks-",
+			},
+		}
+		Expect(k8sClient.Create(context.Background(), testNS)).To(Succeed(), "failed creating test Namespace")
+		defer deleteObjects(context.Background(), testNS)
+
+		err := SetupBucketSourceAndKS(context.Background(), log, k8sClient, SetupRunObjectParams{
+			Namespace: testNS.Name,
+		})
+		Expect(err).ToNot(HaveOccurred(), "setting up dev bucket and Kustomization failed")
+	})
+})
 
 var _ = Describe("findConditionMessages", func() {
 	It("returns the condition messages", func() {
