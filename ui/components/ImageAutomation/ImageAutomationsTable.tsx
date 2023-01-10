@@ -1,7 +1,6 @@
 import React from "react";
 import { useListImageAutomation } from "../../hooks/imageautomation";
-import { Kind, Object } from "../../lib/api/core/types.pb";
-import { Source } from "../../lib/objects";
+import { Kind } from "../../lib/api/core/types.pb";
 import { showInterval } from "../../lib/time";
 import DataTable from "../DataTable";
 import KubeStatusIndicator from "../KubeStatusIndicator";

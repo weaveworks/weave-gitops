@@ -316,7 +316,7 @@ export class ImageUpdateAutomation extends FluxObject {
     return sourceRef;
   }
   get lastAutomationRunTime(): string {
-    return this.obj?.spec.lastAutomationRunTime;
+    return this.obj?.status?.lastAutomationRunTime;
   }
 }
 export class Alert extends FluxObject {
