@@ -23,7 +23,7 @@ Create a kind cluster. We'll do this so we can have a local cluster on our machi
 
 Then we install flux on it.
 
-`$ flux install`
+`$ flux install --components-extra image-reflector-controller,image-automation-controller`
 
 Then we bring up tilt.
 
