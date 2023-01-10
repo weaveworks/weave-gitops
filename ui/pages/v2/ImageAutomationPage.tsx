@@ -1,25 +1,49 @@
 import * as React from "react";
-import styled from "styled-components";
-import Page from "../../components/Page";
-import { useListImageAutomation } from "../../hooks/imageautomation";
-import { Kind } from "../../lib/api/core/types.pb";
+import { useRouteMatch } from "react-router-dom";
+import Flex from "../../components/Flex";
+import ImageAutomationsTable from "../../components/ImageAutomation/ImageAutomationsTable";
+import ImageRepositoriesTable from "../../components/ImageAutomation/ImageRepositoriesTable";
+import { routeTab } from "../../components/KustomizationDetail";
+import SubRouterTabs, { RouterTab } from "../../components/SubRouterTabs";
 
 type Props = {
   className?: string;
 };
 
-function ImageAutomation({ className }: Props) {
-  const { data, isLoading, error } = useListImageAutomation(Kind.ImageAutomation);
- 
+function ImageAutomationPage({ className }: Props) {
+  const { path } = useRouteMatch();
+  const tabs: Array<routeTab> = [
+    {
+      name: "Image Update Automations",
+      path: `${path}/image_automations`,
+      component: () => {
+        return <ImageAutomationsTable />;
+      },
+      visible: true,
+    },
+    {
+      name: "Image Repositories",
+      path: `${path}/image_repositories`,
+      component: () => {
+        return <ImageRepositoriesTable />;
+      },
+      visible: true,
+    },
+  ];
   return (
-    <Page
-      loading={isLoading }
-      error={error }
-      className={className}
-    >
-      {/* <FluxRuntimeComponent deployments={data?.deployments} crds={crds?.crds} /> */}
-    </Page>
+    <Flex wide tall column className={className}>
+      <SubRouterTabs rootPath={tabs[0].path} clearQuery>
+        {tabs.map(
+          (subRoute, index) =>
+            subRoute.visible && (
+              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+                {subRoute.component()}
+              </RouterTab>
+            )
+        )}
+      </SubRouterTabs>
+    </Flex>
   );
 }
 
-export default styled(ImageAutomation).attrs({className: ImageAutomation.name})``;
+export default ImageAutomationPage;
