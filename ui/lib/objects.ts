@@ -297,11 +297,7 @@ export class Provider extends FluxObject {
     return this.obj.spec?.channel || "";
   }
 }
-export class ImageRepository extends FluxObject {
-  get tagCount(): string {
-    return this.obj.status?.lastScanResult?.tagCount || "";
-  }
-}
+
 export class ImageUpdateAutomation extends FluxObject {
   get sourceRef(): ObjectRef | undefined {
     if (!this.obj.spec?.sourceRef) {
@@ -317,6 +313,11 @@ export class ImageUpdateAutomation extends FluxObject {
   }
   get lastAutomationRunTime(): string {
     return this.obj?.status?.lastAutomationRunTime;
+  }
+}
+export class ImageRepository extends ImageUpdateAutomation {
+  get tagCount(): string {
+    return this.obj.status?.lastScanResult?.tagCount || "";
   }
 }
 export class Alert extends FluxObject {

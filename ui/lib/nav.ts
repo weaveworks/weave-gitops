@@ -28,6 +28,8 @@ export const getParentNavValue = (
       return V2Routes.FluxRuntime;
 
     case V2Routes.ImageAutomation:
+    case V2Routes.ImageAutomationUpdatesDetails:
+    case V2Routes.ImageAutomationRepositoriesDetails:
       return V2Routes.ImageAutomation;
 
     case V2Routes.Notifications:

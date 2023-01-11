@@ -1,29 +1,40 @@
 import React from "react";
-import { useListImageAutomation } from "../../hooks/imageautomation";
-import { Kind } from "../../lib/api/core/types.pb";
-import { showInterval } from "../../lib/time";
-import { Source } from "../../lib/types";
-import DataTable from "../DataTable";
-import KubeStatusIndicator from "../KubeStatusIndicator";
-import LoadingWrapper from "./LoadingWrapper";
+import { useListImageAutomation } from "../../../hooks/imageautomation";
+import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
+import { showInterval } from "../../../lib/time";
+import { Source, V2Routes } from "../../../lib/types";
+import DataTable, { filterConfig } from "../../DataTable";
+import KubeStatusIndicator from "../../KubeStatusIndicator";
+import Link from "../../Link";
+import LoadingWrapper from "../LoadingWrapper";
 
 const ImageRepositoriesTable = () => {
   const { data, isLoading, error } = useListImageAutomation(
     Kind.ImageRepository
   );
   const initialFilterState = {
-    // ...filterConfig(versions, "version"),
+    ...filterConfig(data?.objects, "name"),
   };
   return (
     <LoadingWrapper loading={isLoading} error={error}>
       <DataTable
-        // className={className}
         filters={initialFilterState}
         rows={data?.objects}
         fields={[
           {
             label: "Name",
-            value: "name",
+            value: ({ name, namespace, clusterName }) => (
+              <Link
+                to={formatURL(V2Routes.ImageAutomationRepositoriesDetails, {
+                  name: name,
+                  namespace: namespace,
+                  clusterName: clusterName,
+                })}
+              >
+                {name}
+              </Link>
+            ),
             textSearchable: true,
             maxWidth: 600,
           },

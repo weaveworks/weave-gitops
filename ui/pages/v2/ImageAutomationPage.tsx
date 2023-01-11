@@ -2,8 +2,8 @@ import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "../../components/Flex";
-import ImageAutomationsTable from "../../components/ImageAutomation/ImageAutomationsTable";
-import ImageRepositoriesTable from "../../components/ImageAutomation/ImageRepositoriesTable";
+import ImageRepositoriesTable from "../../components/ImageAutomation/repositories/ImageRepositoriesTable";
+import ImageAutomationUpdatesTable from "../../components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import { routeTab } from "../../components/KustomizationDetail";
 import Page from "../../components/Page";
 import SubRouterTabs, { RouterTab } from "../../components/SubRouterTabs";
@@ -19,7 +19,7 @@ function ImageAutomationPage({ className }: Props) {
       name: "Image Update Automations",
       path: `${path}/updates`,
       component: () => {
-        return <ImageAutomationsTable />;
+        return <ImageAutomationUpdatesTable />;
       },
       visible: true,
     },
