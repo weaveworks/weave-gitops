@@ -1,10 +1,84 @@
 run:
-  skip-dirs:
-      - pkg/vendorfakes
+  timeout: 5m
+  go: '1.18'
 
 linters:
+  disable-all: true
   enable:
-    - wsl
+    #- containedctx
+    #- contextcheck
+    - deadcode
+    #- depguard
+    - errcheck
+    #- errchkjson
+    #- errname
+    #- gochecknoinits
+    #- gci
+    #- goconst
+    #- gocritic
+    #- gocyclo
+    #- godot
+    #- gofumpt
+    #- gosec
+    - gosimple
+    - govet
+    - ineffassign
+    #- lll
+    #- misspell
+    #- nolintlint
+    #- prealloc
+    - staticcheck
     - stylecheck
+    #- tenv
+    #- thelper
+    #- tparallel
+    - typecheck
+    #- unconvert
+    #- unparam
+    - unused
+    - varcheck
+    #- whitespace
 
-linters-settings: {}
+linters-settings:
+  depguard:
+    list-type: blacklist
+    packages:
+      - k8s.io/kubernetes
+    packages-with-error-messages:
+      k8s.io/kubernetes: "do not use k8s.io/kubernetes directly"
+  errcheck:
+    exclude-functions:
+      - encoding/json.Marshal
+      - encoding/json.MarshalIndent
+  errchkjson:
+    check-error-free-encoding: true
+  gci:
+    sections:
+      - Standard
+      - Default
+      - Prefix(github.com/weaveworks)
+      - Prefix(github.com/weaveworks/weave-gitops)
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  gofumpt:
+    lang-version: "1.18"
+    extra-rules: true
+  lll:
+    line-length: 150
+
+issues:
+  exclude-rules:
+    # ignore errcheck for code under a /test folder
+    - path: "test/*"
+      linters:
+        - errcheck
+    # ignore errcheck for flags.Parse (it is expected that we flag.ExitOnError)
+    # ignore response.WriteError as it always returns the err it was passed
+    - source: "flags.Parse|response.WriteError"
+      linters:
+        - errcheck
