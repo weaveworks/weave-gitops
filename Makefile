@@ -34,8 +34,7 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 DOCKERARGS+=--build-arg FLUX_VERSION=$(FLUX_VERSION) --build-arg LDFLAGS="$(LDFLAGS)" --build-arg GIT_COMMIT=$(GIT_COMMIT)
 # We want to be able to reference this in builds & pushes
 DEFAULT_DOCKER_REPO=localhost:5001
-DOCKER_REGISTRY?=$(DEFAULT_DOCKER_REPO)
-DOCKER_IMAGE?=gitops-server
+DOCKER_IMAGE_TAG?=latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell which go > /dev/null && go env GOBIN))
@@ -143,16 +142,19 @@ proto: ## Generate protobuf files
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
 										-f $(DOCKERFILE) \
-										-t $(DEFAULT_DOCKER_REPO)/$(subst .dockerfile,,$(DOCKERFILE)):latest \
+										-t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) \
 										.
 
 docker-gitops: DOCKERFILE:=gitops.dockerfile
+docker-gitops: DOCKER_IMAGE_NAME?=$(DEFAULT_DOCKER_REPO)/gitops
 docker-gitops: _docker ## Build a Docker image of the gitops CLI
 
 docker-gitops-server: DOCKERFILE:=gitops-server.dockerfile
+docker-gitops-server: DOCKER_IMAGE_NAME?=$(DEFAULT_DOCKER_REPO)/gitops-server
 docker-gitops-server: _docker ## Build a Docker image of the Gitops UI Server
 
 docker-gitops-bucket-server: DOCKERFILE:=gitops-bucket-server.dockerfile
+docker-gitops-bucket-server: DOCKER_IMAGE_NAME?=$(DEFAULT_DOCKER_REPO)/gitops-bucket-server
 docker-gitops-bucket-server: _docker ## Build a Docker image of the Gitops UI Server
 
 ##@ UI
