@@ -4,18 +4,11 @@ import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageUpdateAutomation } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
-import EventsTable from "../../EventsTable";
-import Flex from "../../Flex";
-import InfoList, { InfoField } from "../../InfoList";
+import { InfoField } from "../../InfoList";
 import Metadata from "../../Metadata";
 import Page from "../../Page";
-import PageStatus from "../../PageStatus";
 import SourceLink from "../../SourceLink";
-import Spacer from "../../Spacer";
-import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
-import Text from "../../Text";
-import YamlView from "../../YamlView";
-import ImageUpdateAction from "./ImageUpdateDetails";
+import ImageAutomationDetails from "../ImageAutomationDetails";
 
 type Props = {
   className?: string;
@@ -46,7 +39,7 @@ function getInfoList(
     ["Push Branch", push.branch],
     ["Author Name", commit.author.name],
     ["Author Email", commit.author.email],
-    ["Commit Template", commit.messageTemplate],
+    ["Commit Template", <code> {commit.messageTemplate}</code>],
   ];
 }
 
@@ -70,59 +63,14 @@ function ImageAutomationUpdatesDetails({
   return (
     <Page error={error} loading={isLoading} className={className}>
       {!!data && (
-        <>
-          <Flex wide tall column className={className}>
-            <Text size="large" semiBold titleHeight>
-              {data.name}
-            </Text>
-            <Spacer margin="xs" />
-            <PageStatus
-              conditions={data.conditions}
-              suspended={data.suspended}
-            />
-            <Spacer margin="xs" />
-            <ImageUpdateAction
-              name={data.name}
-              namespace={data.namespace}
-              clusterName={data.namespace}
-              kind={Kind.ImageUpdateAutomation}
-            />
-            <Spacer margin="xs" />
-          </Flex>
-
-          <SubRouterTabs rootPath={`${rootPath}/details`}>
-            <RouterTab name="Details" path={`${rootPath}/details`}>
-              <>
-                <InfoList items={getInfoList(data, clusterName)} />
-                <Metadata
-                  metadata={data.metadata}
-                  labels={data.labels}
-                />
-              </>
-            </RouterTab>
-            <RouterTab name="Events" path={`${rootPath}/events`}>
-              <EventsTable
-                namespace={data.namespace}
-                involvedObject={{
-                  kind: data.type,
-                  name: data.name,
-                  namespace: data.namespace,
-                  clusterName: data.clusterName,
-                }}
-              />
-            </RouterTab>
-            <RouterTab name="yaml" path={`${rootPath}/yaml`}>
-              <YamlView
-                yaml={data.yaml}
-                object={{
-                  kind: data.type,
-                  name: data.name,
-                  namespace: data.namespace,
-                }}
-              />
-            </RouterTab>
-          </SubRouterTabs>
-        </>
+        <ImageAutomationDetails
+          data={data}
+          kind={Kind.ImageUpdateAutomation}
+          infoFields={getInfoList(data, data.clusterName)}
+          rootPath={rootPath}
+        >
+          <Metadata metadata={data.metadata} labels={data.labels} />
+        </ImageAutomationDetails>
       )}
     </Page>
   );

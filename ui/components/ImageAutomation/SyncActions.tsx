@@ -1,11 +1,11 @@
 import React from "react";
-import { useSyncFluxObject } from "../../../hooks/automations";
-import { useToggleSuspend } from "../../../hooks/flux";
-import { Kind } from "../../../lib/api/core/types.pb";
-import Button from "../../Button";
-import Flex from "../../Flex";
-import Spacer from "../../Spacer";
-import SyncButton from "../../SyncButton";
+import { useSyncFluxObject } from "../../hooks/automations";
+import { useToggleSuspend } from "../../hooks/flux";
+import { Kind } from "../../lib/api/core/types.pb";
+import Button from "../Button";
+import Flex from "../Flex";
+import Spacer from "../Spacer";
+import SyncButton from "../SyncButton";
 
 interface Props {
   name?: string;
@@ -14,7 +14,7 @@ interface Props {
   kind?: Kind;
   suspended?: boolean;
 }
-const ImageUpdateAction = ({
+const SyncActions = ({
   name,
   namespace,
   clusterName,
@@ -60,4 +60,4 @@ const ImageUpdateAction = ({
   );
 };
 
-export default ImageUpdateAction;
+export default SyncActions;
