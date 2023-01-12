@@ -3,6 +3,7 @@ import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
+import { useMatch } from "react-router-dom-v5-compat";
 // import { CompatRoute } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
@@ -48,15 +49,23 @@ function findChildren(childrenProp) {
 }
 
 function routesToIndex(routes: PathConfig[], pathname) {
+  console.log({pathname, routes})
   const index = _.findIndex(routes, (r) => pathname.includes(r.path));
   return index === -1 ? 0 : index;
+}  
+function MatchPath({ path, children }) {
+  console.log(path,"path")
+
+  let match = useMatch(path);
+  console.log({match})
+  return match ? children : null;
 }
 
 export function RouterTab({ children }: TabProps) {
   return (
-    <Route exact path={children.props.path}>
+    <MatchPath path={children.props.path}>
       {children}
-    </Route>
+    </MatchPath>
   );
 }
 

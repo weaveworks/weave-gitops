@@ -54,7 +54,6 @@ const App = () => (
     <ErrorBoundary>
       <Switch>
         <CompatRoute
-          exact
           path={V2Routes.Automations}
           component={Automations}
         />

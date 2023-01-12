@@ -42,8 +42,8 @@ function AutomationDetail({
 }: Props) {
   const { path } = useRouteMatch();
   const { pathname } = useLocation()
-  console.log(pathname,'pathname')
-  console.log(path, 'path')
+  // console.log(pathname,'pathname')
+  // console.log(path, 'path')
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
@@ -74,7 +74,7 @@ function AutomationDetail({
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
-      path: `${path}/details`,
+      path: `details`,
       component: () => {
         return (
           <>
