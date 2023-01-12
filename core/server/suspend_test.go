@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"google.golang.org/grpc/metadata"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -73,7 +74,9 @@ func TestSuspend_Suspend(t *testing.T) {
 				Objects: []*api.ObjectRef{object},
 				Suspend: true,
 			}
-			_, err = c.ToggleSuspendResource(ctx, req)
+			md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
+			outgoingCtx := metadata.NewOutgoingContext(ctx, md)
+			_, err = c.ToggleSuspendResource(outgoingCtx, req)
 			g.Expect(err).NotTo(HaveOccurred())
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
 			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
@@ -87,7 +90,9 @@ func TestSuspend_Suspend(t *testing.T) {
 			Suspend: false,
 		}
 
-		_, err = c.ToggleSuspendResource(ctx, req)
+		md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
+		outgoingCtx := metadata.NewOutgoingContext(ctx, md)
+		_, err = c.ToggleSuspendResource(outgoingCtx, req)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		for _, tt := range tests {
@@ -98,7 +103,9 @@ func TestSuspend_Suspend(t *testing.T) {
 
 	t.Run("will error", func(t *testing.T) {
 
-		_, err = c.ToggleSuspendResource(ctx, &api.ToggleSuspendResourceRequest{
+		md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
+		outgoingCtx := metadata.NewOutgoingContext(ctx, md)
+		_, err = c.ToggleSuspendResource(outgoingCtx, &api.ToggleSuspendResourceRequest{
 
 			Objects: []*api.ObjectRef{{
 				Kind:        sourcev1.GitRepositoryKind,
