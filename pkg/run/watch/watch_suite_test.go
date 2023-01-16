@@ -10,9 +10,8 @@ import (
 )
 
 var (
-	k8sClient    client.Client
-	unauthClient client.Client
-	k8sEnv       *testutils.K8sTestEnv
+	k8sClient client.Client
+	k8sEnv    *testutils.K8sTestEnv
 )
 
 func TestRun(t *testing.T) {

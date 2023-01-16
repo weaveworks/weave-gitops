@@ -18,6 +18,7 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,14 +32,15 @@ import (
 )
 
 type SetupRunObjectParams struct {
-	Namespace     string
-	Path          string
-	Timeout       time.Duration
-	DevBucketPort int32
-	SessionName   string
-	Username      string
-	AccessKey     []byte
-	SecretKey     []byte
+	Namespace         string
+	Path              string
+	Timeout           time.Duration
+	DevBucketPort     int32
+	SessionName       string
+	Username          string
+	AccessKey         []byte
+	SecretKey         []byte
+	DecryptionKeyFile string
 }
 
 func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient client.Client, params SetupRunObjectParams) error {
@@ -67,6 +69,10 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 		},
 	}
 
+	if err := setupDecryption(ctx, params, kubeClient, &ks); err != nil {
+		return fmt.Errorf("failed setting up decryption: %w", err)
+	}
+
 	err := reconcileBucketAndSecretObjects(ctx, log, kubeClient, secret, source)
 	if err != nil {
 		return err
@@ -86,6 +92,50 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 	}
 
 	log.Successf("Setup Bucket Source and Kustomization successfully")
+
+	return nil
+}
+
+func setupDecryption(ctx context.Context, params SetupRunObjectParams, kubeClient client.Client, ks *kustomizev1.Kustomization) error {
+	if params.DecryptionKeyFile == "" {
+		return nil
+	}
+
+	ageKeyData, err := os.ReadFile(params.DecryptionKeyFile)
+	if err != nil {
+		return fmt.Errorf("failed reading age key file: %w", err)
+	}
+
+	var secretKey string
+
+	switch filepath.Ext(params.DecryptionKeyFile) {
+	case ".agekey":
+		secretKey = "age.agekey"
+	case ".asc":
+		secretKey = "identity.asc"
+	default:
+		return fmt.Errorf("failed determining decryption key type from filename %s", filepath.Base(params.DecryptionKeyFile))
+	}
+
+	decSecret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "run-dev-ks-decryption",
+			Namespace: params.Namespace,
+		},
+		Data: map[string][]byte{
+			secretKey: ageKeyData,
+		},
+	}
+	if err := kubeClient.Create(ctx, &decSecret); err != nil {
+		return fmt.Errorf("failed creating age key Secret: %w", err)
+	}
+
+	ks.Spec.Decryption = &kustomizev1.Decryption{
+		Provider: "sops",
+		SecretRef: &meta.LocalObjectReference{
+			Name: decSecret.Name,
+		},
+	}
 
 	return nil
 }
