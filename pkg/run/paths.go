@@ -1,7 +1,6 @@
 package run
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,22 +30,43 @@ func (p *Paths) GetRelativeTargetDir() (string, error) {
 	return filepath.Rel(absGitDir, p.TargetDir)
 }*/
 
+const (
+	NotInGitRepoError = "not in a git repo, last checked directory: %s"
+	StatError         = "unexpected error while checking for .git directory: %v"
+	AbsError          = "unexpected error while getting the absolute filepath: %v"
+	PermissionError   = "permission denied while checking for parent directory of: %s"
+)
+
 func findGitRepoDir() (string, error) {
-	gitDir := "."
+	gitDir, err := filepath.Abs(".")
+	if err != nil {
+		return "", fmt.Errorf(AbsError, err)
+	}
 
 	for {
-		if _, err := os.Stat(filepath.Join(gitDir, ".git")); err == nil {
+		_, err := os.Stat(filepath.Join(gitDir, ".git"))
+		if err == nil {
 			break
-		}
+		} else if os.IsNotExist(err) {
+			gitDir = filepath.Clean(filepath.Join(gitDir, ".."))
+			absGitDir, err := filepath.Abs(gitDir)
+			if err != nil {
+				return "", fmt.Errorf(AbsError, err)
+			}
 
-		gitDir = filepath.Join(gitDir, "..")
+			if filepath.Dir(absGitDir) == gitDir {
+				return "", fmt.Errorf(NotInGitRepoError, gitDir)
+			}
 
-		if gitDir == "/" {
-			return "", errors.New("not in a git repo")
+			gitDir = absGitDir
+		} else if os.IsPermission(err) {
+			return "", fmt.Errorf(PermissionError, gitDir)
+		} else {
+			return "", fmt.Errorf(StatError, err)
 		}
 	}
 
-	return filepath.Abs(gitDir)
+	return gitDir, nil
 }
 
 func GetRelativePathToRootDir(rootDir string, path string) (string, error) {
