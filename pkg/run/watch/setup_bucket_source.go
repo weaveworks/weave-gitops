@@ -57,28 +57,36 @@ func reconcileBucketAndSecretObjects(ctx context.Context, log logger.Logger, kub
 	// create secret
 	log.Actionf("Checking secret %s ...", secret.Name)
 
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil && apierrors.IsNotFound(err) {
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed fetching secret %s/%s: %w", secret.Namespace, secret.Name, err)
+		}
+
 		if err := kubeClient.Create(ctx, &secret); err != nil {
 			return fmt.Errorf("couldn't create secret %s: %v", secret.Name, err.Error())
-		} else {
-			log.Successf("Created secret %s", secret.Name)
 		}
-	} else if err == nil {
-		log.Successf("Secret %s already existed", secret.Name)
+
+		log.Successf("Created secret %s", secret.Name)
 	}
+
+	log.Successf("Secret %s already existed", secret.Name)
 
 	// create source
 	log.Actionf("Checking bucket source %s ...", source.Name)
 
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&source), &source); err != nil && apierrors.IsNotFound(err) {
+	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&source), &source); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed fetching bucket source %s/%s: %w", source.Namespace, source.Name, err)
+		}
+
 		if err := kubeClient.Create(ctx, &source); err != nil {
 			return fmt.Errorf("couldn't create source %s: %v", source.Name, err.Error())
-		} else {
-			log.Successf("Created source %s", source.Name)
 		}
-	} else if err == nil {
-		log.Successf("Source %s already existed", source.Name)
+
+		log.Successf("Created source %s", source.Name)
 	}
+
+	log.Successf("Source %s already existed", source.Name)
 
 	return nil
 }

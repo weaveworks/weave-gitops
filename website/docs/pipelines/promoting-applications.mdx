@@ -274,3 +274,49 @@ spec:
 ```
 
 Promotion notifications from leaf clusters should now be forwarded via the notification controller running on the management cluster and should include information about the version of the application being promoted.
+
+## Configuration
+
+### Retry Logic
+
+By default if a promotion fails, an exponential back-off retry happens and
+returns with an error only after three retries.
+
+Through Helm values, the retry logic is configurable.
+
+```yaml
+# values.yaml
+promotion:
+  retry:
+    # Initial delay between retries.
+    delay: 2
+    # Maximum delay between retries.
+    maxDelay: 20
+    # Number of attempts.
+    threshold: 3
+```
+
+The promotion happens through an HTTP endpoint call, that endpoint may has
+connection timeout limits, that's why the `maxDelay` option is there. If the
+calculated delay would exceed this value, it will use that as delay. For example
+if the delay values would be `[2, 4, 8, 16, 32, 64]`, but `maxDelay` is set to
+15, the list will be `[2, 4, 8, 15, 15, 15]`. With this option, the promotion
+will be retried on failure, but the sum of delay values will be only 59 seconds
+instead of 126 seconds.
+
+### Rate Limiting
+
+The promotion endpoint can be exposed to the internet (for example github
+actions), to mitigate DoS attacks, the endpoint has rate limits. By default it's
+20 requests per 30 seconds.
+
+Rate limiting can be configured through Helm values:
+
+```yaml
+# values.yaml
+promotion:
+  rateLimit:
+    # Number of requests allowed in set interval.
+    value: 20
+    interval: 30
+```
