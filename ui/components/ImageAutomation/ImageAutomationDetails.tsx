@@ -24,13 +24,7 @@ const ImageAutomationDetails = ({
   infoFields,
   children,
 }: Props) => {
-  const {
-    name,
-    namespace,
-    clusterName,
-    suspended,
-    conditions,
-  } = data;
+  const { name, namespace, clusterName, suspended, conditions } = data;
   return (
     <>
       <Flex wide tall column>

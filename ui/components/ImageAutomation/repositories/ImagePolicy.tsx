@@ -36,10 +36,7 @@ const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
           <InfoList
             items={[
               ["Image Policy", Object.keys(data.obj.spec.policy)[0]],
-              [
-                "Order/Range",
-                getValueByKey(data.obj.spec.policy,'range'),
-              ],
+              ["Order/Range", getValueByKey(data.obj.spec.policy, "range")],
               ["Kind", Kind.ImagePolicy],
               ["Name", data.name],
               ["Namespace", data.namespace],
@@ -53,8 +50,8 @@ const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
 
 export default ImagePolicy;
 function getValueByKey(obj: any, key: string): any {
-    const policyKey = Object.keys(obj)[0];
-    console.log(policyKey);
-    
+  const policyKey = Object.keys(obj)[0];
+  console.log(policyKey);
+
   return obj[policyKey][key];
 }

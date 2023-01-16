@@ -22,7 +22,7 @@ const navItems: NavItem[] = [
   {
     label: "Sources",
     link: { value: V2Routes.Sources },
-    styles: { sub: true},
+    styles: { sub: true },
   },
   {
     label: "Image Automation",
