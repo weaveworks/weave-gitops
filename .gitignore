@@ -2,6 +2,7 @@
 bin
 /.idea
 
+.tool-versions
 tools/bin/*
 *.out
 dist/

@@ -34,8 +34,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/s3"
 	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -51,13 +53,14 @@ const (
 var HelmChartVersion = "3.0.0"
 
 type RunCommandFlags struct {
-	FluxVersion     string
-	AllowK8sContext []string
-	Components      []string
-	ComponentsExtra []string
-	Timeout         time.Duration
-	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
-	RootDir         string
+	FluxVersion       string
+	AllowK8sContext   []string
+	Components        []string
+	ComponentsExtra   []string
+	Timeout           time.Duration
+	PortForward       string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
+	RootDir           string
+	DecryptionKeyFile string
 
 	// Dashboard
 	DashboardPort           string
@@ -144,6 +147,7 @@ gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-syste
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+	cmdFlags.StringVar(&flags.DecryptionKeyFile, "decryption-key-file", "", "Path to an age key file used for decrypting Secrets using SOPS.")
 
 	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
 	_ = cmdFlags.MarkHidden("dashboard-image")
@@ -683,14 +687,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	setupParams := watch.SetupRunObjectParams{
-		Namespace:     flags.Namespace,
-		Path:          paths.TargetDir,
-		Timeout:       flags.Timeout,
-		DevBucketPort: devBucketHTTPPort,
-		SessionName:   sessionName,
-		Username:      username,
-		AccessKey:     accessKey,
-		SecretKey:     secretKey,
+		Namespace:         flags.Namespace,
+		Path:              paths.TargetDir,
+		Timeout:           flags.Timeout,
+		DevBucketPort:     devBucketHTTPPort,
+		SessionName:       sessionName,
+		Username:          username,
+		AccessKey:         accessKey,
+		SecretKey:         secretKey,
+		DecryptionKeyFile: flags.DecryptionKeyFile,
 	}
 
 	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
@@ -897,12 +902,26 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// get pod from specMap
 						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-						pod, err := run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
-						if err != nil {
-							log.Failuref("Error getting pod from specMap: %v", err)
+						var (
+							pod    *corev1.Pod
+							podErr error
+						)
+
+						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
+							pod, podErr = run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
+							if pod != nil && podErr == nil {
+								return true, nil
+							}
+
+							log.Waitingf("Waiting for a pod from specMap: %v", podErr)
+							return false, nil
+						}); pollErr != nil {
+							log.Failuref("Waiting for a pod from specMap: %v", pollErr)
 						}
 
-						if pod != nil {
+						if pod == nil {
+							log.Failuref("Error getting pod from specMap")
+						} else /* pod is available */ {
 							waitFwd := make(chan struct{}, 1)
 							readyChannel := make(chan struct{})
 							cancelPortFwd = func() {
