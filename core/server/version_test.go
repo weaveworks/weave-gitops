@@ -10,6 +10,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"google.golang.org/grpc/metadata"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -43,7 +44,9 @@ func TestGetVersion(t *testing.T) {
 	}
 	g.Expect(k.Create(ctx, fluxNs)).To(Succeed())
 
-	resp, err := c.GetVersion(ctx, &pb.GetVersionRequest{})
+	md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
+	outgoingCtx := metadata.NewOutgoingContext(ctx, md)
+	resp, err := c.GetVersion(outgoingCtx, &pb.GetVersionRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(resp.Semver).To(Equal("v0.0.0"))
 	g.Expect(resp.FluxVersion).To(Equal(testVersion))

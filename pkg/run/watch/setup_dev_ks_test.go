@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -145,7 +146,7 @@ var _ = Describe("SetupBucketSourceAndKS", func() {
 		scheme, err := kube.CreateScheme()
 		Expect(err).NotTo(HaveOccurred())
 
-		unauthClient, err = client.New(authUser.Config(), client.Options{
+		unauthClient, err := client.New(authUser.Config(), client.Options{
 			Scheme: scheme,
 		})
 		Expect(err).NotTo(HaveOccurred())
@@ -164,6 +165,83 @@ var _ = Describe("SetupBucketSourceAndKS", func() {
 			}),
 		).To(
 			HaveOccurred(), "expected function call to fail")
+	})
+
+	Describe("decryption setup", func() {
+		It("fails with non-existent file name", func() {
+			testNS := corev1.Namespace{
+				ObjectMeta: v1.ObjectMeta{
+					GenerateName: "setupbucketsourceandks-",
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), &testNS)).To(Succeed(), "failed creating test Namespace")
+			defer deleteObjects(context.Background(), &testNS)
+
+			Expect(SetupBucketSourceAndKS(context.Background(), log, k8sClient, SetupRunObjectParams{
+				Namespace:         testNS.Name,
+				DecryptionKeyFile: "/does/not/exist",
+			})).To(MatchError(HavePrefix("failed setting up decryption")), "expected a failure")
+		})
+
+		It("fails with unknown file extension", func() {
+			testNS := corev1.Namespace{
+				ObjectMeta: v1.ObjectMeta{
+					GenerateName: "setupbucketsourceandks-",
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), &testNS)).To(Succeed(), "failed creating test Namespace")
+			defer deleteObjects(context.Background(), &testNS)
+
+			Expect(SetupBucketSourceAndKS(context.Background(), log, k8sClient, SetupRunObjectParams{
+				Namespace:         testNS.Name,
+				DecryptionKeyFile: "./testdata/emptyfile",
+			})).To(MatchError(ContainSubstring("failed determining decryption key type from filename")), "expected a failure")
+		})
+
+		DescribeTable("creates a Secret and configures the Kustomization",
+			func(filename, secretKey string) {
+				testNS := corev1.Namespace{
+					ObjectMeta: v1.ObjectMeta{
+						GenerateName: "setupbucketsourceandks-",
+					},
+				}
+				Expect(k8sClient.Create(context.Background(), &testNS)).To(Succeed(), "failed creating test Namespace")
+				defer deleteObjects(context.Background(), &testNS)
+
+				Expect(SetupBucketSourceAndKS(context.Background(), log, k8sClient, SetupRunObjectParams{
+					Namespace:         testNS.Name,
+					DecryptionKeyFile: filename,
+				}),
+				).To(Succeed(), "function failed unexpectedly")
+
+				var decSecret corev1.Secret
+				Expect(
+					k8sClient.Get(context.Background(), client.ObjectKey{
+						Namespace: testNS.Name,
+						Name:      "run-dev-ks-decryption",
+					}, &decSecret),
+				).To(Succeed(), "failed to retrieve decryption Secret")
+
+				Expect(decSecret.Data).To(HaveKeyWithValue(secretKey, []byte{}), "unexpected data in decryption Secret")
+
+				var ks kustomizev1.Kustomization
+				Expect(
+					k8sClient.Get(context.Background(), client.ObjectKey{
+						Namespace: testNS.Name,
+						Name:      RunDevKsName,
+					}, &ks),
+				).To(Succeed(), "failed to retrieve Kustomization")
+
+				Expect(ks.Spec.Decryption).ToNot(BeNil(), "decryption spec not set")
+				Expect(ks.Spec.Decryption.Provider).To(Equal("sops"), "unexpected decryption provider set")
+				Expect(ks.Spec.Decryption.SecretRef).ToNot(BeNil(), "decryption spec missing Secret reference")
+				Expect(ks.Spec.Decryption.SecretRef).To(Equal(&meta.LocalObjectReference{
+					Name: decSecret.Name,
+				}), "decryption spec has invalid Secret reference")
+			},
+			Entry("with GPG file", "./testdata/emptyfile.asc", "identity.asc"),
+			Entry("with age file", "./testdata/emptyfile.agekey", "age.agekey"),
+		)
 	})
 
 	It("returns no error", func() {
