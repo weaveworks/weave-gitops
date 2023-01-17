@@ -235,62 +235,69 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 		wg = sync.WaitGroup{}
 	)
 
-	for _, gvk := range msg.Kinds {
-		wg.Add(1)
+	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
-		go func(clusterName string, gvk *pb.GroupVersionKind) {
-			defer wg.Done()
+	for _, namespaces := range clusterUserNamespaces {
+		for _, ns := range namespaces {
+			nsOpts := client.InNamespace(ns.Name)
 
-			listResult := unstructured.UnstructuredList{}
+			for _, gvk := range msg.Kinds {
+				wg.Add(1)
 
-			listResult.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   gvk.Group,
-				Kind:    gvk.Kind,
-				Version: gvk.Version,
-			})
+				go func(clusterName string, gvk *pb.GroupVersionKind) {
+					defer wg.Done()
 
-			if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
-				if k8serrors.IsForbidden(err) {
-					cs.logger.V(logger.LogLevelDebug).Info(
-						"forbidden list request",
-						"cluster", msg.ClusterName,
-						"automation", msg.AutomationName,
-						"namespace", msg.Namespace,
-						"gvk", gvk.String(),
-					)
-					// Our service account (or impersonated user) may not have the ability to see the resource in question,
-					// in the given namespace. We pretend it doesn't exist and keep looping.
-					// We need logging to make this error more visible.
-					return
-				}
+					listResult := unstructured.UnstructuredList{}
 
-				if k8serrors.IsTimeout(err) {
-					cs.logger.Error(err, "List timedout", "gvk", gvk.String())
+					listResult.SetGroupVersionKind(schema.GroupVersionKind{
+						Group:   gvk.Group,
+						Kind:    gvk.Kind,
+						Version: gvk.Version,
+					})
 
-					return
-				}
+					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, nsOpts); err != nil {
+						if k8serrors.IsForbidden(err) {
+							cs.logger.V(logger.LogLevelDebug).Info(
+								"forbidden list request",
+								"cluster", msg.ClusterName,
+								"automation", msg.AutomationName,
+								"namespace", msg.Namespace,
+								"gvk", gvk.String(),
+							)
+							// Our service account (or impersonated user) may not have the ability to see the resource in question,
+							// in the given namespace. We pretend it doesn't exist and keep looping.
+							// We need logging to make this error more visible.
+							return
+						}
 
-				errsMu.Lock()
-				errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
-				errsMu.Unlock()
+						if k8serrors.IsTimeout(err) {
+							cs.logger.Error(err, "List timedout", "gvk", gvk.String())
+
+							return
+						}
+
+						errsMu.Lock()
+						errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
+						errsMu.Unlock()
+					}
+
+					resultMu.Lock()
+					for _, u := range listResult.Items {
+						uid := u.GetUID()
+
+						if !checkDup[uid] {
+							result = append(result, u)
+							checkDup[uid] = true
+						}
+					}
+					resultMu.Unlock()
+				}(msg.ClusterName, gvk)
 			}
-
-			resultMu.Lock()
-			for _, u := range listResult.Items {
-				uid := u.GetUID()
-
-				if !checkDup[uid] {
-					result = append(result, u)
-					checkDup[uid] = true
-				}
-			}
-			resultMu.Unlock()
-		}(msg.ClusterName, gvk)
+		}
 	}
 
 	wg.Wait()
 
-	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 	objects := []*pb.Object{}
 	respErrors := multierror.Error{}
 
@@ -327,6 +334,8 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	opts := client.InNamespace(msg.Namespace)
+
 	listResult := unstructured.UnstructuredList{}
 
 	listResult.SetGroupVersionKind(schema.GroupVersionKind{
@@ -335,7 +344,7 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := clustersClient.List(ctx, msg.ClusterName, &listResult); err != nil {
+	if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 

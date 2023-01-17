@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -41,7 +42,7 @@ const (
 // DefaultScopes is the set of scopes that we require.
 var DefaultScopes = []string{
 	oidc.ScopeOpenID,
-	ScopeProfile,
+	oidc.ScopeOfflineAccess,
 	ScopeEmail,
 	ScopeGroups,
 }
@@ -122,7 +123,7 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
 	scopes := splitAndTrim(string(secret.Data["customScopes"]))
 	if len(scopes) == 0 {
-		scopes = []string{oidc.ScopeOpenID, ScopeEmail, ScopeGroups}
+		scopes = DefaultScopes
 	}
 
 	cfg.Scopes = scopes
@@ -357,6 +358,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 		// Issue ID token cookie
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
 		http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -486,6 +488,37 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	toJSON(rw, ui, s.Log)
+}
+
+// Refresh is used to refresh the access token and id token. It updates the cookies on the response
+// with the new tokens. It returns the new user principal.
+func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
+	ctx := oidc.ClientContext(r.Context(), s.client)
+
+	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
+	if err != nil {
+		return nil, errors.New("couldn't fetch refresh token from cookie")
+	}
+
+	token, err := s.oauth2Config(nil).TokenSource(
+		ctx,
+		&oauth2.Token{
+			RefreshToken: refreshTokenCookie.Value,
+		}).Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, errors.New("no id_token in token response")
+	}
+
+	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
+	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
+
+	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
