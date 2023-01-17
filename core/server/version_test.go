@@ -25,12 +25,6 @@ func TestGetVersion(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	_, err = client.New(k8sEnv.Rest, client.Options{
-		Scheme: scheme,
-	})
-
-	g.Expect(err).NotTo(HaveOccurred())
-
 	ctx := context.Background()
 
 	_, err = client.New(k8sEnv.Rest, client.Options{
