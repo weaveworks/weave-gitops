@@ -1,55 +1,48 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "../../components/Flex";
-import ImageRepositoriesTable from "../../components/ImageAutomation/repositories/ImageRepositoriesTable";
-import ImageAutomationUpdatesTable from "../../components/ImageAutomation/updates/ImageAutomationUpdatesTable";
-import { routeTab } from "../../components/KustomizationDetail";
+import ImageAutomation from "../../components/ImageAutomation/ImageAutomation";
+
+import Link from "../../components/Link";
+import MessageBox from "../../components/MessageBox";
 import Page from "../../components/Page";
-import SubRouterTabs, { RouterTab } from "../../components/SubRouterTabs";
+import Spacer from "../../components/Spacer";
+import Text from "../../components/Text";
+import { useCheckCRDInstalled } from "../../hooks/imageautomation";
 
-type Props = {
-  className?: string;
-};
-
-function ImageAutomationPage({ className }: Props) {
-  const { path } = useRouteMatch();
-  const tabs: Array<routeTab> = [
-    {
-      name: "Image Update Automations",
-      path: `${path}/updates`,
-      component: () => {
-        return <ImageAutomationUpdatesTable />;
-      },
-      visible: true,
-    },
-    {
-      name: "Image Repositories",
-      path: `${path}/repositories`,
-      component: () => {
-        return <ImageRepositoriesTable />;
-      },
-      visible: true,
-    },
-  ];
+function ImageAutomationPage() {
+  const {
+    data: isCRDAvailable,
+    isLoading,
+    error,
+  } = useCheckCRDInstalled("ImageAutomation");
   return (
-    <Page>
-      <Flex wide tall column className={className}>
-        <SubRouterTabs rootPath={tabs[0].path} clearQuery>
-          {tabs.map(
-            (subRoute, index) =>
-              subRoute.visible && (
-                <RouterTab
-                  name={subRoute.name}
-                  path={subRoute.path}
-                  key={index}
-                >
-                  {subRoute.component()}
-                </RouterTab>
-              )
-          )}
-        </SubRouterTabs>
-      </Flex>
+    <Page loading={isLoading} error={error}>
+      {!isCRDAvailable ? (
+        <Flex wide tall column align>
+          <MessageBox>
+            <Text size="large" semiBold>
+              None of the clusters you have connected in Weave GitOps have the
+              requirements installed for Image Automation.
+            </Text>
+            <Spacer padding="medium" />
+            <Text size="medium">
+              To get started with this feature, follow the Flux guide to install
+              the Image Reflector and Image Automation controllers on your
+              cluster(s).
+            </Text>
+            <Spacer padding="xs" />
+            <Text>
+              To learn more about how to Automate container image updates to Git with Flux,&nbsp;
+              <Link href="https://fluxcd.io/flux/guides/image-update/" newTab>
+                visit our documentation
+              </Link>
+            </Text>
+          </MessageBox>
+        </Flex>
+      ) : (
+        <ImageAutomation />
+      )}
     </Page>
   );
 }

@@ -25,3 +25,22 @@ export function useListImageAutomation(
     opts
   );
 }
+
+export function useCheckCRDInstalled(
+  name: string,
+  opts: ReactQueryOptions<boolean, RequestError> = {
+    retry: false,
+    refetchInterval: 50000,
+  }
+) {
+  // const { api } = useContext(CoreClientContext);
+
+  return useQuery<boolean, RequestError>(
+    ["image_automation_crd_available", name],
+    () => false,
+    // api.ListObjects({ name }).then((res) => {
+    //   return true;
+    // })
+    opts
+  );
+}

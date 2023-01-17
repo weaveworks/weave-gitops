@@ -51,7 +51,5 @@ const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
 export default ImagePolicy;
 function getValueByKey(obj: any, key: string): any {
   const policyKey = Object.keys(obj)[0];
-  console.log(policyKey);
-
   return obj[policyKey][key];
 }
