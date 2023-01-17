@@ -31,6 +31,7 @@ Depending on the action performed on the resource (creation/deletion/editing), t
             namespace: "flux-system",
           }
  ```
+- the first repository in the list of git repositories that the user has access to
 
 In the case of deletion and editing, if the resource repository is found amongst the git repositories that the user has access to, it will be preselected and the selection will be disabled. If it is not found, the user will be able to choose a new repository.
 
