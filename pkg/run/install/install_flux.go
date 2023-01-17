@@ -3,53 +3,109 @@ package install
 import (
 	"context"
 	"fmt"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
+	"strings"
 
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Client) (string, error) {
+// Heuristic mapping from the Source controller version to the Flux version.
+// We support back to v0.32 only and the guess will be only the main version number.
+// For example, Flux v0.38.x versions contain the Source controller v0.33.0,
+// but we will report the Flux version as v0.38.0 only.
+//
+// Source: https://github.com/fluxcd/flux2/releases
+//
+// How to update this map:
+// 1. Find the Flux version you want to support in the URL above.
+// 2. Find the Source controller version that is used in that Flux version
+// 3. Add the new mapping to the map below
+// 4. Don't forget to *remove the oldest mapping* from the map below
+var sourceVerToFluxVer = map[string]string{
+	"v0.33.0": "v0.38.0",
+	"v0.32.1": "v0.37.0",
+	"v0.31.0": "v0.36.0",
+	"v0.30.0": "v0.35.0",
+	"v0.29.0": "v0.34.0",
+	"v0.28.0": "v0.33.0",
+	"v0.27.0": "v0.33.0",
+	"v0.26.1": "v0.32.0",
+	"v0.26.0": "v0.32.0",
+}
+
+// GetFluxVersion returns the Flux version that is used in the cluster.
+func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Client) (fluxVersion string, guessed bool, err error) {
 	log.Actionf("Getting Flux version ...")
 
-	listResult := unstructured.UnstructuredList{}
-
-	listResult.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Version: "v1",
-		Kind:    "Namespace",
-	})
-
+	namespaceList := v1.NamespaceList{}
 	listOptions := client.MatchingLabels{
 		coretypes.PartOfLabel: "flux",
 	}
 
-	u := unstructured.Unstructured{}
+	var foundNamespace v1.Namespace
 
-	if err := kubeClient.List(ctx, &listResult, listOptions); err != nil {
+	if err := kubeClient.List(ctx, &namespaceList, listOptions); err != nil {
 		log.Failuref("error getting the list of Flux objects")
-		return "", err
+		return "", false, err
 	} else {
-		for _, item := range listResult.Items {
+		for _, item := range namespaceList.Items {
 			if item.GetLabels()[flux.VersionLabelKey] != "" {
-				u = item
+				foundNamespace = item
 				break
 			}
 		}
 	}
 
-	labels := u.GetLabels()
-	if labels == nil {
-		return "", fmt.Errorf("error getting Flux labels")
+	if foundNamespace.GetName() == "" {
+		// try hard-coded namespace
+		if err := kubeClient.Get(ctx, client.ObjectKey{Name: "flux-system"}, &foundNamespace); err != nil {
+			log.Failuref("error getting the flux-system namespace")
+			return "", false, err
+		}
 	}
 
-	fluxVersion := labels[flux.VersionLabelKey]
-	if fluxVersion == "" {
-		return "", fmt.Errorf("no flux version found")
+	if foundNamespace.GetName() != "" {
+		labels := foundNamespace.GetLabels()
+		if labels == nil {
+			return "", false, fmt.Errorf("error getting Flux labels")
+		}
+
+		fluxVersion := labels[flux.VersionLabelKey]
+		if fluxVersion != "" {
+			// ok, we found the version
+			return fluxVersion, false, nil
+		}
+
+		// Try to guess the version
+		// 1. get the source-controller deployment object
+		deployment := appsv1.Deployment{}
+		if err := kubeClient.Get(ctx, client.ObjectKey{Name: "source-controller", Namespace: foundNamespace.GetName()}, &deployment); err != nil {
+			log.Failuref("error getting the source-controller deployment")
+			return "", false, err
+		}
+
+		// 2. get the source-controller image version
+		image := deployment.Spec.Template.Spec.Containers[0].Image
+		if image == "" {
+			return "", false, fmt.Errorf("error getting the source-controller image")
+		}
+
+		// 3. get the source-controller version by parsing the image version, split at :
+		//    e.g. ghcr.io/fluxcd/source-controller:v0.33.0
+		sourceVersion := image[strings.LastIndex(image, ":")+1:]
+
+		// 4. get the Flux version by looking up the source-controller version in the map
+		fluxVersion = sourceVerToFluxVer[sourceVersion]
+		if fluxVersion == "" {
+			return "", false, fmt.Errorf("error getting the Flux version")
+		}
+
+		return fluxVersion, true, nil
 	}
 
-	return fluxVersion, nil
+	return "", false, fmt.Errorf("no flux version found")
 }
