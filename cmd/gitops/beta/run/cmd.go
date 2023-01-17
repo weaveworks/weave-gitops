@@ -269,7 +269,8 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 
 	log.Actionf("Checking if Flux is already installed ...")
 
-	if fluxVersion, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
+	guessed := false
+	if fluxVersion, guessed, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
 
 		product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -322,7 +323,11 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 
 		return fluxVersion, true, nil
 	} else {
-		log.Successf("Flux version %s is found", fluxVersion)
+		if guessed {
+			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+		} else {
+			log.Successf("Flux %s is already installed", fluxVersion)
+		}
 	}
 
 	return fluxVersion, false, nil
