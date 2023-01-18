@@ -203,11 +203,15 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
 		defer cancel()
 
-		if fluxVersion, err := install.GetFluxVersion(ctx, log, kubeClient); err != nil {
+		if fluxVersion, guessed, err := install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 			log.Failuref("Flux is not found")
 			return err
 		} else {
-			log.Successf("Flux version %s is found", fluxVersion)
+			if guessed {
+				log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+			} else {
+				log.Successf("Flux %s is already installed", fluxVersion)
+			}
 		}
 
 		log.Actionf("Applying GitOps Dashboard manifests")
