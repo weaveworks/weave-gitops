@@ -1,0 +1,54 @@
+---
+title: OCI Artifact
+sidebar_position: 2
+hide_title: true
+---
+
+# Using OCI Artifacts as a Source for Terraform Objects
+
+To use OCI artifacts as the source for `Terraform` objects, you'll need to have Flux 2 version **v0.32.0** or higher.
+
+To create an OCI artifact for your Terraform modules, you can use the Flux CLI by running the following commands:
+```bash
+flux push artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+    --path="./modules" \
+    --source="$(git config --get remote.origin.url)" \
+    --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+flux tag artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short HEAD) \
+    --tag main
+```
+
+To use the OCI artifact as the source for your `Terraform` object,
+you'll need to define an `OCIRepository` and use it as the `spec.sourceRef` of your `Terraform` object:
+
+```yaml {5,20-22}
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: helloworld-oci
+spec:
+  interval: 1m
+  url: oci://ghcr.io/tf-controller/helloworld
+  ref:
+    tag: main
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld-tf-oci
+spec:
+  path: ./
+  approvePlan: auto
+  interval: 1m
+  sourceRef:
+    kind: OCIRepository
+    name: helloworld-oci
+  writeOutputsToSecret:
+    name: helloworld-outputs
+```
+
+This configuration will use the OCI artifact at `oci://ghcr.io/tf-controller/helloworld` with the `main` tag as the
+source for your `Terraform` object. The object will be reconciled every 1 minute, and will use the "auto-apply" mode to
+apply any changes to your resources. The outputs of the Terraform run will be written to a `Secret` called `helloworld-outputs`.
