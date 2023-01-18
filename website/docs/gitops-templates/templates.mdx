@@ -6,36 +6,50 @@ hide_title: true
 
 import TierLabel from "../_components/TierLabel";
 
-# Why GitOps templates <TierLabel tiers="enterprise" />
-GitOpsTemplates enables Application Developers to self-service components and services using Weave GitOps. 
-Turning knowledge into a library that can be self-served.
- 
-## What are GitOps templates?
-GitOps templates allows you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API). 
+# GitOpsTemplates <TierLabel tiers="enterprise" />
+
+`GitOpsTemplates` API defines a template that can be used to create any Kubernetes resources.  
 
 
-**FAQ**
 
-**What are GitOps templates?**
-GitOps templates allow you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API). 
-Templates are simple YAML files, that can be enriched with Parameters, Variables, Metadata and conditions. They can be rendered to create the resources they contain. For clusters it can be CAPI objects like MachinePool. It can be as well Kustomization (flux) or a TF controller resource. 
+The `GitOpsTemplates` API has the ability to define a list of resource that will be templated through the `spec.resourceTemplates` field.
+```
+apiVersion: capi.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: example-template
+  namespace: 'default'
+spec:
+  resourceTemplates:
+    - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha4
+          kind: Cluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          ...
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+          kind: AWSCluster
+          metadata:
+            name: ${CLUSTER_NAME}
+```
 
-**Ok, what are the restrictions on GitOps templates?**
+The `GitOpsTemplates` API also has the ability to set default and selectable parameters.
 
-Basically, the only restriction is that the template needs to be valid YAML. Besides that a rendered template can create any kind of resource. 
+```
+apiVersion: capi.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: example-template
+  namespace: 'default'
+spec:
+  ....
+  params:
+    - name: CLUSTER_NAME
+      description: The name for this cluster.
+```
 
-**How do they fit today into Weave GitOps?**
 
-We have added some metadata markup, which helps us to render the template nicely in the GUI. 
-
-The template consumer will be only provided with the required Parameters/Inputs and the guardrails, the template gets rendered and we create a PR. Merging the PR will create all the templated resources.
-
-**How can I use GitOps templates?**
-
-GitOps Templates were originally introduced enabling self-service in the cluster creation flow.  We quickly extended that to terraform, crossplane and Kubernetes resources like RBAC (Roles + Rolebindings).
-You can have for example a template that provides a running Developer Environment, consisting in a EKS cluster, a RDS Database, and a branch + revision of the current application through a single template. 
-
-## Organizing Templates
+## Template Types
 
 Declare the type of a template by using the `weave.works/template-type` label. The value of the label is the name of the template type. The template type is used to group templates in the UI.
 
