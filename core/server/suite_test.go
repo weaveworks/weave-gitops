@@ -17,6 +17,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/crd"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -71,13 +72,13 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	fetch := fetcher.NewSingleClusterFetcher(cluster)
 
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
-
 	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	coreCfg.NSAccess = &nsChecker
+	coreCfg.CRDService = crd.NewNoCacheFetcher(clustersManager)
 
 	core, err := server.NewCoreServer(coreCfg)
 	if err != nil {

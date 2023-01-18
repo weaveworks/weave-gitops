@@ -124,6 +124,7 @@ require (
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20180507124511-f6ea450bfb63 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
