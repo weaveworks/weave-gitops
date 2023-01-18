@@ -5,19 +5,18 @@
 */
 
 export enum Kind {
-    GitRepository = "GitRepository",
-    Bucket = "Bucket",
-    HelmRepository = "HelmRepository",
-    HelmChart = "HelmChart",
-    Kustomization = "Kustomization",
-    HelmRelease = "HelmRelease",
-    Cluster = "Cluster",
-    OCIRepository = "OCIRepository",
-    Provider = "Provider",
-    Alert = "Alert",
-    ImageRepository = "ImageRepository",
-    ImageUpdateAutomation = "ImageUpdateAutomation",
-    ImagePolicy = "ImagePolicy"
+  GitRepository = "GitRepository",
+  Bucket = "Bucket",
+  HelmRepository = "HelmRepository",
+  HelmChart = "HelmChart",
+  Kustomization = "Kustomization",
+  HelmRelease = "HelmRelease",
+  Cluster = "Cluster",
+  OCIRepository = "OCIRepository",
+  Provider = "Provider",
+  Alert = "Alert",
+  ImageRepository = "ImageRepository",
+  ImageUpdateAutomation = "ImageUpdateAutomation",
 }
 
 export enum HelmRepositoryType {
