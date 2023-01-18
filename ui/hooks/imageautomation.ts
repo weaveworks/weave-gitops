@@ -33,14 +33,14 @@ export function useCheckCRDInstalled(
     refetchInterval: 50000,
   }
 ) {
-  // const { api } = useContext(CoreClientContext);
+  const { api } = useContext(CoreClientContext);
 
   return useQuery<boolean, RequestError>(
     ["image_automation_crd_available", name],
-    () => false,
-    // api.ListObjects({ name }).then((res) => {
-    //   return true;
-    // })
+    () =>
+      api.IsCRDAvailable({ name }).then(({ clusters }) => {
+        return Object.values(clusters).some((r) => r === true);
+      }),
     opts
   );
 }

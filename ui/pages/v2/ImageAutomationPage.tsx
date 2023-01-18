@@ -9,13 +9,14 @@ import Page from "../../components/Page";
 import Spacer from "../../components/Spacer";
 import Text from "../../components/Text";
 import { useCheckCRDInstalled } from "../../hooks/imageautomation";
+const crdName = "imageupdateautomations.image.toolkit.fluxcd.io";
 
 function ImageAutomationPage() {
   const {
     data: isCRDAvailable,
     isLoading,
     error,
-  } = useCheckCRDInstalled("ImageAutomation");
+  } = useCheckCRDInstalled(crdName);
   return (
     <Page loading={isLoading} error={error}>
       {!isCRDAvailable ? (
