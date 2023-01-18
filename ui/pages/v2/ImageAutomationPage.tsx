@@ -34,7 +34,8 @@ function ImageAutomationPage() {
             </Text>
             <Spacer padding="xs" />
             <Text>
-              To learn more about how to Automate container image updates to Git with Flux,&nbsp;
+              To learn more about how to Automate container image updates to Git
+              with Flux,&nbsp;
               <Link href="https://fluxcd.io/flux/guides/image-update/" newTab>
                 visit our documentation
               </Link>
