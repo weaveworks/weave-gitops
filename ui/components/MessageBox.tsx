@@ -3,7 +3,7 @@ import Flex from "./Flex";
 
 const MessageBox = styled(Flex)`
   box-sizing: border-box;
-  width: 50%;
+  width: 560px;
   padding: ${({ theme }) => theme.spacing.medium}
     ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.xxl};
   border-radius: 10px;
