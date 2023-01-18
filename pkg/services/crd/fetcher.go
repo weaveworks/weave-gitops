@@ -19,6 +19,10 @@ type Fetcher interface {
 	UpdateCRDList()
 }
 
+// NewFetcher creates a new default fetcher with cache.
+//
+// With NewFetcher, it will automatically start a background go routine to watch
+// CRDs.
 func NewFetcher(ctx context.Context, logger logr.Logger, clustersManager clustersmngr.ClustersManager) Fetcher {
 	fetcher := &defaultFetcher{
 		logger:          logger,
@@ -46,6 +50,7 @@ func (s *defaultFetcher) watchCRDs(ctx context.Context) {
 	})
 }
 
+// UpdateCRDList updates the cached CRD list.
 func (s *defaultFetcher) UpdateCRDList() {
 	s.Lock()
 	defer s.Unlock()
@@ -75,6 +80,7 @@ func (s *defaultFetcher) UpdateCRDList() {
 	}
 }
 
+// IsAvailable tells if a given CRD is available on the specified cluster.
 func (s *defaultFetcher) IsAvailable(clusterName, name string) bool {
 	s.Lock()
 	defer s.Unlock()
@@ -88,6 +94,7 @@ func (s *defaultFetcher) IsAvailable(clusterName, name string) bool {
 	return false
 }
 
+// IsAvailableOnClusters tells the availability of a given CRD on all clusters.
 func (s *defaultFetcher) IsAvailableOnClusters(name string) map[string]bool {
 	result := map[string]bool{}
 

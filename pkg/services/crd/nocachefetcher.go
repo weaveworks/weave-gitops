@@ -9,6 +9,9 @@ import (
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
+// NewNoCacheFetcher creates a new fetcher without cache.
+//
+// The noCacheFetcher has no background go routine.
 func NewNoCacheFetcher(clustersManager clustersmngr.ClustersManager) Fetcher {
 	fetcher := &noCacheFetcher{
 		clustersManager: clustersManager,
@@ -25,6 +28,7 @@ type noCacheFetcher struct {
 	crds            map[string][]v1.CustomResourceDefinition
 }
 
+// UpdateCRDList updates the CRD list.
 func (s *noCacheFetcher) UpdateCRDList() {
 	s.Lock()
 	defer s.Unlock()
@@ -53,6 +57,9 @@ func (s *noCacheFetcher) UpdateCRDList() {
 	}
 }
 
+// IsAvailable tells if a given CRD is available on the specified cluster.
+//
+// It calls UpdateCRDList always.
 func (s *noCacheFetcher) IsAvailable(clusterName, name string) bool {
 	s.UpdateCRDList()
 
@@ -68,6 +75,9 @@ func (s *noCacheFetcher) IsAvailable(clusterName, name string) bool {
 	return false
 }
 
+// IsAvailableOnClusters tells the availability of a given CRD on all clusters.
+//
+// It calls UpdateCRDList always.
 func (s *noCacheFetcher) IsAvailableOnClusters(name string) map[string]bool {
 	s.UpdateCRDList()
 
