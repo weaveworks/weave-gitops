@@ -18,7 +18,7 @@ exports[`MessageBox snapshots renders 1`] = `
 
 .c1 {
   box-sizing: border-box;
-  width: 560px;
+  width: 50%;
   padding: 24px 48px 64px;
   border-radius: 10px;
   background-color: #ffffffd9;
