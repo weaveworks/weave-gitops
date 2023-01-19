@@ -49,11 +49,11 @@ spec:
             namespace: flux-system
   promotion:
     strategy:
-        pull-request:
-          type: github
-          url: https://github.com/my-org/my-app-repo
-          secretRef:
-            name: github-credentials
+      pull-request:
+        type: github
+        url: https://github.com/my-org/my-app-repo
+        secretRef:
+          name: github-credentials
 ```
 
 ## Specification
