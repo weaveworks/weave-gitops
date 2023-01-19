@@ -103,20 +103,20 @@ Weave GitOps Enterprise can then parse the incoming URL path to identify the pip
 An example Alert might look like this:
 
 ```yaml
-   apiVersion: notification.toolkit.fluxcd.io/v1beta1
-   kind: Alert
-   [...]
-   spec:
-     eventSeverity: info
-     eventSources:
-     - kind: HelmRelease
-       name: my-app
-     exclusionList:
-     - .*upgrade.*has.*started
-     - .*is.*not.*ready
-     - ^Dependencies.*
-     providerRef:
-       name: promotion-my-app
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Alert
+[...]
+spec:
+  eventSeverity: info
+  eventSources:
+  - kind: HelmRelease
+    name: my-app
+  exclusionList:
+  - .*upgrade.*has.*started
+  - .*is.*not.*ready
+  - ^Dependencies.*
+  providerRef:
+    name: promotion-my-app
 ```
 
 :::note
@@ -142,13 +142,13 @@ The following Git providers are currently support by this promotion strategy:
 Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For example, for `gitlab` it would look similar to:
 
 ```yaml
-  promotion:
-    strategy:
-     pull-request:
-       type: "gitlab"
-       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
-       secretRef:
-         name: "gitlab-promotion-credentials"
+promotion:
+  strategy:
+    pull-request:
+      type: "gitlab"
+      url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
+      secretRef:
+        name: "gitlab-promotion-credentials"
 
 ```
 
