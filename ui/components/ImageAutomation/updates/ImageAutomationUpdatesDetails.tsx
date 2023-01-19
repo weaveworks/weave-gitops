@@ -62,7 +62,7 @@ function ImageAutomationUpdatesDetails({
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
-      {!!data && (
+      {data && (
         <ImageAutomationDetails
           data={data}
           kind={Kind.ImageUpdateAutomation}
