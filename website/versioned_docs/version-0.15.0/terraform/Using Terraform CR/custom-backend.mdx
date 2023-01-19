@@ -1,0 +1,59 @@
+---
+title: Configure Custom Backend
+sidebar_position: 8
+hide_title: true
+---
+
+# Configure Custom Backend
+
+By default, TF-controller will use the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes)
+to store the Terraform state file (tfstate) in the cluster.
+The tfstate is stored in a `Secret` named "tfstate-${workspace}-${secretSuffix}",
+where the default suffix is the name of the `Terraform` resource.
+
+You can override this default suffix by setting `.spec.backendConfig.secretSuffix`
+in the `Terraform` object. The default workspace name is "default",
+but you can also override the workspace by setting `.spec.workspace` to a different value.
+
+If you want to use a custom backend, such as GCS or S3,
+you can configure it by defining `.spec.backendConfig.customConfiguration`
+in the `Terraform` object.
+
+Here is an example of how to use a custom backend with the `Terraform` object:
+
+```yaml {9-21}
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  backendConfig:
+    customConfiguration: |
+      backend "s3" {
+        bucket                      = "s3-terraform-state1"
+        key                         = "dev/terraform.tfstate"
+        region                      = "us-east-1"
+        endpoint                    = "http://localhost:4566"
+        skip_credentials_validation = true
+        skip_metadata_api_check     = true
+        force_path_style            = true
+        dynamodb_table              = "terraformlock"
+        dynamodb_endpoint           = "http://localhost:4566"
+        encrypt                     = true
+      }
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+  runnerPodTemplate:
+    spec:
+      image: registry.io/tf-runner:xyz
+```
+
+In this example, the `Terraform` object is using a custom backend
+with a bucket named "s3-terraform-state1" in the "us-east-1" region,
+with the key "dev/terraform.tfstate".
