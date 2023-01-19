@@ -29,7 +29,7 @@ function ImageAutomationRepoDetails({
     Kind.ImageRepository,
     clusterName,
     {
-      refetchInterval: 50000,
+      refetchInterval: 5000,
     }
   );
   const rootPath = V2Routes.ImageAutomationRepositoriesDetails;
@@ -42,7 +42,12 @@ function ImageAutomationRepoDetails({
           infoFields={[
             ["Kind", Kind.ImageRepository],
             ["Namespace", data.namespace],
-            ["Image", <Link newTab={true} to={data.obj.spec.image} />],
+            [
+              "Image",
+              <Link newTab={true} to={data.obj?.spec?.image}>
+                {data.obj?.spec?.image}
+              </Link>,
+            ],
             ["Interval", <Interval interval={data.interval} />],
             ["Tag Count", data.tagCount],
           ]}

@@ -7,7 +7,7 @@ import { Source, V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import KubeStatusIndicator from "../../KubeStatusIndicator";
 import Link from "../../Link";
-import LoadingWrapper from "../LoadingWrapper";
+import RequestStateHandler from "../../RequestStateHandler";
 
 const ImageRepositoriesTable = () => {
   const { data, isLoading, error } = useListImageAutomation(
@@ -17,7 +17,7 @@ const ImageRepositoriesTable = () => {
     ...filterConfig(data?.objects, "name"),
   };
   return (
-    <LoadingWrapper loading={isLoading} error={error}>
+    <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
         filters={initialFilterState}
         rows={data?.objects}
@@ -60,11 +60,10 @@ const ImageRepositoriesTable = () => {
           {
             label: "Tag Count",
             value: "tagCount",
-            // sortValue: (s: Source) => s.lastUpdatedAt || "",
           },
         ]}
       />
-    </LoadingWrapper>
+    </RequestStateHandler>
   );
 };
 

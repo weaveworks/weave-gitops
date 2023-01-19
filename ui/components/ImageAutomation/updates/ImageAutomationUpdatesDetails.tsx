@@ -37,8 +37,8 @@ function getInfoList(
     ["Update Path", path],
     ["Checkout Branch", checkout?.ref?.branch],
     ["Push Branch", push.branch],
-    ["Author Name", commit.author.name],
-    ["Author Email", commit.author.email],
+    ["Author Name", commit.author?.name],
+    ["Author Email", commit.author?.email],
     ["Commit Template", <code> {commit.messageTemplate}</code>],
   ];
 }
@@ -55,7 +55,7 @@ function ImageAutomationUpdatesDetails({
     Kind.ImageUpdateAutomation,
     clusterName,
     {
-      refetchInterval: 50000,
+      refetchInterval: 5000,
     }
   );
 

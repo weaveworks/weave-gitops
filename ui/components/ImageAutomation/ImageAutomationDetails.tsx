@@ -26,23 +26,21 @@ const ImageAutomationDetails = ({
 }: Props) => {
   const { name, namespace, clusterName, suspended, conditions } = data;
   return (
-    <>
-      <Flex wide tall column>
-        <Text size="large" semiBold titleHeight>
-          {name}
-        </Text>
-        <Spacer margin="xs" />
-        <PageStatus conditions={conditions} suspended={suspended} />
-        <Spacer margin="xs" />
-        {/* ImageUpdateAutomation sync is not supported yet and it'll be added in future PR */}
-        {/* <SyncActions
+    <Flex wide tall column>
+      <Text size="large" semiBold titleHeight>
+        {name}
+      </Text>
+      <Spacer margin="xs" />
+      <PageStatus conditions={conditions} suspended={suspended} />
+      <Spacer margin="xs" />
+      {/* ImageUpdateAutomation sync is not supported yet and it'll be added in future PR */}
+      {/* <SyncActions
           name={name}
           namespace={namespace}
           clusterName={clusterName}
           kind={kind}
         />
         <Spacer margin="xs" /> */}
-      </Flex>
 
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
@@ -74,7 +72,7 @@ const ImageAutomationDetails = ({
           />
         </RouterTab>
       </SubRouterTabs>
-    </>
+    </Flex>
   );
 };
 

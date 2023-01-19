@@ -7,9 +7,9 @@ import { V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import KubeStatusIndicator from "../../KubeStatusIndicator";
 import Link from "../../Link";
+import RequestStateHandler from "../../RequestStateHandler";
 import SourceLink from "../../SourceLink";
 import Timestamp from "../../Timestamp";
-import LoadingWrapper from "../LoadingWrapper";
 
 const ImageAutomationUpdatesTable = () => {
   const { data, isLoading, error } = useListImageAutomation(
@@ -19,7 +19,7 @@ const ImageAutomationUpdatesTable = () => {
     ...filterConfig(data?.objects, "name"),
   };
   return (
-    <LoadingWrapper loading={isLoading} error={error}>
+    <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
         filters={initialFilterState}
         rows={data?.objects}
@@ -73,7 +73,7 @@ const ImageAutomationUpdatesTable = () => {
           },
         ]}
       />
-    </LoadingWrapper>
+    </RequestStateHandler>
   );
 };
 

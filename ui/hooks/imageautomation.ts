@@ -10,7 +10,7 @@ export function useListImageAutomation(
   namespace: string = NoNamespace,
   opts: ReactQueryOptions<ListObjectsResponse, RequestError> = {
     retry: false,
-    refetchInterval: 50000,
+    refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);
@@ -30,7 +30,7 @@ export function useCheckCRDInstalled(
   name: string,
   opts: ReactQueryOptions<boolean, RequestError> = {
     retry: false,
-    refetchInterval: 50000,
+    refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);

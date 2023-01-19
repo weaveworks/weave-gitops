@@ -5,9 +5,10 @@ import { FluxObject } from "../../../lib/objects";
 import Flex from "../../Flex";
 import InfoList from "../../InfoList";
 import PageStatus from "../../PageStatus";
+import RequestStateHandler from "../../RequestStateHandler";
 import Spacer from "../../Spacer";
 import Text from "../../Text";
-import LoadingWrapper from "../LoadingWrapper";
+
 type Props = {
   name: string;
   namespace: string;
@@ -20,11 +21,11 @@ const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
     Kind.ImagePolicy,
     clusterName,
     {
-      refetchInterval: 50000,
+      refetchInterval: 5000,
     }
   );
   return (
-    <LoadingWrapper loading={isLoading} error={error}>
+    <RequestStateHandler loading={isLoading} error={error}>
       {!!data && (
         <Flex wide tall column>
           <Text size="large" semiBold titleHeight>
@@ -44,7 +45,7 @@ const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
           />
         </Flex>
       )}
-    </LoadingWrapper>
+    </RequestStateHandler>
   );
 };
 
