@@ -15,7 +15,9 @@ export type Source =
   | HelmChart
   | GitRepository
   | Bucket
-  | OCIRepository;
+  | OCIRepository
+  | ImageRepository
+  | ImageUpdateAutomation;
 
 export interface CrossNamespaceObjectRef extends ObjectRef {
   apiVersion: string;
@@ -296,6 +298,28 @@ export class Provider extends FluxObject {
   }
 }
 
+export class ImageUpdateAutomation extends FluxObject {
+  get sourceRef(): ObjectRef | undefined {
+    if (!this.obj.spec?.sourceRef) {
+      return;
+    }
+    const sourceRef = {
+      ...this.obj.spec.sourceRef,
+    };
+    if (!sourceRef.namespace) {
+      sourceRef.namespace = this.namespace;
+    }
+    return sourceRef;
+  }
+  get lastAutomationRunTime(): string {
+    return this.obj?.status?.lastAutomationRunTime || "";
+  }
+}
+export class ImageRepository extends ImageUpdateAutomation {
+  get tagCount(): string {
+    return this.obj.status?.lastScanResult?.tagCount || "";
+  }
+}
 export class Alert extends FluxObject {
   get providerRef(): string {
     return this.obj.spec?.providerRef.name || "";
