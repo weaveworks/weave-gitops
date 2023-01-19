@@ -208,7 +208,9 @@ exports[`Footer snapshots default 1`] = `
     <span
       class="c3"
     >
-      © 2022 Weaveworks
+      © 
+      2023
+       Weaveworks
     </span>
   </div>
 </footer>
@@ -422,7 +424,9 @@ exports[`Footer snapshots no api version 1`] = `
     <span
       class="c3"
     >
-      © 2022 Weaveworks
+      © 
+      2023
+       Weaveworks
     </span>
   </div>
 </footer>
