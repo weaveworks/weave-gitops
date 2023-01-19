@@ -79,7 +79,7 @@ spec:
     name: hmac-secret
 ```
 
-In the example above, the `generic-hmac` Provider is used to ensure notifications originate from authenticated sources. The referenced Secret, should include a `token` field which holds the HMAC key. The same HMAC key must be specified in the Secret referenced by the `.spec.promotion.secretRef.name` field, so that the pipeline controller can verify any incoming notifications. For more information on the `generic-hmac` Provider, please refer to the notification controller [docs](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac).
+In the example above, the `generic-hmac` Provider is used to ensure notifications originate from authenticated sources. The referenced Secret, should include a `token` field which holds the HMAC key. The same HMAC key must be specified in the Secret referenced by the `.spec.promotion.strategy.secretRef.name` field, so that the pipeline controller can verify any incoming notifications. For more information on the `generic-hmac` Provider, please refer to the notification controller [docs](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac).
 
 Note that by default, the promotion webhook endpoint is exposed at `/promotion` as shown in the example above. However you may use rewrite rules in your ingress configuration to omit it, if desired. For example, if using NGINX ingress controller, you may use the following annotation:
 ```yaml
@@ -139,15 +139,16 @@ The following Git providers are currently support by this promotion strategy:
 - [Github](https://github.com/)
 - [Gitlab](https://gitlab.com/)
 
-Select your Git provider via `.spec.promotion.pull-request.type`. For example, for `gitlab` it would look similar to:
+Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For example, for `gitlab` it would look similar to:
 
 ```yaml
   promotion:
-    pull-request:
-      type: "gitlab"
-      url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
-      secretRef:
-        name: "gitlab-promotion-credentials"
+    strategy:
+     pull-request:
+       type: "gitlab"
+       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
+       secretRef:
+         name: "gitlab-promotion-credentials"
 
 ```
 
@@ -174,7 +175,7 @@ type: Opaque
 ```
 
 :::note
-The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
+The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
 :::caution
@@ -183,7 +184,7 @@ The Secret needs to reside in the same Namespace as the Pipeline resource on the
 
 ### Define promotion in pipeline resource
 
-The field `.spec.promotion.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`). If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.secretRef.name` to the name of the Secret created previously.
+The field `.spec.promotion.strategy.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`). If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.strategy.secretRef.name` to the name of the Secret created previously.
 
 ### Add markers to app manifests
 
