@@ -65,7 +65,7 @@ function Footer({ className }: Props) {
             </React.Fragment>
           ))}
         <Spacer padding="xxs" />
-        <Text noWrap>© 2022 Weaveworks</Text>
+        <Text noWrap>© {new Date().getFullYear()} Weaveworks</Text>
       </RightFoot>
     </Flex>
   );
