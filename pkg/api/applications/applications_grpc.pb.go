@@ -18,28 +18,35 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApplicationsClient interface {
+	//
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
+	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error)
+	//
 	// GetGithubAuthStatus gets the status of the Github device flow authentication requests.
 	// Once the user has completed the Github device flow, an access token will be returned.
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
+	//
 	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
 	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
+	//
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
+	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
+	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error)
 }
@@ -119,28 +126,35 @@ func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *Vali
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
 type ApplicationsServer interface {
+	//
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
+	//
 	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
 	// This code is used to start the Github device-flow.
 	GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error)
+	//
 	// GetGithubAuthStatus gets the status of the Github device flow authentication requests.
 	// Once the user has completed the Github device flow, an access token will be returned.
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
+	//
 	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
 	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
+	//
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
+	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
+	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error)
 	mustEmbedUnimplementedApplicationsServer()

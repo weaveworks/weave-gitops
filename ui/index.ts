@@ -17,7 +17,7 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
-import InfoList from "./components/InfoList";
+import InfoList, { InfoField } from "./components/InfoList";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
@@ -38,7 +38,7 @@ import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
 import Timestamp from "./components/Timestamp";
 import UserSettings from "./components/UserSettings";
-import YamlView from "./components/YamlView";
+import YamlView, { DialogYamlView } from "./components/YamlView";
 import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
@@ -49,10 +49,14 @@ import {
   LinkResolverProvider,
   useLinkResolver,
 } from "./contexts/LinkResolverContext";
-import { useListAutomations } from "./hooks/automations";
+import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
-import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
+import {
+  useListFluxCrds,
+  useListFluxRuntimeObjects,
+  useToggleSuspend,
+} from "./hooks/flux";
 import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
@@ -80,6 +84,10 @@ import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
 import OAuthCallback from "./pages/OAuthCallback";
 import SignIn from "./pages/SignIn";
 import Input, { InputProps } from "./components/Input";
+import PageStatus from "./components/PageStatus";
+import SyncButton from "./components/SyncButton";
+import Spacer from "./components/Spacer";
+import CustomActions from "./components/CustomActions";
 
 export {
   AppContext,
@@ -97,9 +105,11 @@ export {
   clearCallbackState,
   coreClient,
   CoreClientContextProvider,
+  CustomActions,
   DataTable,
   DagGraph,
   DependenciesView,
+  DialogYamlView,
   EventsTable,
   Flex,
   filterByStatusCallback,
@@ -120,6 +130,7 @@ export {
   Icon,
   IconType,
   InfoList,
+  InfoField,
   Interval,
   Input,
   InputProps,
@@ -139,6 +150,7 @@ export {
   OCIRepositoryDetail,
   poller,
   Page,
+  PageStatus,
   Pendo,
   ProviderDetail,
   ReconciledObjectsTable,
@@ -150,6 +162,8 @@ export {
   SourcesTable,
   statusSortHelper,
   SubRouterTabs,
+  SyncButton,
+  Spacer,
   theme,
   Timestamp,
   useDebounce,
@@ -165,7 +179,9 @@ export {
   useListProviders,
   useListSources,
   useLinkResolver,
+  useSyncFluxObject,
   useRequestState,
+  useToggleSuspend,
   UserSettings,
   V2Routes,
   YamlView,
