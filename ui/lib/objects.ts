@@ -240,24 +240,24 @@ export class Kustomization extends FluxObject {
 }
 
 export class GitOpsSet extends FluxObject {
-  // get dependsOn(): NamespacedObjectReference[] {
-  //   return this.obj.spec?.dependsOn || [];
-  // }
-  // get sourceRef(): ObjectRef | undefined {
-  //   if (!this.obj.spec?.sourceRef) {
-  //     return undefined;
-  //   }
-  //   const source = {
-  //     ...this.obj.spec.sourceRef,
-  //   };
-  //   if (!source.namespace) {
-  //     source.namespace = this.namespace;
-  //   }
-  //   return source;
-  // }
-  // get path(): string {
-  //   return this.obj.spec?.path || "";
-  // }
+  get dependsOn(): NamespacedObjectReference[] {
+    return this.obj.spec?.dependsOn || [];
+  }
+  get sourceRef(): ObjectRef | undefined {
+    if (!this.obj.spec?.sourceRef) {
+      return undefined;
+    }
+    const source = {
+      ...this.obj.spec.sourceRef,
+    };
+    if (!source.namespace) {
+      source.namespace = this.namespace;
+    }
+    return source;
+  }
+  get path(): string {
+    return this.obj.spec?.path || "";
+  }
   get lastAppliedRevision(): string {
     return this.obj.status?.observedGeneration || "";
   }
