@@ -10,6 +10,43 @@ import TierLabel from "./_components/TierLabel";
 :::note
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+## v0.15.0
+2023-01-19
+### Highlights
+
+#### Multi Repository support. Weave GitOps Enterprise adapts and scales to your repository structure
+- Weave GitOps Enterprise, is now supporting via the WGE GUI the selection of the Git Repository. Enabling to scale and match the desired Git Repository structure. 
+
+#### GitOps Templates 
+- Supporting path for Profiles, enabling to set the path for profiles in the template to configure where in the directory the HelmRelease gets created.
+- Enhanced Enterprise CLI support for GitOps Templates.
+#### GitOps Templates CLI enhancements
+- Support for profiles in templates via CLI
+- ```gitops create template``` supporting ```--config``` allows you to read command line flags from a config file and ```--output-dir``` allows you to write files out to a directory instead of just stdout
+#### GitOpsSets in preview
+- GitOpsSets enable Platform Operators to have a single definition for an application for multiple environments and a fleet of clusters. A single definition can be used to generate the environment and cluster-specific configuration.
+- GitOpsSets has been released as a feature in preview of WGE. The Preview phase helps us to actively collect feedback and use cases, iterating and improving the feature to reach a level of maturity before we call it stable. Please contact us via [email](david.stauffer@weave.works) or [slack](https://join.slack.com/t/weave-community/shared_invite/zt-1nrm7dc6b-QbCec62CJ7qj_OUOtuJbrw) if you want to get access to  the preview. 
+
+
+
+### Minor fixes
+#### OIDC
+- Allows customising the requested scopes via config.oidc.customScopes: "email,groups,something_else"
+- Token refreshing is now supported
+
+
+### Dependency versions
+
+- weave-gitops v0.15.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) pipeline-controller v0.9.0
+- (optional) policy-agent v2.2.0
+
+### Breaking changes
+
+No breaking changes
+
 ## v0.14.1
 2023-01-05
 ### Highlights
