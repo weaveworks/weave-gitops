@@ -16,6 +16,7 @@ import (
 	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/pkg/errors"
+	gitopssetv1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -38,6 +39,7 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 		notificationv2.AddToScheme,
 		reflectorv1.AddToScheme,
 		automation1.AddToScheme,
+		gitopssetv1.AddToScheme,
 	}
 
 	err := builder.AddToScheme(scheme)

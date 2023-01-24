@@ -9,7 +9,7 @@ import {
   Object as ResponseObject,
   ObjectRef,
 } from "./api/core/types.pb";
-export type Automation = HelmRelease | Kustomization | GitOpsSet;
+export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
   | HelmChart
@@ -223,44 +223,6 @@ export class Kustomization extends FluxObject {
     return this.obj.status?.lastAppliedRevision || "";
   }
 
-  get inventory(): GroupVersionKind[] {
-    const entries = this.obj.status?.inventory?.entries || [];
-    return Array.from(
-      new Set(
-        entries.map((entry) => {
-          // entry is namespace_name_group_kind, but name can contain '_' itself
-          const parts = entry.id.split("_");
-          const kind = parts[parts.length - 1];
-          const group = parts[parts.length - 2];
-          return { group, version: entry.v, kind };
-        })
-      )
-    );
-  }
-}
-
-export class GitOpsSet extends FluxObject {
-  get dependsOn(): NamespacedObjectReference[] {
-    return this.obj.spec?.dependsOn || [];
-  }
-  get sourceRef(): ObjectRef | undefined {
-    if (!this.obj.spec?.sourceRef) {
-      return undefined;
-    }
-    const source = {
-      ...this.obj.spec.sourceRef,
-    };
-    if (!source.namespace) {
-      source.namespace = this.namespace;
-    }
-    return source;
-  }
-  get path(): string {
-    return this.obj.spec?.path || "";
-  }
-  get lastAppliedRevision(): string {
-    return this.obj.status?.observedGeneration || "";
-  }
   get inventory(): GroupVersionKind[] {
     const entries = this.obj.status?.inventory?.entries || [];
     return Array.from(

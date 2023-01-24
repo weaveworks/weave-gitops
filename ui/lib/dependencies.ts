@@ -1,3 +1,4 @@
+import { GitOpsSet } from "./api/gitopsset.pb";
 import {
   Automation,
   FluxObjectNode,
@@ -51,7 +52,7 @@ export function getNeighborNodes(
 // getGraphNodes returns all nodes in the current node's dependency tree, including the current node.
 export function getGraphNodes(
   nodes: FluxObjectNodesMap,
-  automation: Automation
+  automation: Automation | GitOpsSet
 ): FluxObjectNode[] {
   // Find node, corresponding to the automation.
   const currentNode =

@@ -2,13 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
 import { Kind } from "../lib/api/core/types.pb";
+import { GitOpsSet } from "../lib/api/gitopsset.pb";
 import { getGraphNodes } from "../lib/dependencies";
-import {
-  Automation,
-  FluxObjectNode,
-  FluxObjectNodesMap,
-  GitOpsSet,
-} from "../lib/objects";
+import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";
 import MessageBox from "./MessageBox";
