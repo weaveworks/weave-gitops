@@ -3,7 +3,7 @@ title: Introduction
 sidebar_position: 0
 hide_title: true
 ---
-# Weave GitOps
+# Weave GitOps asdf
 
 Weave GitOps is a powerful extension to [Flux](https://fluxcd.io), a leading GitOps engine and CNCF project. Weave GitOps provides insights into your application deployments, and makes continuous delivery with GitOps easier to adopt and scale across your teams.
 
