@@ -9,6 +9,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,10 +46,6 @@ type bucketConnectionInfo struct {
 
 // GetSessionLogs returns the logs for a session.
 func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogsRequest) (*pb.GetSessionLogsResponse, error) {
-	const (
-		bucketName = "gitops-run-logs"
-	)
-
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -76,7 +73,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, err
 	}
 
-	logs, lastToken, err := getLogs(ctx, msg.GetSessionId(), msg.GetToken(), asS3Reader(minioClient), bucketName)
+	logs, lastToken, err := getLogs(ctx, msg.GetSessionId(), msg.GetToken(), asS3Reader(minioClient), logger.SessionLogBucketName)
 	if err != nil {
 		return nil, err
 	}

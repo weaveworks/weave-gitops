@@ -2,18 +2,20 @@ package server
 
 import (
 	"context"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+
+	"net/http/httptest"
+
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	. "github.com/onsi/gomega"
 	logger2 "github.com/weaveworks/weave-gitops/pkg/logger"
-	"net/http/httptest"
 )
 
 func TestGetSessionLogsIntegration(t *testing.T) {
@@ -35,7 +37,16 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	defer s.Close()
 
 	log0 := logger2.NewCLILogger(os.Stdout)
-	s3logger, err := logger2.NewInsecureS3LogWriter("session-id", strings.TrimPrefix(s.URL, "http://"), "gitops", "gitops123", log0)
+	insecureMinioClient, err := minio.New(
+		strings.TrimPrefix(s.URL, "http://"),
+		&minio.Options{
+			Creds:        credentials.NewStaticV4("gitops", "gitops123", ""),
+			Secure:       false,
+			BucketLookup: minio.BucketLookupPath,
+		},
+	)
+	g.Expect(err).ShouldNot(HaveOccurred())
+	s3logger, err := logger2.NewS3LogWriter(insecureMinioClient, "session-id", log0)
 	g.Expect(err).ShouldNot(HaveOccurred())
 
 	s3logger.Actionf("test action")
