@@ -33,6 +33,9 @@ export enum V2Routes {
   OCIRepository = "/oci",
   Notifications = "/notifications",
   Provider = "/provider",
+  ImageAutomation = "/image_automation",
+  ImageAutomationUpdatesDetails = "/image_update",
+  ImageAutomationRepositoriesDetails = "/image_repo",
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.
   NotImplemented = "/not_implemented",

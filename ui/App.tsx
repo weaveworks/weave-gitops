@@ -12,6 +12,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
 import AppContextProvider from "./contexts/AppContext";
@@ -30,6 +32,7 @@ import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
+import ImageAutomationPage from "./pages/v2/ImageAutomationPage";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
@@ -45,7 +48,6 @@ function withSearchParams(Cmp) {
     return <Cmp {...rest} {...params} />;
   };
 }
-
 const App = () => (
   <Layout>
     <PendoContainer />
@@ -57,6 +59,18 @@ const App = () => (
           component={withSearchParams(KustomizationPage)}
         />
         <Route path={V2Routes.Sources} component={Sources} />
+        <Route
+          path={V2Routes.ImageAutomation}
+          component={ImageAutomationPage}
+        />
+        <Route
+          path={V2Routes.ImageAutomationUpdatesDetails}
+          component={withSearchParams(ImageAutomationUpdatesDetails)}
+        />
+        <Route
+          path={V2Routes.ImageAutomationRepositoriesDetails}
+          component={withSearchParams(ImageAutomationRepoDetails)}
+        />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <Route
           path={V2Routes.GitRepo}
@@ -90,7 +104,9 @@ const App = () => (
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
         />
+
         <Redirect exact from="/" to={V2Routes.Automations} />
+
         <Route exact path="*" component={Error} />
       </Switch>
     </ErrorBoundary>

@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -658,7 +657,23 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert, log0)
+	minioClient, err := s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.SessionLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.PodLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	log, err := logger.NewS3LogWriter(minioClient, sessionName, log0)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("failed creating S3 log writer: %w", err)
@@ -719,7 +734,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
+	minioClient, err = s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
 	if err != nil {
 		cancel()
 		return err

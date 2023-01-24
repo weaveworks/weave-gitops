@@ -174,7 +174,9 @@ exports[`Page snapshots default 1`] = `
         className="c7"
         size="medium"
       >
-        © 2022 Weaveworks
+        © 
+        2023
+         Weaveworks
       </span>
     </div>
   </footer>
