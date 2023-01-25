@@ -615,7 +615,10 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 		isServer = true
 	}
 
+	log := cf.log.WithValues("cluster", cluster.GetName(), "user", user, "isServer", isServer, "ttl", usersClientsTTL.String())
+
 	if client, found := cf.usersClients.Get(user, cluster.GetName()); found {
+		log.V(logger.LogLevelDebug).Info("client found in cache")
 		return client, nil
 	}
 
@@ -637,6 +640,8 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	}
 
 	cf.usersClients.Set(user, cluster.GetName(), client)
+
+	log.V(logger.LogLevelDebug).Info("client created and added to cache")
 
 	return client, nil
 }
