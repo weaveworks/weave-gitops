@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -382,6 +383,8 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 		}
 	}
 
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespaces cache", "namespaces", clusterNamespacesLogValue(cf.clustersNamespaces.namespaces))
+
 	opsUpdateNamespaces.Inc()
 
 	return result.ErrorOrNil()
@@ -589,13 +592,17 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 		if err != nil {
 			// This may not completely fail the request, e.g. if some of the clusters
 			// are able to respond with their namespaces. So log the error and continue.
-			cf.log.Error(err, "failed updating namespaces from user client")
+			cf.log.Error(err, "error updating namespaces from user client", "user", user)
 		}
 	}
 
 	cf.UpdateUserNamespaces(ctx, user)
 
-	return cf.GetUserNamespaces(user)
+	userNamespaces = cf.GetUserNamespaces(user)
+
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespace access cache for user", "userNamespaces", clusterNamespacesLogValue(userNamespaces), "user", user, "ttl", userNamespaceTTL.String())
+
+	return userNamespaces
 }
 
 func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.UserPrincipal, cluster cluster.Cluster) (client.Client, error) {
@@ -632,4 +639,19 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	cf.usersClients.Set(user, cluster.GetName(), client)
 
 	return client, nil
+}
+
+// Format the namespaces as a map[clusterName][]namespacesNames
+// for logging as a value in a structured log.
+func clusterNamespacesLogValue(clusterNamespaces map[string][]v1.Namespace) map[string][]string {
+	out := map[string][]string{}
+	for cluster, namespaces := range clusterNamespaces {
+		namespaceNames := []string{}
+		for _, n := range namespaces {
+			namespaceNames = append(namespaceNames, n.Name)
+		}
+		out[cluster] = namespaceNames
+	}
+
+	return out
 }

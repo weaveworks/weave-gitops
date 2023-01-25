@@ -74,8 +74,6 @@ func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier tokenVer
 }
 
 func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from auth header")
-
 	header := r.Header.Get("Authorization")
 	if header == "" {
 		return nil, nil
@@ -158,7 +156,7 @@ func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
 		}
 
 		if p != nil {
-			m.Log.V(logger.LogLevelDebug).Info("Found principal", "user", p.ID, "groups", p.Groups, "tokenLength", len(p.Token()), "method", reflect.TypeOf(v))
+			m.Log.V(logger.LogLevelDebug).Info("Found principal", "user", p, "method", reflect.TypeOf(v))
 
 			return p, nil
 		}
