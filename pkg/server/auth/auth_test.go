@@ -385,7 +385,7 @@ func TestUserPrincipal_String(t *testing.T) {
 	// principal is logged out.
 	p := auth.NewUserPrincipal(auth.ID("testing"), auth.Groups([]string{"group1", "group2"}), auth.Token("test-token"))
 
-	if s := p.String(); s != `id="testing" groups=[group1 group2]` {
+	if s := p.String(); s != `id="testing" groups=[group1 group2] tokenLength=10` {
 		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
 	}
 }
