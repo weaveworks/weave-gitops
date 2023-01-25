@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -143,7 +144,11 @@ func ShowPortForwards(ctx context.Context, log clilogger.Logger, portForwards ma
 	// print text in bold
 	fmt.Printf("\n\033[1m%s\033[0m\n\n", "We set up port forwards for you, use the number below to open it in the browser")
 
-	for key, portForward := range portForwards {
+	keys := getSortedPortForwardKeys(portForwards)
+
+	for _, key := range keys {
+		portForward := portForwards[key]
+
 		fmt.Printf("(%c) %s: http://localhost:%s\n", key, portForward.Name, portForward.HostPort)
 	}
 
@@ -194,4 +199,17 @@ func GetNextPortForwardKey(portForwards map[rune]PortForwardShortcut) (rune, err
 	}
 
 	return PortForwardShortcutRunes[numPortForwards+1], nil
+}
+
+func getSortedPortForwardKeys(portForwards map[rune]PortForwardShortcut) []rune {
+	keys := make([]rune, 0)
+	for k := range portForwards {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+
+	return keys
 }
