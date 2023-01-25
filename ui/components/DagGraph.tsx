@@ -97,7 +97,7 @@ function DagGraph({ className, nodes }: Props) {
 
   const graphOffsetX = zoomBox / 2 - width / 2;
   const verticalSeparationHalf = nodeSize.verticalSeparation / 2;
-
+  console.log("hello from dag graph");
   return (
     <Flex className={className} wide tall>
       <GraphDiv
@@ -123,6 +123,7 @@ function DagGraph({ className, nodes }: Props) {
                 // M tells the path where to start,
                 // H draws a straight horizontal line (capital letter means absolute coordinates),
                 // and v draws a straight vertical line (lowercase letter means relative to current position)
+
                 return (
                   <g key={index}>
                     <path
