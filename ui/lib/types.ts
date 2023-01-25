@@ -7,7 +7,6 @@ export enum PageRoute {
   ApplicationDetail = "/application_detail",
   ApplicationAdd = "/application_add",
   ApplicationRemove = "/application_remove",
-  GitlabOAuthCallback = "/oauth/gitlab",
 }
 
 export enum GrpcErrorCodes {
