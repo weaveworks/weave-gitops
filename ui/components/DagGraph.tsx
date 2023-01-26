@@ -97,7 +97,7 @@ function DagGraph({ className, nodes }: Props) {
 
   const graphOffsetX = zoomBox / 2 - width / 2;
   const verticalSeparationHalf = nodeSize.verticalSeparation / 2;
-  console.log("hello from dag graph");
+
   return (
     <Flex className={className} wide tall>
       <GraphDiv
