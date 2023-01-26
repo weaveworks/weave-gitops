@@ -128,15 +128,13 @@ function DagGraph({ className, nodes }: Props) {
                   <g key={index}>
                     <path
                       fill="#7a7a7a"
-                      d={`M${l.target.x}, ${l.target.y - 50}
+                      d={`M${l.target.x}, ${l.target.y}
                       l${arrowHalfWidth}, ${-nodeSize.arrowHeight}
                       h${-nodeSize.arrowWidth}
                       l${arrowHalfWidth}, ${nodeSize.arrowHeight}`}
                     />
                     <path
-                      d={`M${l.source.x}, ${
-                        l.source.y + nodeSize.height + linkStrokeWidth * 2
-                      }
+                      d={`M${l.source.x}, ${l.source.y + nodeSize.height}
                       L${l.target.x}, ${l.target.y - verticalSeparationHalf}
                       v${verticalSeparationHalf}`}
                     />
