@@ -15,6 +15,7 @@ var _ = DescribeTable("detectGitProviderFromURL", func(input string, expected Gi
 },
 	Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 	Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
+	Entry("https+bitbucket", "https://bitbucket.yiannis.net/scm/wge/config.git", GitProviderBitBucketServer),
 )
 
 var _ = Describe("get owner from url", func() {

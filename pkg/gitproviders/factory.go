@@ -12,9 +12,10 @@ import (
 type GitProviderName string
 
 const (
-	GitProviderGitHub GitProviderName = "github"
-	GitProviderGitLab GitProviderName = "gitlab"
-	tokenTypeOauth    string          = "oauth2"
+	GitProviderGitHub          GitProviderName = "github"
+	GitProviderGitLab          GitProviderName = "gitlab"
+	GitProviderBitBucketServer GitProviderName = "bitbucket-server"
+	tokenTypeOauth             string          = "oauth2"
 )
 
 // Config defines the configuration for connecting to a GitProvider.
