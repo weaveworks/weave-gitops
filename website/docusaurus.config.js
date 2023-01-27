@@ -82,7 +82,48 @@ module.exports = {
             },
           ],
         },
+        {
+            title: "Community",
+            items: [
+                {
+                label: "GitHub",
+                href: "https://github.com/weaveworks/weave-gitops",
+                },
+            ],
+        },
+        {
+            title: 'Follow us',
+            items: [
+              {
+                label: 'Facebook',
+                href: 'https://www.facebook.com/WeaveworksInc/',
+              },
+              {
+                label: 'LinkedIn',
+                href: 'https://www.linkedin.com/company/weaveworks',
+              },
+              {
+                label: 'Twitter',
+                href: 'https://twitter.com/weaveworks',
+              },
+              {
+                label: 'Slack',
+                href: 'https://slack.weave.works/',
+              },
+              {
+                label: 'Youtube',
+                href: 'https://www.youtube.com/c/WeaveWorksInc',
+              },
+            ],
+        },
       ],
+      logo: {
+        alt: 'Weaveworks Logo',
+        src: 'img/weave-logo.png',
+        href: 'https://weave.works',
+        width: 35,
+        height: 35,
+      },
       copyright: `Copyright © ${new Date().getFullYear()} Weaveworks`,
     },
     algolia: {
