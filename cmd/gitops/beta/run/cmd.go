@@ -332,6 +332,17 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 	return fluxVersion, false, nil
 }
 
+func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
+	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, watch.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
+
+	if err != nil {
+		log.Failuref("Fluent Bit installation failed: %v", err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (bool, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
@@ -677,6 +688,12 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		cancel()
 		return fmt.Errorf("failed creating S3 log writer: %w", err)
+	}
+
+	// ====================== Fluent-Bit =====================
+	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+		cancel()
+		return err
 	}
 
 	// ====================== Dashboard ======================
