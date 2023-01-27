@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import p from "../../package.json";
 import { useVersion } from "../hooks/version";
+import { useGetLogs } from "../hooks/gitopsrun";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
 import { getAppVersion } from "../lib/utils";
 import Flex from "./Flex";
@@ -25,6 +26,26 @@ function Footer({ className }: Props) {
   const versionData = data || ({} as GetVersionResponse);
 
   const appVersion = getAppVersion(data, p.version, isLoading, "v");
+
+  // Test get session logs
+  const {
+    isLoading: isLoadingLogs,
+    data: logs,
+    error: errorLoadingLogs,
+  } = useGetLogs({
+    sessionId: "run-master-fdd0a0b7",
+    token: "",
+    clusterName: "Default",
+    namespace: "default",
+  });
+
+  if (!isLoadingLogs) {
+    console.log("logs:");
+    console.log(logs);
+
+    console.log("errorLoadingLogs:");
+    console.log(errorLoadingLogs);
+  }
 
   const versions: VersionProps[] = !isLoading
     ? [
