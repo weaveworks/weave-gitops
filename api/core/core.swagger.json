@@ -775,10 +775,13 @@
         "logs": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/v1LogEntry"
           }
         },
         "nextToken": {
+          "type": "string"
+        },
+        "error": {
           "type": "string"
         }
       }
@@ -936,6 +939,23 @@
           "items": {
             "$ref": "#/definitions/v1ListError"
           }
+        }
+      }
+    },
+    "v1LogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
