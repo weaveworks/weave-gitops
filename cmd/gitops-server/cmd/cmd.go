@@ -216,14 +216,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create core config: %w", err)
 	}
 
-	appConfig, err := server.DefaultApplicationsConfig(log)
-	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
-	}
-
 	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
-			AppConfig:        appConfig,
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},
