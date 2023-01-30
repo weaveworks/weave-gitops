@@ -27,7 +27,8 @@ var _ = Describe("get owner from url", func() {
 	},
 		Entry("github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub, "weaveworks"),
 		Entry("gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab, "weaveworks"),
-		Entry("gitlab with subgroup", "ssh://git@gitlab.com/weaveworks/sub_group/weave-gitops.git", GitProviderGitLab, "weaveworks/sub_group"),
+		Entry("gitlab", "ssh://git@gitlab.com/weaveworks/infra/weave-gitops.git", GitProviderGitLab, "weaveworks/infra"),
+		Entry("gitlab", "ssh://git@gitlab.com/weaveworks/infra/dev/weave-gitops.git", GitProviderGitLab, "weaveworks/infra/dev"),
 	)
 
 	It("missing owner", func() {
@@ -46,15 +47,6 @@ var _ = Describe("get owner from url", func() {
 		_, err = getOwnerFromURL(*u, GitProviderGitLab)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("could not get owner from url "))
-	})
-
-	It("subgroup in a subgroup", func() {
-		normalizedURL := "ssh://git@gitlab.com/weaveworks/sub_group/another_sub_group/weave-gitops.git"
-		u, err := url.Parse(normalizedURL)
-		Expect(err).NotTo(HaveOccurred())
-		_, err = getOwnerFromURL(*u, GitProviderGitLab)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("a subgroup in a subgroup is not currently supported"))
 	})
 })
 
@@ -119,6 +111,13 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 	Entry("trailing slash in url", "https://github.com/sympatheticmoose/podinfo-deploy/", "", expectedRepoURL{
 		s:        "ssh://git@github.com/sympatheticmoose/podinfo-deploy.git",
 		owner:    "sympatheticmoose",
+		name:     "podinfo-deploy",
+		provider: GitProviderGitHub,
+		protocol: RepositoryURLProtocolSSH,
+	}),
+	Entry("subsubgroup", "https://github.com/sympatheticmoose/infra/dev/podinfo-deploy/", "", expectedRepoURL{
+		s:        "ssh://git@github.com/sympatheticmoose/infra/dev/podinfo-deploy.git",
+		owner:    "sympatheticmoose/infra/dev",
 		name:     "podinfo-deploy",
 		provider: GitProviderGitHub,
 		protocol: RepositoryURLProtocolSSH,

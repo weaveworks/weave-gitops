@@ -87,23 +87,11 @@ func (n RepoURL) Protocol() RepositoryURLProtocol {
 
 func getOwnerFromURL(url url.URL, providerName GitProviderName) (string, error) {
 	url.Path = strings.TrimPrefix(url.Path, "/")
-
 	parts := strings.Split(url.Path, "/")
 	if len(parts) < 2 {
 		return "", fmt.Errorf("could not get owner from url %v", url.String())
 	}
-
-	if providerName == GitProviderGitLab {
-		if len(parts) > 3 {
-			return "", fmt.Errorf("a subgroup in a subgroup is not currently supported")
-		}
-
-		if len(parts) > 2 {
-			return parts[0] + "/" + parts[1], nil
-		}
-	}
-
-	return parts[0], nil
+	return strings.Join(parts[:len(parts)-1], "/"), nil
 }
 
 // detectGitProviderFromURL accepts a url related to a git repo and
@@ -120,7 +108,7 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
-		return "", fmt.Errorf("no git providers found for %q", raw)
+		provider = string(GitProviderGitLab)
 	}
 
 	return GitProviderName(provider), nil
