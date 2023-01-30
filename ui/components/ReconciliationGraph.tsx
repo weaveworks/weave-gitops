@@ -4,7 +4,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useGetReconciledTree } from "../hooks/flux";
 import { Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { GitOpsSet } from "../lib/api/gitopsset.pb";
 import { Automation } from "../lib/objects";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
@@ -13,7 +12,7 @@ import Spacer from "./Spacer";
 
 export type Props = {
   className?: string;
-  parentObject: Automation | GitOpsSet;
+  parentObject: Automation;
   source: ObjectRef;
 };
 

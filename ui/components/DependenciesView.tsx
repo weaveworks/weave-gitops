@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useListObjects } from "../hooks/objects";
 import { Kind } from "../lib/api/core/types.pb";
-import { GitOpsSet } from "../lib/api/gitopsset.pb";
 import { getGraphNodes } from "../lib/dependencies";
 import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
@@ -33,7 +32,7 @@ const Paragraph = Text.withComponent("p");
 
 type DependenciesViewProps = {
   className?: string;
-  automation?: Automation | GitOpsSet;
+  automation?: Automation;
 };
 
 const graphNodesPlaceholder = [] as FluxObjectNode[];

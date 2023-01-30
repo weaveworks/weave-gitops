@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useGetReconciledObjects } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
-import { GitOpsSet } from "../lib/api/gitopsset.pb";
 import { Automation } from "../lib/objects";
 import { NoNamespace } from "../lib/types";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
@@ -12,7 +11,7 @@ import RequestStateHandler from "./RequestStateHandler";
 
 interface ReconciledVisualizationProps {
   className?: string;
-  automation?: Automation | GitOpsSet;
+  automation?: Automation;
 }
 
 function ReconciledObjectsTable({

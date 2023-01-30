@@ -15,7 +15,6 @@ export enum Kind {
   OCIRepository = "OCIRepository",
   Provider = "Provider",
   Alert = "Alert",
-  GitOpsSet = "GitOpsSet",
 }
 
 export enum HelmRepositoryType {

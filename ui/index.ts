@@ -31,7 +31,6 @@ import Page from "./components/Page";
 import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
-import ReconciliationGraph from "./components/ReconciliationGraph";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
@@ -88,6 +87,8 @@ import PageStatus from "./components/PageStatus";
 import SyncButton from "./components/SyncButton";
 import Spacer from "./components/Spacer";
 import CustomActions from "./components/CustomActions";
+import RequestStateHandler from "./components/RequestStateHandler";
+import DirectedGraph from "./components/DirectedGraph";
 
 export {
   AppContext,
@@ -110,6 +111,7 @@ export {
   DagGraph,
   DependenciesView,
   DialogYamlView,
+  DirectedGraph,
   EventsTable,
   Flex,
   filterByStatusCallback,
@@ -154,7 +156,7 @@ export {
   Pendo,
   ProviderDetail,
   ReconciledObjectsTable,
-  ReconciliationGraph,
+  RequestStateHandler,
   RepoInputWithAuth,
   RouterTab,
   SignIn,
