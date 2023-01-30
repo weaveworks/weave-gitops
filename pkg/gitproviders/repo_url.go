@@ -108,7 +108,7 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
-		provider = string(GitProviderGitLab)
+		return "", fmt.Errorf("no git providers found for %q", raw)
 	}
 
 	return GitProviderName(provider), nil
