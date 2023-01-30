@@ -2,12 +2,15 @@ package logger
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/minio/minio-go/v7"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 type S3LogWriter struct {
@@ -18,6 +21,7 @@ type S3LogWriter struct {
 
 const SessionLogBucketName = "gitops-run-logs"
 const PodLogBucketName = "pod-logs"
+const SessionLogSource = "gitops-run-client"
 
 func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
@@ -36,13 +40,38 @@ func CreateBucket(minioClient *minio.Client, bucketName string) error {
 }
 
 func (l *S3LogWriter) putLog(msg string) {
+	now := time.Now()
+
+	level := "info"
+
+	if len(msg) > 0 {
+		if strings.HasPrefix(msg, "✗") {
+			level = "error"
+		} else if strings.HasPrefix(msg, "⚠️") {
+			level = "warning"
+		}
+	}
+
+	result := &pb.LogEntry{
+		Timestamp: now.Format(time.RFC3339),
+		Source:    SessionLogSource,
+		Level:     level,
+		Message:   msg,
+	}
+
+	logData, err := json.Marshal(result)
+	if err != nil {
+		l.log0.Failuref("failed to marshal log data to JSON: %v", err)
+	}
+
 	// append new line at the end of each log
-	msg = msg + "\n"
-	_, err := l.s3cli.PutObject(context.Background(),
+	logMsg := string(logData) + "\n"
+
+	_, err = l.s3cli.PutObject(context.Background(),
 		SessionLogBucketName,
 		// This funny pattern 20060102-150405.00000 is the layout needed by time.Format
-		fmt.Sprintf("%s/%s.txt", l.id, time.Now().Format("20060102-150405.00000")),
-		strings.NewReader(msg), int64(len(msg)), minio.PutObjectOptions{})
+		fmt.Sprintf("%s/%s.txt", l.id, now.Format("20060102-150405.00000")),
+		strings.NewReader(logMsg), int64(len(logMsg)), minio.PutObjectOptions{})
 
 	if err != nil {
 		l.log0.Failuref("failed to put log to s3: %v", err)
