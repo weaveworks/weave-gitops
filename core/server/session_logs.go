@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -78,8 +79,20 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, err
 	}
 
+	logEntries := []*pb.LogEntry{}
+
+	for _, log := range logs {
+		logEntry := &pb.LogEntry{}
+		err = json.Unmarshal([]byte(log), &logEntry)
+		if err != nil {
+			return nil, err
+		}
+
+		logEntries = append(logEntries, logEntry)
+	}
+
 	return &pb.GetSessionLogsResponse{
-		Logs:      logs,
+		Logs:      logEntries,
 		NextToken: lastToken,
 	}, nil
 }
