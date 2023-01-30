@@ -9,7 +9,9 @@ import (
 )
 
 var _ = DescribeTable("detectGitProviderFromURL", func(input string, expected GitProviderName) {
-	result, err := detectGitProviderFromURL(input, map[string]string{})
+	result, err := detectGitProviderFromURL(input, map[string]string{
+		"bitbucket.yiannis.net": "bitbucket-server",
+	})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },

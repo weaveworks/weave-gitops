@@ -120,10 +120,6 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
-		// bitbucket server support
-		if isBitBucketServerURL(u) {
-			return GitProviderBitBucketServer, nil
-		}
 		return "", fmt.Errorf("no git providers found for %q", raw)
 	}
 
@@ -160,14 +156,6 @@ func normalizeRepoURLString(url string) (string, error) {
 	}
 
 	return fmt.Sprintf("ssh://git@%s%s", u.Host, u.Path), nil
-}
-
-// isBitBucketServerURL returns whether a URL is a BitBucket Server URL
-// BitBucket Server or Datacenter editions are self-hosted,
-// so the repo URL is *not* predictable like public GitHub and GitLab.
-// TODO: change this to pull from env vars.
-func isBitBucketServerURL(u *url.URL) bool {
-	return strings.Contains(u.Path, "/scm")
 }
 
 // ViperGetStringMapString looks up a command line flag or env var in the format "foo=1,bar=2"
