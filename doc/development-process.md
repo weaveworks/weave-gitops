@@ -132,6 +132,9 @@ Our frontend tests:
 
 We're re-working our integration tests. Coming back soon.
 
+## Contributing to Weave GitOps documentation
+See [here](../website/README.md) for more details.
+
 
 ## Other optimisations for development setup
 
