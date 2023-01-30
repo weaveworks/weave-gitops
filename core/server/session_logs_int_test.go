@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	. "github.com/onsi/gomega"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	logger2 "github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
@@ -53,6 +55,7 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	s3logger.Failuref("test failure")
 	s3logger.Successf("test success")
 	s3logger.Waitingf("test waiting")
+	s3logger.Warningf("test warning")
 
 	minioClient, err := minio.New(
 		strings.TrimPrefix(s.URL, "http://"),
@@ -68,29 +71,71 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 		"session-id",
 		"",
 		asS3Reader(minioClient),
-		"gitops-run-logs",
+		logger2.SessionLogBucketName,
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(lines).Should(HaveLen(4))
-	g.Expect(lines[0]).Should(ContainSubstring("► test action\n"))
-	g.Expect(lines[1]).Should(ContainSubstring("✗ test failure\n"))
-	g.Expect(lines[2]).Should(ContainSubstring("✔ test success\n"))
-	g.Expect(lines[3]).Should(ContainSubstring("◎ test waiting\n"))
+
+	logEntries := []*pb.LogEntry{}
+
+	for _, line := range lines {
+		logEntry := &pb.LogEntry{}
+		err = json.Unmarshal([]byte(line), &logEntry)
+		g.Expect(err).ShouldNot(HaveOccurred())
+
+		logEntries = append(logEntries, logEntry)
+	}
+
+	g.Expect(logEntries).Should(HaveLen(5))
+	g.Expect(logEntries[0].Message).Should(Equal("► test action"))
+	g.Expect(logEntries[0].Level).Should(Equal("info"))
+	g.Expect(logEntries[0].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[1].Message).Should(Equal("✗ test failure"))
+	g.Expect(logEntries[1].Level).Should(Equal("error"))
+	g.Expect(logEntries[1].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[2].Message).Should(Equal("✔ test success"))
+	g.Expect(logEntries[2].Level).Should(Equal("info"))
+	g.Expect(logEntries[2].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[3].Message).Should(Equal("◎ test waiting"))
+	g.Expect(logEntries[3].Level).Should(Equal("info"))
+	g.Expect(logEntries[3].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[4].Message).Should(Equal("⚠️ test warning"))
+	g.Expect(logEntries[4].Level).Should(Equal("warning"))
+	g.Expect(logEntries[4].Source).Should(Equal(logger2.SessionLogSource))
 
 	s3logger.Actionf("round 2 - test action")
 	s3logger.Failuref("round 2 - test failure")
 
-	round2, _, err := getLogs(context.Background(),
+	lines2, _, err := getLogs(context.Background(),
 		"session-id",
 		next,
 		asS3Reader(minioClient),
-		"gitops-run-logs",
+		logger2.SessionLogBucketName,
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(round2).Should(HaveLen(2))
 
-	g.Expect(round2[0]).Should(ContainSubstring("► round 2 - test action\n"))
-	g.Expect(round2[1]).Should(ContainSubstring("✗ round 2 - test failure\n"))
+	logEntries = nil
+
+	for _, line := range lines2 {
+		logEntry := &pb.LogEntry{}
+		err = json.Unmarshal([]byte(line), &logEntry)
+		g.Expect(err).ShouldNot(HaveOccurred())
+
+		logEntries = append(logEntries, logEntry)
+	}
+
+	g.Expect(lines2).Should(HaveLen(2))
+
+	g.Expect(logEntries[0].Message).Should(Equal("► round 2 - test action"))
+	g.Expect(logEntries[0].Level).Should(Equal("info"))
+	g.Expect(logEntries[0].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[1].Message).Should(Equal("✗ round 2 - test failure"))
+	g.Expect(logEntries[1].Level).Should(Equal("error"))
+	g.Expect(logEntries[1].Source).Should(Equal(logger2.SessionLogSource))
 }

@@ -301,9 +301,17 @@ message GetSessionLogsRequest {
     string namespace   = 4;
 }
 
+message LogEntry {
+    string timestamp = 1;
+    string source    = 2;
+    string level     = 3;
+    string message   = 4;
+}
+
 message GetSessionLogsResponse {
-    repeated string logs = 1;
-    string nextToken     = 2;
+    repeated LogEntry logs      = 1;
+    string            nextToken = 2;
+    string            error     = 3;
 }
 
 message IsCRDAvailableRequest {

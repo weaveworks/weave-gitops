@@ -146,9 +146,17 @@ export type GetSessionLogsRequest = {
   namespace?: string
 }
 
+export type LogEntry = {
+  timestamp?: string
+  source?: string
+  level?: string
+  message?: string
+}
+
 export type GetSessionLogsResponse = {
-  logs?: string[]
+  logs?: LogEntry[]
   nextToken?: string
+  error?: string
 }
 
 export type IsCRDAvailableRequest = {
