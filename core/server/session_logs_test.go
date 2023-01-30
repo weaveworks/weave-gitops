@@ -30,7 +30,7 @@ func (m *mockGet) Get(ctx context.Context, key types.NamespacedName, obj client.
 			"secretkey": []byte("1234"),
 		}
 	case *sourcev1.Bucket:
-		obj.Spec.Endpoint = "endpoint"
+		obj.Spec.Endpoint = "endpoint:9000"
 		obj.Spec.Insecure = false
 	}
 
@@ -41,9 +41,10 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	type args struct {
-		ctx context.Context
-		ns  string
-		cli client.Client
+		ctx         context.Context
+		clusterName string
+		ns          string
+		cli         client.Client
 	}
 
 	tests := []struct {
@@ -53,16 +54,33 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "test",
+			name: "default",
 			args: args{
-				ctx: context.TODO(),
-				ns:  "default",
-				cli: &mockGet{},
+				ctx:         context.TODO(),
+				clusterName: "Default",
+				ns:          "default",
+				cli:         &mockGet{},
 			},
 			want: &bucketConnectionInfo{
 				accessKey:      "abcd",
 				secretKey:      "1234",
-				bucketEndpoint: "endpoint",
+				bucketEndpoint: "endpoint:9000",
+				bucketInsecure: false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "test",
+			args: args{
+				ctx:         context.TODO(),
+				clusterName: "my-session/run-session",
+				ns:          "default",
+				cli:         &mockGet{},
+			},
+			want: &bucketConnectionInfo{
+				accessKey:      "abcd",
+				secretKey:      "1234",
+				bucketEndpoint: "run-session-bucket.my-session.svc:9000",
 				bucketInsecure: false,
 			},
 			wantErr: false,
@@ -70,7 +88,7 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		info, err := getBucketConnectionInfo(tt.args.ctx, tt.args.ns, tt.args.cli)
+		info, err := getBucketConnectionInfo(tt.args.ctx, tt.args.clusterName, tt.args.ns, tt.args.cli)
 		g.Expect(err != nil).To(Equal(tt.wantErr))
 		g.Expect(info).To(Equal(tt.want))
 	}
