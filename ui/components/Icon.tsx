@@ -175,7 +175,7 @@ function getIcon(i: IconType) {
 function Icon({ className, type, text, color }: Props) {
   return (
     <Flex align className={className}>
-      {React.createElement(getIcon(type))}
+      {React.createElement(getIcon(type) || "span")}
       {text && (
         <Text color={color} bold>
           {text}
