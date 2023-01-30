@@ -592,7 +592,7 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 		if err != nil {
 			// This may not completely fail the request, e.g. if some of the clusters
 			// are able to respond with their namespaces. So log the error and continue.
-			cf.log.Error(err, "error updating namespaces from user client", "user", user)
+			cf.log.Error(err, "Error updating namespaces from user client", "user", user)
 		}
 	}
 
@@ -618,7 +618,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	log := cf.log.WithValues("cluster", cluster.GetName(), "user", user, "isServer", isServer, "ttl", usersClientsTTL.String())
 
 	if client, found := cf.usersClients.Get(user, cluster.GetName()); found {
-		log.V(logger.LogLevelDebug).Info("client found in cache")
+		log.V(logger.LogLevelDebug).Info("Client found in cache")
 		return client, nil
 	}
 
@@ -641,7 +641,7 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 
 	cf.usersClients.Set(user, cluster.GetName(), client)
 
-	log.V(logger.LogLevelDebug).Info("client created and added to cache")
+	log.V(logger.LogLevelDebug).Info("Client created and added to cache")
 
 	return client, nil
 }
