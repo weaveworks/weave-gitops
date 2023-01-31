@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,6 +76,14 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
     "run.weave.works/command": "%s",
     "run.weave.works/automation-kind": "%s",
     "run.weave.works/namespace": "%s"
+  },
+  "mapServices": {
+    "fromVirtual": [
+      {
+        "from": "%s/%s",
+        "to": "%s-bucket"
+      }
+    ]
   }
 }`,
 				version.Version,
@@ -82,6 +91,9 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
 				command,
 				automationKind,
 				namespace,
+				watch.GitOpsRunNamespace,
+				watch.RunDevBucketName,
+				name,
 			))},
 		},
 	}
