@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
@@ -57,7 +58,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
 
-	info, err := getBucketConnectionInfo(ctx, msg.GetNamespace(), cli)
+	info, err := getBucketConnectionInfo(ctx, msg.GetClusterName(), msg.GetNamespace(), cli)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +134,7 @@ func getLogs(ctx context.Context, sessionID string, nextToken string, minioClien
 	return logs, lastToken, nil
 }
 
-func getBucketConnectionInfo(ctx context.Context, namespace string, cli client.Client) (*bucketConnectionInfo, error) {
+func getBucketConnectionInfo(ctx context.Context, clusterName string, namespace string, cli client.Client) (*bucketConnectionInfo, error) {
 	const sourceName = "run-dev-bucket"
 
 	var secretName = sourceName + "-credentials"
@@ -163,10 +164,29 @@ func getBucketConnectionInfo(ctx context.Context, namespace string, cli client.C
 		return nil, err
 	}
 
+	// Endpoint format
+	// fmt.Sprintf("%s.%s.svc.cluster.local:%d", RunDevBucketName, GitOpsRunNamespace, params.DevBucketPort),
+	bucketEndpoint := bucket.Spec.Endpoint
+	if clusterName != "Default" {
+		parts := strings.Split(clusterName, "/")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid cluster name for vcluster session: %s", clusterName)
+		}
+		sessionNamespace := parts[0]
+		sessionName := parts[1]
+
+		parts = strings.Split(bucket.Spec.Endpoint, ":")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid bucket endpoint for vcluster session: %s", bucketEndpoint)
+		}
+		port := parts[1]
+		bucketEndpoint = fmt.Sprintf("%s-bucket.%s.svc:%s", sessionName, sessionNamespace, port)
+	}
+
 	return &bucketConnectionInfo{
 		accessKey:      string(secret.Data["accesskey"]),
 		secretKey:      string(secret.Data["secretkey"]),
-		bucketEndpoint: bucket.Spec.Endpoint,
+		bucketEndpoint: bucketEndpoint,
 		bucketInsecure: bucket.Spec.Insecure,
 	}, nil
 }
