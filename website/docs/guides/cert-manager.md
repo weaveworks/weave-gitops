@@ -1,6 +1,5 @@
 ---
 title: Generating TLS certificates with cert-manager and Let's Encrypt
-sidebar_position: 2
 ---
 
 In this guide we will show you how to add cert-manager to a cluster bootstrapped with Weave GitOps, and how

@@ -46,4 +46,4 @@ This command can be bit slow and may take some time to build the site.
 
 ## Deployment
 
-Deployment happens automatically (once the tests pass) upon merging to the default branch: see [.github/workflows/docs.yml](.github/workflows/docs.yml) for config.
+Deployment happens automatically (once the tests pass) upon merging to the default branch: see [.github/workflows/docs.yaml](.github/workflows/docs.yaml) for config.
