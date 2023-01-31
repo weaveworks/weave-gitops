@@ -10,14 +10,14 @@ import (
 
 var _ = DescribeTable("detectGitProviderFromURL", func(input string, expected GitProviderName) {
 	result, err := detectGitProviderFromURL(input, map[string]string{
-		"bitbucket.yiannis.net": "bitbucket-server",
+		"bitbucket.weave.works": "bitbucket-server",
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },
 	Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 	Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
-	Entry("https+bitbucket", "https://bitbucket.yiannis.net/scm/wge/config.git", GitProviderBitBucketServer),
+	Entry("https+bitbucket", "https://bitbucket.weave.works/scm/wg/config.git", GitProviderBitBucketServer),
 )
 
 var _ = Describe("get owner from url", func() {
