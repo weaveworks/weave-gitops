@@ -297,11 +297,9 @@ func TestRateLimit(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclient.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	oidcCfg := auth.OIDCConfig{}
-
 	authMethods := map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)

@@ -1033,6 +1033,26 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "audiences",
+			data: map[string][]byte{
+				"issuerURL":    []byte("https://example.com/test"),
+				"audiences":    []byte("aud-1,aud-2"),
+				"clientID":     []byte("test-client-id"),
+				"clientSecret": []byte("test-client-secret"),
+				"redirectURL":  []byte("https://example.com/redirect"),
+			},
+			want: auth.OIDCConfig{
+				IssuerURL:     "https://example.com/test",
+				ClientID:      "test-client-id",
+				ClientSecret:  "test-client-secret",
+				RedirectURL:   "https://example.com/redirect",
+				TokenDuration: time.Hour * 1,
+				ClaimsConfig:  &auth.ClaimsConfig{Username: "email", Groups: "groups"},
+				Scopes:        []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, auth.ScopeEmail, auth.ScopeGroups},
+				Audiences:     []string{"aud-1", "aud-2"},
+			},
+		},
 	}
 
 	for _, tt := range configTests {

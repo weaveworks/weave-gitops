@@ -91,7 +91,7 @@ func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*User
 	// This passes nil as the ClaimsConfig because technically we don't really
 	// use the cookie, we're just passing it through, but this could change.
 	// In which case the getter would need an auth config.
-	principal, err := parseJWTToken(r.Context(), pg.verifier, cookie.Value, nil)
+	principal, err := parseJWTToken(r.Context(), pg.verifier, cookie.Value, OIDCConfig{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse for passthrough: %w", err)
 	}

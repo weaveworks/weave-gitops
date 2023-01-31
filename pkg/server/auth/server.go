@@ -57,6 +57,7 @@ type OIDCConfig struct {
 	TokenDuration time.Duration
 	Scopes        []string
 	ClaimsConfig  *ClaimsConfig
+	Audiences     []string
 }
 
 // This is only used if the OIDCConfig doesn't have a TokenDuration set. If
@@ -105,6 +106,8 @@ type UserInfo struct {
 // - tokenDuration - defaults to 1 hour.
 // - claimUsername - defaults to "email"
 // - claimGroups - defaults to "groups"
+// - customScopes - defaults to []
+// - audiences - defaults to nil
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
@@ -127,6 +130,11 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	}
 
 	cfg.Scopes = scopes
+
+	audiences := splitAndTrim(string(secret.Data["audiences"]))
+	if len(audiences) > 0 {
+		cfg.Audiences = audiences
+	}
 
 	return cfg
 }
@@ -518,7 +526,7 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrin
 	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
 	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 
-	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
+	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig)
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
