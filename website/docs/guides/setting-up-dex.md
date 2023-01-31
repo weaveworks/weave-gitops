@@ -1,6 +1,5 @@
 ---
 title: Configuring OIDC with Dex and GitHub
-sidebar_position: 3
 ---
 
 In this guide we will show you how to enable users to login to the Weave GitOps dashboard by authenticating with their GitHub account.

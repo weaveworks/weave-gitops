@@ -1,6 +1,5 @@
 ---
 title: Help and Support
-sidebar_position: 12
 ---
 
 ## Community
