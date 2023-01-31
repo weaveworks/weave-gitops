@@ -2,7 +2,6 @@ package install
 
 import (
 	"context"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -10,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	appsv1 "k8s.io/api/apps/v1"
@@ -79,10 +79,11 @@ var _ = Describe("GetFluxVersion", func() {
 		}
 		Expect(kubeClient.Create(ctx, source)).To(Succeed())
 
-		fluxVersion, guessed, err := GetFluxVersion(ctx, fakeLogger, kubeClient)
+		fluxVersionInfo, guessed, err := GetFluxVersion(ctx, fakeLogger, kubeClient)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fluxVersion).To(Equal("v0.38.0"))
+		Expect(fluxVersionInfo.FluxVersion).To(Equal("v0.38.0"))
+		Expect(fluxVersionInfo.FluxNamespace).To(Equal("flux-system"))
 		Expect(guessed).To(BeTrue())
 
 		Eventually(kubeClient.Delete(ctx, fluxNs)).ProbeEvery(1 * time.Second).Should(Succeed())
@@ -107,10 +108,11 @@ var _ = Describe("GetFluxVersion", func() {
 
 		Expect(kubeClient.Create(ctx, fluxNs)).To(Succeed())
 
-		fluxVersion, guessed, err := GetFluxVersion(ctx, fakeLogger, kubeClient)
+		fluxVersionInfo, guessed, err := GetFluxVersion(ctx, fakeLogger, kubeClient)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(fluxVersion).To(Equal(testVersion))
+		Expect(fluxVersionInfo.FluxVersion).To(Equal(testVersion))
+		Expect(fluxVersionInfo.FluxNamespace).To(Equal(fluxNs.Name))
 		Expect(guessed).To(BeFalse())
 
 		Eventually(kubeClient.Delete(ctx, fluxNs)).ProbeEvery(1 * time.Second).Should(Succeed())

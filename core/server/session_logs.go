@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	appsv1 "k8s.io/api/apps/v1"
 	"strings"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -53,12 +54,26 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	cli, err := clustersClient.Scoped(msg.GetClusterName())
+	virtualClusterName := msg.GetSessionNamespace() + "/" + msg.GetSessionId()
+	cli, err := clustersClient.Scoped(virtualClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
 
-	info, err := getBucketConnectionInfo(ctx, msg.GetClusterName(), msg.GetNamespace(), cli)
+	statefulSet := appsv1.StatefulSet{}
+	if err := cli.Get(ctx, client.ObjectKey{Name: msg.GetSessionId(), Namespace: msg.GetSessionNamespace()}, &statefulSet); err != nil {
+		return nil, fmt.Errorf("getting virtual cluster statefulset: %w", err)
+	}
+
+	var fluxNamespace string
+	if statefulSet.Annotations != nil {
+		fluxNamespace = statefulSet.Annotations["run.weave.works/flux-namespace"]
+	}
+	if fluxNamespace == "" {
+		fluxNamespace = "flux-system"
+	}
+
+	info, err := getBucketConnectionInfo(ctx, virtualClusterName, fluxNamespace, cli)
 	if err != nil {
 		return nil, err
 	}
@@ -134,16 +149,16 @@ func getLogs(ctx context.Context, sessionID string, nextToken string, minioClien
 	return logs, lastToken, nil
 }
 
-func getBucketConnectionInfo(ctx context.Context, clusterName string, namespace string, cli client.Client) (*bucketConnectionInfo, error) {
-	const sourceName = "run-dev-bucket"
+func getBucketConnectionInfo(ctx context.Context, clusterName string, fluxNamespace string, cli client.Client) (*bucketConnectionInfo, error) {
 
+	const sourceName = "run-dev-bucket"
 	var secretName = sourceName + "-credentials"
 
 	// get secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: namespace,
+			Namespace: fluxNamespace,
 		},
 	}
 
@@ -156,7 +171,7 @@ func getBucketConnectionInfo(ctx context.Context, clusterName string, namespace 
 	bucket := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
-			Namespace: namespace,
+			Namespace: fluxNamespace,
 		},
 	}
 

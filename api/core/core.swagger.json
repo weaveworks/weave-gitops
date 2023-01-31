@@ -755,16 +755,13 @@
     "v1GetSessionLogsRequest": {
       "type": "object",
       "properties": {
+        "sessionNamespace": {
+          "type": "string"
+        },
         "sessionId": {
           "type": "string"
         },
         "token": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "namespace": {
           "type": "string"
         }
       }
