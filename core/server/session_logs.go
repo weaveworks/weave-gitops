@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	appsv1 "k8s.io/api/apps/v1"
 	"strings"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
@@ -47,6 +48,38 @@ type bucketConnectionInfo struct {
 	bucketInsecure bool
 }
 
+func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Client) (string, error) {
+	namespaceList := corev1.NamespaceList{}
+	opts := client.MatchingLabels{
+		coretypes.PartOfLabel: FluxNamespacePartOf,
+	}
+
+	var ns *corev1.Namespace
+
+	err := k8sClient.List(ctx, &namespaceList, opts)
+	if err != nil {
+		return "", fmt.Errorf("error getting list of objects")
+	} else {
+		for _, item := range namespaceList.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				ns = &item
+				break
+			}
+		}
+	}
+
+	if ns == nil {
+		return "", fmt.Errorf("no flux namespace found")
+	}
+
+	labels := ns.GetLabels()
+	if labels == nil {
+		return "", fmt.Errorf("error getting labels")
+	}
+
+	return ns.GetName(), nil
+}
+
 // GetSessionLogs returns the logs for a session.
 func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogsRequest) (*pb.GetSessionLogsResponse, error) {
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
@@ -54,22 +87,16 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	// cli will be scoped to the vcluster
 	virtualClusterName := msg.GetSessionNamespace() + "/" + msg.GetSessionId()
 	cli, err := clustersClient.Scoped(virtualClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
 
-	statefulSet := appsv1.StatefulSet{}
-	if err := cli.Get(ctx, client.ObjectKey{Name: msg.GetSessionId(), Namespace: msg.GetSessionNamespace()}, &statefulSet); err != nil {
-		return nil, fmt.Errorf("getting virtual cluster statefulset: %w", err)
-	}
-
-	var fluxNamespace string
-	if statefulSet.Annotations != nil {
-		fluxNamespace = statefulSet.Annotations["run.weave.works/flux-namespace"]
-	}
-	if fluxNamespace == "" {
+	fluxNamespace, err := cs.getFluxNamespace(ctx, cli)
+	if err != nil {
+		// assume flux-system if we can't find the flux namespace
 		fluxNamespace = "flux-system"
 	}
 
