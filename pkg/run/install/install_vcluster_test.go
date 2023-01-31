@@ -10,7 +10,12 @@ import (
 func TestMakeVClusterHelmReleaseAnnotations(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	hl, err := makeVClusterHelmRelease("name", "namespace", "command", []string{"9999", "1111"}, "automationKind")
+	hl, err := makeVClusterHelmRelease(
+		"name",
+		"namespace",
+		"flux-system",
+		"command", []string{"9999", "1111"},
+		"automationKind")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(hl.Name).To(Equal("name"))

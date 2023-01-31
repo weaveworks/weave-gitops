@@ -295,10 +295,9 @@ message ToggleSuspendResourceResponse {
 }
 
 message GetSessionLogsRequest {
-    string sessionId   = 1;
-    string token       = 2;
-    string clusterName = 3;
-    string namespace   = 4;
+    string sessionNamespace = 1;
+    string sessionId        = 2;
+    string token            = 3;
 }
 
 message LogEntry {

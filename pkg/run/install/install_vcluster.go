@@ -36,7 +36,7 @@ func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, err
 	return helmRepository, nil
 }
 
-func makeVClusterHelmRelease(name string, namespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
+func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -75,7 +75,8 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
     "run.weave.works/port-forward": "%s",
     "run.weave.works/command": "%s",
     "run.weave.works/automation-kind": "%s",
-    "run.weave.works/namespace": "%s"
+    "run.weave.works/namespace": "%s",
+    "run.weave.works/flux-namespace": "%s"
   },
   "mapServices": {
     "fromVirtual": [
@@ -91,6 +92,7 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
 				command,
 				automationKind,
 				namespace,
+				fluxNamespace,
 				watch.GitOpsRunNamespace,
 				watch.RunDevBucketName,
 				name,
@@ -101,7 +103,7 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
 	return helmRelease, nil
 }
 
-func installVCluster(kubeClient client.Client, name string, namespace string, portForwards []string, automationKind string) error {
+func installVCluster(kubeClient client.Client, name string, namespace string, fluxNamespace string, portForwards []string, automationKind string) error {
 	helmRepo, err := makeVClusterHelmRepository(namespace)
 	if err != nil {
 		return err
@@ -118,7 +120,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string, po
 	args := append([]string{filepath.Base(os.Args[0])}, os.Args[1:]...)
 	command := strings.Join(args, " ")
 
-	helmRelease, err := makeVClusterHelmRelease(name, namespace, command, portForwards, automationKind)
+	helmRelease, err := makeVClusterHelmRelease(name, namespace, fluxNamespace, command, portForwards, automationKind)
 	if err != nil {
 		return err
 	}

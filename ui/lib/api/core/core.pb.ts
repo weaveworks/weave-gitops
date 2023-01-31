@@ -140,10 +140,9 @@ export type ToggleSuspendResourceResponse = {
 }
 
 export type GetSessionLogsRequest = {
+  sessionNamespace?: string
   sessionId?: string
   token?: string
-  clusterName?: string
-  namespace?: string
 }
 
 export type LogEntry = {
