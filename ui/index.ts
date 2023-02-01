@@ -65,12 +65,17 @@ import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
 import {
+  Alert,
   Automation,
   Bucket,
+  FluxObject,
   GitRepository,
   HelmChart,
+  HelmRelease,
   HelmRepository,
+  Kustomization,
   OCIRepository,
+  Provider,
 } from "./lib/objects";
 import {
   clearCallbackState,
@@ -89,6 +94,7 @@ import Spacer from "./components/Spacer";
 import CustomActions from "./components/CustomActions";
 import RequestStateHandler from "./components/RequestStateHandler";
 import DirectedGraph from "./components/DirectedGraph";
+import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 
 export {
   AppContext,
@@ -99,6 +105,7 @@ export {
   AuthContextProvider,
   Automation,
   AutomationsTable,
+  Alert,
   Bucket,
   BucketDetail,
   Button,
@@ -117,6 +124,7 @@ export {
   filterByStatusCallback,
   filterConfig,
   FluxRuntime,
+  FluxObject,
   Footer,
   formatURL,
   getCallbackState,
@@ -126,6 +134,7 @@ export {
   GitRepositoryDetail,
   HelmChart,
   HelmRepository,
+  HelmRelease,
   HelmChartDetail,
   HelmReleaseDetail,
   HelmRepositoryDetail,
@@ -140,6 +149,7 @@ export {
   Kind,
   KubeStatusIndicator,
   KustomizationDetail,
+  Kustomization,
   Link,
   LinkResolverProvider,
   LoadingPage,
@@ -154,6 +164,8 @@ export {
   Page,
   PageStatus,
   Pendo,
+  Provider,
+  PARENT_CHILD_LOOKUP,
   ProviderDetail,
   ReconciledObjectsTable,
   RequestStateHandler,
