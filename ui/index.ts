@@ -16,12 +16,7 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
-<<<<<<< HEAD
 import InfoList, { InfoField } from "./components/InfoList";
-=======
-import InfoList from "./components/InfoList";
-import Input, { InputProps } from "./components/Input";
->>>>>>> 7d1d4389824634ebdaa7a95c96f448fe497a7360
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
@@ -35,11 +30,6 @@ import Page from "./components/Page";
 import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
-<<<<<<< HEAD
-import RepoInputWithAuth from "./components/RepoInputWithAuth";
-=======
-import ReconciliationGraph from "./components/ReconciliationGraph";
->>>>>>> 7d1d4389824634ebdaa7a95c96f448fe497a7360
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
@@ -58,16 +48,11 @@ import {
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
-<<<<<<< HEAD
 import {
   useListFluxCrds,
   useListFluxRuntimeObjects,
   useToggleSuspend,
 } from "./hooks/flux";
-import { useIsAuthenticated } from "./hooks/gitprovider";
-=======
-import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
->>>>>>> 7d1d4389824634ebdaa7a95c96f448fe497a7360
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
@@ -91,7 +76,6 @@ import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-<<<<<<< HEAD
 import Input, { InputProps } from "./components/Input";
 import PageStatus from "./components/PageStatus";
 import SyncButton from "./components/SyncButton";
@@ -100,8 +84,6 @@ import CustomActions from "./components/CustomActions";
 import RequestStateHandler from "./components/RequestStateHandler";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 import DirectedGraph from "./components/DirectedGraph";
-=======
->>>>>>> 7d1d4389824634ebdaa7a95c96f448fe497a7360
 
 export {
   AppContext,
@@ -168,12 +150,7 @@ export {
   PARENT_CHILD_LOOKUP,
   ProviderDetail,
   ReconciledObjectsTable,
-<<<<<<< HEAD
   RequestStateHandler,
-  RepoInputWithAuth,
-=======
-  ReconciliationGraph,
->>>>>>> 7d1d4389824634ebdaa7a95c96f448fe497a7360
   RouterTab,
   SignIn,
   SourceLink,
