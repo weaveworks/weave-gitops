@@ -32,7 +32,7 @@ export const Content = styled(Flex)`
 
 const Children = styled(Flex)``;
 
-function Errors({ error }) {
+export function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];
   if (arr[0])
     return (

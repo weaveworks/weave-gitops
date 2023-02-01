@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -264,12 +263,13 @@ func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Con
 	return kubeClient, cfg, nil
 }
 
-func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string, justInstalled bool, err error) {
+func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *install.FluxVersionInfo, justInstalled bool, err error) {
 	ctx := context.Background()
 
 	log.Actionf("Checking if Flux is already installed ...")
 
-	if fluxVersion, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
+	guessed := false
+	if fluxVersion, guessed, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
 
 		product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -280,18 +280,18 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 		if err != nil {
 			execPath, err = installer.Install(ctx, product)
 			if err != nil {
-				return "", false, err
+				return nil, false, err
 			}
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
 		flux, err := fluxexec.NewFlux(wd, execPath)
 		if err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
 		// This means that Flux logs will be printed to the console, but not be sent to S3
@@ -315,17 +315,33 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 				fluxexec.Timeout(flags.Timeout),
 			),
 		); err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
-		fluxVersion = flags.FluxVersion
-
-		return fluxVersion, true, nil
+		return &install.FluxVersionInfo{
+			FluxVersion:   flags.FluxVersion,
+			FluxNamespace: flags.Namespace,
+		}, true, nil
 	} else {
-		log.Successf("Flux version %s is found", fluxVersion)
+		if guessed {
+			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+		} else {
+			log.Successf("Flux %s is already installed", fluxVersion)
+		}
 	}
 
 	return fluxVersion, false, nil
+}
+
+func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
+	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, watch.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
+
+	if err != nil {
+		log.Failuref("Fluent Bit installation failed: %v", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (bool, []byte, string, error) {
@@ -435,10 +451,13 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	// showing Flux installation twice is confusing
 	log := logger.NewCLILogger(io.Discard)
 
-	var fluxJustInstalled bool
+	var (
+		fluxJustInstalled bool
+		fluxVersionInfo   *install.FluxVersionInfo
+	)
 
-	if _, fluxJustInstalled, err = fluxStep(log, kubeClient); err != nil {
-		return fmt.Errorf("failed to install Flux on the host cluster: %v", err)
+	if fluxVersionInfo, fluxJustInstalled, err = fluxStep(log, kubeClient); err != nil {
+		return fmt.Errorf("failed to detect or install Flux on the host cluster: %v", err)
 	}
 
 	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
@@ -475,6 +494,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		kubeClient,
 		flags.SessionName,
 		flags.SessionNamespace,
+		fluxVersionInfo.FluxNamespace, // flux namespace of the session
 		portForwardsForSession,
 		dashboardHashedPassword,
 		kind,
@@ -601,10 +621,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	var (
 		fluxJustInstalled bool
-		fluxVersion       string
+		fluxVersionInfo   *install.FluxVersionInfo
 	)
 
-	fluxVersion, fluxJustInstalled, err = fluxStep(log0, kubeClient)
+	fluxVersionInfo, fluxJustInstalled, err = fluxStep(log0, kubeClient)
 
 	if err != nil {
 		cancel()
@@ -653,10 +673,32 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert, log0)
+	minioClient, err := s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.SessionLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.PodLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	log, err := logger.NewS3LogWriter(minioClient, sessionName, log0)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("failed creating S3 log writer: %w", err)
+	}
+
+	// ====================== Fluent-Bit =====================
+	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+		cancel()
+		return err
 	}
 
 	// ====================== Dashboard ======================
@@ -714,7 +756,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
+	minioClient, err = s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
 	if err != nil {
 		cancel()
 		return err
@@ -804,7 +846,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersion); err != nil {
+						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersionInfo.FluxVersion); err != nil {
 							log.Failuref("Validation failed: please review the errors and try again: %v", err)
 							continue
 						}

@@ -19,8 +19,6 @@ var (
 )
 
 type Config struct {
-	AppConfig        *ApplicationsConfig
-	AppOptions       []ApplicationsOption
 	CoreServerConfig core.CoreServerConfig
 	AuthServer       *auth.AuthServer
 }

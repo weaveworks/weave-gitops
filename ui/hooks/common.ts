@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { GitProvider } from "../lib/api/applications/applications.pb";
 import { RequestError } from "../lib/types";
 
 export default function useCommon() {
@@ -14,15 +13,6 @@ export type RequestState<T> = {
   error: RequestError;
   loading: boolean;
 };
-
-type RequestWithToken<T> = (provider: GitProvider, body: T) => void;
-
-export type RequestStateWithToken<Req, Res> = [
-  res: Res,
-  loading: boolean,
-  error: RequestError,
-  req: RequestWithToken<Req>
-];
 
 export type ReturnType<T> = [T, boolean, RequestError, (p: Promise<T>) => void];
 
@@ -61,14 +51,4 @@ export function useDebounce<T>(value: T, delay: number) {
   }, [value, delay]);
 
   return debouncedValue;
-}
-
-const providerTokenHeaderName = "Git-Provider-Token";
-
-export function makeHeaders(tokenGetter: () => string) {
-  const token = tokenGetter();
-
-  return new Headers({
-    [providerTokenHeaderName]: `token ${token}`,
-  });
 }

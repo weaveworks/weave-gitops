@@ -1,0 +1,177 @@
+---
+title: Weave GitOps
+sidebar_position: 2
+hide_title: true
+pagination_next: "getting-started"
+---
+
+## Installing Weave GitOps
+
+### Before you begin
+
+We will provide a complete walk-through of getting Flux installed and Weave GitOps configured. However, if you have:
+- an existing cluster bootstrapped Flux version >= 0.32.0 🎉
+- followed our [installation](./index.mdx) doc to configure access to the Weave GitOps dashboard then install Weave GitOps 👏
+
+Then you can skip ahead to [the Weave GitOps overview](../getting-started.mdx#part-1---weave-gitops-overview) 🏃
+but note ⚠️ you may need to alter commands where we are committing files to GitHub ⚠️.
+
+To follow along, you will need the following:
+- A Kubernetes cluster - such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/).
+- A [GitHub](https://github.com) account and [personal access token with repo permissions](https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
+
+#### Install Flux
+
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.32 or later has already been installed on your Kubernetes cluster. Full documentation is available at: [https://fluxcd.io/docs/installation/](https://fluxcd.io/docs/installation/).
+
+This version of Weave GitOps is tested against the following Flux releases:
+* 0.32
+* 0.33
+* 0.34
+* 0.35
+* 0.36
+
+1. Install the flux CLI
+
+   ```
+   brew install fluxcd/tap/flux
+   ```
+
+   For other installation methods, see the relevant [Flux documentation](https://fluxcd.io/docs/installation/#install-the-flux-cli).
+
+1. Export your credentials
+
+   ```
+   export GITHUB_TOKEN=<your-token>
+   export GITHUB_USER=<your-username>
+   ```
+
+1. Check your Kubernetes cluster
+
+   ```
+   flux check --pre
+   ```
+
+   The output is similar to:
+   ```
+   ► checking prerequisites
+   ✔ kubernetes 1.22.2 >=1.20.6
+   ✔ prerequisites checks passed
+   ```
+
+1. Install Flux onto your cluster with the `flux bootstrap` command
+
+   ```
+   flux bootstrap github \
+     --owner=$GITHUB_USER \
+     --repository=fleet-infra \
+     --branch=main \
+     --path=./clusters/my-cluster \
+     --personal
+   ```
+
+Full installation documentation including how to work with other Git providers is available [here](https://fluxcd.io/docs/installation/).
+
+The bootstrap command above does the following:
+
+- Create a git repository fleet-infra on your GitHub account
+- Add Flux component manifests to the repository
+- Deploy Flux Components to your Kubernetes Cluster
+- Configure Flux components to track the path /clusters/my-cluster/ in the repository
+
+### Install Weave GitOps
+
+For this guide we will use the cluster user, for complete documentation including how to configure an OIDC provider see the documentation [here](../configuration/securing-access-to-the-dashboard.mdx).
+
+#### gitops CLI
+
+Weave GitOps includes a command-line interface to help users create and manage resources.
+
+:::note Installation options
+The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
+
+Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+:::
+
+There are multiple ways to install the `gitops` CLI:
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs groupId="installation" default>
+<TabItem value="curl" label="curl">
+
+```bash
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.15.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+</TabItem>
+<TabItem value="homebrew" label="Homebrew">
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/gitops
+```
+
+</TabItem>
+</Tabs>
+
+### Deploying Weave GitOps
+
+1. Clone your git repository where Flux has been bootstrapped.
+
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
+
+1. Run the following command which will create a `HelmRepository` and `HelmRelease` to deploy Weave GitOps
+
+   ```
+   PASSWORD="<your password>"
+   gitops create dashboard ww-gitops \
+     --password=$PASSWORD \
+     --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
+   ```
+
+:::warning
+This command stores a hash of a password.  While this is relatively safe for demo and testing purposes it is recommend that you look at more secure methods of storing secrets (such as [Flux's SOPS integration](https://fluxcd.io/docs/guides/mozilla-sops/)) for production systems.
+
+More guidance and alternative login methods can be found in [Securing access to the dashboard](../../configuration/securing-access-to-the-dashboard).
+:::
+
+1. Commit and push the `weave-gitops-dashboard.yaml` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add Weave GitOps Dashboard"
+   git push
+   ```
+
+1. Validate that Weave GitOps and Flux are installed
+
+   ```
+   kubectl get pods -n flux-system
+   ```
+
+   You should see something similar to:
+
+   ```
+   NAME                                       READY   STATUS    RESTARTS   AGE
+   helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
+   kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
+   notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
+   source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
+   ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
+   ```
+
+:::info
+There's many other things you can configure in the weave gitops helm chart. For a reference, see [our value file reference](../references/helm-reference.md).
+:::
+
+
+## Next steps
+
+In our following [Get Started document](../getting-started.mdx), we will walk you through logging into the GitOps Dashboard and deploying an application.

@@ -6,15 +6,17 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/fluxcd/go-git-providers/stash"
 )
 
 // GitProviderName holds a Git provider definition.
 type GitProviderName string
 
 const (
-	GitProviderGitHub GitProviderName = "github"
-	GitProviderGitLab GitProviderName = "gitlab"
-	tokenTypeOauth    string          = "oauth2"
+	GitProviderGitHub          GitProviderName = "github"
+	GitProviderGitLab          GitProviderName = "gitlab"
+	GitProviderBitBucketServer GitProviderName = "bitbucket-server"
+	tokenTypeOauth             string          = "oauth2"
 )
 
 // Config defines the configuration for connecting to a GitProvider.
@@ -29,6 +31,10 @@ type Config struct {
 	// Token contains the token used to authenticate with the
 	// Provider.
 	Token string
+
+	// Username contains the username needed for git operations
+	// in the BitBucket Server git provider.
+	Username string
 }
 
 func buildGitProvider(config Config) (gitprovider.Client, string, error) {
@@ -71,6 +77,24 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		}
 
 		if client, err := gitlab.NewClient(config.Token, tokenTypeOauth, opts...); err != nil {
+			return nil, "", err
+		} else {
+			return client, hostname, nil
+		}
+	case GitProviderBitBucketServer:
+		if config.Username == "" {
+			return nil, "", fmt.Errorf("the BitBucket Server git provider requires a username to be set")
+		}
+
+		opts := []gitprovider.ClientOption{
+			gitprovider.WithOAuth2Token(config.Token),
+			gitprovider.WithConditionalRequests(true),
+		}
+
+		hostname := "https://" + config.Hostname
+		opts = append(opts, gitprovider.WithDomain(hostname))
+
+		if client, err := stash.NewStashClient(config.Username, config.Token, opts...); err != nil {
 			return nil, "", err
 		} else {
 			return client, hostname, nil

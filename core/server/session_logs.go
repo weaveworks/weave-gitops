@@ -2,13 +2,18 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,23 +48,59 @@ type bucketConnectionInfo struct {
 	bucketInsecure bool
 }
 
+func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Client) (string, error) {
+	namespaceList := corev1.NamespaceList{}
+	opts := client.MatchingLabels{
+		coretypes.PartOfLabel: FluxNamespacePartOf,
+	}
+
+	var ns *corev1.Namespace
+
+	err := k8sClient.List(ctx, &namespaceList, opts)
+	if err != nil {
+		return "", fmt.Errorf("error getting list of objects")
+	} else {
+		for _, item := range namespaceList.Items {
+			if item.GetLabels()[flux.VersionLabelKey] != "" {
+				ns = &item
+				break
+			}
+		}
+	}
+
+	if ns == nil {
+		return "", fmt.Errorf("no flux namespace found")
+	}
+
+	labels := ns.GetLabels()
+	if labels == nil {
+		return "", fmt.Errorf("error getting labels")
+	}
+
+	return ns.GetName(), nil
+}
+
 // GetSessionLogs returns the logs for a session.
 func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogsRequest) (*pb.GetSessionLogsResponse, error) {
-	const (
-		bucketName = "gitops-run-logs"
-	)
-
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	cli, err := clustersClient.Scoped(msg.GetClusterName())
+	// cli will be scoped to the vcluster
+	virtualClusterName := msg.GetSessionNamespace() + "/" + msg.GetSessionId()
+	cli, err := clustersClient.Scoped(virtualClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("getting cluster client: %w", err)
 	}
 
-	info, err := getBucketConnectionInfo(ctx, msg.GetNamespace(), cli)
+	fluxNamespace, err := cs.getFluxNamespace(ctx, cli)
+	if err != nil {
+		// assume flux-system if we can't find the flux namespace
+		fluxNamespace = "flux-system"
+	}
+
+	info, err := getBucketConnectionInfo(ctx, virtualClusterName, fluxNamespace, cli)
 	if err != nil {
 		return nil, err
 	}
@@ -76,13 +117,25 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		return nil, err
 	}
 
-	logs, lastToken, err := getLogs(ctx, msg.GetSessionId(), msg.GetToken(), asS3Reader(minioClient), bucketName)
+	logs, lastToken, err := getLogs(ctx, msg.GetSessionId(), msg.GetToken(), asS3Reader(minioClient), logger.SessionLogBucketName)
 	if err != nil {
 		return nil, err
 	}
 
+	logEntries := []*pb.LogEntry{}
+
+	for _, log := range logs {
+		logEntry := &pb.LogEntry{}
+		err = json.Unmarshal([]byte(log), &logEntry)
+		if err != nil {
+			return nil, err
+		}
+
+		logEntries = append(logEntries, logEntry)
+	}
+
 	return &pb.GetSessionLogsResponse{
-		Logs:      logs,
+		Logs:      logEntries,
 		NextToken: lastToken,
 	}, nil
 }
@@ -123,16 +176,16 @@ func getLogs(ctx context.Context, sessionID string, nextToken string, minioClien
 	return logs, lastToken, nil
 }
 
-func getBucketConnectionInfo(ctx context.Context, namespace string, cli client.Client) (*bucketConnectionInfo, error) {
-	const sourceName = "run-dev-bucket"
+func getBucketConnectionInfo(ctx context.Context, clusterName string, fluxNamespace string, cli client.Client) (*bucketConnectionInfo, error) {
 
+	const sourceName = "run-dev-bucket"
 	var secretName = sourceName + "-credentials"
 
 	// get secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
-			Namespace: namespace,
+			Namespace: fluxNamespace,
 		},
 	}
 
@@ -145,7 +198,7 @@ func getBucketConnectionInfo(ctx context.Context, namespace string, cli client.C
 	bucket := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      sourceName,
-			Namespace: namespace,
+			Namespace: fluxNamespace,
 		},
 	}
 
@@ -153,10 +206,29 @@ func getBucketConnectionInfo(ctx context.Context, namespace string, cli client.C
 		return nil, err
 	}
 
+	// Endpoint format
+	// fmt.Sprintf("%s.%s.svc.cluster.local:%d", RunDevBucketName, GitOpsRunNamespace, params.DevBucketPort),
+	bucketEndpoint := bucket.Spec.Endpoint
+	if clusterName != "Default" {
+		parts := strings.Split(clusterName, "/")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid cluster name for vcluster session: %s", clusterName)
+		}
+		sessionNamespace := parts[0]
+		sessionName := parts[1]
+
+		parts = strings.Split(bucket.Spec.Endpoint, ":")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid bucket endpoint for vcluster session: %s", bucketEndpoint)
+		}
+		port := parts[1]
+		bucketEndpoint = fmt.Sprintf("%s-bucket.%s.svc:%s", sessionName, sessionNamespace, port)
+	}
+
 	return &bucketConnectionInfo{
 		accessKey:      string(secret.Data["accesskey"]),
 		secretKey:      string(secret.Data["secretkey"]),
-		bucketEndpoint: bucket.Spec.Endpoint,
+		bucketEndpoint: bucketEndpoint,
 		bucketInsecure: bucket.Spec.Insecure,
 	}, nil
 }

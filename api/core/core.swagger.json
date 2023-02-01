@@ -50,6 +50,37 @@
         ]
       }
     },
+    "/v1/crd/is_available": {
+      "get": {
+        "summary": "IsCRDAvailable returns with a hashmap where the keys are the names of\nthe clusters, and the value is a boolean indicating whether given CRD is\ninstalled or not on that cluster.",
+        "operationId": "Core_IsCRDAvailable",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1IsCRDAvailableResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/events": {
       "get": {
         "summary": "ListEvents returns with a list of events",
@@ -724,16 +755,13 @@
     "v1GetSessionLogsRequest": {
       "type": "object",
       "properties": {
+        "sessionNamespace": {
+          "type": "string"
+        },
         "sessionId": {
           "type": "string"
         },
         "token": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "namespace": {
           "type": "string"
         }
       }
@@ -744,10 +772,13 @@
         "logs": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/v1LogEntry"
           }
         },
         "nextToken": {
+          "type": "string"
+        },
+        "error": {
           "type": "string"
         }
       }
@@ -789,6 +820,17 @@
         }
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
+    },
+    "v1IsCRDAvailableResponse": {
+      "type": "object",
+      "properties": {
+        "clusters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      }
     },
     "v1ListError": {
       "type": "object",
@@ -894,6 +936,23 @@
           "items": {
             "$ref": "#/definitions/v1ListError"
           }
+        }
+      }
+    },
+    "v1LogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },

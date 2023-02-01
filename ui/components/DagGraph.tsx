@@ -123,6 +123,7 @@ function DagGraph({ className, nodes }: Props) {
                 // M tells the path where to start,
                 // H draws a straight horizontal line (capital letter means absolute coordinates),
                 // and v draws a straight vertical line (lowercase letter means relative to current position)
+
                 return (
                   <g key={index}>
                     <path
@@ -133,9 +134,7 @@ function DagGraph({ className, nodes }: Props) {
                       l${arrowHalfWidth}, ${nodeSize.arrowHeight}`}
                     />
                     <path
-                      d={`M${l.source.x}, ${
-                        l.source.y + nodeSize.height + linkStrokeWidth * 2
-                      }
+                      d={`M${l.source.x}, ${l.source.y + nodeSize.height}
                       L${l.target.x}, ${l.target.y - verticalSeparationHalf}
                       v${verticalSeparationHalf}`}
                     />
