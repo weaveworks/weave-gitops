@@ -93,8 +93,8 @@ import SyncButton from "./components/SyncButton";
 import Spacer from "./components/Spacer";
 import CustomActions from "./components/CustomActions";
 import RequestStateHandler from "./components/RequestStateHandler";
-import DirectedGraph from "./components/DirectedGraph";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
+import DirectedGraph from "./components/DirectedGraph";
 
 export {
   AppContext,
