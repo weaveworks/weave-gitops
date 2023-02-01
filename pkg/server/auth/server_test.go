@@ -1034,17 +1034,15 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 			},
 		},
 		{
-			name: "audiences",
+			name: "audience parsing",
 			data: map[string][]byte{
 				"issuerURL":    []byte("https://example.com/test"),
 				"audiences":    []byte("aud-1,aud-2"),
-				"clientID":     []byte("test-client-id"),
 				"clientSecret": []byte("test-client-secret"),
 				"redirectURL":  []byte("https://example.com/redirect"),
 			},
 			want: auth.OIDCConfig{
 				IssuerURL:     "https://example.com/test",
-				ClientID:      "test-client-id",
 				ClientSecret:  "test-client-secret",
 				RedirectURL:   "https://example.com/redirect",
 				TokenDuration: time.Hour * 1,

@@ -110,6 +110,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+	cmd.Flags().StringSliceVar(&options.OIDC.Audiences, "oidc-audiences", nil, "The allowed audiences for the OIDC auth token")
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Username, "oidc-username-claim", auth.ClaimUsername, "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Groups, "oidc-groups-claim", auth.ClaimGroups, "JWT claim to use as the user's group. If the claim is present it must be an array of strings")

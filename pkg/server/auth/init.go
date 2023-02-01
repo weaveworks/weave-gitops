@@ -46,7 +46,9 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		}
 
 		if oidcConfig.ClientSecret != "" {
-			log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL, "ClientID", oidcConfig.ClientID, "ClientSecretLength", len(oidcConfig.ClientSecret), "RedirectURL", oidcConfig.RedirectURL, "TokenDuration", oidcConfig.TokenDuration)
+			log.V(logger.LogLevelDebug).Info("OIDC config", "IssuerURL", oidcConfig.IssuerURL,
+				"clientID", oidcConfig.ClientID, "clientSecretLength", len(oidcConfig.ClientSecret),
+				"redirectURL", oidcConfig.RedirectURL, "tokenDuration", oidcConfig.TokenDuration, "audiences", oidcConfig.Audiences)
 		}
 	} else {
 		// Make sure there is no OIDC config if it's not an enabled authorization method

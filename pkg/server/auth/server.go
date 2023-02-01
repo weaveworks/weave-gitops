@@ -107,7 +107,7 @@ type UserInfo struct {
 // - claimUsername - defaults to "email"
 // - claimGroups - defaults to "groups"
 // - customScopes - defaults to []
-// - audiences - defaults to nil
+// - audiences - defaults to [clientID]
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
@@ -255,7 +255,7 @@ func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
 func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
 	requestScopes := []string{}
 	// Ensure "openid" scope is always present.
-	if !contains(scopes, oidc.ScopeOpenID) {
+	if !stringsContain(scopes, oidc.ScopeOpenID) {
 		requestScopes = append(requestScopes, oidc.ScopeOpenID)
 	}
 
@@ -630,16 +630,6 @@ type SessionState struct {
 	ReturnURL string `json:"return_url"`
 }
 
-func contains(ss []string, s string) bool {
-	for _, v := range ss {
-		if v == s {
-			return true
-		}
-	}
-
-	return false
-}
-
 func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -668,4 +658,14 @@ func findAuthCookie(req *http.Request) (*http.Cookie, error) {
 	}
 
 	return nil, http.ErrNoCookie
+}
+
+func stringsContain(ss []string, s string) bool {
+	for _, v := range ss {
+		if v == s {
+			return true
+		}
+	}
+
+	return false
 }

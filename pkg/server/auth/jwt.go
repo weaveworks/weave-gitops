@@ -21,7 +21,9 @@ type PrincipalGetter interface {
 	Principal(r *http.Request) (*UserPrincipal, error)
 }
 
-type tokenVerifier interface {
+// JWTTokenVerifier implementations verify a string containing a JWT token and
+// return a parsed version of the token post-verification.
+type JWTTokenVerifier interface {
 	Verify(ctx context.Context, rawIDToken string) (*oidc.IDToken, error)
 }
 
@@ -29,14 +31,14 @@ type tokenVerifier interface {
 // and returns a principal object.
 type JWTCookiePrincipalGetter struct {
 	log        logr.Logger
-	verifier   tokenVerifier
+	verifier   JWTTokenVerifier
 	cookieName string
 	oidcConfig OIDCConfig
 }
 
 // NewJWTCookiePrincipalGetter looks for a cookie in the provided name and
 // treats that as a JWT token that can be decoded to a Principal.
-func NewJWTCookiePrincipalGetter(log logr.Logger, verifier tokenVerifier, cookieName string, config OIDCConfig) PrincipalGetter {
+func NewJWTCookiePrincipalGetter(log logr.Logger, verifier JWTTokenVerifier, cookieName string, config OIDCConfig) PrincipalGetter {
 	return &JWTCookiePrincipalGetter{
 		log:        log,
 		verifier:   verifier,
@@ -61,11 +63,11 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 // object.
 type JWTAuthorizationHeaderPrincipalGetter struct {
 	log        logr.Logger
-	verifier   tokenVerifier
+	verifier   JWTTokenVerifier
 	oidcConfig OIDCConfig
 }
 
-func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier tokenVerifier, config OIDCConfig) PrincipalGetter {
+func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier JWTTokenVerifier, config OIDCConfig) PrincipalGetter {
 	return &JWTAuthorizationHeaderPrincipalGetter{
 		log:        log,
 		verifier:   verifier,
@@ -99,13 +101,22 @@ func extractToken(s string) string {
 	return strings.TrimSpace(parts[1])
 }
 
-func parseJWTToken(ctx context.Context, verifier tokenVerifier, rawIDToken string, cc OIDCConfig) (*UserPrincipal, error) {
+func parseJWTToken(ctx context.Context, verifier JWTTokenVerifier, rawIDToken string, oc OIDCConfig) (*UserPrincipal, error) {
 	token, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
 	}
 
-	return cc.ClaimsConfig.PrincipalFromClaims(token)
+	if oc.Audiences != nil {
+		for _, aud := range oc.Audiences {
+			if !stringsContain(token.Audience, aud) {
+				// Do not add the valid audiences to this it would be exposing data
+				return nil, fmt.Errorf("token audience %q is not valid for this request", strings.Join(token.Audience, ", "))
+			}
+		}
+	}
+
+	return oc.ClaimsConfig.PrincipalFromClaims(token)
 }
 
 type JWTAdminCookiePrincipalGetter struct {

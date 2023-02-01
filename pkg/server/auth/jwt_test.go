@@ -81,6 +81,12 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 			oidcConfig: auth.OIDCConfig{ClaimsConfig: &auth.ClaimsConfig{Groups: "test_groups"}},
 			want:       &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"test-group1", "test-group2"}},
 		},
+		{
+			name:          "configured audience",
+			authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"),
+			oidcConfig:    auth.OIDCConfig{ClaimsConfig: &auth.ClaimsConfig{Groups: "test_groups"}, Audiences: []string{"test-service"}},
+			want:          &auth.UserPrincipal{ID: "example@example.com", Groups: []string{}},
+		},
 
 		{"no auth header value", "", auth.OIDCConfig{}, nil},
 	}
@@ -97,6 +103,39 @@ func TestJWTAuthorizationHeaderPrincipalGetter(t *testing.T) {
 			}
 			if diff := cmp.Diff(tt.want, principal, allowUnexportedPrincipal()); diff != "" {
 				t.Fatalf("failed to get principal:\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestJWTPrincipalErrors(t *testing.T) {
+	privKey := testutils.MakeRSAPrivateKey(t)
+
+	authTests := []struct {
+		name          string
+		getter        func(logr.Logger, auth.JWTTokenVerifier, auth.OIDCConfig) auth.PrincipalGetter
+		authorization string
+		oidcConfig    auth.OIDCConfig
+		wantErr       string
+	}{
+		{
+			name:          "Invalid audience",
+			getter:        auth.NewJWTAuthorizationHeaderPrincipalGetter,
+			oidcConfig:    auth.OIDCConfig{Audiences: []string{"test-1"}},
+			authorization: "Bearer " + testutils.MakeJWToken(t, privKey, "example@example.com"),
+			wantErr:       "token audience \"test-service\" is not valid for this request",
+		},
+	}
+
+	for _, tt := range authTests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := testutils.MakeKeysetServer(t, privKey)
+			keySet := oidc.NewRemoteKeySet(oidc.ClientContext(context.TODO(), srv.Client()), srv.URL)
+			verifier := oidc.NewVerifier("http://127.0.0.1:5556/dex", keySet, &oidc.Config{ClientID: "test-service"})
+
+			_, err := tt.getter(logr.Discard(), verifier, tt.oidcConfig).Principal(makeAuthenticatedRequest(tt.authorization))
+			if msg := err.Error(); msg != tt.wantErr {
+				t.Fatalf("got error %q, want %q", msg, tt.wantErr)
 			}
 		})
 	}
