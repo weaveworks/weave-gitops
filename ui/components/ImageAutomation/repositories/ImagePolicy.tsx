@@ -30,17 +30,18 @@ function getInfoItems(data: FluxObject): InfoField[] {
 }
 
 const ImagePolicy = ({ name, namespace, clusterName }: Props) => {
-  const { data, isLoading, error } = useGetObject<FluxObject>(
+  const { data, isLoading } = useGetObject<FluxObject>(
     name,
     namespace,
     Kind.ImagePolicy,
     clusterName,
     {
+      retry: false,
       refetchInterval: 5000,
     }
   );
   return (
-    <RequestStateHandler loading={isLoading} error={error}>
+    <RequestStateHandler loading={isLoading} error={null}>
       {!!data && (
         <Flex wide tall column>
           <Text size="large" semiBold titleHeight>
