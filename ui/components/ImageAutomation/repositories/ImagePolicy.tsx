@@ -17,8 +17,8 @@ type Props = {
 };
 
 function getInfoItems(data: FluxObject): InfoField[] {
-  const [imgPolicy] = Object.keys(_.get(data, ["obj", "spec", "policy"]));
-  const val = Object.values(_.get(data, ["obj", "spec", "policy", imgPolicy]));
+  const [imgPolicy] = _.keys(_.get(data, ["obj", "spec", "policy"]));
+  const val = _.values(_.get(data, ["obj", "spec", "policy", imgPolicy]));
 
   return [
     ["Image Policy", imgPolicy],
