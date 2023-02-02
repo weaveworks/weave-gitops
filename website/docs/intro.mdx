@@ -1,0 +1,98 @@
+---
+title: Introduction
+hide_title: true
+---
+
+# Weave GitOps
+
+Weave GitOps is a powerful extension to [Flux][flux], a leading GitOps engine and
+CNCF project. Weave GitOps provides insights into your application deployments,
+and makes continuous delivery with GitOps easier to adopt and scale across your teams.
+
+Its web UI surfaces key information to help application operators easily discover
+and resolve issues. The intuitive interface provides a guided experience to build
+understanding and simplify getting started for new users; they can easily discover
+the relationship between Flux objects and navigate to deeper levels of information as required.
+
+Weave GitOps is an open source project sponsored by [Weaveworks](https://weave.works) - the GitOps company,
+and original creators of [Flux][flux].
+
+## Getting Started
+
+To start your own journey with Weave GitOps, please see [Installation](./installation/index.mdx) and [Getting Started](./getting-started.mdx).
+
+Here is a quick demo of what you can look forward to:
+
+import ReactPlayer from "react-player/lazy";
+
+<div class="player-wrapper">
+  <ReactPlayer
+    class="react-player"
+    controls="true" width="100%" height="100%"
+    url="https://www.youtube.com/watch?v=2TJz7RhDtAc" />
+</div>
+
+## Features
+
+OSS Weave GitOps has a number of awesome features to take your team beyond a simple CI/CD system.
+
+- :female-construction-worker: Drill down into more detailed information on any given Flux resource.
+- :mag: Uncover relationships between resources and quickly navigate between them.
+- :thinking_face: Understand how workloads are reconciled through a directional graph.
+- :goggles: View Kubernetes events relating to a given object to understand issues and changes.
+- :no_pedestrians: Secure access to the dashboard through the ability to integrate with an OIDC provider (such as Dex) or through a configurable cluster user.
+- :link: Fully integrates with [Flux](https://fluxcd.io/docs/) as the GitOps engine to provide:
+  - :infinity: Continuous Delivery through GitOps for apps and infrastructure
+  - :jigsaw: Support for GitHub, GitLab, Bitbucket, and even use s3-compatible buckets as a source; all major container registries; and all CI workflow providers.
+  - :key: A secure, pull-based mechanism, operating with least amount of privileges, and adhering to Kubernetes security policies.
+  - :electric_plug: Compatible with any conformant [Kubernetes version](https://fluxcd.io/docs/installation/#prerequisites) and common ecosystem technologies such as Helm, Kustomize, RBAC, Prometheus, OPA, Kyverno, etc.
+  - :office: Multitenancy, multiple git repositories, multiple clusters
+  - :exclamation: Alerts and notifications
+
+## Weave GitOps Enterprise
+
+import Link from '@docusaurus/Link';
+
+Need even more GitOps? <Link to="../intro-ee">**Weave GitOps Enterprise Edition (WGEE)**</Link> has all the features
+listed above, plus many more.
+
+WGEE provides ops teams with an easy way to assess the
+health of multiple clusters in a single place. It shows cluster information such as
+Kubernetes version and number of nodes and provides details about the GitOps operations
+on those clusters, such as Git repositories and recent commits. Additionally, it
+aggregates Prometheus alerts to assist with troubleshooting.
+
+- :boat: **Cluster Fleet Management**
+- :closed_lock_with_key: **Trusted Application Delivery**
+- :black_right_pointing_double_triangle_with_vertical_bar: **Progressive Delivery**
+- :point_up_2: **Self-Service Templates and Profiles**
+- :sparkling_heart: **Health Status and Compliance Dashboards**
+- :factory_worker::female-factory-worker: **Team Workspaces**
+- :compass: **Kubernetes Anywhere**
+- :bell: **Critical 24/7 Support**
+- :infinity: **CD Pipelines**
+
+:::tip Want to learn more about how <Link to="../intro-ee">Weave GitOps Enterprise Edition</Link> can help your team?
+Get in touch with sales@weave.works to discuss your needs.
+:::
+
+## Why adopt GitOps?
+
+> "GitOps is the best thing since configuration as code. Git changed how we collaborate, but declarative configuration is the key to dealing with infrastructure at scale, and sets the stage for the next generation of management tools"
+
+<cite>- Kelsey Hightower, Staff Developer Advocate, Google.</cite><br/><br/>
+
+Adopting GitOps can bring a number of key benefits:
+
+- Faster and more frequent deployments
+- Easy recovery from failures
+- Improved security and auditability
+
+To learn more about GitOps, check out these resources:
+
+- [GitOps for absolute beginners](https://go.weave.works/WebContent-EB-GitOps-for-Beginners.html) - eBook from Weaveworks
+- [Guide to GitOps](https://www.weave.works/technologies/gitops/) - from Weaveworks
+- [OpenGitOps](https://opengitops.dev/) - CNCF Sandbox project aiming to define a vendor-neutral, principle-led meaning of GitOps.
+- [gitops.tech](https://www.gitops.tech/) - supported by Innoq
+
+[flux]: https://fluxcd.io
