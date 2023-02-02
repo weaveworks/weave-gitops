@@ -1,3 +1,4 @@
+import _ from "lodash";
 import React from "react";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
@@ -14,9 +15,10 @@ type Props = {
   namespace: string;
   clusterName: string;
 };
-function getInfoItems(data: any): InfoField[] {
-  const [imgPolicy] = Object.keys(data.obj.spec.policy);
-  const val = Object.values(data.obj.spec.policy[imgPolicy]);
+
+function getInfoItems(data: FluxObject): InfoField[] {
+  const [imgPolicy] = _.keys(_.get(data, ["obj", "spec", "policy"]));
+  const val = _.values(_.get(data, ["obj", "spec", "policy", imgPolicy]));
 
   return [
     ["Image Policy", imgPolicy],

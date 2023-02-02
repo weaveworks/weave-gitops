@@ -36,7 +36,7 @@ function getInfoList(
     ],
     ["Update Path", path],
     ["Checkout Branch", checkout?.ref?.branch],
-    ["Push Branch", push.branch],
+    ["Push Branch", push?.branch],
     ["Author Name", commit.author?.name],
     ["Author Email", commit.author?.email],
     ["Commit Template", <code> {commit.messageTemplate}</code>],
