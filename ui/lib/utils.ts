@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
@@ -176,4 +177,27 @@ export function getAppVersion(
     versionText,
     versionHref,
   };
+}
+
+// formatLogTimestamp formats a timestamp string in the RFC3339 format
+// to a human-readable format with UTC offset.
+// If the timestamp is undefined or an empty string, it returns "-".
+export function formatLogTimestamp(timestamp?: string, zone?: string): string {
+  if (!timestamp) {
+    return "-";
+  }
+
+  let dt = DateTime.fromISO(timestamp);
+
+  if (zone) {
+    dt = dt.setZone(zone);
+  }
+
+  let formattedTimestamp = `${dt.toFormat("yyyy-LL-dd HH:MM:ss 'UTC'Z")}`;
+
+  if (dt.offset === 0) {
+    formattedTimestamp = formattedTimestamp.replace("UTC+0", "UTC");
+  }
+
+  return formattedTimestamp;
 }

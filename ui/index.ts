@@ -67,7 +67,12 @@ import {
 } from "./lib/objects";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
+import {
+  formatLogTimestamp,
+  isAllowedLink,
+  poller,
+  statusSortHelper,
+} from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
 export {
@@ -92,6 +97,7 @@ export {
   filterConfig,
   FluxRuntime,
   Footer,
+  formatLogTimestamp,
   formatURL,
   GitRepository,
   GitRepositoryDetail,
