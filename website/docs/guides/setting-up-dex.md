@@ -44,6 +44,11 @@ We can get a GitHub ClientID and Client secret by creating a
 
 ![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
 
+Copy the 'Client ID' from your newly created OAuth Application page. Generate a
+new client secret and copy that too. Use those values to create a new secret.
+_We will be using the secret name in the next step, so if you change it you'll
+need to edit the yaml file too._
+
 ```bash
 kubectl create secret generic github-client \
   --namespace=dex \
@@ -57,8 +62,14 @@ kubectl create secret generic github-client \
 
 ## Deploy Dex
 
-As we did before, we can use `HelmRepository` and `HelmRelease` objects to let
-Flux deploy everything.
+As we did in the [Getting Started](../getting-started/intro.mdx) guide, we can
+use `HelmRepository` and `HelmRelease` objects to let Flux deploy everything.
+
+Add the yaml below to your GitOps repo. If you are following on from the
+[Getting Started](../getting-started/intro.mdx) guide, this could be placed at
+`clusters/my-cluster/dex.yaml`.
+
+<details><summary>Expand for file contents</summary>
 
 ```yaml
 ---
@@ -81,7 +92,7 @@ spec:
   chart:
     spec:
       chart: dex
-      version: 0.6.5 
+      version: 0.6.5
       sourceRef:
         kind: HelmRepository
         name: dex
@@ -151,11 +162,14 @@ spec:
           - dex.dev.example.tld
           secretName: dex-dev-example-tld
 ```
+</details>
 
-:::note SSL certificate without cert manager
-If we don't want to use cert manager, we can remove the related annotation and
+:::tip SSL certificate without cert manager
+If you don't want to use cert manager, you can remove the related annotation and
 use our predefined secret in the `tls` section.
 :::
+
+### Set up teams
 
 An important part of the configuration is the `orgs` field on the GitHub
 connector.
@@ -251,13 +265,19 @@ spec:
         userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
 ```
 
-Static user password can be generated with `htpasswd`:
+Static user password can be generated with the `gitops get bcrypt-hash` command:
 
 ```bash
-echo password | htpasswd -BinC 10 admin | cut -d: -f2
+PASSWORD="<your password>"
+echo -n $PASSWORD | gitops get bcrypt-hash
 ```
 
-## OIDC login
+## Enable OIDC in the Dashboard
+
+Update your `weave-gitops-dashboard.yaml` with your setting to enable OIDC.
+Follow the instructions [here](../configuration/oidc-access.mdx).
+
+## Login via OIDC
 
 Using the "Login with OIDC Provider" button:
 
