@@ -763,6 +763,12 @@
         },
         "token": {
           "type": "string"
+        },
+        "logSourceFilter": {
+          "type": "string"
+        },
+        "logLevelFilter": {
+          "type": "string"
         }
       }
     },
@@ -780,6 +786,12 @@
         },
         "error": {
           "type": "string"
+        },
+        "logSources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

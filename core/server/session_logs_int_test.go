@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"os"
 	"strings"
@@ -16,7 +15,6 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	logger2 "github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
@@ -67,24 +65,15 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	)
 	g.Expect(err).ShouldNot(HaveOccurred())
 
-	lines, next, err := getLogs(context.Background(),
+	logEntries, next, err := getGitOpsRunLogs(context.Background(),
 		"session-id",
 		"",
 		asS3Reader(minioClient),
 		logger2.SessionLogBucketName,
+		"",
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-
-	logEntries := []*pb.LogEntry{}
-
-	for _, line := range lines {
-		logEntry := &pb.LogEntry{}
-		err = json.Unmarshal([]byte(line), &logEntry)
-		g.Expect(err).ShouldNot(HaveOccurred())
-
-		logEntries = append(logEntries, logEntry)
-	}
 
 	g.Expect(logEntries).Should(HaveLen(5))
 	g.Expect(logEntries[0].Message).Should(Equal("► test action"))
@@ -110,26 +99,15 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	s3logger.Actionf("round 2 - test action")
 	s3logger.Failuref("round 2 - test failure")
 
-	lines2, _, err := getLogs(context.Background(),
+	logEntries, _, err = getGitOpsRunLogs(context.Background(),
 		"session-id",
 		next,
 		asS3Reader(minioClient),
 		logger2.SessionLogBucketName,
+		"",
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-
-	logEntries = nil
-
-	for _, line := range lines2 {
-		logEntry := &pb.LogEntry{}
-		err = json.Unmarshal([]byte(line), &logEntry)
-		g.Expect(err).ShouldNot(HaveOccurred())
-
-		logEntries = append(logEntries, logEntry)
-	}
-
-	g.Expect(lines2).Should(HaveLen(2))
 
 	g.Expect(logEntries[0].Message).Should(Equal("► round 2 - test action"))
 	g.Expect(logEntries[0].Level).Should(Equal("info"))

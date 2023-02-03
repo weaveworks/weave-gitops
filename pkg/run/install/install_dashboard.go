@@ -290,6 +290,48 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 	return helmRelease, nil
 }
 
+func parseImageRepository(input string) (repository string, image string, tag string, err error) {
+	lastSlashIndex := strings.LastIndex(input, "/")
+	if lastSlashIndex == -1 {
+		subComponents := strings.Split(input, ":")
+		switch len(subComponents) {
+		case 1:
+			image = subComponents[0]
+			repository = ""
+			tag = ""
+		case 2:
+			image = subComponents[0]
+			tag = subComponents[1]
+			repository = ""
+			if tag == "" || image == "" {
+				err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
+				return
+			}
+		default:
+			err = fmt.Errorf("invalid input format, input = %s", input)
+			return
+		}
+	} else {
+		repository = input[:lastSlashIndex]
+		imageAndTag := input[lastSlashIndex+1:]
+		subComponents := strings.Split(imageAndTag, ":")
+		if len(subComponents) > 1 {
+			image = subComponents[0]
+			tag = subComponents[1]
+		} else {
+			image = subComponents[0]
+			tag = "latest"
+		}
+	}
+
+	if image == "" {
+		err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
+		return
+	}
+
+	return
+}
+
 // makeValues creates a values object for installing the GitOps Dashboard.
 func makeValues(username string, passwordHash string, dashboardImage string) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
@@ -309,14 +351,16 @@ func makeValues(username string, passwordHash string, dashboardImage string) ([]
 
 	if dashboardImage != "" {
 		// check : and spit on it
-		split := strings.Split(dashboardImage, ":")
-		if len(split) != 2 {
-			return nil, fmt.Errorf("invalid image format, expected image:tag")
+		// detect the right most colon
+
+		repository, image, tag, err := parseImageRepository(dashboardImage)
+		if err != nil {
+			return nil, err
 		}
 
 		valuesMap["image"] = map[string]interface{}{
-			"repository": split[0],
-			"tag":        split[1],
+			"repository": strings.TrimPrefix(repository+"/"+image, "/"),
+			"tag":        tag,
 		}
 	}
 
