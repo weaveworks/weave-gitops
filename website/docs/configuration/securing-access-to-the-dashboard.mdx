@@ -48,6 +48,15 @@ Once the HTTP server starts unauthenticated users will have to click the 'login 
 
 ## Login via a cluster user account
 
+:::caution Note
+This is an insecure method of securing your dashboard which we only recommend for local
+and development environments.
+
+Note also that this mechanism only exists for a single user: you will not be able to
+create multiple users. Weave GitOps does not provide its own authentication mechanism,
+for secure authentication we strongly recommend using an OIDC provider as described above.
+:::
+
 Before you login via the cluster user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI:
 
 Generate the password by running:

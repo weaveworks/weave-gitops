@@ -15,7 +15,7 @@ Weave GitOps provides insights into your application deployments, and makes cont
    kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
    ```
 
-1. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](../configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encrypted value you provided as $PASSWORD.
+1. [Open the dashboard](http://localhost:9001/) and login using either the cluster user or OIDC based on your [configuration](../configuration/securing-access-to-the-dashboard.mdx). If you followed the example above, the username will be `admin`, and the password is the non-encrypted value you provided as `$PASSWORD`.
 
    ![Weave GitOps login screen](/img/dashboard-login.png)
 
@@ -80,7 +80,7 @@ Let's explore the `flux-system` kustomization. Navigate back to the `Application
 
 ![Application detail view for the flux system kustomization](/img/dashboard-application-flux.png)
 
-After a few moments loading the data, you should see similar to the above screenshot. From here you can see key information about how this resource is defined: which `Source` it is reading from, the latest applied commit, the exact path with the Source repository that is being deployed, and the `Interval` in which Flux will look to reconcile any difference between the declared and live state - i.e. if a kubectl patch had been applied on the cluster, it would effectively be reverted. If a longer error message was being reported by this object, you would be able to see it in its entirety on this page.
+After a few moments loading the data, you should see similar to the above screenshot. From here you can see key information about how this resource is defined: which `Source` it is reading from, the latest applied commit, the exact path with the Source repository that is being deployed, and the `Interval` in which Flux will look to reconcile any difference between the declared and live state - i.e. if a `kubectl` patch had been applied on the cluster, it would effectively be reverted. If a longer error message was being reported by this object, you would be able to see it in its entirety on this page.
 
 Underneath the summary information are four tabs:
 
@@ -100,8 +100,10 @@ Underneath the summary information are four tabs:
 ![Application detail view showing the yaml display](/img/dashboard-application-yaml.png)
 
 ### Source details view
-Finally lets look at the Source in more detail - go back to the Details tab, and click `GitRepository/flux-system` from the summary at the top of the page.
+Finally let's look at the Source in more detail - go back to the Details tab, and click `GitRepository/flux-system` from the summary at the top of the page.
 
 ![Source detail view showing details for an object](/img/dashboard-source-flux.png)
 
-As with an Application detail view, you can see key information about how the resource is defined. Then beneath alongside the Events tab, is a Related Automations view. This shows all the `kustomization` objects which have this object as their Source.
+As with an Application detail view, you can see key information about how the resource is defined.
+
+Now we are familiar with the Dashboard, let's deploy a new application :sparkles:.

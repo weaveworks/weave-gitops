@@ -1,7 +1,7 @@
 ---
 title: Weave GitOps
 hide_title: true
-pagination_next: getting-started/intro
+pagination_next: getting-started/ui
 ---
 
 ## Installing Weave GitOps on your Cluster
@@ -164,7 +164,8 @@ In this section we will do the following:
    git push
    ```
 
-1. Validate that Weave GitOps and Flux are installed
+1. Validate that Weave GitOps and Flux are installed. _Note: this wont be instantaneous,
+	give the Flux controllers a couple of minutes to pull the latest commit._
 
    ```
    kubectl get pods -n flux-system
@@ -188,7 +189,7 @@ In this section we will do the following:
 
 ## Next steps
 
-In the following [Get Started document](../getting-started/intro.mdx), we will walk you
+In the following [Get Started document](../getting-started/ui.mdx), we will walk you
 through logging into the GitOps Dashboard and deploying an application.
 
 [ee-install]: ../weave-gitops-enterprise

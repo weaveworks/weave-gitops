@@ -59,15 +59,25 @@ Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back 
 
 ![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
 
-Click on podinfo and you will see details about the deployment, including that there is 1 pod available.
+Click on podinfo and you will see details about the deployment, including that there is 2 pod available.
 
-![Applications details view for podinfo showing 1 pods](/img/dashboard-podinfo-details.png)
+![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
+
+:::info
+Podinfo will come with the HorizontalPodAutoscaler, which uses the `metrics-server`.
+For the purposes of this tutorial, we don't need the `metrics-server`, but it will mean
+that the HorizontalPodAutoscaler will report as `Not ready` in your Dashboard.
+
+To remove this warning, install the [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server)
+(if you are using a `kind` cluster you may need to do more to get this working),
+but you can ingore the warning if you prefer.
+:::
 
 ## Customize podinfo
 
 To customize a deployment from a repository you don’t control, you can use Flux in-line patches. The following example shows how to use in-line patches to change the podinfo deployment.
 
-1. Add the `patches` section as shown below to the field spec of your podinfo-kustomization.yaml file so it looks like this:
+1. Add the `patches` section as shown below to the field spec of your `podinfo-kustomization.yaml` file so it looks like this:
 
    ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
    ---
@@ -99,14 +109,14 @@ To customize a deployment from a repository you don’t control, you can use Flu
    // highlight-end
    ```
 
-1. Commit and push the podinfo-kustomization.yaml changes:
+1. Commit and push the `podinfo-kustomization.yaml` changes:
 
    ```
    git add -A && git commit -m "Increase podinfo minimum replicas"
    git push
    ```
 
-3. Navigate back to the dashboard and you will now see 2 newly created pods
+3. Navigate back to the dashboard and you will now see a newly created pod
 
    ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
 
@@ -123,9 +133,7 @@ This shows in the applications view with a yellow warning status indicating it i
 
 ![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
 
-To resume updates, go back to the details page, click the resume button, and after a few seconds reconsolidation will continue:
-
-![Applications details view for podinfo being resumed](/img/dashboard-podinfo-updated.png)
+To resume updates, go back to the details page, click the resume button, and after a few seconds reconsolidation will continue.
 
 ## Complete!
 
