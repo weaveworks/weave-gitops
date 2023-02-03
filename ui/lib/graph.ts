@@ -34,7 +34,6 @@ export const PARENT_CHILD_LOOKUP = {
 export const getChildrenRecursive = async (
   client: typeof Core,
   namespace: string,
-
   object: FluxObject,
   clusterName: string,
   lookup: any

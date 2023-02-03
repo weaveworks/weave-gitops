@@ -84,6 +84,7 @@ import CustomActions from "./components/CustomActions";
 import RequestStateHandler from "./components/RequestStateHandler";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 import DirectedGraph from "./components/DirectedGraph";
+import FluxObjectsTable from "./components/FluxObjectsTable";
 
 export {
   AppContext,
@@ -111,6 +112,7 @@ export {
   filterConfig,
   FluxRuntime,
   FluxObject,
+  FluxObjectsTable,
   Footer,
   formatURL,
   GitRepository,
