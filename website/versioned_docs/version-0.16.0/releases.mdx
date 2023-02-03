@@ -9,6 +9,38 @@ import TierLabel from "./_components/TierLabel";
 :::note
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+
+## v0.16.0
+2023-02-02
+### Highlights
+
+#### Create External Secrets via WGE UI
+- It's becoming easier to create a new external secret CR through the UI instead of writing the whole CR yaml.
+- The creation form will help users choose which cluster to deploy the External Secret to and which secret store to sync the secrets from. 
+- It's all done in the GitOps way. 
+
+
+#### Plan Button in Terraform
+- Adding add plan button in the terraform plan page to enable users to re-plan changes made. 
+
+#### 
+### Minor fixes
+#### 
+
+### Dependency versions
+
+- weave-gitops v0.16.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- templates-controller v0.1.2
+- (optional) pipeline-controller v0.14.0
+- (optional) policy-agent v2.2.0
+- (optional) gitopssets-controller v0.2.0
+
+### Breaking changes
+
+No breaking changes
+
 ## v0.15.1
 2023-01-19
 ### Highlights
