@@ -1,0 +1,84 @@
+---
+title: Emergency Cluster User Account
+---
+
+# Login via the emergency cluster user account
+
+:::danger Important
+This is an **insecure** method of securing your dashboard which we only recommend for local
+and development environments, or if you need to activate emergency access to a damaged cluster.
+
+Note also that this mechanism only exists for a single user: you will not be able to
+create multiple users. Weave GitOps does not provide its own authentication mechanism,
+for secure and fully-featured authentication we **strongly recommend** using an OIDC provider as described [here](../oidc-access).
+:::
+
+Before you login via the emergency user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes.
+There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI:
+
+Generate the password by running:
+
+```sh
+PASSWORD="<your password>"
+echo -n $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```
+
+Now create a Kubernetes secret to store your chosen username and the password hash:
+
+```sh
+kubectl create secret generic cluster-user-auth \
+  --namespace flux-system \
+  --from-literal=username=admin \
+  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+```
+
+You should now be able to login via the cluster user account using your chosen username and password.
+
+## User permissions
+
+By default both a ClusterRole and Role are generated for the emergency user.
+Both have the same permissions with former being optional and the latter being
+bound to the `flux-system` namespace (where Flux stores its resources by default).
+The default set of rules are configured like this:
+
+```yaml
+rules:
+  # Flux Resources
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
+    resources: [ "providers", "alerts" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["infra.contrib.fluxcd.io"]
+    resources: ["terraforms"]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  # Read access for all other Kubernetes objects
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [ "get", "list", "watch" ]
+```
+
+These permissions give the emergency user Administrator level powers. **We do not
+advise leaving it active on production systems**.
+
+:::tip
+To disable the emergency user, set `adminUser.create` to `false` when deploying
+the [Helm Chart](../references/helm-reference.md).
+:::
+
+If required, the permissions can be expanded with the `rbac.additionalRules` field in the
+[Helm Chart](../references/helm-reference.md).
+Follow the instructions in the next section in order to configure RBAC correctly.
