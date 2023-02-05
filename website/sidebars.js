@@ -171,6 +171,13 @@ module.exports = {
         'gitops-templates/templates',
       ],
     },
+    {
+      type: 'category',
+      label: 'GitOpsSets',
+      items: [
+        'gitopssets/gitopssets',
+      ],
+    },
     'help-and-support',
     'feedback-and-telemetry',
     'releases',
