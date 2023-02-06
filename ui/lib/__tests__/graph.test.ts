@@ -3,6 +3,7 @@ import { Core, GetChildObjectsResponse } from "../api/core/core.pb";
 import { Kind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
 import { createCoreMockClient } from "../test-utils";
+import { pod, rs } from "../__fixtures__/graph";
 
 describe("graph lib", () => {
   let client: typeof Core;
@@ -17,8 +18,7 @@ describe("graph lib", () => {
     clusterName: "foo",
   };
   const name = "stringly";
-  const rsName = name + "-7d9b7454c7";
-  const podName = rsName + "-mvz75";
+
   const obj1 = {
     payload: JSON.stringify({
       groupVersionKind: {
@@ -32,33 +32,12 @@ describe("graph lib", () => {
       uid: "2f5b0538-919d-4700-8f41-31eb5e1d9a78",
     }),
   };
-  const rsPayload = {
-    groupVersionKind: {
-      group: "apps",
-      kind: "ReplicaSet",
-      version: "v1",
-    },
-    name: rsName,
-    namespace: "default",
-    status: "InProgress",
-    uid: "70c0f983-f9a4-4375-adfe-c2c018fc10bd",
-  };
   const obj2 = {
-    payload: JSON.stringify(rsPayload),
+    payload: JSON.stringify(rs),
   };
-  const podPayload = {
-    groupVersionKind: {
-      group: "",
-      kind: "Pod",
-      version: "v1",
-    },
-    name: podName,
-    namespace: "default",
-    status: "InProgress",
-    uid: "70c0f983-f9a4-4375-adfe-c2c018fc10bd",
-  };
+
   const obj3 = {
-    payload: JSON.stringify(podPayload),
+    payload: JSON.stringify(pod),
   };
 
   beforeEach(() => {
@@ -95,20 +74,15 @@ describe("graph lib", () => {
     const dep = objects[0];
     expect(dep).toBeTruthy();
     expect(dep.obj.name).toEqual(name);
-    const rs = _.find(
-      dep.children,
-      (o) => o.obj.groupVersionKind.kind === "ReplicaSet"
-    );
-    expect(rs.obj.name).toEqual(rsName);
-    expect(rs.obj.groupVersionKind.kind).toEqual("ReplicaSet");
-    const pod = _.find(
-      rs.children,
-      (o) => o.obj.groupVersionKind.kind === "Pod"
-    );
-    expect(pod).toBeTruthy();
-    expect(pod.obj.name).toEqual(podName);
+    const resultRS = _.find(dep.children, (o) => o.obj.kind === "ReplicaSet");
+    expect(resultRS.obj.metadata.name).toEqual(rs.metadata.name);
+    expect(resultRS.obj.kind).toEqual("ReplicaSet");
+    const resultPod = _.find(resultRS.children, (o) => o.obj.kind === "Pod");
+    expect(resultPod).toBeTruthy();
+    expect(resultPod.obj.metadata.name).toEqual(pod.metadata.name);
   });
   describe("deterministic graph", () => {
+    let client;
     // https://github.com/weaveworks/weave-gitops/issues/3302
     // Make sure the graph nodes don't "hop around" when the server returns objects in a new order
     beforeEach(() => {
@@ -123,7 +97,12 @@ describe("graph lib", () => {
             return {
               objects: [
                 obj2,
-                { payload: JSON.stringify({ ...rsPayload, name: "other-rs" }) },
+                {
+                  payload: JSON.stringify({
+                    ...rs,
+                    metadata: { ...rs.metadata, name: "other-rs" },
+                  }),
+                },
               ],
             };
           }
@@ -133,7 +112,10 @@ describe("graph lib", () => {
               objects: [
                 obj3,
                 {
-                  payload: JSON.stringify({ ...podPayload, name: "other-pod" }),
+                  payload: JSON.stringify({
+                    ...pod,
+                    metadata: { ...pod.metadata, name: "other-pod" },
+                  }),
                 },
               ],
             };
