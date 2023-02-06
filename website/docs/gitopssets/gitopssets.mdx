@@ -32,7 +32,12 @@ GitOpsSets will create out of the single resource all the objects and flux primi
 - **Git Generator:** Enable to extract a set of files (environment-specific configurations) from a git repository, and make the contents of these available to the templates, this would let you have config in *app-dev.json*, *app-staging.json* and *app-production.json* for example, and the contents of these would be available to the templates.
 - **Matrix Generator:** Combine ****slices of ****generators into the desired compounded input.
 - **Pull request Generator:** Automatically discover open pull requests within a repository to generate a new deployment.
-- **Cluster Generator:** Define specific clusters as targets for GitOpsSets. We could enhance the GitOps Cluster generator to match automatically GitOps clusters with a specific label.
+
+## Use cases
+
+- Single application definition for different environment (EU-West, North America, Germany )
+- Deployment of single definition across fleet of clusters matching any cluster with based on a label (Production) 
+- Separation of concerns between teams (Teams managing different artefacts flowing into single definition via generators)
 
 ## Security
 
