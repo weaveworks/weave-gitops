@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
-import { formatURL } from "../../../lib/nav";
 import { ImageRepository } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import Button from "../../Button";
