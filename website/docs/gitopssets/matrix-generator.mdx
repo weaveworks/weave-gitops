@@ -33,6 +33,13 @@ spec:
                   version: 1.0.0
 ```
 
+Given the files mentioned all have the following structure:
+
+```yaml title=examples/generation/dev.yaml
+env: dev
+team: developers
+```
+
 This will result in three sets of generated parameters, which are a combination of the maps in the files in the gitRepository, and the elements in the list generator, this can result in a combinatorial explosion of resources being created in your cluster.
 
 ```yaml
