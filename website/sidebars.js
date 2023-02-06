@@ -174,8 +174,16 @@ module.exports = {
     {
       type: 'category',
       label: 'GitOpsSets',
+      link: {
+        type: 'doc',
+        id: 'gitopssets/intro',
+      },
       items: [
-        'gitopssets/gitopssets',
+        'gitopssets/getting-started',
+        'gitopssets/list-generator',
+        'gitopssets/git-generator',
+        'gitopssets/matrix-generator',
+        'gitopssets/pull-request-generator',
       ],
     },
     'help-and-support',

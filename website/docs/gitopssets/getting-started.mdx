@@ -1,13 +1,24 @@
 ---
-title: Using GitOpsSets
+title: Getting started
 hide_title: true
 ---
 
 import TierLabel from "../_components/TierLabel";
 
-# List generator <TierLabel tiers="enterprise" />
+# Getting Started <TierLabel tiers="enterprise" />
 
-### Example
+## Guide
+
+Currently rendering templates operates in two phases:
+
+ * Generate all template parameters from the configured generators
+ * Render all the templates for each set of template parameters
+
+Please read the [security information](#security) below before using this.
+
+## Generation
+
+The simplest generator is the `List` generator.
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
