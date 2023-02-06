@@ -97,10 +97,10 @@ module.exports = {
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/deploying-capa',
-        'guides/cert-manager',
         'guides/setting-up-dex',
+        'guides/cert-manager',
         'guides/displaying-custom-metadata',
+        'guides/deploying-capa',
         'guides/using-terraform-templates',
         'guides/delivery',
         'guides/flagger-manual-gating',
