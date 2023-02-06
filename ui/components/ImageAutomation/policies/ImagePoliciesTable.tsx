@@ -1,10 +1,12 @@
 import React from "react";
 import { useListImageAutomation } from "../../../hooks/imageautomation";
 import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
 import { ImgPolicy } from "../../../lib/objects";
-import { Source } from "../../../lib/types";
+import { Source, V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import KubeStatusIndicator from "../../KubeStatusIndicator";
+import Link from "../../Link";
 import RequestStateHandler from "../../RequestStateHandler";
 
 const ImagePoliciesTable = () => {
@@ -52,7 +54,17 @@ const ImagePoliciesTable = () => {
           },
           {
             label: "Image Repository",
-            value: "imageRepositoryRef",
+            value: ({ imageRepositoryRef, namespace, clusterName }) => (
+              <Link
+                to={formatURL(V2Routes.ImageAutomationRepositoriesDetails, {
+                  name: imageRepositoryRef,
+                  namespace: namespace,
+                  clusterName: clusterName,
+                })}
+              >
+                {imageRepositoryRef}
+              </Link>
+            ),
           },
         ]}
       />
