@@ -13,6 +13,12 @@ import TierLabel from "../_components/TierLabel";
 apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsSet
 metadata:
+  labels:
+    app.kubernetes.io/name: gitopsset
+    app.kubernetes.io/instance: gitopsset-sample
+    app.kubernetes.io/part-of: gitopssets-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitopssets-controller
   name: repository-sample
 spec:
   generators:
@@ -39,6 +45,7 @@ spec:
           sourceRef:
             kind: GitRepository
             name: go-demo-repo
+
 ```
 
 In this example, a [Flux `GitRepository`](https://fluxcd.io/flux/components/source/gitrepositories/) called `go-demo-repo` in the same namespace as the `GitOpsSet` will be tracked, and `Kustomization` resources are generated from the three files listed.

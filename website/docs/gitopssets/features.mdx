@@ -73,7 +73,7 @@ spec:
           labels:
             app.kubernetes.io/name: go-demo
             app.kubernetes.io/instance: "{{ .element.env }}"
-            com.example/team: "{{ .team }}"
+            com.example/team: "{{ .element.team }}"
         spec:
           interval: 5m
           path: "./examples/kustomize/environments/{{ .element.env }}"
