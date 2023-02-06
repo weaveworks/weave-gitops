@@ -193,7 +193,7 @@ export function formatLogTimestamp(timestamp?: string, zone?: string): string {
     dt = dt.setZone(zone);
   }
 
-  let formattedTimestamp = `${dt.toFormat("yyyy-LL-dd HH:MM:ss 'UTC'Z")}`;
+  let formattedTimestamp = `${dt.toFormat("yyyy-LL-dd HH:mm:ss 'UTC'Z")}`;
 
   if (dt.offset === 0) {
     formattedTimestamp = formattedTimestamp.replace("UTC+0", "UTC");

@@ -367,13 +367,16 @@ describe("utils lib", () => {
   describe("formatLogTimestamp", () => {
     it("should format non-empty timestamp", () => {
       expect(formatLogTimestamp("2023-01-31T13:27:56-05:00", "UTC+1")).toEqual(
-        "2023-01-31 19:01:56 UTC+1"
+        "2023-01-31 19:27:56 UTC+1"
       );
-      expect(formatLogTimestamp("2023-02-02T13:27:56-01:00", "UTC-10")).toEqual(
-        "2023-02-02 04:02:56 UTC-10"
+      expect(formatLogTimestamp("2023-02-03T13:27:56-01:00", "UTC-10")).toEqual(
+        "2023-02-03 04:27:56 UTC-10"
       );
-      expect(formatLogTimestamp("2023-02-02T13:27:56-01:00", "UTC")).toEqual(
-        "2023-02-02 14:02:56 UTC"
+      expect(formatLogTimestamp("2023-02-03T13:27:56-01:00", "UTC")).toEqual(
+        "2023-02-03 14:27:56 UTC"
+      );
+      expect(formatLogTimestamp("2023-02-04T18:36:01+01:00", "UTC+3")).toEqual(
+        "2023-02-04 20:36:01 UTC+3"
       );
     });
     it("should return a hyphen for undefined timestamp", () => {
