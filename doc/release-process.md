@@ -54,6 +54,7 @@ To release a new version of Weave Gitops, you need to:
   will be merged automatically.
 
 # Technical details
+
 There's 2 jobs, prepare-release and release. prepare-release is only
 triggered manually, release is triggered whenever the state of a
 branch called `release/something` turns approved.
@@ -68,3 +69,15 @@ images available by the time the docs and the helm chart is merged and
 uploaded. However, that means that since the tag sits on a non-main
 branch, we have to merge (no rebase, no squash), or the ref won't be
 traceable form main.
+
+# Artifacts
+
+Each stable release emits the artifacts listed below:
+
+- [versioned instance of the website](https://github.com/weaveworks/weave-gitops/tree/main/website/versioned_docs)
+- [New chart version](https://github.com/weaveworks/weave-gitops/pkgs/container/charts%2Fweave-gitops)
+- [Git tag](https://github.com/weaveworks/weave-gitops/tags)
+- [gitops binaries](https://github.com/weaveworks/weave-gitops/releases)
+- updated [Homebrew Tap](https://github.com/weaveworks/homebrew-tap/blob/master/Formula/gitops.rb)
+- [npm package](https://github.com/weaveworks/weave-gitops/pkgs/npm/weave-gitops)
+- [weave-gitops container image](https://github.com/weaveworks/weave-gitops/pkgs/container/weave-gitops)
