@@ -38,6 +38,17 @@ module.exports = {
     'getting-started',
     {
       type: 'category',
+      label: 'Enterprise Edition',
+      link: {
+        type: 'doc',
+        id: 'intro-ee',
+      },
+      items: [
+        'releases',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Configuration',
       items: [
         'configuration/recommended-rbac-configuration',
@@ -71,8 +82,11 @@ module.exports = {
     {
       type: 'category',
       label: 'Cluster Management',
+      link: {
+        type: 'doc',
+        id: 'cluster-management/intro',
+      },
       items: [
-        'cluster-management/intro',
         'cluster-management/getting-started',
         'cluster-management/cluster-api-providers',
         'cluster-management/managing-existing-clusters',
@@ -116,12 +130,14 @@ module.exports = {
     {
       type: 'category',
       label: 'Pipelines',
+      link: {
+        type: 'doc',
+        id: 'pipelines/intro',
+      },
       items: [
-        'pipelines/intro',
         'pipelines/getting-started',
         'pipelines/authorization',
         'pipelines/promoting-applications',
-        'pipelines/pipeline-templates',
         'pipelines/pipeline-templates',
         {
           type: 'category',
@@ -141,8 +157,11 @@ module.exports = {
     {
       type: 'category',
       label: 'Workspaces',
+      link: {
+        type: 'doc',
+        id: 'workspaces/intro',
+      },
       items: [
-        'workspaces/intro',
         'workspaces/multi-tenancy',
         'workspaces/view-workspaces',
       ],
@@ -171,7 +190,6 @@ module.exports = {
         'gitops-templates/templates',
       ],
     },
-    'releases',
   ],
   ref: [
     'references/helm-reference',

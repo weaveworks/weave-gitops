@@ -7,7 +7,13 @@ hide_title: true
 
 This hands-on guide will introduce you to the basics of the GitOps Dashboard web UI, to help you understand the state of your system, before deploying a new application to your cluster. It is adapted from this guide - [Flux - Getting Started](https://fluxcd.io/docs/get-started/).
 
-If you haven't already, be sure to check out our [introduction](./intro.md) to Weave GitOps and our [installation docs](./installation/index.mdx).
+If you haven't already, be sure to check out our [introduction](./intro.mdx) to Weave GitOps and our [installation docs](./installation/index.mdx).
+
+## TL;DR: Highlights
+
+- **Applications view** - allows you to quickly understand the state of your deployments across a cluster at a glance. It shows summary information from `kustomization` and `helmrelease` objects.
+- **Sources view** - shows the status of resources which are synchronizing content from where you have declared the desired state of your system, for example Git repositories. This shows summary information from `gitrepository`, `helmrepository` and `bucket` objects.
+- **Flux Runtime view** - provides status on the GitOps engine continuously reconciling your desired and live state. It shows your installed GitOps Toolkit Controllers and their version.
 
 ## Part 1 - Weave GitOps overview
 
