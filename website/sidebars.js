@@ -72,10 +72,22 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Configuration',
+      label: 'Access Configuration',
       items: [
         'configuration/recommended-rbac-configuration',
-        'configuration/securing-access-to-the-dashboard',
+        {
+          type: 'category',
+          label: 'Securing Access to the Dashboard',
+          collapsed: false,
+          link: {
+            type: 'doc',
+            id:'configuration/securing-access-to-the-dashboard',
+          },
+          items: [
+            'configuration/oidc-access',
+            'configuration/emergency-user',
+          ],
+        },
         'configuration/service-account-permissions',
         'configuration/user-permissions',
         'configuration/tls',

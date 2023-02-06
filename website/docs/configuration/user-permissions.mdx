@@ -1,21 +1,18 @@
 ---
-title: User permissions
+title: User Permissions
 ---
+import TierLabel from "../_components/TierLabel";
 
 This is an explanation of the [kubernetes permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-needed by users of the Weave GitOps application. As covered in
+needed by users/groups of the Weave GitOps application. As covered in
 [service account permissions](service-account-permissions.mdx)
 the primary way that the application interacts with the Kube API is via [impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
 This means that the permissions granted to the users and groups that Weave GitOps
 can impersonate determine the scope of actions that it can take within your cluster.
 
-A minimal set of permissions are generated for the static cluster-user as part
-of the [helm chart](https://github.com/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates/admin-user-roles.yaml).
+At a minimum, a User should be bound to Role in the `flux-system` namespace (where
+flux stores its resources by default) with the following permissions:
 
-By default both a ClusterRole and Role are generated for the static cluster-user.
-Both have the same permissions with former being optional and the latter being
-bound to the `flux-system` namespace (where Flux stores its resources by default).
-The default set of rules are configured like this:
 ```yaml
 rules:
   # Flux Resources
@@ -45,6 +42,7 @@ rules:
     verbs: [ "get", "list", "watch" ]
 ```
 
+For a wider scope the User can be bound to a ClusterRole with the same set.
 
 ### Flux Resources
 
