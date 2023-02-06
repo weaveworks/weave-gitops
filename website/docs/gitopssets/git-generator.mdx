@@ -52,6 +52,13 @@ In this example, a [Flux `GitRepository`](https://fluxcd.io/flux/components/sour
 
 These files can be JSON or YAML.
 
+In this example we expect to find the following structure in the files:
+
+```yaml title=examples/generation/dev.yaml
+env: dev
+team: developers
+```
+
 Changes pushed to the `GitRepository` will result in rereconciliation of the templates into the cluster.
 
 For security reasons, you need to explicitly list out the files that the generator should parse.
