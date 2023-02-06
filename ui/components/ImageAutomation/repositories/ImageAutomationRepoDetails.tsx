@@ -2,13 +2,14 @@ import * as React from "react";
 import styled from "styled-components";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
 import { ImageRepository } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
+import Button from "../../Button";
 import Interval from "../../Interval";
 import Link from "../../Link";
 import Page from "../../Page";
 import ImageAutomationDetails from "../ImageAutomationDetails";
-import ImagePolicy from "./ImagePolicy";
 
 type Props = {
   className?: string;
@@ -53,11 +54,13 @@ function ImageAutomationRepoDetails({
           ]}
           rootPath={rootPath}
         >
-          <ImagePolicy
-            clusterName={clusterName}
-            name={name}
-            namespace={namespace}
-          />
+          <Button>
+            <Link
+              to={`/image_automation/policies?filters=imageRepositoryRef: ${name}_`}
+            >
+              Go To Image Policy
+            </Link>
+          </Button>
         </ImageAutomationDetails>
       )}
     </Page>
