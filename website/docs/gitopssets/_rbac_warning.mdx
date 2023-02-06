@@ -6,11 +6,11 @@
 This particular example creates kustomizations, so you will need to add the below RBAC
 to the `gitopssets-controller-manager` service account to allow it to create kustomizations.
 
-However this will change in the next release with impersonation. Instead you can choose a service account
-for each `GitOpsSet` that has the required permissions for creating the rendered resources in the
-`templates` section.
-
 Check out the [Security](./intro.mdx#security) section for more information.
+
+**However this will change in the next release with impersonation. Instead you can choose a service account
+for each `GitOpsSet` that has the required permissions for creating the rendered resources in the
+`templates` section.**
 
 Additional RBAC for the `gitopssets-controller-manager` service account:
 
