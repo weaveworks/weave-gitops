@@ -54,7 +54,7 @@ This particular helm repo provides a version of the cert-manager repo and others
 
 #### Supplying values to a profile
 
-You can supply a `values.yaml` file to a profile using the `values` parameter. For example we can 
+You can supply a `values.yaml` file to a profile using the `values` parameter. For example we can supply cert-managers values.yaml with:
 
 ```bash
 gitops create template \
@@ -66,17 +66,7 @@ gitops create template \
 
 ### Supplying a config file instead of command line flags
 
-Instead of specifying the parameters on the command line you can supply a config file. For example this invocation:
-
-```bash
-gitops create template \
-  --template-file capd-capi-template.yaml \
-  --output-dir ./out \
-  --values CLUSTER_NAME=foo \
-  --profiles "name=cert-manager,namespace=foo,version=>0.1,values=cert-manager-values.yaml"
-```
-
-can be replaced with a config file:
+Instead of specifying the parameters on the command line you can supply a config file. For example the above involation can be replaced with a config file:
 
 ```yaml title=config.yaml
 template-file: capd-capi-template.yaml
