@@ -20,12 +20,12 @@ import (
 )
 
 // mock controller-runtime client
-type mockClientForGetDashboardHelmChart struct {
+type mockClientForGetDashboardHelmRelease struct {
 	client.Client
-	state stateGetDashboardHelmChart
+	state stateListHelmReleases
 }
 
-type stateGetDashboardHelmChart string
+type stateListHelmReleases string
 
 const (
 	testDashboardName = "ww-gitops"
@@ -35,9 +35,9 @@ const (
 	testUserID        = "abcdefgh90"
 	helmChartVersion  = "3.0.0"
 
-	stateGetDashboardHelmChartGetReturnErr stateGetDashboardHelmChart = "get-return-err"
+	stateListHelmReleasesReturnErr stateListHelmReleases = "list-return-err"
 
-	getDashboardErrorMsg = "get dashboard error"
+	listHelmReleasesErrorMsg = "list HelmReleases error"
 )
 
 var _ = Describe("InstallDashboard", func() {
@@ -71,46 +71,60 @@ var _ = Describe("InstallDashboard", func() {
 	})
 })
 
-func (man *mockClientForGetDashboardHelmChart) Get(_ context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+func (man *mockClientForGetDashboardHelmRelease) List(_ context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	switch man.state {
-	case stateGetDashboardHelmChartGetReturnErr:
-		return errors.New(getDashboardErrorMsg)
-
+	case stateListHelmReleasesReturnErr:
+		return errors.New(listHelmReleasesErrorMsg)
 	default:
-		switch obj := obj.(type) {
-		case *sourcev1.HelmChart:
-			helmChart := sourcev1.HelmChart{
+		helmReleaseList := helmv2.HelmReleaseList{
+			Items: []helmv2.HelmRelease{{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "test-namespace",
-					Name:      "test-namespace-ww-gitops",
+					Name:      "helm-release-1",
 				},
-			}
-			helmChart.DeepCopyInto(obj)
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "test-namespace",
+					Name:      "helm-release-2",
+				},
+				Spec: helmv2.HelmReleaseSpec{
+					Chart: helmv2.HelmChartTemplate{
+						Spec: helmv2.HelmChartTemplateSpec{
+							Chart: WGDashboardHelmChartName,
+						},
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "test-namespace",
+					Name:      "helm-release-3",
+				},
+			}},
 		}
+
+		helmReleaseList.DeepCopyInto(list.(*helmv2.HelmReleaseList))
 	}
 
 	return nil
 }
 
-var _ = Describe("getDashboardHelmChart", func() {
-	var fakeLogger logger.Logger
+var _ = Describe("getDashboardHelmRelease", func() {
 	var fakeContext context.Context
 
 	BeforeEach(func() {
-		fakeLogger = logger.From(logr.Discard())
 		fakeContext = context.Background()
 	})
 
-	It("returns the dashboard helmchart if there is no error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeContext, fakeLogger, &mockClientForGetDashboardHelmChart{}, testDashboardName, testNamespace)
-		Expect(helmChart).ToNot(BeNil())
-		Expect(helmChart.Namespace).To(Equal("test-namespace"))
-		Expect(helmChart.Name).To(Equal("test-namespace-ww-gitops"))
+	It("returns the dashboard helmrelease if there is no error when getting the helmrelease", func() {
+		helmRelease := getDashboardHelmRelease(fakeContext, &mockClientForGetDashboardHelmRelease{}, testNamespace, WGDashboardHelmChartName)
+		Expect(helmRelease).ToNot(BeNil())
+		Expect(helmRelease.Namespace).To(Equal("test-namespace"))
+		Expect(helmRelease.Name).To(Equal("helm-release-2"))
 	})
 
-	It("returns nil if there is an error when getting the helmchart", func() {
-		helmChart := getDashboardHelmChart(fakeContext, fakeLogger, &mockClientForGetDashboardHelmChart{state: stateGetDashboardHelmChartGetReturnErr}, testDashboardName, testNamespace)
-		Expect(helmChart).To(BeNil())
+	It("returns nil if there is an error when getting the helmrelease", func() {
+		helmRelease := getDashboardHelmRelease(fakeContext, &mockClientForGetDashboardHelmRelease{state: stateListHelmReleasesReturnErr}, testNamespace, WGDashboardHelmChartName)
+		Expect(helmRelease).To(BeNil())
 	})
 })
 
@@ -149,7 +163,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		Expect(actualHelmRelease.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 
 		chart := actualHelmRelease.Spec.Chart
-		Expect(chart.Spec.Chart).To(Equal(helmChartName))
+		Expect(chart.Spec.Chart).To(Equal(WGDashboardHelmChartName))
 		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
 		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
 	})
@@ -178,7 +192,7 @@ var _ = Describe("makeHelmRelease", func() {
 		Expect(actual.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 
 		chart := actual.Spec.Chart
-		Expect(chart.Spec.Chart).To(Equal(helmChartName))
+		Expect(chart.Spec.Chart).To(Equal(WGDashboardHelmChartName))
 		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
 		Expect(chart.Spec.SourceRef.Kind).To(Equal("HelmRepository"))
 		Expect(chart.Spec.Version).To(Equal(helmChartVersion))

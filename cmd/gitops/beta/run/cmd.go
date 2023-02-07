@@ -347,7 +347,7 @@ func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (bool, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-	dashboardInstalled := install.IsDashboardInstalled(ctx, log, kubeClient, dashboardName, flags.Namespace)
+	dashboardInstalled := install.IsDashboardInstalled(ctx, kubeClient, flags.Namespace, install.WGDashboardHelmChartName)
 
 	var dashboardManifests []byte
 
