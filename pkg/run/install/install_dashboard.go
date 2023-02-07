@@ -28,8 +28,9 @@ import (
 )
 
 const (
-	helmChartName     = "weave-gitops"
-	helmRepositoryURL = "oci://ghcr.io/weaveworks/charts"
+	// WGDashboardHelmChartName is the name of the Weave GitOps OSS Dashboard Helm chart.
+	WGDashboardHelmChartName = "weave-gitops"
+	helmRepositoryURL        = "oci://ghcr.io/weaveworks/charts"
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
@@ -91,24 +92,27 @@ func InstallDashboard(ctx context.Context, log logger.Logger, manager ResourceMa
 }
 
 // IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) bool {
-	return getDashboardHelmChart(ctx, log, kubeClient, name, namespace) != nil
+func IsDashboardInstalled(ctx context.Context, kubeClient client.Client, namespace string, helmChartName string) bool {
+	return getDashboardHelmRelease(ctx, kubeClient, namespace, WGDashboardHelmChartName) != nil
 }
 
-// GetDashboardHelmChart checks if the GitOps Dashboard is installed.
-func getDashboardHelmChart(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) *sourcev1.HelmChart {
-	helmChart := sourcev1.HelmChart{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      namespace + "-" + name,
-			Namespace: namespace,
-		},
-	}
+// getDashboardHelmRelease checks if the GitOps Dashboard HelmRelease is found in the list of HelmReleases in the provided namespace.
+func getDashboardHelmRelease(ctx context.Context, kubeClient client.Client, namespace string, helmChartName string) *helmv2.HelmRelease {
+	helmReleaseList := &helmv2.HelmReleaseList{}
 
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
+	if err := kubeClient.List(ctx, helmReleaseList,
+		client.InNamespace(namespace),
+	); err != nil {
 		return nil
 	}
 
-	return &helmChart
+	for _, helmRelease := range helmReleaseList.Items {
+		if helmRelease.Spec.Chart.Spec.Chart == helmChartName {
+			return &helmRelease
+		}
+	}
+
+	return nil
 }
 
 // ReconcileDashboard reconciles the dashboard.
@@ -259,7 +263,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 			},
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: helmChartName,
+					Chart: WGDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
