@@ -32,7 +32,7 @@ function ImageAutomationRepoDetails({
       refetchInterval: 5000,
     }
   );
-  const rootPath = V2Routes.ImageAutomationRepositoriesDetails;
+  const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
       {!!data && (

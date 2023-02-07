@@ -321,7 +321,7 @@ export class ImageUpdateAutomation extends FluxObject {
 }
 export class ImagePolicy extends ImageUpdateAutomation {
   get imagePolicy(): ImgPolicy {
-    const { policy } = this.obj.spec;
+    const { policy } = this.obj?.spec;
     const [type] = Object.keys(policy);
     if (type) {
       const [val] = Object.values(policy[type]);
@@ -336,7 +336,7 @@ export class ImagePolicy extends ImageUpdateAutomation {
     };
   }
   get imageRepositoryRef(): string {
-    return this.obj.spec?.imageRepositoryRef?.name || "";
+    return this.obj?.spec?.imageRepositoryRef?.name || "";
   }
 }
 export class ImageRepository extends ImageUpdateAutomation {

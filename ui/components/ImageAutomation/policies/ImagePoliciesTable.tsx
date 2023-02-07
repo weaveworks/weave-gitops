@@ -56,7 +56,7 @@ const ImagePoliciesTable = () => {
             label: "Image Repository",
             value: ({ imageRepositoryRef, namespace, clusterName }) => (
               <Link
-                to={formatURL(V2Routes.ImageAutomationRepositoriesDetails, {
+                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
                   name: imageRepositoryRef,
                   namespace: namespace,
                   clusterName: clusterName,
