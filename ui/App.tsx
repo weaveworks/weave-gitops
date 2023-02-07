@@ -68,7 +68,7 @@ const App = () => (
           component={withSearchParams(ImageAutomationUpdatesDetails)}
         />
         <Route
-          path={V2Routes.ImageAutomationRepositoriesDetails}
+          path={V2Routes.ImageAutomationRepositoryDetails}
           component={withSearchParams(ImageAutomationRepoDetails)}
         />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />

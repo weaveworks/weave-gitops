@@ -2,19 +2,18 @@ import React from "react";
 import { useListImageAutomation } from "../../../hooks/imageautomation";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { formatURL } from "../../../lib/nav";
-import { showInterval } from "../../../lib/time";
+import { ImgPolicy } from "../../../lib/objects";
 import { Source, V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import KubeStatusIndicator from "../../KubeStatusIndicator";
 import Link from "../../Link";
 import RequestStateHandler from "../../RequestStateHandler";
 
-const ImageRepositoriesTable = () => {
-  const { data, isLoading, error } = useListImageAutomation(
-    Kind.ImageRepository
-  );
+const ImagePoliciesTable = () => {
+  const { data, isLoading, error } = useListImageAutomation(Kind.ImagePolicy);
   const initialFilterState = {
     ...filterConfig(data?.objects, "name"),
+    ...filterConfig(data?.objects, "imageRepositoryRef"),
   };
   return (
     <RequestStateHandler loading={isLoading} error={error}>
@@ -24,17 +23,7 @@ const ImageRepositoriesTable = () => {
         fields={[
           {
             label: "Name",
-            value: ({ name, namespace, clusterName }) => (
-              <Link
-                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
-                  name: name,
-                  namespace: namespace,
-                  clusterName: clusterName,
-                })}
-              >
-                {name}
-              </Link>
-            ),
+            value: "name",
             textSearchable: true,
             maxWidth: 600,
           },
@@ -54,12 +43,28 @@ const ImageRepositoriesTable = () => {
             defaultSort: true,
           },
           {
-            label: "Interval",
-            value: (s: Source) => showInterval(s.interval),
+            label: "Image Policy",
+            value: ({ imagePolicy }: { imagePolicy: ImgPolicy }) =>
+              imagePolicy?.type || "",
           },
           {
-            label: "Tag Count",
-            value: "tagCount",
+            label: "Order/Range",
+            value: ({ imagePolicy }: { imagePolicy: ImgPolicy }) =>
+              imagePolicy?.value || "",
+          },
+          {
+            label: "Image Repository",
+            value: ({ imageRepositoryRef, namespace, clusterName }) => (
+              <Link
+                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
+                  name: imageRepositoryRef,
+                  namespace: namespace,
+                  clusterName: clusterName,
+                })}
+              >
+                {imageRepositoryRef}
+              </Link>
+            ),
           },
         ]}
       />
@@ -67,4 +72,4 @@ const ImageRepositoriesTable = () => {
   );
 };
 
-export default ImageRepositoriesTable;
+export default ImagePoliciesTable;
