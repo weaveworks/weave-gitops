@@ -23,6 +23,10 @@ export interface CrossNamespaceObjectRef extends ObjectRef {
   apiVersion: string;
   matchLabels: { key: string; value: string }[];
 }
+export interface ImgPolicy {
+  type?: string;
+  value?: string;
+}
 export class FluxObject {
   obj: any;
   clusterName: string;
@@ -313,6 +317,26 @@ export class ImageUpdateAutomation extends FluxObject {
   }
   get lastAutomationRunTime(): string {
     return this.obj?.status?.lastAutomationRunTime || "";
+  }
+}
+export class ImagePolicy extends ImageUpdateAutomation {
+  get imagePolicy(): ImgPolicy {
+    const { policy } = this.obj?.spec;
+    const [type] = Object.keys(policy);
+    if (type) {
+      const [val] = Object.values(policy[type]);
+      return {
+        type,
+        value: (val as string) || "",
+      };
+    }
+    return {
+      type: "",
+      value: "",
+    };
+  }
+  get imageRepositoryRef(): string {
+    return this.obj?.spec?.imageRepositoryRef?.name || "";
   }
 }
 export class ImageRepository extends ImageUpdateAutomation {
