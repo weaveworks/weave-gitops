@@ -151,7 +151,7 @@ Example:
 spec:
   resourcetemplates:
     // highlight-next-line
-    - path: ./clusters/${CLUSTER_NAME}/definition/cluster.yaml
+    - path: clusters/${CLUSTER_NAME}/definition/cluster.yaml
       content:
         - apiVersion: cluster.x-k8s.io/v1alpha4
           kind: Cluster
@@ -164,7 +164,7 @@ spec:
             name: ${CLUSTER_NAME}
           ...
     // highlight-next-line
-    - path: ./clusters/${CLUSTER_NAME}/workloads/helmreleases.yaml
+    - path: clusters/${CLUSTER_NAME}/workloads/helmreleases.yaml
       content:
         - apiVersion: helm.toolkit.fluxcd.io/v2beta1
           kind: HelmRelease
@@ -196,13 +196,13 @@ even if you specify a `path` for all the other resources in the template.
 The default path for a template has a few components:
 - From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
 - From the params: `NAMESPACE`, default: `default`
-- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `./clusters/management/clusters`
+- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `clusters/management/clusters`
 
 These are composed to create the path:
 `${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
 
 Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
-`./clusters/management/clusters/default/my-cluster.yaml`
+`clusters/management/clusters/default/my-cluster.yaml`
 
 ## Rendering Templates
 

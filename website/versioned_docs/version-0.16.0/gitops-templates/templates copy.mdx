@@ -1,12 +1,11 @@
 ---
 title: Using templates
-sidebar_position: 3
 hide_title: true
 ---
 
 import TierLabel from "../_components/TierLabel";
 
-# Why GitOps templates <TierLabel tiers="enterprise" />
+# Why GitOps templates <TierLabel tiers="Enterprise" />
 GitOpsTemplates enables Application Developers to self-service components and services using Weave GitOps. 
 Turning knowledge into a library that can be self-served.
  
@@ -135,6 +134,74 @@ Where
   - `version` -  (optional) will choose the default version
   - `namespace` -  (optional) is the default target namespace for the profile
   - `editable` -  (optional, default=false), allow the user to de-select this profile, making it a default instead of a requirement.
+
+## Template paths
+
+### Specifying paths
+
+The `spec.resourcetemplates[].path` field can be used to specify the paths of the rendered template resources.
+This allows more control over where different resources in the template are rendered.
+
+- The path is relative to the repository root.
+- The path can be templated using params
+
+Example:
+```yaml
+spec:
+  resourcetemplates:
+    // highlight-next-line
+    - path: ./clusters/${CLUSTER_NAME}/definition/cluster.yaml
+      content:
+        - apiVersion: cluster.x-k8s.io/v1alpha4
+          kind: Cluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          ...
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+          kind: AWSCluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          ...
+    // highlight-next-line
+    - path: ./clusters/${CLUSTER_NAME}/workloads/helmreleases.yaml
+      content:
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${CLUSTER_NAME}-nginx
+          ...
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${CLUSTER_NAME}-cert-manager
+          ...
+```
+
+### Default paths
+
+If the `spec.resourcetemplates[].path` is omitted a default path for the rendered template is calculated.
+In this case some some of the submitted params are used. You must provide one of the following parameters:
+- `CLUSTER_NAME`
+- `RESOURCE_NAME`
+
+:::info
+
+The **profiles** and **kustomization** features always use a calculated default path.
+**If you are using these features** one of `CLUSTER_NAME` or `RESOURCE_NAME` must be provided,
+even if you specify a `path` for all the other resources in the template.
+
+:::
+
+The default path for a template has a few components:
+- From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
+- From the params: `NAMESPACE`, default: `default`
+- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `./clusters/management/clusters`
+
+These are composed to create the path:
+`${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
+
+Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
+`./clusters/management/clusters/default/my-cluster.yaml`
 
 ## Rendering Templates
 
@@ -280,7 +347,7 @@ The only difference between `CAPITemplate` and `GitOpsTemplate` is the default v
 GitOps Templates objects need to be wrapped with the `GitOpsTemplate` custom resource and then loaded into the management cluster.
 
 ```yaml
-apiVersion: clustertemplates.weave.works/v1alpha2
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: cluster-template-development
@@ -304,26 +371,9 @@ spec:
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
 
-### Required Parameters
+### Required parameters
 
-Templates use the `CLUSTER_NAME` to determine the path in gitrepository and `RESOURCE_NAME` for the file name when we create the pull request. 
-
-You must provide: 
-- `CLUSTER_NAME`
-- `RESOURCE_NAME`
-
-**Default path for templates**
-
-The default path for a template has a few components:
-- From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
-- From the params: `NAMESPACE`, default: `default`
-- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `clusters/management/clusters`
-
-These are composed to create the path:
-`${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
-
-Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
-`clusters/management/clusters/default/my-cluster.yaml`
+See the [Template Paths](#template-paths) section for info on certain required parameters that are used to determine the path of the template.
 
 ### Parameters metadata - `spec.params`
 
@@ -368,3 +418,64 @@ import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 >
   {CapdTemplate}
 </CodeBlock>
+
+## Versions
+
+There are now multiple published versions of the template CRD.
+
+### Migration notes
+
+#### `v1alpha1` to `v1alpha2`
+
+When manually migrating a template from v1alpha1 to v1alpha2 (for example in git) you will need to:
+1. Update the `apiVersion` to `templates.weave.works/v1alpha2`
+2. Move the `spec.resourcetemplates` field to `spec.resourcetemplates[0].contents`
+3. Either leave the `spec.resourcetemplates[0].path` field empty or give it a sensible value.
+
+If you experience issues with the path not being recognised when flux reconciles the new template versions
+you should try manually applying the new template to the cluster directly with:
+1. Run `kubectl apply -f capi-template.yaml`
+2. Run `flux reconcile kustomization --with-source flux-system` **two times**.
+
+### Webhooks
+
+A conversion webhook is hosted by the `flux-system/templates-controller-webhook-service` service.
+`v1alpha1` templates are automatically converted to `v1alpha2` when they are loaded into the cluster.
+
+#### v1alpha1 to v1alpha2 conversion
+
+The `spec.resourcetemplates` field is moved to `spec.resourcetemplates[0].contents` and the `spec.resourcetemplates[0].path` is left empty.
+When the tempalte is rendered the `spec.resourcetemplates[0].path` field has a default value calculated.
+
+### `v1alpha2` (default) notes
+
+This version changes the type of `spec.resourcetemplates` from a list of objects to a list of files with a `path` and `contents`:
+
+Example:
+```yaml
+spec:
+  resourcetemplates:
+    - path: "clusters/{{ .params.CLUSTER_NAME }}.yaml"
+      contents:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
+            name: "{{ .params.CLUSTER_NAME }}"
+          path: "clusters/{{ .params.CLUSTER_NAME }}.yaml"
+```
+
+### `v1alpha1` notes
+
+The original version of the template. This version is deprecated and will be removed in a future release.
+
+It uses `spec.resourcetemplates` as a list of resources to render.
+
+Example:
+```yaml
+spec:
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .params.CLUSTER_NAME }}"
+```
