@@ -32,7 +32,7 @@ export const getParentNavValue = (
 
     case V2Routes.ImageAutomationUpdatesDetails:
       return V2Routes.ImageUpdates;
-    
+
     case V2Routes.ImageAutomationRepositoryDetails:
       return V2Routes.ImageRepositories;
 

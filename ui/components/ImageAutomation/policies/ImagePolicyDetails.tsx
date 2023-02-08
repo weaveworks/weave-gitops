@@ -42,7 +42,7 @@ function ImagePolicyDetails({
             ["Kind", Kind.ImagePolicy],
             ["Namespace", data?.namespace],
             ["Image Policy", data?.imagePolicy?.type || ""],
-            ["Order/Range",data?.imagePolicy?.value]
+            ["Order/Range", data?.imagePolicy?.value],
           ]}
           rootPath={rootPath}
         >
