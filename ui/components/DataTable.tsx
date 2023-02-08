@@ -407,7 +407,10 @@ function UnstyledDataTable({
       formState: resetFormState,
       textFilters: [],
     });
-    doChange(resetFormState);
+    const url = qs.parse(location.search);
+    //keeps things like clusterName and namespace for details pages
+    const cleared = _.omit(url, ["filters", "search"]);
+    history.replace({ ...location, search: qs.stringify(cleared) });
   };
 
   const handleFilterSelect = (filters, formState) => {
