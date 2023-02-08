@@ -12,6 +12,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
 import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
@@ -70,6 +71,10 @@ const App = () => (
         <Route
           path={V2Routes.ImageAutomationRepositoryDetails}
           component={withSearchParams(ImageAutomationRepoDetails)}
+        />
+        <Route
+          path={V2Routes.ImagePolicyDetails}
+          component={withSearchParams(ImagePolicyDetails)}
         />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <Route

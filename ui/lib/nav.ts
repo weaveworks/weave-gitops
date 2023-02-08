@@ -28,9 +28,16 @@ export const getParentNavValue = (
       return V2Routes.FluxRuntime;
 
     case V2Routes.ImageAutomation:
-    case V2Routes.ImageAutomationUpdatesDetails:
-    case V2Routes.ImageAutomationRepositoryDetails:
       return V2Routes.ImageAutomation;
+
+    case V2Routes.ImageAutomationUpdatesDetails:
+      return V2Routes.ImageUpdates;
+    
+    case V2Routes.ImageAutomationRepositoryDetails:
+      return V2Routes.ImageRepositories;
+
+    case V2Routes.ImagePolicyDetails:
+      return V2Routes.ImagePolicies;
 
     case V2Routes.Notifications:
     case V2Routes.Provider:
@@ -48,6 +55,9 @@ const pageTitles = {
   [V2Routes.FluxRuntime]: "Flux Runtime",
   [V2Routes.Notifications]: "Notifications",
   [V2Routes.ImageAutomation]: "Image Automations",
+  [V2Routes.ImagePolicies]: "Image Policies",
+  [V2Routes.ImageUpdates]: "Image Updates",
+  [V2Routes.ImageRepositories]: "Image Repositories",
 };
 
 export const getPageLabel = (route: V2Routes): string => {
