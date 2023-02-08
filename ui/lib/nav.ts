@@ -49,6 +49,42 @@ export const getParentNavValue = (
   }
 };
 
+export const getParentNavRouteValue = (
+  path: string
+): PageRoute | V2Routes | boolean => {
+  const [, currentPage] = _.split(path, "/");
+  switch (`/${currentPage}`) {
+    case V2Routes.Automations:
+    case V2Routes.Kustomization:
+    case V2Routes.HelmRelease:
+      return V2Routes.Automations;
+
+    case V2Routes.Sources:
+    case V2Routes.GitRepo:
+    case V2Routes.HelmChart:
+    case V2Routes.HelmRepo:
+    case V2Routes.Bucket:
+    case V2Routes.OCIRepository:
+      return V2Routes.Sources;
+
+    case V2Routes.FluxRuntime:
+      return V2Routes.FluxRuntime;
+
+    case V2Routes.ImageAutomation:
+    case V2Routes.ImageAutomationUpdatesDetails:
+    case V2Routes.ImageAutomationRepositoryDetails:
+    case V2Routes.ImagePolicyDetails:
+      return V2Routes.ImageAutomation;
+
+    case V2Routes.Notifications:
+    case V2Routes.Provider:
+      return V2Routes.Notifications;
+
+    default:
+      // The "Tabs" component of material-ui wants a bool
+      return false;
+  }
+};
 const pageTitles = {
   [V2Routes.Automations]: "Applications",
   [V2Routes.Sources]: "Sources",
