@@ -30,7 +30,6 @@ function ImagePolicyDetails({
       refetchInterval: 5000,
     }
   );
-  console.log(data);
   const rootPath = V2Routes.ImagePolicyDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
