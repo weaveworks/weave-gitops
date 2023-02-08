@@ -317,13 +317,13 @@ You must provide:
 The default path for a template has a few components:
 - From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
 - From the params: `NAMESPACE`, default: `default`
-- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `./clusters/management/clusters`
+- From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `clusters/management/clusters`
 
 These are composed to create the path:
 `${repositoryPath}/${NAMESPACE}/${CLUSTER_OR_RESOURCE_NAME}.yaml`
 
 Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will result in the path:
-`./clusters/management/clusters/default/my-cluster.yaml`
+`clusters/management/clusters/default/my-cluster.yaml`
 
 ### Parameters metadata - `spec.params`
 
