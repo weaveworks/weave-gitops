@@ -4,11 +4,11 @@ import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageRepository } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
+import Button from "../../Button";
 import Interval from "../../Interval";
 import Link from "../../Link";
 import Page from "../../Page";
 import ImageAutomationDetails from "../ImageAutomationDetails";
-import ImagePolicy from "./ImagePolicy";
 
 type Props = {
   className?: string;
@@ -32,7 +32,7 @@ function ImageAutomationRepoDetails({
       refetchInterval: 5000,
     }
   );
-  const rootPath = V2Routes.ImageAutomationRepositoriesDetails;
+  const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
       {!!data && (
@@ -53,11 +53,13 @@ function ImageAutomationRepoDetails({
           ]}
           rootPath={rootPath}
         >
-          <ImagePolicy
-            clusterName={clusterName}
-            name={name}
-            namespace={namespace}
-          />
+          <Button>
+            <Link
+              to={`/image_automation/policies?filters=imageRepositoryRef: ${name}_`}
+            >
+              Go To Image Policy
+            </Link>
+          </Button>
         </ImageAutomationDetails>
       )}
     </Page>
