@@ -451,7 +451,7 @@ func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user
 		nss = cf.userNsList(ctx, user)
 	}
 
-	return NewClient(pool, nss), result.ErrorOrNil()
+	return NewClient(pool, nss, cf.log), result.ErrorOrNil()
 }
 
 func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, user *auth.UserPrincipal, clusterName string) (Client, error) {
@@ -484,7 +484,7 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("failed adding cluster client to pool: %w", err)
 	}
 
-	return NewClient(pool, cf.userNsList(ctx, user)), nil
+	return NewClient(pool, cf.userNsList(ctx, user), cf.log), nil
 }
 
 func (cf *clustersManager) GetImpersonatedDiscoveryClient(ctx context.Context, user *auth.UserPrincipal, clusterName string) (discovery.DiscoveryInterface, error) {
@@ -541,7 +541,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		result = multierror.Append(result, err)
 	}
 
-	return NewClient(pool, cf.clustersNamespaces.namespaces), result.ErrorOrNil()
+	return NewClient(pool, cf.clustersNamespaces.namespaces, cf.log), result.ErrorOrNil()
 }
 
 func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {

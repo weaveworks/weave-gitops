@@ -275,10 +275,6 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 							return
 						}
 
-						if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-							cs.logger.Error(err, "listing resources context issue", "namespace", namespace, "gvk", gvk.String())
-						}
-
 						errsMu.Lock()
 						respErrors = *multierror.Append(fmt.Errorf("listing unstructured object: %w", err), respErrors.Errors...)
 						errsMu.Unlock()

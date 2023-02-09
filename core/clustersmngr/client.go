@@ -5,11 +5,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -56,6 +58,7 @@ const (
 type clustersClient struct {
 	pool       ClientsPool
 	namespaces map[string][]v1.Namespace
+	log        logr.Logger
 }
 
 type ListError struct {
@@ -85,10 +88,11 @@ func (cle ClusteredListError) Error() string {
 	return strings.Join(errs, "; ")
 }
 
-func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Client {
+func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace, log logr.Logger) Client {
 	return &clustersClient{
 		pool:       clientsPool,
 		namespaces: namespaces,
+		log:        log,
 	}
 }
 
@@ -125,7 +129,17 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
 	defer cancel()
 
-	return client.List(ctx, list, opts...)
+	if err := client.List(ctx, list, opts...); err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			c.log.Error(err, "listing resources context issue", "cluster", cluster)
+
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, namespaced bool, opts ...client.ListOption) error {
