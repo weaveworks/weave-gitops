@@ -23,7 +23,17 @@ const ImagePoliciesTable = () => {
         fields={[
           {
             label: "Name",
-            value: "name",
+            value: ({ name, namespace, clusterName }) => (
+              <Link
+                to={formatURL(V2Routes.ImagePolicyDetails, {
+                  name: name,
+                  namespace: namespace,
+                  clusterName: clusterName,
+                })}
+              >
+                {name}
+              </Link>
+            ),
             textSearchable: true,
             maxWidth: 600,
           },
