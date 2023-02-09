@@ -298,6 +298,8 @@ message GetSessionLogsRequest {
     string sessionNamespace = 1;
     string sessionId        = 2;
     string token            = 3;
+    string logSourceFilter  = 4;
+    string logLevelFilter   = 5;
 }
 
 message LogEntry {
@@ -308,9 +310,10 @@ message LogEntry {
 }
 
 message GetSessionLogsResponse {
-    repeated LogEntry logs      = 1;
-    string            nextToken = 2;
-    string            error     = 3;
+    repeated LogEntry logs       = 1;
+    string            nextToken  = 2;
+    string            error      = 3;
+    repeated string   logSources = 4;
 }
 
 message IsCRDAvailableRequest {

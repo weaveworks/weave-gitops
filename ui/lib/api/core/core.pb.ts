@@ -143,6 +143,8 @@ export type GetSessionLogsRequest = {
   sessionNamespace?: string
   sessionId?: string
   token?: string
+  logSourceFilter?: string
+  logLevelFilter?: string
 }
 
 export type LogEntry = {
@@ -156,6 +158,7 @@ export type GetSessionLogsResponse = {
   logs?: LogEntry[]
   nextToken?: string
   error?: string
+  logSources?: string[]
 }
 
 export type IsCRDAvailableRequest = {
