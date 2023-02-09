@@ -14,7 +14,9 @@ function Timestamp({ className, time, hideSeconds, tooltip }: Props) {
   const dateTime = DateTime.fromISO(time);
 
   let relativeTime = dateTime.toRelative();
-  const fullTime = dateTime.toLocaleString();
+  const fullTime = dateTime.toLocaleString(
+    DateTime.DATETIME_SHORT_WITH_SECONDS
+  );
 
   if (hideSeconds && relativeTime.includes("second")) {
     relativeTime = "less than a minute ago";
@@ -22,7 +24,7 @@ function Timestamp({ className, time, hideSeconds, tooltip }: Props) {
 
   if (tooltip)
     return (
-      <Tooltip title={fullTime}>
+      <Tooltip title={fullTime} placement="top">
         <span className={className}>{relativeTime}</span>
       </Tooltip>
     );
