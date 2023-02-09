@@ -17,7 +17,7 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
-import ProfileInfo from "./components/ProfileSettings";
+import ProfileInfo from "./components/ProfileInfo";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -110,7 +110,7 @@ const App = () => (
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
         />
-                <Route
+        <Route
           path={V2Routes.ProfileInfo}
           component={ProfileInfo}
         />
