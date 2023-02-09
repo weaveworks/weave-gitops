@@ -147,7 +147,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Last Updated",
       value: (a: Automation) => (
         <Timestamp
-          tooltip
           time={_.get(_.find(a.conditions, { type: "Ready" }), "timestamp")}
         />
       ),
