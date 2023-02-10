@@ -139,6 +139,7 @@ module.exports = {
         'pipelines/authorization',
         'pipelines/promoting-applications',
         'pipelines/pipeline-templates',
+        'pipelines/pipelines-with-jenkins',
         {
           type: 'category',
           label: 'Reference',
