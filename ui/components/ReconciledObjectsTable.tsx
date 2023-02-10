@@ -8,7 +8,6 @@ import { NoNamespace } from "../lib/types";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
-
 interface ReconciledVisualizationProps {
   className?: string;
   automation?: Automation;
