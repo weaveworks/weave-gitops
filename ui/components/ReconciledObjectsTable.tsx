@@ -1,38 +1,29 @@
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { useGetReconciledObjects } from "../hooks/flux";
-import { Kind } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
-import { NoNamespace } from "../lib/types";
+import { FluxObject } from "../lib/objects";
+import { RequestError } from "../lib/types";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
+
 interface ReconciledVisualizationProps {
   className?: string;
-  automation?: Automation;
+  objects: FluxObject[] | undefined[];
+  error?: RequestError;
+  isLoading?: boolean;
 }
 
 function ReconciledObjectsTable({
   className,
-  automation,
+  objects,
+  error,
+  isLoading,
 }: ReconciledVisualizationProps) {
-  const {
-    data: objs,
-    error,
-    isLoading,
-  } = useGetReconciledObjects(
-    automation.name,
-    automation.namespace || NoNamespace,
-    Kind[automation.type],
-    automation.inventory,
-    automation.clusterName
-  );
-
   const initialFilterState = {
-    ...filterConfig(objs, "type"),
-    ...filterConfig(objs, "namespace"),
-    ...filterConfig(objs, "status", filterByStatusCallback),
+    ...filterConfig(objects, "type"),
+    ...filterConfig(objects, "namespace"),
+    ...filterConfig(objects, "status", filterByStatusCallback),
   };
 
   const { setNodeYaml } = React.useContext(AppContext);
@@ -41,7 +32,7 @@ function ReconciledObjectsTable({
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable
         className={className}
-        objects={objs}
+        objects={objects}
         onClick={setNodeYaml}
         initialFilterState={initialFilterState}
       />

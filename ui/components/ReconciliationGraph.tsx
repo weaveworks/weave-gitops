@@ -2,9 +2,9 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { useGetReconciledTree } from "../hooks/flux";
-import { Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
+import { ObjectRef } from "../lib/api/core/types.pb";
+import { Automation, FluxObject } from "../lib/objects";
+import { RequestError } from "../lib/types";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
@@ -14,6 +14,9 @@ export type Props = {
   className?: string;
   parentObject: Automation;
   source: ObjectRef;
+  objects: FluxObject[] | undefined[];
+  error?: RequestError;
+  isLoading?: boolean;
 };
 
 const SliderFlex = styled(Flex)`
@@ -35,21 +38,14 @@ const GraphDiv = styled.div`
   height: 100%;
 `;
 
-function ReconciliationGraph({ className, parentObject, source }: Props) {
-  //grab data
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = parentObject
-    ? useGetReconciledTree(
-        parentObject.name,
-        parentObject.namespace,
-        Kind[parentObject.type],
-        parentObject.inventory,
-        parentObject.clusterName
-      )
-    : { data: [], error: null, isLoading: false };
+function ReconciliationGraph({
+  className,
+  parentObject,
+  source,
+  objects,
+  error,
+  isLoading,
+}: Props) {
   //add extra nodes
   const secondNode = {
     name: parentObject.name,

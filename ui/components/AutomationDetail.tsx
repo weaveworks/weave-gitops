@@ -4,7 +4,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
-import { useToggleSuspend } from "../hooks/flux";
+import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
@@ -66,6 +66,22 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
+  //grab data
+  const {
+    data: objects,
+    error,
+    isLoading,
+  } = automation
+    ? useGetReconciledTree(
+        automation.name,
+        automation.namespace,
+        Kind[automation.type],
+        automation.inventory,
+        automation.clusterName
+      )
+    : { data: [], error: null, isLoading: false };
+  //add extra nodes
+
   // default routes
   const defaultTabs: Array<routeTab> = [
     {
@@ -79,7 +95,11 @@ function AutomationDetail({
               metadata={automation.metadata}
               labels={automation.labels}
             />
-            <ReconciledObjectsTable automation={automation} />
+            <ReconciledObjectsTable
+              objects={objects}
+              error={error}
+              isLoading={isLoading}
+            />
           </>
         );
       },
@@ -110,6 +130,9 @@ function AutomationDetail({
         return (
           <ReconciliationGraph
             parentObject={automation}
+            objects={objects}
+            error={error}
+            isLoading={isLoading}
             source={automation.sourceRef}
           />
         );
