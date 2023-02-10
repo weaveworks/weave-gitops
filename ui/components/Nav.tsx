@@ -3,7 +3,7 @@ import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
-import { formatURL, getParentNavValue } from "../lib/nav";
+import { formatURL, getParentNavRouteValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 // eslint-disable-next-line
 import { colors } from "../typedefs/styled";
@@ -110,7 +110,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
 
 function Nav({ className, navItems }: Props) {
   const { currentPage } = useNavigation();
-  const value = getParentNavValue(currentPage);
+  const value = getParentNavRouteValue(currentPage);
   return (
     <NavContent className={className}>
       <Tabs

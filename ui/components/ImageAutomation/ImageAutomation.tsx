@@ -5,24 +5,33 @@ import ImageAutomationUpdatesTable from "../../components/ImageAutomation/update
 import { routeTab } from "../../components/KustomizationDetail";
 import SubRouterTabs, { RouterTab } from "../../components/SubRouterTabs";
 import Flex from "../Flex";
+import ImagePoliciesTable from "./policies/ImagePoliciesTable";
 
 const ImageAutomation = () => {
   const { path } = useRouteMatch();
 
   const tabs: Array<routeTab> = [
     {
-      name: "Image Update Automations",
-      path: `${path}/updates`,
-      component: () => {
-        return <ImageAutomationUpdatesTable />;
-      },
-      visible: true,
-    },
-    {
       name: "Image Repositories",
       path: `${path}/repositories`,
       component: () => {
         return <ImageRepositoriesTable />;
+      },
+      visible: true,
+    },
+    {
+      name: "Image Policies",
+      path: `${path}/policies`,
+      component: () => {
+        return <ImagePoliciesTable />;
+      },
+      visible: true,
+    },
+    {
+      name: "Image Update Automations",
+      path: `${path}/updates`,
+      component: () => {
+        return <ImageAutomationUpdatesTable />;
       },
       visible: true,
     },

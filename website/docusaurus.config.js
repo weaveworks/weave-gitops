@@ -54,6 +54,22 @@ module.exports = {
           label: "Getting Started",
         },
         {
+          type: 'docSidebar',
+          position: 'left',
+          label: 'Helm Chart & CLI',
+          sidebarId: 'ref',
+        },
+        {
+          to: 'help-and-support',
+          label: 'Help & Support',
+          position: 'left',
+        },
+        {
+          to: 'feedback-and-telemetry',
+          label: 'Feedback & Telemetry',
+          position: 'left',
+        },
+        {
           to: 'security',
           label: 'Security',
           position: 'left',

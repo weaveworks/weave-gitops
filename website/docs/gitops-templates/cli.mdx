@@ -1,0 +1,84 @@
+---
+title: CLI
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Template CLI tools <TierLabel tiers="Enterprise" />
+
+The enterprise `gitops` CLI tool provides a set of commands to help you manage your templates.
+
+Here we're going to talk about the `gitops create template` command that allows you to render templates locally and airgapped, without a full WGE installation in a kubernetes cluster.
+
+## The `gitops create template` command
+
+### Use cases
+
+- CI/CD systems where you want to render a template and then use the output in a pipeline
+- Quicking debugging templates
+
+### Restrictions
+
+- The `gitops create template` command only works with `GitOpsTemplate` objects. It does not work with `CAPITemplate` objects. You should be able to migrate any `CAPITemplate` objects to `GitOpsTemplate` with some small tweaks. See the differences here [CAPITemplate vs GitOpsTemplate](./templates.mdx#differences-between-capitemplate-and-gitopstemplate)
+
+### Installation
+
+See the Weave Gitops Enterprise [installation instructions](../installation/weave-gitops-enterprise/index.mdx#7-install-the-cli) for details on how to install the EE `gitops` CLI tool.
+
+### Getting started
+
+Given a GitOpsTemplate on the local filesystem can supply the required parameters and render the template to either
+1. The current kubecontext directly (default)
+2. stdout with `--export`
+3. The file system with `--output-dir`, this will use the `spec.resourcestemplates[].path` fields in the template to determine where to write the rendered files. This is the recommended approach for GitOps as you can then commit the rendered files to your repository.
+
+```bash
+gitops create template \
+  --template-file capd-capi-template.yaml \
+  --output-dir ./clusters/ \
+  --values CLUSTER_NAME=foo
+```
+
+### Profiles
+
+As with the UI you can add profiles to your template. However instead of reading the latest version of a profile and its layers from a `HelmRepository` object in the cluster, we instead read from your local helm cache.
+
+```bash
+helm repo add weaveworks-charts https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+helm repo update
+```
+
+This particular helm repo provides a version of the cert-manager repo and others.
+
+
+#### Supplying values to a profile
+
+You can supply a `values.yaml` file to a profile using the `values` parameter. For example we can supply cert-managers values.yaml with:
+
+```bash
+gitops create template \
+  --template-file capd-capi-template.yaml \
+  --output-dir ./out \
+  --values CLUSTER_NAME=foo \
+  --profiles "name=cert-manager,namespace=foo,version=>0.1,values=cert-manager-values.yaml"
+```
+
+### Supplying a config file instead of command line flags
+
+Instead of specifying the parameters on the command line you can supply a config file. For example the above involation can be replaced with a config file:
+
+```yaml title=config.yaml
+template-file: capd-capi-template.yaml
+output-dir: ./out
+values:
+  - CLUSTER_NAME=foo
+profiles:
+  - name=cert-manager,namespace=foo,version=>0.1,values=cert-manager-values.yaml
+```
+
+and invoked with:
+
+```bash
+gitops create template --config config.yaml
+```
