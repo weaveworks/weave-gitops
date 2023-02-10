@@ -567,7 +567,7 @@ describe("DataTableFilters", () => {
       ...filterConfig(rows, "type"),
     };
 
-    const search = `?filters=type${uriEncodedSeparator}foo_`;
+    const search = `?filters=type${uriEncodedSeparator}foo_&search=cool_`;
 
     render(
       withTheme(
@@ -584,8 +584,8 @@ describe("DataTableFilters", () => {
       )
     );
     const tableRows = document.querySelectorAll("tbody tr");
-    expect(tableRows).toHaveLength(2);
-    expect(tableRows[0].innerHTML).toContain("foo");
+    expect(tableRows).toHaveLength(1);
+    expect(tableRows[0].innerHTML).toContain("cool");
   });
   it("returns a query string on filter change", () => {
     const queryString = filterSelectionsToQueryString({
@@ -593,7 +593,8 @@ describe("DataTableFilters", () => {
     });
     expect(queryString).toEqual(`filters=type${uriEncodedSeparator}foo_`);
     expect(parseFilterStateFromURL(queryString)).toEqual({
-      [`type${filterSeparator}foo`]: true,
+      initialSelections: { [`type${filterSeparator}foo`]: true },
+      textFilters: [],
     });
   });
 });

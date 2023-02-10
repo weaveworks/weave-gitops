@@ -3,7 +3,6 @@ package install
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
+	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	appsv1 "k8s.io/api/apps/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -77,6 +77,9 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
     "run.weave.works/automation-kind": "%s",
     "run.weave.works/namespace": "%s",
     "run.weave.works/flux-namespace": "%s"
+  },
+  "hostpathMapper": {
+    "enabled": true
   },
   "mapServices": {
     "fromVirtual": [

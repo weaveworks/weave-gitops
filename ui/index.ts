@@ -90,6 +90,7 @@ import RequestStateHandler from "./components/RequestStateHandler";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 import DirectedGraph from "./components/DirectedGraph";
 import FluxObjectsTable from "./components/FluxObjectsTable";
+import ReconciliationGraph from "./components/ReconciliationGraph";
 
 export {
   AppContext,
@@ -158,6 +159,7 @@ export {
   PARENT_CHILD_LOOKUP,
   ProviderDetail,
   ReconciledObjectsTable,
+  ReconciliationGraph,
   RequestStateHandler,
   RouterTab,
   SignIn,
