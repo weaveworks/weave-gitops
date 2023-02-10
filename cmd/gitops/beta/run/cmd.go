@@ -121,7 +121,7 @@ gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,
 # Run the sync on the podinfo Helm chart, in the session mode. Please note that file Chart.yaml must exist in the directory.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
-gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
+gitops beta run ./charts/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
 		PreRunE:           betaRunCommandPreRunE(&opts.Endpoint),
@@ -427,7 +427,7 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	return dashboardInstalled, dashboardManifests, "", nil
 }
 
-func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
+func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
 		return err
@@ -567,7 +567,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	return err
 }
 
-func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// There are two loggers in this function.
 	// 1. log0 is the os.Stdout logger
 	// 2. log is the S3 logger that also delegates its outputs to "log0".
@@ -1248,9 +1248,9 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if flags.NoSession {
-			return runCommandWithoutSession(cmd, args)
+			return runCommandInnerProcess(cmd, args)
 		} else {
-			return runCommandWithSession(cmd, args)
+			return runCommandOuterProcess(cmd, args)
 		}
 	}
 }
