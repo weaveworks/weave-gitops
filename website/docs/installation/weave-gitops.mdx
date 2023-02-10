@@ -1,7 +1,7 @@
 ---
-title: Weave GitOps
+title: Weave GitOps OSS
 hide_title: true
-pagination_next: "getting-started"
+pagination_next: getting-started/ui
 ---
 
 ## Installing Weave GitOps on your Cluster
@@ -25,11 +25,11 @@ later has already been installed on your Kubernetes cluster. Full documentation
 is available [here][fl-install].
 
 This version of Weave GitOps is tested against the following Flux releases:
-* 0.32
-* 0.33
-* 0.34
-* 0.35
 * 0.36
+* 0.35
+* 0.34
+* 0.33
+* 0.32
 
 In this section we are going to do the following:
 
@@ -37,6 +37,8 @@ In this section we are going to do the following:
 - Add Flux component manifests to the repository
 - Deploy Flux Components to your Kubernetes Cluster
 - Configure Flux components to track the path `./clusters/my-cluster/` in the repository
+
+Let's get into it... :sparkles:
 
 1. Install the flux CLI
 
@@ -46,7 +48,7 @@ In this section we are going to do the following:
 
    For other installation methods, see the relevant [Flux documentation][fl-install].
 
-1. Export your credentials
+1. Export your credentials (ensure your PAT has `repo` scope)
 
    ```
    export GITHUB_TOKEN=<your-token>
@@ -66,7 +68,9 @@ In this section we are going to do the following:
    ✔ prerequisites checks passed
    ```
 
-1. Install Flux onto your cluster with the `flux bootstrap` command
+1. Install Flux onto your cluster with the `flux bootstrap` command. The command
+	below assumes the Git provider to be `github`, alter this if you would rather use
+	`gitlab`.
 
    ```
    flux bootstrap github \
@@ -160,7 +164,8 @@ In this section we will do the following:
    git push
    ```
 
-1. Validate that Weave GitOps and Flux are installed
+1. Validate that Weave GitOps and Flux are installed. _Note: this wont be instantaneous,
+	give the Flux controllers a couple of minutes to pull the latest commit._
 
    ```
    kubectl get pods -n flux-system
@@ -184,7 +189,7 @@ In this section we will do the following:
 
 ## Next steps
 
-In the following [Get Started document](../getting-started.mdx), we will walk you
+In the following [Get Started document](../getting-started/ui.mdx), we will walk you
 through logging into the GitOps Dashboard and deploying an application.
 
 [ee-install]: ../weave-gitops-enterprise
