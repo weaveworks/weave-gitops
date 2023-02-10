@@ -10,7 +10,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Setting Up Pipelines to Notify a Jenkins Webhook <TierLabel tiers="Enterprise" />
 
-Using the [Notification
+Using Flux's [Notification
 Controller](https://fluxcd.io/flux/components/notification/), a Jenkins Webhook
 can be invoked on Pipeline promotion events.
 
@@ -60,7 +60,7 @@ An example Promotion Event payload:
 ## Configure Notification Provider
 
 In order to be able to invoke a generic webhook, a notification provider has to
-be defined. Jenkins expects the secret token as a GET parameter or in the
+be defined. Jenkins expects the secret token which you configured above as a GET parameter or in the
 request header. The secret token can be stored in a Secret:
 
 ```yaml
