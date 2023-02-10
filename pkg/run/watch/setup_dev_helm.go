@@ -3,6 +3,7 @@ package watch
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -36,10 +37,15 @@ func SetupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient
 			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: params.Path,
+					Chart:             params.Path,
+					ReconcileStrategy: "Revision",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: sourcev1.BucketKind,
 						Name: RunDevBucketName,
+					},
+					// relative to the root of SourceRef
+					ValuesFiles: []string{
+						filepath.Join(params.Path, "values.yaml"),
 					},
 				},
 			},
