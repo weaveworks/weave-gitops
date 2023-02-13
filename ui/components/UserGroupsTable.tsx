@@ -27,7 +27,7 @@ function UserGroupsTable({ className, rows }: Props) {
       <Flex wide tall column align>
         <MessageBox>
           <Text size="large" semiBold>
-            You are not subscribed to any Group
+            You are not subscribed to any group
           </Text>
         </MessageBox>
       </Flex>
