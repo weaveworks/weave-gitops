@@ -7,7 +7,7 @@ import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
 interface Props {
-  className: string;
+  className?: string;
   reconciledObjectsAutomation: ReconciledObjectsAutomation;
 }
 

@@ -9,7 +9,7 @@ import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
 interface Props {
-  className: string;
+  className?: string;
   reconciledObjectsAutomation: ReconciledObjectsAutomation;
 }
 
