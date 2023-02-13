@@ -19,14 +19,14 @@ type Props = {
   pan: { x: number; y: number };
 };
 
-const DirectedGraph: React.FC<Props> = ({
+function DirectedGraph({
   className,
   descendants,
   links,
   nodeSize,
   zoomPercent,
   pan,
-}) => {
+}: Props) {
   //minimum zoomBox is 1000
   const zoomBox = 15000 - 14000 * (zoomPercent / 100);
   //since viewbox is so large, make smaller mouse movements correspond to larger pan
@@ -87,6 +87,6 @@ const DirectedGraph: React.FC<Props> = ({
       </g>
     </svg>
   );
-};
+}
 
 export default styled(DirectedGraph).attrs({ className: DirectedGraph.name })``;
