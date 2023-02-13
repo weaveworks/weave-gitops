@@ -73,7 +73,9 @@ import {
   poller,
   statusSortHelper,
 } from "./lib/utils";
-import SignIn from "./pages/SignIn";
+import SignIn from "./pages/SignIn";\
+import CopyToClipboard from "./components/CopyToCliboard";
+import UserGroupsTable from "./components/UserGroupsTable";
 
 export {
   AppContext,
@@ -155,4 +157,6 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
+  CopyToClipboard,
+  UserGroupsTable
 };
