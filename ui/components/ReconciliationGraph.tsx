@@ -41,15 +41,14 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
     data: objects,
     error,
     isLoading,
-  } = parentObject
-    ? useGetReconciledTree(
-        parentObject.name,
-        parentObject.namespace,
-        Kind[parentObject.type],
-        parentObject.inventory,
-        parentObject.clusterName
-      )
-    : { data: [], error: null, isLoading: false };
+  } = useGetReconciledTree(
+    parentObject.name,
+    parentObject.namespace,
+    Kind[parentObject.type],
+    parentObject.inventory,
+    parentObject.clusterName
+  );
+
   //add extra nodes
   const secondNode = {
     name: parentObject.name,
@@ -64,7 +63,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
 
   const rootNode = {
     ...source,
-    type: source.kind,
+    type: source?.kind,
     clusterName: parentObject.clusterName,
     children: [secondNode],
   };

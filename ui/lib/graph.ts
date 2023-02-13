@@ -31,6 +31,13 @@ export const PARENT_CHILD_LOOKUP = {
   },
 };
 
+const objID = (obj: FluxObject) =>
+  `${obj.clusterName}/${obj.namespace}/${obj.type}/${obj.name}`;
+
+const sortFn = (a, b) => {
+  return objID(a).localeCompare(objID(b));
+};
+
 export const getChildrenRecursive = async (
   client: typeof Core,
   namespace: string,
@@ -39,7 +46,7 @@ export const getChildrenRecursive = async (
   clusterName: string,
   lookup: any
 ) => {
-  const children = [];
+  const children: FluxObject[] = [];
 
   const k = lookup[object.type];
 
@@ -64,6 +71,8 @@ export const getChildrenRecursive = async (
       }
     }
   }
+  // Mutates
+  children.sort(sortFn);
   object.children = children;
 };
 
@@ -84,18 +93,22 @@ export const getChildren = async (
     clusterName,
   });
 
-  const result = [];
-  for (let o = 0; o < objects.length; o++) {
-    const obj = convertResponse(null, objects[o]);
+  const fluxObjs = _.map(objects, (o) => convertResponse(null, o));
+  fluxObjs.sort(sortFn);
+
+  const result: FluxObject[] = [];
+  for (let o = 0; o < fluxObjs.length; o++) {
+    const obj = fluxObjs[o];
     await getChildrenRecursive(
       client,
       namespace,
-
       obj,
       clusterName,
       PARENT_CHILD_LOOKUP
     );
     result.push(obj);
   }
-  return _.flatten(result);
+  const flat = _.flatten(result);
+
+  return flat;
 };

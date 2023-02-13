@@ -12,6 +12,8 @@ image_repository = os.getenv('IMAGE_REPO', 'localhost:5001/weaveworks/wego-app')
 load('ext://restart_process', 'docker_build_with_restart')
 
 advanced_go_dev_mode = os.getenv('FAST_AND_FURIOUSER')
+skip_ui_build = os.getenv("SKIP_UI_BUILD")
+
 if advanced_go_dev_mode:
 
     local_resource(
@@ -25,14 +27,15 @@ if advanced_go_dev_mode:
         ]
     )
 
-    local_resource(
-        'ui-server',
-        'make ui',
-        deps=[
-            './ui',
-        ]
-    )
-
+    if not skip_ui_build:
+        local_resource(
+            'ui-server',
+            'make ui',
+            deps=[
+                './ui',
+            ]
+        )
+    
     docker_build_with_restart(
         image_repository,
         '.',
@@ -56,4 +59,10 @@ else:
 k8s_yaml(helm('./charts/gitops-server', name='dev', values='./tools/helm-values-dev.yaml', set=['image.repository=' + image_repository]))
 k8s_yaml(helm('./tools/charts/dev', name='dev', values='./tools/charts/dev/values.yaml'))
 
-k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=['gitops-server', 'ui-server'] if advanced_go_dev_mode else [])
+deps = ['gitops-server'] if advanced_go_dev_mode else []
+
+if not skip_ui_build:
+    deps.append('ui-server')
+
+
+k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=deps)
