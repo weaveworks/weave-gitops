@@ -72,10 +72,12 @@ function UserSettings({ className }: { className?: string }) {
         id="account-menu"
         open={open}
         onClose={handleClose}
-        onClick={handleClose}s
+        onClick={handleClose}
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
-        <MenuItem  onClick={()=>history.push(V2Routes.ProfileInfo)}>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem onClick={() => history.push(V2Routes.ProfileInfo)}>
+          Hello, {userInfo?.email}
+        </MenuItem>
         <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
           Notifications
         </MenuItem>
