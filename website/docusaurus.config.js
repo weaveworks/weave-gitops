@@ -43,13 +43,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "installation/index",
-          position: "left",
-          label: "Installation",
-        },
-        {
-          type: "doc",
-          docId: "getting-started",
+          docId: "intro",
           position: "left",
           label: "Getting Started",
         },
