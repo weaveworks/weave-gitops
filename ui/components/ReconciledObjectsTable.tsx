@@ -1,25 +1,22 @@
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { FluxObject } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
-interface ReconciledVisualizationProps {
-  className?: string;
-  objects: FluxObject[] | undefined[];
-  error?: RequestError;
-  isLoading?: boolean;
+interface Props {
+  className: string;
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
 }
 
 function ReconciledObjectsTable({
   className,
-  objects,
-  error,
-  isLoading,
-}: ReconciledVisualizationProps) {
+  reconciledObjectsAutomation,
+}: Props) {
+  const { objects, isLoading, error } = reconciledObjectsAutomation;
+
   const initialFilterState = {
     ...filterConfig(objects, "type"),
     ...filterConfig(objects, "namespace"),

@@ -2,22 +2,16 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { ObjectRef } from "../lib/api/core/types.pb";
-import { Automation, FluxObject } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
-export type Props = {
-  className?: string;
-  parentObject: Automation;
-  source: ObjectRef;
-  objects: FluxObject[] | undefined[];
-  error?: RequestError;
-  isLoading?: boolean;
-};
+interface Props {
+  className: string;
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+}
 
 const SliderFlex = styled(Flex)`
   padding-top: ${(props) => props.theme.spacing.base};
@@ -40,20 +34,29 @@ const GraphDiv = styled.div`
 
 function ReconciliationGraph({
   className,
-  parentObject,
-  source,
-  objects,
-  error,
-  isLoading,
+  reconciledObjectsAutomation,
 }: Props) {
+  const {
+    name,
+    namespace,
+    suspended,
+    conditions,
+    type,
+    clusterName,
+    objects,
+    isLoading,
+    error,
+    source,
+  } = reconciledObjectsAutomation;
+
   //add extra nodes
   const secondNode = {
-    name: parentObject.name,
-    namespace: parentObject.namespace,
-    suspended: parentObject.suspended,
-    conditions: parentObject.conditions,
-    type: parentObject.type,
-    clusterName: parentObject.clusterName,
+    name,
+    namespace,
+    suspended,
+    conditions,
+    type,
+    clusterName,
     children: objects,
     isCurrentNode: true,
   };
@@ -61,7 +64,7 @@ function ReconciliationGraph({
   const rootNode = {
     ...source,
     type: source.kind,
-    clusterName: parentObject.clusterName,
+    clusterName,
     children: [secondNode],
   };
   //graph numbers

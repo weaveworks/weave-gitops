@@ -5,8 +5,9 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
-import { Kind } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
+import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
+import { Automation, FluxObject } from "../lib/objects";
+import { RequestError } from "../lib/types";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
@@ -30,6 +31,19 @@ type Props = {
   info: InfoField[];
   customTabs?: Array<routeTab>;
   customActions?: JSX.Element[];
+};
+
+export type ReconciledObjectsAutomation = {
+  objects: FluxObject[] | undefined[];
+  error?: RequestError;
+  isLoading?: boolean;
+  source: ObjectRef;
+  name: string;
+  namespace: string;
+  suspended: boolean;
+  conditions: Condition[];
+  type: string;
+  clusterName: string;
 };
 
 function AutomationDetail({
@@ -82,6 +96,19 @@ function AutomationDetail({
     : { data: [], error: null, isLoading: false };
   //add extra nodes
 
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    objects,
+    error,
+    isLoading,
+    source: automation.sourceRef,
+    name: automation.name,
+    namespace: automation.namespace,
+    suspended: automation.suspended,
+    conditions: automation.conditions,
+    type: automation.type,
+    clusterName: automation.clusterName,
+  };
+
   // default routes
   const defaultTabs: Array<routeTab> = [
     {
@@ -96,9 +123,8 @@ function AutomationDetail({
               labels={automation.labels}
             />
             <ReconciledObjectsTable
-              objects={objects}
-              error={error}
-              isLoading={isLoading}
+              className={className}
+              reconciledObjectsAutomation={reconciledObjectsAutomation}
             />
           </>
         );
@@ -129,11 +155,8 @@ function AutomationDetail({
       component: () => {
         return (
           <ReconciliationGraph
-            parentObject={automation}
-            objects={objects}
-            error={error}
-            isLoading={isLoading}
-            source={automation.sourceRef}
+            className={className}
+            reconObjsAutomation={reconObjsAutomation}
           />
         );
       },
