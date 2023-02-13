@@ -156,7 +156,7 @@ function AutomationDetail({
         return (
           <ReconciliationGraph
             className={className}
-            reconObjsAutomation={reconObjsAutomation}
+            reconciledObjectsAutomation={reconciledObjectsAutomation}
           />
         );
       },
