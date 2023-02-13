@@ -17,8 +17,8 @@ Controller](https://fluxcd.io/flux/components/notification/), a [Tekton EventLis
 
 ### Tekton Tasks
 
-We have only two tasks to demonstrate how to use parameter values from the
-Pipeline event payload, both tasks print out messages with information about the
+In this tutorial, we have two tasks to demonstrate how to use parameter values from the
+Pipeline event payload. Both tasks print out messages with information about the
 pipeline promotion. Each task has three parameters: `name`, `namespace`, and
 `message`.
 
@@ -148,7 +148,7 @@ like this:
 }
 ```
 
-In out tasks, we are using only the `involvedObject.name`,
+In our tasks, we are using only the `involvedObject.name`,
 `involvedObject.namespace` and `message` fields:
 
 ```yaml
@@ -170,7 +170,7 @@ spec:
 
 ### Tekton TriggerTemplate
 
-The template has the same parameters as the `Pipeline` resources has:
+The template has the same parameters as the `Pipeline` resources:
 
 ```yaml
 ---
