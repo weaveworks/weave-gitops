@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -122,10 +125,22 @@ func (m *mockS3Reader) ListObjects(ctx context.Context, bucketName string, opts 
 	return ch
 }
 
+var timeFixture = time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
+
 func (m *mockS3Reader) GetObject(ctx context.Context, bucketName, objectName string, opts minio.GetObjectOptions) (io.ReadCloser, error) {
 	switch objectName {
 	case "test":
-		return io.NopCloser(strings.NewReader("test")), nil
+		o := &pb.LogEntry{
+			Timestamp: timeFixture.Format(time.RFC3339),
+			Message:   "test",
+			Level:     "info",
+			Source:    "gitops-run-client",
+		}
+		b, err := json.Marshal(o)
+		if err != nil {
+			return nil, err
+		}
+		return io.NopCloser(strings.NewReader(string(b))), nil
 	case "error":
 		return nil, fmt.Errorf("error")
 	}
@@ -133,7 +148,7 @@ func (m *mockS3Reader) GetObject(ctx context.Context, bucketName, objectName str
 	return nil, fmt.Errorf("not found")
 }
 
-func TestGetLogs(t *testing.T) {
+func TestGitOpsRunLogs(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	type args struct {
@@ -145,11 +160,11 @@ func TestGetLogs(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		args    args
-		want    []string
-		want1   string
-		wantErr bool
+		name      string
+		args      args
+		want      []*pb.LogEntry
+		wantToken string
+		wantErr   bool
 	}{
 		{
 			name: "test",
@@ -160,9 +175,14 @@ func TestGetLogs(t *testing.T) {
 				minio:      &mockS3Reader{},
 				bucketName: "test",
 			},
-			want:    []string{"test"},
-			want1:   "test",
-			wantErr: false,
+			want: []*pb.LogEntry{{
+				Level:     "info",
+				Message:   "test",
+				Source:    "gitops-run-client",
+				Timestamp: timeFixture.Format(time.RFC3339),
+			}},
+			wantToken: "test",
+			wantErr:   false,
 		},
 		{
 			name: "error",
@@ -173,16 +193,22 @@ func TestGetLogs(t *testing.T) {
 				minio:      &mockS3Reader{},
 				bucketName: "error",
 			},
-			want:    nil,
-			want1:   "",
-			wantErr: true,
+			want:      nil,
+			wantToken: "",
+			wantErr:   true,
 		},
 	}
 
 	for _, tt := range tests {
-		got, got1, err := getLogs(tt.args.ctx, tt.args.sessionID, tt.args.nextToken, tt.args.minio, tt.args.bucketName)
+		got, token, err := getGitOpsRunLogs(
+			tt.args.ctx,
+			tt.args.sessionID,
+			tt.args.nextToken,
+			tt.args.minio,
+			tt.args.bucketName,
+			"")
 		g.Expect(err != nil).To(Equal(tt.wantErr))
 		g.Expect(got).To(Equal(tt.want))
-		g.Expect(got1).To(Equal(tt.want1))
+		g.Expect(token).To(Equal(tt.wantToken))
 	}
 }
