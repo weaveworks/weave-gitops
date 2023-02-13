@@ -15,6 +15,7 @@ function UserGroupsTable({ className, rows }: Props) {
   const providerFields: Field[] = [
     {
       label: "Group Name",
+      sortValue: (v) => v,
       value: (item) => {
         return CopyToClipboard({ value: item, className: "CopyToClipboard" });
       },
