@@ -1,8 +1,4 @@
----
-title: Helm Chart Reference
----
-
-# Helm Chart Reference
+# Helm chart reference
 <!-- The contents of this file is generated directly from the chart's values.yaml, please make any edits there -->
 
 This is a reference of all the configurable values in weave gitops's
