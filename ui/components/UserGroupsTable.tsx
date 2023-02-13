@@ -42,7 +42,7 @@ export default styled(UserGroupsTable).attrs({
 })`
   .CopyToClipboard {
     display: flex;
-    justify-content: center;
+    justify-content: start;
     align-items: center;
   }
   .CopyText {

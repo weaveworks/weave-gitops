@@ -27,7 +27,7 @@ export default function CopyToClipboard({
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
-      }, 3000);
+      }, 1500);
     });
   }, [value]);
 
