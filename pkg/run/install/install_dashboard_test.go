@@ -20,7 +20,7 @@ import (
 )
 
 // mock controller-runtime client
-type mockClientForGetDashboardHelmRelease struct {
+type mockClientForGetInstalledDashboard struct {
 	client.Client
 	state stateListHelmReleases
 }
@@ -71,7 +71,7 @@ var _ = Describe("InstallDashboard", func() {
 	})
 })
 
-func (man *mockClientForGetDashboardHelmRelease) List(_ context.Context, list client.ObjectList, opts ...client.ListOption) error {
+func (man *mockClientForGetInstalledDashboard) List(_ context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	switch man.state {
 	case stateListHelmReleasesReturnErr:
 		return errors.New(listHelmReleasesErrorMsg)
@@ -80,24 +80,39 @@ func (man *mockClientForGetDashboardHelmRelease) List(_ context.Context, list cl
 			Items: []helmv2.HelmRelease{{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "test-namespace",
-					Name:      "helm-release-1",
+					Name:      "dashboard-1",
 				},
 			}, {
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "test-namespace",
-					Name:      "helm-release-2",
+					Name:      "dashboard-2",
 				},
 				Spec: helmv2.HelmReleaseSpec{
 					Chart: helmv2.HelmChartTemplate{
 						Spec: helmv2.HelmChartTemplateSpec{
-							Chart: WGDashboardHelmChartName,
+							Chart: ossDashboardHelmChartName,
 						},
 					},
 				},
 			}, {
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: "test-namespace",
-					Name:      "helm-release-3",
+					Name:      "dashboard-3",
+				},
+				Spec: helmv2.HelmReleaseSpec{
+					Chart: helmv2.HelmChartTemplate{
+						Spec: helmv2.HelmChartTemplateSpec{
+							Chart: enterpriseDashboardHelmChartName,
+							SourceRef: helmv2.CrossNamespaceObjectReference{
+								Name: enterpriseDashboardHelmRepositoryName,
+							},
+						},
+					},
+				},
+			}, {
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "test-namespace",
+					Name:      "dashboard-4",
 				},
 			}},
 		}
@@ -108,23 +123,45 @@ func (man *mockClientForGetDashboardHelmRelease) List(_ context.Context, list cl
 	return nil
 }
 
-var _ = Describe("getDashboardHelmRelease", func() {
+var _ = Describe("GetInstalledDashboard", func() {
 	var fakeContext context.Context
 
 	BeforeEach(func() {
 		fakeContext = context.Background()
 	})
 
-	It("returns the dashboard helmrelease if there is no error when getting the helmrelease", func() {
-		helmRelease := getDashboardHelmRelease(fakeContext, &mockClientForGetDashboardHelmRelease{}, testNamespace, WGDashboardHelmChartName)
-		Expect(helmRelease).ToNot(BeNil())
-		Expect(helmRelease.Namespace).To(Equal("test-namespace"))
-		Expect(helmRelease.Name).To(Equal("helm-release-2"))
+	It("returns the oss dashboard type", func() {
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS: true,
+		})
+		Expect(dashboardType).To(Equal(DashboardTypeOSS))
+		Expect(dashboardName).To(Equal("dashboard-2"))
 	})
 
-	It("returns nil if there is an error when getting the helmrelease", func() {
-		helmRelease := getDashboardHelmRelease(fakeContext, &mockClientForGetDashboardHelmRelease{state: stateListHelmReleasesReturnErr}, testNamespace, WGDashboardHelmChartName)
-		Expect(helmRelease).To(BeNil())
+	It("returns the enterprise dashboard type", func() {
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+			DashboardTypeEnterprise: true,
+		})
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(Equal("dashboard-3"))
+	})
+
+	It("returns the enterprise dashboard type if both dashboards are installed", func() {
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS:        true,
+			DashboardTypeEnterprise: true,
+		})
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(Equal("dashboard-3"))
+	})
+
+	It("returns nil if there is an error when listing helmreleases", func() {
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{state: stateListHelmReleasesReturnErr}, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS:        true,
+			DashboardTypeEnterprise: true,
+		})
+		Expect(dashboardType).To(Equal(DashboardTypeNone))
+		Expect(dashboardName).To(Equal(""))
 	})
 })
 
@@ -163,7 +200,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		Expect(actualHelmRelease.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 
 		chart := actualHelmRelease.Spec.Chart
-		Expect(chart.Spec.Chart).To(Equal(WGDashboardHelmChartName))
+		Expect(chart.Spec.Chart).To(Equal(ossDashboardHelmChartName))
 		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
 		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
 	})
@@ -192,7 +229,7 @@ var _ = Describe("makeHelmRelease", func() {
 		Expect(actual.Spec.Interval.Duration).To(Equal(60 * time.Minute))
 
 		chart := actual.Spec.Chart
-		Expect(chart.Spec.Chart).To(Equal(WGDashboardHelmChartName))
+		Expect(chart.Spec.Chart).To(Equal(ossDashboardHelmChartName))
 		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
 		Expect(chart.Spec.SourceRef.Kind).To(Equal("HelmRepository"))
 		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
