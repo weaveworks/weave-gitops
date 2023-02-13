@@ -63,7 +63,7 @@ function ReconciliationGraph({
 
   const rootNode = {
     ...source,
-    type: source.kind,
+    type: source?.kind,
     clusterName,
     children: [secondNode],
   };
