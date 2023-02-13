@@ -163,6 +163,7 @@ module.exports = {
         'pipelines/promoting-applications',
         'pipelines/pipeline-templates',
         'pipelines/pipelines-with-jenkins',
+        'pipelines/pipelines-with-tekton',
         {
           type: 'category',
           label: 'Reference',
