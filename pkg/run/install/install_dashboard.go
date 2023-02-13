@@ -27,10 +27,19 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+type DashboardType int32
+
 const (
-	// WGDashboardHelmChartName is the name of the Weave GitOps OSS Dashboard Helm chart.
-	WGDashboardHelmChartName = "weave-gitops"
-	helmRepositoryURL        = "oci://ghcr.io/weaveworks/charts"
+	DashboardTypeNone       DashboardType = 0
+	DashboardTypeOSS        DashboardType = 1
+	DashboardTypeEnterprise DashboardType = 2
+)
+
+const (
+	ossDashboardHelmChartName             = "weave-gitops"
+	enterpriseDashboardHelmChartName      = "mccp"
+	enterpriseDashboardHelmRepositoryName = "weave-gitops-enterprise-charts"
+	helmRepositoryURL                     = "oci://ghcr.io/weaveworks/charts"
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
@@ -91,28 +100,41 @@ func InstallDashboard(ctx context.Context, log logger.Logger, manager ResourceMa
 	return nil
 }
 
-// IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(ctx context.Context, kubeClient client.Client, namespace string, helmChartName string) bool {
-	return getDashboardHelmRelease(ctx, kubeClient, namespace, WGDashboardHelmChartName) != nil
-}
-
-// getDashboardHelmRelease checks if the GitOps Dashboard HelmRelease is found in the list of HelmReleases in the provided namespace.
-func getDashboardHelmRelease(ctx context.Context, kubeClient client.Client, namespace string, helmChartName string) *helmv2.HelmRelease {
+// GetInstalledDashboard checks if the GitOps Dashboard is installed.
+func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namespace string, dashboards map[DashboardType]bool) (DashboardType, string) {
 	helmReleaseList := &helmv2.HelmReleaseList{}
 
 	if err := kubeClient.List(ctx, helmReleaseList,
 		client.InNamespace(namespace),
 	); err != nil {
-		return nil
+		return DashboardTypeNone, ""
 	}
 
+	shouldDetectOSSDashboard := dashboards[DashboardTypeOSS]
+	shouldDetectEnterpriseDashboard := dashboards[DashboardTypeEnterprise]
+
+	ossDashboardInstalled := false
+	dashboardName := ""
+
 	for _, helmRelease := range helmReleaseList.Items {
-		if helmRelease.Spec.Chart.Spec.Chart == helmChartName {
-			return &helmRelease
+		chartSpec := helmRelease.Spec.Chart.Spec
+
+		if shouldDetectEnterpriseDashboard && chartSpec.Chart == enterpriseDashboardHelmChartName &&
+			chartSpec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
+			return DashboardTypeEnterprise, helmRelease.Name
+		}
+
+		if shouldDetectOSSDashboard && chartSpec.Chart == ossDashboardHelmChartName {
+			ossDashboardInstalled = true
+			dashboardName = helmRelease.Name
 		}
 	}
 
-	return nil
+	if ossDashboardInstalled {
+		return DashboardTypeOSS, dashboardName
+	}
+
+	return DashboardTypeNone, ""
 }
 
 // ReconcileDashboard reconciles the dashboard.
@@ -263,7 +285,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 			},
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: WGDashboardHelmChartName,
+					Chart: ossDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
