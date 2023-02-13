@@ -11,31 +11,54 @@
 
 module.exports = {
   docs: [
-    'intro',
     {
       type: 'category',
-      label: 'Installation',
+      label: 'Introducing GitOps',
+      collapsed: false,
       link: {
         type: 'doc',
-        id: 'installation/index',
+        id: 'intro',
       },
       items: [
-        'installation/weave-gitops',
         {
           type: 'category',
-          label: 'Weave GitOps Enterprise',
+          label: 'Getting Started',
+          collapsed: false,
           link: {
             type: 'doc',
-            id: 'installation/weave-gitops-enterprise/index',
+            id: 'getting-started/intro',
           },
           items: [
-            'installation/weave-gitops-enterprise/airgap',
+            {
+              type: 'category',
+              label: '0. Install Weave GitOps',
+              collapsed: true,
+              link: {
+                type: 'doc',
+                id: 'installation/index',
+              },
+              items: [
+                'installation/weave-gitops',
+                {
+                  type: 'category',
+                  label: 'Weave GitOps Enterprise',
+                  link: {
+                    type: 'doc',
+                    id: 'installation/weave-gitops-enterprise/index',
+                  },
+                  items: [
+                    'installation/weave-gitops-enterprise/airgap',
+                  ],
+                },
+                'installation/aws-marketplace',
+              ],
+            },
+            'getting-started/ui',
+            'getting-started/deploy',
           ],
         },
-        'installation/aws-marketplace',
       ],
     },
-    'getting-started',
     {
       type: 'category',
       label: 'Enterprise Edition',
