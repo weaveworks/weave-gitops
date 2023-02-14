@@ -178,7 +178,9 @@ jobs:
                 "merge_method": "merge"
               }'
 
+  # This job keeps failing, so we are disabling it for now.
   enterprise-pr:
+    if: ${{ false }}
     name: Make enterprise PR
     runs-on: ubuntu-latest
     needs:
