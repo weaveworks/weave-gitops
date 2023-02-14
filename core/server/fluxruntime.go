@@ -229,22 +229,21 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 		checkDup = map[types.UID]bool{}
 		resultMu = sync.Mutex{}
 
-		errs   = &multierror.Error{}
-		errsMu = sync.Mutex{}
+		respErrors = multierror.Error{}
+		errsMu     = sync.Mutex{}
 
 		wg = sync.WaitGroup{}
 	)
 
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 
+	kinds := getUniqueKinds(msg.Kinds)
+
 	for _, namespaces := range clusterUserNamespaces {
 		for _, ns := range namespaces {
-			nsOpts := client.InNamespace(ns.Name)
-
-			for _, gvk := range msg.Kinds {
+			for _, gvk := range kinds {
 				wg.Add(1)
-
-				go func(clusterName string, gvk *pb.GroupVersionKind) {
+				go func(namespace string, clusterName string, gvk *pb.GroupVersionKind) {
 					defer wg.Done()
 
 					listResult := unstructured.UnstructuredList{}
@@ -255,7 +254,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 						Version: gvk.Version,
 					})
 
-					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, nsOpts); err != nil {
+					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, client.InNamespace(namespace)); err != nil {
 						if k8serrors.IsForbidden(err) {
 							cs.logger.V(logger.LogLevelDebug).Info(
 								"forbidden list request",
@@ -277,21 +276,22 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 						}
 
 						errsMu.Lock()
-						errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
+						respErrors = *multierror.Append(fmt.Errorf("listing unstructured object: %w", err), respErrors.Errors...)
 						errsMu.Unlock()
+
+						cs.logger.Error(err, "failed listing resources", "namespace", namespace, "gvk", gvk.String())
 					}
 
-					resultMu.Lock()
 					for _, u := range listResult.Items {
 						uid := u.GetUID()
-
+						resultMu.Lock()
 						if !checkDup[uid] {
 							result = append(result, u)
 							checkDup[uid] = true
 						}
+						resultMu.Unlock()
 					}
-					resultMu.Unlock()
-				}(msg.ClusterName, gvk)
+				}(ns.Name, msg.ClusterName, gvk)
 			}
 		}
 	}
@@ -299,7 +299,6 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 	wg.Wait()
 
 	objects := []*pb.Object{}
-	respErrors := multierror.Error{}
 
 	for _, unstructuredObj := range result {
 		tenant := GetTenant(unstructuredObj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
@@ -399,4 +398,19 @@ func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
 	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
 	return s, nil
+}
+
+func getUniqueKinds(gvks []*pb.GroupVersionKind) []*pb.GroupVersionKind {
+	uniqueMap := map[string]*pb.GroupVersionKind{}
+	for _, gvk := range gvks {
+		uniqueMap[gvk.String()] = gvk
+	}
+
+	unique := []*pb.GroupVersionKind{}
+
+	for _, gvk := range uniqueMap {
+		unique = append(unique, gvk)
+	}
+
+	return unique
 }
