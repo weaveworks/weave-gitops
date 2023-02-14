@@ -18,7 +18,6 @@ const YamlHeader = styled.div`
 `;
 
 function UnstyledYamlView({ yaml, object, className }: Props) {
-  const [copied, setCopied] = React.useState(false);
   const headerText = `kubectl get ${object.kind.toLowerCase()} ${
     object.name
   } -n ${object.namespace} -o yaml `;
