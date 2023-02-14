@@ -20,7 +20,7 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
-import SubRouterTabs from "./SubRouterTabs";
+import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
 import YamlView, { DialogYamlView } from "./YamlView";
@@ -40,10 +40,6 @@ function AutomationDetail({
   customTabs,
   customActions,
 }: Props) {
-  const { path } = useRouteMatch();
-  const { pathname } = useLocation();
-  // console.log(pathname,'pathname')
-  // console.log(path, 'path')
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
@@ -145,8 +141,6 @@ function AutomationDetail({
     },
   ];
 
-  const tabs = [...defaultTabs, ...(customTabs || [])];
-
   return (
     <Flex wide tall column className={className}>
       <Text size="large" semiBold titleHeight>
@@ -172,7 +166,29 @@ function AutomationDetail({
         <CustomActions actions={customActions} />
       </Flex>
 
-      <SubRouterTabs tabs={tabs} />
+      <SubRouterTabs>
+        {defaultTabs.map(
+          (subRoute, index) =>
+            subRoute.visible && (
+              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+                {subRoute.component()}
+              </RouterTab>
+            )
+        )}
+        {customTabs?.map(
+          (customTab, index) =>
+            customTab.visible && (
+              <RouterTab
+                name={customTab.name}
+                path={customTab.path}
+                key={index}
+              >
+                {customTab.component()}
+              </RouterTab>
+            )
+        )}
+      </SubRouterTabs>
+
       {nodeYaml && (
         <Dialog
           open={!!nodeYaml}

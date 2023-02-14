@@ -12,7 +12,6 @@ import {
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
-import { routeTab } from "./KustomizationDetail";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
@@ -27,15 +26,50 @@ function Redirect({ to }) {
 
 type Props = {
   className?: string;
-  tabs: routeTab[];
+  children?: any;
   clearQuery?: boolean;
 };
+
+type TabProps = {
+  name: string;
+  path: string;
+  children: React.ReactElement;
+};
+
+type PathConfig = { name: string; path: string };
 
 const ForwardedLink = React.forwardRef((props, ref) => (
   <Link {...props} innerRef={ref} />
 ));
 
-export function RouterTab({
+function findChildren(childrenProp) {
+  if (_.isArray(childrenProp)) {
+    const childs = [];
+    childrenProp.forEach((child) => {
+      if (_.isArray(child)) {
+        child.forEach((ch) => {
+          childs.push(ch);
+        });
+      } else {
+        childs.push(child);
+      }
+    });
+    return childs;
+  }
+  return [childrenProp];
+}
+
+function routesToIndex(routes: PathConfig[], pathname: string): number {
+  // FIXME: I can't still find a better way to do this in react-router
+  const index = _.findIndex(routes, (r) => pathname.includes(r.path));
+  return index === -1 ? 0 : index;
+}
+
+export function RouterTab({ children }: TabProps) {
+  return children;
+}
+
+function TabWrapper({
   route,
   clearQuery,
   active,
@@ -67,26 +101,29 @@ export function RouterTab({
   );
 }
 
-type PathConfig = { name: string; path: string };
-
-function routesToIndex(routes: PathConfig[], pathname: string): number {
-  // FIXME: I can't still find a better way to do this in react-router
-  const index = _.findIndex(routes, (r) => pathname.includes(r.path));
-  return index === -1 ? 0 : index;
-}
-
-function SubRouterTabs({ className, tabs, clearQuery }: Props) {
-  const { pathname } = useLocation();
-  const defaultTabPath = useHref(tabs[0].path);
+function SubRouterTabs({ className, children, clearQuery }: Props) {
   const query = qs.parse(window.location.search);
-  const activeIndex = routesToIndex(tabs, pathname);
+  const childs = findChildren(children).filter((c) => c);
+
+  if (!_.get(childs, [0, "props", "path"])) {
+    throw new Error("HashRouterTabs children must be of type HashRouterTab");
+  }
+
+  const routes: PathConfig[] = _.map(childs, (c: any) => ({
+    path: c?.props?.path,
+    name: c?.props?.name,
+  }));
+
+  const defaultTabPath = useHref(routes[0].path);
+  const { pathname } = useLocation();
+  const activeIndex = routesToIndex(routes, pathname);
 
   return (
     <Flex wide tall column start className={className}>
       <Tabs indicatorColor="primary" value={activeIndex}>
-        {_.map(tabs, (route, i) => {
+        {_.map(routes, (route, i) => {
           return (
-            <RouterTab
+            <TabWrapper
               key={route.path}
               route={route}
               clearQuery={clearQuery}
@@ -97,15 +134,9 @@ function SubRouterTabs({ className, tabs, clearQuery }: Props) {
       </Tabs>
       <Spacer padding="xs" />
       <Routes>
-        {_.map(tabs, (route) => {
-          return (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={route.component()}
-            />
-          );
-        })}
+        {_.map(childs, (c) => (
+          <Route key={c.props.path} path={c.props.path} element={c} />
+        ))}
         <Route
           path="*"
           element={
