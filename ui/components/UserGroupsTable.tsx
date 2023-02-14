@@ -19,7 +19,7 @@ function UserGroupsTable({ className, rows }: Props) {
       value: (item) => (
         <div className="GroupContainer">
           <p className="GroupText">{item}</p>
-          <CopyToClipboard value="item"></CopyToClipboard>
+          <CopyToClipboard value={item}></CopyToClipboard>
         </div>
       ),
     },
