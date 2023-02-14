@@ -81,11 +81,6 @@ const YamlView = styled(UnstyledYamlView).attrs({
     margin-right: ${(props) => props.theme.spacing.small};
     text-align: right;
   }
-  // yaml-copy {
-  //   display: flex;
-  //   align-items: center;
-  //   flex-basis: auto;
-  // }
 `;
 
 export const DialogYamlView = styled(YamlView)`
