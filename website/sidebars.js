@@ -97,8 +97,11 @@ module.exports = {
     {
       type: 'category',
       label: 'GitOps Run',
+      link: {
+        type: 'doc',
+        id: 'gitops-run/overview',
+      },
       items: [
-        'gitops-run/overview',
         'gitops-run/get-started',
       ],
     },
