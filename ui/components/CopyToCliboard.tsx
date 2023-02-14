@@ -1,25 +1,29 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
 import styled from "styled-components";
+import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
-import Text from "./Text";
 
-const PointerIcon = styled(Icon)`
-  cursor: pointer;
-  svg {
-    fill: ${(props) => props.theme.colors.neutral30};
+const CopyButton = styled(IconButton)`
+  &.MuiButton-outlinedPrimary {
+    border: 1px solid ${(props) => props.theme.colors.neutral10};
+    padding: ${(props) => props.theme.spacing.xxs};
   }
-  &.copied > svg {
-    fill: ${(props) => props.theme.colors.primary10};
+  &.MuiButton-root {
+    height: initial;
+    width: initial;
+    min-width: 0px;
   }
 `;
 
 export default function CopyToClipboard({
   value,
   className,
+  size,
 }: {
   value: string;
   className?: string;
+  size?: "small" | "medium" | "large";
 }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = useCallback(() => {
@@ -32,13 +36,11 @@ export default function CopyToClipboard({
   }, [value]);
 
   return (
-    <Text onClick={handleCopy} data-testid="github-code" className={className}>
-      <span className="CopyText">{value}</span>
-      <PointerIcon
+    <CopyButton onClick={handleCopy} className={className}>
+      <Icon
         type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
-        className={copied ? "copied" : ""}
-        size="medium"
+        size={size}
       />
-    </Text>
+    </CopyButton>
   );
 }

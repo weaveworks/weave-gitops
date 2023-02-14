@@ -117,7 +117,7 @@ function Nav({ className, navItems }: Props) {
         centered={false}
         orientation="vertical"
         value={
-          value === V2Routes.Notifications || value === V2Routes.ProfileInfo
+          value === V2Routes.Notifications || value === V2Routes.UserInfo
             ? false
             : value
         }

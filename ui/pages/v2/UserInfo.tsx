@@ -6,7 +6,7 @@ type Props = {
   className?: string;
 };
 
-export default function ProfileInfo({ className }: Props) {
+export default function UserInfo({ className }: Props) {
   const { userInfo, loading } = React.useContext(Auth);
   return (
     <Page className={className} loading={loading}>

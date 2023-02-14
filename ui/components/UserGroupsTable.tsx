@@ -16,9 +16,12 @@ function UserGroupsTable({ className, rows }: Props) {
     {
       label: "Group Name",
       sortValue: (v) => v,
-      value: (item) => {
-        return CopyToClipboard({ value: item, className: "CopyToClipboard" });
-      },
+      value: (item) => (
+        <div className="GroupContainer">
+          <p className="GroupText">{item}</p>
+          <CopyToClipboard value="item"></CopyToClipboard>
+        </div>
+      ),
     },
   ];
 
@@ -41,12 +44,12 @@ function UserGroupsTable({ className, rows }: Props) {
 export default styled(UserGroupsTable).attrs({
   className: UserGroupsTable.name,
 })`
-  .CopyToClipboard {
+  .GroupText {
+    margin-right: 8px;
+  }
+  .GroupContainer {
     display: flex;
     justify-content: start;
     align-items: center;
-  }
-  .CopyText {
-    margin-right: 8px;
   }
 `;
