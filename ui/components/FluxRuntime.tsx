@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { Crd, Deployment } from "../lib/api/core/types.pb";
@@ -28,10 +29,11 @@ type Props = {
 const fluxVersionLabel = "app.kubernetes.io/version";
 
 function FluxRuntime({ className, deployments, crds }: Props) {
+  const { path } = useRouteMatch();
   const tabs: Array<routeTab> = [
     {
       name: "Controllers",
-      path: "controllers",
+      path: `${path}/controllers`,
       component: () => {
         return <ControllersTable controllers={deployments} />;
       },
@@ -39,7 +41,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
     },
     {
       name: "CRDs",
-      path: "crds",
+      path: `${path}/crds`,
       component: () => {
         return <CrdsTable crds={crds} />;
       },
@@ -65,7 +67,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
   if (supportMultipleFlux) {
     tabs.unshift({
       name: "Flux Versions",
-      path: "flux",
+      path: `${path}/flux`,
       component: () => {
         return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
       },
@@ -81,7 +83,20 @@ function FluxRuntime({ className, deployments, crds }: Props) {
             <span>{deployments[0].labels[fluxVersionLabel]}</span>
           </FluxVersionText>
         )}
-        <SubRouterTabs tabs={tabs} clearQuery />
+        <SubRouterTabs rootPath={tabs[0].path} clearQuery>
+          {tabs.map(
+            (subRoute, index) =>
+              subRoute.visible && (
+                <RouterTab
+                  name={subRoute.name}
+                  path={subRoute.path}
+                  key={index}
+                >
+                  {subRoute.component()}
+                </RouterTab>
+              )
+          )}
+        </SubRouterTabs>
       </>
     </Flex>
   );

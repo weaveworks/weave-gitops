@@ -20,59 +20,11 @@ interface Props {
 const ImageAutomationDetails = ({
   data,
   kind,
+  rootPath,
   infoFields,
   children,
 }: Props) => {
   const { name, namespace, clusterName, suspended, conditions } = data;
-  const tabs = [
-    {
-      name: "Details",
-      path: "details",
-      component: () => {
-        return (
-          <>
-            <InfoList items={infoFields} />
-            <Spacer margin="xs" />
-            {children}
-          </>
-        );
-      },
-    },
-    {
-      name: "Events",
-      path: "events",
-      component: () => {
-        return (
-          <EventsTable
-            namespace={namespace}
-            involvedObject={{
-              kind: kind,
-              name: name,
-              namespace: namespace,
-              clusterName: clusterName,
-            }}
-          />
-        );
-      },
-    },
-    {
-      name: "yaml",
-      path: "yaml",
-      component: () => {
-        return (
-          <YamlView
-            yaml={data.yaml}
-            object={{
-              kind: kind,
-              name: name,
-              namespace: namespace,
-            }}
-          />
-        );
-      },
-    },
-  ];
-
   return (
     <Flex wide tall column>
       <Text size="large" semiBold titleHeight>
@@ -90,7 +42,36 @@ const ImageAutomationDetails = ({
         />
         <Spacer margin="xs" /> */}
 
-      <SubRouterTabs tabs={tabs} />
+      <SubRouterTabs rootPath={`${rootPath}/details`}>
+        <RouterTab name="Details" path={`${rootPath}/details`}>
+          <>
+            <InfoList items={infoFields} />
+            <Spacer margin="xs" />
+            {children}
+          </>
+        </RouterTab>
+        <RouterTab name="Events" path={`${rootPath}/events`}>
+          <EventsTable
+            namespace={namespace}
+            involvedObject={{
+              kind: kind,
+              name: name,
+              namespace: namespace,
+              clusterName: clusterName,
+            }}
+          />
+        </RouterTab>
+        <RouterTab name="yaml" path={`${rootPath}/yaml`}>
+          <YamlView
+            yaml={data.yaml}
+            object={{
+              kind: kind,
+              name: name,
+              namespace: namespace,
+            }}
+          />
+        </RouterTab>
+      </SubRouterTabs>
     </Flex>
   );
 };
