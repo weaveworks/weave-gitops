@@ -1,9 +1,10 @@
 ---
 title: Pipeline
-sidebar_position: 1
 hide_title: true
 ---
-# Pipeline <TierLabel tiers="enterprise" />
+import TierLabel from "../../../_components/TierLabel";
+
+# Pipeline <TierLabel tiers="Enterprise" />
 
 The Pipeline API defines a resource for continuous delivery pipelines.
 
@@ -48,11 +49,12 @@ spec:
             name: prod
             namespace: flux-system
   promotion:
-    pull-request:
-      type: github
-      url: https://github.com/my-org/my-app-repo
-      secretRef:
-        name: github-credentials
+    strategy:
+      pull-request:
+        type: github
+        url: https://github.com/my-org/my-app-repo
+        secretRef:
+          name: github-credentials
 ```
 
 ## Specification
@@ -107,10 +109,19 @@ type Target struct {
 	ClusterRef *CrossNamespaceClusterReference `json:"clusterRef,omitempty"`
 }
 
-// Promotion defines all the available promotion strategies. All of the fields in here are mutually exclusive, i.e. you can only select one
-// promotion strategy per Pipeline. Failure to do so will result in undefined behaviour.
+// Promotion define promotion configuration for the pipeline.
 type Promotion struct {
-	// PullRequest defines a promotion through a pull request
+	// Manual option to allow promotion between to require manual approval before proceeding.
+	// +optional
+	Manual bool `json:"manual,omitempty"`
+	// Strategy defines which strategy the promotion should use.
+	Strategy Strategy `json:"strategy"`
+}
+
+// Strategy defines all the available promotion strategies. All of the fields in here are mutually exclusive, i.e. you can only select one
+// promotion strategy per Pipeline. Failure to do so will result in undefined behaviour.
+type Strategy struct {
+	// PullRequest defines a promotion through a Pull Request.
 	// +optional
 	PullRequest *PullRequestPromotion `json:"pull-request,omitempty"`
 	// Notification defines a promotion where an event is emitted through Flux's notification-controller each time an app is to be promoted.
@@ -120,7 +131,6 @@ type Promotion struct {
 	// +optional
 	SecretRef *meta.LocalObjectReference `json:"secretRef,omitempty"`
 }
-
 type GitProviderType string
 
 const (

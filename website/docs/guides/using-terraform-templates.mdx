@@ -1,22 +1,21 @@
 ---
 title: Using Terraform templates
-sidebar_position: 5
 ---
 
 import TierLabel from "../_components/TierLabel";
 
-# Using Terraform templates <TierLabel tiers="enterprise" />
+# Using Terraform templates <TierLabel tiers="Enterprise" />
 
 This guide will show you how to use a template to create a Terraform resource in Weave GitOps Enterprise.
 
 ## CLI guide
 
 ### Pre-requisites
-- Install [Weave GitOps Enterprise](installation/weave-gitops-enterprise.mdx) with [TF-Controller installed](installation/weave-gitops-enterprise.mdx#optional-install-the-tf-controller) and [TLS enabled](../configuration/tls.md).
+- Install [Weave GitOps Enterprise](installation/weave-gitops-enterprise/index.mdx) with [TF-Controller installed](installation/weave-gitops-enterprise/index.mdx#optional-install-the-tf-controller) and [TLS enabled](../configuration/tls.md).
 
 ### 1. Add a template to your cluster
 
-Add the following template to a path in your Git repository that is synced by Flux. For example, in the [Installation guide](installation/weave-gitops-enterprise.mdx#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set the path that is synced by Flux to `./clusters/management`.
+Add the following template to a path in your Git repository that is synced by Flux. For example, in the [Installation guide](installation/weave-gitops-enterprise/index.mdx#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set the path that is synced by Flux to `./clusters/management`.
 
 Commit and push these changes. Once a template is available in the cluster, it can be used to create a resource, which will be shown in the next step.
 
@@ -238,7 +237,7 @@ resource "aws_rds_cluster_instance" "cluster_instance" {
 }
 ```
 
-Add the following template to a path in your Git repository that is synced by Flux. In the [quickstart guide](installation/weave-gitops-enterprise.mdx#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set this path to `./clusters/management`.
+Add the following template to a path in your Git repository that is synced by Flux. In the [quickstart guide](installation/weave-gitops-enterprise/index.mdx#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set this path to `./clusters/management`.
 
 ```yaml title="./clusters/management/rds-template.yaml"
 ---

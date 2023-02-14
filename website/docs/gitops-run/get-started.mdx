@@ -1,6 +1,5 @@
 ---
 title: Get Started
-sidebar_position: 2
 hide_title: true
 ---
 
@@ -89,7 +88,8 @@ Before you continue, make sure `kubectl get nodes` returns a node which is `Read
 
 You need to set up a Git repository to put your GitOps manifests
 in. Any Git repository would do, for example create a new
-[github](https://github.com/new) repository and clone that.
+[github](https://github.com/new) repository and clone that. We use `podinfo-gitops-run`
+as the repository name in this guide.
 
 ### Set up GitOps Run
 
@@ -101,12 +101,18 @@ We will start it with `--no-session` as it's a single user
 cluster which we want to use in direct mode. The port-forward points
 at the podinfo pod we will create later.
 
-```
+```bash
+export GITHUB_USER=<your github username>
+
+# you can ignore these two commands if you already created and cloned your repository
+git clone git@github.com:$GITHUB_USER/podinfo-gitops-run.git
+
+cd podinfo-gitops-run
 gitops beta run ./podinfo --no-session --port-forward namespace=dev,resource=svc/dev-podinfo,port=9898:9898
 ```
 
 You will now be asked if you want to install Flux and the GitOps
-[dashboard](../getting-started.mdx). Answer yes and set a password, and
+[dashboard](../getting-started/intro.mdx). Answer yes and set a password, and
 shortly after you should be able to [open the dashboard](http://localhost:9001)
 to see what's in your cluster - including the resources that GitOps
 Run is operating.

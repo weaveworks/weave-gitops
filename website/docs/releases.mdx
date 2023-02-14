@@ -1,15 +1,111 @@
 ---
 title: Releases
-sidebar_position: 14
 hide_title: true
 ---
 import TierLabel from "./_components/TierLabel";
 
-# Releases <TierLabel tiers="enterprise" />
+# Releases <TierLabel tiers="Enterprise" />
 
-:::note
+:::info
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+## v0.16.0
+2023-02-02
+### Highlights
+
+#### Create External Secrets via WGE UI
+- It's becoming easier to create new a external secret CR through the UI instead of writing the whole CR yaml.
+- The creation form will help users choose which cluster to deploy the External Secret to and which secret store to sync the secrets from.
+- It's all done in the GitOps way.
+
+#### Plan Button in Terraform
+- Adding **Add Plan** button in the terraform plan page to enable users to re-plan changes made.
+
+### Dependency versions
+
+- weave-gitops v0.16.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- templates-controller v0.1.2
+- (optional) pipeline-controller v0.14.0
+- (optional) policy-agent v2.2.0
+- (optional) gitopssets-controller v0.2.0
+
+### Breaking changes
+
+No breaking changes
+
+## v0.15.1
+2023-01-19
+### Highlights
+
+#### Multi Repository support. Weave GitOps Enterprise adapts and scales to your repository structure
+- Weave GitOps Enterprise, is now supporting via the WGE GUI the selection of the Git Repository. Enabling to scale and match the desired Git Repository structure.
+
+#### GitOps Templates
+- Supporting path for Profiles, enabling to set the path for profiles in the template to configure where in the directory the HelmRelease gets created.
+- Enhanced Enterprise CLI support for GitOps Templates.
+#### GitOps Templates CLI enhancements
+- Support for profiles in templates via CLI
+- ```gitops create template``` supporting ```--config``` allows you to read command line flags from a config file and ```--output-dir``` allows you to write files out to a directory instead of just stdout
+#### GitOpsSets in preview
+- GitOpsSets enable Platform Operators to have a single definition for an application for multiple environments and a fleet of clusters. A single definition can be used to generate the environment and cluster-specific configuration.
+- GitOpsSets has been released as a feature in preview of WGE. The Preview phase helps us to actively collect feedback and use cases, iterating and improving the feature to reach a level of maturity before we call it stable. Please contact us via [email](mailto:david.stauffer@weave.works) or [slack](https://join.slack.com/t/weave-community/shared_invite/zt-1nrm7dc6b-QbCec62CJ7qj_OUOtuJbrw) if you want to get access to the preview.
+
+
+
+### Minor fixes
+#### OIDC
+- Allows customising the requested scopes via config.oidc.customScopes: "email,groups,something_else"
+- Token refreshing is now supported
+
+
+### Dependency versions
+
+- weave-gitops v0.15.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) pipeline-controller v0.9.0
+- (optional) policy-agent v2.2.0
+
+### Breaking changes
+
+No breaking changes
+
+## v0.14.1
+2023-01-05
+### Highlights
+
+#### Secrets management
+- We are introducing new functionality into Weave GitOps Enterprise to help observe and manage secrets through external secrets operator (ESO). The new secrets UI will enable customers using ESO to observe and manage external secrets, as well as help them troubleshoot issues during their secrets creation and sync operations. In this release, we are including the ability to list all ExternalSecrets custom resources across multi-cluster environments. Users also will have the ability to navigate to each ExternalSecret and know the details of the secret, its sync status, and the last time this secret has been updated, as well as the latest events associated with the secret.
+
+#### Pipelines
+- Retry promotion on failure. Now if a promotion fails there is an automatic retry functionalty, you can configure the threshold and delay via the CLI.
+- Promotion webhook rate limiting. We enable now the configuration of the rate limit for the promotion webhooks.
+
+### Minor fixes
+#### Workspaces
+** [UI] "Tenant" ** is renamed to "Workspace" on details page.
+
+** [UI] Use time.RFC3339 ** format for all timestamps of the workspaces tabs.
+
+#### Other
+** [UI] Error notification boundary ** does not allow user to navigate away from the page.
+
+** [Gitops run] GitOps Run ** doesn't ask to install dashboard twice
+
+### Dependency versions
+
+- weave-gitops v0.14.1
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- (optional) pipeline-controller v0.9.0
+- (optional) policy-agent v2.2.0
+
+### Breaking changes
+
+No breaking changes
+
 ## v0.13.0
 2022-12-22
 ### Highlights
@@ -46,10 +142,10 @@ spec:
           ...
 ```
 
-#### Workspace UI 
-- Weave GitOps now provides a GUI for Workspaces. 
+#### Workspace UI
+- Weave GitOps now provides a GUI for Workspaces.
 
-#### Enhanced Terraform Table in UI 
+#### Enhanced Terraform Table in UI
 - Weave GitOps now provides more details on the Terraform inventory GUI page. Adding the type and identifier fields to the inventory table, plus filtering and a 'no data' message.
 
 #### Keyboard shortcuts for "port forwards" on GitOps Run
@@ -57,7 +153,7 @@ spec:
 - Weave GitOps now opening the selected port forward URL on key press. Listening for keypress is performed with the `github.com/mattn/go-tty` package (other options required pressing Enter after a keypress, this catches just a single numeric keypress) and opening URLs with the `github.com/pkg/browser` package.
 
 #### Minor fixes
-**[UI] Notifications** Fixed provider page showing a 404. 
+**[UI] Notifications** Fixed provider page showing a 404.
 
 ### Dependency versions
 
@@ -80,7 +176,7 @@ No breaking changes
 
 #### GitOps Templates
 
-- Support to specify Helm charts inside the CRD, instead of annotations. We’ve provided [documentation](./gitops-templates/templates.mdx) which has a example. 
+- Support to specify Helm charts inside the CRD, instead of annotations. We’ve provided [documentation](./gitops-templates/templates.mdx) which has a example.
 
 ```yaml
 spec:
@@ -116,10 +212,10 @@ config
     claimGroups: ""
 ```
 
-#### Policy commit-time agent 
+#### Policy commit-time agent
 - Support Azure DevOps and auto-remediation in commit-time enforcement.
 
-#### Admin User- simpler RBAC 
+#### Admin User- simpler RBAC
 - Weave GitOps default admin user can now “read” all objects. Why is this important? As users are trying out Weave GitOps they will most likely try it out with some of their favorite Cloud Native tools such as Crossplane, Tekton, Istio, etc. This enables them to see all of those resources and explore the full power of Weave GitOps. We still do not recommend this user for “production-use” cases, and customers should always be pushed towards implementing OIDC with scoped roles.
 
 #### Pipelines - adding Pipelines through Templates
@@ -144,7 +240,7 @@ cluster-bootstrap-controller v0.3.0
 (optional) policy-agent 2.1.1
 
 ### Known issues
-- [UI] Notifications provider page shows a 404. 
+- [UI] Notifications provider page shows a 404.
 
 ## v0.11.0
 2022-11-25
@@ -157,11 +253,11 @@ cluster-bootstrap-controller v0.3.0
 - You can control what [delimiters](./gitops-templates/templates.mdx#custom-delimiters-for-rendertype-templating) you want to use in a template. This provides flexibility for if you want to use the syntax for dynamic functions like the [helper functions](./gitops-templates/templates.mdx#supported-functions-from-sprig-library) we support.
 
 #### Pipelines
-- This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag. 
+- This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag.
 - GitOpsTemplates are a highly flexible way to create new resources - including Pipelines. We now provide a shortcut on the Pipelines table view to navigate you to Templates with the `weave.works/template-type=pipeline` label.
 
 #### Telemetry
-This release incorporates anonymous aggregate user behavior analytics to help us continuously improve the product. As an Enterprise customer, this is enabled by default. You can learn more about this [here](../feedback-and-telemetry#anonymous-aggregate-user-behavior-analytics).
+This release incorporates anonymous aggregate user behavior analytics to help us continuously improve the product. As an Enterprise customer, this is enabled by default. You can learn more about this [here](/feedback-and-telemetry#anonymous-aggregate-user-behavior-analytics).
 
 ### Dependency versions
 - weave-gitops v0.11.0
@@ -234,7 +330,7 @@ You can still view and tweak the `values.yaml` when selecting profiles to includ
 - bump pipeline-controller
 - Parse annotations from template
 - Add cost estimate message if available
-- Adds support for showing policy modes and policy configs in the UI 
+- Adds support for showing policy modes and policy configs in the UI
 
 - Show suspended status on pipelines detail
 - YAML view for Pipelines
@@ -317,5 +413,3 @@ policy-agent:
     accountId: "my-account"
     clusterId: "my-cluster"
 ```
-
-

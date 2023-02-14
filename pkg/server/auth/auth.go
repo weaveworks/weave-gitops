@@ -2,8 +2,10 @@ package auth
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,11 +26,13 @@ const (
 	// the user has authenticated successfully with the OIDC Provider. It's used for further
 	// resource requests from the provider.
 	AccessTokenCookieName = "access_token"
+	// RefreshTokenCookieName is the name of the cookie that holds the refresh token once
+	// the user has authenticated successfully with the OIDC Provider. It's used to refresh
+	// the id and access tokens once expired.
+	RefreshTokenCookieName = "refresh_token"
 	// AuthorizationTokenHeaderName is the name of the header that holds the bearer token
 	// used for token passthrough authentication.
 	AuthorizationTokenHeaderName = "Authorization"
-	// ScopeProfile is the "profile" scope
-	ScopeProfile = "profile"
 	// ScopeEmail is the "email" scope
 	ScopeEmail = "email"
 	// ScopeGroups is the "groups" scope
@@ -96,6 +100,12 @@ func (p *UserPrincipal) SetToken(t string) {
 // String returns the Principal ID and Groups as a string.
 func (p *UserPrincipal) String() string {
 	return fmt.Sprintf("id=%q groups=%v", p.ID, p.Groups)
+}
+
+// Hash returns a unique string using user id,token and groups.
+func (p *UserPrincipal) Hash() string {
+	hash := md5.Sum([]byte(fmt.Sprintf("%s/%s/%v", p.ID, p.Token(), p.Groups)))
+	return hex.EncodeToString(hash[:])
 }
 
 func (p *UserPrincipal) Valid() bool {
@@ -195,15 +205,20 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 
 		principal, err := multi.Principal(r)
-		if err != nil {
-			srv.Log.Error(err, "failed to get principal")
+		if err != nil || principal == nil {
+			var refreshErr error
+			principal, refreshErr = srv.Refresh(rw, r)
+			if refreshErr != nil || principal == nil {
+				srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
+				srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
+
+				JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
+				return
+			}
+
+			srv.Log.Info("Successfully refreshed token", "principal", principal)
 		}
 
-		if principal == nil || err != nil {
-			srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
-			JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
-			return
-		}
 		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
 	})
 }

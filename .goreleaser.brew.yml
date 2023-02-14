@@ -11,9 +11,9 @@ brews:
     install: |
         bin.install "gitops"
         # Install bash completion
-        output = Utils.popen_read("#{bin}/gitops completion bash")
+        output = Utils.safe_popen_read({ "SHELL" => "bash" }, "#{bin}/gitops completion bash --no-analytics", { :err => :err })
         (bash_completion/"gitops").write output
 
         # Install zsh completion
-        output = Utils.popen_read("#{bin}/gitops completion zsh")
+        output = Utils.safe_popen_read({ "SHELL" => "zsh" }, "#{bin}/gitops completion zsh --no-analytics", { :err => :err })
         (zsh_completion/"_gitops").write output

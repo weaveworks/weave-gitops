@@ -15,11 +15,17 @@ export type Source =
   | HelmChart
   | GitRepository
   | Bucket
-  | OCIRepository;
+  | OCIRepository
+  | ImageRepository
+  | ImageUpdateAutomation;
 
 export interface CrossNamespaceObjectRef extends ObjectRef {
   apiVersion: string;
   matchLabels: { key: string; value: string }[];
+}
+export interface ImgPolicy {
+  type?: string;
+  value?: string;
 }
 export class FluxObject {
   obj: any;
@@ -115,7 +121,7 @@ export class FluxObject {
     const spec = this.obj.spec;
     if (!spec) return [];
     if (spec.template) {
-      return spec.template.spec?.containers.map((x) => x.image);
+      return spec.template.spec?.containers.map((x) => x.image) || [];
     }
     if (spec.containers) return spec.containers.map((x) => x.image);
     return [];
@@ -296,6 +302,48 @@ export class Provider extends FluxObject {
   }
 }
 
+export class ImageUpdateAutomation extends FluxObject {
+  get sourceRef(): ObjectRef | undefined {
+    if (!this.obj.spec?.sourceRef) {
+      return;
+    }
+    const sourceRef = {
+      ...this.obj.spec.sourceRef,
+    };
+    if (!sourceRef.namespace) {
+      sourceRef.namespace = this.namespace;
+    }
+    return sourceRef;
+  }
+  get lastAutomationRunTime(): string {
+    return this.obj?.status?.lastAutomationRunTime || "";
+  }
+}
+export class ImagePolicy extends ImageUpdateAutomation {
+  get imagePolicy(): ImgPolicy {
+    const { policy } = this.obj?.spec;
+    const [type] = Object.keys(policy);
+    if (type) {
+      const [val] = Object.values(policy[type]);
+      return {
+        type,
+        value: (val as string) || "",
+      };
+    }
+    return {
+      type: "",
+      value: "",
+    };
+  }
+  get imageRepositoryRef(): string {
+    return this.obj?.spec?.imageRepositoryRef?.name || "";
+  }
+}
+export class ImageRepository extends ImageUpdateAutomation {
+  get tagCount(): string {
+    return this.obj.status?.lastScanResult?.tagCount || "";
+  }
+}
 export class Alert extends FluxObject {
   get providerRef(): string {
     return this.obj.spec?.providerRef.name || "";

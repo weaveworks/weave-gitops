@@ -12,7 +12,6 @@ import Link from "./Link";
 export const Breadcrumbs = () => {
   const { currentPage } = useNavigation();
   const { search } = useLocation();
-
   const parentValue = getParentNavValue(currentPage) as V2Routes;
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);

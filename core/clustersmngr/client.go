@@ -5,11 +5,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -42,17 +44,21 @@ type Client interface {
 	// ClientsPool returns the clients pool.
 	ClientsPool() ClientsPool
 
+	// Namespaces returns the list of namespaces the client has access to.
+	Namespaces() map[string][]v1.Namespace
+
 	// Scoped returns a client that is scoped to a single cluster
 	Scoped(cluster string) (client.Client, error)
 }
 
 const (
-	clientTimeout = 2 * time.Second
+	clientTimeout = 30 * time.Second
 )
 
 type clustersClient struct {
 	pool       ClientsPool
 	namespaces map[string][]v1.Namespace
+	log        logr.Logger
 }
 
 type ListError struct {
@@ -82,15 +88,20 @@ func (cle ClusteredListError) Error() string {
 	return strings.Join(errs, "; ")
 }
 
-func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace) Client {
+func NewClient(clientsPool ClientsPool, namespaces map[string][]v1.Namespace, log logr.Logger) Client {
 	return &clustersClient{
 		pool:       clientsPool,
 		namespaces: namespaces,
+		log:        log,
 	}
 }
 
 func (c *clustersClient) ClientsPool() ClientsPool {
 	return c.pool
+}
+
+func (c *clustersClient) Namespaces() map[string][]v1.Namespace {
+	return c.namespaces
 }
 
 func (c *clustersClient) Get(ctx context.Context, cluster string, key client.ObjectKey, obj client.Object) error {
@@ -118,7 +129,17 @@ func (c *clustersClient) List(ctx context.Context, cluster string, list client.O
 	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
 	defer cancel()
 
-	return client.List(ctx, list, opts...)
+	if err := client.List(ctx, list, opts...); err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			c.log.Error(err, "listing resources context issue", "cluster", cluster)
+
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjectList, namespaced bool, opts ...client.ListOption) error {

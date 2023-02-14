@@ -113,6 +113,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().DurationVar(&options.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Username, "oidc-username-claim", auth.ClaimUsername, "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Groups, "oidc-groups-claim", auth.ClaimGroups, "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
+	cmd.Flags().StringSliceVar(&options.OIDC.Scopes, "custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -199,6 +200,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	log.Info("Using cached clients", "enabled", options.UseK8sCachedClients)
+
 	if options.UseK8sCachedClients {
 		cl = cluster.NewDelegatingCacheCluster(cl, rest, scheme)
 	}
@@ -213,14 +216,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create core config: %w", err)
 	}
 
-	appConfig, err := server.DefaultApplicationsConfig(log)
-	if err != nil {
-		return fmt.Errorf("could not create http client: %w", err)
-	}
-
 	appAndProfilesHandlers, err := server.NewHandlers(ctx, log,
 		&server.Config{
-			AppConfig:        appConfig,
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},

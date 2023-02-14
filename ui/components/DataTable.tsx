@@ -218,17 +218,21 @@ function toPairs(state: FilterState): string[] {
   return _.concat(out, state.textFilters);
 }
 
-export function parseFilterStateFromURL(search: string): FilterSelections {
+export function parseFilterStateFromURL(search: string) {
   const query = qs.parse(search) as any;
+  const state = { initialSelections: {}, textFilters: [] };
   if (query.filters) {
     const split = query.filters.split("_");
     const next = {};
     _.each(split, (filterString) => {
       if (filterString) next[filterString] = true;
     });
-    return next;
+    state.initialSelections = next;
   }
-  return null;
+  if (query.search) {
+    state.textFilters = query.search.split("_").filter((item) => item);
+  }
+  return state;
 }
 
 export function filterSelectionsToQueryString(sel: FilterSelections) {
@@ -336,13 +340,13 @@ function UnstyledDataTable({
   const navigate = useNavigate()
   const location = useLocation();
   const search = location.search;
-  const initialSelections = parseFilterStateFromURL(search);
+  const state = parseFilterStateFromURL(search);
 
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<FilterState>({
-    filters: selectionsToFilters(initialSelections, filters),
-    formState: initialFormState(filters, initialSelections),
-    textFilters: [],
+    filters: selectionsToFilters(state.initialSelections, filters),
+    formState: initialFormState(filters, state.initialSelections),
+    textFilters: state.textFilters,
   });
 
   const handleFilterChange = (sel: FilterSelections) => {
@@ -377,16 +381,26 @@ function UnstyledDataTable({
       (f) => !_.includes(chips, f)
     );
 
+    let query = qs.parse(search);
+    console.log(textFilters.join("_"));
+    if (textFilters.length) query["search"] = textFilters.join("_") + "_";
+    else if (query["search"]) query = _.omit(query, "search");
+    history.replace({ ...location, search: qs.stringify(query) });
+
     doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
   };
 
   const handleTextSearchSubmit = (val: string) => {
-    if (val)
-      setFilterState({
-        ...filterState,
-        textFilters: _.uniq(_.concat(filterState.textFilters, val)),
-      });
+    if (!val) return;
+    const query = qs.parse(search);
+    if (!query["search"]) query["search"] = `${val}_`;
+    if (!query["search"].includes(val)) query["search"] += `${val}_`;
+    history.replace({ ...location, search: qs.stringify(query) });
+    setFilterState({
+      ...filterState,
+      textFilters: _.uniq([...filterState.textFilters, val]),
+    });
   };
 
   const handleClearAll = () => {
@@ -396,7 +410,10 @@ function UnstyledDataTable({
       formState: resetFormState,
       textFilters: [],
     });
-    doChange(resetFormState);
+    const url = qs.parse(location.search);
+    //keeps things like clusterName and namespace for details pages
+    const cleared = _.omit(url, ["filters", "search"]);
+    history.replace({ ...location, search: qs.stringify(cleared) });
   };
 
   const handleFilterSelect = (filters, formState) => {

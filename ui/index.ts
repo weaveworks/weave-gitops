@@ -11,13 +11,13 @@ import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
-import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import GitRepositoryDetail from "./components/GitRepositoryDetail";
 import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
 import InfoList from "./components/InfoList";
+import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
@@ -32,7 +32,6 @@ import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
-import RepoInputWithAuth from "./components/RepoInputWithAuth";
 import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
@@ -41,7 +40,6 @@ import UserSettings from "./components/UserSettings";
 import YamlView from "./components/YamlView";
 import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
-import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import CoreClientContextProvider, {
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
@@ -53,11 +51,9 @@ import { useListAutomations } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
 import { useFeatureFlags } from "./hooks/featureflags";
 import { useListFluxCrds, useListFluxRuntimeObjects } from "./hooks/flux";
-import { useIsAuthenticated } from "./hooks/gitprovider";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
-import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { formatURL } from "./lib/nav";
@@ -69,22 +65,19 @@ import {
   HelmRepository,
   OCIRepository,
 } from "./lib/objects";
-import {
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-} from "./lib/storage";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
-import { isAllowedLink, poller, statusSortHelper } from "./lib/utils";
-import OAuthCallback from "./pages/OAuthCallback";
+import {
+  formatLogTimestamp,
+  isAllowedLink,
+  poller,
+  statusSortHelper,
+} from "./lib/utils";
 import SignIn from "./pages/SignIn";
-import Input, { InputProps } from "./components/Input";
 
 export {
   AppContext,
   AppContextProvider,
-  applicationsClient,
   Auth,
   AuthCheck,
   AuthContextProvider,
@@ -93,8 +86,6 @@ export {
   Bucket,
   BucketDetail,
   Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
   coreClient,
   CoreClientContextProvider,
   DataTable,
@@ -106,10 +97,8 @@ export {
   filterConfig,
   FluxRuntime,
   Footer,
+  formatLogTimestamp,
   formatURL,
-  getCallbackState,
-  getProviderToken,
-  GithubDeviceAuthModal,
   GitRepository,
   GitRepositoryDetail,
   HelmChart,
@@ -134,7 +123,6 @@ export {
   Metadata,
   muiTheme,
   NotificationsTable,
-  OAuthCallback,
   OCIRepository,
   OCIRepositoryDetail,
   poller,
@@ -143,7 +131,6 @@ export {
   ProviderDetail,
   ReconciledObjectsTable,
   ReconciliationGraph,
-  RepoInputWithAuth,
   RouterTab,
   SignIn,
   SourceLink,
@@ -157,7 +144,6 @@ export {
   useFeatureFlags,
   useGetObject,
   useListObjects,
-  useIsAuthenticated,
   useListAlerts,
   useListAutomations,
   useListFluxCrds,

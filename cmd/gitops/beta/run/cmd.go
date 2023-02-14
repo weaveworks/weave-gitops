@@ -9,13 +9,10 @@ import (
 	"os/signal"
 	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
-
-	"k8s.io/client-go/discovery"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -36,29 +33,33 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/s3"
 	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/yaml"
 )
 
 const (
-	dashboardName    = "ww-gitops"
-	dashboardPodName = "ww-gitops-weave-gitops"
-	adminUsername    = "admin"
+	defaultDashboardName = "ww-gitops"
+	dashboardPodName     = "ww-gitops-weave-gitops"
+	adminUsername        = "admin"
 )
 
 var HelmChartVersion = "3.0.0"
 
 type RunCommandFlags struct {
-	FluxVersion     string
-	AllowK8sContext []string
-	Components      []string
-	ComponentsExtra []string
-	Timeout         time.Duration
-	PortForward     string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
-	RootDir         string
+	FluxVersion       string
+	AllowK8sContext   []string
+	Components        []string
+	ComponentsExtra   []string
+	Timeout           time.Duration
+	PortForward       string // port forward specifier, e.g. "port=8080:8080,resource=svc/app"
+	RootDir           string
+	DecryptionKeyFile string
 
 	// Dashboard
 	DashboardPort           string
@@ -110,12 +111,17 @@ gitops beta run ./clusters/default/dev --root-dir ./clusters/default
 # Run the sync on the podinfo demo.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
-gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
+gitops beta run ./deploy/overlays/dev --no-session --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
 
-# Run the sync on the podinfo Helm chart. Please note that file Chart.yaml must exist in the directory.
+# Run the sync on the podinfo demo in the session mode.
 git clone https://github.com/stefanprodan/podinfo
 cd podinfo
-gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
+gitops beta run ./deploy/overlays/dev --timeout 3m --port-forward namespace=dev,resource=svc/backend,port=9898:9898
+
+# Run the sync on the podinfo Helm chart, in the session mode. Please note that file Chart.yaml must exist in the directory.
+git clone https://github.com/stefanprodan/podinfo
+cd podinfo
+gitops beta run ./charts/podinfo --timeout 3m --port-forward namespace=flux-system,resource=svc/run-dev-helm-podinfo,port=9898:9898`,
 		SilenceUsage:      true,
 		SilenceErrors:     true,
 		PreRunE:           betaRunCommandPreRunE(&opts.Endpoint),
@@ -140,6 +146,7 @@ gitops beta run ./chart/podinfo --timeout 3m --port-forward namespace=flux-syste
 	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Disable session management. If not specified, the session will be enabled by default.")
 	cmdFlags.BoolVar(&flags.NoBootstrap, "no-bootstrap", false, "Disable bootstrapping at shutdown.")
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
+	cmdFlags.StringVar(&flags.DecryptionKeyFile, "decryption-key-file", "", "Path to an age key file used for decrypting Secrets using SOPS.")
 
 	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
 	_ = cmdFlags.MarkHidden("dashboard-image")
@@ -256,12 +263,13 @@ func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Con
 	return kubeClient, cfg, nil
 }
 
-func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string, justInstalled bool, err error) {
+func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *install.FluxVersionInfo, justInstalled bool, err error) {
 	ctx := context.Background()
 
 	log.Actionf("Checking if Flux is already installed ...")
 
-	if fluxVersion, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
+	guessed := false
+	if fluxVersion, guessed, err = install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 		log.Warningf("Flux is not found: %v", err.Error())
 
 		product := fluxinstall.NewProduct(flags.FluxVersion)
@@ -272,18 +280,18 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 		if err != nil {
 			execPath, err = installer.Install(ctx, product)
 			if err != nil {
-				return "", false, err
+				return nil, false, err
 			}
 		}
 
 		wd, err := os.Getwd()
 		if err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
 		flux, err := fluxexec.NewFlux(wd, execPath)
 		if err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
 		// This means that Flux logs will be printed to the console, but not be sent to S3
@@ -307,35 +315,56 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion string,
 				fluxexec.Timeout(flags.Timeout),
 			),
 		); err != nil {
-			return "", false, err
+			return nil, false, err
 		}
 
-		fluxVersion = flags.FluxVersion
-
-		return fluxVersion, true, nil
+		return &install.FluxVersionInfo{
+			FluxVersion:   flags.FluxVersion,
+			FluxNamespace: flags.Namespace,
+		}, true, nil
 	} else {
-		log.Successf("Flux version %s is found", fluxVersion)
+		if guessed {
+			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+		} else {
+			log.Successf("Flux %s is already installed", fluxVersion)
+		}
 	}
 
 	return fluxVersion, false, nil
 }
 
-func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool) (bool, []byte, string, error) {
+func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
+	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, watch.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
+
+	if err != nil {
+		log.Failuref("Fluent Bit installation failed: %v", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (install.DashboardType, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-	dashboardInstalled := install.IsDashboardInstalled(ctx, log, kubeClient, dashboardName, flags.Namespace)
+	dashboardType, dashboardName := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
+		install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
+	})
 
 	var dashboardManifests []byte
 
-	if dashboardInstalled {
-		log.Successf("GitOps Dashboard is found")
-	} else {
+	switch dashboardType {
+	case install.DashboardTypeEnterprise:
+		flags.SkipDashboardInstall = true
 
+		log.Warningf("GitOps Enterprise Dashboard is found. GitOps OSS Dashboard will not be installed")
+	case install.DashboardTypeOSS:
+		log.Successf("GitOps Dashboard is found")
+	default:
 		wantToInstallTheDashboard := false
-		switch {
-		case flags.DashboardHashedPassword != "":
+		if dashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
-		case !flags.SkipDashboardInstall:
+		} else if !flags.SkipDashboardInstall && dashboardHashedPassword == "" {
 			prompt := promptui.Prompt{
 				Label:     "Would you like to install the GitOps Dashboard",
 				IsConfirm: true,
@@ -351,50 +380,54 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 		}
 
 		if wantToInstallTheDashboard {
-
 			passwordHash := ""
-			if flags.DashboardHashedPassword == "" {
+			if dashboardHashedPassword == "" {
 				password, err := install.ReadPassword(log)
 				if err != nil {
-					return false, nil, "", err
+					return install.DashboardTypeNone, nil, "", err
 				}
 
 				passwordHash, err = install.GeneratePasswordHash(log, password)
 				if err != nil {
-					return false, nil, "", err
+					return install.DashboardTypeNone, nil, "", err
 				}
 			} else {
-				passwordHash = flags.DashboardHashedPassword
+				passwordHash = dashboardHashedPassword
 			}
 
-			dashboardManifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
+			dashboardManifests, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
 			if err != nil {
-				return false, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
+				return install.DashboardTypeNone, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 			}
 
 			if generateManifestsOnly {
-				return false, dashboardManifests, passwordHash, nil
+				return install.DashboardTypeNone, dashboardManifests, passwordHash, nil
 			}
 
 			man, err := install.NewManager(ctx, log, kubeClient, kubeConfigArgs)
 			if err != nil {
 				log.Failuref("Error creating resource manager")
-				return false, nil, "", err
+				return install.DashboardTypeNone, nil, "", err
 			}
 
 			err = install.InstallDashboard(ctx, log, man, dashboardManifests)
 			if err != nil {
-				return false, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
+				return install.DashboardTypeNone, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
 			} else {
-				dashboardInstalled = true
+				dashboardType = install.DashboardTypeOSS
+				dashboardName = defaultDashboardName
 
 				log.Successf("GitOps Dashboard has been installed")
 			}
 		}
 	}
 
-	if dashboardInstalled {
+	if dashboardType == install.DashboardTypeOSS {
 		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
+
+		if dashboardName == "" {
+			dashboardName = defaultDashboardName
+		}
 
 		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
@@ -403,10 +436,10 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 		}
 	}
 
-	return dashboardInstalled, dashboardManifests, "", nil
+	return dashboardType, dashboardManifests, "", nil
 }
 
-func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
+func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 	paths, err := run.NewPaths(args[0], flags.RootDir)
 	if err != nil {
 		return err
@@ -430,13 +463,16 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	// showing Flux installation twice is confusing
 	log := logger.NewCLILogger(io.Discard)
 
-	var fluxJustInstalled bool
+	var (
+		fluxJustInstalled bool
+		fluxVersionInfo   *install.FluxVersionInfo
+	)
 
-	if _, fluxJustInstalled, err = fluxStep(log, kubeClient); err != nil {
-		return fmt.Errorf("failed to install Flux on the host cluster: %v", err)
+	if fluxVersionInfo, fluxJustInstalled, err = fluxStep(log, kubeClient); err != nil {
+		return fmt.Errorf("failed to detect or install Flux on the host cluster: %v", err)
 	}
 
-	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true)
+	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
 	if err != nil {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -457,10 +493,12 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	var kind string
-	if isHelm(paths.GetAbsoluteTargetDir()) {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		kind = "helm"
-	} else {
+	} else if !yes && err == nil {
 		kind = "ks"
+	} else {
+		return err
 	}
 
 	session, err := install.NewSession(
@@ -468,6 +506,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 		kubeClient,
 		flags.SessionName,
 		flags.SessionNamespace,
+		fluxVersionInfo.FluxNamespace, // flux namespace of the session
 		portForwardsForSession,
 		dashboardHashedPassword,
 		kind,
@@ -540,7 +579,7 @@ func runCommandWithSession(cmd *cobra.Command, args []string) (retErr error) {
 	return err
 }
 
-func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
+func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// There are two loggers in this function.
 	// 1. log0 is the os.Stdout logger
 	// 2. log is the S3 logger that also delegates its outputs to "log0".
@@ -594,10 +633,10 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	var (
 		fluxJustInstalled bool
-		fluxVersion       string
+		fluxVersionInfo   *install.FluxVersionInfo
 	)
 
-	fluxVersion, fluxJustInstalled, err = fluxStep(log0, kubeClient)
+	fluxVersionInfo, fluxJustInstalled, err = fluxStep(log0, kubeClient)
 
 	if err != nil {
 		cancel()
@@ -646,19 +685,41 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to install S3 bucket server: %w", err)
 	}
 
-	log, err := logger.NewS3LogWriter(sessionName, fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert, log0)
+	minioClient, err := s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.SessionLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	if err := logger.CreateBucket(minioClient, logger.PodLogBucketName); err != nil {
+		cancel()
+		return err
+	}
+
+	log, err := logger.NewS3LogWriter(minioClient, sessionName, log0)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("failed creating S3 log writer: %w", err)
 	}
 
+	// ====================== Fluent-Bit =====================
+	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+		cancel()
+		return err
+	}
+
 	// ====================== Dashboard ======================
 	var (
-		dashboardInstalled bool
+		dashboardType      install.DashboardType
 		dashboardManifests []byte
 	)
 
-	dashboardInstalled, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false)
+	dashboardType, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
 	if err != nil {
 		cancel()
 		return err
@@ -666,7 +727,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	var cancelDashboardPortForwarding func() = nil
 
-	if dashboardInstalled {
+	if dashboardType == install.DashboardTypeOSS {
 		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 		if err != nil {
 			cancel()
@@ -680,29 +741,34 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	}
 
 	setupParams := watch.SetupRunObjectParams{
-		Namespace:     flags.Namespace,
-		Path:          paths.TargetDir,
-		Timeout:       flags.Timeout,
-		DevBucketPort: devBucketHTTPPort,
-		SessionName:   sessionName,
-		Username:      username,
-		AccessKey:     accessKey,
-		SecretKey:     secretKey,
+		Namespace:         flags.Namespace,
+		Path:              paths.TargetDir,
+		Timeout:           flags.Timeout,
+		DevBucketPort:     devBucketHTTPPort,
+		SessionName:       sessionName,
+		Username:          username,
+		AccessKey:         accessKey,
+		SecretKey:         secretKey,
+		DecryptionKeyFile: flags.DecryptionKeyFile,
 	}
 
-	if !isHelm(paths.GetAbsoluteTargetDir()) {
-		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
-			cancel()
-			return err
-		}
-	} else {
+	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 		if err := watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
 			cancel()
 			return err
 		}
+	} else if !yes && err == nil {
+		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
+			cancel()
+			return err
+		}
+	} else if err != nil {
+		log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+		cancel()
+		return err
 	}
 
-	minioClient, err := s3.NewMinioClient("localhost:"+strconv.Itoa(int(devBucketHTTPSPort)), accessKey, secretKey, cert)
+	minioClient, err = s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
 	if err != nil {
 		cancel()
 		return err
@@ -733,10 +799,15 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	watcherCtx, watcherCancel := context.WithCancel(ctx)
 	lastReconcile := time.Now()
+	stopUploadCh := make(chan struct{})
 
 	go func() {
 		for {
 			select {
+			case <-watcherCtx.Done():
+				return
+			case <-stopUploadCh:
+				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Create == fsnotify.Create ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
@@ -773,6 +844,8 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	go func() {
 		for { // nolint:gosimple
 			select {
+			case <-stopUploadCh:
+				return
 			case <-ticker.C:
 				if counter > 0 {
 					log.Actionf("%d change events detected", counter)
@@ -781,11 +854,11 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					atomic.StoreUint64(&counter, 0)
 
 					// we have to skip validation for helm charts
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); !yes && err == nil {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersion); err != nil {
+						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersionInfo.FluxVersion); err != nil {
 							log.Failuref("Validation failed: please review the errors and try again: %v", err)
 							continue
 						}
@@ -822,10 +895,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 					thisCtx := watcherCtx
 
 					var reconcileErr error
-					if !isHelm(paths.GetAbsoluteTargetDir()) {
-						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
-					} else {
+					if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 						reconcileErr = watch.ReconcileDevBucketSourceAndHelm(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if !yes && err == nil {
+						reconcileErr = watch.ReconcileDevBucketSourceAndKS(thisCtx, log, kubeClient, flags.Namespace, flags.Timeout)
+					} else if err != nil {
+						log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+						reconcileErr = err
 					}
 
 					if reconcileErr != nil {
@@ -836,13 +912,13 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 					portForwards := map[rune]watch.PortForwardShortcut{}
 
-					if dashboardInstalled {
+					if dashboardType == install.DashboardTypeOSS {
 						portForwardKey, err := watch.GetNextPortForwardKey(portForwards)
 						if err != nil {
 							log.Failuref("Error adding a portForward: %v", err)
 						} else {
 							portForwards[portForwardKey] = watch.PortForwardShortcut{
-								Name:     dashboardName,
+								Name:     defaultDashboardName,
 								HostPort: flags.DashboardPort,
 							}
 						}
@@ -880,12 +956,26 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 						// get pod from specMap
 						namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-						pod, err := run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
-						if err != nil {
-							log.Failuref("Error getting pod from specMap: %v", err)
+						var (
+							pod    *corev1.Pod
+							podErr error
+						)
+
+						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
+							pod, podErr = run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
+							if pod != nil && podErr == nil {
+								return true, nil
+							}
+
+							log.Waitingf("Waiting for a pod from specMap: %v", podErr)
+							return false, nil
+						}); pollErr != nil {
+							log.Failuref("Waiting for a pod from specMap: %v", pollErr)
 						}
 
-						if pod != nil {
+						if pod == nil {
+							log.Failuref("Error getting pod from specMap")
+						} else /* pod is available */ {
 							waitFwd := make(chan struct{}, 1)
 							readyChannel := make(chan struct{})
 							cancelPortFwd = func() {
@@ -914,6 +1004,7 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	sig := <-sigs
 
+	close(stopUploadCh)
 	cancel()
 	// create new context that isn't cancelled, for bootstrapping
 	ctx = context.Background()
@@ -937,14 +1028,17 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 
 	// this is the default behaviour
 	if !flags.SkipResourceCleanup {
-		if !isHelm(paths.GetAbsoluteTargetDir()) {
-			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
-				return err
-			}
-		} else {
+		if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
 			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
 				return err
 			}
+		} else if !yes && err == nil {
+			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else if err != nil {
+			log0.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+			return err
 		}
 
 		// uninstall dev-bucket server
@@ -990,9 +1084,21 @@ func runCommandWithoutSession(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func isHelm(dir string) bool {
+func isHelm(dir string) (bool, error) {
 	_, err := os.Stat(filepath.Join(dir, "Chart.yaml"))
-	return err == nil
+	if err != nil && os.IsNotExist(err) {
+		// check Chart.yml
+		_, err = os.Stat(filepath.Join(dir, "Chart.yml"))
+		if err != nil && os.IsNotExist(err) {
+			return false, nil
+		} else if err != nil {
+			return false, err
+		}
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, manifests []byte) (err error) {
@@ -1154,9 +1260,9 @@ func runBootstrap(ctx context.Context, log logger.Logger, paths *run.Paths, mani
 func betaRunCommandRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if flags.NoSession {
-			return runCommandWithoutSession(cmd, args)
+			return runCommandInnerProcess(cmd, args)
 		} else {
-			return runCommandWithSession(cmd, args)
+			return runCommandOuterProcess(cmd, args)
 		}
 	}
 }

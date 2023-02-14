@@ -11,7 +11,7 @@ const containerStyle = {
 export default function TierLabel({ tiers }) {
   return (
     <Link
-      title={`This feature is a available on ${tiers}`}
+      title={`This feature is a available on ${tiers}.`}
       style={containerStyle}
     >
       {tiers}

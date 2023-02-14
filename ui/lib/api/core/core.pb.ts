@@ -140,15 +140,33 @@ export type ToggleSuspendResourceResponse = {
 }
 
 export type GetSessionLogsRequest = {
+  sessionNamespace?: string
   sessionId?: string
   token?: string
-  clusterName?: string
-  namespace?: string
+  logSourceFilter?: string
+  logLevelFilter?: string
+}
+
+export type LogEntry = {
+  timestamp?: string
+  source?: string
+  level?: string
+  message?: string
 }
 
 export type GetSessionLogsResponse = {
-  logs?: string[]
+  logs?: LogEntry[]
   nextToken?: string
+  error?: string
+  logSources?: string[]
+}
+
+export type IsCRDAvailableRequest = {
+  name?: string
+}
+
+export type IsCRDAvailableResponse = {
+  clusters?: {[key: string]: boolean}
 }
 
 export class Core {
@@ -193,5 +211,8 @@ export class Core {
   }
   static GetSessionLogs(req: GetSessionLogsRequest, initReq?: fm.InitReq): Promise<GetSessionLogsResponse> {
     return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session_logs`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static IsCRDAvailable(req: IsCRDAvailableRequest, initReq?: fm.InitReq): Promise<IsCRDAvailableResponse> {
+    return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crd/is_available?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

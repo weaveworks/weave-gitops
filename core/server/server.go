@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/services/crd"
 	"k8s.io/client-go/rest"
 )
 
@@ -34,6 +35,7 @@ type coreServer struct {
 	nsChecker       nsaccess.Checker
 	clustersManager clustersmngr.ClustersManager
 	primaryKinds    *PrimaryKinds
+	crd             crd.Fetcher
 }
 
 type CoreServerConfig struct {
@@ -43,6 +45,7 @@ type CoreServerConfig struct {
 	NSAccess        nsaccess.Checker
 	ClustersManager clustersmngr.ClustersManager
 	PrimaryKinds    *PrimaryKinds
+	CRDService      crd.Fetcher
 }
 
 func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager) (CoreServerConfig, error) {
@@ -62,10 +65,15 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 }
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
+	if cfg.CRDService == nil {
+		cfg.CRDService = crd.NewFetcher(context.Background(), cfg.log, cfg.ClustersManager)
+	}
+
 	return &coreServer{
 		logger:          cfg.log,
 		nsChecker:       cfg.NSAccess,
 		clustersManager: cfg.ClustersManager,
 		primaryKinds:    cfg.PrimaryKinds,
+		crd:             cfg.CRDService,
 	}, nil
 }

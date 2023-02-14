@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"testing"
@@ -16,9 +17,11 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/crd"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/test/bufconn"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -69,13 +72,13 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	fetch := fetcher.NewSingleClusterFetcher(cluster)
 
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
-
 	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	coreCfg.NSAccess = &nsChecker
+	coreCfg.CRDService = crd.NewNoCacheFetcher(clustersManager)
 
 	core, err := server.NewCoreServer(coreCfg)
 	if err != nil {
@@ -84,10 +87,8 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	// Put the user in the `system:masters` group to avoid auth errors
-	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(clustersManager, principal),
+		withClientsPoolInterceptor(clustersManager),
 	)
 
 	pb.RegisterCoreServer(s, core)
@@ -120,7 +121,16 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 	return pb.NewCoreClient(conn), coreCfg
 }
 
-func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, user *auth.UserPrincipal) grpc.ServerOption {
+type userKey struct{}
+
+var UserKey = userKey{}
+
+const (
+	MetadataUserKey   string = "test_principal_user"
+	MetadataGroupsKey string = "test_principal_groups"
+)
+
+func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if err := clustersManager.UpdateClusters(ctx); err != nil {
 			return nil, err
@@ -129,9 +139,20 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, us
 			return nil, err
 		}
 
-		clustersManager.UpdateUserNamespaces(ctx, user)
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, fmt.Errorf("getting metadata from context failed")
+		}
 
-		ctx = auth.WithPrincipal(ctx, user)
+		var user string
+		if len(md[MetadataUserKey]) > 0 {
+			user = md[MetadataUserKey][0]
+		}
+		groups := md[MetadataGroupsKey]
+		principal := auth.UserPrincipal{ID: user, Groups: groups}
+		clustersManager.UpdateUserNamespaces(ctx, &principal)
+
+		ctx = auth.WithPrincipal(ctx, &principal)
 
 		return handler(ctx, req)
 	})
@@ -176,10 +197,8 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 
 	lis := bufconn.Listen(1024 * 1024)
 
-	// Put the user in the `system:masters` group to avoid auth errors
-	principal := &auth.UserPrincipal{ID: "anne", Groups: []string{"system:masters"}}
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(cfg.ClustersManager, principal),
+		withClientsPoolInterceptor(cfg.ClustersManager),
 	)
 
 	pb.RegisterCoreServer(s, core)

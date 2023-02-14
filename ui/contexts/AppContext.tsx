@@ -1,15 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom-v5-compat";
-import { Applications } from "../lib/api/applications/applications.pb";
 import { formatURL } from "../lib/nav";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
-import {
-  clearCallbackState,
-  getCallbackState,
-  getProviderToken,
-  storeCallbackState,
-  storeProviderToken,
-} from "../lib/storage";
 import { PageRoute, V2Routes } from "../lib/types";
 import { notifySuccess } from "../lib/utils";
 
@@ -23,18 +15,12 @@ type AppSettings = {
 };
 
 export type AppContextType = {
-  applicationsClient: typeof Applications;
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
   setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
   appState: AppState;
   settings: AppSettings;
-  getProviderToken: typeof getProviderToken;
-  storeProviderToken: typeof storeProviderToken;
-  getCallbackState: typeof getCallbackState;
-  storeCallbackState: typeof storeCallbackState;
-  clearCallbackState: typeof clearCallbackState;
   navigate: {
     internal: (page: PageRoute | V2Routes, query?: any) => void;
     external: (url: string) => void;
@@ -48,16 +34,12 @@ export const AppContext = React.createContext<AppContextType>(
 );
 
 export interface AppProps {
-  applicationsClient?: typeof Applications;
   children?: any;
   renderFooter?: boolean;
   notifySuccess?: typeof notifySuccess;
 }
 
-export default function AppContextProvider({
-  applicationsClient,
-  ...props
-}: AppProps) {
+export default function AppContextProvider({ ...props }: AppProps) {
   const navigate = useNavigate()
   const [appState, setAppState] = React.useState({
     error: null,
@@ -90,17 +72,11 @@ export default function AppContextProvider({
   };
 
   const value: AppContextType = {
-    applicationsClient,
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
     setNodeYaml,
     appState,
-    getProviderToken,
-    storeProviderToken,
-    storeCallbackState,
-    getCallbackState,
-    clearCallbackState,
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: {
       renderFooter: props.renderFooter,

@@ -2,14 +2,15 @@ package logger
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/minio/minio-go/v7"
-	"github.com/weaveworks/weave-gitops/pkg/s3"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 type S3LogWriter struct {
@@ -18,30 +19,15 @@ type S3LogWriter struct {
 	log0  Logger
 }
 
-const logBucketName = "gitops-run-logs"
+const SessionLogBucketName = "gitops-run-logs"
+const PodLogBucketName = "pod-logs"
+const SessionLogSource = "gitops-run-client"
 
 func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
 }
 
-func NewInsecureS3LogWriter(id, endpoint string, accessKey, secretKey string, log0 Logger) (Logger, error) {
-	minioClient, err := minio.New(
-		endpoint,
-		&minio.Options{
-			Creds:        credentials.NewStaticV4(accessKey, secretKey, ""),
-			Secure:       false,
-			BucketLookup: minio.BucketLookupPath,
-		},
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := minioClient.MakeBucket(context.Background(), logBucketName, minio.MakeBucketOptions{}); err != nil {
-		return nil, err
-	}
-
+func NewS3LogWriter(minioClient *minio.Client, id string, log0 Logger) (Logger, error) {
 	return &S3LogWriter{
 		id:    id,
 		s3cli: minioClient,
@@ -49,31 +35,43 @@ func NewInsecureS3LogWriter(id, endpoint string, accessKey, secretKey string, lo
 	}, nil
 }
 
-func NewS3LogWriter(id, endpoint string, accessKey, secretKey, caCert []byte, log0 Logger) (Logger, error) {
-	minioClient, err := s3.NewMinioClient(endpoint, accessKey, secretKey, caCert)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := minioClient.MakeBucket(context.Background(), logBucketName, minio.MakeBucketOptions{}); err != nil {
-		return nil, err
-	}
-
-	return &S3LogWriter{
-		id:    id,
-		s3cli: minioClient,
-		log0:  log0,
-	}, nil
+func CreateBucket(minioClient *minio.Client, bucketName string) error {
+	return minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 }
 
 func (l *S3LogWriter) putLog(msg string) {
+	now := time.Now()
+
+	level := "info"
+
+	if len(msg) > 0 {
+		if strings.HasPrefix(msg, "✗") {
+			level = "error"
+		} else if strings.HasPrefix(msg, "⚠️") {
+			level = "warning"
+		}
+	}
+
+	result := &pb.LogEntry{
+		Timestamp: now.Format(time.RFC3339),
+		Source:    SessionLogSource,
+		Level:     level,
+		Message:   msg,
+	}
+
+	logData, err := json.Marshal(result)
+	if err != nil {
+		l.log0.Failuref("failed to marshal log data to JSON: %v", err)
+	}
+
 	// append new line at the end of each log
-	msg = msg + "\n"
-	_, err := l.s3cli.PutObject(context.Background(),
-		logBucketName,
-		// This funny pattern 20060102-150405.00000 is the loyout needed by time.Format
-		fmt.Sprintf("%s/%s.txt", l.id, time.Now().Format("20060102-150405.00000")),
-		strings.NewReader(msg), int64(len(msg)), minio.PutObjectOptions{})
+	logMsg := string(logData) + "\n"
+
+	_, err = l.s3cli.PutObject(context.Background(),
+		SessionLogBucketName,
+		// This funny pattern 20060102-150405.00000 is the layout needed by time.Format
+		fmt.Sprintf("%s/%s.txt", l.id, now.Format("20060102-150405.00000")),
+		strings.NewReader(logMsg), int64(len(logMsg)), minio.PutObjectOptions{})
 
 	if err != nil {
 		l.log0.Failuref("failed to put log to s3: %v", err)

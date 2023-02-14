@@ -13,6 +13,8 @@ require (
 	github.com/fluxcd/flux2 v0.37.0
 	github.com/fluxcd/go-git-providers v0.11.0
 	github.com/fluxcd/helm-controller/api v0.27.0
+	github.com/fluxcd/image-automation-controller/api v0.27.0
+	github.com/fluxcd/image-reflector-controller/api v0.23.0
 	github.com/fluxcd/kustomize-controller/api v0.31.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
 	github.com/fluxcd/pkg/runtime v0.24.0
@@ -122,6 +124,7 @@ require (
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20180507124511-f6ea450bfb63 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect

@@ -47,6 +47,10 @@ type CoreClient interface {
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
+	// IsCRDAvailable returns with a hashmap where the keys are the names of
+	// the clusters, and the value is a boolean indicating whether given CRD is
+	// installed or not on that cluster.
+	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 }
 
 type coreClient struct {
@@ -183,6 +187,15 @@ func (c *coreClient) GetSessionLogs(ctx context.Context, in *GetSessionLogsReque
 	return out, nil
 }
 
+func (c *coreClient) IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error) {
+	out := new(IsCRDAvailableResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/IsCRDAvailable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -216,6 +229,10 @@ type CoreServer interface {
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
+	// IsCRDAvailable returns with a hashmap where the keys are the names of
+	// the clusters, and the value is a boolean indicating whether given CRD is
+	// installed or not on that cluster.
+	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -264,6 +281,9 @@ func (UnimplementedCoreServer) ToggleSuspendResource(context.Context, *ToggleSus
 }
 func (UnimplementedCoreServer) GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSessionLogs not implemented")
+}
+func (UnimplementedCoreServer) IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsCRDAvailable not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -530,6 +550,24 @@ func _Core_GetSessionLogs_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_IsCRDAvailable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsCRDAvailableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).IsCRDAvailable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/IsCRDAvailable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).IsCRDAvailable(ctx, req.(*IsCRDAvailableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -592,6 +630,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSessionLogs",
 			Handler:    _Core_GetSessionLogs_Handler,
+		},
+		{
+			MethodName: "IsCRDAvailable",
+			Handler:    _Core_IsCRDAvailable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

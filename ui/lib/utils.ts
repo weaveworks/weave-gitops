@@ -1,11 +1,11 @@
 import _ from "lodash";
+import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
-import { PageRoute } from "./types";
 
 export function notifySuccess(message: string) {
   toast["success"](message);
@@ -13,12 +13,6 @@ export function notifySuccess(message: string) {
 
 export function notifyError(message: string) {
   toast["error"](`Error: ${message}`);
-}
-
-// Must be one of the valid URLs that we have already
-// configured on the Gitlab backend for our Oauth app.
-export function gitlabOAuthRedirectURI(): string {
-  return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
 }
 
 export function poller(cb, interval): any {
@@ -183,4 +177,27 @@ export function getAppVersion(
     versionText,
     versionHref,
   };
+}
+
+// formatLogTimestamp formats a timestamp string in the RFC3339 format
+// to a human-readable format with UTC offset.
+// If the timestamp is undefined or an empty string, it returns "-".
+export function formatLogTimestamp(timestamp?: string, zone?: string): string {
+  if (!timestamp) {
+    return "-";
+  }
+
+  let dt = DateTime.fromISO(timestamp);
+
+  if (zone) {
+    dt = dt.setZone(zone);
+  }
+
+  let formattedTimestamp = `${dt.toFormat("yyyy-LL-dd HH:mm:ss 'UTC'Z")}`;
+
+  if (dt.offset === 0) {
+    formattedTimestamp = formattedTimestamp.replace("UTC+0", "UTC");
+  }
+
+  return formattedTimestamp;
 }

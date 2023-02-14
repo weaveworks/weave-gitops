@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -40,7 +41,7 @@ func TestClientGet(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -76,7 +77,7 @@ func TestClientClusteredList(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -170,7 +171,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 	nsMap := map[string][]corev1.Namespace{
 		clusterName: {*ns1, *ns2},
 	}
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	// First request comes with no continue token
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -214,7 +215,7 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 		clusterName: {},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 	clusterRole := rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: appName,
@@ -267,7 +268,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &kustomizev1.KustomizationList{}
@@ -298,7 +299,7 @@ func TestClientList(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -335,7 +336,7 @@ func TestClientCreate(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -370,7 +371,7 @@ func TestClientDelete(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -403,7 +404,7 @@ func TestClientUpdate(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -441,7 +442,7 @@ func TestClientPatch(t *testing.T) {
 		clusterName: {*ns},
 	}
 
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	kust := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
@@ -479,6 +480,25 @@ func createNamespace(g *GomegaWithT) *corev1.Namespace {
 	g.Expect(k8sEnv.Client.Create(context.Background(), ns)).To(Succeed())
 
 	return ns
+}
+
+func createClusterRoleBinding(g *GomegaWithT, user string) *rbacv1.ClusterRoleBinding {
+	crb := &rbacv1.ClusterRoleBinding{}
+	crb.Name = "kube-test-" + rand.String(5)
+	crb.Subjects = []rbacv1.Subject{
+		{
+			Kind: "User",
+			Name: user,
+		},
+	}
+	crb.RoleRef = rbacv1.RoleRef{
+		Kind: "ClusterRole",
+		Name: "cluster-admin",
+	}
+
+	g.Expect(k8sEnv.Client.Create(context.Background(), crb)).To(Succeed())
+
+	return crb
 }
 
 func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.ClientsPool {

@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -37,6 +39,14 @@ const (
 	ClaimGroups string = "groups"
 )
 
+// DefaultScopes is the set of scopes that we require.
+var DefaultScopes = []string{
+	oidc.ScopeOpenID,
+	oidc.ScopeOfflineAccess,
+	ScopeEmail,
+	ScopeGroups,
+}
+
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
@@ -45,6 +55,7 @@ type OIDCConfig struct {
 	ClientSecret  string
 	RedirectURL   string
 	TokenDuration time.Duration
+	Scopes        []string
 	ClaimsConfig  *ClaimsConfig
 }
 
@@ -110,7 +121,27 @@ func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 
 	cfg.TokenDuration = tokenDuration
 
+	scopes := splitAndTrim(string(secret.Data["customScopes"]))
+	if len(scopes) == 0 {
+		scopes = DefaultScopes
+	}
+
+	cfg.Scopes = scopes
+
 	return cfg
+}
+
+func splitAndTrim(s string) []string {
+	result := []string{}
+	splits := strings.Split(s, ",")
+
+	for _, s := range splits {
+		if v := strings.TrimSpace(s); v != "" {
+			result = append(result, v)
+		}
+	}
+
+	return result
 }
 
 func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
@@ -214,27 +245,20 @@ func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
 }
 
 func (s *AuthServer) oauth2Config(scopes []string) *oauth2.Config {
+	requestScopes := []string{}
 	// Ensure "openid" scope is always present.
 	if !contains(scopes, oidc.ScopeOpenID) {
-		scopes = append(scopes, oidc.ScopeOpenID)
+		requestScopes = append(requestScopes, oidc.ScopeOpenID)
 	}
 
-	// Request "email" scope to get user's email address.
-	if !contains(scopes, ScopeEmail) {
-		scopes = append(scopes, ScopeEmail)
-	}
-
-	// Request "groups" scope to get user's groups.
-	if !contains(scopes, ScopeGroups) {
-		scopes = append(scopes, ScopeGroups)
-	}
+	requestScopes = append(requestScopes, scopes...)
 
 	return &oauth2.Config{
 		ClientID:     s.OIDCConfig.ClientID,
 		ClientSecret: s.OIDCConfig.ClientSecret,
 		RedirectURL:  s.OIDCConfig.RedirectURL,
 		Endpoint:     s.provider.Endpoint(),
-		Scopes:       scopes,
+		Scopes:       requestScopes,
 	}
 }
 
@@ -334,6 +358,7 @@ func (s *AuthServer) Callback() http.HandlerFunc {
 		// Issue ID token cookie
 		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
 		http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
 
 		// Clear state cookie
 		http.SetCookie(rw, s.clearCookie(StateCookieName))
@@ -465,6 +490,37 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	toJSON(rw, ui, s.Log)
 }
 
+// Refresh is used to refresh the access token and id token. It updates the cookies on the response
+// with the new tokens. It returns the new user principal.
+func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
+	ctx := oidc.ClientContext(r.Context(), s.client)
+
+	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
+	if err != nil {
+		return nil, errors.New("couldn't fetch refresh token from cookie")
+	}
+
+	token, err := s.oauth2Config(nil).TokenSource(
+		ctx,
+		&oauth2.Token{
+			RefreshToken: refreshTokenCookie.Value,
+		}).Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, errors.New("no id_token in token response")
+	}
+
+	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
+	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
+	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
+
+	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
+}
+
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
 	b, err := json.Marshal(ui)
 	if err != nil {
@@ -502,8 +558,7 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 
 	state := base64.StdEncoding.EncodeToString(b)
 
-	scopes := []string{ScopeProfile}
-	authCodeURL := s.oauth2Config(scopes).AuthCodeURL(state)
+	authCodeURL := s.oauth2Config(s.OIDCConfig.Scopes).AuthCodeURL(state)
 
 	// Issue state cookie
 	http.SetCookie(rw, s.createCookie(StateCookieName, state))

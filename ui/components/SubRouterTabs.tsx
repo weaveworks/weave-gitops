@@ -131,7 +131,7 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
     letter-spacing: 1px;
     height: 32px;
     min-height: 32px;
-    width: 132px;
+    width: fit-content;
     @media (min-width: 600px) {
       min-width: 132px;
     }

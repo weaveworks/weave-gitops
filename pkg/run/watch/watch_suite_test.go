@@ -24,11 +24,14 @@ var cleanupK8s func()
 var _ = BeforeSuite(func() {
 	var err error
 	k8sEnv, err = testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
-		"../../tools/testcrds",
+		"../../../tools/testcrds",
 	})
 	Expect(err).NotTo(HaveOccurred())
 
 	cleanupK8s = k8sEnv.Stop
 	k8sClient = k8sEnv.Client
+})
+
+var _ = AfterSuite(func() {
+	cleanupK8s()
 })

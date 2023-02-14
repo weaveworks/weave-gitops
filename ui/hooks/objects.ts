@@ -11,6 +11,9 @@ import {
   HelmChart,
   HelmRelease,
   HelmRepository,
+  ImagePolicy,
+  ImageRepository,
+  ImageUpdateAutomation,
   Kustomization,
   OCIRepository,
   Provider,
@@ -21,35 +24,35 @@ export function convertResponse(
   kind: Kind | string,
   response?: ResponseObject
 ) {
-  if (kind === Kind.HelmRepository) {
-    return new HelmRepository(response);
-  }
-  if (kind === Kind.HelmChart) {
-    return new HelmChart(response);
-  }
-  if (kind === Kind.Bucket) {
-    return new Bucket(response);
-  }
-  if (kind === Kind.GitRepository) {
-    return new GitRepository(response);
-  }
-  if (kind === Kind.OCIRepository) {
-    return new OCIRepository(response);
-  }
-  if (kind === Kind.Kustomization) {
-    return new Kustomization(response);
-  }
-  if (kind === Kind.HelmRelease) {
-    return new HelmRelease(response);
-  }
-  if (kind === Kind.Provider) {
-    return new Provider(response);
-  }
-  if (kind === Kind.Alert) {
-    return new Alert(response);
-  }
+  switch (kind) {
+    case Kind.HelmRepository:
+      return new HelmRepository(response);
+    case Kind.HelmChart:
+      return new HelmChart(response);
+    case Kind.Bucket:
+      return new Bucket(response);
+    case Kind.OCIRepository:
+      return new OCIRepository(response);
+    case Kind.GitRepository:
+      return new GitRepository(response);
+    case Kind.Kustomization:
+      return new Kustomization(response);
+    case Kind.HelmRelease:
+      return new HelmRelease(response);
+    case Kind.Provider:
+      return new Provider(response);
+    case Kind.Alert:
+      return new Alert(response);
+    case Kind.ImageRepository:
+      return new ImageRepository(response);
+    case Kind.ImageUpdateAutomation:
+      return new ImageUpdateAutomation(response);
+    case Kind.ImagePolicy:
+      return new ImagePolicy(response);
 
-  return new FluxObject(response);
+    default:
+      return new FluxObject(response);
+  }
 }
 
 export function useGetObject<T extends FluxObject>(

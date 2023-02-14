@@ -15,6 +15,9 @@ export enum Kind {
   OCIRepository = "OCIRepository",
   Provider = "Provider",
   Alert = "Alert",
+  ImageRepository = "ImageRepository",
+  ImageUpdateAutomation = "ImageUpdateAutomation",
+  ImagePolicy = "ImagePolicy",
 }
 
 export enum HelmRepositoryType {

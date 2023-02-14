@@ -13,9 +13,11 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
-import Pendo from "./components/Pendo";
-import PendoContainer, { tier } from "./components/PendoContainer";
+import PendoContainer from "./components/PendoContainer";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -32,6 +34,7 @@ import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
 import HelmRepositoryDetail from "./pages/v2/HelmRepositoryDetail";
+import ImageAutomationPage from "./pages/v2/ImageAutomationPage";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
@@ -47,7 +50,6 @@ function withSearchParams(Cmp) {
     return <Cmp {...rest} {...params} />;
   };
 }
-
 const App = () => (
   <Layout>
     <PendoContainer />
@@ -62,6 +64,22 @@ const App = () => (
           component={withSearchParams(KustomizationPage)}
         />
         <CompatRoute path={V2Routes.Sources} component={Sources} />
+        <CompatRoute
+          path={V2Routes.ImageAutomation}
+          component={ImageAutomationPage}
+        />
+        <CompatRoute
+          path={V2Routes.ImageAutomationUpdatesDetails}
+          component={withSearchParams(ImageAutomationUpdatesDetails)}
+        />
+        <CompatRoute
+          path={V2Routes.ImageAutomationRepositoryDetails}
+          component={withSearchParams(ImageAutomationRepoDetails)}
+        />
+        <CompatRoute
+          path={V2Routes.ImagePolicyDetails}
+          component={withSearchParams(ImagePolicyDetails)}
+        />
         <CompatRoute path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <CompatRoute
           path={V2Routes.GitRepo}
@@ -95,7 +113,9 @@ const App = () => (
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
         />
+
         <Redirect exact from="/" to={V2Routes.Automations} />
+
         <CompatRoute exact path="*" component={Error} />
       </Switch>
     </ErrorBoundary>
@@ -122,11 +142,7 @@ export default function AppContainer() {
                       <Switch>
                       {/* <Signin> does not use the base page <Layout> so pull it up here */}
                       <CompatRoute exact path="/sign_in">
-                      <SignIn
-                        analytics={
-                          <Pendo defaultTelemetryFlag="false" tier={tier} />
-                        }
-                      />
+                      <SignIn />
                       </CompatRoute>
                   
                       <CompatRoute path="" component={SignIn}>

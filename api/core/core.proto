@@ -152,6 +152,17 @@ service Core {
             body: "*"
         };
     }
+
+    /**
+    * IsCRDAvailable returns with a hashmap where the keys are the names of
+    * the clusters, and the value is a boolean indicating whether given CRD is
+    * installed or not on that cluster.
+    */
+    rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
+        option (google.api.http) = {
+            get : "/v1/crd/is_available",
+        };
+    }
 }
 
 message Pagination {
@@ -284,13 +295,31 @@ message ToggleSuspendResourceResponse {
 }
 
 message GetSessionLogsRequest {
-    string sessionId   = 1;
-    string token       = 2;
-    string clusterName = 3;
-    string namespace   = 4;
+    string sessionNamespace = 1;
+    string sessionId        = 2;
+    string token            = 3;
+    string logSourceFilter  = 4;
+    string logLevelFilter   = 5;
+}
+
+message LogEntry {
+    string timestamp = 1;
+    string source    = 2;
+    string level     = 3;
+    string message   = 4;
 }
 
 message GetSessionLogsResponse {
-    repeated string logs = 1;
-    string nextToken     = 2;
+    repeated LogEntry logs       = 1;
+    string            nextToken  = 2;
+    string            error      = 3;
+    repeated string   logSources = 4;
+}
+
+message IsCRDAvailableRequest {
+    string name = 1;
+}
+
+message IsCRDAvailableResponse {
+    map<string,bool> clusters = 1;
 }

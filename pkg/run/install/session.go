@@ -17,6 +17,7 @@ import (
 type Session struct {
 	name                    string
 	namespace               string
+	fluxNamespace           string
 	kubeClient              client.Client
 	log                     logger.Logger
 	dashboardHashedPassword string
@@ -25,7 +26,7 @@ type Session struct {
 }
 
 func (s *Session) Start() error {
-	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.portForwards, s.automationKind); err != nil {
+	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.fluxNamespace, s.portForwards, s.automationKind); err != nil {
 		return err
 	}
 
@@ -104,10 +105,11 @@ func (s *Session) Close() error {
 	return nil
 }
 
-func NewSession(log logger.Logger, kubeClient client.Client, name string, namespace string, portForwards []string, dashboardHashedPassword string, automationKind string) (*Session, error) {
+func NewSession(log logger.Logger, kubeClient client.Client, name string, namespace string, fluxNamespace string, portForwards []string, dashboardHashedPassword string, automationKind string) (*Session, error) {
 	return &Session{
 		name:                    name,
 		namespace:               namespace,
+		fluxNamespace:           fluxNamespace,
 		kubeClient:              kubeClient,
 		log:                     log,
 		portForwards:            portForwards,
