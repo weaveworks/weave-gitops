@@ -2,122 +2,117 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
-import { useMatch } from "react-router-dom-v5-compat";
-// import { CompatRoute } from "react-router-dom-v5-compat";
+import {
+  useLocation,
+  useHref,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
+import { routeTab } from "./KustomizationDetail";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
+function Redirect({ to }) {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    navigate(to);
+  });
+  return null;
+}
+
 type Props = {
   className?: string;
-  children?: any;
-  rootPath: string;
+  tabs: routeTab[];
   clearQuery?: boolean;
 };
-
-type TabProps = {
-  name: string;
-  path: string;
-  children: React.ReactElement;
-};
-
-type PathConfig = { name: string; path: string };
 
 const ForwardedLink = React.forwardRef((props, ref) => (
   <Link {...props} innerRef={ref} />
 ));
 
-function findChildren(childrenProp) {
-  if (_.isArray(childrenProp)) {
-    const childs = [];
-    childrenProp.forEach((child) => {
-      if (_.isArray(child)) {
-        child.forEach((ch) => {
-          childs.push(ch);
-        });
-      } else {
-        childs.push(child);
-      }
-    });
-    return childs;
-  }
-  return [childrenProp];
-}
-
-function routesToIndex(routes: PathConfig[], pathname) {
-  console.log({pathname, routes})
-  const index = _.findIndex(routes, (r) => pathname.includes(r.path));
-  return index === -1 ? 0 : index;
-}  
-function MatchPath({ path, children }) {
-  console.log(path,"path")
-
-  let match = useMatch(path);
-  console.log({match})
-  return match ? children : null;
-}
-
-export function RouterTab({ children }: TabProps) {
+export function RouterTab({
+  route,
+  clearQuery,
+  active,
+}: {
+  route: PathConfig;
+  clearQuery?: boolean;
+  active?: boolean;
+}) {
+  const { name, path } = route;
+  const query = qs.parse(window.location.search);
+  const to = useHref(path);
   return (
-    <MatchPath path={children.props.path}>
-      {children}
-    </MatchPath>
+    <Tab
+      component={ForwardedLink as typeof Link}
+      to={formatURL(to, clearQuery ? "" : query)}
+      className={`${active && "active-tab"}`}
+      label={
+        <Text
+          size="small"
+          uppercase
+          bold={Boolean(active)}
+          semiBold={!active}
+          color={active ? "primary10" : "neutral30"}
+        >
+          {name}
+        </Text>
+      }
+    />
   );
 }
 
-function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
+type PathConfig = { name: string; path: string };
+
+function routesToIndex(routes: PathConfig[], pathname: string): number {
+  // FIXME: I can't still find a better way to do this in react-router
+  const index = _.findIndex(routes, (r) => pathname.includes(r.path));
+  return index === -1 ? 0 : index;
+}
+
+function SubRouterTabs({ className, tabs, clearQuery }: Props) {
+  const { pathname } = useLocation();
+  const defaultTabPath = useHref(tabs[0].path);
   const query = qs.parse(window.location.search);
-  const childs = findChildren(children);
-
-  if (!_.get(childs, [0, "props", "path"])) {
-    throw new Error("HashRouterTabs children must be of type HashRouterTab");
-  }
-
-  const routes: PathConfig[] = _.map(childs, (c: any) => ({
-    path: c?.props?.path,
-    name: c?.props?.name,
-  }));
+  const activeIndex = routesToIndex(tabs, pathname);
 
   return (
     <Flex wide tall column start className={className}>
-      <Tabs
-        indicatorColor="primary"
-        value={routesToIndex(routes, window.location.pathname)}
-      >
-        {_.map(routes, (route, i) => {
-          const bold = window.location.pathname.includes(route.path);
+      <Tabs indicatorColor="primary" value={activeIndex}>
+        {_.map(tabs, (route, i) => {
           return (
-            <Tab
-              component={ForwardedLink as typeof Link}
-              key={i}
-              to={formatURL(`${route.path}`, clearQuery ? "" : query)}
-              className={`${
-                window.location.pathname.includes(route.path) && "active-tab"
-              }`}
-              label={
-                <Text
-                  size="small"
-                  uppercase
-                  bold={bold}
-                  semiBold={!bold}
-                  color={bold ? "primary10" : "neutral30"}
-                >
-                  {route.name}
-                </Text>
-              }
+            <RouterTab
+              key={route.path}
+              route={route}
+              clearQuery={clearQuery}
+              active={i === activeIndex}
             />
           );
         })}
       </Tabs>
       <Spacer padding="xs" />
-      <Switch>
-        {children}
-        <Redirect from="*" to={formatURL(rootPath, clearQuery ? "" : query)} />
-      </Switch>
+      <Routes>
+        {_.map(tabs, (route) => {
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={route.component()}
+            />
+          );
+        })}
+        <Route
+          path="*"
+          element={
+            <Redirect to={formatURL(defaultTabPath, clearQuery ? "" : query)} />
+          }
+        />
+      </Routes>
     </Flex>
   );
 }

@@ -55,10 +55,7 @@ const App = () => (
     <PendoContainer />
     <ErrorBoundary>
       <Switch>
-        <CompatRoute
-          path={V2Routes.Automations}
-          component={Automations}
-        />
+        <CompatRoute path={V2Routes.Automations} component={Automations} />
         <CompatRoute
           path={V2Routes.Kustomization}
           component={withSearchParams(KustomizationPage)}
@@ -128,7 +125,7 @@ const App = () => (
 );
 
 export default function AppContainer() {
-  return ( 
+  return (
     <MuiThemeProvider theme={muiTheme}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
@@ -139,12 +136,12 @@ export default function AppContainer() {
               <AppContextProvider renderFooter>
                 <AuthContextProvider>
                   <CoreClientContextProvider api={Core}>
-                      <Switch>
+                    <Switch>
                       {/* <Signin> does not use the base page <Layout> so pull it up here */}
                       <CompatRoute exact path="/sign_in">
-                      <SignIn />
+                        <SignIn />
                       </CompatRoute>
-                  
+
                       <CompatRoute path="" component={SignIn}>
                         {/* Check we've got a logged in user otherwise redirect back to signin */}
                         <AuthCheck>

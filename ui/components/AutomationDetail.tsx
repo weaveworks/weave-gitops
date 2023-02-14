@@ -1,7 +1,7 @@
 import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
-import { useLocation, useNavigate } from "react-router-dom-v5-compat";
+import { useLocation, Route, Routes } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
@@ -20,7 +20,7 @@ import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
-import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
+import SubRouterTabs from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
 import YamlView, { DialogYamlView } from "./YamlView";
@@ -41,7 +41,7 @@ function AutomationDetail({
   customActions,
 }: Props) {
   const { path } = useRouteMatch();
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
   // console.log(pathname,'pathname')
   // console.log(path, 'path')
   const { setNodeYaml, appState } = React.useContext(AppContext);
@@ -91,7 +91,7 @@ function AutomationDetail({
     },
     {
       name: "Events",
-      path: `${path}/events`,
+      path: "events",
       component: () => {
         return (
           <EventsTable
@@ -109,7 +109,7 @@ function AutomationDetail({
     },
     {
       name: "Graph",
-      path: `${path}/graph`,
+      path: "graph",
       component: () => {
         return (
           <ReconciliationGraph
@@ -122,13 +122,13 @@ function AutomationDetail({
     },
     {
       name: "Dependencies",
-      path: `${path}/dependencies`,
+      path: "dependencies",
       component: () => <DependenciesView automation={automation} />,
       visible: true,
     },
     {
       name: "Yaml",
-      path: `${path}/yaml`,
+      path: "yaml",
       component: () => {
         return (
           <YamlView
@@ -144,6 +144,8 @@ function AutomationDetail({
       visible: true,
     },
   ];
+
+  const tabs = [...defaultTabs, ...(customTabs || [])];
 
   return (
     <Flex wide tall column className={className}>
@@ -170,28 +172,7 @@ function AutomationDetail({
         <CustomActions actions={customActions} />
       </Flex>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
-        {defaultTabs.map(
-          (subRoute, index) =>
-            subRoute.visible && (
-              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
-                {subRoute.component()}
-              </RouterTab>
-            )
-        )}
-        {customTabs?.map(
-          (customTab, index) =>
-            customTab.visible && (
-              <RouterTab
-                name={customTab.name}
-                path={customTab.path}
-                key={index}
-              >
-                {customTab.component()}
-              </RouterTab>
-            )
-        )}
-      </SubRouterTabs>
+      <SubRouterTabs tabs={tabs} />
       {nodeYaml && (
         <Dialog
           open={!!nodeYaml}
