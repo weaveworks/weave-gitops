@@ -1,0 +1,142 @@
+---
+title: 2. Deploy an Application
+hide_title: true
+---
+
+# Part 2: Deploy an Application
+
+Now that you have a feel for how to navigate the dashboard, let's deploy a new
+application to explore further. In this section we will use the [podinfo](https://github.com/stefanprodan/podinfo) sample web application.
+
+## Deploying podinfo
+
+1. Clone or navigate back to your git repository where you have bootstrapped Flux, for example:
+
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
+
+1. Create a `GitRepository` Source for podinfo
+
+   ```
+   flux create source git podinfo \
+     --url=https://github.com/stefanprodan/podinfo \
+     --branch=master \
+     --interval=30s \
+     --export > ./clusters/my-cluster/podinfo-source.yaml
+   ```
+
+1. Commit and push the `podinfo-source` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add podinfo source"
+   git push
+   ```
+
+1. Create a `kustomization` to build and apply the podinfo manifest
+
+   ```
+   flux create kustomization podinfo \
+     --target-namespace=flux-system \
+     --source=podinfo \
+     --path="./kustomize" \
+     --prune=true \
+     --interval=5m \
+     --export > ./clusters/my-cluster/podinfo-kustomization.yaml
+   ```
+
+1. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add podinfo kustomization"
+   git push
+   ```
+
+## View the application in Weave GitOps
+
+Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back to the [dashboard](http://localhost:9001/) you should see the podinfo application appear.
+
+![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
+
+Click on podinfo and you will see details about the deployment, including that there are 2 pods available.
+
+![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
+
+:::info
+Podinfo will come with the HorizontalPodAutoscaler, which uses the `metrics-server`.
+For the purposes of this tutorial, we don't need the `metrics-server`, but it will mean
+that the HorizontalPodAutoscaler will report as `Not ready` in your Dashboard.
+
+To remove this warning, install the [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server)
+(if you are using a `kind` cluster you may need to do more to get this working),
+but you can ingore the warning if you prefer.
+:::
+
+## Customize podinfo
+
+To customize a deployment from a repository you don’t control, you can use Flux in-line patches. The following example shows how to use in-line patches to change the podinfo deployment.
+
+1. Add the `patches` section as shown below to the field spec of your `podinfo-kustomization.yaml` file so it looks like this:
+
+   ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
+   ---
+   apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+   kind: Kustomization
+   metadata:
+     name: podinfo
+     namespace: flux-system
+   spec:
+     interval: 60m0s
+     path: ./kustomize
+     prune: true
+     sourceRef:
+       kind: GitRepository
+       name: podinfo
+     targetNamespace: flux-system
+   // highlight-start
+     patches:
+       - patch: |-
+           apiVersion: autoscaling/v2beta2
+           kind: HorizontalPodAutoscaler
+           metadata:
+             name: podinfo
+           spec:
+             minReplicas: 3
+         target:
+           name: podinfo
+           kind: HorizontalPodAutoscaler
+   // highlight-end
+   ```
+
+1. Commit and push the `podinfo-kustomization.yaml` changes:
+
+   ```
+   git add -A && git commit -m "Increase podinfo minimum replicas"
+   git push
+   ```
+
+3. Navigate back to the dashboard and you will now see a newly created pod
+
+   ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
+
+
+## Suspend updates
+
+Suspending updates to a kustomization allows you to directly edit objects applied from a kustomization, without your changes being reverted by the state in Git.
+
+To suspend updates for a kustomization, from the details page, click on the suspend button at the top, and you should see it be suspended:
+
+![Podinfo details showing Podinfo suspended](/img/dashboard-podinfo-details-suspended.png)
+
+This shows in the applications view with a yellow warning status indicating it is now suspended
+
+![Applications summary view showing Podinfo suspended](/img/dashboard-podinfo-suspended.png)
+
+To resume updates, go back to the details page, click the resume button, and after a few seconds reconsolidation will continue.
+
+## Complete!
+
+Congratulations 🎉🎉🎉
+
+You've now completed the getting started guide. We would welcome any and all [feedback](/feedback-and-telemetry) on your experience.
