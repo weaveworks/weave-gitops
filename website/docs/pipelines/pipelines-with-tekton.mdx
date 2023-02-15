@@ -276,7 +276,7 @@ el-ww-pipeline-listener   ClusterIP   10.96.250.23   <none>        8080/TCP,9000
 
 In this case, we are using Tekton in the same cluster, so we can use an internal
 address to access the `EventListener` service. If they are not in the same
-cluster, exposing the service may required through an ingress or a service mesh.
+cluster, exposing the service may be required through an ingress or a service mesh.
 
 ```yaml
 ---
