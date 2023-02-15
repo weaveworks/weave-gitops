@@ -43,6 +43,9 @@ export const getParentNavValue = (
     case V2Routes.Provider:
       return V2Routes.Notifications;
 
+    case V2Routes.UserInfo:
+      return V2Routes.UserInfo;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -80,6 +83,9 @@ export const getParentNavRouteValue = (
     case V2Routes.Provider:
       return V2Routes.Notifications;
 
+    case V2Routes.UserInfo:
+      return V2Routes.UserInfo;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -94,6 +100,7 @@ const pageTitles = {
   [V2Routes.ImagePolicies]: "Image Policies",
   [V2Routes.ImageUpdates]: "Image Updates",
   [V2Routes.ImageRepositories]: "Image Repositories",
+  [V2Routes.UserInfo]: "User Info",
 };
 
 export const getPageLabel = (route: V2Routes): string => {

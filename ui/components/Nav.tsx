@@ -116,7 +116,11 @@ function Nav({ className, navItems }: Props) {
       <Tabs
         centered={false}
         orientation="vertical"
-        value={value === V2Routes.Notifications ? false : value}
+        value={
+          value === V2Routes.Notifications || value === V2Routes.UserInfo
+            ? false
+            : value
+        }
       >
         {_.map(navItems, (n) => {
           const { label, link } = n;

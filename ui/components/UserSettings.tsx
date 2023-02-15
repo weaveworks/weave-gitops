@@ -75,7 +75,9 @@ function UserSettings({ className }: { className?: string }) {
         onClick={handleClose}
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
-        <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem onClick={() => history.push(V2Routes.UserInfo)}>
+          Hello, {userInfo?.email}
+        </MenuItem>
         <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
           Notifications
         </MenuItem>

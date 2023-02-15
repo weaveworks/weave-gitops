@@ -20,6 +20,7 @@ export type RequestError = Error & {
 };
 
 export enum V2Routes {
+  UserInfo = "/user_info",
   Automations = "/applications",
   Sources = "/sources",
   FluxRuntime = "/flux_runtime",
