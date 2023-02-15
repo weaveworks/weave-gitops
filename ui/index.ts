@@ -81,6 +81,8 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import CopyToClipboard from "./components/CopyToCliboard";
+import UserGroupsTable from "./components/UserGroupsTable";
 import Input, { InputProps } from "./components/Input";
 import PageStatus from "./components/PageStatus";
 import SyncButton from "./components/SyncButton";
@@ -191,4 +193,6 @@ export {
   UserSettings,
   V2Routes,
   YamlView,
+  CopyToClipboard,
+  UserGroupsTable,
 };
