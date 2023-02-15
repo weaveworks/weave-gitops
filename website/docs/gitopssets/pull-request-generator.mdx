@@ -29,27 +29,27 @@ spec:
         apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: GitRepository
         metadata:
-          name: "pr-{{ .element.number }}-gitrepository"
+          name: "pr-{{ .Element.number }}-gitrepository"
           namespace: default
         spec:
           interval: 5m0s
-          url: "{{ .element.clone_url }}"
+          url: "{{ .Element.clone_url }}"
           ref:
-            branch: "{{ .element.branch }}"
+            branch: "{{ .Element.branch }}"
     - content:
         apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         kind: Kustomization
         metadata:
-          name: "pr-{{ .element.number }}-demo"
+          name: "pr-{{ .Element.number }}-demo"
           namespace: default
         spec:
           interval: 5m
           path: "./examples/kustomize/environments/dev"
           prune: true
-          targetNamespace: "{{ .element.branch }}-ns"
+          targetNamespace: "{{ .Element.branch }}-ns"
           sourceRef:
             kind: GitRepository
-            name: "pr-{{ .element.number }}-gitrepository"
+            name: "pr-{{ .Element.number }}-gitrepository"
 ```
 This example will poll "github.com/bigkevmcd/go-demo" for open pull requests and trigger the deployment of these by creating a Flux `GitRepository` and `Kustomization` to deploy.
 
