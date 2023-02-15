@@ -105,6 +105,7 @@ type UserInfo struct {
 // - tokenDuration - defaults to 1 hour.
 // - claimUsername - defaults to "email"
 // - claimGroups - defaults to "groups"
+// - customScopes - defaults to "openid","offline_access","email","groups"
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
 		IssuerURL:    string(secret.Data["issuerURL"]),
