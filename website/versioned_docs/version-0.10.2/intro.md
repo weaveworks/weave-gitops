@@ -32,7 +32,7 @@ To learn more about GitOps, check out these resources:
 
 ## Getting Started
 
-See [Installation](/docs/installation) and [Getting Started](/docs/getting-started)
+See [Installation](../installation) and [Getting Started](../getting-started)
 
 ## Features
 
