@@ -48,6 +48,17 @@ exports[`YamlView snapshots renders 1`] = `
   padding: 0;
 }
 
+.c3.MuiButton-outlinedPrimary {
+  border: 1px solid #f5f5f5;
+  padding: 4px;
+}
+
+.c3.MuiButton-root {
+  height: initial;
+  width: initial;
+  min-width: 0px;
+}
+
 .c1 {
   background: #f5f5f5;
   padding: 12px;
@@ -56,17 +67,6 @@ exports[`YamlView snapshots renders 1`] = `
   font-family: monospace;
   color: #009CCC;
   text-overflow: ellipsis;
-}
-
-.c3.MuiButton-outlinedPrimary {
-  border: 1px solid #f5f5f5;
-  padding: 8px;
-}
-
-.c3.MuiButton-root {
-  height: initial;
-  width: initial;
-  min-width: 0px;
 }
 
 .c0 {
@@ -117,7 +117,7 @@ exports[`YamlView snapshots renders 1`] = `
   >
     kubectl get kustomization podinfo -n flux-system -o yaml 
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 yaml-copy MuiButton-outlinedPrimary MuiButton-disableElevation"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}

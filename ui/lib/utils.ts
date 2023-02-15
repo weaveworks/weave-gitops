@@ -162,9 +162,9 @@ export function getAppVersion(
 ): AppVersion {
   const shouldDisplayApiVersion =
     !isLoading &&
-    (versionData.semver || "").replace(/^v+/, "") !== defaultVersion &&
-    versionData.branch &&
-    versionData.commit;
+    (versionData?.semver || "").replace(/^v+/, "") !== defaultVersion &&
+    versionData?.branch &&
+    versionData?.commit;
 
   const versionText = shouldDisplayApiVersion
     ? `${versionData.branch}-${versionData.commit}`
