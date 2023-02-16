@@ -71,6 +71,9 @@ import {
   Kustomization,
   OCIRepository,
   Provider,
+  ImagePolicy,
+  ImageRepository,
+  ImageUpdateAutomation,
 } from "./lib/objects";
 import { muiTheme, theme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
@@ -94,6 +97,8 @@ import DirectedGraph from "./components/DirectedGraph";
 import FluxObjectsTable from "./components/FluxObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
+import { useCheckCRDInstalled } from "./hooks/imageautomation";
+import { showInterval } from "./lib/time";
 
 export {
   AppContext,
@@ -141,6 +146,9 @@ export {
   Input,
   InputProps,
   isAllowedLink,
+  ImagePolicy,
+  ImageRepository,
+  ImageUpdateAutomation,
   Kind,
   KubeStatusIndicator,
   KustomizationDetail,
@@ -195,4 +203,6 @@ export {
   YamlView,
   CopyToClipboard,
   UserGroupsTable,
+  useCheckCRDInstalled,
+  showInterval
 };
