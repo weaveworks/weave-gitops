@@ -89,7 +89,7 @@ clean-dev-cluster:
 # In addition to the main file depend on all go files
 bin/%: cmd/%/main.go $(shell find . -name "*.go")
 ifdef DEBUG
-		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $@ $(GO_BUILD_OPTS) $<
+		CGO_ENABLED=1 go build -race -ldflags "$(LDFLAGS)" -o $@ $(GO_BUILD_OPTS) $<
 else
 		CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 endif

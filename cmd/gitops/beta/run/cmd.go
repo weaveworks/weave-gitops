@@ -364,7 +364,7 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 		wantToInstallTheDashboard := false
 		if dashboardHashedPassword != "" {
 			wantToInstallTheDashboard = true
-		} else if !flags.SkipDashboardInstall && dashboardHashedPassword == "" {
+		} else if !flags.SkipDashboardInstall {
 			prompt := promptui.Prompt{
 				Label:     "Would you like to install the GitOps Dashboard",
 				IsConfirm: true,
@@ -583,6 +583,8 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 	return err
 }
 
+type CleanupFunc func(ctx context.Context) error
+
 func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// There are two loggers in this function.
 	// 1. log0 is the os.Stdout logger
@@ -598,19 +600,6 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
-	if err != nil {
-		return err
-	}
-
-	serverVersion, err := discoveryClient.ServerVersion()
-	if err != nil {
-		return err
-	}
-
-	// We need the server version to pass to the validation package
-	kubernetesVersion := trimK8sVersion(serverVersion.GitVersion)
 
 	contextName := kubeClient.ClusterName
 	validAllowedContext := false
@@ -648,16 +637,126 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
+	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cleanupCancel()
+	cleanupFns, fluxJustInstalled, cancelDevBucketPortForwarding, cancelDashboardPortForwarding, dashboardManifests, watcher, ticker, err := startReconciliation(ctx, log0, cfg, kubeClient, *paths)
+
+	if err != nil {
+		cancel()
+		for _, fn := range cleanupFns {
+			if err := fn(cleanupCtx); err != nil {
+				log0.Failuref("failed cleaning up: %s", err)
+			}
+		}
+		return err
+	}
+
+	// wait for interrupt or ctrl+C
+	log0.Waitingf("Press Ctrl+C to stop GitOps Run ...")
+
+	<-ctx.Done()
+
+	log0.Actionf("Exiting...")
+
+	for _, fn := range cleanupFns {
+		if err := fn(cleanupCtx); err != nil {
+			log0.Failuref("failed cleaning up: %s", err)
+		}
+	}
+
+	// create new context that isn't cancelled, for bootstrapping
+	ctx = context.Background()
+
+	if err := watcher.Close(); err != nil {
+		log0.Warningf("Error closing watcher: %v", err.Error())
+	}
+
+	// print a blank line to make it easier to read the logs
+	fmt.Println()
+	cancelDevBucketPortForwarding()
+
+	if cancelDashboardPortForwarding != nil {
+		cancelDashboardPortForwarding()
+	}
+
+	ticker.Stop()
+
+	// this is the default behaviour
+	if !flags.SkipResourceCleanup {
+		if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
+			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else if !yes && err == nil {
+			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+		} else if err != nil {
+			log0.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
+			return err
+		}
+
+		// uninstall dev-bucket server
+		if err := watch.UninstallDevBucketServer(ctx, log0, kubeClient); err != nil {
+			return err
+		}
+	}
+
+	// run bootstrap wizard only if Flux was not installed
+	if fluxJustInstalled && !flags.NoBootstrap {
+		prompt := promptui.Prompt{
+			Label:     "Would you like to bootstrap your cluster into GitOps mode",
+			IsConfirm: true,
+			Default:   "Y",
+		}
+
+		_, err = prompt.Run()
+		if err != nil {
+			return nil
+		}
+
+		for {
+			err := runBootstrap(ctx, log0, paths, dashboardManifests)
+			if err == nil {
+				break
+			}
+
+			log0.Warningf("Error bootstrapping: %v", err)
+
+			prompt := promptui.Prompt{
+				Label:     "Couldn't bootstrap - would you like to try again",
+				IsConfirm: true,
+				Default:   "Y",
+			}
+
+			_, err = prompt.Run()
+			if err != nil {
+				return nil
+			}
+		}
+	}
+
+	return nil
+}
+
+func startReconciliation(ctx context.Context, log0 logger.Logger, kubeCfg *rest.Config, kubeClient *kube.KubeHTTP, paths run.Paths) (
+	cleanupFns []CleanupFunc,
+	fluxJustInstalled bool,
+	cancelDevBucketPortForwarding func(),
+	cancelDashboardPortForwarding func(),
+	dashboardManifests []byte,
+	watcher *fsnotify.Watcher,
+	ticker *time.Ticker,
+	err error,
+) {
 	var (
-		fluxJustInstalled bool
-		fluxVersionInfo   *install.FluxVersionInfo
+		fluxVersionInfo *install.FluxVersionInfo
 	)
 
 	fluxVersionInfo, fluxJustInstalled, err = fluxStep(log0, kubeClient)
 
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
 	sessionName := flags.HiddenSessionName
@@ -676,8 +775,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// Install dev-bucket server before everything, so that we can also forward logs to it
 	unusedPorts, err := run.GetUnusedPorts(2)
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
 	devBucketHTTPPort := unusedPorts[0]
@@ -686,75 +784,78 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// generate access key and secret key for Minio auth
 	accessKey, err := s3.GenerateAccessKey(s3.DefaultRandIntFunc)
 	if err != nil {
-		cancel()
-		return fmt.Errorf("failed generating access key: %w", err)
+		err = fmt.Errorf("failed generating access key: %w", err)
+		return
 	}
 
 	secretKey, err := s3.GenerateSecretKey(s3.DefaultRandIntFunc)
 	if err != nil {
-		cancel()
-		return fmt.Errorf("failed generating secret key: %w", err)
+		err = fmt.Errorf("failed generating secret key: %w", err)
+		return
 	}
 
-	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, cfg, devBucketHTTPPort, devBucketHTTPSPort, accessKey, secretKey)
+	cleanupFns = append(cleanupFns, func(ctx context.Context) error {
+		if err := watch.UninstallDevBucketServer(ctx, log0, kubeClient); err != nil {
+			return fmt.Errorf("failed to uninstall in-cluster bucket server: %w", err)
+		}
+		return nil
+	})
+	cancelDevBucketPortForwarding, cert, err := watch.InstallDevBucketServer(ctx, log0, kubeClient, kubeCfg, devBucketHTTPPort, devBucketHTTPSPort, accessKey, secretKey)
 	if err != nil {
-		cancel()
-		return fmt.Errorf("unable to install S3 bucket server: %w", err)
+		err = fmt.Errorf("unable to install S3 bucket server: %w", err)
+		return
 	}
+
+	cleanupFns = append(cleanupFns, func(ctx context.Context) error {
+		log0.Actionf("cancellling port-forward to in-cluster bucket server")
+		cancelDevBucketPortForwarding()
+		return nil
+	})
 
 	minioClient, err := s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
-	if err := logger.CreateBucket(minioClient, logger.SessionLogBucketName); err != nil {
-		cancel()
-		return err
+	if err = logger.CreateBucket(minioClient, logger.SessionLogBucketName); err != nil {
+		return
 	}
 
-	if err := logger.CreateBucket(minioClient, logger.PodLogBucketName); err != nil {
-		cancel()
-		return err
+	if err = logger.CreateBucket(minioClient, logger.PodLogBucketName); err != nil {
+		return
 	}
 
 	log, err := logger.NewS3LogWriter(minioClient, sessionName, log0)
 	if err != nil {
-		cancel()
-		return fmt.Errorf("failed creating S3 log writer: %w", err)
+		err = fmt.Errorf("failed creating S3 log writer: %w", err)
+		return
 	}
 
 	// ====================== Fluent-Bit =====================
-	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
-		cancel()
-		return err
+	if err = fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+		return
 	}
 
 	// ====================== Dashboard ======================
 	var (
-		dashboardType      install.DashboardType
-		dashboardManifests []byte
+		dashboardType install.DashboardType
 	)
 
 	dashboardType, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
-	var cancelDashboardPortForwarding func() = nil
-
 	if dashboardType == install.DashboardTypeOSS {
-		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
+		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, kubeCfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 		if err != nil {
-			cancel()
-			return err
+			return
 		}
 	}
 
-	if err := watch.InitializeTargetDir(paths.GetAbsoluteTargetDir()); err != nil {
-		cancel()
-		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
+	if err = watch.InitializeTargetDir(paths.GetAbsoluteTargetDir()); err != nil {
+		err = fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
+		return
 	}
 
 	setupParams := watch.SetupRunObjectParams{
@@ -769,41 +870,36 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		DecryptionKeyFile: flags.DecryptionKeyFile,
 	}
 
-	if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
-		if err := watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
-			cancel()
-			return err
+	var yes bool
+	if yes, err = isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
+		if err = watch.SetupBucketSourceAndHelm(ctx, log, kubeClient, setupParams); err != nil {
+			return
 		}
 	} else if !yes && err == nil {
-		if err := watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
-			cancel()
-			return err
+		if err = watch.SetupBucketSourceAndKS(ctx, log, kubeClient, setupParams); err != nil {
+			return
 		}
 	} else if err != nil {
 		log.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
-		cancel()
-		return err
+		return
 	}
 
 	minioClient, err = s3.NewMinioClient(fmt.Sprintf("localhost:%d", devBucketHTTPSPort), accessKey, secretKey, cert)
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
 	// watch for file changes in dir gitRepoRoot
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err = fsnotify.NewWatcher()
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
 	ignorer := watch.CreateIgnorer(paths.RootDir)
 
 	err = filepath.Walk(paths.RootDir, watch.WatchDirsForFileWalker(watcher, ignorer))
 	if err != nil {
-		cancel()
-		return err
+		return
 	}
 
 	// cancel function to stop forwarding port
@@ -817,6 +913,11 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	watcherCtx, watcherCancel := context.WithCancel(ctx)
 	lastReconcile := time.Now()
 	stopUploadCh := make(chan struct{})
+	cleanupFns = append(cleanupFns, func(ctx context.Context) error {
+		log0.Actionf("stopping upload channel")
+		close(stopUploadCh)
+		return nil
+	})
 
 	go func() {
 		for {
@@ -856,7 +957,20 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	}()
 
 	// event aggregation loop
-	ticker := time.NewTicker(680 * time.Millisecond)
+	ticker = time.NewTicker(680 * time.Millisecond)
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(kubeCfg)
+	if err != nil {
+		return
+	}
+
+	serverVersion, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return
+	}
+
+	// We need the server version to pass to the validation package
+	kubernetesVersion := trimK8sVersion(serverVersion.GitVersion)
 
 	go func() {
 		for { // nolint:gosimple
@@ -1004,7 +1118,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 							log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
 
 							// this function _BLOCKS_ until the stopChannel (waitPwd) is closed.
-							if err := watch.ForwardPort(log.L(), pod, cfg, specMap, waitFwd, readyChannel); err != nil {
+							if err := watch.ForwardPort(log.L(), pod, kubeCfg, specMap, waitFwd, readyChannel); err != nil {
 								log.Failuref("Error forwarding port: %v", err)
 							}
 
@@ -1016,86 +1130,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	// wait for interrupt or ctrl+C
-	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
-
-	<-ctx.Done()
-
-	close(stopUploadCh)
-	cancel()
-	// create new context that isn't cancelled, for bootstrapping
-	ctx = context.Background()
-
-	if err := watcher.Close(); err != nil {
-		log.Warningf("Error closing watcher: %v", err.Error())
-	}
-
-	// print a blank line to make it easier to read the logs
-	fmt.Println()
-	cancelDevBucketPortForwarding()
-
-	if cancelDashboardPortForwarding != nil {
-		cancelDashboardPortForwarding()
-	}
-
-	ticker.Stop()
-
-	// this is the default behaviour
-	if !flags.SkipResourceCleanup {
-		if yes, err := isHelm(paths.GetAbsoluteTargetDir()); yes && err == nil {
-			if err := watch.CleanupBucketSourceAndHelm(ctx, log0, kubeClient, flags.Namespace); err != nil {
-				return err
-			}
-		} else if !yes && err == nil {
-			if err := watch.CleanupBucketSourceAndKS(ctx, log0, kubeClient, flags.Namespace); err != nil {
-				return err
-			}
-		} else if err != nil {
-			log0.Actionf("Unable to determine if target is a Helm or Kustomization directory: %v", err)
-			return err
-		}
-
-		// uninstall dev-bucket server
-		if err := watch.UninstallDevBucketServer(ctx, log0, kubeClient); err != nil {
-			return err
-		}
-	}
-
-	// run bootstrap wizard only if Flux was not installed
-	if fluxJustInstalled && !flags.NoBootstrap {
-		prompt := promptui.Prompt{
-			Label:     "Would you like to bootstrap your cluster into GitOps mode",
-			IsConfirm: true,
-			Default:   "Y",
-		}
-
-		_, err = prompt.Run()
-		if err != nil {
-			return nil
-		}
-
-		for {
-			err := runBootstrap(ctx, log0, paths, dashboardManifests)
-			if err == nil {
-				break
-			}
-
-			log0.Warningf("Error bootstrapping: %v", err)
-
-			prompt := promptui.Prompt{
-				Label:     "Couldn't bootstrap - would you like to try again",
-				IsConfirm: true,
-				Default:   "Y",
-			}
-
-			_, err = prompt.Run()
-			if err != nil {
-				return nil
-			}
-		}
-	}
-
-	return nil
+	return
 }
 
 func isHelm(dir string) (bool, error) {
