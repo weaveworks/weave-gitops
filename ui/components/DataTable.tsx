@@ -10,7 +10,7 @@ import {
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import {  useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import Button, { IconButton } from "./Button";
@@ -337,7 +337,7 @@ function UnstyledDataTable({
   emptyMessagePlaceholder,
 }: Props) {
   //URL info
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
   const search = location.search;
   const state = parseFilterStateFromURL(search);
@@ -351,8 +351,7 @@ function UnstyledDataTable({
 
   const handleFilterChange = (sel: FilterSelections) => {
     const filterQuery = filterSelectionsToQueryString(sel);
-    // history.replace();
-    navigate({ ...location, search: filterQuery }, { replace: true })
+    navigate({ ...location, search: filterQuery }, { replace: true });
   };
 
   let filtered = filterRows(rows, filterState.filters);
@@ -385,7 +384,7 @@ function UnstyledDataTable({
     console.log(textFilters.join("_"));
     if (textFilters.length) query["search"] = textFilters.join("_") + "_";
     else if (query["search"]) query = _.omit(query, "search");
-    history.replace({ ...location, search: qs.stringify(query) });
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true });
 
     doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
@@ -396,7 +395,7 @@ function UnstyledDataTable({
     const query = qs.parse(search);
     if (!query["search"]) query["search"] = `${val}_`;
     if (!query["search"].includes(val)) query["search"] += `${val}_`;
-    history.replace({ ...location, search: qs.stringify(query) });
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true });
     setFilterState({
       ...filterState,
       textFilters: _.uniq([...filterState.textFilters, val]),
@@ -413,7 +412,7 @@ function UnstyledDataTable({
     const url = qs.parse(location.search);
     //keeps things like clusterName and namespace for details pages
     const cleared = _.omit(url, ["filters", "search"]);
-    history.replace({ ...location, search: qs.stringify(cleared) });
+    navigate({ ...location, search: qs.stringify(cleared) }, { replace: true });
   };
 
   const handleFilterSelect = (filters, formState) => {
