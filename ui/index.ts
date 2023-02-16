@@ -39,6 +39,7 @@ import YamlView, { DialogYamlView } from "./components/YamlView";
 import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
+  CoreClientContext,
   UnAuthorizedInterceptor,
 } from "./contexts/CoreClientContext";
 import {
@@ -114,6 +115,7 @@ export {
   Button,
   coreClient,
   CoreClientContextProvider,
+  CoreClientContext,
   CustomActions,
   DataTable,
   DagGraph,
