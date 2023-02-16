@@ -204,5 +204,5 @@ export {
   CopyToClipboard,
   UserGroupsTable,
   useCheckCRDInstalled,
-  showInterval
+  showInterval,
 };
