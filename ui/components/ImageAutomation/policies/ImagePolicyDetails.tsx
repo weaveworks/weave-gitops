@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImagePolicy } from "../../../lib/objects";
-import { V2Routes } from "../../../lib/types";
 import Metadata from "../../Metadata";
 import Page from "../../Page";
 import ImageAutomationDetails from "../ImageAutomationDetails";
@@ -30,7 +29,6 @@ function ImagePolicyDetails({
       refetchInterval: 5000,
     }
   );
-  const rootPath = V2Routes.ImagePolicyDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
       {!!data && (
@@ -43,7 +41,6 @@ function ImagePolicyDetails({
             ["Image Policy", data?.imagePolicy?.type || ""],
             ["Order/Range", data?.imagePolicy?.value],
           ]}
-          rootPath={rootPath}
         >
           <Metadata metadata={data?.metadata} labels={data?.labels} />
         </ImageAutomationDetails>

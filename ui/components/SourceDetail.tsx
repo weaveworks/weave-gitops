@@ -1,6 +1,5 @@
 import _ from "lodash";
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
@@ -34,7 +33,6 @@ type Props = {
 function SourceDetail({ className, source, info, type, customActions }: Props) {
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
-  const { path } = useRouteMatch();
 
   const suspend = useToggleSuspend(
     {
@@ -112,15 +110,15 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         <CustomActions actions={customActions} />
       </Flex>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
-        <RouterTab name="Details" path={`${path}/details`}>
+      <SubRouterTabs>
+        <RouterTab name="Details" path="details">
           <>
             <InfoList items={info} />
             <Metadata metadata={source.metadata} labels={source.labels} />
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
+        <RouterTab name="Events" path="events">
           <EventsTable
             namespace={source.namespace}
             involvedObject={{
@@ -131,7 +129,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
             }}
           />
         </RouterTab>
-        <RouterTab name="yaml" path={`${path}/yaml`}>
+        <RouterTab name="yaml" path="yaml">
           <YamlView
             yaml={source.yaml}
             object={{

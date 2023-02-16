@@ -12,7 +12,6 @@ import YamlView from "../YamlView";
 interface Props {
   data: any;
   kind: Kind;
-  rootPath: string;
   infoFields: InfoField[];
   children?: any;
 }
@@ -20,7 +19,6 @@ interface Props {
 const ImageAutomationDetails = ({
   data,
   kind,
-  rootPath,
   infoFields,
   children,
 }: Props) => {
@@ -42,15 +40,15 @@ const ImageAutomationDetails = ({
         />
         <Spacer margin="xs" /> */}
 
-      <SubRouterTabs rootPath={`${rootPath}/details`}>
-        <RouterTab name="Details" path={`${rootPath}/details`}>
+      <SubRouterTabs>
+        <RouterTab name="Details" path="details">
           <>
             <InfoList items={infoFields} />
             <Spacer margin="xs" />
             {children}
           </>
         </RouterTab>
-        <RouterTab name="Events" path={`${rootPath}/events`}>
+        <RouterTab name="Events" path="events">
           <EventsTable
             namespace={namespace}
             involvedObject={{
@@ -61,7 +59,7 @@ const ImageAutomationDetails = ({
             }}
           />
         </RouterTab>
-        <RouterTab name="yaml" path={`${rootPath}/yaml`}>
+        <RouterTab name="yaml" path="yaml">
           <YamlView
             yaml={data.yaml}
             object={{

@@ -1,7 +1,5 @@
 import { Dialog } from "@material-ui/core";
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
-import { useLocation, Route, Routes } from "react-router-dom-v5-compat";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
@@ -70,7 +68,7 @@ function AutomationDetail({
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
-      path: `details`,
+      path: "details",
       component: () => {
         return (
           <>

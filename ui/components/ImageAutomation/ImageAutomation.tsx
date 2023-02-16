@@ -1,5 +1,4 @@
 import React from "react";
-import { useRouteMatch } from "react-router-dom";
 import ImageRepositoriesTable from "../../components/ImageAutomation/repositories/ImageRepositoriesTable";
 import ImageAutomationUpdatesTable from "../../components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import { routeTab } from "../../components/KustomizationDetail";
@@ -8,12 +7,10 @@ import Flex from "../Flex";
 import ImagePoliciesTable from "./policies/ImagePoliciesTable";
 
 const ImageAutomation = () => {
-  const { path } = useRouteMatch();
-
   const tabs: Array<routeTab> = [
     {
       name: "Image Repositories",
-      path: `${path}/repositories`,
+      path: "repositories",
       component: () => {
         return <ImageRepositoriesTable />;
       },
@@ -21,7 +18,7 @@ const ImageAutomation = () => {
     },
     {
       name: "Image Policies",
-      path: `${path}/policies`,
+      path: "policies",
       component: () => {
         return <ImagePoliciesTable />;
       },
@@ -29,7 +26,7 @@ const ImageAutomation = () => {
     },
     {
       name: "Image Update Automations",
-      path: `${path}/updates`,
+      path: "updates",
       component: () => {
         return <ImageAutomationUpdatesTable />;
       },
@@ -38,7 +35,7 @@ const ImageAutomation = () => {
   ];
   return (
     <Flex wide tall column>
-      <SubRouterTabs rootPath={tabs[0].path} clearQuery>
+      <SubRouterTabs clearQuery>
         {tabs.map(
           (subRoute, index) =>
             subRoute.visible && (

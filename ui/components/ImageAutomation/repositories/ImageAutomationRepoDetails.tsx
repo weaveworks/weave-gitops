@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageRepository } from "../../../lib/objects";
-import { V2Routes } from "../../../lib/types";
 import Button from "../../Button";
 import Interval from "../../Interval";
 import Link from "../../Link";
@@ -32,7 +31,6 @@ function ImageAutomationRepoDetails({
       refetchInterval: 5000,
     }
   );
-  const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
       {!!data && (
@@ -51,7 +49,6 @@ function ImageAutomationRepoDetails({
             ["Interval", <Interval interval={data.interval} />],
             ["Tag Count", data.tagCount],
           ]}
-          rootPath={rootPath}
         >
           <Button>
             <Link

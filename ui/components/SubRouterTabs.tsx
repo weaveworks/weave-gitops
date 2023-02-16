@@ -61,7 +61,8 @@ function findChildren(childrenProp) {
 
 function routesToIndex(routes: PathConfig[], pathname: string): number {
   // FIXME: I can't still find a better way to do this in react-router
-  const index = _.findIndex(routes, (r) => pathname.includes(r.path));
+  // Maybe after we finish the migration we can look at useMatches(?)
+  const index = _.findIndex(routes, (r) => pathname.endsWith(r.path));
   return index === -1 ? 0 : index;
 }
 
@@ -80,6 +81,7 @@ function TabWrapper({
 }) {
   const { name, path } = route;
   const query = qs.parse(window.location.search);
+  // this calculates a link relative to the current path
   const to = useHref(path);
   return (
     <Tab

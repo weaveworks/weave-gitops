@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageUpdateAutomation } from "../../../lib/objects";
-import { V2Routes } from "../../../lib/types";
 import { InfoField } from "../../InfoList";
 import Metadata from "../../Metadata";
 import Page from "../../Page";
@@ -59,7 +58,6 @@ function ImageAutomationUpdatesDetails({
     }
   );
 
-  const rootPath = V2Routes.ImageAutomationUpdatesDetails;
   return (
     <Page error={error} loading={isLoading} className={className}>
       {data && (
@@ -67,7 +65,6 @@ function ImageAutomationUpdatesDetails({
           data={data}
           kind={Kind.ImageUpdateAutomation}
           infoFields={getInfoList(data, data.clusterName)}
-          rootPath={rootPath}
         >
           <Metadata metadata={data.metadata} labels={data.labels} />
         </ImageAutomationDetails>
