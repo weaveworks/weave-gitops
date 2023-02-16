@@ -1,5 +1,7 @@
 import _ from "lodash";
 import qs from "query-string";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Kind } from "./api/core/types.pb";
 import { NoNamespace, PageRoute, V2Routes } from "./types";
 
@@ -148,4 +150,12 @@ export function objectTypeToRoute(t: Kind): V2Routes {
   }
 
   return "" as V2Routes;
+}
+
+export function Redirect({ to }) {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    navigate(to);
+  });
+  return null;
 }

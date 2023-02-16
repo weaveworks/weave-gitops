@@ -1,8 +1,8 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect } from "react-router-dom";
-import { useNavigate } from "react-router-dom-v5-compat";
+import { useNavigate } from "react-router-dom";
 import { useOnLocationChange } from "../hooks/navigation";
+import { Redirect } from "../lib/nav";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -112,11 +112,11 @@ export default function AuthContextProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const locationChange = useOnLocationChange(getUserInfo)
+  const locationChange = useOnLocationChange(getUserInfo);
 
   React.useEffect(() => {
     getUserInfo();
-    return locationChange
+    return locationChange;
   }, [getUserInfo, location]);
 
   return (

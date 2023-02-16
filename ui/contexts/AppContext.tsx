@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom-v5-compat";
+import { useNavigate } from "react-router-dom";
 import { formatURL } from "../lib/nav";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
 import { PageRoute, V2Routes } from "../lib/types";
@@ -40,7 +40,7 @@ export interface AppProps {
 }
 
 export default function AppContextProvider({ ...props }: AppProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [appState, setAppState] = React.useState({
     error: null,
     nodeYaml: null,
@@ -84,7 +84,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
     navigate: {
       internal: (page: PageRoute, query?: any) => {
         const u = formatURL(page, query);
-        navigate(u)
+        navigate(u);
       },
       external: (url) => {
         if (process.env.NODE_ENV === "test") {

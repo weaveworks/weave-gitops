@@ -10,8 +10,7 @@ import {
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom-v5-compat";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Button, { IconButton } from "./Button";
 import CheckboxActions from "./CheckboxActions";

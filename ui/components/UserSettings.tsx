@@ -6,7 +6,7 @@ import {
   Tooltip,
 } from "@material-ui/core";
 import * as React from "react";
-import { useNavigate } from "react-router-dom-v5-compat";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";

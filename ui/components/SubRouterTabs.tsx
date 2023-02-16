@@ -2,27 +2,13 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import {
-  useLocation,
-  useHref,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom-v5-compat";
+import { useLocation, useHref, Route, Routes } from "react-router-dom";
 import styled from "styled-components";
-import { formatURL } from "../lib/nav";
+import { formatURL, Redirect } from "../lib/nav";
 import Flex from "./Flex";
 import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
-
-function Redirect({ to }) {
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    navigate(to);
-  });
-  return null;
-}
 
 type Props = {
   className?: string;

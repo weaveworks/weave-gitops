@@ -1,9 +1,8 @@
 import { MuiThemeProvider } from "@material-ui/core";
-import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Router } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, { AppProps } from "../contexts/AppContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
@@ -67,14 +66,12 @@ export function withContext(
   url: string,
   { api, ...appProps }: TestContextProps
 ) {
-  const history = createMemoryHistory();
-  history.push(url);
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   const isElement = React.isValidElement(TestComponent);
   return (
-    <Router history={history}>
+    <MemoryRouter initialEntries={[url]}>
       <AppContextProvider renderFooter {...appProps}>
         <QueryClientProvider client={queryClient}>
           <CoreClientContext.Provider value={{ api, featureFlags: {} }}>
@@ -82,6 +79,6 @@ export function withContext(
           </CoreClientContext.Provider>
         </QueryClientProvider>
       </AppContextProvider>
-    </Router>
+    </MemoryRouter>
   );
 }

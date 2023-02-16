@@ -3,12 +3,11 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
+  Routes,
+  Route,
   BrowserRouter as Router,
-  Redirect,
-  // Route,
-  Switch,
+  useLocation,
 } from "react-router-dom";
-import { CompatRouter, CompatRoute } from "react-router-dom-v5-compat";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
@@ -23,6 +22,7 @@ import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
+import { Redirect } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
@@ -43,78 +43,77 @@ import Sources from "./pages/v2/Sources";
 
 const queryClient = new QueryClient();
 
-function withSearchParams(Cmp) {
-  return ({ location: { search }, ...rest }) => {
-    const params = qs.parse(search);
-
-    return <Cmp {...rest} {...params} />;
-  };
+function withSearchParams() {
+  const location = useLocation();
+  const params = qs.parse(location.search);
+  return params;
 }
+
 const App = () => (
   <Layout>
     <PendoContainer />
     <ErrorBoundary>
-      <Switch>
-        <CompatRoute path={V2Routes.Automations} component={Automations} />
-        <CompatRoute
+      <Routes>
+        <Route path={V2Routes.Automations} element={<Automations />} />
+        <Route
           path={V2Routes.Kustomization}
-          component={withSearchParams(KustomizationPage)}
+          element={<KustomizationPage {...withSearchParams()} />}
         />
-        <CompatRoute path={V2Routes.Sources} component={Sources} />
-        <CompatRoute
+        <Route path={V2Routes.Sources} element={<Sources />} />
+        <Route
           path={V2Routes.ImageAutomation}
-          component={ImageAutomationPage}
+          element={<ImageAutomationPage />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
+          element={<ImageAutomationUpdatesDetails {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
+          element={<ImageAutomationRepoDetails {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
+          element={<ImagePolicyDetails {...withSearchParams()} />}
         />
-        <CompatRoute path={V2Routes.FluxRuntime} component={FluxRuntime} />
-        <CompatRoute
+        <Route path={V2Routes.FluxRuntime} element={<FluxRuntime />} />
+        <Route
           path={V2Routes.GitRepo}
-          component={withSearchParams(GitRepositoryDetail)}
+          element={<GitRepositoryDetail {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.HelmRepo}
-          component={withSearchParams(HelmRepositoryDetail)}
+          element={<HelmRepositoryDetail {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.Bucket}
-          component={withSearchParams(BucketDetail)}
+          element={<BucketDetail {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.HelmRelease}
-          component={withSearchParams(HelmReleasePage)}
+          element={<HelmReleasePage {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.HelmChart}
-          component={withSearchParams(HelmChartDetail)}
+          element={<HelmChartDetail {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.OCIRepository}
-          component={withSearchParams(OCIRepositoryPage)}
+          element={<OCIRepositoryPage {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.Notifications}
-          component={withSearchParams(Notifications)}
+          element={<Notifications {...withSearchParams()} />}
         />
-        <CompatRoute
+        <Route
           path={V2Routes.Provider}
-          component={withSearchParams(ProviderPage)}
+          element={<ProviderPage {...withSearchParams()} />}
         />
 
-        <Redirect exact from="/" to={V2Routes.Automations} />
+        {/* <Redirect to={V2Routes.Automations} /> */}
 
-        <CompatRoute exact path="*" component={Error} />
-      </Switch>
+        <Route path="*" element={<Error />} />
+      </Routes>
     </ErrorBoundary>
     <ToastContainer
       position="top-center"
@@ -124,6 +123,14 @@ const App = () => (
   </Layout>
 );
 
+function AuthCheckApp() {
+  return (
+    <AuthCheck>
+      <App />
+    </AuthCheck>
+  );
+}
+
 export default function AppContainer() {
   return (
     <MuiThemeProvider theme={muiTheme}>
@@ -132,27 +139,18 @@ export default function AppContainer() {
           <Fonts />
           <GlobalStyle />
           <Router>
-            <CompatRouter>
-              <AppContextProvider renderFooter>
-                <AuthContextProvider>
-                  <CoreClientContextProvider api={Core}>
-                    <Switch>
-                      {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                      <CompatRoute exact path="/sign_in">
-                        <SignIn />
-                      </CompatRoute>
-
-                      <CompatRoute path="" component={SignIn}>
-                        {/* Check we've got a logged in user otherwise redirect back to signin */}
-                        <AuthCheck>
-                          <App />
-                        </AuthCheck>
-                      </CompatRoute>
-                    </Switch>
-                  </CoreClientContextProvider>
-                </AuthContextProvider>
-              </AppContextProvider>
-            </CompatRouter>
+            <AppContextProvider renderFooter>
+              <AuthContextProvider>
+                <CoreClientContextProvider api={Core}>
+                  <Routes>
+                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                    <Route path="/sign_in" element={<SignIn />} />
+                    {/* path="" matches all the paths */}
+                    <Route path="*" element={<AuthCheckApp />} />
+                  </Routes>
+                </CoreClientContextProvider>
+              </AuthContextProvider>
+            </AppContextProvider>
           </Router>
         </ThemeProvider>
       </QueryClientProvider>
