@@ -20,6 +20,7 @@ export type AppContextType = {
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
   setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
+  toggleDarkMode: () => void;
   appState: AppState;
   settings: AppSettings;
   navigate: {
@@ -45,6 +46,14 @@ export default function AppContextProvider({ ...props }: AppProps) {
   const [appState, setAppState] = React.useState({
     error: null,
     nodeYaml: null,
+  });
+  const [appSettings, setAppSettings] = React.useState<AppSettings>({
+    renderFooter: props.renderFooter,
+    theme:
+      window.matchMedia("prefers-color-scheme: dark").matches ||
+      localStorage.getItem("dark") === "true"
+        ? "dark"
+        : "light",
   });
 
   const clearAsyncError = () => {
@@ -72,21 +81,22 @@ export default function AppContextProvider({ ...props }: AppProps) {
     else setAppState({ ...appState, nodeYaml: null });
   };
 
+  const toggleDarkMode = () => {
+    setAppSettings({
+      ...appSettings,
+      theme: appSettings.theme === "light" ? "dark" : "light",
+    });
+  };
+
   const value: AppContextType = {
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
     setNodeYaml,
+    toggleDarkMode,
     appState,
     notifySuccess: props.notifySuccess || notifySuccess,
-    settings: {
-      renderFooter: props.renderFooter,
-      theme:
-        window.matchMedia("prefers-color-scheme: dark").matches ||
-        localStorage.getItem("dark") === "true"
-          ? "dark"
-          : "light",
-    },
+    settings: appSettings,
     navigate: {
       internal: (page: PageRoute, query?: any) => {
         const u = formatURL(page, query);
