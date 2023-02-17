@@ -276,6 +276,12 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
   --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
 ```
 
+If the secret is already present, use the following command to update it using your default editor:
+
+```bash
+kubectl edit secret generic git-provider-credentials --namespace=flux-system
+```
+
 :::info
 
 If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret, for example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
