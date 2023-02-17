@@ -12,6 +12,7 @@ type AppState = {
 
 type AppSettings = {
   renderFooter: boolean;
+  theme: "light" | "dark";
 };
 
 export type AppContextType = {
@@ -79,6 +80,11 @@ export default function AppContextProvider({ ...props }: AppProps) {
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: {
       renderFooter: props.renderFooter,
+      theme:
+        window.matchMedia("prefers-color-scheme: dark").matches ||
+        localStorage.getItem("dark") === "true"
+          ? "dark"
+          : "light",
     },
     navigate: {
       internal: (page: PageRoute, query?: any) => {
