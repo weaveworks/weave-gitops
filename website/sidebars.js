@@ -226,6 +226,47 @@ module.exports = {
     },
     {
       type: 'category',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
+      items: [
+        'secrets/intro',
+        {
+          type: 'category',
+          label: 'Admin',
+          link: {
+            type: 'doc',
+            id: 'secrets/admin/getting-started',
+          },
+          items: [
+            'secrets/admin/getting-started',
+            'secrets/admin/secrets-management',
+            'secrets/admin/troubleshoot',
+            'secrets/admin/self-service',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Developer',
+          link: {
+            type: 'doc',
+            id: 'secrets/developer/getting-started',
+          },
+          items: [
+            'secrets/developer/getting-started',
+            'secrets/developer/using-secrets',
+            'secrets/developer/troubleshoot',
+            'secrets/developer/self-service',
+          ],
+        },
+
+      ],
+    },
+
+    {
+      type: 'category',
       label: 'Templates',
       items: [
         'gitops-templates/templates',
