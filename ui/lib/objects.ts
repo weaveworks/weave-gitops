@@ -320,6 +320,9 @@ export class ImageUpdateAutomation extends FluxObject {
   }
 }
 export class ImagePolicy extends ImageUpdateAutomation {
+  constructor(response: ResponseObject) {
+    super(response);
+  }
   get imagePolicy(): ImgPolicy {
     const { policy } = this.obj?.spec;
     const [type] = Object.keys(policy);
@@ -340,6 +343,9 @@ export class ImagePolicy extends ImageUpdateAutomation {
   }
 }
 export class ImageRepository extends ImageUpdateAutomation {
+  constructor(response: ResponseObject) {
+    super(response);
+  }
   get tagCount(): string {
     return this.obj.status?.lastScanResult?.tagCount || "";
   }
