@@ -438,7 +438,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := findAuthCookie(r)
+	c, err := r.Cookie(IDTokenCookieName)
 	if err != nil {
 		s.Log.Error(err, "Failed to get cookie from request")
 		rw.WriteHeader(http.StatusBadRequest)
@@ -464,12 +464,10 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := s.provider.UserInfo(r.Context(), oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: c.Value,
-	}))
+	info, err := s.verifier().Verify(r.Context(), c.Value)
 	if err != nil {
-		s.Log.Error(err, "failed to query userinfo")
-		JSONError(s.Log, rw, fmt.Sprintf("failed to query user info endpoint: %v", err), http.StatusUnauthorized)
+		s.Log.Error(err, "failed to parse user id token")
+		JSONError(s.Log, rw, fmt.Sprintf("failed to parse id token: %v", err), http.StatusUnauthorized)
 
 		return
 	}
@@ -646,19 +644,4 @@ func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error(err, "failed encoding error message", "message", errStr)
 	}
-}
-
-// try to retrieve the access token obtained through OIDC first and, if that doesn't exist,
-// fall back to the ID token issued by authenticating using the cluster-user-auth Secret. This way,
-// users can use both ways to log into weave-gitops.
-func findAuthCookie(req *http.Request) (*http.Cookie, error) {
-	cookieNames := []string{AccessTokenCookieName, IDTokenCookieName}
-	for _, name := range cookieNames {
-		c, err := req.Cookie(name)
-		if err == nil {
-			return c, nil
-		}
-	}
-
-	return nil, http.ErrNoCookie
 }

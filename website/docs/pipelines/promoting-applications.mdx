@@ -157,7 +157,18 @@ More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
 In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
 The contents of this Secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
-In addition to these you need to include a `token` field containing a git provider access token that is used to authenticate with the Git provider API when creating a pull request. Here is an example Secret:
+
+The pipelines controller will be creating pull requests against this repository so you will need an API token in addition to the `git` credentials. You may want to create a bot account with clone and pull request permissions for this operation.
+
+To create the secret via `kubectl`:
+
+```shell
+$ kubectl create secret generic promotion-credentials \ 
+  --namespace=pipeline-01 \
+  --from-literal="username=<bot account name>" \
+  --from-literal="password=<token value>" \
+  --from-literal="token=<token value>"
+```
 
 ```yaml
 apiVersion: v1
