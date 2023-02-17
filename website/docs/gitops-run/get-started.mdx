@@ -1,5 +1,5 @@
 ---
-title: Get Started
+title: Tutorial
 hide_title: true
 ---
 
@@ -13,24 +13,29 @@ cluster or as sandboxed sessions. The sandboxed sessions are intended
 for shared environments where multiple users are running their own
 sessions, whereas the direct mode is intended for a local cluster.
 
-## Direct mode
+In this tutorial we are going to use 'direct mode' to run GitOps on a local
+cluster.
 
-### Prerequisites
-#### Required
+
+## Prerequisites
+### Required
 - Install the GitOps CLI. See [the installation](../installation/weave-gitops.mdx#gitops-cli)
 
-#### Optional
+### Optional
 - This guide uses [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) for demonstrations, but it is not required to use GitOps Run
 - The [Flux CLI](https://fluxcd.io/flux/installation/) is the quickest way to generate resource definitions, but the files can also be created manually
 
-### Kubernetes cluster
+## Create a local Kubernetes cluster
+
 To get started with GitOps Run, you need a Kubernetes cluster. There
 are many tools to set up a local cluster for test and development
 purposes.
 
-**Note:** this tutorial assumes you have full control of your cluster - we
+:::note
+This tutorial assumes you have full control of your cluster - we
 recommend a local cluster, but you can also use a remote cluster where
 you have full `cluster-admin` privileges.
+:::
 
 <Tabs>
 <TabItem value="kind">
@@ -84,22 +89,24 @@ Then, for any `gitops beta run` command in this guide, you'll have to add the fl
 
 Before you continue, make sure `kubectl get nodes` returns a node which is `Ready`.
 
-### Git repository
+## Create a GitOps repository
 
 You need to set up a Git repository to put your GitOps manifests
-in. Any Git repository would do, for example create a new
-[github](https://github.com/new) repository and clone that. We use `podinfo-gitops-run`
-as the repository name in this guide.
+in. Any Git repository will do, for example create a new
+[github](https://github.com/new) repository and clone that.
 
-### Set up GitOps Run
+You may alternatively fork an existing repository, as we have done for this guide. Head
+to [podinfo](https://github.com/stefanprodan/podinfo) and create a fork with the
+name `podinfo-gitops-run`.
 
-To start GitOps Run, point it at the directory you want to keep your
-application manifests. In this example, we will install a small demo application
-[podinfo](https://github.com/stefanprodan/podinfo).
+## Set up GitOps Run
 
-We will start it with `--no-session` as it's a single user
+To start GitOps Run, clone your newly created repository or fork and change into
+it.
+
+We will run the command with `--no-session` as it's a single user
 cluster which we want to use in direct mode. The port-forward points
-at the podinfo pod we will create later.
+at the `podinfo` pod we will create later on.
 
 ```bash
 export GITHUB_USER=<your github username>
@@ -112,19 +119,26 @@ gitops beta run ./podinfo --no-session --port-forward namespace=dev,resource=svc
 ```
 
 You will now be asked if you want to install Flux and the GitOps
-[dashboard](../getting-started/intro.mdx). Answer yes and set a password, and
-shortly after you should be able to [open the dashboard](http://localhost:9001)
-to see what's in your cluster - including the resources that GitOps
-Run is operating.
+[dashboard](../getting-started/intro.mdx). Answer `yes` and **set a password**.
 
-### Start modifying
+:::tip
+If you do not set a password, you won't be able to login to the GitOps UI
+:scream:.
+:::
 
-GitOps Run will have created a directory `podinfo` in your
-current directory. Inside that directory, there will only be a single
-file `kustomization.yaml`.
+Shortly after you should be able to [open the dashboard](http://localhost:9001).
+The username is `admin` and the password will be the one you set above.
 
-To create the podinfo automation, we have to create the resources to
-run podinfo - we'll create a new `Namespace`, a `HelmRepository` that
+In your dashboard you will be able to see what is in your cluster, including
+the resources that GitOps Run is operating.
+
+## Start modifying your deploment
+
+In your local GitOps repo, you will see that GitOps Run has created a new
+directory called `podinfo`. Inside there is a single, mostly empty, `kustomization.yaml`.
+
+To create the automation for the `podinfo` app, we first have to add the resources to
+run it - we'll create a new `Namespace`, a `HelmRepository` that
 references the Helm repository where the manifests are stored, and a
 `HelmRelease` that references the chart and version. We can use the
 `flux` CLI to generate the resource definition, or we can just create
@@ -144,17 +158,29 @@ EOF
 flux create source helm podinfo --url=https://stefanprodan.github.io/podinfo --namespace=dev --export > ./podinfo/podinfo-source.yaml
 flux create helmrelease podinfo --source=HelmRepository/podinfo --chart=podinfo --export --namespace=dev --target-namespace=dev > ./podinfo/podinfo-helmrelease.yaml
 ```
+
+You should see three files now exist in your `./podinfo` directory.
+
 </TabItem>
 <TabItem value="yaml">
 
-```yaml title="./podinfo/namespace.yaml"
+Save the contents of the following files to the `./podinfo` directory.
+
+<details><summary>./podinfo/namespace.yaml</summary>
+
+```yaml
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: dev
 ```
-```yaml title="./podinfo/podinfo-source.yaml"
+
+</details>
+
+<details><summary>./podinfo/podinfo-source.yaml</summary>
+
+```yaml
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -166,7 +192,11 @@ spec:
   url: https://stefanprodan.github.io/podinfo
 ```
 
-```yaml title="./podinfo/podinfo-helmrelease.yaml"
+</details>
+
+<details><summary>./podinfo/podinfo-helmrelease.yaml</summary>
+
+```yaml
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -184,6 +214,9 @@ spec:
   interval: 1m0s
   targetNamespace: dev
 ```
+
+</details>
+
 </TabItem>
 </Tabs>
 
@@ -217,12 +250,12 @@ reconciled, and when they're Ready you will be able to see podinfo
 [here](http://localhost:9898).
 
 
-### Update your app
+## Update your app
 
 Now that GitOps Run is continuously watching and reconciling your
 local files onto your cluster, we can start modifying the resources.
 
-We're going to be modifying the podinfo we set up in the previous
+We're going to be modifying the `podinfo` we set up in the previous
 step. Open the current [podinfo](http://localhost:9898) and pay
 attention to the background color.
 
@@ -254,18 +287,18 @@ spec:
 ```
 
 When you hit save, you'll see GitOps Run upload new files, and once
-it's reconciled the podinfo has changed to a bright red.
+it's reconciled the `podinfo` background will have been changed to a bright red.
 
-### Turn on GitOps Mode
+## Next steps: GitOps Mode
 
 Now that we've used this interactive environment to set up the
 resources we want, we can switch over to full GitOps mode, where Flux
-is permanently pulling from your own Git repository.
+is permanently pulling from your remote Git repository.
 
-The first run, when you turn off GitOps Run, it will ask you if you
-want to bootstrap your cluster into GitOps mode. If you answer yes, it
-will take you through a wizard to help you set up how you want it to
-run - what repository, which branch, etc.
+Hit `ctrl-c` to stop GitOps Run. It will ask you whether you want to bootstrap
+your cluster into full GitOps mode. If you answer yes, it
+will take you through a wizard to help you set this up. You'll need information
+such as the remote repository, the branch name, etc.
 
 When you hit submit, it will set up the repository and branch, add
 Flux manifests, as well as the files you were just working on. From
