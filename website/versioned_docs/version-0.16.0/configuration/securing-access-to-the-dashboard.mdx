@@ -68,3 +68,49 @@ kubectl create secret generic cluster-user-auth \
 ```
 
 You should now be able to login via the cluster user account using your chosen username and password. Follow the instructions in the next section in order to configure RBAC correctly.
+
+## Customizing the Scope and Claims for the OIDC configuration
+
+For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
+
+### Customizing the Scopes
+
+By default, the following scopes are requested "openid","offline_access","email","groups".
+
+The "openid" scope is **mandatory** for OpenID auth, and the "email", and "groups" scopes are commonly used as unique identifiers in organisations.
+
+We use "offline_access" to allow us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid.
+
+You can however change the defaults.
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=<oidc-issuer-url> \
+  --from-literal=clientID=<client-id> \
+  --from-literal=clientSecret=<client-secret> \
+  --from-literal=redirectURL=<redirect-url> \
+  --from-literal=tokenDuration=<token-duration> \
+  --from-literal=customScopes=custom,scopes
+```
+The format for the `customScopes` key is a comma-separated list of scopes to request, in this case, "custom" and "scopes" would be requested, in addition to "openid".
+
+### Customizing the Claims
+
+By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups", these are presented as the `user` and `groups` when we communicate with your Kubernetes API server.
+
+This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
+
+Again, you can configure these from the `oidc-auth` `Secret`.
+
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=<oidc-issuer-url> \
+  --from-literal=clientID=<client-id> \
+  --from-literal=clientSecret=<client-secret> \
+  --from-literal=redirectURL=<redirect-url> \
+  --from-literal=tokenDuration=<token-duration> \
+  --from-literal=claimUsername=sub \
+  --from-literal=claimGroups=groups
+```
+There are two separate configuration keys, you can override them separately, these should match your `kube-apiserver` configuration.

@@ -356,7 +356,6 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	switch dashboardType {
 	case install.DashboardTypeEnterprise:
 		flags.SkipDashboardInstall = true
-
 		log.Warningf("GitOps Enterprise Dashboard is found. GitOps OSS Dashboard will not be installed")
 	case install.DashboardTypeOSS:
 		log.Successf("GitOps Dashboard is found")
@@ -373,9 +372,12 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 
 			// Answering "n" causes err to not be nil. Hitting enter without typing
 			// does not return the default.
-			_, err := prompt.Run()
+			answer, err := prompt.Run()
 			if err == nil {
 				wantToInstallTheDashboard = true
+			} else if answer == "n" || answer == "N" {
+				wantToInstallTheDashboard = false
+				flags.SkipDashboardInstall = true
 			}
 		}
 
@@ -508,6 +510,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		flags.SessionNamespace,
 		fluxVersionInfo.FluxNamespace, // flux namespace of the session
 		portForwardsForSession,
+		flags.SkipDashboardInstall,
 		dashboardHashedPassword,
 		kind,
 	)

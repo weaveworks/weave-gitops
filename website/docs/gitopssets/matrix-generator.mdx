@@ -83,16 +83,16 @@ spec:
         kind: Kustomization
         apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         metadata:
-          name: "{{ .element.env }}-demo"
+          name: "{{ .Element.env }}-demo"
           labels:
             app.kubernetes.io/name: go-demo
-            app.kubernetes.io/instance: "{{ .element.env }}"
-            com.example/team: "{{ .element.team }}"
-            com.example/cluster: "{{ .element.cluster }}"
-            com.example/version: "{{ .element.version }}"
+            app.kubernetes.io/instance: "{{ .Element.env }}"
+            com.example/team: "{{ .Element.team }}"
+            com.example/cluster: "{{ .Element.cluster }}"
+            com.example/version: "{{ .Element.version }}"
         spec:
           interval: 5m
-          path: "./examples/kustomize/environments/{{ .element.env }}"
+          path: "./examples/kustomize/environments/{{ .Element.env }}"
           prune: true
           sourceRef:
             kind: GitRepository

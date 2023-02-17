@@ -2,19 +2,16 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { useGetReconciledTree } from "../hooks/flux";
-import { Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
+import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
-export type Props = {
+interface Props {
   className?: string;
-  parentObject: Automation;
-  source: ObjectRef;
-};
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+}
 
 const SliderFlex = styled(Flex)`
   padding-top: ${(props) => props.theme.spacing.base};
@@ -35,28 +32,31 @@ const GraphDiv = styled.div`
   height: 100%;
 `;
 
-function ReconciliationGraph({ className, parentObject, source }: Props) {
-  //grab data
+function ReconciliationGraph({
+  className,
+  reconciledObjectsAutomation,
+}: Props) {
   const {
-    data: objects,
-    error,
+    name,
+    namespace,
+    suspended,
+    conditions,
+    type,
+    clusterName,
+    objects,
     isLoading,
-  } = useGetReconciledTree(
-    parentObject.name,
-    parentObject.namespace,
-    Kind[parentObject.type],
-    parentObject.inventory,
-    parentObject.clusterName
-  );
+    error,
+    source,
+  } = reconciledObjectsAutomation;
 
   //add extra nodes
   const secondNode = {
-    name: parentObject.name,
-    namespace: parentObject.namespace,
-    suspended: parentObject.suspended,
-    conditions: parentObject.conditions,
-    type: parentObject.type,
-    clusterName: parentObject.clusterName,
+    name,
+    namespace,
+    suspended,
+    conditions,
+    type,
+    clusterName,
     children: objects,
     isCurrentNode: true,
   };
@@ -64,7 +64,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
   const rootNode = {
     ...source,
     type: source?.kind,
-    clusterName: parentObject.clusterName,
+    clusterName,
     children: [secondNode],
   };
   //graph numbers
