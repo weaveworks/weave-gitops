@@ -51,7 +51,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
     renderFooter: props.renderFooter,
     theme:
       window.matchMedia("prefers-color-scheme: dark").matches ||
-      localStorage.getItem("dark") === "true"
+      localStorage.getItem("mode") === "dark"
         ? "dark"
         : "light",
   });
@@ -81,9 +81,11 @@ export default function AppContextProvider({ ...props }: AppProps) {
   };
 
   const toggleDarkMode = () => {
+    const newMode = appSettings.theme === "light" ? "dark" : "light";
+    localStorage.setItem("mode", newMode);
     setAppSettings({
       ...appSettings,
-      theme: appSettings.theme === "light" ? "dark" : "light",
+      theme: newMode,
     });
   };
 
