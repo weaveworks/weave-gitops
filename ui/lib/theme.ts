@@ -6,7 +6,7 @@ import images from "./images";
 
 const baseSpacingNumber = 16;
 
-export const theme: DefaultTheme = {
+const baseTheme = {
   fontFamilies: {
     monospace: "'Roboto Mono', monospace",
     regular: "'proxima-nova', Helvetica, Arial, sans-serif",
@@ -18,38 +18,6 @@ export const theme: DefaultTheme = {
     medium: "14px",
     small: "12px",
     tiny: "10px",
-  },
-  colors: {
-    black: "#1a1a1a",
-    white: "#fff",
-    primary: "#00b3ec",
-    primaryLight05: "#E5F7FD",
-    primaryLight10: "#98E0F7",
-    primary10: "#009CCC",
-    primary20: "#006B8E",
-    successLight: "#C9EBD7",
-    successMedium: "#78CC9C",
-    successOriginal: "#27AE60",
-    successDark: "#156034",
-    alertLight: "#EECEC7",
-    alertMedium: "#D58572",
-    alertOriginal: "#BC3B1D",
-    alertDark: "#9F3119",
-    neutralGray: "#F6F7F9",
-    neutral00: "#ffffff",
-    neutral10: "#f5f5f5",
-    neutral20: "#d8d8d8",
-    neutral30: "#737373",
-    neutral40: "#1a1a1a",
-    backGrey: "#eef0f4",
-    feedbackLight: "#FCE6D2",
-    feedbackMedium: "#F7BF8E",
-    feedbackOriginal: "#F2994A",
-    feedbackDark: "#8A460A",
-    defaultLight: "#FCE6D2",
-    defaultMedium: "#F7BF8E",
-    defaultOriginal: "#F2994A",
-    defaultDark: "#8A460A",
   },
   spacing: {
     // 16px
@@ -79,6 +47,44 @@ export const theme: DefaultTheme = {
     light: "0 1px 3px #f5f5f5, 0 1px 2px #d8d8d8",
     none: "none",
   },
+};
+
+export const theme = (mode: "light" | "dark"): DefaultTheme => {
+  return {
+    ...baseTheme,
+    colors: {
+      black: "#1a1a1a",
+      white: "#fff",
+      primary: "#00b3ec",
+      primaryLight05: "#E5F7FD",
+      primaryLight10: "#98E0F7",
+      primary10: "#009CCC",
+      primary20: "#006B8E",
+      successLight: "#C9EBD7",
+      successMedium: "#78CC9C",
+      successOriginal: "#27AE60",
+      successDark: "#156034",
+      alertLight: "#EECEC7",
+      alertMedium: "#D58572",
+      alertOriginal: "#BC3B1D",
+      alertDark: "#9F3119",
+      neutralGray: "#F6F7F9",
+      neutral00: "#ffffff",
+      neutral10: "#f5f5f5",
+      neutral20: "#d8d8d8",
+      neutral30: "#737373",
+      neutral40: "#1a1a1a",
+      backGrey: "#eef0f4",
+      feedbackLight: "#FCE6D2",
+      feedbackMedium: "#F7BF8E",
+      feedbackOriginal: "#F2994A",
+      feedbackDark: "#8A460A",
+      defaultLight: "#FCE6D2",
+      defaultMedium: "#F7BF8E",
+      defaultOriginal: "#F2994A",
+      defaultDark: "#8A460A",
+    },
+  };
 };
 
 export default theme;
@@ -135,40 +141,41 @@ export const GlobalStyle = createGlobalStyle`
   }
 `;
 
-export const muiTheme = createTheme({
-  typography: { fontFamily: "proxima-nova" },
-  palette: {
-    primary: {
-      //Main - Primary Color Dark - 10
-      main: theme.colors.primary10,
-    },
-    secondary: {
-      //Feedback - Alert - Original
-      main: theme.colors.alertOriginal,
-    },
-    text: {
-      //Neutral - Neutral - 40
-      primary: theme.colors.neutral40,
-      //Neutral - Neutral - 30
-      secondary: theme.colors.neutral30,
-      disabled: theme.colors.neutral30,
-    },
-  },
-  overrides: {
-    MuiSlider: {
-      root: {
-        color: theme.colors.primary,
+export const muiTheme = (colors) =>
+  createTheme({
+    typography: { fontFamily: "proxima-nova" },
+    palette: {
+      primary: {
+        //Main - Primary Color Dark - 10
+        main: colors.primary10,
+      },
+      secondary: {
+        //Feedback - Alert - Original
+        main: colors.alertOriginal,
+      },
+      text: {
+        //Neutral - Neutral - 40
+        primary: colors.neutral40,
+        //Neutral - Neutral - 30
+        secondary: colors.neutral30,
+        disabled: colors.neutral30,
       },
     },
-    MuiTooltip: {
-      tooltip: {
-        fontSize: "1rem",
+    overrides: {
+      MuiSlider: {
+        root: {
+          color: colors.primary,
+        },
+      },
+      MuiTooltip: {
+        tooltip: {
+          fontSize: "1rem",
+        },
+      },
+      MuiPaper: {
+        root: {
+          overflowX: "hidden",
+        },
       },
     },
-    MuiPaper: {
-      root: {
-        overflowX: "hidden",
-      },
-    },
-  },
-});
+  });
