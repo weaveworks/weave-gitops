@@ -8,6 +8,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/tls"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -17,13 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	RunDevBucketName   = "run-dev-bucket"
-	RunDevKsName       = "run-dev-ks"
-	RunDevHelmName     = "run-dev-helm"
-	GitOpsRunNamespace = "gitops-run"
 )
 
 var (
@@ -46,18 +40,18 @@ func InstallDevBucketServer(
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
-			"app": RunDevBucketName,
+			"app": constants.RunDevBucketName,
 		}
 	)
 
 	// create namespace
 	devBucketNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: GitOpsRunNamespace,
+			Name: constants.GitOpsRunNamespace,
 		},
 	}
 
-	log.Actionf("Checking namespace %s ...", GitOpsRunNamespace)
+	log.Actionf("Checking namespace %s ...", constants.GitOpsRunNamespace)
 
 	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketNamespace),
@@ -65,31 +59,31 @@ func InstallDevBucketServer(
 
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketNamespace); err != nil {
-			log.Failuref("Error creating namespace %s: %v", GitOpsRunNamespace, err.Error())
+			log.Failuref("Error creating namespace %s: %v", constants.GitOpsRunNamespace, err.Error())
 			return nil, nil, err
 		} else {
-			log.Successf("Created namespace %s", GitOpsRunNamespace)
+			log.Successf("Created namespace %s", constants.GitOpsRunNamespace)
 		}
 	} else if err == nil {
-		log.Successf("Namespace %s already existed", GitOpsRunNamespace)
+		log.Successf("Namespace %s already existed", constants.GitOpsRunNamespace)
 	}
 
 	// create service
 	devBucketService := corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
-			Namespace: GitOpsRunNamespace,
+			Name:      constants.RunDevBucketName,
+			Namespace: constants.GitOpsRunNamespace,
 			Labels:    devBucketAppLabels,
 		},
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeClusterIP,
 			Ports: []corev1.ServicePort{
 				{
-					Name: fmt.Sprintf("%s-http", RunDevBucketName),
+					Name: fmt.Sprintf("%s-http", constants.RunDevBucketName),
 					Port: httpPort,
 				},
 				{
-					Name: fmt.Sprintf("%s-https", RunDevBucketName),
+					Name: fmt.Sprintf("%s-https", constants.RunDevBucketName),
 					Port: httpsPort,
 				},
 			},
@@ -97,7 +91,7 @@ func InstallDevBucketServer(
 		},
 	}
 
-	log.Actionf("Checking service %s/%s ...", GitOpsRunNamespace, RunDevBucketName)
+	log.Actionf("Checking service %s/%s ...", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 
 	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketService),
@@ -105,19 +99,19 @@ func InstallDevBucketServer(
 
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketService); err != nil {
-			log.Failuref("Error creating service %s/%s: %v", GitOpsRunNamespace, RunDevBucketName, err.Error())
+			log.Failuref("Error creating service %s/%s: %v", constants.GitOpsRunNamespace, constants.RunDevBucketName, err.Error())
 			return nil, nil, err
 		} else {
-			log.Successf("Created service %s/%s", GitOpsRunNamespace, RunDevBucketName)
+			log.Successf("Created service %s/%s", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 		}
 	} else if err == nil {
-		log.Successf("Service %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
+		log.Successf("Service %s/%s already existed", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 	}
 
 	credentialsSecret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: GitOpsRunNamespace,
-			Name:      fmt.Sprintf("%s-credentials", RunDevBucketName),
+			Namespace: constants.GitOpsRunNamespace,
+			Name:      constants.RunDevBucketCredentials,
 		},
 		Data: map[string][]byte{
 			"accesskey": accessKey,
@@ -140,7 +134,7 @@ func InstallDevBucketServer(
 	certsSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dev-bucket-server-certs",
-			Namespace: GitOpsRunNamespace,
+			Namespace: constants.GitOpsRunNamespace,
 			Labels:    devBucketAppLabels,
 		},
 		Data: map[string][]byte{
@@ -157,8 +151,8 @@ func InstallDevBucketServer(
 	replicas := int32(1)
 	devBucketDeployment := appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
-			Namespace: GitOpsRunNamespace,
+			Name:      constants.RunDevBucketName,
+			Namespace: constants.GitOpsRunNamespace,
 			Labels:    devBucketAppLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -181,7 +175,7 @@ func InstallDevBucketServer(
 					}},
 					Containers: []corev1.Container{
 						{
-							Name:            RunDevBucketName,
+							Name:            constants.RunDevBucketName,
 							Image:           DevBucketContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
@@ -226,7 +220,7 @@ func InstallDevBucketServer(
 		},
 	}
 
-	log.Actionf("Checking deployment %s/%s ...", GitOpsRunNamespace, RunDevBucketName)
+	log.Actionf("Checking deployment %s/%s ...", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 
 	err = kubeClient.Get(ctx,
 		client.ObjectKeyFromObject(&devBucketDeployment),
@@ -234,16 +228,16 @@ func InstallDevBucketServer(
 
 	if err != nil && apierrors.IsNotFound(err) {
 		if err := kubeClient.Create(ctx, &devBucketDeployment); err != nil {
-			log.Failuref("Error creating deployment %s/%s: %v", GitOpsRunNamespace, RunDevBucketName, err.Error())
+			log.Failuref("Error creating deployment %s/%s: %v", constants.GitOpsRunNamespace, constants.RunDevBucketName, err.Error())
 			return nil, nil, err
 		} else {
-			log.Successf("Created deployment %s/%s", GitOpsRunNamespace, RunDevBucketName)
+			log.Successf("Created deployment %s/%s", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 		}
 	} else if err == nil {
-		log.Successf("Deployment %s/%s already existed", GitOpsRunNamespace, RunDevBucketName)
+		log.Successf("Deployment %s/%s already existed", constants.GitOpsRunNamespace, constants.RunDevBucketName)
 	}
 
-	log.Actionf("Waiting for deployment %s to be ready ...", RunDevBucketName)
+	log.Actionf("Waiting for deployment %s to be ready ...", constants.RunDevBucketName)
 
 	if err := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 1 * time.Second,
@@ -270,8 +264,8 @@ func InstallDevBucketServer(
 	}
 
 	specMap := &PortForwardSpec{
-		Name:          RunDevBucketName,
-		Namespace:     GitOpsRunNamespace,
+		Name:          constants.RunDevBucketName,
+		Namespace:     constants.GitOpsRunNamespace,
 		Kind:          "service",
 		HostPort:      strconv.Itoa(int(httpsPort)),
 		ContainerPort: strconv.Itoa(int(httpsPort)),
@@ -300,7 +294,7 @@ func InstallDevBucketServer(
 		}()
 		<-readyChannel
 
-		log.Successf("Port forwarding for %s is ready.", RunDevBucketName)
+		log.Successf("Port forwarding for %s is ready.", constants.RunDevBucketName)
 
 		return cancelPortFwd, cert.Cert, nil
 	}
@@ -313,18 +307,18 @@ func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient
 	// create namespace
 	devBucketNamespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: GitOpsRunNamespace,
+			Name: constants.GitOpsRunNamespace,
 		},
 	}
 
-	log.Actionf("Removing namespace %s ...", GitOpsRunNamespace)
+	log.Actionf("Removing namespace %s ...", constants.GitOpsRunNamespace)
 
 	if err := kubeClient.Delete(ctx, &devBucketNamespace); err != nil {
-		log.Failuref("Cannot remove namespace %s", GitOpsRunNamespace)
+		log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
 		return err
 	}
 
-	log.Actionf("Waiting for namespace %s to be terminated ...", GitOpsRunNamespace)
+	log.Actionf("Waiting for namespace %s to be terminated ...", constants.GitOpsRunNamespace)
 
 	if err := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 1 * time.Second,
@@ -345,7 +339,7 @@ func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient
 		log.Failuref("Max retry exceeded waiting for namespace to be deleted")
 	}
 
-	log.Successf("Namespace %s terminated", GitOpsRunNamespace)
+	log.Successf("Namespace %s terminated", constants.GitOpsRunNamespace)
 
 	return nil
 }

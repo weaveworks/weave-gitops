@@ -18,6 +18,7 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -48,7 +49,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: params.Namespace,
 			Annotations: map[string]string{
 				"metadata.weave.works/description": "This is a temporary Kustomization created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
@@ -61,7 +62,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: sourcev1.BucketKind,
-				Name: RunDevBucketName,
+				Name: constants.RunDevBucketName,
 			},
 			Timeout: &metav1.Duration{Duration: params.Timeout},
 			Path:    params.Path,
@@ -119,7 +120,7 @@ func setupDecryption(ctx context.Context, params SetupRunObjectParams, kubeClien
 
 	decSecret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "run-dev-ks-decryption",
+			Name:      constants.RunDevKsDecryption,
 			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
@@ -221,7 +222,7 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	// delete ks
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		},
 	}
@@ -383,7 +384,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-bucket
 	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   "source.toolkit.fluxcd.io",
@@ -398,7 +399,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -413,7 +414,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -426,7 +427,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-ks
 	ksRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   "kustomize.toolkit.fluxcd.io",
@@ -440,7 +441,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, devKs); err != nil {
 			return false, err
@@ -454,7 +455,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	devKs := &kustomizev1.Kustomization{}
 	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, devKs); err != nil {
 			return false, err

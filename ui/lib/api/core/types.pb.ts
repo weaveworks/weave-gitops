@@ -70,6 +70,7 @@ export type Object = {
   tenant?: string
   uid?: string
   inventory?: GroupVersionKind[]
+  info?: string
 }
 
 export type Deployment = {

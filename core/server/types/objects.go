@@ -13,7 +13,7 @@ type HelmReleaseStorage struct {
 	Manifest string `json:"manifest,omitempty"`
 }
 
-func K8sObjectToProto(object client.Object, clusterName string, tenant string, inventory []*pb.GroupVersionKind) (*pb.Object, error) {
+func K8sObjectToProto(object client.Object, clusterName string, tenant string, inventory []*pb.GroupVersionKind, info string) (*pb.Object, error) {
 	var buf bytes.Buffer
 
 	serializer := json.NewSerializer(json.DefaultMetaFactory, nil, nil, false)
@@ -27,6 +27,7 @@ func K8sObjectToProto(object client.Object, clusterName string, tenant string, i
 		Tenant:      tenant,
 		Uid:         string(object.GetUID()),
 		Inventory:   inventory,
+		Info:        info,
 	}
 
 	return obj, nil

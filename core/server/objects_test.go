@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,7 +52,7 @@ func TestGetObject(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
 
-	cfg := makeServerConfig(fakeClient, t)
+	cfg := makeServerConfig(fakeClient, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
@@ -115,7 +116,7 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, dep).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 
 	c := makeServer(cfg, t)
 
@@ -189,7 +190,7 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
@@ -274,7 +275,7 @@ func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
@@ -321,7 +322,7 @@ func TestGetObject_HelmReleaseCantGetSecret(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
@@ -358,7 +359,7 @@ func TestGetObjectSecret(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
 
-	cfg := makeServerConfig(fakeClient, t)
+	cfg := makeServerConfig(fakeClient, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
@@ -404,7 +405,7 @@ func TestListObjectSingle(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -456,7 +457,7 @@ func TestListObjectMultiple(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm1, helm2).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -497,7 +498,7 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -550,7 +551,7 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm1, helm2).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -607,7 +608,7 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -653,7 +654,7 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -689,7 +690,7 @@ func TestListObjectsSecret(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
 
-	cfg := makeServerConfig(fakeClient, t)
+	cfg := makeServerConfig(fakeClient, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -742,7 +743,7 @@ func TestListObjectsLabels(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, deployment1, deployment2).Build()
 
-	cfg := makeServerConfig(fakeClient, t)
+	cfg := makeServerConfig(fakeClient, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
@@ -759,4 +760,152 @@ func TestListObjectsLabels(t *testing.T) {
 	err = json.Unmarshal([]byte(res.Objects[0].Payload), &data)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(data["metadata"].(map[string]interface{})["name"]).To(Equal(deployment1.Name))
+}
+
+func TestListObjectsGitOpsRunSessions(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	const (
+		testNS      = "test-namespace"
+		testCluster = "test-cluster"
+	)
+
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: testNS,
+		},
+	}
+
+	session1 := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "session-1",
+			Namespace: ns.Name,
+			Labels: map[string]string{
+				"app":                       "vcluster",
+				"app.kubernetes.io/part-of": "gitops-run",
+			},
+			Annotations: map[string]string{
+				"run.weave.works/automation-kind": "ks",
+			},
+		},
+		Spec: appsv1.StatefulSetSpec{},
+	}
+
+	session2 := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "session-2",
+			Namespace: ns.Name,
+			Labels: map[string]string{
+				"app":                       "vcluster",
+				"app.kubernetes.io/part-of": "gitops-run",
+			},
+			Annotations: map[string]string{
+				"run.weave.works/automation-kind": "helm",
+			},
+		},
+		Spec: appsv1.StatefulSetSpec{},
+	}
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, session1, session2).Build()
+	cfg := makeServerConfig(fakeClient, t, testCluster)
+	c := makeServer(cfg, t)
+
+	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
+		Namespace:   testNS,
+		Kind:        "StatefulSet",
+		ClusterName: testCluster,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Errors).To(BeEmpty())
+	g.Expect(res.Objects).To(HaveLen(2))
+	g.Expect(res.Objects[0].ClusterName).To(Equal(testCluster))
+	g.Expect(res.Objects[1].ClusterName).To(Equal(testCluster))
+	g.Expect(res.Objects[0].Payload).To(ContainSubstring("session-1"))
+	g.Expect(res.Objects[1].Payload).To(ContainSubstring("session-2"))
+}
+
+func TestGetObjectSessionObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	const (
+		testNS      = "test-namespace"
+		testCluster = "test-cluster"
+	)
+
+	ctx := context.Background()
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: testNS,
+		},
+	}
+
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevKsName,
+			Namespace: testNS,
+		},
+		Spec: kustomizev1.KustomizationSpec{},
+	}
+
+	helm := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevHelmName,
+			Namespace: testNS,
+		},
+		Spec: helmv2.HelmReleaseSpec{},
+	}
+
+	bucket := &sourcev1.Bucket{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketName,
+			Namespace: testNS,
+		},
+		Spec: sourcev1.BucketSpec{},
+	}
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm, bucket).Build()
+	cfg := makeServerConfig(fakeClient, t, testCluster)
+	c := makeServer(cfg, t)
+
+	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        constants.RunDevKsName,
+		Namespace:   testNS,
+		Kind:        kustomizev1.KustomizationKind,
+		ClusterName: testCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Object.ClusterName).To(ContainSubstring(testCluster))
+	g.Expect(res.Object.Payload).To(ContainSubstring(constants.RunDevKsName))
+
+	res, err = c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        constants.RunDevHelmName,
+		Namespace:   testNS,
+		Kind:        helmv2.HelmReleaseKind,
+		ClusterName: testCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Object.ClusterName).To(ContainSubstring(testCluster))
+	g.Expect(res.Object.Payload).To(ContainSubstring(constants.RunDevHelmName))
+
+	res, err = c.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        constants.RunDevBucketName,
+		Namespace:   testNS,
+		Kind:        sourcev1.BucketKind,
+		ClusterName: testCluster,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Object.ClusterName).To(ContainSubstring(testCluster))
+	g.Expect(res.Object.Payload).To(ContainSubstring(constants.RunDevBucketName))
 }
