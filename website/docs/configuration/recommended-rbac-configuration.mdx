@@ -14,7 +14,7 @@ on your specific circumstances and goals.
 ## Summary
 
 The general recommendation is to use OIDC and a small number of groups that
-are Weave GitOps can impersonate.
+Weave GitOps can impersonate.
 
 OIDC is the recommended method for managing authentication as it decouples the
 need to manage user lists from the application, allowing it to be managed via
@@ -34,8 +34,8 @@ users has the following benefits:
 Assume that your company has the following people in OIDC
 * Aisha, a cluster admin, who should have full admin access to Weave GitOps
 * Brian, lead of team-A, who should have admin permissions to their team's
-  namespace in Weave GitOps and readonly-otherwise
-* June and Jo, developers in team-A who should have read-only access to Weave GitOps.
+  namespace in Weave GitOps and readonly otherwise
+* June and Jo, developers in team-A who should have read-only access to Weave GitOps
 
 You could then create 3 groups:
 
@@ -68,7 +68,7 @@ from Weave GitOps and any other permissions granted to them.
 This can lead to un-intended consequences (e.g. viewing `secrets`). To avoid
 this OIDC providers will often let you configure which groups are returned
 to which clients: the Weave GitOps groups should not be returned to the
-cluster client (and visa versa).
+cluster client (and vice versa).
 :::
 
 ### Code
