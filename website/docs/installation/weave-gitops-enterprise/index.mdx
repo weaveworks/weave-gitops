@@ -8,6 +8,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import TierLabel from "../../_components/TierLabel";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
+import oauthBitbucket from '/img/oauth-bitbucket.png';
 
 ## Installing Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
 
@@ -242,6 +243,50 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
   --from-literal="GITLAB_HOSTNAME=git.example.com" \
   --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
 ```
+
+</TabItem>
+<TabItem value="bitbucket-server" label="BitBucket Server">
+
+Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from 
+the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
+should be set to `<WGE dashboard URL>/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
+permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
+
+<figure>
+
+<img src={oauthBitbucket} width="500"/>
+
+<figcaption>Configuring a new incoming application link</figcaption>
+</figure>
+
+
+Save your application and take note of the **Client ID** and **Client Secret** and save
+them into the `git-provider-credentials` secret along with:
+
+- `GIT_HOST_TYPES` to tell WGE that the host is bitbucket-server
+- `BITBUCKET_SERVER_HOSTNAME` where the OAuth app is hosted
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="BITBUCKET_SERVER_CLIENT_ID=13457" \
+  --from-literal="BITBUCKET_SERVER_CLIENT_SECRET=24680" \
+  --from-literal="BITBUCKET_SERVER_HOSTNAME=git.example.com" \
+  --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
+```
+
+If the secret is already present, use the following command to update it using your default editor:
+
+```bash
+kubectl edit secret generic git-provider-credentials --namespace=flux-system
+```
+
+:::info
+
+If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret, for example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
+
+:::
 
 </TabItem>
 </Tabs>
