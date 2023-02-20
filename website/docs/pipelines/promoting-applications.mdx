@@ -154,21 +154,30 @@ promotion:
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
-### Create credentials secret
+### Credentials secret
 
-In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
-The contents of this Secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
+In the journey of creating a pull request, there are different secrets involved:
 
-The pipelines controller will be creating pull requests against this repository so you will need an API token in addition to the `git` credentials. You may want to create a bot account with clone and pull request permissions for this operation.
+1. Pipeline controller receives events via webhook from leaf clusters. Hmac is used for authN/authZ so a hmac key should be provided in this case.
+2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo via https or ssh. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
+3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) to create to interact with pipelines git provider API.
+
+The previous secrets are kept in a kubernetes Secret that we would call it promotion credentials.
+
+:::caution
+Make sure that you understand and adopt as much of the [secret recommendations](./#promotion-credentials-recommendations) before creating it.
+:::
 
 To create the secret via `kubectl`:
 
 ```shell
-$ kubectl create secret generic promotion-credentials \ 
+# example to use git over https with basic auth and pat
+$ kubectl create secret generic promotion-credentials \
   --namespace=pipeline-01 \
   --from-literal="username=<bot account name>" \
   --from-literal="password=<token value>" \
-  --from-literal="token=<token value>"
+  --from-literal="token=<token value>" \
+  --from-literal="hmac-key=<hmac-key value>"
 ```
 
 ```yaml
@@ -187,12 +196,70 @@ type: Opaque
 ```
 
 :::tip
-The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
+- The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`).
+- The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
-:::caution
-The Secret needs to reside in the same Namespace as the Pipeline resource on the management cluster.
-:::
+#### Promotion credentials recommendations
+
+//TODO see other system that create pull request, its recommendations
+
+1. Do not use user accounts but service or bot accounts. User context from the credentials would be used to do any git provider operation and for
+security and auditing perspective you don't want your user context be used in machine operations.
+
+//TODO: add example
+
+2. The promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
+via RBAC that only the service account for pipeline controller is able to read it.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: <my-pipeline-pull-request>
+    namespace: <my-pipeline-namespace>
+rules:
+  - apiGroups:
+       - ""
+    resourceNames:
+      - <my-pipeline-secret>
+    resources:
+      - secrets
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: pipeline-controller-<my-pipeline-pull-request>
+    namespace: <my-pipeline-namespace>
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: <my-pipeline-pull-request>
+subjects:
+  - kind: ServiceAccount
+    name: pipeline-controller
+    namespace: pipeline-system
+```
+
+3. Treat your tokens like passwords and keep them secured. Ensure that they expire, and you rotate them to reduce
+the risks associated in case of being compromised.
+
+4. Stick to the least privilege principle avoiding having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
+For example, if using GitHub, [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) over classic or coarse-grained.
+//TODO: add example of the creation of the token with minimum permissions
+
+5. Review all currently active access tokens of all types on a regular basis and revoke any that are no longer needed.
+
+6. Whenever ends in a more secure setup, favor git over https with tokens instead of ssh and deploy keys. Given that a token
+is required for git provider api operations, to use git over ssh would require to secure and manage the deploy keys, as well as the token.
+In addition, tokens have an expiration date (so requires rotation) and could have finer access control (to just allow the pipeline repo).
+
+7. Last, ensure that you stick to the best practices of your git provider
+  - [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+  - [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+
 
 ### Define promotion in pipeline resource
 
