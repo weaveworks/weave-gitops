@@ -72,10 +72,22 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Configuration',
+      label: 'Access Configuration',
       items: [
         'configuration/recommended-rbac-configuration',
-        'configuration/securing-access-to-the-dashboard',
+        {
+          type: 'category',
+          label: 'Securing Access to the Dashboard',
+          collapsed: false,
+          link: {
+            type: 'doc',
+            id:'configuration/securing-access-to-the-dashboard',
+          },
+          items: [
+            'configuration/oidc-access',
+            'configuration/emergency-user',
+          ],
+        },
         'configuration/service-account-permissions',
         'configuration/user-permissions',
         'configuration/tls',
@@ -85,10 +97,10 @@ module.exports = {
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/deploying-capa',
-        'guides/cert-manager',
         'guides/setting-up-dex',
+        'guides/cert-manager',
         'guides/displaying-custom-metadata',
+        'guides/deploying-capa',
         'guides/using-terraform-templates',
         'guides/delivery',
         'guides/flagger-manual-gating',
