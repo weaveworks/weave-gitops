@@ -226,25 +226,25 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Secrets',
+      label: 'Secrets1',
       link: {
         type: 'doc',
-        id: 'secrets/intro',
+        id: 'secrets-by-persona/intro',
       },
       items: [
-        'secrets/intro',
+        'secrets-by-persona/intro',
         {
           type: 'category',
           label: 'Admin',
           link: {
             type: 'doc',
-            id: 'secrets/admin/getting-started',
+            id: 'secrets-by-persona/admin/getting-started',
           },
           items: [
-            'secrets/admin/getting-started',
-            'secrets/admin/secrets-management',
-            'secrets/admin/troubleshoot',
-            'secrets/admin/self-service',
+            'secrets-by-persona/admin/getting-started',
+            'secrets-by-persona/admin/secrets-management',
+            'secrets-by-persona/admin/troubleshoot',
+            'secrets-by-persona/admin/self-service',
           ],
         },
         {
@@ -252,19 +252,34 @@ module.exports = {
           label: 'Developer',
           link: {
             type: 'doc',
-            id: 'secrets/developer/getting-started',
+            id: 'secrets-by-persona/developer/getting-started',
           },
           items: [
-            'secrets/developer/getting-started',
-            'secrets/developer/using-secrets',
-            'secrets/developer/troubleshoot',
-            'secrets/developer/self-service',
+            'secrets-by-persona/developer/getting-started',
+            'secrets-by-persona/developer/using-secrets',
+            'secrets-by-persona/developer/troubleshoot',
+            'secrets-by-persona/developer/self-service',
           ],
         },
 
       ],
     },
-
+    {
+      type: 'category',
+      label: 'Secrets2',
+      link: {
+        type: 'doc',
+        id: 'secrets-flat/intro',
+      },
+      items: [
+        'secrets-flat/intro',
+        'secrets-flat/getting-started',
+        'secrets-flat/secrets-management',
+        'secrets-flat/using-secrets',
+        'secrets-flat/troubleshoot',
+        'secrets-flat/self-service',
+      ],
+    },
     {
       type: 'category',
       label: 'Templates',
