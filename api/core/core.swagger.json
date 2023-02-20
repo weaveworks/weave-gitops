@@ -1014,6 +1014,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "info": {
+          "type": "string"
         }
       }
     },

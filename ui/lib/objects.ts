@@ -32,6 +32,7 @@ export class FluxObject {
   clusterName: string;
   tenant: string;
   uid: string;
+  info: string;
   children: FluxObject[];
 
   constructor(response: ResponseObject) {
@@ -43,6 +44,7 @@ export class FluxObject {
     this.clusterName = response?.clusterName;
     this.tenant = response?.tenant;
     this.uid = response?.uid;
+    this.info = response?.info;
   }
 
   get yaml(): string {
