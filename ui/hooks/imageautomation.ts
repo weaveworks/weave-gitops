@@ -16,7 +16,7 @@ export function useListImageAutomation(
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListObjectsResponse, RequestError>(
-    ["image_automation", namespace],
+    ["image_automation", namespace, kind],
     () =>
       api.ListObjects({ namespace, kind }).then((res) => {
         const providers = res.objects?.map((obj) => convertResponse(kind, obj));
@@ -30,7 +30,7 @@ export function useCheckCRDInstalled(
   name: string,
   opts: ReactQueryOptions<boolean, RequestError> = {
     retry: false,
-    refetchInterval: 5000,
+    refetchInterval: (data) => (data ? false : 5000),
   }
 ) {
   const { api } = useContext(CoreClientContext);
