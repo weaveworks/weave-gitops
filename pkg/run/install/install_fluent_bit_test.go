@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 )
 
 func TestMakeConfigOutputs(t *testing.T) {
@@ -72,7 +73,7 @@ func TestMakeFluentBitHelmRelease(t *testing.T) {
 				"name": "AWS_ACCESS_KEY_ID",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "accesskey",
 					},
 				},
@@ -81,7 +82,7 @@ func TestMakeFluentBitHelmRelease(t *testing.T) {
 				"name": "AWS_SECRET_ACCESS_KEY",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "secretkey",
 					},
 				},

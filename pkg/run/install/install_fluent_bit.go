@@ -11,6 +11,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -123,7 +124,7 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 				"name": "AWS_ACCESS_KEY_ID",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "accesskey",
 					},
 				},
@@ -132,7 +133,7 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 				"name": "AWS_SECRET_ACCESS_KEY",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "secretkey",
 					},
 				},

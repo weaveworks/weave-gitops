@@ -28,6 +28,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/bootstrap"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"github.com/weaveworks/weave-gitops/pkg/s3"
@@ -334,7 +335,7 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 }
 
 func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
-	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, watch.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
+	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, constants.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
 
 	if err != nil {
 		log.Failuref("Fluent Bit installation failed: %v", err.Error())
@@ -868,7 +869,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 					}
 
 					// use ctx, not thisCtx - incomplete uploads will never make anybody happy
-					if err := watch.SyncDir(ctx, log, paths.RootDir, watch.RunDevBucketName, minioClient, ignorer); err != nil {
+					if err := watch.SyncDir(ctx, log, paths.RootDir, constants.RunDevBucketName, minioClient, ignorer); err != nil {
 						log.Failuref("Error syncing dir: %v", err)
 					}
 

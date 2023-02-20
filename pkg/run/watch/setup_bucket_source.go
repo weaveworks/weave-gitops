@@ -8,6 +8,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,12 +16,10 @@ import (
 )
 
 func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, sourcev1.Bucket) {
-	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
-
 	// create a secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucketCredentials,
+			Name:      constants.RunDevBucketCredentials,
 			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
@@ -31,7 +30,7 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 	}
 	source := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: params.Namespace,
 			Annotations: map[string]string{
 				"metadata.weave.works/description": "This is a temporary Bucket created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
@@ -42,11 +41,11 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 		Spec: sourcev1.BucketSpec{
 			Interval:   metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Provider:   "generic",
-			BucketName: RunDevBucketName,
-			Endpoint:   fmt.Sprintf("%s.%s.svc.cluster.local:%d", RunDevBucketName, GitOpsRunNamespace, params.DevBucketPort),
+			BucketName: constants.RunDevBucketName,
+			Endpoint:   fmt.Sprintf("%s.%s.svc.cluster.local:%d", constants.RunDevBucketName, constants.GitOpsRunNamespace, params.DevBucketPort),
 			Insecure:   true,
 			Timeout:    &metav1.Duration{Duration: params.Timeout},
-			SecretRef:  &meta.LocalObjectReference{Name: devBucketCredentials},
+			SecretRef:  &meta.LocalObjectReference{Name: constants.RunDevBucketCredentials},
 		},
 	}
 
@@ -92,12 +91,10 @@ func reconcileBucketAndSecretObjects(ctx context.Context, log logger.Logger, kub
 }
 
 func cleanupBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string) {
-	var devBucketCredentials = fmt.Sprintf("%s-credentials", RunDevBucketName)
-
 	// delete secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      devBucketCredentials,
+			Name:      constants.RunDevBucketCredentials,
 			Namespace: namespace,
 		},
 	}
@@ -113,7 +110,7 @@ func cleanupBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeC
 	// delete source
 	source := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		},
 	}

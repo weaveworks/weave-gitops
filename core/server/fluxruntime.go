@@ -315,7 +315,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 			}
 		}
 
-		o, err = coretypes.K8sObjectToProto(obj, msg.ClusterName, tenant, nil)
+		o, err = coretypes.K8sObjectToProto(obj, msg.ClusterName, tenant, nil, "")
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
 			continue
@@ -371,7 +371,7 @@ ItemsLoop:
 
 		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
-		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil, "")
 
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
