@@ -633,7 +633,20 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	sigs := make(chan os.Signal, 1)
+	// Subscribe to SIGUSR1 in addition to the usual signals because in session mode
+	// the outer process traps SIGTERM and SIGINT and sends SIGUSR1 to the inner process.
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+		case sig := <-sigs:
+			log0.Actionf("Received %s, quitting...", sig)
+			// re-enable listening for ctrl+C
+			signal.Reset(sig)
+			cancel()
+		}
+	}()
 
 	var (
 		fluxJustInstalled bool
@@ -1006,15 +1019,12 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// wait for interrupt or ctrl+C
 	log.Waitingf("Press Ctrl+C to stop GitOps Run ...")
 
-	sig := <-sigs
+	<-ctx.Done()
 
 	close(stopUploadCh)
 	cancel()
 	// create new context that isn't cancelled, for bootstrapping
 	ctx = context.Background()
-
-	// re-enable listening for ctrl+C
-	signal.Reset(sig)
 
 	if err := watcher.Close(); err != nil {
 		log.Warningf("Error closing watcher: %v", err.Error())
