@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 	"io"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -170,9 +172,9 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 
 	// we sort the logs by timestamp
 	sort.Slice(logEntries, func(i, j int) bool {
-		tsi, _ := time.Parse(time.RFC3339, logEntries[i].GetTimestamp())
-		tsj, _ := time.Parse(time.RFC3339, logEntries[j].GetTimestamp())
-		return tsi.Before(tsj)
+		tsi, _ := strconv.ParseInt(logEntries[i].GetSortingKey(), 10, 64)
+		tsj, _ := strconv.ParseInt(logEntries[j].GetSortingKey(), 10, 64)
+		return tsi < tsj
 	})
 
 	return &pb.GetSessionLogsResponse{
@@ -190,7 +192,7 @@ func detectLogLevel(message string) string {
 	if errorRegex.MatchString(message) {
 		return "error"
 	} else if warnRegex.MatchString(message) {
-		return "warn"
+		return "warning"
 	} else {
 		return "info"
 	}
@@ -293,11 +295,17 @@ func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, buc
 				continue
 			}
 
+			hash, err := compositehash.New(innerMessage, podLog.Time)
+			if err != nil {
+				return nil, "", nil, err
+			}
+
 			logs = append(logs, &pb.LogEntry{
-				Timestamp: podLog.Time.Format(time.RFC3339),
-				Level:     logLevel,
-				Message:   innerMessage,
-				Source:    loggingSource,
+				SortingKey: fmt.Sprintf("%d", hash),
+				Timestamp:  podLog.Time.Format(time.RFC3339),
+				Level:      logLevel,
+				Message:    innerMessage,
+				Source:     loggingSource,
 			})
 		}
 		lastToken = obj.Key
