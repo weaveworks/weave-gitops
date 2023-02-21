@@ -28,10 +28,6 @@
   color: var(--ifm-font-color);
 }
 
-.hero--primary {
-  text-align: left !important;
-}
-
 .player-wrapper {
   position: relative;
   padding-top: 56.25%; /* 720 / 1280 = 0.5625 */
