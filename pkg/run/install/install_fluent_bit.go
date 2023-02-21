@@ -207,7 +207,7 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 
 	log.Actionf("creating HelmRelease %s/%s", helmRelease.Namespace, helmRelease.Name)
 
-	if err := kubeClient.Create(context.Background(), helmRelease); err != nil {
+	if err := kubeClient.Create(ctx, helmRelease); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// do nothing
 		} else {
@@ -220,7 +220,7 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.DaemonSet{}
 		if err := kubeClient.Get(
-			context.Background(),
+			ctx,
 			types.NamespacedName{
 				Name:      name,
 				Namespace: targetNamespace,
