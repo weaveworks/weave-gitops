@@ -60,6 +60,8 @@ kubectl create secret generic github-client \
 As we did before, we can use `HelmRepository` and `HelmRelease` objects to let
 Flux deploy everything.
 
+<details><summary>Expand to see resource manifests</summary>
+
 ```yaml
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta1
@@ -152,6 +154,8 @@ spec:
           secretName: dex-dev-example-tld
 ```
 
+</details>
+
 :::note SSL certificate without cert manager
 If we don't want to use cert manager, we can remove the related annotation and
 use our predefined secret in the `tls` section.
@@ -175,6 +179,8 @@ GitHub organisation is `weaveworks` and all members of the `team-a`,
 the user.
 
 Based on these groups, we can bind roles to groups:
+
+<details><summary>Expand to see group role bindings</summary>
 
 ```yaml
 ---
@@ -218,7 +224,11 @@ rules:
     verbs: ["get", "watch", "list"]
 ```
 
+</details>
+
 The same way we can bind cluster roles to a group:
+
+<details><summary>Expand to see group cluster role bindings</summary>
 
 ```yaml
 ---
@@ -236,6 +246,8 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
+</details>
+
 ### Set up static user
 
 For static user, add `staticPasswords` to the `config`:
@@ -251,10 +263,12 @@ spec:
         userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
 ```
 
-Static user password can be generated with `htpasswd`:
+A static user password can be generated with the `gitops` CLI:
 
 ```bash
-echo password | htpasswd -BinC 10 admin | cut -d: -f2
+PASSWORD="<your password>"
+echo -n $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
 ## OIDC login

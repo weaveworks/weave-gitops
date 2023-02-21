@@ -20,7 +20,10 @@ in the `Terraform` object.
 
 Here is an example of how to use a custom backend with the `Terraform` object:
 
+<details><summary>Expand to view</summary>
+
 ```yaml {9-21}
+---
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
@@ -52,6 +55,8 @@ spec:
     spec:
       image: registry.io/tf-runner:xyz
 ```
+
+</details>
 
 In this example, the `Terraform` object is using a custom backend
 with a bucket named "s3-terraform-state1" in the "us-east-1" region,

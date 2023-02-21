@@ -22,7 +22,9 @@ First, create a `Terraform` object to provision the S3 bucket, name it `aws-s3-b
 The S3 bucket is provisioned by the Terraform module `aws_s3_bucket` in the OCI image `aws-package-v4.33.0`.
 It is configured to use the `auto-apply` mode, and write outputs to the secret `aws-s3-bucket-outputs`.
 
-```yaml hl_lines="20-24"
+<details><summary>Expand to view</summary>
+
+```yaml {20-24}
 ---
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
@@ -54,6 +56,8 @@ spec:
           name: aws-credentials
 ```
 
+</details>
+
 Second, create a `Terraform` object to configure ACL for the S3 bucket, name it `aws-s3-bucket-acl`.
 The ACL is provisioned by the Terraform module `aws_s3_bucket_acl`, also from the OCI image `aws-package-v4.33.0`.
 
@@ -66,6 +70,8 @@ Its `name` field is the name of the Secret, and its `as` field is the name of va
 For example, the `spec.values.bucket` field in the `aws-s3-bucket-acl` Terraform object is set to `${{ .aws_s3_bucket.bucket }}`.
 
 Please note that we use `${{` and  `}}` as the delimiters for the variable name, instead of the Helm default ones, `{{` and `}}`.
+
+<details><summary>Expand to view</summary>
 
 ```yaml hl_lines="11 18 20-21"
 ---
@@ -95,3 +101,5 @@ spec:
       - secretRef:
           name: aws-credentials
 ```
+
+</details>

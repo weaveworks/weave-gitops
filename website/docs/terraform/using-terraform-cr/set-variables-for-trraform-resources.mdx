@@ -5,8 +5,8 @@ hide_title: true
 
 # Use TF-controller to set variables for Terraform resources
 
-:::warning
-**BREAKING CHANGE**: This is a breaking change of the `v1alpha1` API.
+:::warning Breaking Change
+This is a breaking change of the `v1alpha1` API.
 :::
 
 Users who are upgrading from TF-controller <= 0.7.0 require updating `varsFrom`,
@@ -40,7 +40,10 @@ passed to `varsFrom`.
 Here is an example of a `Terraform` object that sets inline variables
 using the `vars` field and retrieves variables from a `ConfigMap` and `Secret` using the `varsFrom` field:
 
+<details><summary>Expand to view</summary>
+
 ```yaml {15-20,22-28}
+---
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
@@ -71,6 +74,8 @@ spec:
     name: cluster-creds
 ```
 
+</details>
+
 ## Variables as HCL
 
 The `vars` field in a `Terraform` object allows you to set variables for your Terraform configuration.
@@ -82,6 +87,8 @@ the "node_count" field is a number, and the "public" field is a boolean.
 
 This allows you to set variables in your Terraform configuration in a flexible and dynamic way,
 using data that can be passed in through the `Terraform` object.
+
+<details><summary>Expand to view</summary>
 
 ```hcl {3-6}
 variable "cluster_spec" {
@@ -95,6 +102,7 @@ variable "cluster_spec" {
 ```
 
 ```yaml {17-20}
+---
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
@@ -116,3 +124,5 @@ spec:
       node_count: 10
       public: false
 ```
+
+</details>

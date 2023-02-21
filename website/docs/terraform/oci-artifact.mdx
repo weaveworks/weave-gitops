@@ -21,6 +21,8 @@ flux tag artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short
 To use the OCI artifact as the source for your `Terraform` object,
 you'll need to define an `OCIRepository` and use it as the `spec.sourceRef` of your `Terraform` object:
 
+<details><summary>Expand to view</summary>
+
 ```yaml {5,20-22}
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -47,6 +49,8 @@ spec:
   writeOutputsToSecret:
     name: helloworld-outputs
 ```
+
+</details>
 
 This configuration will use the OCI artifact at `oci://ghcr.io/tf-controller/helloworld` with the `main` tag as the
 source for your `Terraform` object. The object will be reconciled every 1 minute, and will use the "auto-apply" mode to

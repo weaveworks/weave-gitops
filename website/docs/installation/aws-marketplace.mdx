@@ -4,6 +4,9 @@ hide_title: true
 pagination_next: getting-started/ui
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 ## AWS Marketplace
 Weave GitOps is also available via the AWS Marketplace.
 
@@ -20,16 +23,19 @@ To deploy the managed Weave GitOps solution, first subscribe to the product on [
 
 _Note: it may take ~20 minutes for your Subscription to become live and deployable._
 
-### [Optional] Step 2: Create an EKS cluster
+### Step 2: Configure an EKS Cluster
 
-**If you already have an EKS cluster, you can skip ahead to Step 3.**
+<Tabs groupId="cluster-config" default>
+<TabItem value="Create a new EKS Cluster" label="Create a new EKS Cluster">
 
 If you do not have a cluster on EKS, you can use [`eksctl`](https://github.com/weaveworks/eksctl) to create one.
 
 Copy the contents of the sample file below into `cluster-config.yaml` and replace the placeholder values with your settings.
 See the [`eksctl` documentation](https://eksctl.io/) for more configuration options.
 
-```yaml
+<details><summary>Expand for file contents</summary>
+
+```yaml title="cluster-config.yaml"
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -61,16 +67,16 @@ managedNodeGroups:
   desiredCapacity: 1
 ```
 
+</details>
+
 Create the cluster:
 
 ```bash
 eksctl create cluster -f cluster-config.yaml
 ```
 
-### [Optional] Step 3: Update your EKS cluster
-
-**If you created your cluster using the configuration file in Step 2, your cluster is
-already configured correctly and you can skip ahead to Step 4.**
+</TabItem>
+<TabItem value="Use an existing EKS Cluster" label="Use an existing EKS Cluster">
 
 In order to use the Weave GitOps container product,
 your cluster must be configured to run containers with the correct IAM Policies.
@@ -83,7 +89,9 @@ Use this `eksctl` configuration below (replacing the placeholder values) to:
 
 Save the example below as `oidc-config.yaml`
 
-```yaml
+<details><summary>Expand for file contents</summary>
+
+```yaml title="oidc-config.yaml"
 ---
 apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
@@ -106,15 +114,20 @@ iam:
         Action:
         - "aws-marketplace:RegisterUsage"
         Resource: '*'
-
 ```
+
+</details>
 
 ```bash
 eksctl utils associate-iam-oidc-provider -f oidc-config.yaml --approve
 eksctl create iamserviceaccount -f oidc-config.yaml --approve
 ```
 
-### Step 4: Fetch the Service Account Role ARN
+</TabItem>
+</Tabs>
+
+
+### Step 3: Fetch the Service Account Role ARN
 First retrieve the ARN of the IAM role which you created for the `wego-service-account`:
 
 ```bash
@@ -130,7 +143,7 @@ echo $SA_ARN
 _This value will also be discoverable in your IAM console, and in the Outputs of the Cloud Formation
 template which created it._
 
-### Step 5: Install Weave GitOps
+### Step 4: Install Weave GitOps
 
 Copy the Chart URL from the Usage Instructions in AWS Marketplace, or download the file from the Deployment template to your workstation.
 
@@ -146,14 +159,21 @@ gitops:
 
 Then install it:
 
+<Tabs groupId="install-wego" default>
+<TabItem value="sa-default" label="Using the default Service Account Name">
+
 ```console
 helm install wego <URL/PATH> \
   --namespace=flux-system \
   --create-namespace \
   --set serviceAccountRole="$SA_ARN" \
   --values ./values.yaml
+```
 
-# if you changed the name of the service account
+</TabItem>
+<TabItem value="sa-configured" label="Using a configured Service Account Name">
+
+```console
 helm install wego <URL/PATH> \
   --namespace=flux-system \
   --create-namespace \
@@ -162,7 +182,10 @@ helm install wego <URL/PATH> \
   --values ./values.yaml
 ```
 
-### Step 6: Check your installation
+</TabItem>
+</Tabs>
+
+### Step 5: Check your installation
 
 Run the following from your workstation:
 

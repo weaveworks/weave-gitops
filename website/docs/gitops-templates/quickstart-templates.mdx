@@ -19,7 +19,10 @@ github repo.
 To get started, just check the helm release in your weave gitops enterprise configuration repo for your management
 cluster to deploy.
 
+<details><summary>Expand to view</summary>
+
 ```yaml
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
@@ -48,10 +51,11 @@ spec:
   interval: 10m0s
 ```
 
+</details>
+
 Once the helm release has been successfully deployed:
 
 ![quickstart templates deployed](imgs/quickstart-templates-deployed.png)
-
 
 Go to Templates to see them listed:
 

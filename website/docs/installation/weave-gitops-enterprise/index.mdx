@@ -303,16 +303,23 @@ git clone git@<provider>:<username>/fleet-infra
 cd fleet-infra
 ```
 
-Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml` and tweak:
+Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml`.
 
 import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
 import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
+
+<details><summary>Expand to see file contents</summary>
 
 <CurlCodeBlock
   localPath="clusters/management/weave-gitops-enterprise.yaml"
   hostedPath={ExampleWGE}
   content={ExampleWGEContent}
 />
+
+</details>
+
+Once you have copied the above file, open and adjust the following configuration
+options:
 
 #### `values.config.capi.repositoryURL`
 Ensure this has been set to your repository URL.

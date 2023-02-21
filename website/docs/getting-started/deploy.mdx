@@ -79,6 +79,8 @@ To customize a deployment from a repository you don’t control, you can use Flu
 
 1. Add the `patches` section as shown below to the field spec of your `podinfo-kustomization.yaml` file so it looks like this:
 
+	<details><summary>Expand to see Kustomization patches</summary>
+
    ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
    ---
    apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -108,6 +110,8 @@ To customize a deployment from a repository you don’t control, you can use Flu
            kind: HorizontalPodAutoscaler
    // highlight-end
    ```
+
+	 </details>
 
 1. Commit and push the `podinfo-kustomization.yaml` changes:
 

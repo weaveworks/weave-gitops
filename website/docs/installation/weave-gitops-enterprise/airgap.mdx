@@ -78,9 +78,13 @@ You could just use `flux install` to install flux into your kind cluster
 
 We are going to install [ChartMuseum](https://chartmuseum.com/) via flux.
 
-Remember to also install helm plugin [cm-push](https://github.com/chartmuseum/helm-push)
+Remember to also install helm plugin
+[cm-push](https://github.com/chartmuseum/helm-push).
+
+<details><summary>Expand to see installation yaml</summary>
 
 ```yaml
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -116,6 +120,9 @@ spec:
         DISABLE_API: "false"
         AUTH_ANONYMOUS_GET: "true"
 ```
+
+</details>
+
 Setup access from your host.
 
 ```bash
@@ -182,7 +189,9 @@ providers:
     type: "ControlPlaneProvider"
 EOF
 ```
-Execute `make` using the following makefile to intialise capi in your cluster
+Execute `make` using the following makefile to intialise capi in your cluster:
+
+<details><summary>Expand to see Makefile contents</summary>
 
 ```makefile
 .PHONY := capi
@@ -223,7 +232,13 @@ capi-cluster:
 	clusterctl generate cluster --config clusterctl.yaml -i microvm:$(CAPMVM_VERSION) -f cilium lm-demo | kubectl apply -f -
 ```
 
+</details>
+
 #### TF-Controller
+
+Apply the following example manifest to deploy the terraform controller:
+
+<details><summary>Expand to see file contents</summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -258,11 +273,16 @@ spec:
     crds: CreateReplace
 ```
 
+</details>
+
 #### Weave Gitops Enterprise
 
 Update the following manifest to your context.
 
-```yaml
+<details><summary>Expand to see file contents</summary>
+
+```yaml {4-7,19-20}
+---
 apiVersion: v1
 data:
   deploy-key: <changeme>
@@ -354,6 +374,8 @@ spec:
       clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.4.0
 ```
 
+</details>
+
 At this stage you have a local management cluster with Weave Gitops Enterprise installed.
 
 ```bash
@@ -366,17 +388,18 @@ flux-system                         weave-gitops-enterprise-mccp-cluster-service
 flux-system                         weave-gitops-enterprise-pipeline-controller-85b76d95bd-2sw7v      1/1     Running   0             13h
 ...
 ```
-The different helm charts required
+
+You can observe the installed Helm Charts with `kubectl`
 
 ```bash
-➜ kubectl get helmcharts.source.toolkit.fluxcd.io
+kubectl get helmcharts.source.toolkit.fluxcd.io
 NAME                                  CHART           VERSION   SOURCE KIND      SOURCE NAME                      AGE   READY   STATUS
 flux-system-cert-manager              cert-manager    0.0.7     HelmRepository   weaveworks-charts                13h   True    pulled 'cert-manager' chart with version '0.0.7'
 flux-system-tf-controller             tf-controller   0.9.2     HelmRepository   tf-controller                    13h   True    pulled 'tf-controller' chart with version '0.9.2'
 flux-system-weave-gitops-enterprise   mccp            v0.10.2   HelmRepository   weave-gitops-enterprise-charts   13h   True    pulled 'mccp' chart with version '0.10.2'
 ```
 
-And the container images
+As well as the container images
 
 ```bash
 
@@ -398,9 +421,11 @@ ghcr.io/fluxcd/notification-controller:v0.25.2
 ## Collect and publish artifacts
 
 This section guides you to push installed artifacts to your private registry.
-The following Makefile could help you with each of the stages.
+The following Makefile is supplied to help you with each stage.
 
-```makefile
+<details><summary>Expand to see Makefile contents</summary>
+
+```makefile {4-6}
 .PHONY := all
 
 #set these variable with your custom configuration
@@ -427,7 +452,11 @@ pull-charts:
 push-charts:
 	helm cm-push -f $(WGE_CHART) $(PRIVATE_HELM_REPO_NAME)
 ```
-where `image-sync.sh` is similar to
+
+</details>
+
+The `image-sync.sh` referenced in the `images` target of the the above Makefile
+is similar to:
 
 ```shell
 skopeo copy docker://$1 docker://$2/$1 --preserve-digests --multi-arch=all
@@ -461,12 +490,15 @@ enterprise.Now you are ready to install WGE from your private registry.
 Follow the indications to [install wge](https://docs.gitops.weave.works/docs/installation/#installing-weave-gitops-enterprise)
 with the following considerations:
 
-1. Adjust Helm Releases `spec.chart.sourceRef` to tell Flux to pull helm charts from your helm repo.
+1. Adjust Helm Releases `spec.chart.spec.sourceRef` to tell Flux to pull helm charts from your helm repo.
 2. Adjust Helm Releases `spec.values` to use the container images from your private registry.
 
 An example of how it would look like for Weave Gitops Enterprise is shown below.
 
-```yaml
+<details><summary>Expand to view example WGE manifest</summary>
+
+```yaml title="weave-gitops-enterprise.yaml" {21-24,32}
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -528,6 +560,8 @@ spec:
       uiServer: localhost:5001/docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.10.2
       clusterBootstrapController: localhost:5001/weaveworks/cluster-bootstrap-controller:v0.4.0
 ```
+
+</details>
 
 ###  Cluster API
 

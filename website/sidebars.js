@@ -228,6 +228,7 @@ module.exports = {
       label: 'Templates',
       items: [
         'gitops-templates/templates',
+        'gitops-templates/quickstart-templates',
         'gitops-templates/cli',
       ],
     },
