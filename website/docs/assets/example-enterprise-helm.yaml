@@ -23,26 +23,27 @@ spec:
         kind: HelmRepository
         name: weave-gitops-enterprise-charts
         namespace: flux-system
-      version: 0.12.0
+      version: 0.17.0
   install:
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
   interval: 50m
-  values:
+  # -- Configuration
+  # values:
     # -- Configure TLS settings if needed
     # tls:
       # -- Can be disabled if TLS is handled by a user-provided ingress controller
       # enabled: true
       # -- optionally specify a TLS secret
       # secretName: null
-    config:
-      capi:
-        repositoryURL: https://github.com/$GITHUB_USER/fleet-infra
-        # -- Can be changed depending on your git repo structure
+    # -- Can be changed depending on your git repo structure
+    # config:
+      # capi:
         # repositoryPath: ./clusters/management/clusters
         # repositoryClustersPath: ./cluster
-      git:
-        type: github
-        # -- Change if using on-prem github/gitlab
-        # hostname: https://github.com
+
+    # -- Change if using on-prem git hosting, supported: github,gitlab,bitbucket-server
+    # extraEnvVars:
+      # - name: GIT_HOST_TYPES
+      #   value: "git.example.com=gitlab"

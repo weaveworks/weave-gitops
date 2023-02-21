@@ -21,8 +21,24 @@ spec:
       options: ["v1.19.8", "v1.20.7", "v1.21.2"]
     - name: WORKER_MACHINE_COUNT
       description: Number of worker nodes to create.
+  charts:
+    helmRepositoryTemplate:
+      path: ${NAMESPACE}/${CLUSTER_NAME}/helm-repo.yaml
+    items:
+      - chart: cert-manager
+        targetNamespace: cert-manager
+        editable: true
+        version: 0.0.8
+        template:
+          path: ${NAMESPACE}/${CLUSTER_NAME}/cert-manager.yaml
+          content:
+            spec:
+              install:
+                remediation:
+                  retries: 3
   resourcetemplates:
-    - contents:
+    - path: ./clusters/management/clusters/${CLUSTER_NAME}.yaml
+      contents:
         - apiVersion: gitops.weave.works/v1alpha1
           kind: GitopsCluster
           metadata:

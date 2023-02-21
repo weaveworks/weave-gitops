@@ -219,11 +219,10 @@ Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.h
 The application should have at least these scopes:
 
 - `api`
-- `openid`
-- `email`
 - `profile`
+- `read_user`
 
-Add callback URLs to the application for each address the UI will be exposed on, e.g.:
+Add redirect URLs to the application for each address the UI will be exposed on, e.g.:
 
 - `https://localhost:8000/oauth/gitlab` For port-forwarding and testing
 - `https://git.example.com/oauth/gitlab` For production use

@@ -147,13 +147,6 @@ WGE can automatically install profiles onto new clusters
 
 import ProfileRepo from "!!raw-loader!./assets/profiles/profile-repo.yaml";
 
-A profile is an enhanced helm chart. When publishing profiles to helm repositories make sure to include the `weave.works/profile` in `Chart.yaml`. These annotated profiles will appear in WGE
-
-```
-annotations:
-  weave.works/profile: nginx-profile
-```
-
 Download the profile repository below to your config repository path then commit and push. Make sure to update the url to point to a Helm repository containing your profiles.
 
 <BrowserOnly>
