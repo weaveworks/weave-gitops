@@ -31,7 +31,7 @@ func NewRepoURL(uri string) (RepoURL, error) {
 		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
 
-	normalized, err := normalizeRepoURLString(uri)
+	normalized, err := normalizeRepoURLString(uri, providerName)
 	if err != nil {
 		return RepoURL{}, fmt.Errorf("could not normalize repo URL %s: %w", uri, err)
 	}
@@ -129,13 +129,22 @@ func parseGitURL(raw string) (*url.URL, error) {
 // normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into
 // a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
 // user inputs that might be provided.
-func normalizeRepoURLString(url string) (string, error) {
+func normalizeRepoURLString(url string, providerName GitProviderName) (string, error) {
 	// https://github.com/weaveworks/weave-gitops/issues/878
 	// A trailing slash causes problems when naming secrets.
 	url = strings.TrimSuffix(url, "/")
 
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
+	}
+
+	// BitBucket Server HTTP(S) URLs may include an `/scm` path that needs to get stripped
+	if providerName == GitProviderBitBucketServer {
+		var err error
+		url, err = fixBitBucketURL(url)
+		if err != nil {
+			return "", fmt.Errorf("could not fix git repo URL %q: %w", url, err)
+		}
 	}
 
 	u, err := parseGitURL(url)
@@ -167,4 +176,25 @@ func ViperGetStringMapString(key string) map[string]string {
 	}
 
 	return out
+}
+
+func fixBitBucketURL(rawURL string) (string, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return "", err
+	}
+
+	parts := strings.Split(u.Path, "/")
+
+	stripped := make([]string, 0)
+	for _, s := range parts {
+		if s == "scm" {
+			continue
+		}
+		stripped = append(stripped, s)
+	}
+
+	u.Path = strings.Join(stripped, "/")
+
+	return u.String(), nil
 }

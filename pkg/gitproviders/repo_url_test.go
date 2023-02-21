@@ -10,14 +10,16 @@ import (
 
 var _ = DescribeTable("detectGitProviderFromURL", func(input string, expected GitProviderName) {
 	result, err := detectGitProviderFromURL(input, map[string]string{
-		"bitbucket.weave.works": "bitbucket-server",
+		"bitbucket.weave.works":      "bitbucket-server",
+		"bitbucket.weave.works:7999": "bitbucket-server",
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },
 	Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 	Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
-	Entry("https+bitbucket", "https://bitbucket.weave.works/scm/wg/config.git", GitProviderBitBucketServer),
+	Entry("https+bitbucket", "https://bitbucket.weave.works/scm/WG/config.git", GitProviderBitBucketServer),
+	Entry("ssh+bitbucket", "ssh://git@bitbucket.weave.works:7999/WG/config.git", GitProviderBitBucketServer),
 )
 
 var _ = Describe("get owner from url", func() {
@@ -133,7 +135,29 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 			s:        "ssh://git@gitlab.acme.org/sympatheticmoose/podinfo-deploy.git",
 			owner:    "sympatheticmoose",
 			name:     "podinfo-deploy",
-			provider: "gitlab",
+			provider: GitProviderGitLab,
+			protocol: RepositoryURLProtocolSSH,
+		}),
+	Entry(
+		"custom domain + port - bitbucket - project - https",
+		"https://git.acme.org:7990/scm/ABC/config.git",
+		"git.acme.org:7990=bitbucket-server",
+		expectedRepoURL{
+			s:        "ssh://git@git.acme.org:7990/ABC/config.git",
+			owner:    "ABC",
+			name:     "config",
+			provider: GitProviderBitBucketServer,
+			protocol: RepositoryURLProtocolSSH,
+		}),
+	Entry(
+		"custom domain + port - bitbucket - user - https",
+		"https://git.acme.org:7990/scm/~alice/config.git",
+		"git.acme.org:7990=bitbucket-server",
+		expectedRepoURL{
+			s:        "ssh://git@git.acme.org:7990/~alice/config.git",
+			owner:    "~alice",
+			name:     "config",
+			provider: GitProviderBitBucketServer,
 			protocol: RepositoryURLProtocolSSH,
 		}),
 )
