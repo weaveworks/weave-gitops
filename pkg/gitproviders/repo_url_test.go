@@ -136,4 +136,15 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 			provider: "gitlab",
 			protocol: RepositoryURLProtocolSSH,
 		}),
+	Entry(
+		"bitbucket custom domain with port",
+		"https://stash.stashtestserver.link:7990/scm/~someuser/podinfo-deploy.git",
+		"stash.stashtestserver.link:7990=bitbucket",
+		expectedRepoURL{
+			s:        "ssh://git@stash.stashtestserver.link:7990/scm/~someuser/podinfo-deploy.git",
+			owner:    "scm/~someuser",
+			name:     "podinfo-deploy",
+			provider: "bitbucket",
+			protocol: RepositoryURLProtocolSSH,
+		}),
 )
