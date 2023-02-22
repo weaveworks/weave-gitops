@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 	"strings"
 	"time"
 
@@ -52,11 +53,16 @@ func (l *S3LogWriter) putLog(msg string) {
 		}
 	}
 
+	key, err := compositehash.New(msg, now)
+	if err != nil {
+		l.log0.Failuref("failed to create composite hash: %v", err)
+	}
 	result := &pb.LogEntry{
-		Timestamp: now.Format(time.RFC3339),
-		Source:    SessionLogSource,
-		Level:     level,
-		Message:   msg,
+		SortingKey: fmt.Sprintf("%d", key),
+		Timestamp:  now.Format(time.RFC3339),
+		Source:     SessionLogSource,
+		Level:      level,
+		Message:    msg,
 	}
 
 	logData, err := json.Marshal(result)

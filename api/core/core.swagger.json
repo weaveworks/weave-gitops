@@ -965,6 +965,9 @@
         },
         "message": {
           "type": "string"
+        },
+        "sortingKey": {
+          "type": "string"
         }
       }
     },

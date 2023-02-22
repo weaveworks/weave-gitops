@@ -152,6 +152,7 @@ export type LogEntry = {
   source?: string
   level?: string
   message?: string
+  sortingKey?: string
 }
 
 export type GetSessionLogsResponse = {
