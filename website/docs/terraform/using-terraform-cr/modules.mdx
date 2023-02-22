@@ -36,7 +36,9 @@ will be converted to an HCL variable, and passed to the Terraform module.
 
 4. We need to set the `spec.approvePlan` field to `auto` to automatically approve the plan.
 
-```yaml hl_lines="19-25"
+<details><summary>Expand to view</summary>
+
+```yaml {19-26}
 ---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
@@ -62,6 +64,8 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: hello-package-v4.32.0
-  interval: 1h0m
   approvePlan: auto
+  interval: 1h0m
 ```
+
+</details>

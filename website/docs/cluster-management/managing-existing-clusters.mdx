@@ -36,146 +36,155 @@ kubectl create secret generic demo-01-kubeconfig \
 
 1. Create a new service account on the remote cluster:
 
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: demo-01
-  namespace: default
-```
+	```yaml
+	apiVersion: v1
+	kind: ServiceAccount
+	metadata:
+		name: demo-01
+		namespace: default
+	```
 
-2. Add RBAC permissions for the service account
+1. Add RBAC permissions for the service account
 
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: impersonate-user-groups
-subjects:
-  - kind: ServiceAccount
-    name: demo-01
-    namespace: default
-roleRef:
-  kind: ClusterRole
-  name: user-groups-impersonator
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: user-groups-impersonator
-rules:
-  - apiGroups: [""]
-    resources: ["users", "groups"]
-    verbs: ["impersonate"]
-  - apiGroups: [""]
-    resources: ["namespaces"]
-    verbs: ["get", "list"]
-```
+	<details><summary>Expand to see role manifests</summary>
 
-This will allow WGE to introspect the cluster for available namespaces.
+	```yaml
+	---
+	apiVersion: rbac.authorization.k8s.io/v1
+	kind: ClusterRoleBinding
+	metadata:
+		name: impersonate-user-groups
+	subjects:
+		- kind: ServiceAccount
+			name: demo-01
+			namespace: default
+	roleRef:
+		kind: ClusterRole
+		name: user-groups-impersonator
+		apiGroup: rbac.authorization.k8s.io
+	---
+	apiVersion: rbac.authorization.k8s.io/v1
+	kind: ClusterRole
+	metadata:
+		name: user-groups-impersonator
+	rules:
+		- apiGroups: [""]
+			resources: ["users", "groups"]
+			verbs: ["impersonate"]
+		- apiGroups: [""]
+			resources: ["namespaces"]
+			verbs: ["get", "list"]
+	```
 
-Once we know what namespaces are available we can test whether the logged in user can access them via impersonation.
+	</details>
 
-3. Get the token of the service account
+	This will allow WGE to introspect the cluster for available namespaces.
 
-First get the list of secrets of the service accounts by running the following command:
+	Once we know what namespaces are available we can test whether the logged in user can access them via impersonation.
 
-```sh
-kubectl get secrets --field-selector type=kubernetes.io/service-account-token
-NAME                      TYPE                                  DATA   AGE
-default-token-lsjz4       kubernetes.io/service-account-token   3      13d
-demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
-```
+1. Get the token of the service account
 
-`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account
+	First get the list of secrets of the service accounts by running the following command:
 
-To get the token of the service account run the following command:
+	```sh
+	kubectl get secrets --field-selector type=kubernetes.io/service-account-token
+	NAME                      TYPE                                  DATA   AGE
+	default-token-lsjz4       kubernetes.io/service-account-token   3      13d
+	demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
+	```
 
-```sh
-TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
-```
+	`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account
 
-4. Create a kubeconfig secret
+	To get the token of the service account run the following command:
 
-We'll use a helper script to generate the kubeconfig, save this into `static-kubeconfig.sh`:
+	```sh
+	TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
+	```
 
-```bash title="static-kubeconfig.sh"
-#!/bin/bash
+1. Create a kubeconfig secret
 
-if [[ -z "$CLUSTER_NAME" ]]; then
-    echo "Ensure CLUSTER_NAME has been set"
-    exit 1
-fi
+	We'll use a helper script to generate the kubeconfig, save this into `static-kubeconfig.sh`:
 
-if [[ -z "$CA_CERTIFICATE" ]]; then
-    echo "Ensure CA_CERTIFICATE has been set to the path of the CA certificate"
-    exit 1
-fi
+	<details><summary>Expand to see script</summary>
 
-if [[ -z "$ENDPOINT" ]]; then
-    echo "Ensure ENDPOINT has been set"
-    exit 1
-fi
+	```bash title="static-kubeconfig.sh"
+	#!/bin/bash
 
-if [[ -z "$TOKEN" ]]; then
-    echo "Ensure TOKEN has been set"
-    exit 1
-fi
+	if [[ -z "$CLUSTER_NAME" ]]; then
+			echo "Ensure CLUSTER_NAME has been set"
+			exit 1
+	fi
 
-export CLUSTER_CA_CERTIFICATE=$(cat "$CA_CERTIFICATE" | base64)
+	if [[ -z "$CA_CERTIFICATE" ]]; then
+			echo "Ensure CA_CERTIFICATE has been set to the path of the CA certificate"
+			exit 1
+	fi
 
-envsubst <<EOF
-apiVersion: v1
-kind: Config
-clusters:
-- name: $CLUSTER_NAME
-  cluster:
-    server: https://$ENDPOINT
-    certificate-authority-data: $CLUSTER_CA_CERTIFICATE
-users:
-- name: $CLUSTER_NAME
-  user:
-    token: $TOKEN
-contexts:
-- name: $CLUSTER_NAME
-  context:
-    cluster: $CLUSTER_NAME
-    user: $CLUSTER_NAME
-current-context: $CLUSTER_NAME
+	if [[ -z "$ENDPOINT" ]]; then
+			echo "Ensure ENDPOINT has been set"
+			exit 1
+	fi
 
-EOF
-```
+	if [[ -z "$TOKEN" ]]; then
+			echo "Ensure TOKEN has been set"
+			exit 1
+	fi
 
-For the next step, the cluster certificate (CA) is needed. How you get hold of the certificate depends on the cluster. For GKE you can view it on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You will need to copy the contents of the certificate into the `ca.crt` file used below.
+	export CLUSTER_CA_CERTIFICATE=$(cat "$CA_CERTIFICATE" | base64)
 
-```sh
-CLUSTER_NAME=demo-01 \
-CA_CERTIFICATE=ca.crt \
-ENDPOINT=<control-plane-ip-address> \
-TOKEN=<token> ./static-kubeconfig.sh > demo-01-kubeconfig
-```
+	envsubst <<EOF
+	apiVersion: v1
+	kind: Config
+	clusters:
+	- name: $CLUSTER_NAME
+		cluster:
+			server: https://$ENDPOINT
+			certificate-authority-data: $CLUSTER_CA_CERTIFICATE
+	users:
+	- name: $CLUSTER_NAME
+		user:
+			token: $TOKEN
+	contexts:
+	- name: $CLUSTER_NAME
+		context:
+			cluster: $CLUSTER_NAME
+			user: $CLUSTER_NAME
+	current-context: $CLUSTER_NAME
 
-Replace the following:
+	EOF
+	```
 
-- CLUSTER_NAME: the name of your cluster i.e. `demo-01`
-- ENDPOINT: the API server endpoint i.e. `34.218.72.31`
-- CA_CERTIFICATE: path to the CA certificate file of the cluster
-- TOKEN: the token of the service account retrieved in the previous step
+	</details>
 
-Finally create a secret for the generated kubeconfig:
+	For the next step, the cluster certificate (CA) is needed. How you get hold of the certificate depends on the cluster. For GKE you can view it on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You will need to copy the contents of the certificate into the `ca.crt` file used below.
 
-```sh
-kubectl create secret generic demo-01-kubeconfig \
---from-file=value=./demo-01-kubeconfig
-```
+	```sh
+	CLUSTER_NAME=demo-01 \
+	CA_CERTIFICATE=ca.crt \
+	ENDPOINT=<control-plane-ip-address> \
+	TOKEN=<token> ./static-kubeconfig.sh > demo-01-kubeconfig
+	```
+
+	Replace the following:
+
+	- CLUSTER_NAME: the name of your cluster i.e. `demo-01`
+	- ENDPOINT: the API server endpoint i.e. `34.218.72.31`
+	- CA_CERTIFICATE: path to the CA certificate file of the cluster
+	- TOKEN: the token of the service account retrieved in the previous step
+
+	Finally create a secret for the generated kubeconfig:
+
+	```sh
+	kubectl create secret generic demo-01-kubeconfig \
+	--from-file=value=./demo-01-kubeconfig
+	```
 
 </TabItem>
 </Tabs>
 
 ### Connect a cluster
 
-:::note Get started first!
+:::tip Before you start!
 
 Make sure you've
 
@@ -228,7 +237,10 @@ Once flux has reconciled the cluster you can inspect your flux resources via the
 
 To test a kubeconfig secret has been correctly setup apply the following manifest and check the logs after the job completes:
 
+<details><summary>Expand to see manifest</summary>
+
 ```yaml
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -261,7 +273,9 @@ spec:
             optional: false
 ```
 
-In the manifest above `demo-01-kubeconfig`is the name of the secret that contains the kubeconfig for the remote cluster.
+</details>
+
+In the manifest above `demo-01-kubeconfig` is the name of the secret that contains the kubeconfig for the remote cluster.
 
 ---
 

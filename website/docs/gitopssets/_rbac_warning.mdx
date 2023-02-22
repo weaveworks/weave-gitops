@@ -14,6 +14,8 @@ for each `GitOpsSet` that has the required permissions for creating the rendered
 
 Additional RBAC for the `gitopssets-controller-manager` service account:
 
+<details><summary>Expand to see SA resources</summary>
+
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -46,5 +48,7 @@ subjects:
   name: gitopssets-controller-manager
   namespace: flux-system
 ```
+
+</details>
 
 :::

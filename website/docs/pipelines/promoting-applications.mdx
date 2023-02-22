@@ -12,7 +12,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 Pipelines allow you to configure automatic promotions of applications through a consecutive set of environments, e.g. from dev to staging to production. The environments are defined in the `Pipeline` resource itself so that each pipeline governs a single application and all the environments to which it is deployed.
 
-:::note
+:::info
 At the moment only applications defined as Flux `HelmReleases` are supported in automatic promotions.
 :::
 
@@ -67,6 +67,7 @@ Once the webhook service is exposed over HTTP/S, you need to create alert/provid
 Successful promotion events are triggered by Flux's [notification controller](https://fluxcd.io/flux/components/notification/). You create a Provider pointing to the promotion webhook exposed earlier and an Alert targeting the app's HelmRelease:
 
 ```yaml
+---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
 kind: Provider
 metadata:
@@ -102,9 +103,9 @@ Weave GitOps Enterprise can then parse the incoming URL path to identify the pip
 An example Alert might look like this:
 
 ```yaml
+---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
 kind: Alert
-[...]
 spec:
   eventSeverity: info
   eventSources:
@@ -118,8 +119,9 @@ spec:
     name: promotion-my-app
 ```
 
-:::note
-Be aware to create the Provider/Alert tuple on each of the leaf clusters targeted by a pipeline.
+:::tip
+Be sure to create the Provider/Alert tuple on **each of the leaf clusters
+targeted by a pipeline**.
 :::
 
 Now as soon as the `HelmRelease` on the first environment defined in the pipeline is bumped (e.g. by Flux discovering a new version in the Helm repository), an event is sent to the promotion webhook which will determine the next action based on the pipeline definition and chosen strategy. The rest of this guide describes how to setup up any of the available strategies depending on your requirements. 
@@ -148,7 +150,6 @@ promotion:
       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
       secretRef:
         name: "gitlab-promotion-credentials"
-
 ```
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
@@ -171,6 +172,7 @@ $ kubectl create secret generic promotion-credentials \
 ```
 
 ```yaml
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -184,7 +186,7 @@ data:
 type: Opaque
 ```
 
-:::note
+:::tip
 The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
@@ -200,14 +202,14 @@ The field `.spec.promotion.strategy.pull-request` defines details about the Git 
 
 The discovery of the version field is done using deterministic markers in a YAML manifest file. An example `HelmRelease` manifest with such a marker looks like this:
 
-```yaml
+```yaml {7}
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 spec:
   chart:
     spec:
       version: 0.13.7 # {"$promotion": "pipeline-01:my-app:prod"}
-[...]
 ```
 
 The value of the `$promotion` field in the comment is comprised of 3 components separated by colons:
@@ -225,6 +227,7 @@ This section explains how to configure pipelines to work with external CI system
 This strategy uses the notification controller running on the management cluster, to forward any notifications received by the promotion webhook, from leaf clusters to external CI systems. This requires to [patch](https://fluxcd.io/flux/cheatsheets/bootstrap/#enable-notifications-for-third-party-controllers) the Flux manifests of the management cluster, in order to allow objects of type `Pipeline` to be used as event sources. An example of a patch applied to enable this is shown below: 
 
 ```yaml
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -242,6 +245,7 @@ patches:
 
 You can now create Provider/Alert resources on the management cluster to forward notifications to external systems. For example, the Provider resource shown below is used to invoke a GitHub Actions workflow on a repository: 
 ```yaml
+---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
 kind: Provider
 metadata:
@@ -256,6 +260,7 @@ spec:
 To use this Provider, add an Alert that uses the pipeline resource defined on the management cluster as an event source. An example of such an Alert is shown below:
 
 ```yaml
+---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
 kind: Alert
 metadata:
@@ -272,14 +277,14 @@ spec:
 
 The notification controller running on the management cluster is now configured to forward any promotion notifications received from leaf clusters. To actually use this strategy from a pipeline, set the promotion field as shown below:
 
-```yaml
+```yaml {8-9}
+---
 apiVersion: pipelines.weave.works/v1alpha1
 kind: Pipeline
 metadata:
   name: my-app
   namespace: my-app-ns
 spec:
-[...]
   promotion:
     notification: {}
 ```

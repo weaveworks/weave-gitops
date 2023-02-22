@@ -28,7 +28,10 @@ To make use of the policy features, [policy agent](/policy/intro.mdx) needs to b
 
 Below is an example of a tenancy file:
 
+<details><summary>Expand to view</summary>
+
 ```yaml title="tenancy.yaml"
+---
 tenants:
   - name: first-tenant
     namespaces:
@@ -78,6 +81,8 @@ tenants:
 serviceAccount:
   name: "reconcilerServiceAccount"
 ```
+
+</details>
 
 The file above defines two tenants: `first-tenant` and `second-tenant` as follows:
 

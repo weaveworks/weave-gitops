@@ -82,7 +82,18 @@ directory.
 
 To control where the Linkerd components get installed, we need to add a Namespace resource:
 
+Now let's add the resources for Linkerd components under the `./linkerd`
+directory. These are:
+- A `Namespace` resource to control where the components are installed
+- A `HelmRepository` resource to make the Linkerd helm repo available on the
+	cluster
+- A `HelmRelease` resource to install the latest version of Linkerd from that
+	`HelmRepository`
+
+<details><summary>Expand to see the Linkerd manifests</summary>
+
 ```yaml title="linkerd/namespace.yaml"
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -91,10 +102,8 @@ metadata:
     config.linkerd.io/admission-webhooks: disabled
 ```
 
-Make the Linkerd Helm repository available in the cluster, by adding the following `HelmRepository`
-manifest:
-
 ```yaml title="linkerd/source.yaml"
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -104,9 +113,14 @@ spec:
   url: https://helm.linkerd.io/stable
 ```
 
-Then, to install the latest version of Linkerd, add the following `HelmRelease` manifests:
+:::tip
+The value for the `spec.values.identity.issuer.crtExpiry` field below depends on the parameter value
+used during the creation of the issuer certificate previously. In this example, it should be set to
+1 year from the certificate creation.
+:::
 
-```yaml title="linkerd/releases.yaml"
+```yaml title="linkerd/releases.yaml" {35}
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -160,12 +174,13 @@ spec:
         name: linkerd
 ```
 
-The value for the `spec.values.identity.issuer.crtExpiry` field above depends on the parameter value
-used during the creation of the issuer certificate previously. In this example, it should be set to
-1 year from the certificate creation.
+</details>
 
-Then, add the following file to instruct Kustomize to patch any `Secrets` that are referenced in
-`HelmRelease` manifests:
+Next, add the following file to instruct Kustomize to patch any `Secrets` that are referenced in
+`HelmRelease` manifests, and add a `Kustomization` which references all the
+other `linkerd` resource files.
+
+<details><summary>Expand to see the linkerd Kustomization manifests</summary>
 
 ```yaml title="linkerd/kustomizeconfig.yaml"
 nameReference:
@@ -176,10 +191,8 @@ nameReference:
         kind: HelmRelease
 ```
 
-Finally, add the following Kustomization file that references all the previous files that were
-added:
-
 ```yaml title="linkerd/kustomization.yaml"
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: linkerd
@@ -197,9 +210,13 @@ secretGenerator:
       - issuer.key
 ```
 
-The `secretGenerator` is used to generate Secrets from the generated files. 
+:::tip
+The `secretGenerator` is used to generate Secrets from the generated files.
+:::
 
-The `linkerd` directory in the cluster repository should look like this:
+</details>
+
+At this point `linkerd` directory in the cluster repository should look like this:
 
 ```bash
 > tree linkerd
@@ -214,7 +231,7 @@ linkerd
 └── source.yaml
 ```
 
-Once Flux reconciles this directory to the cluster, Linkerd should get installed.
+Once Flux reconciles this directory to the cluster, Linkerd should be installed.
 
 Before proceeding to the next step, check that all the Linkerd pods have started successfully:
 
@@ -235,7 +252,7 @@ tap-injector-54895654bb-9xn7k   2/2     Running   0          10m
 web-6b6f65dbc7-wltdg            2/2     Running   0          10m
 ```
 
-:::note 
+:::info Note
 Make sure that any new directories that you add to the cluster repository as part of this guide, 
 are included in a path that Flux reconciles.
 :::
@@ -248,19 +265,27 @@ provide a default namespace for the installed resources.
 
 Create a new `flagger` directory and make sure it is under a repository path that Flux reconciles. 
 
-Then, add a Namespace resource for Flagger:
+We'll add the resources for Flagger under this directory.
+These are:
+- A `Namespace` resource to control where the components are installed
+- A `HelmRepository` resource to make the Flagger helm repo available on the
+	cluster
+- A `HelmRelease` resource to install the latest version of Flagger and the load
+	tester app, which is used to generate from that synthetic traffic during the
+	analysis phase, from that `HelmRepository`
+
+<details><summary>Expand to see the Flagger resource manifests</summary>
 
 ```yaml title="flagger/namespace.yaml"
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: flagger
 ```
 
-Then, to make the Flagger Helm repository available in the cluster, add the following
-`HelmRepository` manifest:
-
 ```yaml title="flagger/source.yaml"
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -270,10 +295,8 @@ spec:
   url: https://flagger.app
 ```
 
-Then, to install the latest version of Flagger and the load tester app, which is used to generate
-synthetic traffic during the analysis phase, add the following `HelmRelease` manifests:
-
 ```yaml title="flagger/releases.yaml"
+---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -311,10 +334,15 @@ spec:
         name: flagger
 ```
 
+</details>
+
 Finally,  add the following Kustomization file that references all the previous files that were
 added:
 
+<details><summary>Expand to see the Flagger Kustomization manifest</summary>
+
 ```yaml title="flagger/kustomization.yaml"
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: flagger
@@ -323,6 +351,8 @@ resources:
 - source.yaml
 - releases.yaml
 ```
+
+</details>
 
 The `flagger` directory in the cluster repository should look like this:
 
@@ -360,9 +390,18 @@ primary), and gradually increase traffic to the new version in increments of 5%,
 average request duration. Based on this analysis, Flagger will either update the primary to the new
 version, or abandon the promotion; then scale the canary back down to zero.
 
-Add a Namespace resource:
+Create a new `test` directory and add the following Canary resources under it:
+- A `Namespace` resource to control where the components are installed
+- A `Deployment` and `HorizontalPodAutoscaler` for the `podinfo` application
+- A `Canary` resource which references the `Deployment` and
+	`HorizontalPodAutoscaler` resources (note that we do not need to define a
+	service resource, instead this is specified within the Canary definition and
+	created by Flagger)
+
+<details><summary>Expand to see the Canary resource manifests</summary>
 
 ```yaml title="test/namespace.yaml"
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -371,10 +410,8 @@ metadata:
     linkerd.io/inject: enabled
 ```
 
-Then, add a Deployment resource and a HorizontalPodAutoscaler resource for the `podinfo`
-application:
-
 ```yaml title="test/deployment.yaml"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -475,11 +512,8 @@ spec:
           averageUtilization: 99
 ```
 
-Then, add a Canary resource that references the Deployment and HorizontalPodAutoscaler resources,
-note that we have not needed to define a service resource above, instead this is specified within
-the Canary definition and created by Flagger:
-
 ```yaml title="test/canary.yaml"
+---
 apiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
@@ -544,9 +578,14 @@ spec:
           cmd: "hey -z 2m -q 10 -c 2 http://podinfo-canary.test:9898/"
 ```
 
+</details>
+
 Finally, add a Kustomization file to apply all resources to the `test` namespace:
 
+<details><summary>Expand to see the Canary Kustomization manifest</summary>
+
 ```yaml title="test/kustomization.yaml"
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: test
@@ -554,6 +593,19 @@ resources:
 - namespace.yaml
 - deployment.yaml
 - canary.yaml
+```
+
+</details>
+
+At this point `test` directory in the cluster repository should look like this:
+
+```bash
+> tree test
+test
+├── canary.yaml
+├── deployment.yaml
+├── kustomization.yaml
+└── namespace.yaml
 ```
 
 After a short time, the status of the canary object should be set to `Initialized`:

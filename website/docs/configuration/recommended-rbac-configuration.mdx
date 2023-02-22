@@ -74,6 +74,9 @@ cluster client (and vice versa).
 ### Code
 
 The yaml to configure these permissions would look roughly like:
+
+<details><summary>Expand to see example RBAC</summary>
+
 ```yaml
 # Admin cluster role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -171,3 +174,5 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 ```
+
+</details>
