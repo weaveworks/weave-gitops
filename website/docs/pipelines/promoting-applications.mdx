@@ -176,9 +176,9 @@ In the journey of creating a pull request, there are different secrets involved:
 2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo via https or ssh. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
 3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) to create to interact with pipelines git provider API.
 
-The previous secrets are kept in a kubernetes Secret that we would call it promotion credentials.
+Create a Kubernetes secret with the previous data.
 
-To create the secret via `kubectl`:
+<details><summary>Expand to see example</summary>
 
 ```shell
 # example to use git over https with basic auth and pat
@@ -209,6 +209,16 @@ type: Opaque
 - The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`).
 - The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
+
+</details>
+
+### Define promotion in pipeline resource
+
+The field `.spec.promotion.strategy.pull-request` defines details about the Git repository used for promoting the given app.
+Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the
+Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`).
+If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.strategy.secretRef.name` to the name of the Secret created previously.
+
 
 ### Security Recommendations
 
@@ -298,9 +308,6 @@ In addition, tokens have an expiration date (so requires rotation) and could hav
 - [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 - [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
 
-### Define promotion in pipeline resource
-
-The field `.spec.promotion.strategy.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`). If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.strategy.secretRef.name` to the name of the Secret created previously.
 
 ### Add markers to app manifests
 
