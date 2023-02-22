@@ -257,12 +257,18 @@ subjects:
 </details>
 
 3. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
+![create token witih expiration](img/create-token-with-expiration.png)
 
 4. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
-For example, if using GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/). Using classic tokens
-would allow the token access to any repository that the user has permission too, increasing the exposed surface.
+For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
+allow access to the single repo that your configuration manifests exist.
+
+![create token least priviledge](img/fine-grained-token.png)
 
 5. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
+For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
+
+![review tokens](img/manage-fine-grained.jpg)
 
 6. **Reduce number of secrets to maintain**: Whenever ends in a more secure setup, favor git over https with tokens instead of ssh and deploy keys. Given that a token
 is required for git provider api operations, to use git over ssh would require to secure and manage the deploy keys, as well as the token.
@@ -276,7 +282,7 @@ See the following examples to help you to create minimal access credentials.
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
-Github allows to create fine-grained access tokens that improves the security context provided by classic access tokens.
+Github allows to create [fine-grained access tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) that improves the security context provided by classic access tokens.
 It allows to restrict to a single repository the access the token has access to. It also allows more granular
 scopes.
 
