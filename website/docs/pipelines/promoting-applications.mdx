@@ -4,11 +4,16 @@ hide_title: true
 ---
 
 import TierLabel from "./../_components/TierLabel";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-import CodeBlock from "@theme/CodeBlock";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
 
 # Promoting applications through pipeline environments <TierLabel tiers="Enterprise" />
+
+
+<AlphaWarning/>
 
 Pipelines allow you to configure automatic promotions of applications through a consecutive set of environments, e.g. from dev to staging to production. The environments are defined in the `Pipeline` resource itself so that each pipeline governs a single application and all the environments to which it is deployed.
 
@@ -134,6 +139,12 @@ is upgraded in one of the pipeline's environments, a PR is created that updates 
 The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files,
 how to authenticate with the repository and the Git provider API, and which file hosts the version definition for each environment.
 
+:::caution
+
+Creating pull requests requires read and write access in your git configuration repo.
+Adopt [security recommendations](./#security) before using the feature.
+:::
+
 ### Supported Git Providers
 The following Git providers are currently support by this promotion strategy:
 
@@ -154,7 +165,7 @@ promotion:
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
-### Credentials secret
+### Credentials Secret
 
 In the journey of creating a pull request, there are different secrets involved:
 
@@ -164,9 +175,6 @@ In the journey of creating a pull request, there are different secrets involved:
 
 The previous secrets are kept in a kubernetes Secret that we would call it promotion credentials.
 
-:::caution
-Make sure that you understand and adopt as much of the [secret recommendations](./#promotion-credentials-recommendations) before creating it.
-:::
 
 To create the secret via `kubectl`:
 
@@ -200,66 +208,81 @@ type: Opaque
 - The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
-#### Promotion credentials recommendations
+### Security Recommendations
 
-//TODO see other system that create pull request, its recommendations
+:::caution
 
-1. Do not use user accounts but service or bot accounts. User context from the credentials would be used to do any git provider operation and for
+Ensure you adopt the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
+:::
+
+1. **Do not use user accounts**: use service or bot accounts. User context from the credentials would be used to do any git provider operation and for
 security and auditing perspective you don't want your user context be used in machine operations.
 
 //TODO: add example
 
-2. The promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
-via RBAC that only the service account for pipeline controller is able to read it.
+2. **Restrict access to the secret**: the promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
+via RBAC that only `pipeline-controller` service account is able to read it.
+
+<details><summary>Expand to see example</summary>
 
 ```yaml
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-    name: <my-pipeline-pull-request>
-    namespace: <my-pipeline-namespace>
+  name: read-app-promotion-credentials
+  namespace: app
 rules:
   - apiGroups:
-       - ""
+      - ""
     resourceNames:
-      - <my-pipeline-secret>
+      - "app-promotion-credentials"
     resources:
-      - secrets
+      - "secrets"
     verbs:
-      - get
+      - "get"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-    name: pipeline-controller-<my-pipeline-pull-request>
-    namespace: <my-pipeline-namespace>
+  name: pipeline-controller-read-app-promotion-credentials
+  namespace: app
 roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: Role
-    name: <my-pipeline-pull-request>
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-app-promotion-credentials
 subjects:
   - kind: ServiceAccount
     name: pipeline-controller
     namespace: pipeline-system
 ```
+</details>
 
-3. Treat your tokens like passwords and keep them secured. Ensure that they expire, and you rotate them to reduce
-the risks associated in case of being compromised.
+3. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
 
-4. Stick to the least privilege principle avoiding having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
-For example, if using GitHub, [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) over classic or coarse-grained.
-//TODO: add example of the creation of the token with minimum permissions
+4. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
+For example, if using GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/). Using classic tokens
+would allow the token access to any repository that the user has permission too, increasing the exposed surface.
 
-5. Review all currently active access tokens of all types on a regular basis and revoke any that are no longer needed.
+5. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
 
-6. Whenever ends in a more secure setup, favor git over https with tokens instead of ssh and deploy keys. Given that a token
+6. **Reduce number of secrets to maintain**: Whenever ends in a more secure setup, favor git over https with tokens instead of ssh and deploy keys. Given that a token
 is required for git provider api operations, to use git over ssh would require to secure and manage the deploy keys, as well as the token.
 In addition, tokens have an expiration date (so requires rotation) and could have finer access control (to just allow the pipeline repo).
 
-7. Last, ensure that you stick to the best practices of your git provider
+7. **Review git provider recommendations**
   - [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
   - [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
 
+
+<Tabs groupId="git-provider" default>
+<TabItem value="github" label="GitHub">
+        Example of how to generate git secrets for github with minimal requirements
+</TabItem>
+<TabItem value="gitlab" label="GitLab">
+    Example of how to generate git secrets for gitlab with minimal requirements
+</TabItem>
+</Tabs>
 
 ### Define promotion in pipeline resource
 
