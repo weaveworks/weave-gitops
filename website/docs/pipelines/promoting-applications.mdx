@@ -141,8 +141,11 @@ how to authenticate with the repository and the Git provider API, and which file
 
 :::caution
 
-Creating pull requests requires read and write access in your git configuration repo.
-Adopt [security recommendations](./#security) before using the feature.
+Creating pull requests requires read and write access in your git repo.
+A compromised token could lead to changing the git repository and creation of legitimate looking changes/pull requests.
+
+Ensure you understand and adopt [security recommendations](./#security-recommendations) before using the feature.
+
 :::
 
 ### Supported Git Providers
@@ -169,12 +172,11 @@ More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
 In the journey of creating a pull request, there are different secrets involved:
 
-1. Pipeline controller receives events via webhook from leaf clusters. Hmac is used for authN/authZ so a hmac key should be provided in this case.
+1. Pipeline controller receives events via [webhook from leaf clusters](./#setup-notifications-from-leaf-clusters). Hmac is used for authN/authZ so a hmac key should be provided in this case.
 2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo via https or ssh. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
 3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) to create to interact with pipelines git provider API.
 
 The previous secrets are kept in a kubernetes Secret that we would call it promotion credentials.
-
 
 To create the secret via `kubectl`:
 
@@ -210,9 +212,10 @@ type: Opaque
 
 ### Security Recommendations
 
-:::caution
+:::tip
 
-Ensure you adopt the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
+Adopt as much of the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
+
 :::
 
 1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
