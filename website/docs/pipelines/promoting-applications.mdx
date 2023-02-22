@@ -292,28 +292,8 @@ is required for git provider api operations, to use git over ssh would require t
 In addition, tokens have an expiration date (so requires rotation) and could have finer access control (to just allow the pipeline repo).
 
 7. **Review git provider recommendations and examples**
-
-See the following examples to help you to create minimal access credentials.
-
-<details><summary>Expand to see examples</summary>
-
-<Tabs groupId="git-provider" default>
-<TabItem value="github" label="GitHub">
-Github allows to create [fine-grained access tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) that improves the security context provided by classic access tokens.
-It allows to restrict to a single repository the access the token has access to. It also allows more granular
-scopes.
-
-In order to create a token for your application,
-
-1. Use your service account or bot account.
-2. Follow [create fine grained token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-fine-grained-personal-access-token)
-2. Set Repository Access to only your configuration repo.
-3. Set Permissions to read and write for [Contents](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#contents)
-    and [Pull Requests](https://docs.github.com/en/rest/overview/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#pull-requests)
-
-</TabItem>
-</Tabs>
-</details>
+- [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+- [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
 
 ### Define promotion in pipeline resource
 
