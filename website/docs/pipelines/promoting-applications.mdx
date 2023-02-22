@@ -215,8 +215,8 @@ type: Opaque
 Ensure you adopt the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
 :::
 
-1. **Do not use user accounts**: use service or bot accounts. User context from the credentials would be used to do any git provider operation and for
-security and auditing perspective you don't want your user context be used in machine operations.
+1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
+and for security and auditing perspective, you don't want to impersonate a real user for it.
 
 <details><summary>Expand to see example</summary>
 
