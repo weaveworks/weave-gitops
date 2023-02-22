@@ -218,6 +218,8 @@ Ensure you adopt the recommendations in this section to reduce the risks associa
 1. **Do not use user accounts**: use service or bot accounts. User context from the credentials would be used to do any git provider operation and for
 security and auditing perspective you don't want your user context be used in machine operations.
 
+![using bot account](img/bot-account.png)
+
 2. **Restrict access to the secret**: the promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
 via RBAC that only `pipeline-controller` service account is able to read it.
 
@@ -268,7 +270,7 @@ allow access to the single repo that your configuration manifests exist.
 5. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
 For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
 
-![review tokens](img/manage-fine-grained.jpg)
+![review tokens](img/manage-fine-grained.png)
 
 6. **Reduce number of secrets to maintain**: Whenever ends in a more secure setup, favor git over https with tokens instead of ssh and deploy keys. Given that a token
 is required for git provider api operations, to use git over ssh would require to secure and manage the deploy keys, as well as the token.
