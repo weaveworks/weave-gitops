@@ -475,7 +475,27 @@ describe("objects lib", () => {
       expect(obj.images).toEqual([]);
     });
 
-    it("should return an empty array if some object has a non-iterable containers", () => {
+    describe.each([
+      [{ template: { spec: { containers: null } } }],
+      [{ template: { spec: { containers: "always" } } }],
+      [{ template: { spec: { containers: [true] } } }],
+      [{ template: { spec: { containers: [{}] } } }],
+      [{ template: { spec: { containers: {} } } }],
+      [{ template: { spec: { containers: { foo: "bar" } } } }],
+      [{ template: { spec: { containers: [{ image: false }] } } }],
+      [{ template: { spec: { containers: [{ image: ["foo"] }] } } }],
+    ])(`should return an empty array for funny inputs`, (spec) => {
+      it(`should return an empty array for ${JSON.stringify(spec)}`, () => {
+        const obj = new FluxObject({
+          payload: JSON.stringify({
+            spec,
+          }),
+        });
+        expect(obj.images).toEqual([]);
+      });
+    });
+
+    it("should return an empty array for funny inputs", () => {
       const obj = new FluxObject({
         payload: JSON.stringify({
           spec: { template: { spec: { containers: null } } },
