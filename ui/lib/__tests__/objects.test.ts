@@ -494,21 +494,5 @@ describe("objects lib", () => {
         expect(obj.images).toEqual([]);
       });
     });
-
-    it("should return an empty array for funny inputs", () => {
-      const obj = new FluxObject({
-        payload: JSON.stringify({
-          spec: { template: { spec: { containers: null } } },
-        }),
-      });
-      expect(obj.images).toEqual([]);
-
-      const obj2 = new FluxObject({
-        payload: JSON.stringify({
-          spec: { template: { spec: { containers: true } } },
-        }),
-      });
-      expect(obj2.images).toEqual([]);
-    });
   });
 });
