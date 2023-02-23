@@ -55,7 +55,7 @@ export const createCoreMockClient = (
 export function withTheme(element) {
   return (
     <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme}>{element}</ThemeProvider>
+      <ThemeProvider theme={theme("light")}>{element}</ThemeProvider>
     </MuiThemeProvider>
   );
 }
