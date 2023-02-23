@@ -65,6 +65,10 @@ message NamespacedObjectReference {
     string namespace = 2;
 }
 
+message InventoryEntry {
+    string payload = 1;
+}
+
 message Object {
     string   payload                    = 1;
     string   clusterName                = 2;

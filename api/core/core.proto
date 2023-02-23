@@ -163,7 +163,25 @@ service Core {
             get : "/v1/crd/is_available",
         };
     }
+
+    rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
+        option (google.api.http) = {
+            get : "/v1/inventory",
+        };
+    }
 }
+
+message GetInventoryRequest {
+    string kind = 1;
+    string name = 2;
+    string namespace = 3;
+    string clusterName = 4;
+}
+
+message GetInventoryResponse {
+    repeated InventoryEntry entries = 1;
+}
+
 
 message Pagination {
     int32 pageSize = 1;

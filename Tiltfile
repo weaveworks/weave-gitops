@@ -35,7 +35,7 @@ if advanced_go_dev_mode:
                 './ui',
             ]
         )
-    
+
     docker_build_with_restart(
         image_repository,
         '.',

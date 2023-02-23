@@ -18,39 +18,54 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
+	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
+	//
 	// ListObjects gets data about primary objects.
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
+	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
+	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
+	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
+	//
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
+	//
 	// ListEvents returns with a list of events
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
+	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
+	//
 	// GetVersion returns version information about the server
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
+	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
+	//
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
+	//
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
+	//
 	// IsCRDAvailable returns with a hashmap where the keys are the names of
 	// the clusters, and the value is a boolean indicating whether given CRD is
 	// installed or not on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
+	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
 }
 
 type coreClient struct {
@@ -196,43 +211,67 @@ func (c *coreClient) IsCRDAvailable(ctx context.Context, in *IsCRDAvailableReque
 	return out, nil
 }
 
+func (c *coreClient) GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error) {
+	out := new(GetInventoryResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetInventory", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
 type CoreServer interface {
+	//
 	// GetObject gets data about a single primary object from a cluster.
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
+	//
 	// ListObjects gets data about primary objects.
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
+	//
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
+	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	//
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
+	//
 	// GetFluxNamespace returns with a namespace with a specific label.
 	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
+	//
 	// ListNamespaces returns with the list of available namespaces.
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
+	//
 	// ListEvents returns with a list of events
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
+	//
 	// SyncResource forces a reconciliation of a Flux resource
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
+	//
 	// GetVersion returns version information about the server
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
+	//
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
+	//
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
+	//
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
+	//
 	// IsCRDAvailable returns with a hashmap where the keys are the names of
 	// the clusters, and the value is a boolean indicating whether given CRD is
 	// installed or not on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
+	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -284,6 +323,9 @@ func (UnimplementedCoreServer) GetSessionLogs(context.Context, *GetSessionLogsRe
 }
 func (UnimplementedCoreServer) IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsCRDAvailable not implemented")
+}
+func (UnimplementedCoreServer) GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInventory not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -568,6 +610,24 @@ func _Core_IsCRDAvailable_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_GetInventory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetInventory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetInventory",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetInventory(ctx, req.(*GetInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -634,6 +694,10 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsCRDAvailable",
 			Handler:    _Core_IsCRDAvailable_Handler,
+		},
+		{
+			MethodName: "GetInventory",
+			Handler:    _Core_GetInventory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
