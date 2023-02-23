@@ -123,7 +123,7 @@ export class FluxObject {
 
   get images(): string[] {
     const containerPaths = ["spec.template.spec.containers", "spec.containers"];
-    const containers = containerPaths.flatMap((path) => {
+    const images = containerPaths.flatMap((path) => {
       const containers = _.get(this.obj, path, []);
       // _.map returns an empty list if containers is not iterable
       return _.map(containers, (container: unknown) =>
@@ -131,7 +131,8 @@ export class FluxObject {
       );
     });
 
-    return containers.filter((image) => _.isString(image));
+    // filter out undefined, null, and other strange objects that might be there
+    return images.filter((image) => _.isString(image));
   }
 }
 
