@@ -1,4 +1,5 @@
 import { Kind } from "../api/core/types.pb";
+import { pod, rs } from "../__fixtures__/graph";
 import {
   Bucket,
   FluxObject,
@@ -447,6 +448,47 @@ describe("objects lib", () => {
 
     it("extracts name", () => {
       expect(completelyEmpty.name).toEqual("");
+    });
+  });
+
+  describe("extracting images from an object", () => {
+    it("should extract images from a replicaset", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify(rs),
+      });
+      expect(obj.images).toEqual([
+        "ghcr.io/fluxcd/notification-controller:v0.29.0",
+      ]);
+    });
+
+    it("should extract images from a pod", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify(pod),
+      });
+      expect(obj.images).toEqual(["ghcr.io/stefanprodan/podinfo:5.0.0"]);
+    });
+
+    it("should return an empty array if no images are found", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify({}),
+      });
+      expect(obj.images).toEqual([]);
+    });
+
+    it("should return an empty array if some object has a non-iterable containers", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify({
+          spec: { template: { spec: { containers: null } } },
+        }),
+      });
+      expect(obj.images).toEqual([]);
+
+      const obj2 = new FluxObject({
+        payload: JSON.stringify({
+          spec: { template: { spec: { containers: true } } },
+        }),
+      });
+      expect(obj2.images).toEqual([]);
     });
   });
 });
