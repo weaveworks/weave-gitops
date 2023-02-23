@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 	"io"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
@@ -25,6 +26,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	secretNotCreated = "secret not created"
 )
 
 type s3Reader interface {
@@ -107,7 +112,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 
 	cli, err := clustersClient.Scoped(clusterName)
 	if err != nil {
-		retErr := fmt.Errorf("getting cluster client: %w", err)
+		retErr := fmt.Errorf("session %s not found: %w", clusterName, err)
 		return &pb.GetSessionLogsResponse{Error: retErr.Error()}, retErr
 	}
 
@@ -141,6 +146,13 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 
 	logSourceFilter := msg.GetLogSourceFilter()
 	if logSourceFilter == "" || logSourceFilter == logger.SessionLogSource {
+		// check if we can get session logs already
+		// if the secret is not created yet, we should not display an error in the browser console
+		_, err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+		if err != nil {
+			return &pb.GetSessionLogsResponse{Error: secretNotCreated}, nil
+		}
+
 		// get gitops-run logs
 		gitopsRunLogs, token, err := getGitOpsRunLogs(
 			ctx,
@@ -182,6 +194,21 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		NextToken:  firstToken + "," + secondToken,
 		LogSources: append([]string{logger.SessionLogSource}, logSources...),
 	}, nil
+}
+
+func isSecretCreated(ctx context.Context, cli client.Client, namespace string, name string) (bool, error) {
+	secret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+
+	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func detectLogLevel(message string) string {
@@ -381,7 +408,6 @@ func getBucketConnectionInfo(ctx context.Context, clusterName string, fluxNamesp
 		},
 	}
 
-	// get secret
 	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
 		return nil, err
 	}

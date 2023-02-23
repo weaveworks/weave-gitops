@@ -94,8 +94,6 @@ function AutomationDetail({
         automation.clusterName
       )
     : { data: [], error: null, isLoading: false };
-  //add extra nodes
-
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
     objects,
     error,
