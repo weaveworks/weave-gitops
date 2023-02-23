@@ -9,7 +9,6 @@ import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
-import { theme } from "../lib/theme";
 
 const SignInBackgroundAnimation = React.lazy(
   () => import("../components/Animations/SignInBackground")
@@ -60,6 +59,10 @@ const DocsWrapper = styled(Flex)`
   a {
     color: ${({ theme }) => theme.colors.primary};
   }
+`;
+
+const MarginButton = styled(Button)`
+  margin-top: ${(props) => props.theme.spacing.medium};
 `;
 
 function SignIn() {
@@ -139,7 +142,7 @@ function SignIn() {
             </Flex>
           ) : null}
           {isFlagEnabled("OIDC_AUTH") && isFlagEnabled("CLUSTER_USER_AUTH") ? (
-            <Divider variant="middle" style={{ margin: theme.spacing.base }} />
+            <Divider variant="middle" />
           ) : null}
           {isFlagEnabled("CLUSTER_USER_AUTH") ? (
             <form
@@ -181,16 +184,9 @@ function SignIn() {
               </Flex>
               <Flex center>
                 {!authLoading ? (
-                  <Button
-                    type="submit"
-                    style={{ marginTop: theme.spacing.medium }}
-                  >
-                    CONTINUE
-                  </Button>
+                  <MarginButton type="submit">CONTINUE</MarginButton>
                 ) : (
-                  <div style={{ margin: theme.spacing.medium }}>
-                    <LoadingPage />
-                  </div>
+                  <LoadingPage />
                 )}
               </Flex>
             </form>
@@ -214,4 +210,11 @@ function SignIn() {
   );
 }
 
-export default styled(SignIn)``;
+export default styled(SignIn)`
+  .MuiDivider-root {
+    margin: ${(props) => props.theme.spacing.base};
+  }
+  ${LoadingPage} {
+    padding: ${(props) => props.theme.spacing.medium};
+  }
+`;
