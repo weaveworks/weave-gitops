@@ -1,5 +1,5 @@
 import { stringify } from "yaml";
-import _ from "lodash";
+import jsonpath from "jsonpath";
 import {
   Condition,
   GitRepositoryRef,
@@ -10,6 +10,7 @@ import {
   Object as ResponseObject,
   ObjectRef,
 } from "./api/core/types.pb";
+import _ from "lodash";
 export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
@@ -122,16 +123,15 @@ export class FluxObject {
   }
 
   get images(): string[] {
-    const containerPaths = ["spec.template.spec.containers", "spec.containers"];
-    const images = containerPaths.flatMap((path) => {
-      const containers = _.get(this.obj, path, []);
-      // _.map returns an empty list if containers is not iterable
-      return _.map(containers, (container: unknown) =>
-        _.get(container, "image")
-      );
+    const imagePaths = [
+      "spec.template.spec.containers[*].image",
+      "spec.containers[*].image",
+    ];
+
+    const images = imagePaths.flatMap((path) => {
+      return jsonpath.query(this.obj, path);
     });
 
-    // filter out undefined, null, and other strange objects that might be there
     return images.filter((image) => _.isString(image));
   }
 }
