@@ -1,5 +1,6 @@
-import { stringify } from "yaml";
 import jsonpath from "jsonpath";
+import _ from "lodash";
+import { stringify } from "yaml";
 import {
   Condition,
   GitRepositoryRef,
@@ -10,7 +11,6 @@ import {
   Object as ResponseObject,
   ObjectRef,
 } from "./api/core/types.pb";
-import _ from "lodash";
 export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
